@@ -595,6 +595,42 @@
         ]
       }
     },
+    "/api/v1/resumes/{id}/thumbnail.svg": {
+      "get": {
+        "operationId": "resumes_getResumeThumbnail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Resume ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lightweight SVG thumbnail of the resume (name + title + summary preview)",
+        "tags": [
+          "resumes"
+        ]
+      }
+    },
     "/api/v1/resumes/manage/user/{userId}": {
       "get": {
         "operationId": "resumes_listResumesForUser",
@@ -3835,6 +3871,36 @@
           }
         ],
         "summary": "Assign roles to a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/me/permissions": {
+      "get": {
+        "operationId": "users_listMyPermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Flat list of permission keys like \"job:create\"",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPermissionsDataDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List permission keys granted to the current user (for UI gating)",
         "tags": [
           "users"
         ]
@@ -19089,6 +19155,20 @@
           "newPassword"
         ]
       },
+      "UserPermissionsDataDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissions"
+        ]
+      },
       "SectionTypeListDataDto": {
         "type": "object",
         "properties": {
@@ -26045,6 +26125,15 @@
                     },
                     "score": {
                       "type": "number"
+                    },
+                    "mutualCount": {
+                      "type": "integer"
+                    },
+                    "commonSkills": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [
@@ -26053,7 +26142,9 @@
                     "username",
                     "photoURL",
                     "reason",
-                    "score"
+                    "score",
+                    "mutualCount",
+                    "commonSkills"
                   ]
                 }
               },
@@ -26192,6 +26283,15 @@
                     },
                     "score": {
                       "type": "number"
+                    },
+                    "mutualCount": {
+                      "type": "integer"
+                    },
+                    "commonSkills": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [
@@ -26200,7 +26300,9 @@
                     "username",
                     "photoURL",
                     "reason",
-                    "score"
+                    "score",
+                    "mutualCount",
+                    "commonSkills"
                   ]
                 }
               },

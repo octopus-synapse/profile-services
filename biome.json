@@ -2,7 +2,12 @@
   "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
   "extends": ["@octopus-synapse/biome-config/biome.json"],
   "files": {
-    "includes": ["!**/swagger.json", "!**/swagger-test.json", "!**/swagger-generation-report.json"]
+    "includes": [
+      "!**/swagger.json",
+      "!**/swagger-test.json",
+      "!**/swagger-generation-report.json",
+      "!docs"
+    ]
   },
   "overrides": [
     {

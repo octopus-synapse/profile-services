@@ -16,6 +16,7 @@
     "lint:fast": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "i18n:audit": "bun run scripts/i18n-audit.ts",
     "test": "bun test src",
     "test:unit": "bun test src",
     "test:watch": "bun test src --watch",

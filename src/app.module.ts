@@ -50,6 +50,7 @@ import { CustomThrottlerGuard } from '@/bounded-contexts/platform/common/guards/
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PlatformModule } from '@/bounded-contexts/platform/common/platform.module';
 import { HealthModule } from '@/bounded-contexts/platform/health/health.module';
+import { I18nModule } from '@/bounded-contexts/platform/i18n/i18n.module';
 import { MetricsModule } from '@/bounded-contexts/platform/metrics/metrics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 // Test Runner
@@ -131,6 +132,7 @@ import { AppController } from './app.controller';
     CacheModule,
     AuditLogModule,
     PrismaModule,
+    I18nModule,
     PlatformModule,
     HealthModule,
     MetricsModule,
