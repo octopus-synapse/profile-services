@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { EnglishLevel, JobType, PaymentCurrency, RemotePolicy } from '@prisma/client';
+import type { ExtractedJob } from '@/bounded-contexts/ai/domain/ports/llm.port';
+import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate, searchWhere } from '@/shared-kernel/database';
@@ -12,12 +14,16 @@ import { ApplicationTrackerService } from '../tracker/application-tracker.servic
 import { computeFitScore, type FitScore } from './compute-fit-score';
 import { extractSoftSignals, percentOverlap } from './fit-signals';
 
+const IMPORT_FETCH_TIMEOUT_MS = 20_000;
+const IMPORT_MAX_HTML_BYTES = 800_000;
+
 @Injectable()
 export class JobService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly resumeAnalytics: ResumeAnalyticsFacade,
     private readonly tracker: ApplicationTrackerService,
+    private readonly llm: LlmPort,
   ) {}
 
   async create(
@@ -287,6 +293,54 @@ export class JobService {
       limit: safeLimit,
       totalPages,
     };
+  }
+
+  /**
+   * Fetch a job posting URL and ask the LLM to extract structured fields.
+   * Returns a preview the UI shows before the recruiter confirms and persists
+   * via the normal POST /v1/jobs flow — we never create the job here.
+   */
+  async importFromUrl(url: string): Promise<{ source: string; preview: ExtractedJob }> {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      throw new ConflictException('INVALID_URL');
+    }
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new ConflictException('INVALID_URL');
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), IMPORT_FETCH_TIMEOUT_MS);
+    let html: string;
+    try {
+      const res = await fetch(parsedUrl.toString(), {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'PatchCareersBot/1.0 (+https://patch.careers)' },
+        redirect: 'follow',
+      });
+      if (!res.ok) {
+        throw new ConflictException('FETCH_FAILED');
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      const slice =
+        buf.byteLength > IMPORT_MAX_HTML_BYTES ? buf.slice(0, IMPORT_MAX_HTML_BYTES) : buf;
+      html = new TextDecoder('utf-8', { fatal: false }).decode(slice);
+    } catch (err) {
+      if (err instanceof ConflictException) throw err;
+      throw new ConflictException('FETCH_FAILED');
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const text = stripHtml(html);
+    if (text.trim().length < 50) {
+      throw new ConflictException('PAGE_TOO_THIN');
+    }
+
+    const preview = await this.llm.extractJobFromText(text);
+    return { source: parsedUrl.toString(), preview };
   }
 
   /**
@@ -697,4 +751,20 @@ export class JobService {
       totalPages: Math.ceil(total / safeLimit),
     };
   }
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
 }

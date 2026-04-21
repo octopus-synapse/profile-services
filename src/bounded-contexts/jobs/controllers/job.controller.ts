@@ -10,12 +10,17 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { EnglishLevel, JobType } from '@prisma/client';
 import { z } from 'zod';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import {
+  RateLimit,
+  RateLimitGuard,
+} from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
@@ -23,6 +28,8 @@ import {
   ApplyToJobSchema,
   CreateJobDto,
   CreateJobSchema,
+  ImportJobFromUrlDto,
+  ImportJobFromUrlSchema,
   JobApplicationsByJobDto,
   JobResponseDto,
   PaginatedJobsDto,
@@ -267,6 +274,18 @@ export class JobController {
   @ApiParam({ name: 'id', type: 'string' })
   async withdrawApplication(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
     return this.jobService.withdrawApplication(id, req.user.userId);
+  }
+
+  @Post('import-from-url')
+  @RequirePermission(Permission.JOB_CREATE)
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ points: 5, duration: 600, keyStrategy: 'user' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetch a careers page and return an LLM-extracted job preview (not persisted)',
+  })
+  async importFromUrl(@Body(createZodPipe(ImportJobFromUrlSchema)) body: ImportJobFromUrlDto) {
+    return this.jobService.importFromUrl(body.url);
   }
 
   @Post()

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
+import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { JobController } from './controllers/job.controller';
 import { JobService } from './services/job.service';
@@ -10,7 +12,7 @@ import { ApplicationTrackerController } from './tracker/application-tracker.cont
 import { ApplicationTrackerService } from './tracker/application-tracker.service';
 
 @Module({
-  imports: [PrismaModule, ResumeAnalyticsModule, EmailModule],
+  imports: [PrismaModule, ResumeAnalyticsModule, EmailModule, AiModule, RateLimitModule],
   controllers: [JobController, ApplicationTrackerController],
   providers: [JobService, ApplicationTrackerService, AntiGhostingService, AntiGhostingWorker],
   exports: [JobService, ApplicationTrackerService, AntiGhostingService],

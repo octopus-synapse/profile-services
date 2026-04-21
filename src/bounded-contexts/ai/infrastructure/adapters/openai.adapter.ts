@@ -3,11 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import {
+  type ExtractedJob,
   type ExtractedResume,
   LlmPort,
   type TailorResumeInput,
   type TailorResumeOutput,
 } from '../../domain/ports/llm.port';
+import { EXTRACT_JOB_SYSTEM_PROMPT } from '../../domain/prompts/extract-job.v1';
 import { EXTRACT_RESUME_SYSTEM_PROMPT } from '../../domain/prompts/extract-resume.v1';
 import {
   buildTailorResumeUserMessage,
@@ -27,6 +29,21 @@ const TailorOutputSchema = z.object({
       }),
     )
     .default([]),
+});
+
+const ExtractedJobSchema = z.object({
+  title: z.string().nullable(),
+  company: z.string().nullable(),
+  location: z.string().nullable(),
+  description: z.string().nullable(),
+  requirements: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+  salaryRange: z.string().nullable(),
+  applyUrl: z.string().nullable(),
+  jobType: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE']).nullable(),
+  remotePolicy: z.enum(['REMOTE', 'HYBRID', 'ONSITE']).nullable(),
+  paymentCurrency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).nullable(),
+  minEnglishLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']).nullable(),
 });
 
 const ExtractedResumeSchema = z.object({
@@ -157,6 +174,44 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
         `OpenAI extract response failed schema validation: ${result.error.message}`,
       );
       throw new Error('Invalid LLM extract output shape');
+    }
+    return result.data;
+  }
+
+  async extractJobFromText(text: string): Promise<ExtractedJob> {
+    this.assertConfigured();
+    if (!text.trim()) {
+      throw new Error('extractJobFromText called with empty input');
+    }
+    const trimmed = text.length > 30000 ? text.slice(0, 30000) : text;
+
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      max_tokens: this.maxTokens,
+      temperature: 0,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: EXTRACT_JOB_SYSTEM_PROMPT },
+        { role: 'user', content: trimmed },
+      ],
+    });
+
+    const raw = response.choices[0]?.message?.content ?? '';
+    if (!raw) throw new Error('OpenAI returned an empty response for extractJobFromText');
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      this.logger.error('Failed to JSON.parse OpenAI extract-job response', raw);
+      throw err;
+    }
+    const result = ExtractedJobSchema.safeParse(parsed);
+    if (!result.success) {
+      this.logger.error(
+        `OpenAI extract-job response failed schema validation: ${result.error.message}`,
+      );
+      throw new Error('Invalid LLM extract-job output shape');
     }
     return result.data;
   }

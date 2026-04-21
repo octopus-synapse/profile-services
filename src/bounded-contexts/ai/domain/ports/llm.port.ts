@@ -76,9 +76,29 @@ export type ExtractedResume = {
   }>;
 };
 
+/** Structured job posting extracted from free-form text (e.g. a careers page).
+ * Mirrors the shape a recruiter fills in the "New job" form — the UI shows this
+ * as a preview the user can edit before persisting. Null/empty when absent. */
+export type ExtractedJob = {
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  description: string | null;
+  requirements: string[];
+  skills: string[];
+  salaryRange: string | null;
+  applyUrl: string | null;
+  jobType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE' | null;
+  remotePolicy: 'REMOTE' | 'HYBRID' | 'ONSITE' | null;
+  paymentCurrency: 'BRL' | 'USD' | 'EUR' | 'GBP' | null;
+  minEnglishLevel: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'FLUENT' | null;
+};
+
 export abstract class LlmPort {
   /** Rewrite a resume's summary and selected bullets for a specific job. */
   abstract tailorResume(input: TailorResumeInput): Promise<TailorResumeOutput>;
   /** Turn raw CV text (e.g. extracted from PDF) into a structured resume. */
   abstract extractResumeFromText(text: string): Promise<ExtractedResume>;
+  /** Turn a careers-page text dump into a structured job posting preview. */
+  abstract extractJobFromText(text: string): Promise<ExtractedJob>;
 }
