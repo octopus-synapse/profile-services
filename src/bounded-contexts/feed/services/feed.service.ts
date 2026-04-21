@@ -39,7 +39,13 @@ export class FeedService {
    * 7. Include thread context for threaded posts
    * 8. Return { posts, nextCursor }
    */
-  async getTimeline(userId: string, cursor?: string, limit = 20, type?: PostType) {
+  async getTimeline(
+    userId: string,
+    cursor?: string,
+    limit = 20,
+    type?: PostType,
+    followingOnly = false,
+  ) {
     // 1. Get IDs of users whose posts should be prioritized in the feed
     const [followingRecords, connectionRecords] = await Promise.all([
       this.prisma.follow.findMany({
@@ -62,13 +68,21 @@ export class FeedService {
 
     const prioritizedUserIds = new Set([...followingIds, ...connectionIds, userId]);
 
-    // 2. Query all published posts (+ own unpublished scheduled posts) — no author filter
+    // 2. Query posts.
+    // "Minha bolha" (followingOnly): restrict to authors the user follows.
+    // "Explorar" (default): all published + own scheduled, then prioritize.
+    if (followingOnly && followingIds.length === 0) {
+      return { posts: [], nextCursor: null };
+    }
+
     const posts = await this.prisma.post.findMany({
       where: {
         isDeleted: false,
         ...(type ? { type } : {}),
         ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
-        OR: [{ isPublished: true }, { authorId: userId, isPublished: false }],
+        ...(followingOnly
+          ? { authorId: { in: followingIds }, isPublished: true }
+          : { OR: [{ isPublished: true }, { authorId: userId, isPublished: false }] }),
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -79,7 +93,7 @@ export class FeedService {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: limit * 3, // fetch more so prioritization has room to pick
+      take: followingOnly ? limit : limit * 3, // skip prioritization buffer in followingOnly
     });
 
     // Sort: prioritized posts first (by author in network or co-author), then by createdAt desc

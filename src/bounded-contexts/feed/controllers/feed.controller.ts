@@ -49,6 +49,12 @@ export class FeedController {
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'type', required: false, type: String })
+  @ApiQuery({
+    name: 'followingOnly',
+    required: false,
+    type: Boolean,
+    description: 'When true, restricts to posts from users the viewer follows ("Minha bolha").',
+  })
   @ApiDataResponse(FeedTimelineDataDto, {
     description: 'Feed timeline with posts',
   })
@@ -57,12 +63,14 @@ export class FeedController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
     @Query('type') type?: PostType,
+    @Query('followingOnly') followingOnly?: string,
   ) {
     return this.feedService.getTimeline(
       user.userId,
       cursor,
       limit ? Math.min(Number(limit), 50) : 20,
       type,
+      followingOnly === 'true' || followingOnly === '1',
     );
   }
 

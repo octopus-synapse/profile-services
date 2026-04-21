@@ -14294,6 +14294,42 @@
         ]
       }
     },
+    "/api/v1/jobs/import-from-url": {
+      "post": {
+        "operationId": "jobs_importFromUrl",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportJobFromUrlDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fetch a careers page and return an LLM-extracted job preview (not persisted)",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
     "/api/v1/jobs/applications/tracker": {
       "get": {
         "operationId": "applicationTracker_getTimeline",
@@ -28003,6 +28039,19 @@
             "type": "string"
           }
         }
+      },
+      "ImportJobFromUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "url"
+        ]
       },
       "CreateJobDto": {
         "type": "object",
