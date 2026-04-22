@@ -14668,6 +14668,46 @@
         ]
       }
     },
+    "/api/v1/recruiting/match-candidates": {
+      "post": {
+        "operationId": "recruiting_matchCandidates",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchCandidatesRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Top candidates with their per-dimension fit breakdown.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchCandidatesDataDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rank up-to-N opt-in candidates for a job description using the same structured fit-score model used on the candidate side (reverse match).",
+        "tags": [
+          "recruiting"
+        ]
+      }
+    },
     "/api/v1/apply-mode/weekly-curated/current": {
       "get": {
         "operationId": "applyMode_current",
@@ -28896,6 +28936,152 @@
         "required": [
           "type"
         ]
+      },
+      "MatchCandidatesDataDto": {
+        "type": "object",
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "name": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "photoURL": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "bio": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "primaryStack": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "fit": {
+                  "type": "object",
+                  "properties": {
+                    "score": {
+                      "type": "number"
+                    },
+                    "breakdown": {
+                      "type": "object",
+                      "properties": {
+                        "skillOverlap": {
+                          "type": "number"
+                        },
+                        "englishMatch": {
+                          "type": "number"
+                        },
+                        "remoteMatch": {
+                          "type": "number"
+                        },
+                        "matchedSkills": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "missingSkills": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "skillOverlap",
+                        "englishMatch",
+                        "remoteMatch",
+                        "matchedSkills",
+                        "missingSkills"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "score",
+                    "breakdown"
+                  ]
+                }
+              },
+              "required": [
+                "userId",
+                "username",
+                "name",
+                "photoURL",
+                "bio",
+                "primaryStack",
+                "fit"
+              ]
+            }
+          },
+          "poolSize": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidates",
+          "poolSize"
+        ]
+      },
+      "MatchCandidatesRequestDto": {
+        "type": "object",
+        "properties": {
+          "jobTitle": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "jobDescription": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "skills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          },
+          "minEnglishLevel": {
+            "type": "string",
+            "enum": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ]
+          },
+          "remotePolicy": {
+            "type": "string",
+            "enum": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "maximum": 25,
+            "exclusiveMaximum": false,
+            "default": 10
+          }
+        }
       },
       "CurrentBatchDataDto": {
         "type": "object",

@@ -60,6 +60,8 @@ import { WebhookModule } from '@/bounded-contexts/platform/webhooks/webhook.modu
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
 // Presentation Context
 import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.module';
+// Recruiting Context — reverse candidate matching for recruiters.
+import { RecruitingModule } from '@/bounded-contexts/recruiting/recruiting.module';
 // Resumes Context
 import { ResumesModule } from '@/bounded-contexts/resumes';
 // Skills Catalog Context
@@ -164,6 +166,7 @@ import { AppController } from './app.controller';
     SocialModule,
     FeedModule,
     JobsModule,
+    RecruitingModule,
     AutomationModule,
     BadgesModule,
     SuccessStoriesModule,
