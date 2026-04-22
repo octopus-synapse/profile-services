@@ -2,9 +2,15 @@ import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nest
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { TailorResumeRequestDto } from '../dto/tailor-resume-request.dto';
+import {
+  TailoredVersionDiffDataDto,
+  TailoredVersionsListDataDto,
+  TailorResumeDataDto,
+} from '../dto/tailor-resume-response.dto';
 import { toVersionIsoList } from '../presenters/resume-version.presenter';
 import {
   ResumeTailorService,
@@ -30,6 +36,9 @@ export class ResumeTailorController {
   })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiBody({ type: TailorResumeRequestDto })
+  @ApiDataResponse(TailorResumeDataDto, {
+    description: 'New tailored version metadata + bullet-level diff.',
+  })
   async tailorForJob(
     @Param('resumeId') resumeId: string,
     @Body() body: TailorResumeRequestDto,
@@ -49,6 +58,9 @@ export class ResumeTailorController {
   @Get(':resumeId/tailored-versions')
   @ApiOperation({ summary: 'List tailored resume variants produced by the AI.' })
   @ApiParam({ name: 'resumeId', type: 'string' })
+  @ApiDataResponse(TailoredVersionsListDataDto, {
+    description: 'All tailored variants the user has generated so far.',
+  })
   async listTailored(
     @Param('resumeId') resumeId: string,
     @Req() req: RequestWithUser,
@@ -77,6 +89,9 @@ export class ResumeTailorController {
     summary: 'Structured diff between the master resume and a tailored version.',
   })
   @ApiParam({ name: 'resumeId', type: 'string' })
+  @ApiDataResponse(TailoredVersionDiffDataDto, {
+    description: 'Summary / jobTitle / bullets before → after shape.',
+  })
   async getDiff(
     @Param('resumeId') resumeId: string,
     @Query('versionId') versionId: string,

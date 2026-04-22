@@ -1908,8 +1908,30 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "New tailored version metadata + bullet-level diff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TailorResumeDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1938,7 +1960,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "All tailored variants the user has generated so far.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TailoredVersionsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1975,7 +2019,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Summary / jobTitle / bullets before → after shape.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TailoredVersionDiffDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -23154,6 +23220,65 @@
           "version"
         ]
       },
+      "TailorResumeDataDto": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "jobTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "original": {
+                  "type": "string"
+                },
+                "tailored": {
+                  "type": "string"
+                },
+                "highlights": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "original",
+                "tailored",
+                "highlights"
+              ]
+            }
+          }
+        },
+        "required": [
+          "versionId",
+          "versionNumber",
+          "label",
+          "summary",
+          "jobTitle",
+          "bullets"
+        ]
+      },
       "TailorResumeRequestDto": {
         "type": "object",
         "properties": {
@@ -23174,6 +23299,128 @@
             "maxLength": 200
           }
         }
+      },
+      "TailoredVersionsListDataDto": {
+        "type": "object",
+        "properties": {
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "versionNumber": {
+                  "type": "integer"
+                },
+                "label": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "tailoredJobId": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "versionNumber",
+                "label",
+                "createdAt",
+                "tailoredJobId"
+              ]
+            }
+          }
+        },
+        "required": [
+          "versions"
+        ]
+      },
+      "TailoredVersionDiffDataDto": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "before": {
+                "type": "string",
+                "nullable": true
+              },
+              "after": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "before",
+              "after"
+            ],
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          },
+          "jobTitle": {
+            "type": "object",
+            "properties": {
+              "before": {
+                "type": "string",
+                "nullable": true
+              },
+              "after": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "before",
+              "after"
+            ],
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "before": {
+                  "type": "string"
+                },
+                "after": {
+                  "type": "string"
+                },
+                "highlights": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "before",
+                "after",
+                "highlights"
+              ]
+            }
+          }
+        },
+        "required": [
+          "versionId",
+          "summary",
+          "jobTitle",
+          "bullets"
+        ]
       },
       "HealthCheckResultDto": {
         "type": "object",
