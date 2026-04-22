@@ -1,32 +1,53 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
+import type { Response } from 'express';
+import { DictionaryProjectorService } from '../application/dictionary-projector.service';
 import { I18nDictionaryController } from './i18n-dictionary.controller';
 
+function mockRes(): { res: Response; setHeader: ReturnType<typeof mock> } {
+  const setHeader = mock(() => undefined);
+  const res = { setHeader } as unknown as Response;
+  return { res, setHeader };
+}
+
 describe('I18nDictionaryController', () => {
-  const controller = new I18nDictionaryController();
+  const controller = new I18nDictionaryController(new DictionaryProjectorService());
 
-  it('getErrors returns both locales and a known code', () => {
-    const res = controller.getErrors();
-    expect(res.success).toBe(true);
-    expect(res.data.locales).toEqual(['en', 'pt-BR']);
-    expect(res.data.entries.ENTITY_NOT_FOUND).toBeDefined();
-    expect(res.data.entries.ENTITY_NOT_FOUND.en).toContain('not found');
-    expect(res.data.entries.ENTITY_NOT_FOUND['pt-BR']).toContain('não encontrado');
+  it('getErrors returns pt-BR messages when Accept-Language is pt-BR', () => {
+    const { res, setHeader } = mockRes();
+    const body = controller.getErrors('pt-BR', res);
+    expect(body.locale).toBe('pt-BR');
+    expect(body.entries.ENTITY_NOT_FOUND).toContain('não encontrado');
+    expect(setHeader).toHaveBeenCalledWith('Content-Language', 'pt-BR');
   });
 
-  it('getEnums returns grouped enum labels', () => {
-    const res = controller.getEnums();
-    expect(res.success).toBe(true);
-    const rp = res.data.entries.RemotePolicy;
-    expect(rp.REMOTE['pt-BR']).toBe('Remoto');
-    expect(rp.HYBRID.en).toBe('Hybrid');
+  it('getErrors returns en messages when Accept-Language is en', () => {
+    const { res } = mockRes();
+    const body = controller.getErrors('en', res);
+    expect(body.locale).toBe('en');
+    expect(body.entries.ENTITY_NOT_FOUND).toContain('not found');
   });
 
-  it('getNotifications returns title/body templates with declared params', () => {
-    const res = controller.getNotifications();
-    expect(res.success).toBe(true);
-    const postLiked = res.data.entries.POST_LIKED;
-    expect(postLiked.title.en).toContain('{actorName}');
-    expect(postLiked.body['pt-BR']).toContain('{actorName}');
+  it('getErrors falls back to default locale for unsupported', () => {
+    const { res } = mockRes();
+    const body = controller.getErrors('fr-FR', res);
+    expect(body.locale).toBe('en');
+  });
+
+  it('getEnums returns flat value → label map in the negotiated locale', () => {
+    const { res } = mockRes();
+    const body = controller.getEnums('pt-BR', res);
+    expect(body.locale).toBe('pt-BR');
+    expect(body.entries.RemotePolicy.REMOTE).toBe('Remoto');
+    expect(body.entries.JobType.FULL_TIME).toBe('Tempo integral');
+  });
+
+  it('getNotifications returns templates with title/body/params in negotiated locale', () => {
+    const { res } = mockRes();
+    const body = controller.getNotifications('pt-BR', res);
+    expect(body.locale).toBe('pt-BR');
+    const postLiked = body.entries.POST_LIKED;
+    expect(postLiked.title).toContain('{actorName}');
+    expect(postLiked.body).toContain('{actorName}');
     expect(postLiked.params).toEqual(['actorName', 'postExcerpt']);
   });
 });

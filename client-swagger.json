@@ -155,6 +155,102 @@
         ]
       }
     },
+    "/api/v1/i18n/dictionary/errors": {
+      "get": {
+        "description": "Returns `{ locale, entries: { [CODE]: localized message } }`. Locale is chosen from `Accept-Language` (supports `en`, `pt-BR`).",
+        "operationId": "i18n_getErrors",
+        "parameters": [
+          {
+            "name": "accept-language",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorsDictionaryDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Error-message dictionary in the negotiated locale",
+        "tags": [
+          "i18n"
+        ]
+      }
+    },
+    "/api/v1/i18n/dictionary/enums": {
+      "get": {
+        "description": "Returns `{ locale, entries: { [EnumName]: { [VALUE]: label } } }`. Locale is chosen from `Accept-Language` (supports `en`, `pt-BR`).",
+        "operationId": "i18n_getEnums",
+        "parameters": [
+          {
+            "name": "accept-language",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumsDictionaryDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Prisma enum label dictionary in the negotiated locale",
+        "tags": [
+          "i18n"
+        ]
+      }
+    },
+    "/api/v1/i18n/dictionary/notifications": {
+      "get": {
+        "description": "Returns `{ locale, entries: { [TYPE]: { title, body, params[] } } }`. Templates may contain `{param}` placeholders — the client substitutes them at render time using the `params` list as the allowed key set.",
+        "operationId": "i18n_getNotifications",
+        "parameters": [
+          {
+            "name": "accept-language",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationsDictionaryDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Notification-template dictionary in the negotiated locale",
+        "tags": [
+          "i18n"
+        ]
+      }
+    },
     "/api/v1/platform/stats": {
       "get": {
         "operationId": "platform_getStatistics",
@@ -15310,6 +15406,130 @@
         },
         "required": [
           "spec"
+        ]
+      },
+      "NotificationTemplateDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Short title for UI surfaces like the bell dropdown.",
+            "example": "{actorName} curtiu seu post"
+          },
+          "body": {
+            "type": "string",
+            "description": "Longer body for the notifications page / email.",
+            "example": "{actorName} curtiu seu post \"{postExcerpt}\""
+          },
+          "params": {
+            "description": "Placeholder names that must be supplied when rendering.",
+            "example": [
+              "actorName",
+              "postExcerpt"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "body",
+          "params"
+        ]
+      },
+      "ErrorsDictionaryDto": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "description": "Locale the strings are in (negotiated from Accept-Language).",
+            "enum": [
+              "en",
+              "pt-BR"
+            ],
+            "example": "pt-BR"
+          },
+          "entries": {
+            "type": "object",
+            "description": "Map from stable error code to the localized message.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "ENTITY_NOT_FOUND": "Usuário não encontrado",
+              "CONFLICT": "Conflito"
+            }
+          }
+        },
+        "required": [
+          "locale",
+          "entries"
+        ]
+      },
+      "EnumsDictionaryDto": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "description": "Locale the strings are in (negotiated from Accept-Language).",
+            "enum": [
+              "en",
+              "pt-BR"
+            ],
+            "example": "pt-BR"
+          },
+          "entries": {
+            "type": "object",
+            "description": "Map from Prisma enum name to its `{ value → label }` map in the negotiated locale.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "RemotePolicy": {
+                "REMOTE": "Remoto",
+                "HYBRID": "Híbrido",
+                "ONSITE": "Presencial"
+              },
+              "JobType": {
+                "FULL_TIME": "Tempo integral",
+                "PART_TIME": "Meio período"
+              }
+            }
+          }
+        },
+        "required": [
+          "locale",
+          "entries"
+        ]
+      },
+      "NotificationsDictionaryDto": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "description": "Locale the strings are in (negotiated from Accept-Language).",
+            "enum": [
+              "en",
+              "pt-BR"
+            ],
+            "example": "pt-BR"
+          },
+          "entries": {
+            "type": "object",
+            "description": "Map from NotificationType value to its template in the negotiated locale.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/NotificationTemplateDto"
+            }
+          }
+        },
+        "required": [
+          "locale",
+          "entries"
         ]
       },
       "PlatformStatsResponseDto": {
