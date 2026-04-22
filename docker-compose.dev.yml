@@ -112,6 +112,7 @@ services:
       - profile-dev-network
     volumes:
       - ./src:/app/src:delegated
+      - ./packages:/app/packages:delegated
       - ./test:/app/test:delegated
       - ./data:/app/data:delegated
       - ./prisma:/app/prisma:delegated
