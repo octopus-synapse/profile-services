@@ -16,6 +16,8 @@ import { ATSModule } from '@/bounded-contexts/ats-validation/ats/ats.module';
 import { AutomationModule } from '@/bounded-contexts/automation/automation.module';
 // Badges
 import { BadgesModule } from '@/bounded-contexts/badges/badges.module';
+// Career Graph Context — cohort projections for the "where are people like me going" surface.
+import { CareerGraphModule } from '@/bounded-contexts/career-graph/career-graph.module';
 // Collaboration Context
 import { AdminCollaborationModule } from '@/bounded-contexts/collaboration/admin/admin-collaboration.module';
 import { CollaborationModule } from '@/bounded-contexts/collaboration/collaboration.module';
@@ -167,6 +169,7 @@ import { AppController } from './app.controller';
     FeedModule,
     JobsModule,
     RecruitingModule,
+    CareerGraphModule,
     AutomationModule,
     BadgesModule,
     SuccessStoriesModule,

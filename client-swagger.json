@@ -14708,6 +14708,43 @@
         ]
       }
     },
+    "/api/v1/career-graph/view": {
+      "post": {
+        "operationId": "careerGraph_view",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewCareerGraphRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User snapshot + cohort buckets + forward projections. Never includes candidate identities.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewCareerGraphDataDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Aggregate opt-in peers who share ≥60% of the requested stack into experienceYears buckets; returns current bucket + 3/5/10y projections.",
+        "tags": [
+          "career-graph"
+        ]
+      }
+    },
     "/api/v1/apply-mode/weekly-curated/current": {
       "get": {
         "operationId": "applyMode_current",
@@ -29082,6 +29119,194 @@
             "default": 10
           }
         }
+      },
+      "ViewCareerGraphDataDto": {
+        "type": "object",
+        "properties": {
+          "stack": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "experienceYears": {
+                "type": "integer"
+              },
+              "jobTitle": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "experienceYears",
+              "jobTitle"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "totalPeers": {
+            "type": "integer"
+          },
+          "current": {
+            "type": "object",
+            "properties": {
+              "experienceYears": {
+                "type": "integer"
+              },
+              "peerCount": {
+                "type": "integer"
+              },
+              "topJobTitles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "count"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "experienceYears",
+              "peerCount",
+              "topJobTitles"
+            ],
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "experienceYears": {
+                  "type": "integer"
+                },
+                "peerCount": {
+                  "type": "integer"
+                },
+                "topJobTitles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "count": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "count"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "experienceYears",
+                "peerCount",
+                "topJobTitles"
+              ]
+            }
+          },
+          "projections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "yearsAhead": {
+                  "type": "integer"
+                },
+                "bucket": {
+                  "type": "object",
+                  "properties": {
+                    "experienceYears": {
+                      "type": "integer"
+                    },
+                    "peerCount": {
+                      "type": "integer"
+                    },
+                    "topJobTitles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "title",
+                          "count"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "experienceYears",
+                    "peerCount",
+                    "topJobTitles"
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": [
+                "yearsAhead",
+                "bucket"
+              ]
+            }
+          }
+        },
+        "required": [
+          "stack",
+          "user",
+          "totalPeers",
+          "current",
+          "buckets",
+          "projections"
+        ]
+      },
+      "ViewCareerGraphRequestDto": {
+        "type": "object",
+        "properties": {
+          "stack": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            }
+          },
+          "maxBuckets": {
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "maximum": 40,
+            "exclusiveMaximum": false,
+            "default": 20
+          }
+        },
+        "required": [
+          "stack"
+        ]
       },
       "CurrentBatchDataDto": {
         "type": "object",
