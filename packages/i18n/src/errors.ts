@@ -92,10 +92,6 @@ export const ERROR_DICTIONARY = {
     en: 'ATS rule set not found',
     'pt-BR': 'Conjunto de regras do ATS não encontrado',
   },
-  ATS_SCORE_OUT_OF_RANGE: {
-    en: 'ATS score is out of range',
-    'pt-BR': 'A pontuação do ATS está fora do intervalo permitido',
-  },
   ATS_VALIDATION_UNAVAILABLE: {
     en: 'ATS validation is temporarily unavailable',
     'pt-BR': 'A validação do ATS está temporariamente indisponível',
@@ -1017,33 +1013,13 @@ export const ERROR_DICTIONARY = {
     en: 'Access denied to this theme',
     'pt-BR': 'Acesso ao tema negado',
   },
-  THEME_ALREADY_PUBLISHED: {
-    en: 'Theme is already published',
-    'pt-BR': 'Tema já publicado',
-  },
-  THEME_APPROVAL_PENDING: {
-    en: 'Theme is already pending approval',
-    'pt-BR': 'Tema já está aguardando aprovação',
-  },
   THEME_CONFIG_INVALID: {
     en: 'Theme configuration is invalid',
     'pt-BR': 'Configuração do tema inválida',
   },
-  THEME_INVALID: {
-    en: 'Theme is invalid',
-    'pt-BR': 'Tema inválido',
-  },
   THEME_NOT_FOUND: {
     en: 'Theme not found',
     'pt-BR': 'Tema não encontrado',
-  },
-  THEME_NOT_OWNED: {
-    en: 'You can only modify your own themes',
-    'pt-BR': 'Você só pode modificar os seus próprios temas',
-  },
-  THEME_SLUG_TAKEN: {
-    en: 'Theme slug is already taken',
-    'pt-BR': 'Este slug de tema já está em uso',
   },
   TOKEN_INVALID: {
     en: 'Token is invalid',
