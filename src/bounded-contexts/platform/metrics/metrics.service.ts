@@ -238,11 +238,11 @@ export class MetricsService implements OnModuleInit {
       const labels = value.labels as Record<string, string>;
       const route = `${labels.method} ${labels.route}`;
 
-      if (!routeMap.has(route)) {
-        routeMap.set(route, { count: 0, sum: 0, buckets: new Map() });
+      let entry = routeMap.get(route);
+      if (!entry) {
+        entry = { count: 0, sum: 0, buckets: new Map() };
+        routeMap.set(route, entry);
       }
-
-      const entry = routeMap.get(route)!;
 
       if (value.metricName?.endsWith('_count') || (!value.metricName && labels.le === undefined)) {
         if (labels.le === undefined) {

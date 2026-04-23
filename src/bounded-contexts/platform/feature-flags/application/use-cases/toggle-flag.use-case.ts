@@ -84,7 +84,8 @@ export class ToggleFlagUseCase {
     const seen = new Set<string>();
 
     while (stack.length > 0) {
-      const k = stack.pop()!;
+      const k = stack.pop();
+      if (k === undefined) break; // unreachable — while-guard above — but satisfies the type narrow
       if (seen.has(k)) continue;
       seen.add(k);
       const parent = byKey.get(k);

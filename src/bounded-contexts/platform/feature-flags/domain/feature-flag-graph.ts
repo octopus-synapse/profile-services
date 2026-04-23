@@ -71,7 +71,8 @@ function detectCycle(defs: readonly FlagDefinition[]): void {
     color.set(def.key, GRAY);
 
     while (stack.length > 0) {
-      const top = stack[stack.length - 1]!;
+      const top = stack[stack.length - 1];
+      if (top === undefined) break; // unreachable — while-guard above
       const next = (deps.get(top) ?? []).find((d) => color.get(d) !== BLACK);
 
       if (next === undefined) {

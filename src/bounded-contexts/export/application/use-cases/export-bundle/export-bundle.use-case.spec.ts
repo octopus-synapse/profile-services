@@ -37,9 +37,13 @@ describe('ExportBundleUseCase', () => {
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
 
-    const pdf = await zip.file('resume.pdf')!.async('string');
-    const docx = await zip.file('resume.docx')!.async('string');
-    const json = await zip.file('resume.json')!.async('string');
+    const pdfFile = zip.file('resume.pdf');
+    const docxFile = zip.file('resume.docx');
+    const jsonFile = zip.file('resume.json');
+    if (!pdfFile || !docxFile || !jsonFile) throw new Error('expected entries missing from bundle');
+    const pdf = await pdfFile.async('string');
+    const docx = await docxFile.async('string');
+    const json = await jsonFile.async('string');
 
     expect(pdf).toBe('%PDF-1.4 stub');
     expect(docx).toBe('PK stub docx');
@@ -77,8 +81,10 @@ describe('ExportBundleUseCase', () => {
     expect(zip.file('resume.docx')).toBeNull();
     // The failing format leaves a note in _errors.txt so the downloader
     // knows what went missing instead of getting a silent omission.
-    expect(zip.file('_errors.txt')).not.toBeNull();
-    const errors = await zip.file('_errors.txt')!.async('string');
+    const errorsFile = zip.file('_errors.txt');
+    expect(errorsFile).not.toBeNull();
+    if (!errorsFile) throw new Error('_errors.txt missing from bundle');
+    const errors = await errorsFile.async('string');
     expect(errors).toContain('docx');
     expect(errors).toContain('docx engine down');
   });
