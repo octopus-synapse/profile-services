@@ -2,23 +2,11 @@
 // Note: UserRole enum has been removed in favor of dynamic RBAC system
 // See: src/authorization/ for the new permission system
 
-enum ThemeStatus {
-  DRAFT
-  PRIVATE
-  PENDING_APPROVAL
-  PUBLISHED
-  REJECTED
-}
-
-enum ThemeCategory {
-  PROFESSIONAL
-  CREATIVE
-  TECHNICAL
-  ACADEMIC
-  MINIMAL
-  MODERN
-  CLASSIC
-  EXECUTIVE
+// Layout flavour of a ResumeStyle. MVP only accepts SINGLE_COLUMN at the
+// validator level; DOUBLE_COLUMN is reserved for post-MVP work.
+enum LayoutKind {
+  SINGLE_COLUMN
+  DOUBLE_COLUMN
 }
 
 enum MecSyncStatus {
@@ -76,23 +64,12 @@ enum AuditAction {
   ROLE_CHANGED
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
-  FEATURE_FLAG_TOGGLED
 }
 
 enum ConsentDocumentType {
   TERMS_OF_SERVICE
   PRIVACY_POLICY
   MARKETING_CONSENT
-}
-
-enum ResumeTemplate {
-  PROFESSIONAL
-  CREATIVE
-  TECHNICAL
-  MINIMAL
-  MODERN
-  EXECUTIVE
-  ACADEMIC
 }
 
 enum ActivityType {
@@ -161,8 +138,8 @@ enum NotificationType {
   CONNECTION_REQUEST
   CONNECTION_ACCEPTED
   FOLLOW_NEW
-  SKILL_DECAY // A tracked skill has been idle for 120+ days.
-  APPLICATION_STALE // Application tracker: no update for 7/14/21 days.
+  SKILL_DECAY            // A tracked skill has been idle for 120+ days.
+  APPLICATION_STALE      // Application tracker: no update for 7/14/21 days.
   CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
 }
 
@@ -208,4 +185,32 @@ enum ApplyMode {
   ONE_CLICK
   WEEKLY_CURATED
   AUTO_APPLY
+}
+
+// Psychometric dimensions used by the fit-profile/ context. The vector is
+// a concatenation of Big Five (OCEAN), Schwartz basic values, and SDT basic
+// psychological needs — each question in `FitQuestion` tags exactly one
+// dimension so sampling can stratify across them.
+enum FitDimension {
+  // Big Five (OCEAN)
+  BIG_FIVE_OPENNESS
+  BIG_FIVE_CONSCIENTIOUSNESS
+  BIG_FIVE_EXTRAVERSION
+  BIG_FIVE_AGREEABLENESS
+  BIG_FIVE_NEUROTICISM
+  // Schwartz basic values
+  SCHWARTZ_SELF_DIRECTION
+  SCHWARTZ_STIMULATION
+  SCHWARTZ_HEDONISM
+  SCHWARTZ_ACHIEVEMENT
+  SCHWARTZ_POWER
+  SCHWARTZ_SECURITY
+  SCHWARTZ_CONFORMITY
+  SCHWARTZ_TRADITION
+  SCHWARTZ_BENEVOLENCE
+  SCHWARTZ_UNIVERSALISM
+  // Self-Determination Theory (SDT) basic psychological needs
+  SDT_AUTONOMY
+  SDT_COMPETENCE
+  SDT_RELATEDNESS
 }

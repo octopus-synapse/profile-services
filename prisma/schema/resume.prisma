@@ -6,10 +6,9 @@ model Resume {
   user   User   @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
 
   title    String?
-  template ResumeTemplate @default(PROFESSIONAL)
-  language String         @default("pt-br")
-  isPublic Boolean        @default(false)
-  slug     String?        @unique
+  language String  @default("pt-br")
+  isPublic Boolean @default(false)
+  slug     String? @unique
 
   // Bilingual content
   contentPtBr     Json?
@@ -48,9 +47,9 @@ model Resume {
   accentColor String? @default("#3B82F6")
   customTheme Json?
 
-  // Theme System
-  activeThemeId String?
-  activeTheme   ResumeTheme? @relation("ResumeActiveTheme", fields: [activeThemeId], references: [id], onDelete: SetNull)
+  // Resume Style System (formerly "active theme")
+  styleId String?
+  style   ResumeStyle? @relation("ResumeActiveStyle", fields: [styleId], references: [id], onDelete: SetNull)
 
   // Stats
   profileViews Int @default(0)
@@ -62,21 +61,22 @@ model Resume {
   publishedAt DateTime?
 
   // Relations
-  users          User[]                 @relation("UserPrimaryResume")
-  resumeSections ResumeSection[]
-  shares         ResumeShare[]          @relation("ResumeShares")
-  versions       ResumeVersion[]        @relation("ResumeVersions")
-  analytics      ResumeAnalytics[]      @relation("ResumeAnalytics")
-  viewEvents     ResumeViewEvent[]      @relation("ResumeViews")
-  import         ResumeImport?
-  collaborators  ResumeCollaborator[]   @relation("ResumeCollaborators")
-  collabComments CollaborationComment[] @relation("ResumeComments")
+  users           User[]                   @relation("UserPrimaryResume")
+  resumeSections  ResumeSection[]
+  shares          ResumeShare[]            @relation("ResumeShares")
+  versions        ResumeVersion[]          @relation("ResumeVersions")
+  analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
+  qualityScoreHistory ResumeQualityScoreHistory[]
+  viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
+  import          ResumeImport?
+  collaborators   ResumeCollaborator[]     @relation("ResumeCollaborators")
+  collabComments  CollaborationComment[]   @relation("ResumeComments")
 
   @@index([userId])
   @@index([slug])
   @@index([isPublic])
   @@index([createdAt])
   @@index([techPersona])
-  @@index([activeThemeId])
+  @@index([styleId])
   @@index([primaryLanguage])
 }
