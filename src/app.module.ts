@@ -62,6 +62,8 @@ import { WebhookModule } from '@/bounded-contexts/platform/webhooks/webhook.modu
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
 // Recruiting Context — reverse candidate matching for recruiters.
 import { RecruitingModule } from '@/bounded-contexts/recruiting/recruiting.module';
+// Resume Quality Score (Completeness + Content Quality)
+import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 // Presentation Context
 import { ResumeStylesModule } from '@/bounded-contexts/resume-styles/resume-styles.module';
 // Resumes Context
@@ -152,6 +154,7 @@ import { AppController } from './app.controller';
     ImportModule,
     IntegrationModule,
     ResumeStylesModule,
+    ResumeQualityModule,
     TechSkillsModule,
     SkillsModule,
     SpokenLanguagesModule,

@@ -6571,6 +6571,84 @@
         ]
       }
     },
+    "/api/v1/resumes/{resumeId}/quality": {
+      "get": {
+        "operationId": "resumeQuality_get",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest snapshot or 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the latest Resume Quality Score snapshot",
+        "tags": [
+          "resume-quality"
+        ]
+      }
+    },
+    "/api/v1/resumes/{resumeId}/quality/recompute": {
+      "post": {
+        "operationId": "resumeQuality_recompute",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Freshly computed snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Synchronously recompute Resume Quality Score",
+        "tags": [
+          "resume-quality"
+        ]
+      }
+    },
     "/api/v1/tech-skills/sync": {
       "post": {
         "operationId": "techSkillsSync_triggerSync",
@@ -21679,6 +21757,105 @@
         },
         "required": [
           "stats"
+        ]
+      },
+      "ResumeQualityResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resumeId": {
+            "type": "string"
+          },
+          "overallScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "completenessScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "contentQualityScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false,
+            "nullable": true
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "messageArgs": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "freeformMessage": {
+                  "type": "string"
+                },
+                "context": {
+                  "type": "object",
+                  "properties": {
+                    "sectionKey": {
+                      "type": "string"
+                    },
+                    "itemIndex": {
+                      "type": "integer"
+                    },
+                    "excerpt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "code",
+                "severity"
+              ]
+            }
+          },
+          "scoringRulesVersion": {
+            "type": "string"
+          },
+          "aiPromptVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "resumeId",
+          "overallScore",
+          "completenessScore",
+          "contentQualityScore",
+          "issues",
+          "scoringRulesVersion",
+          "aiPromptVersion",
+          "computedAt"
         ]
       },
       "TechSkillsSyncDataDto": {

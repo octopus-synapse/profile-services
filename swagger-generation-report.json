@@ -1,9 +1,9 @@
 {
   "success": true,
   "generatedBy": "nest-swagger",
-  "paths": 323,
-  "operations": 384,
-  "schemas": 281,
+  "paths": 325,
+  "operations": 386,
+  "schemas": 282,
   "tags": [
     "auth",
     "export",
