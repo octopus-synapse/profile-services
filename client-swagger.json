@@ -6649,6 +6649,385 @@
         ]
       }
     },
+    "/api/v1/fit-profile/me": {
+      "get": {
+        "operationId": "fitProfile_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lifecycle state + vector",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitProfileMeResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get the caller’s Fit Profile lifecycle state",
+        "tags": [
+          "fit-profile"
+        ]
+      },
+      "delete": {
+        "operationId": "fitProfile_deleteMe",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "LGPD — wipe the caller’s Fit Answers and anonymize the vector",
+        "tags": [
+          "fit-profile"
+        ]
+      }
+    },
+    "/api/v1/fit-profile/questions": {
+      "get": {
+        "operationId": "fitProfile_questions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sampled 25 Fit Questions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitQuestionsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get or create the caller’s 25-question set",
+        "tags": [
+          "fit-profile"
+        ]
+      }
+    },
+    "/api/v1/fit-profile/answers": {
+      "post": {
+        "operationId": "fitProfile_submitAnswers",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitFitAnswersDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Freshly computed profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmittedFitProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Commit the 25 Fit Answers → compute & persist vector",
+        "tags": [
+          "fit-profile"
+        ]
+      }
+    },
+    "/api/v1/jobs/{jobId}/fit-profile": {
+      "get": {
+        "operationId": "fitProfile_getOne",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current JobFitProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobFitProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the recruiter-authored Fit Profile for a job",
+        "tags": [
+          "fit-profile"
+        ]
+      },
+      "post": {
+        "operationId": "fitProfile_upsertOne",
+        "parameters": [
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertJobFitProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upserted JobFitProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobFitProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upsert the recruiter-authored Fit Profile for a job",
+        "tags": [
+          "fit-profile"
+        ]
+      }
+    },
+    "/api/v1/admin/fit-questions": {
+      "get": {
+        "operationId": "adminFitQuestions_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "FitQuestion pool",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitQuestionListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List every FitQuestion in the pool",
+        "tags": [
+          "admin-fit-questions"
+        ]
+      },
+      "post": {
+        "operationId": "adminFitQuestions_createOne",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFitQuestionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created FitQuestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitQuestionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new FitQuestion",
+        "tags": [
+          "admin-fit-questions"
+        ]
+      }
+    },
+    "/api/v1/admin/fit-questions/{id}": {
+      "get": {
+        "operationId": "adminFitQuestions_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FitQuestion row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitQuestionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get one FitQuestion by id",
+        "tags": [
+          "admin-fit-questions"
+        ]
+      },
+      "patch": {
+        "operationId": "adminFitQuestions_updateOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFitQuestionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated FitQuestion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FitQuestionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an existing FitQuestion",
+        "tags": [
+          "admin-fit-questions"
+        ]
+      },
+      "delete": {
+        "operationId": "adminFitQuestions_deleteOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a FitQuestion",
+        "tags": [
+          "admin-fit-questions"
+        ]
+      }
+    },
     "/api/v1/tech-skills/sync": {
       "post": {
         "operationId": "techSkillsSync_triggerSync",
@@ -21857,6 +22236,590 @@
           "aiPromptVersion",
           "computedAt"
         ]
+      },
+      "FitProfileMeResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "never",
+              "responded",
+              "expired"
+            ]
+          },
+          "vector": {
+            "type": "object",
+            "properties": {
+              "bigFive": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              },
+              "schwartz": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              },
+              "sdt": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              }
+            },
+            "required": [
+              "bigFive",
+              "schwartz",
+              "sdt"
+            ],
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          },
+          "answeredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "remainingQuestions": {
+            "oneOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0
+              },
+              {
+                "type": "number",
+                "minimum": 25,
+                "maximum": 25
+              }
+            ],
+            "x-nestjs_zod-empty-type": true
+          }
+        },
+        "required": [
+          "status",
+          "vector",
+          "answeredAt",
+          "expiresAt",
+          "remainingQuestions"
+        ]
+      },
+      "FitQuestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "questionSetId": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "dimension": {
+                  "type": "string",
+                  "enum": [
+                    "BIG_FIVE_OPENNESS",
+                    "BIG_FIVE_CONSCIENTIOUSNESS",
+                    "BIG_FIVE_EXTRAVERSION",
+                    "BIG_FIVE_AGREEABLENESS",
+                    "BIG_FIVE_NEUROTICISM",
+                    "SCHWARTZ_SELF_DIRECTION",
+                    "SCHWARTZ_STIMULATION",
+                    "SCHWARTZ_HEDONISM",
+                    "SCHWARTZ_ACHIEVEMENT",
+                    "SCHWARTZ_POWER",
+                    "SCHWARTZ_SECURITY",
+                    "SCHWARTZ_CONFORMITY",
+                    "SCHWARTZ_TRADITION",
+                    "SCHWARTZ_BENEVOLENCE",
+                    "SCHWARTZ_UNIVERSALISM",
+                    "SDT_AUTONOMY",
+                    "SDT_COMPETENCE",
+                    "SDT_RELATEDNESS"
+                  ]
+                },
+                "textEn": {
+                  "type": "string"
+                },
+                "textPtBr": {
+                  "type": "string"
+                },
+                "scaleType": {
+                  "type": "string",
+                  "enum": [
+                    "likert5",
+                    "binary"
+                  ]
+                },
+                "weight": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "dimension",
+                "textEn",
+                "textPtBr",
+                "scaleType",
+                "weight"
+              ]
+            }
+          }
+        },
+        "required": [
+          "questionSetId",
+          "seed",
+          "createdAt",
+          "questions"
+        ]
+      },
+      "SubmittedFitProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "profileId",
+          "version",
+          "computedAt",
+          "expiresAt"
+        ]
+      },
+      "SubmitFitAnswersDto": {
+        "type": "object",
+        "properties": {
+          "questionSetId": {
+            "type": "string"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "questionId": {
+                  "type": "string"
+                },
+                "rawValue": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 5,
+                  "exclusiveMaximum": false
+                }
+              },
+              "required": [
+                "questionId",
+                "rawValue"
+              ]
+            }
+          }
+        },
+        "required": [
+          "questionSetId",
+          "answers"
+        ]
+      },
+      "JobFitProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "editedByUserId": {
+            "type": "string"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "vector": {
+            "type": "object",
+            "properties": {
+              "bigFive": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              },
+              "schwartz": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              },
+              "sdt": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "exclusiveMinimum": false,
+                  "maximum": 1,
+                  "exclusiveMaximum": false
+                }
+              }
+            },
+            "required": [
+              "bigFive",
+              "schwartz",
+              "sdt"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "id",
+          "jobId",
+          "editedByUserId",
+          "computedAt",
+          "vector"
+        ]
+      },
+      "UpsertJobFitProfileRequestDto": {
+        "type": "object",
+        "properties": {
+          "sliders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMinimum": false,
+              "maximum": 1,
+              "exclusiveMaximum": false
+            },
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "sliders"
+        ]
+      },
+      "FitQuestionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "dimension": {
+                  "type": "string",
+                  "enum": [
+                    "BIG_FIVE_OPENNESS",
+                    "BIG_FIVE_CONSCIENTIOUSNESS",
+                    "BIG_FIVE_EXTRAVERSION",
+                    "BIG_FIVE_AGREEABLENESS",
+                    "BIG_FIVE_NEUROTICISM",
+                    "SCHWARTZ_SELF_DIRECTION",
+                    "SCHWARTZ_STIMULATION",
+                    "SCHWARTZ_HEDONISM",
+                    "SCHWARTZ_ACHIEVEMENT",
+                    "SCHWARTZ_POWER",
+                    "SCHWARTZ_SECURITY",
+                    "SCHWARTZ_CONFORMITY",
+                    "SCHWARTZ_TRADITION",
+                    "SCHWARTZ_BENEVOLENCE",
+                    "SCHWARTZ_UNIVERSALISM",
+                    "SDT_AUTONOMY",
+                    "SDT_COMPETENCE",
+                    "SDT_RELATEDNESS"
+                  ]
+                },
+                "textEn": {
+                  "type": "string"
+                },
+                "textPtBr": {
+                  "type": "string"
+                },
+                "scaleType": {
+                  "type": "string",
+                  "enum": [
+                    "likert5",
+                    "binary"
+                  ]
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "reverseScored": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "dimension",
+                "textEn",
+                "textPtBr",
+                "scaleType",
+                "weight",
+                "isActive",
+                "reverseScored"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "FitQuestionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "BIG_FIVE_OPENNESS",
+              "BIG_FIVE_CONSCIENTIOUSNESS",
+              "BIG_FIVE_EXTRAVERSION",
+              "BIG_FIVE_AGREEABLENESS",
+              "BIG_FIVE_NEUROTICISM",
+              "SCHWARTZ_SELF_DIRECTION",
+              "SCHWARTZ_STIMULATION",
+              "SCHWARTZ_HEDONISM",
+              "SCHWARTZ_ACHIEVEMENT",
+              "SCHWARTZ_POWER",
+              "SCHWARTZ_SECURITY",
+              "SCHWARTZ_CONFORMITY",
+              "SCHWARTZ_TRADITION",
+              "SCHWARTZ_BENEVOLENCE",
+              "SCHWARTZ_UNIVERSALISM",
+              "SDT_AUTONOMY",
+              "SDT_COMPETENCE",
+              "SDT_RELATEDNESS"
+            ]
+          },
+          "textEn": {
+            "type": "string"
+          },
+          "textPtBr": {
+            "type": "string"
+          },
+          "scaleType": {
+            "type": "string",
+            "enum": [
+              "likert5",
+              "binary"
+            ]
+          },
+          "weight": {
+            "type": "number"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "reverseScored": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "dimension",
+          "textEn",
+          "textPtBr",
+          "scaleType",
+          "weight",
+          "isActive",
+          "reverseScored"
+        ]
+      },
+      "CreateFitQuestionDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "BIG_FIVE_OPENNESS",
+              "BIG_FIVE_CONSCIENTIOUSNESS",
+              "BIG_FIVE_EXTRAVERSION",
+              "BIG_FIVE_AGREEABLENESS",
+              "BIG_FIVE_NEUROTICISM",
+              "SCHWARTZ_SELF_DIRECTION",
+              "SCHWARTZ_STIMULATION",
+              "SCHWARTZ_HEDONISM",
+              "SCHWARTZ_ACHIEVEMENT",
+              "SCHWARTZ_POWER",
+              "SCHWARTZ_SECURITY",
+              "SCHWARTZ_CONFORMITY",
+              "SCHWARTZ_TRADITION",
+              "SCHWARTZ_BENEVOLENCE",
+              "SCHWARTZ_UNIVERSALISM",
+              "SDT_AUTONOMY",
+              "SDT_COMPETENCE",
+              "SDT_RELATEDNESS"
+            ]
+          },
+          "textEn": {
+            "type": "string",
+            "minLength": 1
+          },
+          "textPtBr": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scaleType": {
+            "type": "string",
+            "enum": [
+              "likert5",
+              "binary"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "default": 1
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "reverseScored": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "key",
+          "dimension",
+          "textEn",
+          "textPtBr",
+          "scaleType"
+        ]
+      },
+      "UpdateFitQuestionDto": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "BIG_FIVE_OPENNESS",
+              "BIG_FIVE_CONSCIENTIOUSNESS",
+              "BIG_FIVE_EXTRAVERSION",
+              "BIG_FIVE_AGREEABLENESS",
+              "BIG_FIVE_NEUROTICISM",
+              "SCHWARTZ_SELF_DIRECTION",
+              "SCHWARTZ_STIMULATION",
+              "SCHWARTZ_HEDONISM",
+              "SCHWARTZ_ACHIEVEMENT",
+              "SCHWARTZ_POWER",
+              "SCHWARTZ_SECURITY",
+              "SCHWARTZ_CONFORMITY",
+              "SCHWARTZ_TRADITION",
+              "SCHWARTZ_BENEVOLENCE",
+              "SCHWARTZ_UNIVERSALISM",
+              "SDT_AUTONOMY",
+              "SDT_COMPETENCE",
+              "SDT_RELATEDNESS"
+            ]
+          },
+          "textEn": {
+            "type": "string",
+            "minLength": 1
+          },
+          "textPtBr": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scaleType": {
+            "type": "string",
+            "enum": [
+              "likert5",
+              "binary"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "reverseScored": {
+            "type": "boolean"
+          }
+        }
       },
       "TechSkillsSyncDataDto": {
         "type": "object",

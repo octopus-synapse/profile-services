@@ -26,6 +26,8 @@ import { DslModule } from '@/bounded-contexts/dsl';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
 // Feed Context
 import { FeedModule } from '@/bounded-contexts/feed/feed.module';
+// Fit Profile — behavioural vector + similarity math feeding the Match Score
+import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 // Identity Context
 import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
@@ -155,6 +157,7 @@ import { AppController } from './app.controller';
     IntegrationModule,
     ResumeStylesModule,
     ResumeQualityModule,
+    FitProfileModule,
     TechSkillsModule,
     SkillsModule,
     SpokenLanguagesModule,
