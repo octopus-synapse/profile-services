@@ -143,7 +143,11 @@ describe('CreateSessionUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.user.isAdmin).toBe(true);
-    expect(result.user.needsOnboarding).toBe(true);
+    // Admins bypass onboarding — only `role_user_standard` accounts carry that
+    // invariant. The seeded admin has roles [role_admin, role_user] but NOT
+    // role_user_standard, so needsOnboarding must be false regardless of
+    // the hasCompletedOnboarding flag on the row.
+    expect(result.user.needsOnboarding).toBe(false);
     expect(result.user.needsEmailVerification).toBe(true);
     expect(result.user.role).toBe('ADMIN');
     expect(result.user.roles).toEqual(['role_admin', 'role_user']);

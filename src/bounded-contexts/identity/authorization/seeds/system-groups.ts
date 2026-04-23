@@ -39,4 +39,14 @@ export const SYSTEM_GROUPS: GroupDefinition[] = [
     isSystem: true,
     roles: ['user'],
   },
+  // Job-seeker cohort. The `user_standard` role is a marker that gates the
+  // onboarding + fit-profile + match invariants. Admins join `administrators`
+  // and never get this, so their accounts bypass those gates.
+  {
+    name: 'job_seekers',
+    displayName: 'Job Seekers',
+    description: 'Regular end-user accounts (candidates). Gated by onboarding + fit-profile.',
+    isSystem: true,
+    roles: ['user', 'user_standard'],
+  },
 ];

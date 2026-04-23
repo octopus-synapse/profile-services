@@ -80,6 +80,10 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     // frontend's OnboardingGuard doesn't redirect to /identity/verify-email
     // based on a flag the backend is ignoring.
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // Onboarding is a job-seeker invariant — admins and recruiters bypass it
+    // entirely. The `role_user_standard` marker is only assigned to accounts
+    // that represent real candidates. Without it we never block on onboarding.
+    const isStandardUser = roles.includes('role_user_standard');
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
@@ -91,7 +95,7 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
       roles,
       // Calculated fields - frontend should NOT calculate these
       isAdmin: role === 'ADMIN',
-      needsOnboarding: !userData.hasCompletedOnboarding,
+      needsOnboarding: isStandardUser && !userData.hasCompletedOnboarding,
       needsEmailVerification: skipEmailVerification ? false : !userData.emailVerified,
     };
 

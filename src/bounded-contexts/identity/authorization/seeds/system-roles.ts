@@ -81,4 +81,18 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'collaboration:delete',
     ],
   },
+  // Marker role: only regular end-users get this. Admins/super_admins do not.
+  // Used by the scoring + onboarding gates to know "this account is a
+  // job-seeker and must respect the invariants (onboarding, fit-profile,
+  // resume quality)". The plain `user` role below is also assigned to admins
+  // for basic resource permissions, so we cannot use it as the gate.
+  {
+    name: 'user_standard',
+    displayName: 'Standard User (job seeker)',
+    description:
+      'Marker role for job-seeker accounts. Required for onboarding, fit-profile and match gates.',
+    isSystem: true,
+    priority: 9,
+    permissions: [],
+  },
 ];

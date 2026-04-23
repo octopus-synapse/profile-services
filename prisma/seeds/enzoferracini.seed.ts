@@ -37,6 +37,8 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       bio: 'Software engineer building tools for other engineers.',
       github: 'enzoferracini',
       linkedin: 'enzoferracini',
+      // Job-seeker marker — required for onboarding + fit-profile + match gates.
+      roles: ['role_user', 'role_user_standard'],
     },
   });
 

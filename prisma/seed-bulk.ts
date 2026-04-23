@@ -594,7 +594,8 @@ async function main() {
               : weightedDate(60),
         createdAt,
         updatedAt: createdAt,
-        roles: ['role_user'],
+        // Bulk seed users are job-seekers — carry the marker role.
+        roles: ['role_user', 'role_user_standard'],
         isActive: true,
         preferences: {
           create: {

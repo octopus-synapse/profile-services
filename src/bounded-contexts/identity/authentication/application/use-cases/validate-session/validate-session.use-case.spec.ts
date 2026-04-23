@@ -180,7 +180,10 @@ describe('ValidateSessionUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.user).not.toBeNull();
     expect(result.user?.isAdmin).toBe(true);
-    expect(result.user?.needsOnboarding).toBe(true);
+    // Admins bypass onboarding — the invariant is only enforced on accounts
+    // that carry `role_user_standard`. This admin has roles
+    // [role_admin, role_user] and must not be flagged as needing onboarding.
+    expect(result.user?.needsOnboarding).toBe(false);
     expect(result.user?.needsEmailVerification).toBe(true);
     expect(result.user?.role).toBe('ADMIN');
     expect(result.user?.roles).toEqual(['role_admin', 'role_user']);
