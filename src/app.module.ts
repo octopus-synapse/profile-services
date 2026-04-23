@@ -39,6 +39,8 @@ import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 import { ImportModule } from '@/bounded-contexts/import';
 // Integration Context
 import { IntegrationModule } from '@/bounded-contexts/integration';
+// Match Score (keyword + requirements + semantic + fit)
+import { JobMatchModule } from '@/bounded-contexts/job-match/job-match.module';
 // Jobs Context
 import { JobsModule } from '@/bounded-contexts/jobs/jobs.module';
 // Notifications Context
@@ -157,6 +159,7 @@ import { AppController } from './app.controller';
     IntegrationModule,
     ResumeStylesModule,
     ResumeQualityModule,
+    JobMatchModule,
     FitProfileModule,
     TechSkillsModule,
     SkillsModule,

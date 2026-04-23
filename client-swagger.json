@@ -6649,6 +6649,93 @@
         ]
       }
     },
+    "/api/v1/match": {
+      "post": {
+        "operationId": "jobMatch_computeNow",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComputeMatchRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full breakdown with sub-scores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchBreakdownDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Compute the Match Score for a (resume, job) pair",
+        "tags": [
+          "job-match"
+        ]
+      }
+    },
+    "/api/v1/match/{resumeId}/{jobId}": {
+      "get": {
+        "operationId": "jobMatch_read",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jobId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full breakdown with sub-scores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchBreakdownDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read the Match Score for a (resume, job) pair (cached)",
+        "tags": [
+          "job-match"
+        ]
+      }
+    },
     "/api/v1/fit-profile/me": {
       "get": {
         "operationId": "fitProfile_me",
@@ -22235,6 +22322,181 @@
           "scoringRulesVersion",
           "aiPromptVersion",
           "computedAt"
+        ]
+      },
+      "MatchBreakdownDto": {
+        "type": "object",
+        "properties": {
+          "overallScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "subScores": {
+            "type": "object",
+            "properties": {
+              "keyword": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "maximum": 100,
+                    "exclusiveMaximum": false,
+                    "nullable": true
+                  },
+                  "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "score"
+                ]
+              },
+              "requirements": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "maximum": 100,
+                    "exclusiveMaximum": false,
+                    "nullable": true
+                  },
+                  "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "score"
+                ]
+              },
+              "semantic": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "maximum": 100,
+                    "exclusiveMaximum": false,
+                    "nullable": true
+                  },
+                  "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "score"
+                ]
+              },
+              "fit": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "maximum": 100,
+                    "exclusiveMaximum": false,
+                    "nullable": true
+                  },
+                  "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "score"
+                ]
+              }
+            },
+            "required": [
+              "keyword",
+              "requirements",
+              "semantic",
+              "fit"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "effectiveWeights": {
+            "type": "object",
+            "properties": {
+              "keyword": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": false,
+                "maximum": 1,
+                "exclusiveMaximum": false
+              },
+              "requirements": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": false,
+                "maximum": 1,
+                "exclusiveMaximum": false
+              },
+              "semantic": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": false,
+                "maximum": 1,
+                "exclusiveMaximum": false
+              },
+              "fit": {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": false,
+                "maximum": 1,
+                "exclusiveMaximum": false
+              }
+            },
+            "required": [
+              "keyword",
+              "requirements",
+              "semantic",
+              "fit"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "rulesVersion": {
+            "type": "string"
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "overallScore",
+          "subScores",
+          "effectiveWeights",
+          "rulesVersion",
+          "computedAt"
+        ]
+      },
+      "ComputeMatchRequestDto": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "jobId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "resumeId",
+          "jobId"
         ]
       },
       "FitProfileMeResponseDto": {
