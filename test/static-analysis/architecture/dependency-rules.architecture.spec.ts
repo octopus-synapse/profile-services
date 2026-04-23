@@ -117,23 +117,23 @@ describe('Architecture', () => {
 
       const moduleImportRules: Record<string, string[]> = {
         'src/bounded-contexts/identity': [
-          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/resume-styles',
           'src/bounded-contexts/resumes',
           'src/bounded-contexts/export',
           'src/bounded-contexts/dsl',
         ],
-        'src/bounded-contexts/presentation/themes': [
+        'src/bounded-contexts/resume-styles': [
           'src/bounded-contexts/resumes',
           'src/bounded-contexts/export',
           'src/bounded-contexts/dsl',
         ],
         'src/bounded-contexts/resumes': [
-          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/resume-styles',
           'src/bounded-contexts/dsl',
         ],
         'src/bounded-contexts/export': [],
         'src/bounded-contexts/dsl': [
-          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/resume-styles',
           'src/bounded-contexts/resumes',
           'src/bounded-contexts/export',
         ],

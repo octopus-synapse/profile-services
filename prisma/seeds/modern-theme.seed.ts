@@ -10,7 +10,7 @@ export const MODERN_THEME = {
   category: ThemeCategory.MODERN,
   tags: ['clean', 'professional', 'tech', 'two-column'],
   status: ThemeStatus.PUBLISHED,
-  isSystemTheme: true,
+  isSystem: true,
   styleConfig: {
     version: '1.0.0',
     layout: {

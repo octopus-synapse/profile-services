@@ -147,27 +147,13 @@ function buildFieldsFromStep(
 }
 
 function buildThemeOptions(systemThemes: OnboardingThemeOption[]) {
-  const out: Array<{
-    id: string;
-    name: string;
-    description: OnboardingThemeOption['description'];
-    category: OnboardingThemeOption['category'];
-    tags: OnboardingThemeOption['tags'];
-    atsScore: OnboardingThemeOption['atsScore'];
-    thumbnailUrl: OnboardingThemeOption['thumbnailUrl'];
-  }> = [];
-  for (const th of systemThemes) {
-    out.push({
-      id: th.id,
-      name: th.name,
-      description: th.description,
-      category: th.category,
-      tags: th.tags,
-      atsScore: th.atsScore,
-      thumbnailUrl: th.thumbnailUrl,
-    });
-  }
-  return out;
+  return systemThemes.map((th) => ({
+    id: th.id,
+    name: th.name,
+    description: th.description,
+    styleScore: th.styleScore,
+    thumbnailUrl: th.thumbnailUrl,
+  }));
 }
 
 export function resolveSteps(

@@ -11,7 +11,6 @@ import { SearchModule } from '@/bounded-contexts/analytics/search/search.module'
 // Analytics Context
 import { ShareAnalyticsModule } from '@/bounded-contexts/analytics/share-analytics/share-analytics.module';
 // ATS Context
-import { ATSModule } from '@/bounded-contexts/ats-validation/ats/ats.module';
 // Automation Context (Weekly Curated + Auto-Apply)
 import { AutomationModule } from '@/bounded-contexts/automation/automation.module';
 // Badges
@@ -61,10 +60,10 @@ import { TestRunnerModule } from '@/bounded-contexts/platform/test-runner/test-r
 import { UiMetadataModule } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.module';
 import { WebhookModule } from '@/bounded-contexts/platform/webhooks/webhook.module';
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
-// Presentation Context
-import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.module';
 // Recruiting Context — reverse candidate matching for recruiters.
 import { RecruitingModule } from '@/bounded-contexts/recruiting/recruiting.module';
+// Presentation Context
+import { ResumeStylesModule } from '@/bounded-contexts/resume-styles/resume-styles.module';
 // Resumes Context
 import { ResumesModule } from '@/bounded-contexts/resumes';
 // Skills Catalog Context
@@ -152,13 +151,12 @@ import { AppController } from './app.controller';
     ExportModule,
     ImportModule,
     IntegrationModule,
-    ThemesModule,
+    ResumeStylesModule,
     TechSkillsModule,
     SkillsModule,
     SpokenLanguagesModule,
     AdminCatalogModule,
     TranslationModule,
-    ATSModule,
     PublicResumesModule,
     ShareAnalyticsModule,
     ResumeAnalyticsModule,

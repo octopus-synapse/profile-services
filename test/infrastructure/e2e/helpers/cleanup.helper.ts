@@ -49,7 +49,7 @@ export class CleanupHelper {
    */
   async deleteThemeById(themeId: string): Promise<void> {
     try {
-      await this.prisma.resumeTheme.delete({ where: { id: themeId } });
+      await this.prisma.resumeStyle.delete({ where: { id: themeId } });
     } catch (error) {
       // Theme might not exist or already deleted
       console.warn(`Cleanup warning for theme ${themeId}:`, error);

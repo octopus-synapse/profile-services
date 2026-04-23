@@ -47,7 +47,6 @@ const ThemeSchema = z.object({
 const CreateResumeRequestSchema = z.object({
   title: z.string().min(1).max(100),
   summary: z.string().max(2000).optional(),
-  template: z.string().optional(),
   isPublic: z.boolean().optional(),
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
@@ -90,7 +89,7 @@ const ResumeSlotsResponseSchema = z.object({
 
 const ResumeFullResponseSchema = ResumeResponseSchema.extend({
   resumeSections: z.array(SectionSchema),
-  activeThemeId: z.string().optional(),
+  styleId: z.string().optional(),
   activeTheme: ThemeSchema.optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),

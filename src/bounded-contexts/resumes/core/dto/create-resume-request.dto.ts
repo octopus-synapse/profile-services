@@ -4,7 +4,6 @@ import { z } from 'zod';
 export const CreateResumeRequestSchema = z.object({
   title: z.string().min(1).max(100),
   summary: z.string().max(2000).optional(),
-  template: z.string().optional(),
   isPublic: z.boolean().optional(),
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),

@@ -46,7 +46,7 @@ export function toResumeFullResponseDto(resume: ResumeResult): ResumeFullRespons
   }
   return {
     ...toResumeResponseDto(resume),
-    activeThemeId: resume.activeThemeId ?? undefined,
+    styleId: resume.styleId ?? undefined,
     activeTheme: resume.activeTheme
       ? {
           id: resume.activeTheme.id,

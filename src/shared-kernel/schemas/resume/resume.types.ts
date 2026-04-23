@@ -80,7 +80,7 @@ export const ResumeSchema = z.object({
   website: z.string().url().nullable(),
 
   // Theme
-  activeThemeId: z.string().uuid().nullable(),
+  styleId: z.string().uuid().nullable(),
 
   // Sections
   resumeSections: z.array(ResumeSectionSchema).default([]),

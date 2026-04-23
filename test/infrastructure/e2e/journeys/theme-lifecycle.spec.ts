@@ -93,7 +93,7 @@ describe('E2E Journey: Theme Lifecycle', () => {
       expect(themes.length).toBeGreaterThan(0);
 
       for (const theme of themes) {
-        expect(theme.isSystemTheme).toBe(true);
+        expect(theme.isSystem).toBe(true);
       }
 
       systemThemeId = themes[0].id;
@@ -105,7 +105,7 @@ describe('E2E Journey: Theme Lifecycle', () => {
         .expect(200);
 
       expect(res.body.data.theme.id).toBe(systemThemeId);
-      expect(res.body.data.theme.isSystemTheme).toBe(true);
+      expect(res.body.data.theme.isSystem).toBe(true);
       expect(res.body.data.theme.styleConfig).toBeDefined();
     });
   });

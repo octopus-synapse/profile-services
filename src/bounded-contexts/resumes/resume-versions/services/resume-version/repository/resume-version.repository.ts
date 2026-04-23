@@ -1,4 +1,4 @@
-import { Prisma, ResumeTemplate } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   type JsonValue,
@@ -151,7 +151,8 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     const data: Prisma.ResumeUncheckedUpdateInput = {};
 
     this.setStringOrNull(data, 'title', snapshot.title);
-    this.setTemplate(data, snapshot.template);
+    // `template` was dropped from the Resume model — layout is now resolved
+    // through the ResumeStyle relation, not a column on the resume itself.
     this.setString(data, 'language', snapshot.language);
     this.setBoolean(data, 'isPublic', snapshot.isPublic);
     this.setStringOrNull(data, 'slug', snapshot.slug);
@@ -181,7 +182,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     this.setStringOrNull(data, 'leetcode', snapshot.leetcode);
     this.setStringOrNull(data, 'accentColor', snapshot.accentColor);
     this.setJson(data, 'customTheme', snapshot.customTheme);
-    this.setStringOrNull(data, 'activeThemeId', snapshot.activeThemeId);
+    this.setStringOrNull(data, 'styleId', snapshot.styleId);
     this.setNumber(data, 'profileViews', snapshot.profileViews);
     this.setNumber(data, 'totalStars', snapshot.totalStars);
     this.setNumber(data, 'totalCommits', snapshot.totalCommits);
@@ -271,7 +272,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
       | 'hackerrank'
       | 'leetcode'
       | 'accentColor'
-      | 'activeThemeId',
+      | 'styleId',
     value: unknown,
   ): void {
     if (typeof value === 'string' || value === null) {
@@ -285,11 +286,8 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     }
   }
 
-  private setTemplate(data: Prisma.ResumeUncheckedUpdateInput, value: unknown): void {
-    if (typeof value === 'string' && this.isResumeTemplate(value)) {
-      data.template = value;
-    }
-  }
+  // setTemplate removed: the Resume.template column was dropped alongside
+  // the ResumeTemplate enum. Snapshots of legacy resumes ignore the field.
 
   private setString(
     data: Prisma.ResumeUncheckedUpdateInput,
@@ -391,10 +389,6 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     }
 
     return parsedObject;
-  }
-
-  private isResumeTemplate(value: string): value is ResumeTemplate {
-    return Object.values(ResumeTemplate).some((template) => template === value);
   }
 
   async findVersionIdsByResumeIdDesc(resumeId: string): Promise<string[]> {

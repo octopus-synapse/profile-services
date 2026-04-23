@@ -165,10 +165,9 @@ test('sdk-export controllers publish stable operation ids', () => {
   expect(getOperationId('/api/v1/users/username/check', 'get')).toBe(
     'users_checkUsernameAvailability',
   );
-  expect(getOperationId('/api/v1/themes', 'post')).toBe('themes_createThemeForUser');
-  expect(getOperationId('/api/v1/resumes/{resumeId}/config/sections/batch', 'post')).toBe(
-    'resumeConfig_batchUpdate',
-  );
+  // `/api/v1/themes` was removed alongside the scoring refactor — the
+  // resume-styles bounded context is being rebuilt in a follow-up task.
+  // Section-config operations moved out of themes too.
   expect(getOperationId('/api/v1/mec/courses/search', 'get')).toBe(
     'mecCourses_searchCoursesByName',
   );
@@ -188,15 +187,8 @@ test('documented mutation bodies are available for generated sdk payloads', () =
   expect(getRequestSchemaRef('/api/v1/resumes/{id}', 'patch')).toBe(
     '#/components/schemas/UpdateResumeRequestDto',
   );
-  expect(getRequestSchemaRef('/api/v1/themes', 'post')).toBe(
-    '#/components/schemas/CreateThemeRequestDto',
-  );
-  expect(getRequestSchemaRef('/api/v1/themes/{id}', 'put')).toBe(
-    '#/components/schemas/UpdateThemeRequestDto',
-  );
-  expect(getRequestSchemaRef('/api/v1/themes/apply', 'post')).toBe(
-    '#/components/schemas/ApplyThemeToResumeRequestDto',
-  );
+  // `/api/v1/themes/*` endpoints are gone until the new resume-styles
+  // controllers land in the follow-up task.
   expect(getRequestSchemaRef('/api/v1/users/profile', 'patch')).toBe(
     '#/components/schemas/UpdateUserProfileRequestDto',
   );

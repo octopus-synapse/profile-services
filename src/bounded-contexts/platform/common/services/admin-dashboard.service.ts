@@ -36,13 +36,17 @@ export class AdminDashboardService {
       this.prisma.user.count({ where: { createdAt: { gte: startOfMonth } } }),
       this.prisma.resume.count({ where: { createdAt: { gte: startOfWeek } } }),
       this.prisma.resume.count({ where: { createdAt: { gte: startOfMonth } } }),
-      this.prisma.resumeAnalytics.aggregate({ _avg: { atsScore: true } }),
+      // ATS-score aggregation on ResumeAnalytics was dropped in the scoring
+      // refactor — the replacement wires against ResumeQualityScoreHistory
+      // in the follow-up task. Dashboard exposes 0 as a placeholder.
+      Promise.resolve(null as unknown),
       this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
     ]);
 
     const onboardingCompletionRate =
       totalUsers > 0 ? Math.round((onboardingCompleted / totalUsers) * 100) : 0;
 
+    void atsScoreAvg;
     return {
       totalUsers,
       totalResumes,
@@ -53,7 +57,7 @@ export class AdminDashboardService {
       signupsThisMonth,
       resumesThisWeek,
       resumesThisMonth,
-      averageAtsScore: Math.round(atsScoreAvg._avg.atsScore ?? 0),
+      averageAtsScore: 0,
       onboardingCompletionRate,
     };
   }

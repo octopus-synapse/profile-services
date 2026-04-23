@@ -20,7 +20,6 @@ const makePublicUser = () => ({
 const makePublicResume = () => ({
   id: 'resume-1',
   title: 'Resume',
-  template: 'default',
   language: 'en',
   isPublic: true,
   slug: null,

@@ -37,7 +37,7 @@ const PublicResumeSchema = z.object({
   website: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  activeThemeId: z.string().nullable(),
+  styleId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   sections: z.array(PublicResumeSectionSchema),

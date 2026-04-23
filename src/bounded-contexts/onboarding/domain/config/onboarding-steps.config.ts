@@ -430,14 +430,12 @@ const DEFAULT_SECTION_LABELS: Record<
  * Build all onboarding steps with field definitions from DB
  * Now uses resolved translations from SectionTypeData
  */
-/** Minimal theme data for the template step */
+/** Minimal style data for the onboarding style-picker step. */
 export interface OnboardingThemeOption {
   id: string;
   name: string;
   description: string | null;
-  category: string;
-  tags: string[];
-  atsScore: number | null;
+  styleScore: number;
   thumbnailUrl: string | null;
 }
 
@@ -498,9 +496,7 @@ export function buildOnboardingSteps(
         id: t.id,
         name: t.name,
         description: t.description,
-        category: t.category,
-        tags: t.tags,
-        atsScore: t.atsScore,
+        styleScore: t.styleScore,
         thumbnailUrl: t.thumbnailUrl,
       }));
     }

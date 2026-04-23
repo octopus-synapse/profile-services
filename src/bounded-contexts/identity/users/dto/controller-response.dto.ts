@@ -50,7 +50,6 @@ const UserManagementListDataSchema = z.object({
 const UserResumeItemSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
-  template: z.string().nullable(),
   isPublic: z.boolean(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -132,7 +131,6 @@ const PublicProfileUserSchema = z.object({
 const PublicProfileResumeSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
-  template: z.string(),
   language: z.string(),
   isPublic: z.boolean(),
   slug: z.string().nullable(),

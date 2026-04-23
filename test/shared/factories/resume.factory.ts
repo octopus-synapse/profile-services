@@ -3,7 +3,7 @@
  * Creates mock Resume objects for testing with proper types
  */
 
-import { Prisma, Resume, ResumeTemplate } from '@prisma/client';
+import { Prisma, Resume } from '@prisma/client';
 
 export interface CreateMockResumeOptions {
   id?: string;
@@ -11,7 +11,6 @@ export interface CreateMockResumeOptions {
   title?: string;
   slug?: string;
   isPublic?: boolean;
-  template?: ResumeTemplate;
   language?: string;
   primaryLanguage?: string;
   contentPtBr?: Prisma.JsonValue;
@@ -39,7 +38,7 @@ export interface CreateMockResumeOptions {
   leetcode?: string | null;
   accentColor?: string | null;
   customTheme?: Prisma.JsonValue;
-  activeThemeId?: string | null;
+  styleId?: string | null;
   profileViews?: number;
   totalStars?: number;
   totalCommits?: number;
@@ -54,7 +53,6 @@ const defaultResume: Resume = {
   title: 'My Resume',
   slug: 'my-resume',
   isPublic: false,
-  template: 'PROFESSIONAL',
   language: 'pt-br',
   primaryLanguage: 'pt-br',
   contentPtBr: null,
@@ -82,7 +80,7 @@ const defaultResume: Resume = {
   leetcode: null,
   accentColor: '#3B82F6',
   customTheme: null,
-  activeThemeId: null,
+  styleId: null,
   profileViews: 0,
   totalStars: 0,
   totalCommits: 0,

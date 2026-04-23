@@ -43,8 +43,8 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
   });
 
   // Typst PDF generation requires an active theme on the resume.
-  const defaultTheme = await prisma.resumeTheme.findFirst({
-    where: { isSystemTheme: true },
+  const defaultTheme = await prisma.resumeStyle.findFirst({
+    where: { isSystem: true },
     orderBy: { createdAt: 'asc' },
   });
   if (!defaultTheme) {
@@ -71,7 +71,7 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       slug: username,
       primaryLanguage: 'pt-br',
       language: 'pt-br',
-      activeThemeId: defaultTheme.id,
+      styleId: defaultTheme.id,
     },
   });
 

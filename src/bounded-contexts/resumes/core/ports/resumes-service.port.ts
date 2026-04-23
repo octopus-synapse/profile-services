@@ -38,7 +38,7 @@ export type ResumeResult = {
   slug?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  activeThemeId?: string | null;
+  styleId?: string | null;
   activeTheme?: {
     id: string;
     name: string;

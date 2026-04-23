@@ -1,7 +1,9 @@
 /**
  * System Themes Adapter
  *
- * Fetches system themes from the database for onboarding.
+ * Fetches system ResumeStyle rows for the onboarding style-picker step.
+ * The name preserves backwards compatibility with the SystemThemesPort
+ * contract; a follow-up will rename the port to `SystemStylesPort`.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -16,15 +18,13 @@ export class SystemThemesAdapter extends SystemThemesPort {
   }
 
   async getSystemThemes(): Promise<OnboardingThemeOption[]> {
-    return this.prisma.resumeTheme.findMany({
-      where: { isSystemTheme: true, status: 'PUBLISHED' },
+    return this.prisma.resumeStyle.findMany({
+      where: { isSystem: true },
       select: {
         id: true,
         name: true,
         description: true,
-        category: true,
-        tags: true,
-        atsScore: true,
+        styleScore: true,
         thumbnailUrl: true,
       },
       orderBy: { name: 'asc' },

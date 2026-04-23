@@ -21,10 +21,10 @@ export const systemThemes = [ATS_THEME];
 
 export async function seedThemes(prisma: PrismaClient, adminId: string) {
   // Remove legacy system themes that are not ATS-optimized
-  await prisma.resumeTheme.deleteMany({
+  await prisma.resumeStyle.deleteMany({
     where: {
       id: { in: ['system-modern', 'system-classic', 'system-minimal'] },
-      isSystemTheme: true,
+      isSystem: true,
     },
   });
 
@@ -32,7 +32,7 @@ export async function seedThemes(prisma: PrismaClient, adminId: string) {
     const id = `system-${theme.name.toLowerCase().replace(/\s+/g, '-')}`;
     const atsScore = calculateAtsScore(theme.styleConfig as Record<string, unknown>);
 
-    await prisma.resumeTheme.upsert({
+    await prisma.resumeStyle.upsert({
       where: { id },
       update: { ...theme, authorId: adminId, atsScore },
       create: { id, ...theme, authorId: adminId, atsScore },

@@ -89,7 +89,6 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
           select: {
             id: true,
             title: true,
-            template: true,
             isPublic: true,
             createdAt: true,
             updatedAt: true,

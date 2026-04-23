@@ -10,7 +10,7 @@ export const MINIMAL_THEME = {
   category: ThemeCategory.MINIMAL,
   tags: ['clean', 'whitespace', 'simple', 'startup'],
   status: ThemeStatus.PUBLISHED,
-  isSystemTheme: true,
+  isSystem: true,
   styleConfig: {
     version: '1.0.0',
     layout: {

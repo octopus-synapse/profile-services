@@ -22,7 +22,7 @@ export const ATS_THEME = {
   category: ThemeCategory.MINIMAL,
   tags: ['ats', 'ats-friendly', 'professional', 'clean', 'single-column'],
   status: ThemeStatus.PUBLISHED,
-  isSystemTheme: true,
+  isSystem: true,
   styleConfig: {
     version: '1.0.0',
     layout: {

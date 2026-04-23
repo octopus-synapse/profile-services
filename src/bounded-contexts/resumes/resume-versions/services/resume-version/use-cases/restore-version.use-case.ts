@@ -43,7 +43,7 @@ export class RestoreVersionUseCase {
     'leetcode',
     'accentColor',
     'customTheme',
-    'activeThemeId',
+    'styleId',
     'profileViews',
     'totalStars',
     'totalCommits',

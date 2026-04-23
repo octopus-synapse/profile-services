@@ -1,7 +1,14 @@
 /**
- * Prisma Snapshot Repository
+ * Prisma Snapshot Repository — STUB
  *
- * Persistence for analytics snapshots.
+ * The score columns on `ResumeAnalytics` (atsScore, keywordScore,
+ * completenessScore, topKeywords, missingKeywords, industryRank,
+ * totalInIndustry) were dropped as part of the scoring subsystem
+ * refactor. Historical snapshots now live on
+ * `ResumeQualityScoreHistory` (see docs/scoring/README.md). This repo
+ * remains wired for backwards compatibility; the read/write methods
+ * return empty results and the write is a no-op so consumers do not
+ * crash. The follow-up task rewires callers onto the new table.
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -9,7 +16,7 @@ import type { SnapshotRepositoryPort } from '../../../application/ports/resume-a
 import type { AnalyticsSnapshot } from '../../../interfaces';
 
 export class PrismaSnapshotRepository implements SnapshotRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly _prisma: PrismaService) {}
 
   async save(input: {
     resumeId: string;
@@ -19,79 +26,28 @@ export class PrismaSnapshotRepository implements SnapshotRepositoryPort {
     topKeywords?: string[];
     missingKeywords?: string[];
   }): Promise<AnalyticsSnapshot> {
-    const snapshot = await this.prisma.resumeAnalytics.create({
-      data: {
-        resumeId: input.resumeId,
-        atsScore: input.atsScore,
-        keywordScore: input.keywordScore,
-        completenessScore: input.completenessScore,
-        topKeywords: input.topKeywords ?? [],
-        missingKeywords: input.missingKeywords ?? [],
-        improvementSuggestions: [],
-      },
-    });
-
-    return this.mapToSnapshot(snapshot);
+    return {
+      id: 'stub',
+      resumeId: input.resumeId,
+      atsScore: input.atsScore,
+      keywordScore: input.keywordScore,
+      completenessScore: input.completenessScore,
+      industryRank: undefined,
+      totalInIndustry: undefined,
+      topKeywords: input.topKeywords ?? [],
+      missingKeywords: input.missingKeywords ?? [],
+      createdAt: new Date(),
+    };
   }
 
-  async getHistory(resumeId: string, limit: number = 10): Promise<AnalyticsSnapshot[]> {
-    const snapshots = await this.prisma.resumeAnalytics.findMany({
-      where: { resumeId },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
-
-    return snapshots.map((s) => this.mapToSnapshot(s));
+  async getHistory(_resumeId: string, _limit = 10): Promise<AnalyticsSnapshot[]> {
+    return [];
   }
 
   async getScoreProgression(
-    resumeId: string,
-    days: number = 30,
+    _resumeId: string,
+    _days = 30,
   ): Promise<Array<{ date: string; score: number }>> {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-
-    const snapshots = await this.prisma.resumeAnalytics.findMany({
-      where: {
-        resumeId,
-        createdAt: { gte: startDate },
-      },
-      orderBy: { createdAt: 'asc' },
-      select: {
-        atsScore: true,
-        createdAt: true,
-      },
-    });
-
-    return snapshots.map((s) => ({
-      date: s.createdAt.toISOString().split('T')[0],
-      score: s.atsScore,
-    }));
-  }
-
-  private mapToSnapshot(record: {
-    id: string;
-    resumeId: string;
-    atsScore: number;
-    keywordScore: number;
-    completenessScore: number;
-    industryRank: number | null;
-    totalInIndustry: number | null;
-    topKeywords: string[];
-    missingKeywords: string[];
-    createdAt: Date;
-  }): AnalyticsSnapshot {
-    return {
-      id: record.id,
-      resumeId: record.resumeId,
-      atsScore: record.atsScore,
-      keywordScore: record.keywordScore,
-      completenessScore: record.completenessScore,
-      industryRank: record.industryRank ?? undefined,
-      totalInIndustry: record.totalInIndustry ?? undefined,
-      topKeywords: record.topKeywords,
-      missingKeywords: record.missingKeywords,
-      createdAt: record.createdAt,
-    };
+    return [];
   }
 }

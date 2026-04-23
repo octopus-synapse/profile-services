@@ -36,7 +36,6 @@ export type UserDetails = {
   resumes: {
     id: string;
     title: string | null;
-    template: string | null;
     isPublic: boolean;
     createdAt: Date;
     updatedAt: Date;

@@ -497,7 +497,7 @@ async function main() {
 
   // Pre-fetch dependencies
   const sectionTypes = await prisma.sectionType.findMany({ where: { isActive: true } });
-  const systemTheme = await prisma.resumeTheme.findFirst({ where: { isSystemTheme: true } });
+  const systemTheme = await prisma.resumeStyle.findFirst({ where: { isSystem: true } });
 
   if (sectionTypes.length === 0) {
     throw new Error('No active section types found. Run base seed first.');
@@ -655,7 +655,7 @@ async function main() {
           .replace('{skill}', pick(u.archetype.skills))
           .replace('{years}', String(u.yearsExp)),
         experienceYears: u.yearsExp,
-        activeThemeId: systemTheme.id,
+        styleId: systemTheme.id,
       },
     });
 

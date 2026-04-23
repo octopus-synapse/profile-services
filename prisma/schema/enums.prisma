@@ -64,6 +64,8 @@ enum AuditAction {
   ROLE_CHANGED
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
+  // Admin toggled a feature flag (on/off).
+  FEATURE_FLAG_TOGGLED
 }
 
 enum ConsentDocumentType {

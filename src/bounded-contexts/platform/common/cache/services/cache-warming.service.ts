@@ -64,7 +64,7 @@ export class CacheWarmingService {
           profileViews: true,
           primaryLanguage: true,
           accentColor: true,
-          template: true,
+
           createdAt: true,
           updatedAt: true,
         },
@@ -114,7 +114,7 @@ export class CacheWarmingService {
           profileViews: true,
           primaryLanguage: true,
           accentColor: true,
-          template: true,
+
           createdAt: true,
           updatedAt: true,
         },

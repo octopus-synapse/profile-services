@@ -76,26 +76,6 @@ export const ERROR_DICTIONARY = {
     en: 'You do not own this application',
     'pt-BR': 'Você não é o dono desta candidatura',
   },
-  ATS_RESUME_ACCESS_DENIED: {
-    en: 'You do not have access to this resume',
-    'pt-BR': 'Você não tem acesso a este currículo',
-  },
-  ATS_RESUME_ID_REQUIRED_FOR_SEMANTIC: {
-    en: 'resumeId is required when semantic validation is enabled',
-    'pt-BR': 'resumeId é obrigatório quando a validação semântica está ativada',
-  },
-  ATS_RULE_INVALID: {
-    en: 'ATS rule is invalid',
-    'pt-BR': 'A regra do ATS é inválida',
-  },
-  ATS_RULE_SET_NOT_FOUND: {
-    en: 'ATS rule set not found',
-    'pt-BR': 'Conjunto de regras do ATS não encontrado',
-  },
-  ATS_VALIDATION_UNAVAILABLE: {
-    en: 'ATS validation is temporarily unavailable',
-    'pt-BR': 'A validação do ATS está temporariamente indisponível',
-  },
   AUDIT_LOG_FAILED: {
     en: 'Failed to record audit log entry',
     'pt-BR': 'Falha ao gravar entrada no log de auditoria',

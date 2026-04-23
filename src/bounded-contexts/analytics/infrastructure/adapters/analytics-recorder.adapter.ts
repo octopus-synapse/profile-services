@@ -20,16 +20,9 @@ export class AnalyticsRecorderAdapter implements AnalyticsRecorder {
   async recordResumeCreation(resumeId: string, userId: string): Promise<void> {
     this.logger.debug(`Recording analytics for new resume: ${resumeId}, user: ${userId}`);
 
-    await this.prisma.resumeAnalytics.create({
-      data: {
-        resumeId,
-        atsScore: 0,
-        keywordScore: 0,
-        completenessScore: 0,
-        topKeywords: [],
-        missingKeywords: [],
-        improvementSuggestions: [],
-      },
-    });
+    // Score columns were moved out of ResumeAnalytics into the scoring/
+    // subsystem (see docs/scoring/README.md). This row is kept as an
+    // anchor for view-tracking only.
+    await this.prisma.resumeAnalytics.create({ data: { resumeId } });
   }
 }

@@ -10,7 +10,7 @@ export const CLASSIC_THEME = {
   category: ThemeCategory.CLASSIC,
   tags: ['traditional', 'formal', 'serif', 'executive'],
   status: ThemeStatus.PUBLISHED,
-  isSystemTheme: true,
+  isSystem: true,
   styleConfig: {
     version: '1.0.0',
     layout: {
