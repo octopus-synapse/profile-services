@@ -61,4 +61,11 @@ export interface EmailVerificationRepositoryPort {
    * Checks if user has a recent token (within minutes)
    */
   hasRecentToken(userId: string, withinMinutes: number): Promise<boolean>;
+
+  /**
+   * Returns the creation timestamp of the most recent verification token for
+   * the user, or null if the user has no tokens. Used to compute the resend
+   * cooldown so the UI can honor the same throttle that the backend enforces.
+   */
+  getLastTokenCreatedAt(userId: string): Promise<Date | null>;
 }

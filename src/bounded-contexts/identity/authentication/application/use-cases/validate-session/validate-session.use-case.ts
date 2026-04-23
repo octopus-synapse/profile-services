@@ -75,19 +75,24 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     // 5. Return validated session data with calculated fields
     const role = (userData.role ?? 'USER') as 'USER' | 'ADMIN';
     const roles = userData.roles ?? ['role_user'];
+    // E2E/dev hatch: when SKIP_EMAIL_VERIFICATION is enabled, the HTTP guard
+    // bypasses enforcement — keep the session payload consistent so the
+    // frontend's OnboardingGuard doesn't redirect to /identity/verify-email
+    // based on a flag the backend is ignoring.
+    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       username: userData.username,
       hasCompletedOnboarding: userData.hasCompletedOnboarding,
-      emailVerified: userData.emailVerified,
+      emailVerified: skipEmailVerification ? true : userData.emailVerified,
       role,
       roles,
       // Calculated fields - frontend should NOT calculate these
       isAdmin: role === 'ADMIN',
       needsOnboarding: !userData.hasCompletedOnboarding,
-      needsEmailVerification: !userData.emailVerified,
+      needsEmailVerification: skipEmailVerification ? false : !userData.emailVerified,
     };
 
     return {

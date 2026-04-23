@@ -179,8 +179,8 @@ describe('Public Resumes Integration', () => {
       expect(response.status).toBe(201);
       const prisma = getPrisma();
       const share = await prisma.resumeShare.findUnique({ where: { slug: primarySlug } });
-      expect(share).not.toBeNull();
-      aliasShareId = share!.id;
+      if (!share) throw new Error('share was not persisted');
+      aliasShareId = share.id;
     });
 
     it('should add an alias to the share', async () => {
@@ -256,8 +256,8 @@ describe('Public Resumes Integration', () => {
       const share = await prisma.resumeShare.findUnique({
         where: { slug: response.body.data.share.slug },
       });
-      expect(share).not.toBeNull();
-      qrShareId = share!.id;
+      if (!share) throw new Error('share was not persisted');
+      qrShareId = share.id;
     });
 
     it('should return a PNG QR code for the owner', async () => {

@@ -51,10 +51,10 @@ model WeeklyCuratedItem {
 }
 
 enum WeeklyCuratedBatchStatus {
-  PENDING    // picked, awaiting send
-  SENT       // email dispatched, items awaiting user decision
-  COMPLETED  // user decided every item (or batch expired)
-  FAILED     // transient error; retryable
+  PENDING // picked, awaiting send
+  SENT // email dispatched, items awaiting user decision
+  COMPLETED // user decided every item (or batch expired)
+  FAILED // transient error; retryable
 }
 
 enum WeeklyCuratedItemStatus {

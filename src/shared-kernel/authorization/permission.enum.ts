@@ -108,6 +108,12 @@ export enum Permission {
   RAGE_APPLY = 'automation:rage_apply',
 
   // ============================================================================
+  // Feature Flags (admin-managed kill switches)
+  // ============================================================================
+  FEATURE_FLAG_READ = 'feature_flag:read',
+  FEATURE_FLAG_MANAGE = 'feature_flag:manage',
+
+  // ============================================================================
   // Super Admin (bypass all checks)
   // ============================================================================
   ADMIN_FULL_ACCESS = 'admin:full_access',

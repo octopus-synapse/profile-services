@@ -36,10 +36,12 @@ export class EmailAlreadyVerifiedException extends ConflictException {
 export class VerificationTokenAlreadySentException extends DomainException {
   readonly code = 'VERIFICATION_TOKEN_ALREADY_SENT';
   readonly statusHint = 429;
-  constructor(retryAfterMinutes: number = 5) {
+  readonly retryAfterSeconds: number;
+  constructor(retryAfterSeconds: number = 60) {
     super(
-      `Verification email was already sent. Please wait ${retryAfterMinutes} minutes before requesting a new one.`,
+      `Verification email was already sent. Please wait ${retryAfterSeconds} seconds before requesting a new one.`,
     );
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 

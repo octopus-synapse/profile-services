@@ -1,0 +1,48 @@
+// Feature Flags
+// Cross-cutting infra for on/off gating with dependency-aware cascades.
+//
+// Flags are declared in code (see feature-flags.registry.ts) and upserted on
+// boot. Admin can toggle `enabled` and restrict via `enabledForRoles`, but
+// cannot create arbitrary flags — prevents orphaned flags and flags the code
+// doesn't check. Flags that disappear from the registry are marked
+// `deprecated=true` instead of deleted, preserving audit trail.
+//
+// Effective resolution: a flag is effectively ON iff its own `enabled` is true,
+// every dependency is effectively ON, and either `enabledForRoles` is empty
+// (any role) or the caller has at least one of the listed roles.
+
+model FeatureFlag {
+  id              String   @id @default(cuid())
+  /// Dotted namespace (e.g. "resumes.export.pdf"). Source of truth is the registry in code.
+  key             String   @unique
+  name            String
+  description     String?
+  /// Admin-controlled global switch.
+  enabled         Boolean  @default(false)
+  /// Empty array = no role restriction. Non-empty = allowed only for listed role names.
+  enabledForRoles String[] @default([])
+  /// True when this flag disappeared from the code registry — preserved for audit.
+  deprecated      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dependsOn  FeatureFlagDependency[] @relation("dependent")
+  dependedBy FeatureFlagDependency[] @relation("dependency")
+
+  @@index([deprecated])
+}
+
+/// Directed edge in the feature-flag DAG: `dependent` requires `dependency` to be effectively ON.
+model FeatureFlagDependency {
+  dependentId  String
+  dependencyId String
+
+  dependent  FeatureFlag @relation("dependent", fields: [dependentId], references: [id], onDelete: Cascade)
+  dependency FeatureFlag @relation("dependency", fields: [dependencyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([dependentId, dependencyId])
+  @@index([dependencyId])
+}

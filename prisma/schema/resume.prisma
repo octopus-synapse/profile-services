@@ -62,15 +62,15 @@ model Resume {
   publishedAt DateTime?
 
   // Relations
-  users           User[]                   @relation("UserPrimaryResume")
-  resumeSections  ResumeSection[]
-  shares          ResumeShare[]            @relation("ResumeShares")
-  versions        ResumeVersion[]          @relation("ResumeVersions")
-  analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
-  viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
-  import          ResumeImport?
-  collaborators   ResumeCollaborator[]     @relation("ResumeCollaborators")
-  collabComments  CollaborationComment[]   @relation("ResumeComments")
+  users          User[]                 @relation("UserPrimaryResume")
+  resumeSections ResumeSection[]
+  shares         ResumeShare[]          @relation("ResumeShares")
+  versions       ResumeVersion[]        @relation("ResumeVersions")
+  analytics      ResumeAnalytics[]      @relation("ResumeAnalytics")
+  viewEvents     ResumeViewEvent[]      @relation("ResumeViews")
+  import         ResumeImport?
+  collaborators  ResumeCollaborator[]   @relation("ResumeCollaborators")
+  collabComments CollaborationComment[] @relation("ResumeComments")
 
   @@index([userId])
   @@index([slug])

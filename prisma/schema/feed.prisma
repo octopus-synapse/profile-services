@@ -24,8 +24,8 @@ model Post {
 
   // Repost
   originalPostId String?
-  originalPost   Post?  @relation("Reposts", fields: [originalPostId], references: [id])
-  reposts        Post[] @relation("Reposts")
+  originalPost   Post?   @relation("Reposts", fields: [originalPostId], references: [id])
+  reposts        Post[]  @relation("Reposts")
 
   // Co-authors
   coAuthors String[]
@@ -87,10 +87,10 @@ model PostComment {
   authorId String
   author   User   @relation("UserComments", fields: [authorId], references: [id])
 
-  content  String         @db.Text
+  content  String        @db.Text
   parentId String?
-  parent   PostComment?   @relation("CommentReplies", fields: [parentId], references: [id])
-  replies  PostComment[]  @relation("CommentReplies")
+  parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  PostComment[] @relation("CommentReplies")
 
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())

@@ -51,12 +51,12 @@ model User {
   approvedThemes ResumeTheme[] @relation("ThemeApprover")
 
   // Chat system
-  conversationsAsParticipant1 Conversation[]            @relation("ConversationParticipant1")
-  conversationsAsParticipant2 Conversation[]            @relation("ConversationParticipant2")
-  sentMessages                Message[]                 @relation("SentMessages")
-  blockedUsers                BlockedUser[]             @relation("Blocker")
-  blockedByUsers              BlockedUser[]             @relation("Blocked")
-  conversationPreferences     ConversationPreference[]  @relation("UserConversationPrefs")
+  conversationsAsParticipant1 Conversation[]           @relation("ConversationParticipant1")
+  conversationsAsParticipant2 Conversation[]           @relation("ConversationParticipant2")
+  sentMessages                Message[]                @relation("SentMessages")
+  blockedUsers                BlockedUser[]            @relation("Blocker")
+  blockedByUsers              BlockedUser[]            @relation("Blocked")
+  conversationPreferences     ConversationPreference[] @relation("UserConversationPrefs")
 
   // Social features
   followers  Follow[]   @relation("Following")
@@ -78,9 +78,9 @@ model User {
   resumeImports ResumeImport[]
 
   // Resume collaborations
-  collaborations       ResumeCollaborator[]    @relation("UserCollaborations")
+  collaborations         ResumeCollaborator[]   @relation("UserCollaborations")
   authoredCollabComments CollaborationComment[] @relation("AuthoredCollabComments")
-  skillProficiencies   UserSkillProficiency[]  @relation("UserSkillProficiencies")
+  skillProficiencies     UserSkillProficiency[] @relation("UserSkillProficiencies")
 
   // Legacy RBAC (to be deprecated - use roles[] instead)
   userRoles       UserRoleAssignment[]
@@ -88,25 +88,25 @@ model User {
   userPermissions UserPermission[]
 
   // Feed
-  posts              Post[]           @relation("UserPosts")
-  postComments       PostComment[]    @relation("UserComments")
-  postLikes          PostLike[]       @relation("UserLikes")
-  postBookmarks      PostBookmark[]   @relation("UserBookmarks")
-  postReports        PostReport[]     @relation("UserReports")
+  posts         Post[]         @relation("UserPosts")
+  postComments  PostComment[]  @relation("UserComments")
+  postLikes     PostLike[]     @relation("UserLikes")
+  postBookmarks PostBookmark[] @relation("UserBookmarks")
+  postReports   PostReport[]   @relation("UserReports")
 
   // Notifications
-  notifications      Notification[]   @relation("UserNotifications")
-  notificationActors Notification[]   @relation("NotificationActors")
+  notifications      Notification[] @relation("UserNotifications")
+  notificationActors Notification[] @relation("NotificationActors")
 
   // Jobs
-  jobs               Job[]            @relation("UserJobs")
+  jobs Job[] @relation("UserJobs")
 
   // Identity tokens
-  passwordResetTokens      PasswordResetToken[]
-  emailVerificationTokens  EmailVerificationToken[]
-  refreshTokens            RefreshToken[]
-  loginAttempts            LoginAttempt[]
-  webhooks                 WebhookConfig[] @relation("UserWebhooks")
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  refreshTokens           RefreshToken[]
+  loginAttempts           LoginAttempt[]
+  webhooks                WebhookConfig[]          @relation("UserWebhooks")
 
   // Automation
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")
@@ -179,13 +179,13 @@ model UserApplyCriteria {
   preferencesId String          @unique
   preferences   UserPreferences @relation(fields: [preferencesId], references: [id], onDelete: Cascade)
 
-  minFit          Int?           // Skip jobs below this fit score (0–100).
-  stacks          String[]       @default([])  // Preferred stacks / tech skills.
-  seniorities     String[]       @default([])  // e.g. "Mid", "Senior", "Staff".
-  remotePolicies  RemotePolicy[] @default([])
+  minFit            Int? // Skip jobs below this fit score (0–100).
+  stacks            String[]          @default([]) // Preferred stacks / tech skills.
+  seniorities       String[]          @default([]) // e.g. "Mid", "Senior", "Staff".
+  remotePolicies    RemotePolicy[]    @default([])
   paymentCurrencies PaymentCurrency[] @default([])
-  minSalaryUsd    Int?           // Annual USD floor; null means "don't filter".
-  defaultCover    String?        @db.Text
+  minSalaryUsd      Int? // Annual USD floor; null means "don't filter".
+  defaultCover      String?           @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -203,7 +203,7 @@ model OnboardingProgress {
   // Form data (JSON)
   personalInfo        Json?
   professionalProfile Json?
-  sections            Json?  // Generic sections array: [{ sectionTypeKey, items, noData }]
+  sections            Json? // Generic sections array: [{ sectionTypeKey, items, noData }]
   templateSelection   Json?
 
   createdAt DateTime  @default(now())

@@ -61,6 +61,24 @@ services:
     networks:
       - profile-dev-network
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: profile-mailpit-dev
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - profile-dev-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -79,7 +97,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      EMAIL_FROM: ${EMAIL_FROM:-${SENDGRID_EMAIL_FROM}}
+      # Hardcode the mailpit service hostname — the host's `.env` may have
+      # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
+      # `${VAR:-default}` picks that up, but inside the docker network the
+      # only resolvable SMTP host is `mailpit`.
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@profile.local}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ProFile}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -107,6 +131,8 @@ services:
       minio:
         condition: service_healthy
       libretranslate:
+        condition: service_healthy
+      mailpit:
         condition: service_healthy
     networks:
       - profile-dev-network

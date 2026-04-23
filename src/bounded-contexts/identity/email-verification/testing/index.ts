@@ -92,6 +92,13 @@ export class InMemoryEmailVerificationRepository implements EmailVerificationRep
     return this.tokens.some((t) => t.userId === userId && t.createdAt >= cutoff);
   }
 
+  async getLastTokenCreatedAt(userId: string): Promise<Date | null> {
+    const userTokens = this.tokens.filter((t) => t.userId === userId);
+    if (userTokens.length === 0) return null;
+    return userTokens.reduce((latest, t) => (t.createdAt > latest.createdAt ? t : latest))
+      .createdAt;
+  }
+
   // ───────────────────────────────────────────────────────────────
   // Test Helpers
   // ───────────────────────────────────────────────────────────────

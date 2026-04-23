@@ -7,8 +7,16 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 // Application Layer
-import { SEND_VERIFICATION_EMAIL_PORT, VERIFY_EMAIL_PORT } from './application/ports';
-import { SendVerificationEmailUseCase, VerifyEmailUseCase } from './application/use-cases';
+import {
+  GET_RESEND_COOLDOWN_PORT,
+  SEND_VERIFICATION_EMAIL_PORT,
+  VERIFY_EMAIL_PORT,
+} from './application/ports';
+import {
+  GetResendCooldownUseCase,
+  SendVerificationEmailUseCase,
+  VerifyEmailUseCase,
+} from './application/use-cases';
 // Domain Layer
 import type { EmailVerificationRepositoryPort, VerificationEmailSenderPort } from './domain/ports';
 // Infrastructure Layer
@@ -85,6 +93,13 @@ const EVENT_BUS = Symbol('EventBusPort');
       inject: [EMAIL_VERIFICATION_REPOSITORY, VERIFICATION_EMAIL_SENDER, EVENT_BUS],
     },
     {
+      provide: GET_RESEND_COOLDOWN_PORT,
+      useFactory: (repository: EmailVerificationRepositoryPort) => {
+        return new GetResendCooldownUseCase(repository);
+      },
+      inject: [EMAIL_VERIFICATION_REPOSITORY],
+    },
+    {
       provide: VERIFY_EMAIL_PORT,
       useFactory: (repository: EmailVerificationRepositoryPort, eventBus: EventBusPort) => {
         return new VerifyEmailUseCase(repository, eventBus);
@@ -92,6 +107,6 @@ const EVENT_BUS = Symbol('EventBusPort');
       inject: [EMAIL_VERIFICATION_REPOSITORY, EVENT_BUS],
     },
   ],
-  exports: [SEND_VERIFICATION_EMAIL_PORT, VERIFY_EMAIL_PORT],
+  exports: [SEND_VERIFICATION_EMAIL_PORT, GET_RESEND_COOLDOWN_PORT, VERIFY_EMAIL_PORT],
 })
 export class EmailVerificationModule {}

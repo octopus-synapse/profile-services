@@ -25,6 +25,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { FeatureFlag } from '@/bounded-contexts/platform/feature-flags/infrastructure/guards/feature-flag.guard';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
@@ -45,6 +46,7 @@ export class ExportPdfController {
   }
 
   @RequirePermission(Permission.RESUME_EXPORT)
+  @FeatureFlag('resumes.export.pdf')
   @Get('resume/pdf')
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')

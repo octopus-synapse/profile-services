@@ -115,4 +115,14 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
 
     return token !== null;
   }
+
+  async getLastTokenCreatedAt(userId: string): Promise<Date | null> {
+    const token = await this.prisma.emailVerificationToken.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+
+    return token?.createdAt ?? null;
+  }
 }

@@ -11,6 +11,7 @@
 import { Module } from '@nestjs/common';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
@@ -42,7 +43,7 @@ import {
 } from './infrastructure/controllers';
 
 @Module({
-  imports: [ResumesCoreModule, LoggerModule, PrismaModule, DslModule],
+  imports: [ResumesCoreModule, LoggerModule, PrismaModule, DslModule, FeatureFlagsModule],
   controllers: [
     ExportBannerController,
     ExportPdfController,

@@ -12,12 +12,16 @@ model SuccessStory {
   afterText  String @db.Text // "Engenheiro Pleno na Deel, remoto em USD"
   quote      String @db.Text // 1–3 sentence testimonial
 
-  /** How long the journey took, in days — used for the "in Z days" suffix. */
+  /**
+   * How long the journey took, in days — used for the "in Z days" suffix.
+   */
   timeframeDays Int?
 
-  /** Only PUBLISHED stories are surfaced publicly. Draft / pending lets us
-   *  review before it hits the landing. */
-  status    SuccessStoryStatus @default(DRAFT)
+  /**
+   * Only PUBLISHED stories are surfaced publicly. Draft / pending lets us
+   * review before it hits the landing.
+   */
+  status      SuccessStoryStatus @default(DRAFT)
   publishedAt DateTime?
 
   // Display ordering on the landing carousel. Higher first.

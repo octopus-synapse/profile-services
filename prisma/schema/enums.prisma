@@ -76,6 +76,7 @@ enum AuditAction {
   ROLE_CHANGED
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
+  FEATURE_FLAG_TOGGLED
 }
 
 enum ConsentDocumentType {
@@ -160,8 +161,8 @@ enum NotificationType {
   CONNECTION_REQUEST
   CONNECTION_ACCEPTED
   FOLLOW_NEW
-  SKILL_DECAY            // A tracked skill has been idle for 120+ days.
-  APPLICATION_STALE      // Application tracker: no update for 7/14/21 days.
+  SKILL_DECAY // A tracked skill has been idle for 120+ days.
+  APPLICATION_STALE // Application tracker: no update for 7/14/21 days.
   CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
 }
 

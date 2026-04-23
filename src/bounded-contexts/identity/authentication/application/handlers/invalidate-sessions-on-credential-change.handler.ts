@@ -31,6 +31,17 @@ export class InvalidateSessionsOnCredentialChangeHandler {
     await this.authRepository.invalidateSessionCache(event.userId);
   }
 
+  /**
+   * Refresh the cached session snapshot as soon as a user verifies their
+   * email. Without this the `validate-session` cache keeps serving
+   * `emailVerified: false` for up to 10 minutes, and the `/identity/verify-email`
+   * screen doesn't redirect even after verification succeeds.
+   */
+  @OnEvent('email.verified')
+  async handleEmailVerified(event: { userId: string }): Promise<void> {
+    await this.authRepository.invalidateSessionCache(event.userId);
+  }
+
   @OnEvent('password.changed')
   async handle(event: PasswordChangedEvent): Promise<void> {
     const { userId, changedVia } = event;

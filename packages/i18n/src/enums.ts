@@ -62,6 +62,10 @@ export const ENUM_DICTIONARY = {
       'pt-BR': 'Exportação de dados solicitada',
     },
     EMAIL_CHANGED: { en: 'Email changed', 'pt-BR': 'E-mail alterado' },
+    FEATURE_FLAG_TOGGLED: {
+      en: 'Feature flag toggled',
+      'pt-BR': 'Feature flag alternada',
+    },
     ONBOARDING_COMPLETED: { en: 'Onboarding completed', 'pt-BR': 'Onboarding concluído' },
     PASSWORD_CHANGED: { en: 'Password changed', 'pt-BR': 'Senha alterada' },
     PREFERENCES_UPDATED: { en: 'Preferences updated', 'pt-BR': 'Preferências atualizadas' },

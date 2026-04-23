@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {
   createSessionAuthUser,
@@ -22,11 +22,20 @@ describe('ValidateSessionUseCase', () => {
   let tokenGenerator: InMemoryTokenGenerator;
   let sessionStorage: InMemorySessionStorage;
 
+  // SKIP_EMAIL_VERIFICATION=true in the dev .env flips needsEmailVerification
+  // to false regardless of the user. Force it off so tests are deterministic.
+  let previousSkipEnv: string | undefined;
   beforeEach(() => {
+    previousSkipEnv = process.env.SKIP_EMAIL_VERIFICATION;
+    process.env.SKIP_EMAIL_VERIFICATION = 'false';
     repository = new InMemoryAuthenticationRepository();
     tokenGenerator = new InMemoryTokenGenerator();
     sessionStorage = new InMemorySessionStorage();
     useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
+  });
+  afterEach(() => {
+    if (previousSkipEnv === undefined) delete process.env.SKIP_EMAIL_VERIFICATION;
+    else process.env.SKIP_EMAIL_VERIFICATION = previousSkipEnv;
   });
 
   it('returns success with user data for a valid session', async () => {

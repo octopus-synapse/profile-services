@@ -28,8 +28,8 @@ export class EmailSenderService {
     private readonly configService: ConfigService,
     private readonly logger: AppLoggerService,
   ) {
-    this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@profile.com';
-    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@patchcareers.com';
+    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'Patch Careers';
 
     const host = this.configService.get<string>('SMTP_HOST');
     if (!host) {

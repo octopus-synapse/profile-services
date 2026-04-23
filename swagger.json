@@ -3654,6 +3654,282 @@
         ]
       }
     },
+    "/api/v1/feature-flags/evaluate": {
+      "get": {
+        "description": "Returns a map of flag key → boolean. The boolean is the *effective* value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.",
+        "operationId": "featureFlags_evaluate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User-scoped flag snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeatureFlagEvaluationDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Evaluate effective flag state for the current user",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/feature-flags/stream": {
+      "get": {
+        "description": "Server-Sent Events channel emitting `invalidate` messages when admin toggles a flag or triggers a broadcast refresh. Clients should re-fetch /evaluate on each message.",
+        "operationId": "featureFlags_subscribe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subscribe to flag invalidation broadcasts",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags": {
+      "get": {
+        "operationId": "adminFeatureFlags_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Full feature-flag registry state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeatureFlagAdminListDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feature_flag:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all feature flags with metadata and blocking info",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/{key}/impact": {
+      "get": {
+        "operationId": "adminFeatureFlags_getImpact",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Impact tree rooted at the given flag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeatureFlagImpactDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feature_flag:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview transitive descendants affected when a flag is turned OFF",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/{key}": {
+      "patch": {
+        "description": "Turning ON is rejected with 409 when any ancestor is OFF. Deprecated flags are read-only.",
+        "operationId": "adminFeatureFlags_updateFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleFeatureFlagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated flag row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feature_flag:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Toggle a flag or update its role restriction",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/broadcast-refresh": {
+      "post": {
+        "description": "Clears server-side caches and pushes an `invalidate` message through the SSE stream so every connected client refetches.",
+        "operationId": "adminFeatureFlags_broadcastRefresh",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Broadcast dispatched"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feature_flag:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Invalidate all client flag snapshots",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
     "/api/auth/forgot-password": {
       "post": {
         "description": "Sends a password reset email if the account exists. Always returns success to prevent email enumeration.",
@@ -3814,20 +4090,9 @@
     },
     "/api/email-verification/send": {
       "post": {
-        "description": "Sends a verification email to the authenticated user.",
+        "description": "Sends a verification email to the authenticated user. No body required.",
         "operationId": "sendVerification_handle",
         "parameters": [],
-        "requestBody": {
-          "required": false,
-          "description": "No body required - uses authenticated user",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Verification email sent",
@@ -3867,6 +4132,49 @@
           }
         ],
         "summary": "Send verification email",
+        "tags": [
+          "Email Verification"
+        ]
+      }
+    },
+    "/api/email-verification/resend-status": {
+      "get": {
+        "description": "Returns how many seconds the authenticated user must wait before requesting another verification email. The UI uses this so the countdown survives page reloads.",
+        "operationId": "emailVerification_resendStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current resend cooldown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ResendCooldownResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get verification email resend cooldown",
         "tags": [
           "Email Verification"
         ]
@@ -23864,6 +24172,138 @@
           "latency"
         ]
       },
+      "FeatureFlagEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "object",
+            "description": "Map of flag key to effective boolean state for the calling user.",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "example": {
+              "resumes.export.pdf": true
+            }
+          }
+        },
+        "required": [
+          "flags"
+        ]
+      },
+      "FeatureFlagAdminRowDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "enabledForRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockedBy": {
+            "description": "Parents currently OFF blocking this from turning ON.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "effectiveGlobal": {
+            "type": "boolean",
+            "description": "Effective state ignoring roles (global view)."
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "description",
+          "enabled",
+          "enabledForRoles",
+          "deprecated",
+          "dependsOn",
+          "blockedBy",
+          "effectiveGlobal"
+        ]
+      },
+      "FeatureFlagAdminListDto": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
+            }
+          }
+        },
+        "required": [
+          "flags"
+        ]
+      },
+      "FeatureFlagImpactNodeDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "children"
+        ]
+      },
+      "FeatureFlagImpactDto": {
+        "type": "object",
+        "properties": {
+          "tree": {
+            "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
+          }
+        },
+        "required": [
+          "tree"
+        ]
+      },
+      "ToggleFeatureFlagDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "New enabled state. Omit to leave unchanged."
+          },
+          "enabledForRoles": {
+            "description": "Roles allowed when enabled. Empty array = no restriction.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "ForgotPasswordResponseDto": {
         "type": "object",
         "properties": {
@@ -23948,10 +24388,50 @@
         "properties": {
           "message": {
             "type": "string"
+          },
+          "cooldown": {
+            "type": "object",
+            "properties": {
+              "secondsUntilResendAllowed": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": false
+              },
+              "cooldownSeconds": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+              }
+            },
+            "required": [
+              "secondsUntilResendAllowed",
+              "cooldownSeconds"
+            ],
+            "x-nestjs_zod-self-required": true
           }
         },
         "required": [
-          "message"
+          "message",
+          "cooldown"
+        ]
+      },
+      "ResendCooldownResponseDto": {
+        "type": "object",
+        "properties": {
+          "secondsUntilResendAllowed": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false
+          },
+          "cooldownSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          }
+        },
+        "required": [
+          "secondsUntilResendAllowed",
+          "cooldownSeconds"
         ]
       },
       "VerifyEmailResponseDto": {

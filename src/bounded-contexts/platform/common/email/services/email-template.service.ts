@@ -23,13 +23,15 @@ export class EmailTemplateService {
    */
   async sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
-    const verificationUrl = `${frontendUrl}/auth/verify-email?token=${token}`;
+    // Frontend route is /identity/verify-email; the ?token=<code> query param
+    // auto-submits the 6-digit code for users who prefer clicking the link.
+    const verificationUrl = `${frontendUrl}/identity/verify-email?token=${token}`;
 
-    const html = getVerificationEmailTemplate(name, verificationUrl);
+    const html = getVerificationEmailTemplate(name, token, verificationUrl);
 
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Verifique seu email - ProFile',
+      subject: 'Verifique seu email - Patch Careers',
       html,
     });
   }
@@ -45,7 +47,7 @@ export class EmailTemplateService {
 
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Redefinir senha - ProFile',
+      subject: 'Redefinir senha - Patch Careers',
       html,
     });
   }
@@ -59,7 +61,7 @@ export class EmailTemplateService {
 
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Bem-vindo ao ProFile! 🎉',
+      subject: 'Bem-vindo ao Patch Careers!',
       html,
     });
   }
@@ -73,7 +75,7 @@ export class EmailTemplateService {
 
     await this.senderService.sendEmail({
       to: email,
-      subject: 'Sua senha foi alterada - ProFile',
+      subject: 'Sua senha foi alterada - Patch Careers',
       html,
     });
   }

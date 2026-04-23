@@ -2,9 +2,9 @@
 // This table is maintained via events to avoid cross-context database coupling
 
 model AnalyticsResumeProjection {
-  id       String @id // Same as resumeId for easy lookup
-  userId   String
-  title    String?
+  id     String  @id // Same as resumeId for easy lookup
+  userId String
+  title  String?
 
   // Generic section counts stored as JSON
   // Keys are semanticKind strings (e.g., "WORK_EXPERIENCE", "MY_CUSTOM_SECTION")
@@ -23,12 +23,12 @@ model AnalyticsResumeProjection {
 // Pre-aggregated view counts per resume per day — refreshed by a daily cron
 // so the admin dashboard doesn't hit ResumeViewEvent with heavy GROUP BYs.
 model ResumeViewsDailyProjection {
-  id        String   @id @default(cuid())
-  resumeId  String
-  userId    String
-  day       DateTime // truncated to 00:00 UTC
-  viewCount Int      @default(0)
-  uniqueVisitorCount Int @default(0)
+  id                 String   @id @default(cuid())
+  resumeId           String
+  userId             String
+  day                DateTime // truncated to 00:00 UTC
+  viewCount          Int      @default(0)
+  uniqueVisitorCount Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

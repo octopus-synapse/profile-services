@@ -11,14 +11,19 @@ import type {
   VerificationEmailSenderPort,
 } from '../../../domain/ports';
 import { EmailVerificationToken } from '../../../domain/value-objects';
-import type { SendVerificationEmailCommand, SendVerificationEmailPort } from '../../ports';
+import type {
+  ResendCooldown,
+  SendVerificationEmailCommand,
+  SendVerificationEmailPort,
+} from '../../ports';
 
 const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');
 const EMAIL_SENDER = Symbol('VerificationEmailSenderPort');
 const EVENT_BUS = Symbol('EventBusPort');
 
-// Rate limit: 5 minutes between verification emails
-const RATE_LIMIT_MINUTES = 5;
+// Cooldown between verification emails. Source of truth for the UI timer —
+// exposed via GET /email-verification/resend-status.
+export const RESEND_COOLDOWN_SECONDS = 60;
 
 @Injectable()
 export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
@@ -31,30 +36,29 @@ export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
     private readonly eventBus: EventBusPort,
   ) {}
 
-  async execute(command: SendVerificationEmailCommand): Promise<void> {
+  async execute(command: SendVerificationEmailCommand): Promise<ResendCooldown> {
     const { userId } = command;
 
-    // Find user
     const user = await this.repository.findUserById(userId);
     if (!user) {
       throw new EntityNotFoundException('User', userId);
     }
 
-    // Check if already verified
     if (user.emailVerified) {
       throw new EmailAlreadyVerifiedException(user.email);
     }
 
-    // Check rate limit
-    const hasRecent = await this.repository.hasRecentToken(userId, RATE_LIMIT_MINUTES);
-    if (hasRecent) {
-      throw new VerificationTokenAlreadySentException(RATE_LIMIT_MINUTES);
+    const lastCreatedAt = await this.repository.getLastTokenCreatedAt(userId);
+    if (lastCreatedAt) {
+      const elapsedMs = Date.now() - lastCreatedAt.getTime();
+      const remainingMs = RESEND_COOLDOWN_SECONDS * 1000 - elapsedMs;
+      if (remainingMs > 0) {
+        throw new VerificationTokenAlreadySentException(Math.ceil(remainingMs / 1000));
+      }
     }
 
-    // Generate new token
     const token = EmailVerificationToken.generateNew();
 
-    // Delete any existing tokens and create new one
     await this.repository.deleteUserVerificationTokens(userId);
     await this.repository.createVerificationToken(
       userId,
@@ -63,15 +67,14 @@ export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
       user.email,
     );
 
-    // Send verification email
-    await this.emailSender.sendVerificationEmail(
-      user.email,
-      null, // Could fetch user name if needed
-      token.getValue(),
-    );
+    await this.emailSender.sendVerificationEmail(user.email, null, token.getValue());
 
-    // Publish domain event
     const event = new VerificationEmailSentEvent(userId, user.email);
     this.eventBus.publish(event);
+
+    return {
+      secondsUntilResendAllowed: RESEND_COOLDOWN_SECONDS,
+      cooldownSeconds: RESEND_COOLDOWN_SECONDS,
+    };
   }
 }
