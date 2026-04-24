@@ -10771,6 +10771,270 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notifications_getByUser",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get notifications for current user",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "notifications_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Unread notification count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UnreadCountDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get unread notification count",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/mark-read": {
+      "post": {
+        "operationId": "notifications_markRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Notifications marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MarkReadDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark notifications as read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "operationId": "notifications_getPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get notification preferences for the current user",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/preferences/{type}": {
+      "put": {
+        "operationId": "notifications_setPreference",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a notification type preference (in-app enable + email channel + delivery mode).",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/subscribe": {
+      "get": {
+        "description": "Pushes new notifications as they are created for the authenticated user.",
+        "operationId": "notifications_subscribe",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subscribe to notification stream",
+        "tags": [
+          "Notifications SSE"
+        ]
+      }
+    },
     "/api/v1/tech-skills/sync": {
       "post": {
         "operationId": "techSkillsSync_triggerSync",
@@ -19725,270 +19989,6 @@
         "summary": "List reactions given by a user",
         "tags": [
           "user-engagement"
-        ]
-      }
-    },
-    "/api/v1/notifications": {
-      "get": {
-        "operationId": "notifications_getByUser",
-        "parameters": [
-          {
-            "name": "cursor",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of notifications",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/NotificationsListDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get notifications for current user",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/unread-count": {
-      "get": {
-        "operationId": "notifications_getUnreadCount",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Unread notification count",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/UnreadCountDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get unread notification count",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/mark-read": {
-      "post": {
-        "operationId": "notifications_markRead",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Notifications marked as read",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/MarkReadDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark notifications as read",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/preferences": {
-      "get": {
-        "operationId": "notifications_getPreferences",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get notification preferences for the current user",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/preferences/{type}": {
-      "put": {
-        "operationId": "notifications_setPreference",
-        "parameters": [
-          {
-            "name": "type",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update a notification type preference (in-app enable + email channel + delivery mode).",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/subscribe": {
-      "get": {
-        "description": "Pushes new notifications as they are created for the authenticated user.",
-        "operationId": "notifications_subscribe",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Subscribe to notification stream",
-        "tags": [
-          "Notifications SSE"
         ]
       }
     },
@@ -29934,6 +29934,141 @@
           "jobId"
         ]
       },
+      "NotificationActorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "example": "janedoe",
+            "nullable": true
+          },
+          "photoURL": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "photoURL"
+        ]
+      },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "notif-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "LIKE"
+          },
+          "actorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "message": {
+            "type": "string",
+            "example": "Jane liked your post"
+          },
+          "entityType": {
+            "type": "string",
+            "example": "POST"
+          },
+          "entityId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "read": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/NotificationActorDto"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "type",
+          "actorId",
+          "message",
+          "read",
+          "createdAt",
+          "actor"
+        ]
+      },
+      "NotificationsListDataDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "notif-456",
+            "nullable": true
+          }
+        },
+        "required": [
+          "data",
+          "nextCursor"
+        ]
+      },
+      "UnreadCountDataDto": {
+        "type": "object",
+        "properties": {
+          "totalUnread": {
+            "type": "integer"
+          },
+          "byConversation": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "totalUnread",
+          "byConversation"
+        ]
+      },
+      "MarkReadDataDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "count"
+        ]
+      },
       "TechSkillsSyncDataDto": {
         "type": "object",
         "properties": {
@@ -32345,18 +32480,6 @@
         "properties": {
           "count": {
             "type": "integer"
-          }
-        },
-        "required": [
-          "count"
-        ]
-      },
-      "UnreadCountDataDto": {
-        "type": "object",
-        "properties": {
-          "count": {
-            "type": "number",
-            "example": 5
           }
         },
         "required": [
@@ -34857,122 +34980,6 @@
           "userId",
           "optionIndex",
           "createdAt"
-        ]
-      },
-      "NotificationActorDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "user-456"
-          },
-          "name": {
-            "type": "string",
-            "example": "Jane Doe",
-            "nullable": true
-          },
-          "username": {
-            "type": "string",
-            "example": "janedoe",
-            "nullable": true
-          },
-          "photoURL": {
-            "type": "string",
-            "example": "https://example.com/photo.jpg",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "username",
-          "photoURL"
-        ]
-      },
-      "NotificationDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "notif-123"
-          },
-          "userId": {
-            "type": "string",
-            "example": "user-123"
-          },
-          "type": {
-            "type": "string",
-            "example": "LIKE"
-          },
-          "actorId": {
-            "type": "string",
-            "example": "user-456"
-          },
-          "message": {
-            "type": "string",
-            "example": "Jane liked your post"
-          },
-          "entityType": {
-            "type": "string",
-            "example": "POST"
-          },
-          "entityId": {
-            "type": "string",
-            "example": "post-123"
-          },
-          "read": {
-            "type": "boolean",
-            "example": false
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2025-01-01T00:00:00.000Z"
-          },
-          "actor": {
-            "$ref": "#/components/schemas/NotificationActorDto"
-          }
-        },
-        "required": [
-          "id",
-          "userId",
-          "type",
-          "actorId",
-          "message",
-          "read",
-          "createdAt",
-          "actor"
-        ]
-      },
-      "NotificationsListDataDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NotificationDto"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "example": "notif-456",
-            "nullable": true
-          }
-        },
-        "required": [
-          "data",
-          "nextCursor"
-        ]
-      },
-      "MarkReadDataDto": {
-        "type": "object",
-        "properties": {
-          "count": {
-            "type": "number",
-            "example": 3
-          }
-        },
-        "required": [
-          "count"
         ]
       },
       "PaginatedJobsDto": {

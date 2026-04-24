@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
+import { NotificationsModule } from '@/bounded-contexts/notifications/notifications.module';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -47,6 +48,7 @@ import {
     CacheModule,
     FeatureFlagsModule,
     EventBusModule,
+    NotificationsModule,
     BullModule.registerQueue({ name: JOB_MATCH_RECOMPUTE_QUEUE }),
     BullModule.registerQueue({ name: DAILY_RECOMMENDATIONS_QUEUE }),
   ],
