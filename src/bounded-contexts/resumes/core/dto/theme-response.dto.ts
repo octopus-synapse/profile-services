@@ -7,4 +7,4 @@ export const ThemeSchema = z.object({
   description: z.string().optional(),
 });
 
-export class ResumeThemeResponseDto extends createZodDto(ThemeSchema) {}
+export class ResumeStyleResponseDto extends createZodDto(ThemeSchema) {}

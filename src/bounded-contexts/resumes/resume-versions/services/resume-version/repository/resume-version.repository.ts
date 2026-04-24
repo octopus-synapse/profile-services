@@ -287,7 +287,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
   }
 
   // setTemplate removed: the Resume.template column was dropped alongside
-  // the ResumeTemplate enum. Snapshots of legacy resumes ignore the field.
+  // the legacy template enum. Snapshots of legacy resumes ignore the field.
 
   private setString(
     data: Prisma.ResumeUncheckedUpdateInput,

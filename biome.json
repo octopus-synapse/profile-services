@@ -11,12 +11,6 @@
   },
   "overrides": [
     {
-      "includes": ["src/bounded-contexts/ats-validation/**/*.ts"],
-      "linter": {
-        "rules": { "suspicious": { "noControlCharactersInRegex": "off" } }
-      }
-    },
-    {
       "includes": ["scripts/**/*.ts"],
       "linter": {
         "rules": { "suspicious": { "noAssignInExpressions": "off" } }

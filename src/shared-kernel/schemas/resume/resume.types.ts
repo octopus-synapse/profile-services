@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ResumeTemplateSchema } from '../../enums';
 
 /**
  * Resume Types
@@ -63,7 +62,6 @@ export const ResumeSchema = z.object({
   userId: z.string().uuid(),
   title: z.string(),
   summary: z.string().nullable(),
-  template: ResumeTemplateSchema,
   isPublic: z.boolean(),
   slug: z.string().nullable(),
   createdAt: z.string().datetime(),

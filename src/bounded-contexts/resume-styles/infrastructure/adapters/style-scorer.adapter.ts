@@ -6,8 +6,7 @@ import { type StyleScoreBreakdown, StyleScorerPort } from '../../domain/ports/st
  *
  * Placeholder: returns conservative defaults so a newly created or
  * updated style always passes the monotonic invariant. The full rubric
- * (layout / typography / file-level) lands in a follow-up that ports
- * the logic from the deleted ats-validation context — see
+ * (layout / typography / file-level) lands in a follow-up — see
  * docs/scoring/README.md for the target fields and weights.
  */
 @Injectable()

@@ -133,7 +133,6 @@ function createTestService(
 function createResumeDto(overrides: Partial<CreateResume> = {}): CreateResume {
   return {
     title: 'Test Resume',
-    template: 'PROFESSIONAL',
     isPublic: false,
     ...overrides,
   };

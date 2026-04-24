@@ -91,7 +91,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       'techSkill',
       'techNiche',
       'techArea',
-      'resumeTheme',
+      'resumeStyle',
       'session',
       'account',
       'verificationToken',

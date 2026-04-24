@@ -58,14 +58,3 @@ export {
   uiLanguageFromKebab,
   uiLanguageToKebab,
 } from './platform.enum';
-
-// Resume Template
-// Used by: onboarding, resumes, platform
-export {
-  type ResumeTemplate,
-  type ResumeTemplateKebab,
-  ResumeTemplateKebabSchema,
-  ResumeTemplateSchema,
-  resumeTemplateFromKebab,
-  resumeTemplateToKebab,
-} from './resume-template.enum';

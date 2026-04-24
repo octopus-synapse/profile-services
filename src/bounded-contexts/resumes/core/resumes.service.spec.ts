@@ -54,7 +54,6 @@ describe('ResumesService', () => {
 
       const result = await service.createResumeForUser(userId, {
         title: 'New Resume',
-        template: 'PROFESSIONAL',
         isPublic: false,
       });
 
@@ -71,7 +70,6 @@ describe('ResumesService', () => {
       await expect(
         service.createResumeForUser(userId, {
           title: 'Fifth Resume',
-          template: 'PROFESSIONAL',
           isPublic: false,
         }),
       ).rejects.toThrow(UnprocessableEntityException);
@@ -87,7 +85,6 @@ describe('ResumesService', () => {
       await expect(
         service.createResumeForUser(userId, {
           title: 'Fifth Resume',
-          template: 'PROFESSIONAL',
           isPublic: false,
         }),
       ).rejects.toThrow(/4.*resumes/i);
@@ -101,7 +98,6 @@ describe('ResumesService', () => {
 
       const result = await service.createResumeForUser(userId, {
         title: 'Fourth Resume',
-        template: 'PROFESSIONAL',
         isPublic: false,
       });
 

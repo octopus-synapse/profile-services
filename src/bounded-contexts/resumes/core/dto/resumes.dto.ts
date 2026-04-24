@@ -137,4 +137,4 @@ export class PaginatedResumesDataDto extends createZodDto(PaginatedResumesDataSc
 export class ResumeSectionTypeResponseDto extends createZodDto(SectionTypeSchema) {}
 export class ResumeSectionItemResponseDto extends createZodDto(SectionItemSchema) {}
 export class ResumeSectionResponseDto extends createZodDto(SectionSchema) {}
-export class ResumeThemeResponseDto extends createZodDto(ThemeSchema) {}
+export class ResumeStyleResponseDto extends createZodDto(ThemeSchema) {}

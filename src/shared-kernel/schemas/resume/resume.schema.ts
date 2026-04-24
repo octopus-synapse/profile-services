@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ResumeTemplateSchema } from '../../enums';
 
 const ResumeSectionTypeRefSchema = z.object({
   key: z.string().min(1),
@@ -24,7 +23,6 @@ const UpsertResumeSectionSchema = z.object({
 export const CreateResumeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   summary: z.string().max(2000).optional(),
-  template: ResumeTemplateSchema.default('PROFESSIONAL'),
   isPublic: z.boolean().default(false),
 
   // Personal info

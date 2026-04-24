@@ -189,7 +189,6 @@ describe('ResumesRepository', () => {
     it('should create resume and return it with generated id', async () => {
       const createDto: CreateResume = {
         title: 'New Resume',
-        template: 'PROFESSIONAL',
         isPublic: false,
       };
 
@@ -205,7 +204,6 @@ describe('ResumesRepository', () => {
     it('should persist resume to storage', async () => {
       await repository.createResumeForUser('user-1', {
         title: 'Persisted Resume',
-        template: 'PROFESSIONAL',
         isPublic: false,
       });
 
