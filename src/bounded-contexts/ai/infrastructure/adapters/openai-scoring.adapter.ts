@@ -85,32 +85,20 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
 
   async analyzeContentQuality(input: ContentQualityInput): Promise<ContentQualityResult> {
     this.assertConfigured();
-
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      max_tokens: this.maxTokens,
-      temperature: 0.1,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: ANALYZE_CONTENT_QUALITY_SYSTEM_PROMPT },
-        { role: 'user', content: buildAnalyzeContentQualityUserMessage(input) },
-      ],
-    });
-
-    const raw = response.choices[0]?.message?.content;
-    if (!raw) throw new AiEmptyResponseException('analyzeContentQuality');
-
-    const parsed = this.parseJson(raw, 'analyzeContentQuality');
-    const result = ContentQualityOutputSchema.safeParse(parsed);
-    if (!result.success) {
-      this.logger.error(`analyzeContentQuality schema validation failed: ${result.error.message}`);
-      throw new AiInvalidOutputException('analyzeContentQuality');
-    }
-
+    const baseMessages = [
+      { role: 'system' as const, content: ANALYZE_CONTENT_QUALITY_SYSTEM_PROMPT },
+      { role: 'user' as const, content: buildAnalyzeContentQualityUserMessage(input) },
+    ];
+    const { data, tokensUsed } = await this.callWithRetry(
+      'analyzeContentQuality',
+      baseMessages,
+      ContentQualityOutputSchema,
+      0.1,
+    );
     return {
-      score: result.data.score,
-      issues: result.data.issues,
-      tokensUsed: response.usage?.total_tokens ?? 0,
+      score: data.score,
+      issues: data.issues,
+      tokensUsed,
     };
   }
 
@@ -118,43 +106,90 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
     input: NormalizeRequirementsInput,
   ): Promise<NormalizedRequirementsResult> {
     this.assertConfigured();
-
-    const response = await this.client.chat.completions.create({
-      model: this.model,
-      max_tokens: this.maxTokens,
-      temperature: 0,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: NORMALIZE_REQUIREMENTS_SYSTEM_PROMPT },
-        { role: 'user', content: buildNormalizeRequirementsUserMessage(input) },
-      ],
-    });
-
-    const raw = response.choices[0]?.message?.content;
-    if (!raw) throw new AiEmptyResponseException('normalizeRequirements');
-
-    const parsed = this.parseJson(raw, 'normalizeRequirements');
-    const result = NormalizedRequirementsOutputSchema.safeParse(parsed);
-    if (!result.success) {
-      this.logger.error(`normalizeRequirements schema validation failed: ${result.error.message}`);
-      throw new AiInvalidOutputException('normalizeRequirements');
-    }
-
+    const baseMessages = [
+      { role: 'system' as const, content: NORMALIZE_REQUIREMENTS_SYSTEM_PROMPT },
+      { role: 'user' as const, content: buildNormalizeRequirementsUserMessage(input) },
+    ];
+    const { data, tokensUsed } = await this.callWithRetry(
+      'normalizeRequirements',
+      baseMessages,
+      NormalizedRequirementsOutputSchema,
+      0,
+    );
     return {
-      minYears: result.data.minYears,
-      languages: result.data.languages,
-      certifications: result.data.certifications,
-      seniority: result.data.seniority,
-      tokensUsed: response.usage?.total_tokens ?? 0,
+      minYears: data.minYears,
+      languages: data.languages,
+      certifications: data.certifications,
+      seniority: data.seniority,
+      tokensUsed,
     };
+  }
+
+  /**
+   * One-shot retry on schema-miss. The first call uses the user
+   * prompt as-is; on failure we re-issue with an extra `system`
+   * message describing the validator's complaint so the model can
+   * self-correct without human intervention. After the second
+   * failure we throw — callers map that to graceful degradation
+   * (`null` score) so the user never sees a 500.
+   */
+  private async callWithRetry<T>(
+    operation: string,
+    baseMessages: ReadonlyArray<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    schema: {
+      safeParse: (
+        v: unknown,
+      ) => { success: true; data: T } | { success: false; error: { message: string } };
+    },
+    temperature: number,
+  ): Promise<{ data: T; tokensUsed: number }> {
+    let lastError = '';
+    let totalTokens = 0;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const messages =
+        attempt === 0
+          ? [...baseMessages]
+          : [
+              ...baseMessages,
+              {
+                role: 'system' as const,
+                content: `Your previous response failed schema validation: ${lastError}. Return strictly valid JSON matching the schema, with no extra prose.`,
+              },
+            ];
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        max_tokens: this.maxTokens,
+        temperature,
+        response_format: { type: 'json_object' },
+        messages,
+      });
+      totalTokens += response.usage?.total_tokens ?? 0;
+      const raw = response.choices[0]?.message?.content;
+      if (!raw) {
+        if (attempt === 1) throw new AiEmptyResponseException(operation);
+        lastError = 'response was empty';
+        continue;
+      }
+      const parsed = this.parseJson(raw, operation);
+      const result = schema.safeParse(parsed);
+      if (result.success) return { data: result.data, tokensUsed: totalTokens };
+      lastError = result.error.message.slice(0, 500);
+      this.logger.warn(
+        `${operation} schema validation failed (attempt ${attempt + 1}/2): ${lastError}`,
+      );
+    }
+    throw new AiInvalidOutputException(operation);
   }
 
   private parseJson(raw: string, operation: string): unknown {
     try {
       return JSON.parse(raw);
     } catch {
-      this.logger.error(`OpenAI ${operation} returned non-JSON payload`);
-      throw new AiInvalidOutputException(operation);
+      this.logger.warn(`OpenAI ${operation} returned non-JSON payload`);
+      // The retry loop wants a structured rejection it can read; let
+      // the validator catch the empty object and trigger the second
+      // attempt with the "invalid JSON" complaint baked in.
+      return {};
     }
   }
 
