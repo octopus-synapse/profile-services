@@ -42,14 +42,14 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
     },
   });
 
-  // Typst PDF generation requires an active theme on the resume.
-  const defaultTheme = await prisma.resumeStyle.findFirst({
+  // Typst PDF generation requires an active style on the resume.
+  const defaultStyle = await prisma.resumeStyle.findFirst({
     where: { isSystem: true },
     orderBy: { createdAt: 'asc' },
   });
-  if (!defaultTheme) {
+  if (!defaultStyle) {
     throw new Error(
-      "Cannot seed 'enzoferracini': no system theme found. Run seedThemes before this seed.",
+      "Cannot seed 'enzoferracini': no system resume style found. Run seedResumeStyles before this seed.",
     );
   }
 
@@ -71,7 +71,7 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       slug: username,
       primaryLanguage: 'pt-br',
       language: 'pt-br',
-      styleId: defaultTheme.id,
+      styleId: defaultStyle.id,
     },
   });
 
