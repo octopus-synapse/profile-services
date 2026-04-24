@@ -13,6 +13,7 @@ import { AiContentQualityAdapter } from './infrastructure/adapters/ai-content-qu
 import { PrismaQualityScoreRepository } from './infrastructure/adapters/persistence/prisma-quality-score.repository';
 import { PrismaResumeLoader } from './infrastructure/adapters/persistence/prisma-resume-loader.adapter';
 import { ResumeQualityController } from './infrastructure/controllers/resume-quality.controller';
+import { RequireMinQualityGuard } from './infrastructure/guards/require-min-quality.guard';
 import {
   RESUME_QUALITY_QUEUE,
   ResumeQualityWorker,
@@ -40,10 +41,11 @@ import {
     AiContentQualityAdapter,
     PrismaQualityScoreRepository,
     ResumeQualityWorker,
+    RequireMinQualityGuard,
     { provide: ResumeLoaderPort, useExisting: PrismaResumeLoader },
     { provide: ContentQualityPort, useExisting: AiContentQualityAdapter },
     { provide: QualityScoreRepositoryPort, useExisting: PrismaQualityScoreRepository },
   ],
-  exports: [ComputeQualityUseCase, GetLatestQualityUseCase],
+  exports: [ComputeQualityUseCase, GetLatestQualityUseCase, RequireMinQualityGuard],
 })
 export class ResumeQualityModule {}

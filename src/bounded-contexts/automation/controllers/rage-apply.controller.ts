@@ -8,6 +8,10 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import {
+  RequireMinQuality,
+  RequireMinQualityGuard,
+} from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { RageApplyService } from '../services/rage-apply.service';
 
@@ -48,7 +52,8 @@ export class RageApplyController {
 
   @Post()
   @RequirePermission(Permission.RAGE_APPLY)
-  @UseGuards(RequireFitProfileGuard)
+  @UseGuards(RequireFitProfileGuard, RequireMinQualityGuard)
+  @RequireMinQuality()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:

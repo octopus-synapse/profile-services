@@ -4,6 +4,7 @@ import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analy
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { ApplyModeController } from './controllers/apply-mode.controller';
 import { RageApplyController } from './controllers/rage-apply.controller';
@@ -28,6 +29,7 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     ResumeAnalyticsModule,
     ResumeVersionsModule,
     FitProfileModule,
+    ResumeQualityModule,
     BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
   controllers: [ApplyModeController, RageApplyController],

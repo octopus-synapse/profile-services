@@ -8,6 +8,10 @@ import {
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  RequireMinQuality,
+  RequireMinQualityGuard,
+} from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { ApplyModeService, type WeeklyCuratedBatchView } from '../services/apply-mode.service';
 
 class CurrentBatchDataDto {
@@ -46,7 +50,8 @@ export class ApplyModeController {
   }
 
   @Post('weekly-curated/:itemId/approve')
-  @UseGuards(RequireFitProfileGuard)
+  @UseGuards(RequireFitProfileGuard, RequireMinQualityGuard)
+  @RequireMinQuality()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Approve a curated item — submits a JobApplication using the user's primary resume.",

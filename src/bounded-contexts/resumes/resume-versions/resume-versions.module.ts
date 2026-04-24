@@ -3,6 +3,7 @@ import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
 import { RESUME_EVENT_PUBLISHER } from '@/bounded-contexts/resumes/domain/ports';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters';
@@ -16,7 +17,7 @@ import {
 import { ResumeVersionService } from './services/resume-version.service';
 
 @Module({
-  imports: [PrismaModule, AiModule, FitProfileModule],
+  imports: [PrismaModule, AiModule, FitProfileModule, ResumeQualityModule],
   controllers: [ResumeVersionController, ResumeTailorController],
   providers: [
     ResumeVersionService,

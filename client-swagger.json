@@ -1787,6 +1787,276 @@
         ]
       }
     },
+    "/api/v1/resumes/{resumeId}/quality": {
+      "get": {
+        "operationId": "resumeQuality_get",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest snapshot or 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the latest Resume Quality Score snapshot",
+        "tags": [
+          "resume-quality"
+        ]
+      }
+    },
+    "/api/v1/resumes/{resumeId}/quality/recompute": {
+      "post": {
+        "operationId": "resumeQuality_recompute",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Freshly computed snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Synchronously recompute Resume Quality Score",
+        "tags": [
+          "resume-quality"
+        ]
+      }
+    },
+    "/api/v1/feature-flags/evaluate": {
+      "get": {
+        "description": "Returns a map of flag key → boolean. The boolean is the *effective* value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.",
+        "operationId": "featureFlags_evaluate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User-scoped flag snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagEvaluationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Evaluate effective flag state for the current user",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/feature-flags/stream": {
+      "get": {
+        "description": "Server-Sent Events channel emitting `invalidate` messages when admin toggles a flag or triggers a broadcast refresh. Clients should re-fetch /evaluate on each message.",
+        "operationId": "featureFlags_subscribe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subscribe to flag invalidation broadcasts",
+        "tags": [
+          "Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags": {
+      "get": {
+        "operationId": "adminFeatureFlags_listAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Full feature-flag registry state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagAdminListDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all feature flags with metadata and blocking info",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/{key}/impact": {
+      "get": {
+        "operationId": "adminFeatureFlags_getImpact",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Impact tree rooted at the given flag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagImpactDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Preview transitive descendants affected when a flag is turned OFF",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/{key}": {
+      "patch": {
+        "description": "Turning ON is rejected with 409 when any ancestor is OFF. Deprecated flags are read-only.",
+        "operationId": "adminFeatureFlags_updateFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleFeatureFlagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated flag row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Toggle a flag or update its role restriction",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
+    "/api/v1/admin/feature-flags/broadcast-refresh": {
+      "post": {
+        "description": "Clears server-side caches and pushes an `invalidate` message through the SSE stream so every connected client refetches.",
+        "operationId": "adminFeatureFlags_broadcastRefresh",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Broadcast dispatched"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Invalidate all client flag snapshots",
+        "tags": [
+          "Admin - Feature Flags"
+        ]
+      }
+    },
     "/api/health/smtp": {
       "get": {
         "operationId": "platform_checkSmtp",
@@ -2702,198 +2972,6 @@
         "summary": "Get all metrics as JSON",
         "tags": [
           "Admin - Metrics"
-        ]
-      }
-    },
-    "/api/v1/feature-flags/evaluate": {
-      "get": {
-        "description": "Returns a map of flag key → boolean. The boolean is the *effective* value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.",
-        "operationId": "featureFlags_evaluate",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "User-scoped flag snapshot",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeatureFlagEvaluationDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Evaluate effective flag state for the current user",
-        "tags": [
-          "Feature Flags"
-        ]
-      }
-    },
-    "/api/v1/feature-flags/stream": {
-      "get": {
-        "description": "Server-Sent Events channel emitting `invalidate` messages when admin toggles a flag or triggers a broadcast refresh. Clients should re-fetch /evaluate on each message.",
-        "operationId": "featureFlags_subscribe",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Subscribe to flag invalidation broadcasts",
-        "tags": [
-          "Feature Flags"
-        ]
-      }
-    },
-    "/api/v1/admin/feature-flags": {
-      "get": {
-        "operationId": "adminFeatureFlags_listAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Full feature-flag registry state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeatureFlagAdminListDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List all feature flags with metadata and blocking info",
-        "tags": [
-          "Admin - Feature Flags"
-        ]
-      }
-    },
-    "/api/v1/admin/feature-flags/{key}/impact": {
-      "get": {
-        "operationId": "adminFeatureFlags_getImpact",
-        "parameters": [
-          {
-            "name": "key",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Impact tree rooted at the given flag",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeatureFlagImpactDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Preview transitive descendants affected when a flag is turned OFF",
-        "tags": [
-          "Admin - Feature Flags"
-        ]
-      }
-    },
-    "/api/v1/admin/feature-flags/{key}": {
-      "patch": {
-        "description": "Turning ON is rejected with 409 when any ancestor is OFF. Deprecated flags are read-only.",
-        "operationId": "adminFeatureFlags_updateFlag",
-        "parameters": [
-          {
-            "name": "key",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ToggleFeatureFlagDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated flag row",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Toggle a flag or update its role restriction",
-        "tags": [
-          "Admin - Feature Flags"
-        ]
-      }
-    },
-    "/api/v1/admin/feature-flags/broadcast-refresh": {
-      "post": {
-        "description": "Clears server-side caches and pushes an `invalidate` message through the SSE stream so every connected client refetches.",
-        "operationId": "adminFeatureFlags_broadcastRefresh",
-        "parameters": [],
-        "responses": {
-          "204": {
-            "description": "Broadcast dispatched"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Invalidate all client flag snapshots",
-        "tags": [
-          "Admin - Feature Flags"
         ]
       }
     },
@@ -7230,84 +7308,6 @@
         "summary": "Delete a non-system ResumeStyle",
         "tags": [
           "admin-resume-styles"
-        ]
-      }
-    },
-    "/api/v1/resumes/{resumeId}/quality": {
-      "get": {
-        "operationId": "resumeQuality_get",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Latest snapshot or 404",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "JWT-auth": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the latest Resume Quality Score snapshot",
-        "tags": [
-          "resume-quality"
-        ]
-      }
-    },
-    "/api/v1/resumes/{resumeId}/quality/recompute": {
-      "post": {
-        "operationId": "resumeQuality_recompute",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Freshly computed snapshot",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeQualityResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "JWT-auth": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Synchronously recompute Resume Quality Score",
-        "tags": [
-          "resume-quality"
         ]
       }
     },
@@ -18120,6 +18120,237 @@
           }
         }
       },
+      "ResumeQualityResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resumeId": {
+            "type": "string"
+          },
+          "overallScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "completenessScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "contentQualityScore": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false,
+            "nullable": true
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "messageArgs": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "freeformMessage": {
+                  "type": "string"
+                },
+                "context": {
+                  "type": "object",
+                  "properties": {
+                    "sectionKey": {
+                      "type": "string"
+                    },
+                    "itemIndex": {
+                      "type": "integer"
+                    },
+                    "excerpt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "code",
+                "severity"
+              ]
+            }
+          },
+          "scoringRulesVersion": {
+            "type": "string"
+          },
+          "aiPromptVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "resumeId",
+          "overallScore",
+          "completenessScore",
+          "contentQualityScore",
+          "issues",
+          "scoringRulesVersion",
+          "aiPromptVersion",
+          "computedAt"
+        ]
+      },
+      "FeatureFlagEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "object",
+            "description": "Map of flag key to effective boolean state for the calling user.",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "example": {
+              "resumes.export.pdf": true
+            }
+          }
+        },
+        "required": [
+          "flags"
+        ]
+      },
+      "FeatureFlagAdminRowDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "enabledForRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockedBy": {
+            "description": "Parents currently OFF blocking this from turning ON.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "effectiveGlobal": {
+            "type": "boolean",
+            "description": "Effective state ignoring roles (global view)."
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "description",
+          "enabled",
+          "enabledForRoles",
+          "deprecated",
+          "dependsOn",
+          "blockedBy",
+          "effectiveGlobal"
+        ]
+      },
+      "FeatureFlagAdminListDto": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
+            }
+          }
+        },
+        "required": [
+          "flags"
+        ]
+      },
+      "FeatureFlagImpactNodeDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "children"
+        ]
+      },
+      "FeatureFlagImpactDto": {
+        "type": "object",
+        "properties": {
+          "tree": {
+            "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
+          }
+        },
+        "required": [
+          "tree"
+        ]
+      },
+      "ToggleFeatureFlagDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "New enabled state. Omit to leave unchanged."
+          },
+          "enabledForRoles": {
+            "description": "Roles allowed when enabled. Empty array = no restriction.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "HealthCheckResultDto": {
         "type": "object",
         "properties": {
@@ -18448,138 +18679,6 @@
           "process",
           "latency"
         ]
-      },
-      "FeatureFlagEvaluationDto": {
-        "type": "object",
-        "properties": {
-          "flags": {
-            "type": "object",
-            "description": "Map of flag key to effective boolean state for the calling user.",
-            "additionalProperties": {
-              "type": "boolean"
-            },
-            "example": {
-              "resumes.export.pdf": true
-            }
-          }
-        },
-        "required": [
-          "flags"
-        ]
-      },
-      "FeatureFlagAdminRowDto": {
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "enabledForRoles": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "deprecated": {
-            "type": "boolean"
-          },
-          "dependsOn": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "blockedBy": {
-            "description": "Parents currently OFF blocking this from turning ON.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "effectiveGlobal": {
-            "type": "boolean",
-            "description": "Effective state ignoring roles (global view)."
-          }
-        },
-        "required": [
-          "key",
-          "name",
-          "description",
-          "enabled",
-          "enabledForRoles",
-          "deprecated",
-          "dependsOn",
-          "blockedBy",
-          "effectiveGlobal"
-        ]
-      },
-      "FeatureFlagAdminListDto": {
-        "type": "object",
-        "properties": {
-          "flags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureFlagAdminRowDto"
-            }
-          }
-        },
-        "required": [
-          "flags"
-        ]
-      },
-      "FeatureFlagImpactNodeDto": {
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": "string"
-          },
-          "children": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
-            }
-          }
-        },
-        "required": [
-          "key",
-          "children"
-        ]
-      },
-      "FeatureFlagImpactDto": {
-        "type": "object",
-        "properties": {
-          "tree": {
-            "$ref": "#/components/schemas/FeatureFlagImpactNodeDto"
-          }
-        },
-        "required": [
-          "tree"
-        ]
-      },
-      "ToggleFeatureFlagDto": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean",
-            "description": "New enabled state. Omit to leave unchanged."
-          },
-          "enabledForRoles": {
-            "description": "Roles allowed when enabled. Empty array = no restriction.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
       },
       "ForgotPasswordResponseDto": {
         "type": "object",
@@ -23373,105 +23472,6 @@
             "x-nestjs_zod-self-required": false
           }
         }
-      },
-      "ResumeQualityResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "resumeId": {
-            "type": "string"
-          },
-          "overallScore": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": false,
-            "maximum": 100,
-            "exclusiveMaximum": false
-          },
-          "completenessScore": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": false,
-            "maximum": 100,
-            "exclusiveMaximum": false
-          },
-          "contentQualityScore": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": false,
-            "maximum": 100,
-            "exclusiveMaximum": false,
-            "nullable": true
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "code": {
-                  "type": "string"
-                },
-                "severity": {
-                  "type": "string",
-                  "enum": [
-                    "low",
-                    "medium",
-                    "high"
-                  ]
-                },
-                "messageArgs": {
-                  "type": "object",
-                  "additionalProperties": {}
-                },
-                "freeformMessage": {
-                  "type": "string"
-                },
-                "context": {
-                  "type": "object",
-                  "properties": {
-                    "sectionKey": {
-                      "type": "string"
-                    },
-                    "itemIndex": {
-                      "type": "integer"
-                    },
-                    "excerpt": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "required": [
-                "code",
-                "severity"
-              ]
-            }
-          },
-          "scoringRulesVersion": {
-            "type": "string"
-          },
-          "aiPromptVersion": {
-            "type": "string",
-            "nullable": true
-          },
-          "computedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "resumeId",
-          "overallScore",
-          "completenessScore",
-          "contentQualityScore",
-          "issues",
-          "scoringRulesVersion",
-          "aiPromptVersion",
-          "computedAt"
-        ]
       },
       "MatchBreakdownDto": {
         "type": "object",

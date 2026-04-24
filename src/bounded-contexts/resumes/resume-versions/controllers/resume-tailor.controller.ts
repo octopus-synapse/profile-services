@@ -6,6 +6,10 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  RequireMinQuality,
+  RequireMinQualityGuard,
+} from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { TailorResumeRequestDto } from '../dto/tailor-resume-request.dto';
 import {
   TailoredVersionDiffDataDto,
@@ -32,7 +36,8 @@ export class ResumeTailorController {
   constructor(private readonly tailor: ResumeTailorService) {}
 
   @Post(':resumeId/tailor')
-  @UseGuards(RequireFitProfileGuard)
+  @UseGuards(RequireFitProfileGuard, RequireMinQualityGuard)
+  @RequireMinQuality(50, 'resumeId')
   @ApiOperation({
     summary: 'Rewrite this resume for a specific job using the AI pipeline.',
   })
