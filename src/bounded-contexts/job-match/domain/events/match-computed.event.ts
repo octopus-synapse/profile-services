@@ -13,6 +13,9 @@ export interface MatchComputedPayload {
   readonly effectiveWeights: Readonly<Record<SubScoreKey, number>>;
   readonly rulesVersion: string;
   readonly fromCache: boolean;
+  /** Wall-clock duration of the use-case execution. Cache hits report
+   * the cache lookup latency, fresh computes report the full fan-out. */
+  readonly durationMs: number;
 }
 
 /**

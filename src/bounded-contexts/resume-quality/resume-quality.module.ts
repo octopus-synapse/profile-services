@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { ComputeQualityUseCase } from './application/use-cases/compute-quality.use-case';
 import { GetLatestQualityUseCase } from './application/use-cases/get-latest-quality.use-case';
 import { ContentQualityPort } from './domain/ports/content-quality.port';
@@ -28,6 +29,7 @@ import {
     PrismaModule,
     AiModule,
     FeatureFlagsModule,
+    EventBusModule,
     BullModule.registerQueue({ name: RESUME_QUALITY_QUEUE }),
   ],
   controllers: [ResumeQualityController],

@@ -5,6 +5,7 @@ import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.mod
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { JobLoaderPort } from './domain/ports/job-loader.port';
 import { MatchCachePort } from './domain/ports/match-cache.port';
@@ -45,6 +46,7 @@ import {
     FitProfileModule,
     CacheModule,
     FeatureFlagsModule,
+    EventBusModule,
     BullModule.registerQueue({ name: JOB_MATCH_RECOMPUTE_QUEUE }),
     BullModule.registerQueue({ name: DAILY_RECOMMENDATIONS_QUEUE }),
   ],

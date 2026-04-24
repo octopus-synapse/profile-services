@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
+import { EventPublisher } from '@/shared-kernel';
+import { MatchComputedEvent } from '../../domain/events';
 import { JobLoaderPort } from '../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import { RequirementsMatcherPort } from '../../domain/ports/requirements-matcher.port';
@@ -63,9 +65,11 @@ export class ComputeMatchUseCase {
     private readonly semanticMatcher: SemanticMatcherPort,
     private readonly similarity: SimilarityPort,
     private readonly cache: MatchCachePort,
+    private readonly events: EventPublisher,
   ) {}
 
   async execute(input: ComputeMatchInput): Promise<MatchBreakdown> {
+    const startedAt = Date.now();
     const { userId, resumeId, jobId } = input;
 
     // ── Hard invariants ─────────────────────────────────────────────
@@ -84,7 +88,17 @@ export class ComputeMatchUseCase {
     // tweak invalidates without ops needing to FLUSHDB.
     const cacheKey = `match:${resumeId}:${jobId}:${userId}:${MATCH_RULES_VERSION}`;
     const cached = await this.cache.get(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      this.publishComputed({
+        userId,
+        resumeId,
+        jobId,
+        breakdown: cached,
+        fromCache: true,
+        startedAt,
+      });
+      return cached;
+    }
 
     // ── Fan out to the four providers concurrently ──────────────────
     const [keywords, requirements, semantic, fitSub] = await Promise.all([
@@ -117,7 +131,45 @@ export class ComputeMatchUseCase {
       this.logger.warn(`Match cache set failed: ${(err as Error).message}`);
     }
 
+    this.publishComputed({
+      userId,
+      resumeId,
+      jobId,
+      breakdown,
+      fromCache: false,
+      startedAt,
+    });
+
     return breakdown;
+  }
+
+  private publishComputed(args: {
+    userId: string;
+    resumeId: string;
+    jobId: string;
+    breakdown: MatchBreakdown;
+    fromCache: boolean;
+    startedAt: number;
+  }): void {
+    const subScores: Record<string, number | null> = {
+      keyword: args.breakdown.subScores.keyword.score,
+      requirements: args.breakdown.subScores.requirements.score,
+      semantic: args.breakdown.subScores.semantic.score,
+      fit: args.breakdown.subScores.fit.score,
+    };
+    this.events.publish(
+      new MatchComputedEvent(args.jobId, {
+        userId: args.userId,
+        resumeId: args.resumeId,
+        jobId: args.jobId,
+        overallScore: args.breakdown.overallScore,
+        subScores: subScores as MatchComputedEvent['payload']['subScores'],
+        effectiveWeights: args.breakdown.effectiveWeights,
+        rulesVersion: args.breakdown.rulesVersion,
+        fromCache: args.fromCache,
+        durationMs: Date.now() - args.startedAt,
+      }),
+    );
   }
 
   // ── Sub-score runners — each catches its own errors and returns a

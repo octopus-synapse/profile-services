@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { EventPublisher } from '@/shared-kernel';
 import {
   ContentQualityPort,
   type ContentQualityResult,
 } from '../../domain/ports/content-quality.port';
+
+const stubEventPublisher: EventPublisher = {
+  publish: () => {},
+  publishAsync: () => Promise.resolve(),
+} as unknown as EventPublisher;
+
 import {
   QualityScoreRepositoryPort,
   type SavedQualityScore,
@@ -82,7 +89,7 @@ describe('ComputeQualityUseCase', () => {
       callsCount: 1,
       costUsdMicros: 123n,
     });
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo);
+    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
     await expect(useCase.execute('missing')).rejects.toBeInstanceOf(ResumeNotFoundForQualityError);
   });
 
@@ -95,7 +102,7 @@ describe('ComputeQualityUseCase', () => {
       callsCount: 1,
       costUsdMicros: 123n,
     });
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo);
+    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
 
     const snapshot = await useCase.execute('r1');
 
@@ -111,7 +118,7 @@ describe('ComputeQualityUseCase', () => {
   it('falls back to completeness alone when the AI port fails', async () => {
     loader.seed('r1', fullResume());
     const contentQuality = new StubContentQuality(new Error('openai down'));
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo);
+    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
 
     const snapshot = await useCase.execute('r1');
 

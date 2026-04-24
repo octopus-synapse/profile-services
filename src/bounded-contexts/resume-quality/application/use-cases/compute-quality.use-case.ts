@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventPublisher } from '@/shared-kernel';
+import { ResumeQualityComputedEvent, summariseIssues } from '../../domain/events';
 import { ContentQualityPort } from '../../domain/ports/content-quality.port';
 import {
   QualityScoreRepositoryPort,
@@ -39,9 +41,11 @@ export class ComputeQualityUseCase {
     private readonly resumeLoader: ResumeLoaderPort,
     private readonly contentQuality: ContentQualityPort,
     private readonly repository: QualityScoreRepositoryPort,
+    private readonly events: EventPublisher,
   ) {}
 
   async execute(resumeId: string): Promise<SavedQualityScore> {
+    const startedAt = Date.now();
     const resume = await this.resumeLoader.load(resumeId);
     if (!resume) throw new ResumeNotFoundForQualityError(resumeId);
 
@@ -76,7 +80,25 @@ export class ComputeQualityUseCase {
       costUsdMicros: contentQuality.costUsdMicros,
     };
 
-    return this.repository.save(resumeId, breakdown);
+    const saved = await this.repository.save(resumeId, breakdown);
+
+    this.events.publish(
+      new ResumeQualityComputedEvent(resumeId, {
+        resumeId,
+        snapshotId: saved.id,
+        overallScore: saved.overallScore,
+        completenessScore: saved.completenessScore,
+        contentQualityScore: saved.contentQualityScore,
+        scoringRulesVersion: saved.scoringRulesVersion,
+        aiPromptVersion: saved.aiPromptVersion,
+        ...summariseIssues(saved.issues),
+        durationMs: Date.now() - startedAt,
+        costUsdMicros: saved.costUsdMicros,
+        aiCallsCount: saved.aiCallsCount,
+      }),
+    );
+
+    return saved;
   }
 
   private blend(completeness: number, contentQuality: number | null): number {

@@ -3,6 +3,13 @@ import {
   SimilarityPort,
   type SimilarityResult,
 } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
+import type { EventPublisher } from '@/shared-kernel';
+
+const stubEventPublisher: EventPublisher = {
+  publish: () => {},
+  publishAsync: () => Promise.resolve(),
+} as unknown as EventPublisher;
+
 import { type JobForMatch, JobLoaderPort } from '../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import {
@@ -157,6 +164,7 @@ describe('ComputeMatchUseCase', () => {
       new FakeSemantic(overrides.semantic ?? { score: 75 }),
       overrides.similarity ?? new FakeSimilarity(similarityOk(60)),
       cache,
+      stubEventPublisher,
     );
   }
 

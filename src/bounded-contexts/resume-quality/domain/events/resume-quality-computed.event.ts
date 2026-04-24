@@ -11,6 +11,13 @@ export interface ResumeQualityComputedPayload {
   readonly aiPromptVersion: string | null;
   readonly issuesCount: number;
   readonly highSeverityCount: number;
+  /** Wall-clock duration of the use-case execution, used by the
+   * metrics subscriber to feed `score_compute_duration_seconds`. */
+  readonly durationMs: number;
+  /** Token spend translated to micro-USD; null when no AI call ran
+   * (kill-switch off or no bullets). */
+  readonly costUsdMicros: bigint;
+  readonly aiCallsCount: number;
 }
 
 /**

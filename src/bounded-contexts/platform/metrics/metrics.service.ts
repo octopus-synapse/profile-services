@@ -25,6 +25,19 @@ interface ApiLatencyLabels {
   [key: string]: string;
 }
 
+/** Labels for the scoring subsystem.
+ * - `type` discriminates which score family fired (resume_quality | match).
+ * - `outcome` reflects degradation: success = all sub-scores filled,
+ *   partial = at least one degraded to null, failed = the use case threw.
+ *   Cache hits count as `success` regardless of which sub-scores ran when
+ *   the value was originally computed — the histogram captures the
+ *   read-path cost, not the underlying compute work. */
+interface ScoreComputedLabels {
+  type: 'resume_quality' | 'match';
+  outcome: 'success' | 'partial' | 'failed';
+  [key: string]: string;
+}
+
 @Injectable()
 export class MetricsService implements OnModuleInit {
   private readonly registry: Registry;
@@ -33,10 +46,12 @@ export class MetricsService implements OnModuleInit {
   private readonly resumeCreatedCounter: Counter<string>;
   private readonly userSignupCounter: Counter<string>;
   private readonly exportCompletedCounter: Counter<string>;
+  private readonly scoreComputedCounter: Counter<string>;
 
   // Histograms
   private readonly exportDurationHistogram: Histogram<string>;
   private readonly apiLatencyHistogram: Histogram<string>;
+  private readonly scoreComputeDurationHistogram: Histogram<string>;
 
   // Gauges
   private readonly activeUsersGauge: Gauge<string>;
@@ -67,6 +82,13 @@ export class MetricsService implements OnModuleInit {
       registers: [this.registry],
     });
 
+    this.scoreComputedCounter = new Counter({
+      name: 'score_computed_total',
+      help: 'Scoring-subsystem computations completed, by score family and degradation outcome',
+      labelNames: ['type', 'outcome'],
+      registers: [this.registry],
+    });
+
     // Histograms
     this.exportDurationHistogram = new Histogram({
       name: 'export_duration_seconds',
@@ -81,6 +103,16 @@ export class MetricsService implements OnModuleInit {
       help: 'API request latency in seconds',
       labelNames: ['method', 'route', 'status'],
       buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5],
+      registers: [this.registry],
+    });
+
+    // Buckets fit cache-hit reads (~10ms) up to full match recomputes
+    // that fan out to embeddings + LLM (~5–15s wall-clock).
+    this.scoreComputeDurationHistogram = new Histogram({
+      name: 'score_compute_duration_seconds',
+      help: 'Wall-clock duration of a single scoring use-case execution',
+      labelNames: ['type'],
+      buckets: [0.01, 0.05, 0.25, 1, 3, 8, 20],
       registers: [this.registry],
     });
 
@@ -138,6 +170,18 @@ export class MetricsService implements OnModuleInit {
 
   startApiTimer(labels: ApiLatencyLabels): () => number {
     return this.apiLatencyHistogram.startTimer(labels);
+  }
+
+  // Scoring subsystem
+  incrementScoreComputed(labels: ScoreComputedLabels): void {
+    this.scoreComputedCounter.inc(labels);
+  }
+
+  observeScoreComputeDuration(
+    durationSeconds: number,
+    labels: { type: ScoreComputedLabels['type']; [key: string]: string },
+  ): void {
+    this.scoreComputeDurationHistogram.observe(labels, durationSeconds);
   }
 
   // Gauge methods
