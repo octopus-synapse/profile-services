@@ -4,8 +4,10 @@ import type { ExtractedJob } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EventPublisher } from '@/shared-kernel';
 import { paginate, searchWhere } from '@/shared-kernel/database';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { JobUpdatedEvent } from '../domain/events';
 import {
   CannotApplyToOwnJobException,
   CannotModifyOthersJobException,
@@ -29,6 +31,7 @@ export class JobService {
     private readonly resumeAnalytics: ResumeAnalyticsFacade,
     private readonly tracker: ApplicationTrackerService,
     private readonly llm: LlmPort,
+    private readonly events: EventPublisher,
   ) {}
 
   async create(
@@ -602,10 +605,16 @@ export class JobService {
     }
 
     const { expiresAt, ...rest } = dto;
-    return this.prisma.job.update({
+    const updated = await this.prisma.job.update({
       where: { id },
       data: { ...rest, expiresAt: expiresAt ? new Date(expiresAt) : undefined },
     });
+    // Match Score cache is keyed by jobId — the recompute worker wipes
+    // `match:*:{jobId}:*` when this event fires.
+    this.events.publish(
+      new JobUpdatedEvent(id, { editedByUserId: userId, changedFields: Object.keys(rest) }),
+    );
+    return updated;
   }
 
   async delete(id: string, userId: string) {
