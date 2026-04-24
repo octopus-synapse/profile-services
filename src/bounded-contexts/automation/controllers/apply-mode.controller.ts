@@ -1,5 +1,6 @@
 import { Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -45,6 +46,7 @@ export class ApplyModeController {
   }
 
   @Post('weekly-curated/:itemId/approve')
+  @UseGuards(RequireFitProfileGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Approve a curated item — submits a JobApplication using the user's primary resume.",

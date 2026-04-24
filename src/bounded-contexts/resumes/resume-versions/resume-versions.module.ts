@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
+import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
@@ -15,7 +16,7 @@ import {
 import { ResumeVersionService } from './services/resume-version.service';
 
 @Module({
-  imports: [PrismaModule, AiModule],
+  imports: [PrismaModule, AiModule, FitProfileModule],
   controllers: [ResumeVersionController, ResumeTailorController],
   providers: [
     ResumeVersionService,

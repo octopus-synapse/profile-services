@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -31,6 +32,7 @@ export class ResumeTailorController {
   constructor(private readonly tailor: ResumeTailorService) {}
 
   @Post(':resumeId/tailor')
+  @UseGuards(RequireFitProfileGuard)
   @ApiOperation({
     summary: 'Rewrite this resume for a specific job using the AI pipeline.',
   })

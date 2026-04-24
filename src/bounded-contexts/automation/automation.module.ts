@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
+import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
@@ -26,6 +27,7 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     EmailModule,
     ResumeAnalyticsModule,
     ResumeVersionsModule,
+    FitProfileModule,
     BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
   controllers: [ApplyModeController, RageApplyController],

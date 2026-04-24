@@ -30,6 +30,7 @@ import { WeightedCosineSimilarityAdapter } from './infrastructure/adapters/weigh
 import { AdminFitQuestionsController } from './infrastructure/controllers/admin-fit-questions.controller';
 import { FitProfileController } from './infrastructure/controllers/fit-profile.controller';
 import { JobFitProfileController } from './infrastructure/controllers/job-fit-profile.controller';
+import { RequireFitProfileGuard } from './infrastructure/guards/require-fit-profile.guard';
 import {
   FIT_PROFILE_EXPIRE_QUEUE,
   FitProfileExpireWorker,
@@ -81,6 +82,9 @@ import {
     { provide: JobFitProfileRepositoryPort, useExisting: PrismaJobFitProfileRepository },
     { provide: FitRemapHistoryRepositoryPort, useExisting: PrismaFitRemapHistoryRepository },
     { provide: SimilarityPort, useExisting: WeightedCosineSimilarityAdapter },
+
+    // Guard exposed to other modules so they can `@UseGuards()` it
+    RequireFitProfileGuard,
   ],
   exports: [
     // Consumed by job-match/ (Task #18)
@@ -90,6 +94,8 @@ import {
     // Convenience re-exports for adjacent contexts that need read access
     UserFitProfileRepositoryPort,
     JobFitProfileRepositoryPort,
+    // Lockout guard for adjacent contexts (Task #27 — automation, tailor)
+    RequireFitProfileGuard,
   ],
 })
 export class FitProfileModule {}
