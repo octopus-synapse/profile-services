@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { CreateFitQuestionUseCase } from './application/use-cases/create-fit-question.use-case';
@@ -29,6 +30,10 @@ import { WeightedCosineSimilarityAdapter } from './infrastructure/adapters/weigh
 import { AdminFitQuestionsController } from './infrastructure/controllers/admin-fit-questions.controller';
 import { FitProfileController } from './infrastructure/controllers/fit-profile.controller';
 import { JobFitProfileController } from './infrastructure/controllers/job-fit-profile.controller';
+import {
+  FIT_PROFILE_EXPIRE_QUEUE,
+  FitProfileExpireWorker,
+} from './infrastructure/workers/fit-profile-expire.worker';
 
 /**
  * fit-profile/ bounded context — owns everything behind the Fit Score
@@ -37,9 +42,12 @@ import { JobFitProfileController } from './infrastructure/controllers/job-fit-pr
  * `ExpireFitProfileUseCase` (for the BullMQ worker in Task #20).
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, BullModule.registerQueue({ name: FIT_PROFILE_EXPIRE_QUEUE })],
   controllers: [FitProfileController, JobFitProfileController, AdminFitQuestionsController],
   providers: [
+    // BullMQ worker: nightly sweep of expired UserFitProfile rows
+    FitProfileExpireWorker,
+
     // Use cases
     GetFitProfileStatusUseCase,
     GetOrCreateQuestionSetUseCase,

@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ComputeQualityUseCase } from './application/use-cases/compute-quality.use-case';
@@ -9,6 +10,10 @@ import { ContentQualityStubAdapter } from './infrastructure/adapters/content-qua
 import { PrismaQualityScoreRepository } from './infrastructure/adapters/persistence/prisma-quality-score.repository';
 import { PrismaResumeLoader } from './infrastructure/adapters/persistence/prisma-resume-loader.adapter';
 import { ResumeQualityController } from './infrastructure/controllers/resume-quality.controller';
+import {
+  RESUME_QUALITY_QUEUE,
+  ResumeQualityWorker,
+} from './infrastructure/workers/resume-quality.worker';
 
 /**
  * resume-quality/ bounded context — owns the Resume Quality Score
@@ -17,7 +22,7 @@ import { ResumeQualityController } from './infrastructure/controllers/resume-qua
  * the on-demand path.
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, BullModule.registerQueue({ name: RESUME_QUALITY_QUEUE })],
   controllers: [ResumeQualityController],
   providers: [
     ComputeQualityUseCase,
@@ -25,6 +30,7 @@ import { ResumeQualityController } from './infrastructure/controllers/resume-qua
     PrismaResumeLoader,
     ContentQualityStubAdapter,
     PrismaQualityScoreRepository,
+    ResumeQualityWorker,
     { provide: ResumeLoaderPort, useExisting: PrismaResumeLoader },
     { provide: ContentQualityPort, useExisting: ContentQualityStubAdapter },
     { provide: QualityScoreRepositoryPort, useExisting: PrismaQualityScoreRepository },
