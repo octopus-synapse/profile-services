@@ -108,7 +108,7 @@ export class AdminResumeStylesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a non-system ResumeStyle' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiEmptyDataResponse({ description: 'Style deleted' })
+  @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: 'Style deleted' })
   async delete(@Param('id') id: string): Promise<void> {
     try {
       await this.deleteUseCase.execute(id);

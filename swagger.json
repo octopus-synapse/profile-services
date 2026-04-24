@@ -10460,28 +10460,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Style applied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "null",
-                          "nullable": true
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+          "204": {
+            "description": "Style applied"
           }
         },
         "security": [
@@ -10638,28 +10618,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Style deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "null",
-                          "nullable": true
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
+          "204": {
+            "description": "Style deleted"
           },
           "401": {
             "description": "Authentication required"

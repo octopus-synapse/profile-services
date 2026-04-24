@@ -97,7 +97,7 @@ export class ResumeStylesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Apply a ResumeStyle to a resume' })
   @ApiParam({ name: 'resumeId', type: 'string' })
-  @ApiEmptyDataResponse({ description: 'Style applied' })
+  @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: 'Style applied' })
   async apply(
     @Param('resumeId') resumeId: string,
     @Body() body: ApplyStyleRequestDto,

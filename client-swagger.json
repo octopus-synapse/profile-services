@@ -7161,16 +7161,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Style applied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "null",
-                  "nullable": true
-                }
-              }
-            }
+          "204": {
+            "description": "Style applied"
           }
         },
         "security": [
@@ -7285,16 +7277,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Style deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "null",
-                  "nullable": true
-                }
-              }
-            }
+          "204": {
+            "description": "Style deleted"
           }
         },
         "security": [
