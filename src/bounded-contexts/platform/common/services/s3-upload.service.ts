@@ -1,6 +1,8 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadBucketCommand,
+  NoSuchKey,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -111,6 +113,29 @@ export class S3UploadService {
     });
 
     return { url, key };
+  }
+
+  /**
+   * Stream an object back as a Buffer. Returns `null` on miss or when
+   * the service is disabled. Errors other than NoSuchKey propagate so
+   * the caller can decide whether to fail open or treat as miss.
+   */
+  async downloadFile(key: string): Promise<Buffer | null> {
+    if (!this._isEnabled || !this.client || !this.bucket) {
+      return null;
+    }
+    try {
+      const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+      const response = await this.client.send(command);
+      if (!response.Body) return null;
+      const bytes = await response.Body.transformToByteArray();
+      return Buffer.from(bytes);
+    } catch (error) {
+      if (error instanceof NoSuchKey || (error as { name?: string })?.name === 'NoSuchKey') {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async deleteFile(key: string): Promise<boolean> {

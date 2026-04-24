@@ -11,6 +11,7 @@
 import { Module } from '@nestjs/common';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -41,6 +42,7 @@ import {
   ExportMultiFormatController,
   ExportPdfController,
 } from './infrastructure/controllers';
+import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
 
 @Module({
   imports: [ResumesCoreModule, LoggerModule, PrismaModule, DslModule, FeatureFlagsModule],
@@ -77,6 +79,11 @@ import {
     DocxStylesService,
     UserDataAdapter,
     { provide: UserDataPort, useExisting: UserDataAdapter },
+    // PDF cache: stores rendered Typst output in MinIO keyed on
+    // resume + style + version + content-hash so re-downloads skip
+    // the Typst compile path entirely.
+    S3UploadService,
+    PdfCacheService,
   ],
   exports: [
     EXPORT_USE_CASES,
@@ -85,6 +92,7 @@ import {
     TypstPdfGeneratorService,
     TypstCompilerService,
     TypstDataSerializerService,
+    PdfCacheService,
   ],
 })
 export class ExportModule {}

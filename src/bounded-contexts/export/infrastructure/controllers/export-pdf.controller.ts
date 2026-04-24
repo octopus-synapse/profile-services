@@ -30,6 +30,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { sanitizeQueryParam } from '../helpers';
+import { PdfCacheService } from '../services/pdf-cache.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -41,6 +42,7 @@ export class ExportPdfController {
     private readonly useCases: ExportUseCases,
     private readonly logger: AppLoggerService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly pdfCache: PdfCacheService,
   ) {
     this.logger.setContext(ExportPdfController.name);
   }
@@ -103,13 +105,25 @@ export class ExportPdfController {
     );
 
     try {
-      const buffer = await this.useCases.exportPdfUseCase.execute({
-        palette: safePalette,
-        lang: safeLang,
-        bannerColor: safeBannerColor,
-        userId: user.userId,
-        template: safeTemplate,
-      });
+      const buffer = await this.pdfCache.serve(
+        {
+          userId: user.userId,
+          renderArgs: {
+            palette: safePalette,
+            lang: safeLang,
+            bannerColor: safeBannerColor,
+            template: safeTemplate,
+          },
+        },
+        () =>
+          this.useCases.exportPdfUseCase.execute({
+            palette: safePalette,
+            lang: safeLang,
+            bannerColor: safeBannerColor,
+            userId: user.userId,
+            template: safeTemplate,
+          }),
+      );
 
       // Emit export completed event
       this.eventEmitter.emit(
@@ -152,9 +166,11 @@ export class ExportPdfController {
     @Param('userId') targetUserId: string,
   ): Promise<DataResponse<{ pdf: string; filename: string }>> {
     try {
-      const buffer = await this.useCases.exportPdfUseCase.execute({
-        userId: targetUserId,
-      });
+      const buffer = await this.pdfCache.serve({ userId: targetUserId, renderArgs: {} }, () =>
+        this.useCases.exportPdfUseCase.execute({
+          userId: targetUserId,
+        }),
+      );
       return {
         success: true,
         data: {
