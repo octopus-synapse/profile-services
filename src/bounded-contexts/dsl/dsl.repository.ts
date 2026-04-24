@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResumeNoActiveThemeException } from '@/bounded-contexts/dsl/domain/exceptions/dsl.exceptions';
+import { ResumeNoActiveStyleException } from '@/bounded-contexts/dsl/domain/exceptions/dsl.exceptions';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -272,7 +272,7 @@ export class DslRepository {
     const baseDsl = resume.style?.styleConfig;
 
     if (!baseDsl || Object.keys(baseDsl as object).length === 0) {
-      throw new ResumeNoActiveThemeException();
+      throw new ResumeNoActiveStyleException();
     }
 
     const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;

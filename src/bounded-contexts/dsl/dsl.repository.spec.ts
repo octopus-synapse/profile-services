@@ -333,7 +333,7 @@ describe('DslRepository', () => {
    * when attempting to render a resume that has no active theme set.
    * This is a common scenario after onboarding when no theme is applied yet.
    */
-  describe('render - no theme scenarios', () => {
+  describe('render - no style scenarios', () => {
     it('should throw descriptive error when resume has no style', async () => {
       const resumeWithoutTheme = {
         ...createMockResume({
@@ -346,7 +346,7 @@ describe('DslRepository', () => {
 
       prisma.seedResume(resumeWithoutTheme as unknown as ResumeLike);
 
-      await expect(repository.render('resume-no-theme', 'user-123')).rejects.toThrow(/theme/i);
+      await expect(repository.render('resume-no-theme', 'user-123')).rejects.toThrow(/style/i);
     });
 
     it('should throw when style has null styleConfig', async () => {
@@ -361,7 +361,7 @@ describe('DslRepository', () => {
 
       prisma.seedResume(resumeWithNullConfig as unknown as ResumeLike);
 
-      await expect(repository.render('resume-null-config', 'user-123')).rejects.toThrow(/theme/i);
+      await expect(repository.render('resume-null-config', 'user-123')).rejects.toThrow(/style/i);
     });
 
     it('should throw when style has empty styleConfig object', async () => {
@@ -376,7 +376,7 @@ describe('DslRepository', () => {
 
       prisma.seedResume(resumeWithEmptyConfig as unknown as ResumeLike);
 
-      await expect(repository.render('resume-empty-config', 'user-123')).rejects.toThrow(/theme/i);
+      await expect(repository.render('resume-empty-config', 'user-123')).rejects.toThrow(/style/i);
     });
 
     it('should include actionable message in the error', async () => {
@@ -392,7 +392,7 @@ describe('DslRepository', () => {
       prisma.seedResume(resumeWithoutTheme as unknown as ResumeLike);
 
       await expect(repository.render('resume-actionable', 'user-123')).rejects.toThrow(
-        /apply.*theme|select.*theme/i,
+        /apply.*style|select.*style/i,
       );
     });
   });

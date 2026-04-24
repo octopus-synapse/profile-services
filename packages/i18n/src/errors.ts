@@ -268,9 +268,9 @@ export const ERROR_DICTIONARY = {
     en: 'DSL failed to parse',
     'pt-BR': 'Falha ao fazer parse da DSL',
   },
-  DSL_RESUME_NO_ACTIVE_THEME: {
-    en: 'Resume has no active theme. Apply a theme before rendering.',
-    'pt-BR': 'O currículo não tem tema ativo. Aplique um tema antes de renderizar.',
+  DSL_RESUME_NO_ACTIVE_STYLE: {
+    en: 'Resume has no active style. Apply a style before rendering.',
+    'pt-BR': 'O currículo não tem estilo ativo. Aplique um estilo antes de renderizar.',
   },
   DSL_TYPE_MISMATCH: {
     en: 'DSL type mismatch',

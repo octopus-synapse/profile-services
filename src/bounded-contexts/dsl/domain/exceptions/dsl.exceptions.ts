@@ -115,9 +115,9 @@ export class DslMigrationResultVersionMismatchException extends ValidationExcept
   }
 }
 
-export class ResumeNoActiveThemeException extends ValidationException {
-  readonly code: string = 'DSL_RESUME_NO_ACTIVE_THEME';
+export class ResumeNoActiveStyleException extends ValidationException {
+  readonly code: string = 'DSL_RESUME_NO_ACTIVE_STYLE';
   constructor() {
-    super('Resume has no active theme. Please apply a theme before rendering.');
+    super('Resume has no active style. Please apply a style before rendering.');
   }
 }
