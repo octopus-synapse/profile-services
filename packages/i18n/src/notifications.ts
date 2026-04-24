@@ -144,6 +144,65 @@ export const NOTIFICATION_DICTIONARY = {
     },
     params: ['candidateName', 'sharedSkillsCount'],
   },
+  FIT_PROFILE_EXPIRED: {
+    title: {
+      en: 'Your fit profile expired',
+      'pt-BR': 'Seu perfil de fit expirou',
+    },
+    body: {
+      en: 'Retake the {questionCount}-question quiz to unlock match scoring again.',
+      'pt-BR': 'Refaça o questionário de {questionCount} perguntas para liberar o match novamente.',
+    },
+    params: ['questionCount'],
+  },
+  FIT_PROFILE_EXPIRY_REMINDER: {
+    title: {
+      en: 'Your fit profile expires in {daysLeft} days',
+      'pt-BR': 'Seu perfil de fit expira em {daysLeft} dias',
+    },
+    body: {
+      en: 'Retake the quiz before {expiresAt} to keep using match scoring without interruption.',
+      'pt-BR':
+        'Refaça o questionário antes de {expiresAt} para continuar usando o match sem interrupção.',
+    },
+    params: ['daysLeft', 'expiresAt'],
+  },
+  MATCH_RECOMMENDATIONS_READY: {
+    title: {
+      en: '{matchCount} new job matches are ready',
+      'pt-BR': '{matchCount} novas vagas combinam com você',
+    },
+    body: {
+      en: 'We ranked the latest jobs in your areas of interest. Top match: {topMatchTitle}.',
+      'pt-BR':
+        'Rankeamos as vagas mais recentes nas suas áreas de interesse. Top match: {topMatchTitle}.',
+    },
+    params: ['matchCount', 'topMatchTitle'],
+  },
+  RESUME_QUALITY_IMPROVED: {
+    title: {
+      en: 'Your resume score moved up to {newRank}',
+      'pt-BR': 'Seu currículo subiu para a faixa {newRank}',
+    },
+    body: {
+      en: 'Your latest snapshot ({newScore}/100) crossed the {previousRank} → {newRank} boundary. Keep going.',
+      'pt-BR':
+        'Seu novo snapshot ({newScore}/100) cruzou a faixa {previousRank} → {newRank}. Continua assim.',
+    },
+    params: ['newScore', 'previousRank', 'newRank'],
+  },
+  RESUME_QUALITY_REGRESSED: {
+    title: {
+      en: 'Your resume score dropped to {newRank}',
+      'pt-BR': 'Seu currículo caiu para a faixa {newRank}',
+    },
+    body: {
+      en: 'Your latest snapshot ({newScore}/100) crossed the {previousRank} → {newRank} boundary. Open the resume to see what changed.',
+      'pt-BR':
+        'Seu novo snapshot ({newScore}/100) cruzou a faixa {previousRank} → {newRank}. Abra o currículo pra ver o que mudou.',
+    },
+    params: ['newScore', 'previousRank', 'newRank'],
+  },
 } as const satisfies NotificationDictionary;
 
 export type NotificationCode = keyof typeof NOTIFICATION_DICTIONARY;

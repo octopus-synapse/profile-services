@@ -190,6 +190,11 @@ export class NotificationService {
       'SKILL_DECAY',
       'APPLICATION_STALE',
       'CONNECTION_RECOMMENDATION',
+      'FIT_PROFILE_EXPIRED',
+      'FIT_PROFILE_EXPIRY_REMINDER',
+      'MATCH_RECOMMENDATIONS_READY',
+      'RESUME_QUALITY_IMPROVED',
+      'RESUME_QUALITY_REGRESSED',
     ];
     return allTypes.map((type) => {
       const o = overrideMap.get(type);

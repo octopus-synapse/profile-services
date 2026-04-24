@@ -143,6 +143,12 @@ enum NotificationType {
   SKILL_DECAY            // A tracked skill has been idle for 120+ days.
   APPLICATION_STALE      // Application tracker: no update for 7/14/21 days.
   CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
+  // Scoring subsystem
+  FIT_PROFILE_EXPIRED               // UserFitProfile.expiresAt has passed; questionnaire required.
+  FIT_PROFILE_EXPIRY_REMINDER       // 7/3/1-day anticipatory reminder before expiry.
+  MATCH_RECOMMENDATIONS_READY       // Daily-recommendations cron produced top-N matches.
+  RESUME_QUALITY_IMPROVED           // Latest snapshot crossed a rank boundary upward.
+  RESUME_QUALITY_REGRESSED          // Latest snapshot crossed a rank boundary downward.
 }
 
 // Jobs

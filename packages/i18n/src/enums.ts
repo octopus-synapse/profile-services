@@ -197,11 +197,28 @@ export const ENUM_DICTIONARY = {
       'pt-BR': 'Recomendação de conexão',
     },
     CONNECTION_REQUEST: { en: 'Connection request', 'pt-BR': 'Pedido de conexão' },
+    FIT_PROFILE_EXPIRED: { en: 'Fit profile expired', 'pt-BR': 'Perfil de fit expirou' },
+    FIT_PROFILE_EXPIRY_REMINDER: {
+      en: 'Fit profile expires soon',
+      'pt-BR': 'Perfil de fit expira em breve',
+    },
     FOLLOW_NEW: { en: 'New follower', 'pt-BR': 'Novo seguidor' },
+    MATCH_RECOMMENDATIONS_READY: {
+      en: 'New job recommendations ready',
+      'pt-BR': 'Novas recomendações de vagas',
+    },
     POST_BOOKMARKED: { en: 'Post bookmarked', 'pt-BR': 'Post salvo' },
     POST_COMMENTED: { en: 'New comment', 'pt-BR': 'Novo comentário' },
     POST_LIKED: { en: 'Post liked', 'pt-BR': 'Post curtido' },
     POST_REPOSTED: { en: 'Post reposted', 'pt-BR': 'Post repostado' },
+    RESUME_QUALITY_IMPROVED: {
+      en: 'Resume quality improved',
+      'pt-BR': 'Qualidade do currículo melhorou',
+    },
+    RESUME_QUALITY_REGRESSED: {
+      en: 'Resume quality dropped',
+      'pt-BR': 'Qualidade do currículo caiu',
+    },
     SKILL_DECAY: { en: 'Skill getting rusty', 'pt-BR': 'Habilidade enferrujando' },
   },
   PaymentCurrency: {

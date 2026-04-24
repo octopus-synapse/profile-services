@@ -4,6 +4,8 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationsSseController } from './controllers/notifications-sse.controller';
+import { FitProfileExpiredNotificationHandler } from './handlers/fit-profile-expired.handler';
+import { ResumeQualityRankNotificationHandler } from './handlers/resume-quality-rank.handler';
 import { NotificationService } from './services/notification.service';
 import { NotificationDigestWorker } from './services/notification-digest.worker';
 import { WeeklyDigestService } from './services/weekly-digest.service';
@@ -17,6 +19,8 @@ import { WeeklyDigestWorker } from './services/weekly-digest.worker';
     NotificationDigestWorker,
     WeeklyDigestService,
     WeeklyDigestWorker,
+    FitProfileExpiredNotificationHandler,
+    ResumeQualityRankNotificationHandler,
   ],
   exports: [NotificationService, WeeklyDigestService],
 })
