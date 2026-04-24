@@ -8,7 +8,7 @@ import { ThemeSchema } from './theme-response.dto';
 export const ResumeFullResponseSchema = ResumeResponseSchema.extend({
   resumeSections: z.array(SectionSchema),
   styleId: z.string().optional(),
-  activeTheme: ThemeSchema.optional(),
+  style: ThemeSchema.optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),

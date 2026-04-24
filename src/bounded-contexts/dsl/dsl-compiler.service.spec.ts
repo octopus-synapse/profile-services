@@ -141,7 +141,7 @@ describe('DslCompilerService', () => {
         website: null,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        activeTheme: null,
+        style: null,
         customTheme: null,
         sections: [
           {

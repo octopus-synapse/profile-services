@@ -22113,7 +22113,7 @@
           "styleId": {
             "type": "string"
           },
-          "activeTheme": {
+          "style": {
             "type": "object",
             "properties": {
               "id": {

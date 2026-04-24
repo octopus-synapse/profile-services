@@ -80,7 +80,7 @@ export class InMemoryDslResumeRepository {
       linkedin: resume.linkedin ?? null,
       github: resume.github ?? null,
       website: resume.website ?? null,
-      activeTheme: resume.activeTheme ?? {
+      style: resume.style ?? {
         id: 'theme-1',
         name: 'Default',
         styleConfig: {

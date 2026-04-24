@@ -5,7 +5,7 @@
  */
 
 export const RESUME_RELATIONS_INCLUDE = {
-  activeTheme: true,
+  style: true,
   resumeSections: {
     where: { isVisible: true },
     orderBy: { order: 'asc' as const },

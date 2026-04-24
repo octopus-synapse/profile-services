@@ -17,7 +17,7 @@ type ResumeLike = {
   slug?: string | null;
   isPublic?: boolean;
   customTheme?: unknown;
-  activeTheme?: {
+  style?: {
     styleConfig: {
       version: string;
       layout?: Record<string, unknown>;
@@ -106,7 +106,7 @@ describe('DslRepository', () => {
       isPublic: true,
       customTheme: {},
     }),
-    activeTheme: {
+    style: {
       styleConfig: {
         version: '1.0.0',
         layout: { columns: 1 },
@@ -295,7 +295,7 @@ describe('DslRepository', () => {
     it('should deep merge DSL objects', async () => {
       const resumeWithCustom = {
         ...mockResume,
-        activeTheme: {
+        style: {
           styleConfig: {
             version: '1.0.0',
             tokens: { colors: { primary: '#000000' } },
@@ -334,13 +334,13 @@ describe('DslRepository', () => {
    * This is a common scenario after onboarding when no theme is applied yet.
    */
   describe('render - no theme scenarios', () => {
-    it('should throw descriptive error when resume has no activeTheme', async () => {
+    it('should throw descriptive error when resume has no style', async () => {
       const resumeWithoutTheme = {
         ...createMockResume({
           id: 'resume-no-theme',
           userId: 'user-123',
         }),
-        activeTheme: null,
+        style: null,
         customTheme: null,
       };
 
@@ -349,13 +349,13 @@ describe('DslRepository', () => {
       await expect(repository.render('resume-no-theme', 'user-123')).rejects.toThrow(/theme/i);
     });
 
-    it('should throw when activeTheme has null styleConfig', async () => {
+    it('should throw when style has null styleConfig', async () => {
       const resumeWithNullConfig = {
         ...createMockResume({
           id: 'resume-null-config',
           userId: 'user-123',
         }),
-        activeTheme: { styleConfig: null },
+        style: { styleConfig: null },
         customTheme: null,
       };
 
@@ -364,13 +364,13 @@ describe('DslRepository', () => {
       await expect(repository.render('resume-null-config', 'user-123')).rejects.toThrow(/theme/i);
     });
 
-    it('should throw when activeTheme has empty styleConfig object', async () => {
+    it('should throw when style has empty styleConfig object', async () => {
       const resumeWithEmptyConfig = {
         ...createMockResume({
           id: 'resume-empty-config',
           userId: 'user-123',
         }),
-        activeTheme: { styleConfig: {} },
+        style: { styleConfig: {} },
         customTheme: null,
       };
 
@@ -385,7 +385,7 @@ describe('DslRepository', () => {
           id: 'resume-actionable',
           userId: 'user-123',
         }),
-        activeTheme: null,
+        style: null,
         customTheme: null,
       };
 

@@ -39,7 +39,7 @@ export type ResumeResult = {
   createdAt: Date;
   updatedAt: Date;
   styleId?: string | null;
-  activeTheme?: {
+  style?: {
     id: string;
     name: string;
     description?: string | null;

@@ -47,11 +47,11 @@ export function toResumeFullResponseDto(resume: ResumeResult): ResumeFullRespons
   return {
     ...toResumeResponseDto(resume),
     styleId: resume.styleId ?? undefined,
-    activeTheme: resume.activeTheme
+    style: resume.style
       ? {
-          id: resume.activeTheme.id,
-          name: resume.activeTheme.name,
-          description: resume.activeTheme.description ?? undefined,
+          id: resume.style.id,
+          name: resume.style.name,
+          description: resume.style.description ?? undefined,
         }
       : undefined,
     resumeSections,

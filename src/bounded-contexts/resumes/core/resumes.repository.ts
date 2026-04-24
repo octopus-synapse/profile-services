@@ -22,7 +22,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
         },
       },
     },
-    activeTheme: {
+    style: {
       select: {
         id: true,
         name: true,

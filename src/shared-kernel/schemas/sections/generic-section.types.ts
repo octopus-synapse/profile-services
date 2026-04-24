@@ -139,7 +139,7 @@ export interface GenericResume {
   github: string | null;
   website: string | null;
   sections: GenericResumeSection[];
-  activeTheme?: {
+  style?: {
     id: string;
     name: string;
     styleConfig: unknown;

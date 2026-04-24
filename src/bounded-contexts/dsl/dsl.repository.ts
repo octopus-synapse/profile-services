@@ -35,7 +35,7 @@ type PrismaResumeData = {
   linkedin?: string | null;
   github?: string | null;
   website?: string | null;
-  activeTheme?: { id: string; name: string; styleConfig: unknown } | null;
+  style?: { id: string; name: string; styleConfig: unknown } | null;
   customTheme?: unknown;
   createdAt: Date;
   updatedAt: Date;
@@ -254,7 +254,7 @@ export class DslRepository {
       github: resume.github ?? null,
       website: resume.website ?? null,
       sections,
-      activeTheme: resume.activeTheme ?? null,
+      style: resume.style ?? null,
       customTheme: resume.customTheme,
       createdAt: resume.createdAt,
       updatedAt: resume.updatedAt,
@@ -269,7 +269,7 @@ export class DslRepository {
   }
 
   private buildMergedDsl(resume: GenericResume): Record<string, unknown> {
-    const baseDsl = resume.activeTheme?.styleConfig;
+    const baseDsl = resume.style?.styleConfig;
 
     if (!baseDsl || Object.keys(baseDsl as object).length === 0) {
       throw new ResumeNoActiveThemeException();
