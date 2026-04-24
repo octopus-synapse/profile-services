@@ -12,10 +12,10 @@ export interface ContentQualityResult {
   readonly costUsdMicros: bigint;
 }
 
-/** Port for the Content Quality analyzer. The real implementation lives
- * in `ai/` (added in Task #19). Until that lands, a local stub adapter
- * returns a conservative placeholder without hitting the network so the
- * use-case stays wireable and the DB schema is exercised end-to-end. */
+/** Port for the Content Quality analyzer. The real implementation —
+ * `AiContentQualityAdapter` — calls `ScoringLlmPort.analyzeContentQuality`
+ * and degrades to `score: null` when the kill-switch flag is OFF or the
+ * upstream call fails, so the use-case can still serve Completeness alone. */
 export abstract class ContentQualityPort {
   abstract analyze(resume: ResumeForCompleteness): Promise<ContentQualityResult>;
 }
