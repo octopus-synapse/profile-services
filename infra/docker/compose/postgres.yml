@@ -1,6 +1,9 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    # pgvector/pgvector ships the `vector` extension required by the
+    # scoring subsystem (Job.embeddingVector). The image is wire- and
+    # data-compatible with stock postgres:16, so existing volumes work.
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}

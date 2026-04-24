@@ -72,6 +72,7 @@ Rollback is destructive: any resumes, fit profiles, or matches created during th
 ## Known risks
 
 - **`pgvector` extension install** requires the Postgres superuser. If the staging/prod DB user lacks `CREATE EXTENSION`, the migration will fail at line 1. Coordinate with DBA before deploying.
+- **Local dev Postgres** — stock `postgres:16` images do not ship pgvector. Phase 2 swapped `infra/docker/compose/postgres.yml` to `pgvector/pgvector:pg16` so `docker compose up postgres` brings up a vector-capable instance for free. Devs running a non-Docker local Postgres need to install the extension manually (`apt install postgresql-16-pgvector` on Debian-style hosts, then `CREATE EXTENSION vector` against the dev DB) before `bun prisma migrate deploy` will succeed.
 - **AI quota** — the backfill script will issue a Content Quality AI call per resume. With `SCORING_CONTENT_QUALITY_ENABLED=true`, this can be expensive. Default the flag to OFF during backfill, flip ON afterwards.
 - **Typst template path changes** — if custom themes in prod reference `templates/` by hardcoded path, they break. Check `resume.primaryTypstTemplate` column for hardcoded strings before the migration.
 - **Breaking SDK consumers** — the `api-client` package has not been regenerated in this PR. Consumers hitting the new endpoints via the SDK will fail to resolve types. Regenerate the SDK in a **follow-up PR** before shipping any UI that depends on it.
