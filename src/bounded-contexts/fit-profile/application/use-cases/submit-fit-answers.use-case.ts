@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventPublisher } from '@/shared-kernel';
+import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import type { FitQuestionRecord } from '../../domain/ports/fit-question.repository.port';
 import { FitQuestionRepositoryPort } from '../../domain/ports/fit-question.repository.port';
@@ -80,6 +82,7 @@ export class SubmitFitAnswersUseCase {
     private readonly answers: FitAnswerRepositoryPort,
     private readonly profiles: UserFitProfileRepositoryPort,
     private readonly history: FitRemapHistoryRepositoryPort,
+    private readonly events: EventPublisher,
   ) {}
 
   async execute(
@@ -164,6 +167,15 @@ export class SubmitFitAnswersUseCase {
     }
 
     await this.questionSets.markCompleted(input.questionSetId, now);
+
+    // Signal the rest of the app that this user's vector moved. Match
+    // Score cache invalidation + downstream notifications subscribe to
+    // this event; we keep emission at the very end so a crash earlier
+    // in the sequence leaves no phantom recomputes chasing the old
+    // vector.
+    this.events.publish(
+      new UserFitProfileUpdatedEvent(input.userId, { version: nextVersion, cause: 'remap' }),
+    );
 
     return saved;
   }

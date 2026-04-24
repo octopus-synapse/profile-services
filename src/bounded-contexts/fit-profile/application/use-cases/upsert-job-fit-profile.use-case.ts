@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { EventPublisher } from '@/shared-kernel';
+import { JobFitProfileUpdatedEvent } from '../../domain/events';
 import {
   JobFitProfileRepositoryPort,
   type SavedJobFitProfile,
@@ -37,15 +39,24 @@ export interface UpsertJobFitProfileInput {
  * three-block `FitVector` shape used by the similarity math. */
 @Injectable()
 export class UpsertJobFitProfileUseCase {
-  constructor(private readonly repository: JobFitProfileRepositoryPort) {}
+  constructor(
+    private readonly repository: JobFitProfileRepositoryPort,
+    private readonly events: EventPublisher,
+  ) {}
 
   async execute(input: UpsertJobFitProfileInput): Promise<SavedJobFitProfile> {
     const vector = buildVector(input.sliders);
-    return this.repository.upsert({
+    const saved = await this.repository.upsert({
       jobId: input.jobId,
       editedByUserId: input.editedByUserId,
       vector,
     });
+    // Match Score cache is keyed by jobId — the recompute worker
+    // listens for this event and wipes `match:*:{jobId}:*` entries.
+    this.events.publish(
+      new JobFitProfileUpdatedEvent(input.jobId, { editedByUserId: input.editedByUserId }),
+    );
+    return saved;
   }
 }
 

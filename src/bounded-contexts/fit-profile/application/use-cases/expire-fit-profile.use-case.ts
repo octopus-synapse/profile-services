@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventPublisher } from '@/shared-kernel';
+import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import {
   type SavedUserFitProfile,
   UserFitProfileRepositoryPort,
@@ -11,7 +13,9 @@ import {
  * just rely on the existing `expiresAt` column — which is what the
  * `GetFitProfileStatusUseCase` already reads. The use-case is
  * nevertheless useful as a domain-level trigger for emitting the
- * `UserFitProfileExpired` event when the worker fires.
+ * `UserFitProfileUpdatedEvent` (with `cause: 'expired'`) when the
+ * worker fires — Match cache invalidation + future notifications
+ * subscribe to that event.
  *
  * Keep this idempotent: calling it twice for the same expired profile
  * is allowed and returns the same shape.
@@ -20,7 +24,10 @@ import {
 export class ExpireFitProfileUseCase {
   private readonly logger = new Logger(ExpireFitProfileUseCase.name);
 
-  constructor(private readonly profiles: UserFitProfileRepositoryPort) {}
+  constructor(
+    private readonly profiles: UserFitProfileRepositoryPort,
+    private readonly events: EventPublisher,
+  ) {}
 
   async execute(
     userId: string,
@@ -32,6 +39,9 @@ export class ExpireFitProfileUseCase {
     const isExpired = profile.expiresAt.getTime() <= now.getTime();
     if (isExpired) {
       this.logger.log(`UserFitProfile expired for user ${userId}`);
+      this.events.publish(
+        new UserFitProfileUpdatedEvent(userId, { version: profile.version, cause: 'expired' }),
+      );
     }
     return { expired: isExpired, profile };
   }

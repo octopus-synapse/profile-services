@@ -1,4 +1,11 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { EventPublisher } from '@/shared-kernel';
+
+const stubEventPublisher: EventPublisher = {
+  publish: () => {},
+  publishAsync: () => Promise.resolve(),
+} as unknown as EventPublisher;
+
 import {
   FitAnswerRepositoryPort,
   type FitAnswerWrite,
@@ -194,7 +201,14 @@ describe('SubmitFitAnswersUseCase', () => {
     answers = new InMemoryAnswers();
     profiles = new InMemoryProfiles();
     history = new InMemoryHistory();
-    useCase = new SubmitFitAnswersUseCase(questionSets, questions, answers, profiles, history);
+    useCase = new SubmitFitAnswersUseCase(
+      questionSets,
+      questions,
+      answers,
+      profiles,
+      history,
+      stubEventPublisher,
+    );
     seedPool(questions);
   });
 

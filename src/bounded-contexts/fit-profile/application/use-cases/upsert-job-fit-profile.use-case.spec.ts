@@ -1,4 +1,11 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { EventPublisher } from '@/shared-kernel';
+
+const stubEventPublisher: EventPublisher = {
+  publish: () => {},
+  publishAsync: () => Promise.resolve(),
+} as unknown as EventPublisher;
+
 import {
   JobFitProfileRepositoryPort,
   type JobFitProfileWrite,
@@ -35,7 +42,7 @@ describe('UpsertJobFitProfileUseCase', () => {
 
   beforeEach(() => {
     repo = new InMemoryJobProfiles();
-    useCase = new UpsertJobFitProfileUseCase(repo);
+    useCase = new UpsertJobFitProfileUseCase(repo, stubEventPublisher);
   });
 
   it('persists recruiter sliders projected into the three-block vector', async () => {
