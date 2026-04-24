@@ -48,20 +48,9 @@ export const ERROR_MESSAGES = {
   ACCESS_DENIED: 'Access denied to this resource',
   PUBLIC_PROFILE_NOT_FOUND: 'Public profile not found',
 
-  // Themes
-  THEME_NOT_FOUND: 'Theme not found',
-  THEME_ACCESS_DENIED: 'Theme not found or access denied',
-  CANNOT_DELETE_SYSTEM_THEMES: 'Cannot delete system themes',
-  CAN_ONLY_DELETE_OWN_THEMES: 'Can only delete own themes',
-  CAN_ONLY_EDIT_OWN_THEMES: 'Can only edit own themes',
   ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES: 'Only admins can edit system themes',
   ONLY_ADMINS_CAN_DO_THIS: 'Only administrators can perform this action',
-  CAN_ONLY_SUBMIT_OWN_THEMES: 'Can only submit own themes',
-  THEME_MUST_BE_PRIVATE_OR_REJECTED: 'Theme must be private or rejected',
-  THEME_NOT_PENDING_APPROVAL: 'Theme is not pending approval',
-  CANNOT_APPROVE_OWN_THEMES: 'Cannot approve own themes',
   REJECTION_REASON_REQUIRED: 'Rejection reason is required',
-  CANNOT_FORK_THEME: 'Cannot fork this theme',
 
   // Config Validation
   LAYOUT_CONFIG_REQUIRED: 'Layout config is required',

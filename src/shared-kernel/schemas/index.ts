@@ -20,6 +20,5 @@ export * from './primitives';
 export * from './resume';
 export * from './resume-ast';
 export * from './sections';
-export * from './theme';
 export * from './two-factor';
 export * from './user';

@@ -124,10 +124,6 @@ export const ERROR_DICTIONARY = {
     en: 'Business rule violation',
     'pt-BR': 'Regra de negócio violada',
   },
-  CAN_ONLY_EDIT_OWN_THEMES: {
-    en: 'You can only edit your own themes',
-    'pt-BR': 'Você só pode editar os seus próprios temas',
-  },
   CANNOT_APPLY_TO_OWN_JOB: {
     en: 'You cannot apply to your own job',
     'pt-BR': 'Você não pode se candidatar à sua própria vaga',
@@ -156,10 +152,6 @@ export const ERROR_DICTIONARY = {
     en: 'Cannot delete your own account through the admin interface',
     'pt-BR': 'Você não pode apagar a sua própria conta pela interface de admin',
   },
-  CANNOT_DELETE_SYSTEM_THEMES: {
-    en: 'Cannot delete system themes',
-    'pt-BR': 'Não é possível apagar temas do sistema',
-  },
   CANNOT_ENDORSE_SELF: {
     en: 'You cannot endorse your own skills',
     'pt-BR': 'Você não pode recomendar suas próprias habilidades',
@@ -167,10 +159,6 @@ export const ERROR_DICTIONARY = {
   CANNOT_FOLLOW_SELF: {
     en: 'Cannot follow yourself',
     'pt-BR': 'Você não pode seguir a si mesmo',
-  },
-  CANNOT_FORK_THEME: {
-    en: 'Cannot fork this theme',
-    'pt-BR': 'Não é possível bifurcar este tema',
   },
   CANNOT_MESSAGE_SELF: {
     en: 'Cannot send message to yourself',
@@ -988,18 +976,6 @@ export const ERROR_DICTIONARY = {
   TECH_NICHE_INVALID: {
     en: 'Tech niche is invalid',
     'pt-BR': 'Nicho de tecnologia inválido',
-  },
-  THEME_ACCESS_DENIED: {
-    en: 'Access denied to this theme',
-    'pt-BR': 'Acesso ao tema negado',
-  },
-  THEME_CONFIG_INVALID: {
-    en: 'Theme configuration is invalid',
-    'pt-BR': 'Configuração do tema inválida',
-  },
-  THEME_NOT_FOUND: {
-    en: 'Theme not found',
-    'pt-BR': 'Tema não encontrado',
   },
   TOKEN_INVALID: {
     en: 'Token is invalid',

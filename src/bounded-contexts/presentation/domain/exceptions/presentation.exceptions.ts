@@ -75,21 +75,6 @@ export class ResumeAccessDeniedException extends ForbiddenException {
   }
 }
 
-export class ThemeConfigInvalidException extends ValidationException {
-  readonly code: string = 'THEME_CONFIG_INVALID';
-  constructor(reason: string) {
-    super(`Theme config is invalid: ${reason}`);
-  }
-}
-
-export class ThemeNotFoundException extends DomainException {
-  readonly code: string = 'THEME_NOT_FOUND';
-  readonly statusHint = 404;
-  constructor() {
-    super('Theme not found');
-  }
-}
-
 export class ShareAliasNotFoundException extends DomainException {
   readonly code: string = 'SHARE_ALIAS_NOT_FOUND';
   readonly statusHint = 404;
@@ -120,38 +105,10 @@ export class SharePasswordInvalidException extends ForbiddenException {
   }
 }
 
-export class ThemeAccessDeniedException extends ForbiddenException {
-  readonly code: string = 'THEME_ACCESS_DENIED';
-  constructor() {
-    super('Access denied to theme');
-  }
-}
-
-export class CannotForkThemeException extends ForbiddenException {
-  readonly code: string = 'CANNOT_FORK_THEME';
-  constructor() {
-    super('Cannot fork this theme');
-  }
-}
-
 export class OnlyAdminsCanDoThisException extends ForbiddenException {
   readonly code: string = 'ONLY_ADMINS_CAN_DO_THIS';
   constructor() {
     super('Only admins can perform this action');
-  }
-}
-
-export class CannotDeleteSystemThemesException extends ForbiddenException {
-  readonly code: string = 'CANNOT_DELETE_SYSTEM_THEMES';
-  constructor() {
-    super('Cannot delete system themes');
-  }
-}
-
-export class CanOnlyEditOwnThemesException extends ForbiddenException {
-  readonly code: string = 'CAN_ONLY_EDIT_OWN_THEMES';
-  constructor() {
-    super('Can only edit your own themes');
   }
 }
 
