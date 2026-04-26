@@ -1,4 +1,4 @@
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, type LoggerPort } from '@/shared-kernel';
 import { JobFitProfileUpdatedEvent } from '../../domain/events';
 import {
   JobFitProfileRepositoryPort,
@@ -40,6 +40,7 @@ export class UpsertJobFitProfileUseCase {
   constructor(
     private readonly repository: JobFitProfileRepositoryPort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: UpsertJobFitProfileInput): Promise<SavedJobFitProfile> {

@@ -1,5 +1,5 @@
 {
-  "useCaseGaps": 1,
+  "useCaseGaps": 0,
   "infraAdapterGaps": 1,
   "workerGaps": 6,
   "handlerGaps": 0,

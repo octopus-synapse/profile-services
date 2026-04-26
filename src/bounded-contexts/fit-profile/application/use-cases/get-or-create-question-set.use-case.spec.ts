@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   type FitQuestionInput,
   type FitQuestionPatch,
@@ -111,7 +112,7 @@ describe('GetOrCreateQuestionSetUseCase', () => {
   beforeEach(() => {
     questions = new InMemoryFitQuestions();
     sets = new InMemoryQuestionSets();
-    useCase = new GetOrCreateQuestionSetUseCase(questions, sets);
+    useCase = new GetOrCreateQuestionSetUseCase(questions, sets, stubLogger);
   });
 
   it('throws when the pool has no active questions', async () => {

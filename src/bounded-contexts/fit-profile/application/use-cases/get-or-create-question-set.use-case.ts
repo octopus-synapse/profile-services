@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import {
   type FitQuestionRecord,
   FitQuestionRepositoryPort,
@@ -38,6 +39,7 @@ export class GetOrCreateQuestionSetUseCase {
   constructor(
     private readonly questions: FitQuestionRepositoryPort,
     private readonly questionSets: FitQuestionSetRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<QuestionSetView> {

@@ -70,12 +70,16 @@ interface ConstructorShape {
   injectsLogger: boolean;
 }
 
-/** Pulls the FIRST `constructor(...)` of the FIRST exported class and
- * counts top-level params, plus whether one of them is `LoggerPort`. */
+/** Picks the widest `constructor(...)` in the file as a proxy for the
+ * "main" class — files often declare extra error classes alongside.
+ * `injectsLogger` OR-folds across every constructor in the file. */
 function readConstructor(src: string): ConstructorShape | null {
-  const ctor = /constructor\s*\(([\s\S]*?)\)\s*\{/.exec(src);
-  if (!ctor) return null;
-  const inner = ctor[1];
+  const re = /constructor\s*\(([\s\S]*?)\)\s*\{/g;
+  const inners: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) inners.push(m[1]);
+  if (inners.length === 0) return null;
+  const inner = inners.reduce((a, b) => (b.length > a.length ? b : a));
   if (inner.trim().length === 0) return { paramCount: 0, injectsLogger: false };
   let depth = 0;
   let inStr: string | null = null;
@@ -92,7 +96,8 @@ function readConstructor(src: string): ConstructorShape | null {
     if (ch === ')' || ch === ']' || ch === '}' || ch === '>') depth--;
     if (ch === ',' && depth === 0) count++;
   }
-  return { paramCount: count, injectsLogger: /\bLoggerPort\b/.test(inner) };
+  const injectsLogger = inners.some((s) => /\bLoggerPort\b/.test(s));
+  return { paramCount: count, injectsLogger };
 }
 
 interface Findings {

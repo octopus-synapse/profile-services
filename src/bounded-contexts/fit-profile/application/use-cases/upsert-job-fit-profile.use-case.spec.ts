@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { EventPublisher } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 
 const stubEventPublisher: EventPublisher = {
   publish: () => {},
@@ -42,7 +43,7 @@ describe('UpsertJobFitProfileUseCase', () => {
 
   beforeEach(() => {
     repo = new InMemoryJobProfiles();
-    useCase = new UpsertJobFitProfileUseCase(repo, stubEventPublisher);
+    useCase = new UpsertJobFitProfileUseCase(repo, stubEventPublisher, stubLogger);
   });
 
   it('persists recruiter sliders projected into the three-block vector', async () => {

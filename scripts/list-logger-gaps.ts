@@ -32,9 +32,15 @@ function read(path: string): string {
 }
 
 function readConstructor(src: string) {
-  const ctor = /constructor\s*\(([\s\S]*?)\)\s*\{/.exec(src);
-  if (!ctor) return null;
-  const inner = ctor[1];
+  // A file may declare several classes (custom error classes etc.) — pick the
+  // widest constructor as a proxy for the "main" class. Also OR-fold the
+  // LoggerPort check across every constructor in the file.
+  const re = /constructor\s*\(([\s\S]*?)\)\s*\{/g;
+  const inners: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) inners.push(m[1]);
+  if (inners.length === 0) return null;
+  const inner = inners.reduce((a, b) => (b.length > a.length ? b : a));
   if (inner.trim().length === 0) return { paramCount: 0, injectsLogger: false };
   let depth = 0, inStr: string | null = null, count = 1;
   for (let i = 0; i < inner.length; i++) {
@@ -45,7 +51,8 @@ function readConstructor(src: string) {
     if (ch === ')' || ch === ']' || ch === '}' || ch === '>') depth--;
     if (ch === ',' && depth === 0) count++;
   }
-  return { paramCount: count, injectsLogger: /\bLoggerPort\b/.test(inner) };
+  const injectsLogger = inners.some((s) => /\bLoggerPort\b/.test(s));
+  return { paramCount: count, injectsLogger };
 }
 
 const INFRA_HINTS = [
