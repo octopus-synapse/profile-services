@@ -1,7 +1,7 @@
 {
   "useCaseGaps": 77,
   "infraAdapterGaps": 27,
-  "workerGaps": 9,
-  "handlerGaps": 7,
+  "workerGaps": 8,
+  "handlerGaps": 5,
   "silentCatches": 31
 }

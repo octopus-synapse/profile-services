@@ -1,7 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { NotificationService } from '../services/notification.service';
+
+const CTX = 'FitProfileExpiredNotificationHandler';
 
 /**
  * Notifications bridge for the fit-profile lockout flow.
@@ -24,9 +27,10 @@ import { NotificationService } from '../services/notification.service';
  */
 @Injectable()
 export class FitProfileExpiredNotificationHandler {
-  private readonly logger = new Logger(FitProfileExpiredNotificationHandler.name);
-
-  constructor(private readonly notifications: NotificationService) {}
+  constructor(
+    private readonly notifications: NotificationService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent(UserFitProfileUpdatedEvent.TYPE)
   async handle(event: UserFitProfileUpdatedEvent): Promise<void> {
@@ -47,6 +51,7 @@ export class FitProfileExpiredNotificationHandler {
       // a courtesy.
       this.logger.warn(
         `fit-profile expired notification failed for user=${event.aggregateId}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
       );
     }
   }

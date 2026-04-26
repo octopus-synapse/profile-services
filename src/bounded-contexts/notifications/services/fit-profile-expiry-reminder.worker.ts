@@ -1,8 +1,9 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { NotificationService } from './notification.service';
 
 export const FIT_PROFILE_EXPIRY_REMINDER_QUEUE = 'fit-profile-expiry-reminder';
@@ -41,17 +42,18 @@ const STANDARD_ROLE = 'role_user_standard';
  * Scheduled at 09:00 America/Sao_Paulo so reminders land mid-morning
  * (highest open rates), staggered far from the other crons.
  */
+const CTX = 'FitProfileExpiryReminderWorker';
+
 @Injectable()
 @Processor(FIT_PROFILE_EXPIRY_REMINDER_QUEUE, { concurrency: 4 })
 export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(FitProfileExpiryReminderWorker.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
     private readonly notifications: NotificationService,
     @InjectQueue(FIT_PROFILE_EXPIRY_REMINDER_QUEUE)
     private readonly queue: Queue<FitProfileExpiryReminderJobData>,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -133,6 +135,7 @@ export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModu
     } catch (err) {
       this.logger.warn(
         `expiry-reminder failed user=${userId} daysLeft=${daysLeft}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
       );
     }
   }
@@ -143,6 +146,10 @@ export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModu
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<FitProfileExpiryReminderJobData>, err: Error): void {
-    this.logger.error(`expiry-reminder failed kind=${job?.data?.kind} err=${err.message}`);
+    this.logger.error(
+      `expiry-reminder failed kind=${job?.data?.kind} err=${err.message}`,
+      err.stack,
+      CTX,
+    );
   }
 }

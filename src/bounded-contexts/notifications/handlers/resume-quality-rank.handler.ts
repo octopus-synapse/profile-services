@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { NotificationService } from '../services/notification.service';
+
+const CTX = 'ResumeQualityRankNotificationHandler';
 
 /**
  * Plan rank thresholds — F < 40 ≤ D < 60 ≤ C < 70 ≤ B < 80 ≤ A < 90 ≤ S.
@@ -32,11 +35,10 @@ const RANK_ORDER: ReadonlyArray<'S' | 'A' | 'B' | 'C' | 'D' | 'F'> = ['F', 'D', 
  */
 @Injectable()
 export class ResumeQualityRankNotificationHandler {
-  private readonly logger = new Logger(ResumeQualityRankNotificationHandler.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationService,
+    private readonly logger: LoggerPort,
   ) {}
 
   @OnEvent(ResumeQualityComputedEvent.TYPE)
@@ -73,6 +75,7 @@ export class ResumeQualityRankNotificationHandler {
     } catch (err) {
       this.logger.warn(
         `resume-quality rank notification failed for resume=${event.payload.resumeId}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
       );
     }
   }
