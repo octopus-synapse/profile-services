@@ -6,6 +6,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
+
+const CTX = 'LinkPreviewService';
 
 export type LinkPreviewData = {
   title: string | null;
@@ -16,6 +19,8 @@ export type LinkPreviewData = {
 
 @Injectable()
 export class LinkPreviewService {
+  constructor(private readonly logger: LoggerPort) {}
+
   /**
    * Fetch Open Graph metadata from a URL.
    * Uses 5s timeout, catches all errors silently (returns null).
@@ -45,7 +50,11 @@ export class LinkPreviewService {
       const image = this.extractOgTag(html, 'og:image');
 
       return { title, description, image, domain };
-    } catch {
+    } catch (err) {
+      this.logger.warn(
+        `Link preview fetch failed for ${url}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
+      );
       return null;
     }
   }
