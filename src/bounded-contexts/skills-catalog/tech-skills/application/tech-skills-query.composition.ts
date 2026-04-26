@@ -1,5 +1,6 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { CacheAdapter } from '../infrastructure/adapters/persistence/cache.adapter';
 import { ProgrammingLanguageRepository } from '../infrastructure/adapters/persistence/programming-language.repository';
 import { TechAreaRepository } from '../infrastructure/adapters/persistence/tech-area.repository';
@@ -22,6 +23,7 @@ export { TechSkillsUseCases };
 export function buildTechSkillsUseCases(
   prisma: PrismaService,
   cacheService: CacheService,
+  logger: LoggerPort,
 ): TechSkillsUseCases {
   const cache = new CacheAdapter(cacheService);
   const skillRepo = new TechSkillRepository(prisma);
@@ -29,19 +31,19 @@ export function buildTechSkillsUseCases(
   const nicheRepo = new TechNicheRepository(prisma);
   const langRepo = new ProgrammingLanguageRepository(prisma);
 
-  const searchLanguagesUseCase = new SearchLanguagesUseCase(langRepo, cache);
-  const searchSkillsUseCase = new SearchSkillsUseCase(skillRepo, cache);
+  const searchLanguagesUseCase = new SearchLanguagesUseCase(langRepo, cache, logger);
+  const searchSkillsUseCase = new SearchSkillsUseCase(skillRepo, cache, logger);
 
   return {
-    getAllSkillsUseCase: new GetAllSkillsUseCase(skillRepo, cache),
-    getSkillsByNicheUseCase: new GetSkillsByNicheUseCase(skillRepo, cache),
+    getAllSkillsUseCase: new GetAllSkillsUseCase(skillRepo, cache, logger),
+    getSkillsByNicheUseCase: new GetSkillsByNicheUseCase(skillRepo, cache, logger),
     getSkillsByTypeUseCase: new GetSkillsByTypeUseCase(skillRepo),
     searchSkillsUseCase,
-    getAllAreasUseCase: new GetAllAreasUseCase(areaRepo, cache),
-    getAllNichesUseCase: new GetAllNichesUseCase(nicheRepo, cache),
-    getNichesByAreaUseCase: new GetNichesByAreaUseCase(nicheRepo, cache),
-    getAllLanguagesUseCase: new GetAllLanguagesUseCase(langRepo, cache),
+    getAllAreasUseCase: new GetAllAreasUseCase(areaRepo, cache, logger),
+    getAllNichesUseCase: new GetAllNichesUseCase(nicheRepo, cache, logger),
+    getNichesByAreaUseCase: new GetNichesByAreaUseCase(nicheRepo, cache, logger),
+    getAllLanguagesUseCase: new GetAllLanguagesUseCase(langRepo, cache, logger),
     searchLanguagesUseCase,
-    searchAllUseCase: new SearchAllUseCase(searchLanguagesUseCase, searchSkillsUseCase),
+    searchAllUseCase: new SearchAllUseCase(searchLanguagesUseCase, searchSkillsUseCase, logger),
   };
 }

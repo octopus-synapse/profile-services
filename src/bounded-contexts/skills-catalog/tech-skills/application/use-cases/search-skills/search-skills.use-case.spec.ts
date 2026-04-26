@@ -3,6 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   DEFAULT_TECH_SKILLS,
   InMemoryCacheService,
@@ -19,7 +20,7 @@ describe('SearchSkillsUseCase', () => {
     techSkillRepo = new InMemoryTechSkillRepository();
     techSkillRepo.seed(DEFAULT_TECH_SKILLS);
     cacheService = new InMemoryCacheService();
-    useCase = new SearchSkillsUseCase(techSkillRepo, cacheService);
+    useCase = new SearchSkillsUseCase(techSkillRepo, cacheService, stubLogger);
   });
 
   it('should return skills matching query', async () => {

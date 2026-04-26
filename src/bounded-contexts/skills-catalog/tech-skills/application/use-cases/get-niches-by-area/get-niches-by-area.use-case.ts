@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import type { TechNiche } from '../../../dto/tech-niche.dto';
 import {
   TECH_SKILLS_CACHE_KEYS,
@@ -10,6 +11,7 @@ export class GetNichesByAreaUseCase {
   constructor(
     private readonly repository: TechNicheRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(areaType: TechAreaType): Promise<TechNiche[]> {
