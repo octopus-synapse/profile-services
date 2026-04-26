@@ -4,15 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import {
-  Controller,
-  Get,
-  Header,
-  InternalServerErrorException,
-  Param,
-  Query,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -28,6 +20,7 @@ import { FeatureFlag } from '@/bounded-contexts/platform/feature-flags/infrastru
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
+import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { sanitizeQueryParam } from '../helpers';
 import { PdfCacheService } from '../services/pdf-cache.service';
 
@@ -152,7 +145,7 @@ export class ExportPdfController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
+      throw new ExportPipelineFailedException('pdf');
     }
   }
 
@@ -181,7 +174,7 @@ export class ExportPdfController {
         targetUserId,
         error: error instanceof Error ? error.message : String(error),
       });
-      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
+      throw new ExportPipelineFailedException('pdf');
     }
   }
 }

@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -24,10 +23,8 @@ import { CreateFitQuestionUseCase } from '../../application/use-cases/create-fit
 import { DeleteFitQuestionUseCase } from '../../application/use-cases/delete-fit-question.use-case';
 import { GetFitQuestionUseCase } from '../../application/use-cases/get-fit-question.use-case';
 import { ListFitQuestionsUseCase } from '../../application/use-cases/list-fit-questions.use-case';
-import {
-  FitQuestionNotFoundError,
-  UpdateFitQuestionUseCase,
-} from '../../application/use-cases/update-fit-question.use-case';
+import { UpdateFitQuestionUseCase } from '../../application/use-cases/update-fit-question.use-case';
+import { FitQuestionNotFoundException } from '../../domain/exceptions/fit-profile.exceptions';
 import {
   CreateFitQuestionDto,
   FitQuestionListResponseDto,
@@ -72,7 +69,7 @@ export class AdminFitQuestionsController {
   @ApiDataResponse(FitQuestionResponseDto, { description: 'FitQuestion row' })
   async getOne(@Param('id') id: string): Promise<DataResponse<FitQuestionResponseDto>> {
     const row = await this.getOneUseCase.execute(id);
-    if (!row) throw new NotFoundException(new FitQuestionNotFoundError(id).message);
+    if (!row) throw new FitQuestionNotFoundException(id);
     return { success: true, data: presentFitQuestion(row) };
   }
 

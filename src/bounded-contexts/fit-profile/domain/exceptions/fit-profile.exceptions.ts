@@ -50,3 +50,11 @@ export class JobFitProfileNotSetException extends EntityNotFoundException {
     super('JobFitProfile', jobId);
   }
 }
+
+/** Admin GET / PATCH against a `FitQuestion` id that doesn't exist. */
+export class FitQuestionNotFoundException extends EntityNotFoundException {
+  readonly code: string = 'FIT_QUESTION_NOT_FOUND';
+  constructor(id: string) {
+    super('FitQuestion', id);
+  }
+}

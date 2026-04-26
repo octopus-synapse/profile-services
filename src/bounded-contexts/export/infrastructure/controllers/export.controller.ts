@@ -1,12 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import {
-  Controller,
-  Get,
-  Header,
-  InternalServerErrorException,
-  Query,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Header, Query, StreamableFile } from '@nestjs/common';
 
 /**
  * Sanitizes query parameters to prevent path traversal attacks.
@@ -48,6 +41,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
 import { parseBundleFormats } from '../../application/utils/parse-bundle-formats';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
+import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -92,7 +86,7 @@ export class ExportController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate banner. Please try again later.');
+      throw new ExportPipelineFailedException('banner');
     }
   }
 
@@ -155,7 +149,7 @@ export class ExportController {
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
+      throw new ExportPipelineFailedException('pdf');
     }
   }
 
@@ -200,7 +194,7 @@ export class ExportController {
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate DOCX. Please try again later.');
+      throw new ExportPipelineFailedException('docx');
     }
   }
 
@@ -255,9 +249,7 @@ export class ExportController {
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate export bundle. Please try again later.',
-      );
+      throw new ExportPipelineFailedException('bundle');
     }
   }
 }

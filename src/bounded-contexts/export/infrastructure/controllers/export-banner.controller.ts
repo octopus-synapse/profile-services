@@ -3,19 +3,13 @@
  * Handles LinkedIn banner export
  */
 
-import {
-  Controller,
-  Get,
-  Header,
-  InternalServerErrorException,
-  Query,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Header, Query, StreamableFile } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -53,7 +47,7 @@ export class ExportBannerController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate banner. Please try again later.');
+      throw new ExportPipelineFailedException('banner');
     }
   }
 }

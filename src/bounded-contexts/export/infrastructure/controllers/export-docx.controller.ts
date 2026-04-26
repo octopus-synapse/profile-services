@@ -4,13 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import {
-  Controller,
-  Get,
-  Header,
-  InternalServerErrorException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Header, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -21,6 +15,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
+import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -86,7 +81,7 @@ export class ExportDocxController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException('Failed to generate DOCX. Please try again later.');
+      throw new ExportPipelineFailedException('docx');
     }
   }
 }

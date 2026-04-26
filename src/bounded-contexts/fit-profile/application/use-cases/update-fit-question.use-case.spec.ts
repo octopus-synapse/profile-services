@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'bun:test';
+import { FitQuestionNotFoundException } from '../../domain/exceptions/fit-profile.exceptions';
 import {
   type FitQuestionInput,
   type FitQuestionPatch,
   type FitQuestionRecord,
   FitQuestionRepositoryPort,
 } from '../../domain/ports/fit-question.repository.port';
-import { FitQuestionNotFoundError, UpdateFitQuestionUseCase } from './update-fit-question.use-case';
+import { UpdateFitQuestionUseCase } from './update-fit-question.use-case';
 
 class StubRepo extends FitQuestionRepositoryPort {
   public rows: FitQuestionRecord[] = [];
@@ -40,7 +41,7 @@ describe('UpdateFitQuestionUseCase', () => {
     const repo = new StubRepo();
     const useCase = new UpdateFitQuestionUseCase(repo);
     await expect(useCase.execute('missing', { weight: 2 })).rejects.toBeInstanceOf(
-      FitQuestionNotFoundError,
+      FitQuestionNotFoundException,
     );
   });
 

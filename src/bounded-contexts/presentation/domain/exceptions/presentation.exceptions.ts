@@ -91,6 +91,14 @@ export class ShareNotFoundException extends DomainException {
   }
 }
 
+export class ShareExpiredException extends DomainException {
+  readonly code: string = 'RESUME_SHARE_EXPIRED';
+  readonly statusHint = 404;
+  constructor() {
+    super('Share link expired');
+  }
+}
+
 export class SharePasswordRequiredException extends ForbiddenException {
   readonly code: string = 'SHARE_PASSWORD_REQUIRED';
   constructor() {

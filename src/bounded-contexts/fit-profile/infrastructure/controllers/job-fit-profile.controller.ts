@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -9,6 +9,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { RequirePermission } from '@/shared-kernel/authorization';
 import { GetJobFitProfileUseCase } from '../../application/use-cases/get-job-fit-profile.use-case';
 import { UpsertJobFitProfileUseCase } from '../../application/use-cases/upsert-job-fit-profile.use-case';
+import { JobFitProfileNotSetException } from '../../domain/exceptions/fit-profile.exceptions';
 import {
   JobFitProfileResponseDto,
   UpsertJobFitProfileRequestDto,
@@ -39,7 +40,7 @@ export class JobFitProfileController {
   @ApiDataResponse(JobFitProfileResponseDto, { description: 'Current JobFitProfile' })
   async getOne(@Param('jobId') jobId: string): Promise<DataResponse<JobFitProfileResponseDto>> {
     const profile = await this.getProfile.execute(jobId);
-    if (!profile) throw new NotFoundException('JobFitProfile not set for this job');
+    if (!profile) throw new JobFitProfileNotSetException(jobId);
     return { success: true, data: presentJobFitProfile(profile) };
   }
 

@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Header,
-  Headers,
-  NotFoundException,
-  Param,
-  Req,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, Header, Headers, Param, Req, StreamableFile } from '@nestjs/common';
 import { ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -16,6 +7,8 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { EventPublisher } from '@/shared-kernel';
 import {
+  ShareExpiredException,
+  ShareNotFoundException,
   SharePasswordInvalidException,
   SharePasswordRequiredException,
 } from '../../domain/exceptions/presentation.exceptions';
@@ -43,7 +36,7 @@ export class PublicResumeController {
   async getOgImage(@Param('slug') slug: string): Promise<StreamableFile> {
     const context = await this.shareService.getShareOgContext(slug);
     if (!context) {
-      throw new NotFoundException('Resume not found');
+      throw new ShareNotFoundException();
     }
 
     const buffer = await this.ogImageService.generatePng(context);
@@ -61,16 +54,16 @@ export class PublicResumeController {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
-      throw new NotFoundException('Resume not found');
+      throw new ShareNotFoundException();
     }
 
     if (!share.isActive) {
-      throw new NotFoundException('Resume not found');
+      throw new ShareNotFoundException();
     }
 
     // Check expiration
     if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new NotFoundException('Share link expired');
+      throw new ShareExpiredException();
     }
 
     // Check password
@@ -127,16 +120,16 @@ export class PublicResumeController {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
-      throw new NotFoundException('Resume not found');
+      throw new ShareNotFoundException();
     }
 
     if (!share.isActive) {
-      throw new NotFoundException('Resume not found');
+      throw new ShareNotFoundException();
     }
 
     // Check expiration
     if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new NotFoundException('Share link expired');
+      throw new ShareExpiredException();
     }
 
     // Check password

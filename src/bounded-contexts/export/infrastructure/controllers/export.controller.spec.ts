@@ -8,11 +8,12 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { InternalServerErrorException, StreamableFile } from '@nestjs/common';
+import { StreamableFile } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
 import { ExportUseCases } from '../../application/ports/export.port';
+import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { InMemoryBannerCapture, NullEventPublisher, NullLogger } from '../../testing';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 import { ExportController } from './export.controller';
@@ -65,10 +66,10 @@ describe('ExportController', () => {
       expect(result).toBeInstanceOf(StreamableFile);
     });
 
-    it('should throw InternalServerErrorException on capture failure', async () => {
+    it('should translate capture failures to ExportPipelineFailedException', async () => {
       bannerCapture.setFailure(new Error('Capture failed'));
 
-      await expect(controller.exportBanner()).rejects.toThrow(InternalServerErrorException);
+      await expect(controller.exportBanner()).rejects.toThrow(ExportPipelineFailedException);
     });
   });
 });

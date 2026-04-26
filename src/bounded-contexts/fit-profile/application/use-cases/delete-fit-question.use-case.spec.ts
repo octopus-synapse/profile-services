@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { FitQuestionNotFoundException } from '../../domain/exceptions/fit-profile.exceptions';
 import {
   type FitQuestionInput,
   type FitQuestionPatch,
@@ -6,7 +7,6 @@ import {
   FitQuestionRepositoryPort,
 } from '../../domain/ports/fit-question.repository.port';
 import { DeleteFitQuestionUseCase } from './delete-fit-question.use-case';
-import { FitQuestionNotFoundError } from './update-fit-question.use-case';
 
 class StubRepo extends FitQuestionRepositoryPort {
   public rows: FitQuestionRecord[] = [];
@@ -37,7 +37,7 @@ describe('DeleteFitQuestionUseCase', () => {
   it('throws when the question does not exist', async () => {
     const repo = new StubRepo();
     const useCase = new DeleteFitQuestionUseCase(repo);
-    await expect(useCase.execute('missing')).rejects.toBeInstanceOf(FitQuestionNotFoundError);
+    await expect(useCase.execute('missing')).rejects.toBeInstanceOf(FitQuestionNotFoundException);
   });
 
   it('removes the question when found', async () => {

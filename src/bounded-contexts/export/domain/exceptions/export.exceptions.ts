@@ -13,6 +13,22 @@ export class ExportEngineFailedException extends DomainException {
   }
 }
 
+/**
+ * Generic envelope for the controller-side `try { useCase.execute() } catch`
+ * path: an unexpected failure surfaced from within the export pipeline. The
+ * controller still publishes the matching `ExportFailedEvent` so the audit /
+ * notifications / retry workers see the failure; this exception then carries
+ * a domain `code` so the global filter emits a translated 500 instead of a
+ * raw Nest `InternalServerErrorException`.
+ */
+export class ExportPipelineFailedException extends DomainException {
+  readonly code: string = 'EXPORT_PIPELINE_FAILED';
+  readonly statusHint = 500;
+  constructor(public readonly format: string) {
+    super(`Failed to generate ${format}. Please try again later.`);
+  }
+}
+
 export class UnsupportedExportFormatException extends ValidationException {
   readonly code: string = 'UNSUPPORTED_EXPORT_FORMAT';
   constructor(format: string) {
