@@ -28,7 +28,7 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const SRC = join(__dirname, '../../../');
@@ -195,53 +195,78 @@ function audit(): Findings {
 describe('Logger coverage audit', () => {
   const findings = audit();
 
+  // The baseline lives in a sibling JSON file so it can ratchet down on
+  // its own. After each run we rewrite the file with `min(stored, current)`
+  // for every metric — tests fail if a metric grew, and the file moves to
+  // the new floor when it shrank, no manual edit required. The file IS
+  // versioned, so PRs that close gaps land the smaller numbers naturally.
+  const ratchet = (key: keyof Counts, current: number) => {
+    const stored = readBaseline();
+    if (current > stored[key]) {
+      // Test will fail; don't rewrite — preserve the historical floor.
+      return stored[key];
+    }
+    if (current < stored[key]) {
+      writeBaseline({ ...stored, [key]: current });
+    }
+    return Math.min(stored[key], current);
+  };
+
   it(`use-case constructors missing LoggerPort = ${findings.useCaseGaps.length}`, () => {
     if (findings.useCaseGaps.length > 0) {
       console.warn(`\nUse-case gaps:\n${findings.useCaseGaps.map((f) => `  - ${f}`).join('\n')}\n`);
     }
-    // Baseline — must only decrease.
-    expect(findings.useCaseGaps.length).toBeLessThanOrEqual(BASELINE.useCaseGaps);
+    const ceiling = ratchet('useCaseGaps', findings.useCaseGaps.length);
+    expect(findings.useCaseGaps.length).toBeLessThanOrEqual(ceiling);
   });
 
   it(`infra adapters/services missing LoggerPort = ${findings.infraAdapterGaps.length}`, () => {
     if (findings.infraAdapterGaps.length > 0) {
       console.warn(`\nInfra adapter gaps:\n${findings.infraAdapterGaps.map((f) => `  - ${f}`).join('\n')}\n`);
     }
-    expect(findings.infraAdapterGaps.length).toBeLessThanOrEqual(BASELINE.infraAdapterGaps);
+    const ceiling = ratchet('infraAdapterGaps', findings.infraAdapterGaps.length);
+    expect(findings.infraAdapterGaps.length).toBeLessThanOrEqual(ceiling);
   });
 
   it(`workers missing log+error = ${findings.workerGaps.length}`, () => {
     if (findings.workerGaps.length > 0) {
       console.warn(`\nWorker gaps:\n${findings.workerGaps.map((f) => `  - ${f}`).join('\n')}\n`);
     }
-    expect(findings.workerGaps.length).toBeLessThanOrEqual(BASELINE.workerGaps);
+    const ceiling = ratchet('workerGaps', findings.workerGaps.length);
+    expect(findings.workerGaps.length).toBeLessThanOrEqual(ceiling);
   });
 
   it(`handlers missing LoggerPort = ${findings.handlerGaps.length}`, () => {
     if (findings.handlerGaps.length > 0) {
       console.warn(`\nHandler gaps:\n${findings.handlerGaps.map((f) => `  - ${f}`).join('\n')}\n`);
     }
-    expect(findings.handlerGaps.length).toBeLessThanOrEqual(BASELINE.handlerGaps);
+    const ceiling = ratchet('handlerGaps', findings.handlerGaps.length);
+    expect(findings.handlerGaps.length).toBeLessThanOrEqual(ceiling);
   });
 
   it(`silent catch blocks (no log, no rethrow) = ${findings.silentCatches.length}`, () => {
     if (findings.silentCatches.length > 0) {
       console.warn(`\nSilent catch files:\n${findings.silentCatches.map((f) => `  - ${f}`).join('\n')}\n`);
     }
-    expect(findings.silentCatches.length).toBeLessThanOrEqual(BASELINE.silentCatches);
+    const ceiling = ratchet('silentCatches', findings.silentCatches.length);
+    expect(findings.silentCatches.length).toBeLessThanOrEqual(ceiling);
   });
 });
 
-// Baselines locked to current state. Each PR that closes gaps should
-// lower these numbers. When all five hit zero, the project has uniform
-// observability hooks across the operational layers — at which point
-// metrics-from-logs (latency p95 per use-case, queue throughput,
-// adapter error rates) becomes feasible without bolting on a separate
-// telemetry SDK.
-const BASELINE = {
-  useCaseGaps: 88,
-  infraAdapterGaps: 34,
-  workerGaps: 13,
-  handlerGaps: 15,
-  silentCatches: 32,
-} as const;
+interface Counts {
+  useCaseGaps: number;
+  infraAdapterGaps: number;
+  workerGaps: number;
+  handlerGaps: number;
+  silentCatches: number;
+}
+
+const BASELINE_FILE = join(__dirname, 'logger-coverage.baseline.json');
+
+function readBaseline(): Counts {
+  return JSON.parse(readFileSync(BASELINE_FILE, 'utf8')) as Counts;
+}
+
+function writeBaseline(next: Counts): void {
+  writeFileSync(BASELINE_FILE, `${JSON.stringify(next, null, 2)}\n`);
+}
