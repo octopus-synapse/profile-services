@@ -6,6 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { MecSyncStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
 export interface CreateSyncLogParams {
   triggeredBy: string;
@@ -27,7 +28,10 @@ export interface FailSyncLogParams {
 
 @Injectable()
 export class SyncLogRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async create(params: CreateSyncLogParams) {
     return this.prisma.mecSyncLog.create({
