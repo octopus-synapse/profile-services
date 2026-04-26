@@ -1,6 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { BadgeKind, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+
+const CTX = 'BadgeService';
 
 /**
  * Central badge awarding service. Every unlock funnels through here so we
@@ -9,9 +12,10 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
  */
 @Injectable()
 export class BadgeService {
-  private readonly logger = new Logger(BadgeService.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async listForUser(userId: string) {
     return this.prisma.userBadge.findMany({
@@ -51,7 +55,7 @@ export class BadgeService {
       await this.prisma.userBadge.create({
         data: { userId, kind, context },
       });
-      this.logger.log(`Awarded ${kind} to ${userId}`);
+      this.logger.log(`Awarded ${kind} to ${userId}`, CTX);
       return { awarded: true };
     } catch (err) {
       // Unique constraint violation → already owned.
