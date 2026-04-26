@@ -6,6 +6,7 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import type {
   GenericSectionContent,
   GenericSectionWithMeta,
@@ -31,6 +32,7 @@ export interface ExportLatexDto {
 export class ExportLatexUseCase {
   constructor(
     private readonly resumeDataRepository: ResumeDataRepositoryPort,
+    private readonly logger: LoggerPort,
     private readonly sectionOrdering?: SectionOrderingPort,
   ) {}
 

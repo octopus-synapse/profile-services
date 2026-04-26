@@ -6,6 +6,7 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { LoggerPort } from '@/shared-kernel';
 import { DocxBuilderPort } from '../../domain/ports/docx-builder.port';
 import { PdfGeneratorPort } from '../../domain/ports/pdf-generator.port';
 import { ResumeDataRepository } from '../../infrastructure/adapters/persistence/resume-data.repository';
@@ -23,6 +24,7 @@ export function buildExportUseCases(
   prisma: PrismaService,
   docxBuilder: DocxBuilderPort,
   pdfGenerator: PdfGeneratorPort,
+  logger: LoggerPort,
   sectionTypeRepo?: SectionTypeRepository,
 ): ExportUseCases {
   const resumeDataRepository = new ResumeDataRepository(prisma);
@@ -31,7 +33,7 @@ export function buildExportUseCases(
   const exportDocxUseCase = new ExportDocxUseCase(docxBuilder);
   const exportPdfUseCase = new ExportPdfUseCase(pdfGenerator);
   const exportJsonUseCase = new ExportJsonUseCase(resumeDataRepository);
-  const exportLatexUseCase = new ExportLatexUseCase(resumeDataRepository, sectionOrdering);
+  const exportLatexUseCase = new ExportLatexUseCase(resumeDataRepository, logger, sectionOrdering);
 
   return {
     exportDocxUseCase,
@@ -42,6 +44,7 @@ export function buildExportUseCases(
       exportPdfUseCase,
       exportDocxUseCase,
       exportJsonUseCase,
+      logger,
     ),
   };
 }

@@ -17,6 +17,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { LoggerPort } from '@/shared-kernel';
 
 // Application Compositions (Clean Architecture)
 import { buildExportUseCases } from './application/compositions/export.composition';
@@ -58,9 +59,16 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
         prisma: PrismaService,
         docxBuilder: DocxBuilderService,
         pdfGenerator: TypstPdfGeneratorService,
+        logger: LoggerPort,
         sectionTypeRepo: SectionTypeRepository,
-      ) => buildExportUseCases(prisma, docxBuilder, pdfGenerator, sectionTypeRepo),
-      inject: [PrismaService, DocxBuilderService, TypstPdfGeneratorService, SectionTypeRepository],
+      ) => buildExportUseCases(prisma, docxBuilder, pdfGenerator, logger, sectionTypeRepo),
+      inject: [
+        PrismaService,
+        DocxBuilderService,
+        TypstPdfGeneratorService,
+        LoggerPort,
+        SectionTypeRepository,
+      ],
     },
     // Infrastructure - Typst (server-side PDF)
     TypstPdfGeneratorService,

@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   createMockBrowser,
   createMockElementHandle,
@@ -60,6 +62,7 @@ describe('BannerCaptureService', () => {
           provide: ConfigService,
           useValue: { get: configGetMock },
         },
+        { provide: LoggerPort, useValue: stubLogger },
       ],
     }).compile();
 

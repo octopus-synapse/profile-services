@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import JSZip from 'jszip';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ExportBundleUseCase } from './export-bundle.use-case';
 
 const pdfStub = { execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8') };
@@ -13,7 +14,7 @@ const jsonStub = {
 
 describe('ExportBundleUseCase', () => {
   it('should produce a zip containing all requested formats with sensible filenames', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
 
@@ -29,7 +30,7 @@ describe('ExportBundleUseCase', () => {
   });
 
   it('should preserve per-format content inside the zip', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
 
@@ -47,7 +48,7 @@ describe('ExportBundleUseCase', () => {
   });
 
   it('should allow opting out of formats via options.formats', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({
       userId: 'user-1',
@@ -67,7 +68,7 @@ describe('ExportBundleUseCase', () => {
         throw new Error('docx engine down');
       },
     };
-    const useCase = new ExportBundleUseCase(pdfStub, failingDocx, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, failingDocx, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
@@ -86,7 +87,7 @@ describe('ExportBundleUseCase', () => {
   });
 
   it('should default to all three formats when options.formats is omitted', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
 

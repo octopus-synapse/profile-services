@@ -3,15 +3,18 @@
  * Handles page configuration and navigation for banner capture
  */
 
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Page } from 'puppeteer';
+import type { LoggerPort } from '@/shared-kernel';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../../constants/ui.constants';
 
-export class BannerPageSetup {
-  private readonly logger = new Logger(BannerPageSetup.name);
+const CTX = 'BannerPageSetup';
 
-  constructor(private readonly configService: ConfigService) {}
+export class BannerPageSetup {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async setupPage(page: Page): Promise<void> {
     await page.setViewport({
@@ -39,13 +42,17 @@ export class BannerPageSetup {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
-      this.logger.error('[BannerCapture] Error during page.goto:', err);
+      this.logger.error(
+        `Error during page.goto: ${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
       throw err;
     }
 
     await page.screenshot({ path: DEBUG_PATH.BANNER_AFTER_GOTO });
     await page.content();
-    this.logger.debug('[BannerCapture] HTML after goto');
+    this.logger.debug('HTML after goto', CTX);
   }
 
   async applyQualityStyles(page: Page): Promise<void> {

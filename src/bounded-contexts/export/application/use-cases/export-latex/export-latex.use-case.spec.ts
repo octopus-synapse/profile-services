@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeDataRepositoryPort,
   type ResumeForLatexExport,
@@ -115,7 +116,7 @@ describe('ExportLatexUseCase', () => {
     repository = new InMemoryResumeDataRepository();
     repository.seedResume('resume-123', buildLatexResume());
 
-    useCase = new ExportLatexUseCase(repository);
+    useCase = new ExportLatexUseCase(repository, stubLogger);
   });
 
   describe('execute', () => {
