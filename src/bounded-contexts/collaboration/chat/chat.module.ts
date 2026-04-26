@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { buildBlockUseCases } from './application/block.composition';
 import { buildChatUseCases } from './application/chat.composition';
 import { BlockUseCases } from './application/ports/block.port';
@@ -45,6 +45,7 @@ import { ChatUserSearchService } from './services/user-search.service';
         BlockedUserRepository,
         EventPublisher,
         ChatCacheService,
+        LoggerPort,
       ],
     },
     { provide: BlockUseCases, useFactory: buildBlockUseCases, inject: [BlockedUserRepository] },

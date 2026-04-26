@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { GetMessagesQuery, PaginatedMessagesResponse } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
@@ -7,6 +8,7 @@ export class GetMessagesUseCase {
   constructor(
     private readonly conversationRepo: ConversationRepositoryPort,
     private readonly messageRepo: MessageRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, query: GetMessagesQuery): Promise<PaginatedMessagesResponse> {

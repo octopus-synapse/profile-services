@@ -1,5 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CollaborationStartedEvent } from '@/bounded-contexts/collaboration/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   CollaboratorAlreadyInvitedException,
@@ -15,6 +16,7 @@ export class InviteCollaboratorUseCase {
   constructor(
     private readonly repo: CollaborationRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(params: InviteCollaboratorParams): Promise<CollaboratorWithUser> {

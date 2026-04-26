@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import type {
   GetConversationsQuery,
   PaginatedConversationsResponse,
@@ -9,6 +10,7 @@ export class GetConversationsUseCase {
   constructor(
     private readonly conversationRepo: ConversationRepositoryPort,
     private readonly messageRepo: MessageRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

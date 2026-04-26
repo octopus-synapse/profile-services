@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   CannotMessageSelfException,
@@ -20,6 +21,7 @@ export class SendMessageUseCase {
     private readonly blockedUserRepo: BlockedUserRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
     private readonly chatCache: ChatCachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(senderId: string, dto: SendMessage): Promise<MessageResponse> {

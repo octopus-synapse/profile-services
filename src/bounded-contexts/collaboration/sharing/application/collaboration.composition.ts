@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { CollaborationRepositoryPort } from '../domain/ports/collaboration-repository.port';
 import type {
@@ -32,9 +33,10 @@ export abstract class CollaborationUseCases {
 export function buildCollaborationUseCases(
   repo: CollaborationRepositoryPort,
   eventPublisher: EventPublisherPort,
+  logger: LoggerPort,
 ): CollaborationUseCases {
   return {
-    inviteCollaborator: new InviteCollaboratorUseCase(repo, eventPublisher),
+    inviteCollaborator: new InviteCollaboratorUseCase(repo, eventPublisher, logger),
     getCollaborators: new GetCollaboratorsUseCase(repo),
     updateRole: new UpdateRoleUseCase(repo),
     removeCollaborator: new RemoveCollaboratorUseCase(repo),

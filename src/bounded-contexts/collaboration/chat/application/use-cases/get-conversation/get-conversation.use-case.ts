@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
@@ -8,6 +9,7 @@ export class GetConversationUseCase {
   constructor(
     private readonly conversationRepo: ConversationRepositoryPort,
     private readonly messageRepo: MessageRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, conversationId: string): Promise<ConversationResponse> {

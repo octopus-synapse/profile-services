@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { buildCollaborationUseCases } from './application/collaboration.composition';
 import { CollaborationController } from './collaboration.controller';
 import type { CollabCommentService } from './services/collab-comment.service';
@@ -26,7 +27,7 @@ describe('CollaborationController', () => {
 
   beforeEach(() => {
     repo = new InMemoryCollaborationRepository();
-    const useCases = buildCollaborationUseCases(repo, noopEventPublisher);
+    const useCases = buildCollaborationUseCases(repo, noopEventPublisher, stubLogger);
     controller = new CollaborationController(useCases, stubCommentService);
 
     repo.seedResume({ id: 'resume-1', userId: 'user-1', title: 'Test Resume' });

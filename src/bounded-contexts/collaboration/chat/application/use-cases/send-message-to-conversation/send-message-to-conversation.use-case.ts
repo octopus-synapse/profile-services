@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   CannotSendMessageToUserException,
@@ -18,6 +19,7 @@ export class SendMessageToConversationUseCase {
     private readonly messageRepo: MessageRepositoryPort,
     private readonly blockedUserRepo: BlockedUserRepositoryPort,
     private readonly chatCache: ChatCachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

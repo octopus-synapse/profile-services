@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import {
   ChatCachePort,
@@ -10,6 +11,7 @@ export class MarkConversationReadUseCase {
     private readonly conversationRepo: ConversationRepositoryPort,
     private readonly messageRepo: MessageRepositoryPort,
     private readonly chatCache: ChatCachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, conversationId: string): Promise<{ count: number }> {

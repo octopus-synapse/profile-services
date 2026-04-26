@@ -6,7 +6,7 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import {
   buildCollaborationUseCases,
   CollaborationUseCases,
@@ -24,7 +24,7 @@ import { CollabCommentService } from './services/collab-comment.service';
     {
       provide: CollaborationUseCases,
       useFactory: buildCollaborationUseCases,
-      inject: [CollaborationRepositoryPort, EventPublisher],
+      inject: [CollaborationRepositoryPort, EventPublisher, LoggerPort],
     },
     CollabCommentService,
   ],

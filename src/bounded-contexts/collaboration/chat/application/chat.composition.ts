@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type { ConversationRepository } from '../repositories/conversation.repository';
@@ -21,6 +22,7 @@ export function buildChatUseCases(
   blockedUserRepo: BlockedUserRepository,
   eventPublisher: EventPublisherPort,
   chatCache: ChatCacheService,
+  logger: LoggerPort,
 ): ChatUseCases {
   return {
     sendMessageUseCase: new SendMessageUseCase(
@@ -29,22 +31,25 @@ export function buildChatUseCases(
       blockedUserRepo,
       eventPublisher,
       chatCache,
+      logger,
     ),
     sendMessageToConversationUseCase: new SendMessageToConversationUseCase(
       conversationRepo,
       messageRepo,
       blockedUserRepo,
       chatCache,
+      logger,
     ),
-    getMessagesUseCase: new GetMessagesUseCase(conversationRepo, messageRepo),
-    getConversationsUseCase: new GetConversationsUseCase(conversationRepo, messageRepo),
-    getConversationUseCase: new GetConversationUseCase(conversationRepo, messageRepo),
+    getMessagesUseCase: new GetMessagesUseCase(conversationRepo, messageRepo, logger),
+    getConversationsUseCase: new GetConversationsUseCase(conversationRepo, messageRepo, logger),
+    getConversationUseCase: new GetConversationUseCase(conversationRepo, messageRepo, logger),
     markConversationReadUseCase: new MarkConversationReadUseCase(
       conversationRepo,
       messageRepo,
       chatCache,
+      logger,
     ),
-    getUnreadCountUseCase: new GetUnreadCountUseCase(messageRepo, chatCache),
+    getUnreadCountUseCase: new GetUnreadCountUseCase(messageRepo, chatCache, logger),
     getConversationIdUseCase: new GetConversationIdUseCase(conversationRepo),
   };
 }
