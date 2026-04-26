@@ -1,4 +1,5 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
@@ -85,14 +86,18 @@ const ExtractedResumeSchema = z.object({
     .default([]),
 });
 
+const CTX = 'OpenAIAdapter';
+
 @Injectable()
 export class OpenAIAdapter extends LlmPort implements OnModuleInit {
-  private readonly logger = new Logger(OpenAIAdapter.name);
   private client!: OpenAI;
   private model!: string;
   private maxTokens!: number;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -103,6 +108,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
       // where AI features are disabled. Methods throw at call time instead.
       this.logger.warn(
         'OPENAI_API_KEY is not set — AI features will fail at call time until configured.',
+        CTX,
       );
     }
     this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
@@ -133,13 +139,17 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI tailor response', raw);
+      this.logger.error('Failed to JSON.parse OpenAI tailor response', raw, CTX);
       throw err;
     }
 
     const result = TailorOutputSchema.safeParse(parsed);
     if (!result.success) {
-      this.logger.error(`OpenAI tailor response failed schema validation: ${result.error.message}`);
+      this.logger.error(
+        `OpenAI tailor response failed schema validation: ${result.error.message}`,
+        undefined,
+        CTX,
+      );
       throw new AiInvalidOutputException('tailorResume');
     }
     return result.data;
@@ -171,13 +181,15 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract response', raw);
+      this.logger.error('Failed to JSON.parse OpenAI extract response', raw, CTX);
       throw err;
     }
     const result = ExtractedResumeSchema.safeParse(parsed);
     if (!result.success) {
       this.logger.error(
         `OpenAI extract response failed schema validation: ${result.error.message}`,
+        undefined,
+        CTX,
       );
       throw new AiInvalidOutputException('extractResumeFromText');
     }
@@ -209,13 +221,15 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract-job response', raw);
+      this.logger.error('Failed to JSON.parse OpenAI extract-job response', raw, CTX);
       throw err;
     }
     const result = ExtractedJobSchema.safeParse(parsed);
     if (!result.success) {
       this.logger.error(
         `OpenAI extract-job response failed schema validation: ${result.error.message}`,
+        undefined,
+        CTX,
       );
       throw new AiInvalidOutputException('extractJobFromText');
     }

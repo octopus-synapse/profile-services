@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
@@ -65,14 +66,18 @@ const NormalizedRequirementsOutputSchema = z.object({
  * evolve independently per workload (content quality runs per resume
  * save; tailor runs per job apply).
  */
+const CTX = 'OpenAIScoringAdapter';
+
 @Injectable()
 export class OpenAIScoringAdapter extends ScoringLlmPort {
-  private readonly logger = new Logger(OpenAIScoringAdapter.name);
   private readonly client: OpenAI;
   private readonly model: string;
   private readonly maxTokens: number;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
     this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
@@ -169,6 +174,7 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       lastError = result.error.message.slice(0, 500);
       this.logger.warn(
         `${operation} schema validation failed (attempt ${attempt + 1}/2): ${lastError}`,
+        CTX,
       );
     }
     throw new AiInvalidOutputException(operation);
@@ -178,7 +184,7 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
     try {
       return JSON.parse(raw);
     } catch {
-      this.logger.warn(`OpenAI ${operation} returned non-JSON payload`);
+      this.logger.warn(`OpenAI ${operation} returned non-JSON payload`, CTX);
       // The retry loop wants a structured rejection it can read; let
       // the validator catch the empty object and trigger the second
       // attempt with the "invalid JSON" complaint baked in.
