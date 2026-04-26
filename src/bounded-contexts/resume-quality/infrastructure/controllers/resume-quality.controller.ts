@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  NotFoundException,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -16,6 +7,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { RequirePermission } from '@/shared-kernel/authorization';
 import { ComputeQualityUseCase } from '../../application/use-cases/compute-quality.use-case';
 import { GetLatestQualityUseCase } from '../../application/use-cases/get-latest-quality.use-case';
+import { ResumeQualitySnapshotMissingException } from '../../domain/exceptions/resume-quality.exceptions';
 import { ResumeQualityResponseDto } from '../../dto/resume-quality-response.dto';
 import { presentQualitySnapshot } from '../presenters/resume-quality.presenter';
 
@@ -44,7 +36,7 @@ export class ResumeQualityController {
   @ApiDataResponse(ResumeQualityResponseDto, { description: 'Latest snapshot or 404' })
   async get(@Param('resumeId') resumeId: string): Promise<DataResponse<ResumeQualityResponseDto>> {
     const snapshot = await this.getLatest.execute(resumeId);
-    if (!snapshot) throw new NotFoundException('No quality snapshot yet — POST /recompute first');
+    if (!snapshot) throw new ResumeQualitySnapshotMissingException();
     return { success: true, data: presentQualitySnapshot(snapshot) };
   }
 
