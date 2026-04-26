@@ -15,10 +15,7 @@ import type { GroupRepository } from '../infrastructure/repositories/group.repos
 import type { PermissionRepository } from '../infrastructure/repositories/permission.repository';
 import type { RoleRepository } from '../infrastructure/repositories/role.repository';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
-import {
-  AUTHORIZATION_CHECK_USE_CASES,
-  type AuthorizationCheckUseCases,
-} from './ports/authorization-use-cases.port';
+import { AuthorizationCheckUseCases } from './ports/authorization-use-cases.port';
 import { CheckAllPermissionsUseCase } from './use-cases/authorization-checks/check-all-permissions.use-case';
 import { CheckAnyPermissionUseCase } from './use-cases/authorization-checks/check-any-permission.use-case';
 import { CheckGroupMembershipUseCase } from './use-cases/authorization-checks/check-group-membership.use-case';
@@ -30,7 +27,7 @@ import { GetAllPermissionsUseCase } from './use-cases/authorization-checks/get-a
 import { GetAuthContextUseCase } from './use-cases/authorization-checks/get-auth-context.use-case';
 import { GetResourcePermissionsUseCase } from './use-cases/authorization-checks/get-resource-permissions.use-case';
 
-export { AUTHORIZATION_CHECK_USE_CASES };
+export { AuthorizationCheckUseCases };
 
 export function buildAuthorizationCheckUseCases(
   permissionRepo: PermissionRepository,

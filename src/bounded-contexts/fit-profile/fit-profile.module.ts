@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { CreateFitQuestionUseCase } from './application/use-cases/create-fit-question.use-case';
 import { DeleteFitProfileUseCase } from './application/use-cases/delete-fit-profile.use-case';
 import { DeleteFitQuestionUseCase } from './application/use-cases/delete-fit-question.use-case';
@@ -49,12 +50,49 @@ import {
     // BullMQ worker: nightly sweep of expired UserFitProfile rows
     FitProfileExpireWorker,
 
-    // Use cases
+    // Use cases — POJOs wired via factory so framework swap stays trivial
+    {
+      provide: SubmitFitAnswersUseCase,
+      useFactory: (
+        questionSets: FitQuestionSetRepositoryPort,
+        questions: FitQuestionRepositoryPort,
+        answers: FitAnswerRepositoryPort,
+        profiles: UserFitProfileRepositoryPort,
+        history: FitRemapHistoryRepositoryPort,
+        events: EventPublisher,
+        logger: LoggerPort,
+      ) =>
+        new SubmitFitAnswersUseCase(
+          questionSets,
+          questions,
+          answers,
+          profiles,
+          history,
+          events,
+          logger,
+        ),
+      inject: [
+        FitQuestionSetRepositoryPort,
+        FitQuestionRepositoryPort,
+        FitAnswerRepositoryPort,
+        UserFitProfileRepositoryPort,
+        FitRemapHistoryRepositoryPort,
+        EventPublisher,
+        LoggerPort,
+      ],
+    },
+    {
+      provide: ExpireFitProfileUseCase,
+      useFactory: (
+        profiles: UserFitProfileRepositoryPort,
+        events: EventPublisher,
+        logger: LoggerPort,
+      ) => new ExpireFitProfileUseCase(profiles, events, logger),
+      inject: [UserFitProfileRepositoryPort, EventPublisher, LoggerPort],
+    },
     GetFitProfileStatusUseCase,
     GetOrCreateQuestionSetUseCase,
-    SubmitFitAnswersUseCase,
     DeleteFitProfileUseCase,
-    ExpireFitProfileUseCase,
     UpsertJobFitProfileUseCase,
     GetJobFitProfileUseCase,
     ListFitQuestionsUseCase,

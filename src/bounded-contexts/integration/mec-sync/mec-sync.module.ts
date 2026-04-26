@@ -45,14 +45,10 @@ import {
     // Repositories
     InstitutionRepository,
     CourseRepository,
-    SyncLogRepository,
-
-    // Query Services
+    SyncLogRepository, // Query Services
     InstitutionQueryService,
     CourseQueryService,
-    MecStatsService,
-
-    // Sync Services
+    MecStatsService, // Sync Services
     MecSyncOrchestratorService,
     DataSyncService,
     SyncHelperService,

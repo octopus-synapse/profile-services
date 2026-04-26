@@ -1,12 +1,12 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { RESUME_VERSION_USE_CASES, type ResumeVersionUseCases } from './ports/resume-version.port';
+import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+import { ResumeVersionUseCases } from './ports/resume-version.port';
 import { ResumeVersionRepository } from './repository/resume-version.repository';
 import { CreateSnapshotUseCase } from './use-cases/create-snapshot.use-case';
 import { GetVersionsUseCase } from './use-cases/get-versions.use-case';
 import { RestoreVersionUseCase } from './use-cases/restore-version.use-case';
 
-export { RESUME_VERSION_USE_CASES };
+export { ResumeVersionUseCases };
 
 export function buildResumeVersionUseCases(
   prisma: PrismaService,

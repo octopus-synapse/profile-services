@@ -12,15 +12,11 @@ import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  buildOnboardingUseCases,
-  ONBOARDING_USE_CASES,
-} from './application/compositions/onboarding.composition';
-import {
-  buildOnboardingProgressUseCases,
-  ONBOARDING_PROGRESS_USE_CASES,
-} from './application/compositions/onboarding-progress.composition';
+import { buildOnboardingUseCases } from './application/compositions/onboarding.composition';
+import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
+import { OnboardingUseCases } from './domain/ports/onboarding.port';
 import { OnboardingConfigPort } from './domain/ports/onboarding-config.port';
+import { OnboardingProgressUseCases } from './domain/ports/onboarding-progress.port';
 import { PreviewRendererPort } from './domain/ports/preview-renderer.port';
 import { SectionTypeDefinitionPort } from './domain/ports/section-type-definition.port';
 import { SystemThemesPort } from './domain/ports/system-themes.port';
@@ -50,17 +46,17 @@ import { AdminOnboardingService } from './infrastructure/services/admin-onboardi
       inject: [PrismaService],
     },
     {
-      provide: ONBOARDING_PROGRESS_USE_CASES,
+      provide: OnboardingProgressUseCases,
       useFactory: (prisma: PrismaService) => buildOnboardingProgressUseCases(prisma),
       inject: [PrismaService],
     },
     {
-      provide: ONBOARDING_USE_CASES,
+      provide: OnboardingUseCases,
       useFactory: (prisma: PrismaService, logger: AppLoggerService, auditLog: AuditLogService) =>
         buildOnboardingUseCases(prisma, logger, auditLog),
       inject: [PrismaService, AppLoggerService, AuditLogService],
     },
   ],
-  exports: [ONBOARDING_USE_CASES],
+  exports: [OnboardingUseCases],
 })
 export class OnboardingModule {}

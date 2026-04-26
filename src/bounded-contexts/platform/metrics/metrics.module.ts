@@ -14,10 +14,7 @@ import { MetricsService } from './metrics.service';
     MetricsService,
     MetricsGuard,
     ScoreMetricsHandler,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: MetricsInterceptor,
-    },
+    { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },
   ],
   exports: [MetricsService],
 })

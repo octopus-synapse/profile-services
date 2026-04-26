@@ -10,15 +10,15 @@ import { ConfigModule } from '@nestjs/config';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { AuthenticationModule } from '../authentication/authentication.module';
-import { TOKEN_GENERATOR_PORT, type TokenGeneratorPort } from '../authentication/domain/ports';
+import { TokenGeneratorPort } from '../authentication/domain/ports';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
-import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+
 // Application Ports
-import {
-  CREATE_ACCOUNT_PORT,
-  DEACTIVATE_ACCOUNT_PORT,
-  DELETE_ACCOUNT_PORT,
-} from './application/ports';
+
+import { CreateAccountPort } from './application/ports/create-account.port';
+import { DeactivateAccountPort } from './application/ports/deactivate-account.port';
+import { DeleteAccountPort } from './application/ports/delete-account.port';
 // Application Use Cases
 import {
   AcceptConsentUseCase,
@@ -28,19 +28,20 @@ import {
   GetConsentHistoryUseCase,
   GetConsentStatusUseCase,
 } from './application/use-cases';
+import {
+  AcceptConsentUseCasePort,
+  GetConsentHistoryUseCasePort,
+  GetConsentStatusUseCasePort,
+} from './application/use-cases/tokens';
 // Domain Ports
 import {
-  type AccountLifecycleRepositoryPort,
-  AUDIT_LOGGER_PORT,
-  type AuditLoggerPort,
-  CONSENT_REPOSITORY_PORT,
-  type ConsentRepositoryPort,
-  DATA_EXPORT_REPOSITORY_PORT,
-  type PasswordHasherPort,
-  VERSION_CONFIG_PORT,
-  type VersionConfigPort,
+  AccountLifecycleRepositoryPort,
+  AuditLoggerPort,
+  ConsentRepositoryPort,
+  DataExportRepositoryPort,
+  PasswordHasherPort,
+  VersionConfigPort,
 } from './domain/ports';
-
 // Infrastructure Adapters
 import {
   AuditLoggerAdapter,
@@ -50,25 +51,16 @@ import {
   PrismaAccountLifecycleRepository,
   PrismaConsentRepository,
 } from './infrastructure/adapters';
-
 // Infrastructure Controllers
 import {
-  ACCEPT_CONSENT_USE_CASE,
   AcceptConsentController,
   CreateAccountController,
   DeactivateAccountController,
   DeleteAccountController,
   ExportDataController,
-  GET_CONSENT_HISTORY_USE_CASE,
-  GET_CONSENT_STATUS_USE_CASE,
   GetConsentHistoryController,
   GetConsentStatusController,
 } from './infrastructure/controllers';
-
-// Port symbols for outbound adapters
-const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
-const PASSWORD_HASHER = Symbol('PasswordHasherPort');
-const EVENT_BUS = Symbol('EventBusPort');
 
 @Module({
   imports: [PrismaModule, AuditLogModule, ConfigModule, AuthenticationModule],
@@ -83,38 +75,17 @@ const EVENT_BUS = Symbol('EventBusPort');
   ],
   providers: [
     // Outbound Adapters
-    {
-      provide: ACCOUNT_REPOSITORY,
-      useClass: PrismaAccountLifecycleRepository,
-    },
-    {
-      provide: PASSWORD_HASHER,
-      useClass: BcryptPasswordHasher,
-    },
-    {
-      provide: EVENT_BUS,
-      useClass: NestEventBusAdapter,
-    },
-    {
-      provide: DATA_EXPORT_REPOSITORY_PORT,
-      useClass: DataExportRepository,
-    },
-    {
-      provide: AUDIT_LOGGER_PORT,
-      useClass: AuditLoggerAdapter,
-    },
-    {
-      provide: CONSENT_REPOSITORY_PORT,
-      useClass: PrismaConsentRepository,
-    },
-    {
-      provide: VERSION_CONFIG_PORT,
-      useClass: ConfigVersionAdapter,
-    },
+    { provide: AccountLifecycleRepositoryPort, useClass: PrismaAccountLifecycleRepository },
+    { provide: PasswordHasherPort, useClass: BcryptPasswordHasher },
+    { provide: EventBusPort, useClass: NestEventBusAdapter },
+    { provide: DataExportRepositoryPort, useClass: DataExportRepository },
+    { provide: AuditLoggerPort, useClass: AuditLoggerAdapter },
+    { provide: ConsentRepositoryPort, useClass: PrismaConsentRepository },
+    { provide: VersionConfigPort, useClass: ConfigVersionAdapter },
 
     // Use Cases (bound to inbound ports)
     {
-      provide: CREATE_ACCOUNT_PORT,
+      provide: CreateAccountPort,
       useFactory: (
         repository: AccountLifecycleRepositoryPort,
         passwordHasher: PasswordHasherPort,
@@ -133,30 +104,30 @@ const EVENT_BUS = Symbol('EventBusPort');
         );
       },
       inject: [
-        ACCOUNT_REPOSITORY,
-        PASSWORD_HASHER,
-        EVENT_BUS,
-        TOKEN_GENERATOR_PORT,
-        ACCEPT_CONSENT_USE_CASE,
-        VERSION_CONFIG_PORT,
+        AccountLifecycleRepositoryPort,
+        PasswordHasherPort,
+        EventBusPort,
+        TokenGeneratorPort,
+        AcceptConsentUseCasePort,
+        VersionConfigPort,
       ],
     },
     {
-      provide: DEACTIVATE_ACCOUNT_PORT,
+      provide: DeactivateAccountPort,
       useFactory: (repository: AccountLifecycleRepositoryPort, eventBus: EventBusPort) => {
         return new DeactivateAccountUseCase(repository, eventBus);
       },
-      inject: [ACCOUNT_REPOSITORY, EVENT_BUS],
+      inject: [AccountLifecycleRepositoryPort, EventBusPort],
     },
     {
-      provide: DELETE_ACCOUNT_PORT,
+      provide: DeleteAccountPort,
       useFactory: (repository: AccountLifecycleRepositoryPort, eventBus: EventBusPort) => {
         return new DeleteAccountUseCase(repository, eventBus);
       },
-      inject: [ACCOUNT_REPOSITORY, EVENT_BUS],
+      inject: [AccountLifecycleRepositoryPort, EventBusPort],
     },
     {
-      provide: ACCEPT_CONSENT_USE_CASE,
+      provide: AcceptConsentUseCasePort,
       useFactory: (
         repository: ConsentRepositoryPort,
         versionConfig: VersionConfigPort,
@@ -164,32 +135,32 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new AcceptConsentUseCase(repository, versionConfig, auditLogger);
       },
-      inject: [CONSENT_REPOSITORY_PORT, VERSION_CONFIG_PORT, AUDIT_LOGGER_PORT],
+      inject: [ConsentRepositoryPort, VersionConfigPort, AuditLoggerPort],
     },
     {
-      provide: GET_CONSENT_STATUS_USE_CASE,
+      provide: GetConsentStatusUseCasePort,
       useFactory: (repository: ConsentRepositoryPort, versionConfig: VersionConfigPort) => {
         return new GetConsentStatusUseCase(repository, versionConfig);
       },
-      inject: [CONSENT_REPOSITORY_PORT, VERSION_CONFIG_PORT],
+      inject: [ConsentRepositoryPort, VersionConfigPort],
     },
     {
-      provide: GET_CONSENT_HISTORY_USE_CASE,
+      provide: GetConsentHistoryUseCasePort,
       useFactory: (repository: ConsentRepositoryPort) => {
         return new GetConsentHistoryUseCase(repository);
       },
-      inject: [CONSENT_REPOSITORY_PORT],
+      inject: [ConsentRepositoryPort],
     },
   ],
   exports: [
-    CREATE_ACCOUNT_PORT,
-    DEACTIVATE_ACCOUNT_PORT,
-    DELETE_ACCOUNT_PORT,
-    ACCOUNT_REPOSITORY,
-    DATA_EXPORT_REPOSITORY_PORT,
+    CreateAccountPort,
+    DeactivateAccountPort,
+    DeleteAccountPort,
+    AccountLifecycleRepositoryPort,
+    DataExportRepositoryPort,
     // Exported so ConsentGuard (registered as APP_GUARD in app.module)
     // can inject the use-case and enforce LGPD consent on every request.
-    GET_CONSENT_STATUS_USE_CASE,
+    GetConsentStatusUseCasePort,
   ],
 })
 export class AccountLifecycleModule {}

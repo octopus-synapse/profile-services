@@ -12,11 +12,9 @@
 import { Module } from '@nestjs/common';
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { MATCH_CANDIDATES_FOR_JOB_PORT, MatchCandidatesForJobUseCase } from './application';
-import {
-  CANDIDATE_DIRECTORY_REPOSITORY_PORT,
-  type CandidateDirectoryRepositoryPort,
-} from './domain';
+import { MatchCandidatesForJobUseCase } from './application';
+import { MatchCandidatesForJobPort } from './application/ports/match-candidates.inbound-port';
+import { CandidateDirectoryRepositoryPort } from './domain';
 import { PrismaCandidateDirectoryRepository } from './infrastructure/adapters';
 import { MatchCandidatesController } from './infrastructure/controllers';
 
@@ -24,17 +22,14 @@ import { MatchCandidatesController } from './infrastructure/controllers';
   imports: [PrismaModule, RateLimitModule],
   controllers: [MatchCandidatesController],
   providers: [
+    { provide: CandidateDirectoryRepositoryPort, useClass: PrismaCandidateDirectoryRepository },
     {
-      provide: CANDIDATE_DIRECTORY_REPOSITORY_PORT,
-      useClass: PrismaCandidateDirectoryRepository,
-    },
-    {
-      provide: MATCH_CANDIDATES_FOR_JOB_PORT,
+      provide: MatchCandidatesForJobPort,
       useFactory: (directory: CandidateDirectoryRepositoryPort) =>
         new MatchCandidatesForJobUseCase(directory),
-      inject: [CANDIDATE_DIRECTORY_REPOSITORY_PORT],
+      inject: [CandidateDirectoryRepositoryPort],
     },
   ],
-  exports: [MATCH_CANDIDATES_FOR_JOB_PORT],
+  exports: [MatchCandidatesForJobPort],
 })
 export class RecruitingModule {}

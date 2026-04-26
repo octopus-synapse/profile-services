@@ -8,7 +8,6 @@ import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
@@ -29,15 +28,14 @@ import {
   FollowReaderPort,
 } from './application/ports/facade.ports';
 import { FollowRepositoryPort } from './application/ports/follow.port';
-import { SOCIAL_EVENT_BUS_PORT } from './application/ports/social-event-bus.port';
-import { SOCIAL_LOGGER_PORT } from './application/ports/social-logger.port';
+import { SocialEventBusPort } from './application/ports/social-event-bus.port';
+
 import { ActivityController } from './controllers/activity.controller';
 import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
 import { ConnectionController } from './controllers/connection.controller';
 import { ConnectionRecsController } from './controllers/connection-recs.controller';
 import { FollowController } from './controllers/follow.controller';
 import { SkillEndorsementController } from './controllers/skill-endorsement.controller';
-import { AppLoggerSocialAdapter } from './infrastructure/adapters/app-logger.adapter';
 import { EventEmitterSocialEventBusAdapter } from './infrastructure/adapters/event-emitter-social-event-bus.adapter';
 import { ActivityRepository } from './infrastructure/adapters/persistence/activity.repository';
 import { ConnectionRepository } from './infrastructure/adapters/persistence/connection.repository';
@@ -93,14 +91,9 @@ import { SkillProficiencyController } from './skill-proficiency.controller';
       useFactory: (prisma: PrismaService) => new ConnectionRepository(prisma),
       inject: [PrismaService],
     },
-    // Logger + event bus ports
+    // Event bus port (LoggerPort is provided globally by LoggerModule)
     {
-      provide: SOCIAL_LOGGER_PORT,
-      useFactory: (logger: AppLoggerService) => new AppLoggerSocialAdapter(logger),
-      inject: [AppLoggerService],
-    },
-    {
-      provide: SOCIAL_EVENT_BUS_PORT,
+      provide: SocialEventBusPort,
       useFactory: (emitter: EventEmitter2) => new EventEmitterSocialEventBusAdapter(emitter),
       inject: [EventEmitter2],
     },

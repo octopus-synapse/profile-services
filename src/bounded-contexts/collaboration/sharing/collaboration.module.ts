@@ -9,10 +9,10 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { EventPublisher } from '@/shared-kernel';
 import {
   buildCollaborationUseCases,
-  COLLABORATION_USE_CASES,
+  CollaborationUseCases,
 } from './application/collaboration.composition';
 import { CollaborationController } from './collaboration.controller';
-import { COLLABORATION_REPOSITORY } from './domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from './domain/ports/collaboration-repository.port';
 import { PrismaCollaborationRepository } from './infrastructure/adapters/collaboration.repository';
 import { CollabCommentService } from './services/collab-comment.service';
 
@@ -20,14 +20,14 @@ import { CollabCommentService } from './services/collab-comment.service';
   imports: [PrismaModule],
   controllers: [CollaborationController],
   providers: [
-    { provide: COLLABORATION_REPOSITORY, useClass: PrismaCollaborationRepository },
+    { provide: CollaborationRepositoryPort, useClass: PrismaCollaborationRepository },
     {
-      provide: COLLABORATION_USE_CASES,
+      provide: CollaborationUseCases,
       useFactory: buildCollaborationUseCases,
-      inject: [COLLABORATION_REPOSITORY, EventPublisher],
+      inject: [CollaborationRepositoryPort, EventPublisher],
     },
     CollabCommentService,
   ],
-  exports: [COLLABORATION_USE_CASES, CollabCommentService],
+  exports: [CollaborationUseCases, CollabCommentService],
 })
 export class ResumeSharingModule {}

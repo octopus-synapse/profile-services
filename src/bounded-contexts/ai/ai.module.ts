@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EMBEDDINGS_PORT, EmbeddingsPort } from './domain/ports/embeddings.port';
-import { LLM_PORT, LlmPort } from './domain/ports/llm.port';
-import { SCORING_LLM_PORT, ScoringLlmPort } from './domain/ports/scoring-llm.port';
+import { EmbeddingsPort } from './domain/ports/embeddings.port';
+import { LlmPort } from './domain/ports/llm.port';
+import { ScoringLlmPort } from './domain/ports/scoring-llm.port';
 import { OpenAIAdapter } from './infrastructure/adapters/openai.adapter';
 import { OpenAIEmbeddingsAdapter } from './infrastructure/adapters/openai-embeddings.adapter';
 import { OpenAIScoringAdapter } from './infrastructure/adapters/openai-scoring.adapter';
@@ -21,14 +21,14 @@ import { OpenAIScoringAdapter } from './infrastructure/adapters/openai-scoring.a
     OpenAIEmbeddingsAdapter,
     // LLM — transforms
     { provide: LlmPort, useExisting: OpenAIAdapter },
-    { provide: LLM_PORT, useExisting: OpenAIAdapter },
+    { provide: LlmPort, useExisting: OpenAIAdapter },
     // LLM — scoring
     { provide: ScoringLlmPort, useExisting: OpenAIScoringAdapter },
-    { provide: SCORING_LLM_PORT, useExisting: OpenAIScoringAdapter },
+    { provide: ScoringLlmPort, useExisting: OpenAIScoringAdapter },
     // Embeddings
     { provide: EmbeddingsPort, useExisting: OpenAIEmbeddingsAdapter },
-    { provide: EMBEDDINGS_PORT, useExisting: OpenAIEmbeddingsAdapter },
+    { provide: EmbeddingsPort, useExisting: OpenAIEmbeddingsAdapter },
   ],
-  exports: [LlmPort, LLM_PORT, ScoringLlmPort, SCORING_LLM_PORT, EmbeddingsPort, EMBEDDINGS_PORT],
+  exports: [LlmPort, LlmPort, ScoringLlmPort, ScoringLlmPort, EmbeddingsPort, EmbeddingsPort],
 })
 export class AiModule {}

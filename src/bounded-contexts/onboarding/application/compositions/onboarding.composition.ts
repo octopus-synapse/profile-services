@@ -1,7 +1,7 @@
 import type { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import type { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
+import { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import { OnboardingRepository } from '../../infrastructure/adapters/persistence/onboarding.repository';
 import { OnboardingCompletionAdapter } from '../../infrastructure/adapters/persistence/onboarding-completion.adapter';
 import { OnboardingProgressRepository } from '../../infrastructure/adapters/persistence/onboarding-progress.repository';
@@ -20,7 +20,7 @@ import { RestartOnboardingUseCase } from '../use-cases/restart-onboarding/restar
 import { SaveOnboardingStepDataUseCase } from '../use-cases/save-onboarding-step-data/save-onboarding-step-data.use-case';
 import { SaveProgressUseCase } from '../use-cases/save-progress/save-progress.use-case';
 
-export { ONBOARDING_USE_CASES };
+export { OnboardingUseCases };
 
 export function buildOnboardingUseCases(
   prisma: PrismaService,

@@ -5,26 +5,18 @@ import { ShareAnalyticsController } from './controllers/share-analytics.controll
 import { ShareEventHandler } from './handlers/share-event.handler';
 import { PrismaShareAnalyticsRepository } from './infrastructure';
 import { NullGeoLookupAdapter } from './infrastructure/adapters/null-geo-lookup.adapter';
-import { GEO_LOOKUP_PORT, SHARE_ANALYTICS_REPOSITORY } from './ports';
+import { ShareAnalyticsRepositoryPort } from './ports';
+import { GeoLookupPort } from './ports/geo-lookup.port';
 import { ShareAnalyticsService } from './services/share-analytics.service';
 
 @Module({
   imports: [PrismaModule],
   controllers: [ShareAnalyticsController],
   providers: [
-    {
-      provide: SHARE_ANALYTICS_REPOSITORY,
-      useClass: PrismaShareAnalyticsRepository,
-    },
-    {
-      provide: GEO_LOOKUP_PORT,
-      useClass: NullGeoLookupAdapter,
-    },
+    { provide: ShareAnalyticsRepositoryPort, useClass: PrismaShareAnalyticsRepository },
+    { provide: GeoLookupPort, useClass: NullGeoLookupAdapter },
     ShareAnalyticsService,
-    {
-      provide: ShareAnalyticsReaderPort,
-      useExisting: ShareAnalyticsService,
-    },
+    { provide: ShareAnalyticsReaderPort, useExisting: ShareAnalyticsService },
     ShareEventHandler,
   ],
   exports: [ShareAnalyticsService],

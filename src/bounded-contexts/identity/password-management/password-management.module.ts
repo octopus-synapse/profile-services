@@ -12,13 +12,13 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
-import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+
 // Application Ports
-import {
-  CHANGE_PASSWORD_PORT,
-  FORGOT_PASSWORD_PORT,
-  RESET_PASSWORD_PORT,
-} from './application/ports';
+
+import { ChangePasswordPort } from './application/ports/change-password.port';
+import { ForgotPasswordPort } from './application/ports/forgot-password.port';
+import { ResetPasswordPort } from './application/ports/reset-password.port';
 // Application Use Cases
 import {
   ChangePasswordUseCase,
@@ -27,28 +27,21 @@ import {
 } from './application/use-cases';
 // Domain Ports
 import {
-  PASSWORD_HASHER_PORT,
-  PASSWORD_REPOSITORY_PORT,
-  PASSWORD_RESET_EMAIL_PORT,
-  PASSWORD_RESET_TOKEN_PORT,
-  type PasswordHasherPort,
-  type PasswordRepositoryPort,
-  type PasswordResetEmailPort,
-  type PasswordResetTokenPort,
-  SESSION_INVALIDATION_PORT,
-  type SessionInvalidationPort,
+  PasswordHasherPort,
+  PasswordRepositoryPort,
+  PasswordResetEmailPort,
+  PasswordResetTokenPort,
+  SessionInvalidationPort,
 } from './domain/ports';
-
 // Infrastructure Adapters
 import {
   BcryptPasswordHasher,
-  EMAIL_SERVICE,
   EmailPasswordResetSender,
+  EmailServicePort,
   PrismaPasswordRepository,
   PrismaPasswordResetTokenService,
   SessionInvalidationAdapter,
 } from './infrastructure/adapters';
-
 // Infrastructure Controllers
 import {
   ChangePasswordController,
@@ -56,37 +49,17 @@ import {
   ResetPasswordController,
 } from './infrastructure/controllers';
 
-const EVENT_BUS = Symbol('EventBusPort');
-
 const providers = [
   // Outbound Adapters (Infrastructure)
-  {
-    provide: PASSWORD_REPOSITORY_PORT,
-    useClass: PrismaPasswordRepository,
-  },
-  {
-    provide: PASSWORD_HASHER_PORT,
-    useClass: BcryptPasswordHasher,
-  },
-  {
-    provide: PASSWORD_RESET_TOKEN_PORT,
-    useClass: PrismaPasswordResetTokenService,
-  },
-  {
-    provide: PASSWORD_RESET_EMAIL_PORT,
-    useClass: EmailPasswordResetSender,
-  },
-  {
-    provide: EVENT_BUS,
-    useClass: NestEventBusAdapter,
-  },
-  {
-    provide: SESSION_INVALIDATION_PORT,
-    useClass: SessionInvalidationAdapter,
-  },
+  { provide: PasswordRepositoryPort, useClass: PrismaPasswordRepository },
+  { provide: PasswordHasherPort, useClass: BcryptPasswordHasher },
+  { provide: PasswordResetTokenPort, useClass: PrismaPasswordResetTokenService },
+  { provide: PasswordResetEmailPort, useClass: EmailPasswordResetSender },
+  { provide: EventBusPort, useClass: NestEventBusAdapter },
+  { provide: SessionInvalidationPort, useClass: SessionInvalidationAdapter },
   // Bridge: adapts EmailService to the EmailServicePort interface expected by adapters
   {
-    provide: EMAIL_SERVICE,
+    provide: EmailServicePort,
     useFactory: (emailService: EmailService) => ({
       sendEmail: async (options: {
         to: string;
@@ -117,7 +90,7 @@ const providers = [
 
   // Inbound Ports (Use Cases)
   {
-    provide: FORGOT_PASSWORD_PORT,
+    provide: ForgotPasswordPort,
     useFactory: (
       passwordRepository: PasswordRepositoryPort,
       tokenService: PasswordResetTokenPort,
@@ -126,15 +99,10 @@ const providers = [
     ) => {
       return new ForgotPasswordUseCase(passwordRepository, tokenService, emailSender, eventBus);
     },
-    inject: [
-      PASSWORD_REPOSITORY_PORT,
-      PASSWORD_RESET_TOKEN_PORT,
-      PASSWORD_RESET_EMAIL_PORT,
-      EVENT_BUS,
-    ],
+    inject: [PasswordRepositoryPort, PasswordResetTokenPort, PasswordResetEmailPort, EventBusPort],
   },
   {
-    provide: RESET_PASSWORD_PORT,
+    provide: ResetPasswordPort,
     useFactory: (
       passwordRepository: PasswordRepositoryPort,
       tokenService: PasswordResetTokenPort,
@@ -151,15 +119,15 @@ const providers = [
       );
     },
     inject: [
-      PASSWORD_REPOSITORY_PORT,
-      PASSWORD_RESET_TOKEN_PORT,
-      PASSWORD_HASHER_PORT,
-      SESSION_INVALIDATION_PORT,
-      EVENT_BUS,
+      PasswordRepositoryPort,
+      PasswordResetTokenPort,
+      PasswordHasherPort,
+      SessionInvalidationPort,
+      EventBusPort,
     ],
   },
   {
-    provide: CHANGE_PASSWORD_PORT,
+    provide: ChangePasswordPort,
     useFactory: (
       passwordRepository: PasswordRepositoryPort,
       passwordHasher: PasswordHasherPort,
@@ -173,7 +141,7 @@ const providers = [
         eventBus,
       );
     },
-    inject: [PASSWORD_REPOSITORY_PORT, PASSWORD_HASHER_PORT, SESSION_INVALIDATION_PORT, EVENT_BUS],
+    inject: [PasswordRepositoryPort, PasswordHasherPort, SessionInvalidationPort, EventBusPort],
   },
 ];
 
@@ -181,6 +149,6 @@ const providers = [
   imports: [PrismaModule, ConfigModule, EmailModule, CacheModule],
   controllers: [ForgotPasswordController, ResetPasswordController, ChangePasswordController],
   providers,
-  exports: [FORGOT_PASSWORD_PORT, RESET_PASSWORD_PORT, CHANGE_PASSWORD_PORT],
+  exports: [ForgotPasswordPort, ResetPasswordPort, ChangePasswordPort],
 })
 export class PasswordManagementModule {}

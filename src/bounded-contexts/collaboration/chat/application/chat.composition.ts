@@ -3,7 +3,7 @@ import type { BlockedUserRepository } from '../repositories/blocked-user.reposit
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { MessageRepository } from '../repositories/message.repository';
 import type { ChatCacheService } from '../services/chat-cache.service';
-import { CHAT_USE_CASES, type ChatUseCases } from './ports/chat.port';
+import { ChatUseCases } from './ports/chat.port';
 import { GetConversationUseCase } from './use-cases/get-conversation/get-conversation.use-case';
 import { GetConversationIdUseCase } from './use-cases/get-conversation-id/get-conversation-id.use-case';
 import { GetConversationsUseCase } from './use-cases/get-conversations/get-conversations.use-case';
@@ -13,7 +13,7 @@ import { MarkConversationReadUseCase } from './use-cases/mark-conversation-read/
 import { SendMessageUseCase } from './use-cases/send-message/send-message.use-case';
 import { SendMessageToConversationUseCase } from './use-cases/send-message-to-conversation/send-message-to-conversation.use-case';
 
-export { CHAT_USE_CASES };
+export { ChatUseCases };
 
 export function buildChatUseCases(
   conversationRepo: ConversationRepository,

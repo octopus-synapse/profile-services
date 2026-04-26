@@ -1,25 +1,23 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { SkillManagementController } from './controllers/skill-management.controller';
-import type { SkillManagementRepositoryPort } from './services/skill-management/ports/skill-management-repository.port';
+import { SkillManagementPort } from './services/skill-management/ports/skill-management.port';
+import { SkillManagementRepositoryPort } from './services/skill-management/ports/skill-management-repository.port';
 import { SkillManagementRepository } from './services/skill-management/repository/skill-management.repository';
 import { SkillManagementService } from './services/skill-management/skill-management.service';
 import { ListSkillsUseCase } from './services/skill-management/use-cases/list-skills.use-case';
-
-const SKILL_MANAGEMENT_REPOSITORY = Symbol('SkillManagementRepositoryPort');
 
 @Module({
   imports: [PrismaModule],
   controllers: [SkillManagementController],
   providers: [
-    {
-      provide: SKILL_MANAGEMENT_REPOSITORY,
-      useClass: SkillManagementRepository,
-    },
+    SkillManagementRepository,
+    { provide: SkillManagementPort, useExisting: SkillManagementRepository },
+    { provide: SkillManagementRepositoryPort, useExisting: SkillManagementRepository },
     {
       provide: ListSkillsUseCase,
-      useFactory: (repository: SkillManagementRepository) => new ListSkillsUseCase(repository),
-      inject: [SKILL_MANAGEMENT_REPOSITORY],
+      useFactory: (port: SkillManagementPort) => new ListSkillsUseCase(port),
+      inject: [SkillManagementPort],
     },
     {
       provide: SkillManagementService,
@@ -27,7 +25,7 @@ const SKILL_MANAGEMENT_REPOSITORY = Symbol('SkillManagementRepositoryPort');
         listSkillsUseCase: ListSkillsUseCase,
         repository: SkillManagementRepositoryPort,
       ) => new SkillManagementService(listSkillsUseCase, repository),
-      inject: [ListSkillsUseCase, SKILL_MANAGEMENT_REPOSITORY],
+      inject: [ListSkillsUseCase, SkillManagementRepositoryPort],
     },
   ],
   exports: [SkillManagementService],

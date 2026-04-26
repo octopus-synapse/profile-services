@@ -64,15 +64,9 @@ import {
     AuthorizationService,
     AuthorizationManagementService,
     // Port abstraction (uses AuthorizationService as concrete implementation)
-    {
-      provide: AuthorizationServicePort,
-      useExisting: AuthorizationService,
-    },
+    { provide: AuthorizationServicePort, useExisting: AuthorizationService },
     // Shared-kernel port (narrow ISP interface for cross-BC consumers)
-    {
-      provide: AuthorizationCheckPort,
-      useExisting: AuthorizationService,
-    },
+    { provide: AuthorizationCheckPort, useExisting: AuthorizationService },
   ],
   exports: [
     // Export service for use in other modules

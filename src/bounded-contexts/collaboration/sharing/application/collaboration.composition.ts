@@ -1,5 +1,5 @@
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import type { CollaborationRepositoryPort } from '../domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from '../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,
   InviteCollaboratorParams,
@@ -13,18 +13,20 @@ import { InviteCollaboratorUseCase } from './use-cases/invite-collaborator.use-c
 import { RemoveCollaboratorUseCase } from './use-cases/remove-collaborator.use-case';
 import { UpdateRoleUseCase } from './use-cases/update-role.use-case';
 
-export const COLLABORATION_USE_CASES = Symbol('CollaborationUseCases');
-
-export interface CollaborationUseCases {
-  inviteCollaborator: {
+export abstract class CollaborationUseCases {
+  abstract readonly inviteCollaborator: {
     execute: (params: InviteCollaboratorParams) => Promise<CollaboratorWithUser>;
   };
-  getCollaborators: {
+  abstract readonly getCollaborators: {
     execute: (resumeId: string, requesterId: string) => Promise<CollaboratorWithUser[]>;
   };
-  updateRole: { execute: (params: UpdateRoleParams) => Promise<CollaboratorWithUser> };
-  removeCollaborator: { execute: (params: RemoveCollaboratorParams) => Promise<void> };
-  getSharedWithMe: { execute: (userId: string) => Promise<SharedResume[]> };
+  abstract readonly updateRole: {
+    execute: (params: UpdateRoleParams) => Promise<CollaboratorWithUser>;
+  };
+  abstract readonly removeCollaborator: {
+    execute: (params: RemoveCollaboratorParams) => Promise<void>;
+  };
+  abstract readonly getSharedWithMe: { execute: (userId: string) => Promise<SharedResume[]> };
 }
 
 export function buildCollaborationUseCases(

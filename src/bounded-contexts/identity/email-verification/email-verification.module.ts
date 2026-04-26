@@ -5,53 +5,37 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
-import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { GetResendCooldownPort } from './application/ports/get-resend-cooldown.port';
+import { SendVerificationEmailPort } from './application/ports/send-verification-email.port';
+import { VerifyEmailPort } from './application/ports/verify-email.port';
 // Application Layer
-import {
-  GET_RESEND_COOLDOWN_PORT,
-  SEND_VERIFICATION_EMAIL_PORT,
-  VERIFY_EMAIL_PORT,
-} from './application/ports';
 import {
   GetResendCooldownUseCase,
   SendVerificationEmailUseCase,
   VerifyEmailUseCase,
 } from './application/use-cases';
 // Domain Layer
-import type { EmailVerificationRepositoryPort, VerificationEmailSenderPort } from './domain/ports';
+import { EmailVerificationRepositoryPort, VerificationEmailSenderPort } from './domain/ports';
 // Infrastructure Layer
 import {
-  EMAIL_SERVICE,
+  EmailServicePort,
   EmailVerificationSender,
   PrismaEmailVerificationRepository,
 } from './infrastructure/adapters';
 import { SendVerificationController, VerifyEmailController } from './infrastructure/controllers';
-
-// Port symbols for outbound adapters
-const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');
-const VERIFICATION_EMAIL_SENDER = Symbol('VerificationEmailSenderPort');
-const EVENT_BUS = Symbol('EventBusPort');
 
 @Module({
   imports: [PrismaModule, ConfigModule, EmailModule],
   controllers: [SendVerificationController, VerifyEmailController],
   providers: [
     // Outbound Adapters
+    { provide: EmailVerificationRepositoryPort, useClass: PrismaEmailVerificationRepository },
+    { provide: VerificationEmailSenderPort, useClass: EmailVerificationSender },
+    { provide: EventBusPort, useClass: NestEventBusAdapter },
+    // Bridge: adapts EmailService to the EmailServicePort port expected by adapters
     {
-      provide: EMAIL_VERIFICATION_REPOSITORY,
-      useClass: PrismaEmailVerificationRepository,
-    },
-    {
-      provide: VERIFICATION_EMAIL_SENDER,
-      useClass: EmailVerificationSender,
-    },
-    {
-      provide: EVENT_BUS,
-      useClass: NestEventBusAdapter,
-    },
-    // Bridge: adapts EmailService to the EmailServicePort interface expected by adapters
-    {
-      provide: EMAIL_SERVICE,
+      provide: EmailServicePort,
       useFactory: (emailService: EmailService) => ({
         sendEmail: async (options: {
           to: string;
@@ -82,31 +66,27 @@ const EVENT_BUS = Symbol('EventBusPort');
 
     // Use Cases (bound to inbound ports)
     {
-      provide: SEND_VERIFICATION_EMAIL_PORT,
+      provide: SendVerificationEmailPort,
       useFactory: (
         repository: EmailVerificationRepositoryPort,
         emailSender: VerificationEmailSenderPort,
         eventBus: EventBusPort,
-      ) => {
-        return new SendVerificationEmailUseCase(repository, emailSender, eventBus);
-      },
-      inject: [EMAIL_VERIFICATION_REPOSITORY, VERIFICATION_EMAIL_SENDER, EVENT_BUS],
+      ) => new SendVerificationEmailUseCase(repository, emailSender, eventBus),
+      inject: [EmailVerificationRepositoryPort, VerificationEmailSenderPort, EventBusPort],
     },
     {
-      provide: GET_RESEND_COOLDOWN_PORT,
-      useFactory: (repository: EmailVerificationRepositoryPort) => {
-        return new GetResendCooldownUseCase(repository);
-      },
-      inject: [EMAIL_VERIFICATION_REPOSITORY],
+      provide: GetResendCooldownPort,
+      useFactory: (repository: EmailVerificationRepositoryPort) =>
+        new GetResendCooldownUseCase(repository),
+      inject: [EmailVerificationRepositoryPort],
     },
     {
-      provide: VERIFY_EMAIL_PORT,
-      useFactory: (repository: EmailVerificationRepositoryPort, eventBus: EventBusPort) => {
-        return new VerifyEmailUseCase(repository, eventBus);
-      },
-      inject: [EMAIL_VERIFICATION_REPOSITORY, EVENT_BUS],
+      provide: VerifyEmailPort,
+      useFactory: (repository: EmailVerificationRepositoryPort, eventBus: EventBusPort) =>
+        new VerifyEmailUseCase(repository, eventBus),
+      inject: [EmailVerificationRepositoryPort, EventBusPort],
     },
   ],
-  exports: [SEND_VERIFICATION_EMAIL_PORT, GET_RESEND_COOLDOWN_PORT, VERIFY_EMAIL_PORT],
+  exports: [SendVerificationEmailPort, GetResendCooldownPort, VerifyEmailPort],
 })
 export class EmailVerificationModule {}

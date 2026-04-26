@@ -10,7 +10,6 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  ANALYTICS_RECORDER,
   InitializeAnalyticsOnUserRegisteredHandler,
   ResumeCreatedHandler,
   ResumeUpdatedHandler,
@@ -19,15 +18,16 @@ import {
   SyncProjectionOnSectionAddedHandler,
   SyncProjectionOnSectionRemovedHandler,
   SyncProjectionOnSectionUpdatedHandler,
-  VIEW_TRACKER,
 } from '../application/handlers';
-import { ANALYTICS_PROJECTION_PORT } from '../application/ports/analytics-projection.port';
+import { AnalyticsRecorder } from '../application/handlers/resume-created.handler';
+import { ViewTracker } from '../application/handlers/resume-updated.handler';
+import { AnalyticsProjectionPort } from '../application/ports/analytics-projection.port';
 import {
   AnalyticsProjectionAdapter,
   AnalyticsRecorderAdapter,
   ViewTrackerAdapter,
 } from '../infrastructure/adapters';
-import { ANALYTICS_EVENT_BUS_PORT } from './application/ports/analytics-event-bus.port';
+import { AnalyticsEventBusPort } from './application/ports/analytics-event-bus.port';
 import { AtsScoringPort } from './application/ports/facade.ports';
 import {
   AtsScoreCatalogPort,
@@ -42,7 +42,7 @@ import { PrismaBenchmarkRepository } from './infrastructure/adapters/persistence
 import { EventEmitterAnalyticsEventBusAdapter } from './infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
 import { PrismaSnapshotRepository } from './infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from './infrastructure/adapters/persistence/view-tracking.repository';
-import { SNAPSHOT_PORT, VIEW_TRACKING_PORT } from './ports';
+import { SnapshotPort, ViewTrackingPort } from './ports/dashboard.ports';
 import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
 import { DashboardService } from './services/dashboard.service';
@@ -76,22 +76,10 @@ import { ViewsProjectionWorker } from './workers/views-projection.worker';
     // Workers
     ViewsProjectionWorker,
     // Port Adapters (infrastructure)
-    {
-      provide: ANALYTICS_PROJECTION_PORT,
-      useClass: AnalyticsProjectionAdapter,
-    },
-    {
-      provide: ANALYTICS_RECORDER,
-      useClass: AnalyticsRecorderAdapter,
-    },
-    {
-      provide: VIEW_TRACKER,
-      useClass: ViewTrackerAdapter,
-    },
-    {
-      provide: ANALYTICS_EVENT_BUS_PORT,
-      useClass: EventEmitterAnalyticsEventBusAdapter,
-    },
+    { provide: AnalyticsProjectionPort, useClass: AnalyticsProjectionAdapter },
+    { provide: AnalyticsRecorder, useClass: AnalyticsRecorderAdapter },
+    { provide: ViewTracker, useClass: ViewTrackerAdapter },
+    { provide: AnalyticsEventBusPort, useClass: EventEmitterAnalyticsEventBusAdapter },
     {
       provide: ViewTrackingRepositoryPort,
       useFactory: (prisma: PrismaService) => new PrismaViewTrackingRepository(prisma),
@@ -113,18 +101,9 @@ import { ViewsProjectionWorker } from './workers/views-projection.worker';
       inject: [PrismaService],
     },
     // Dashboard Ports
-    {
-      provide: VIEW_TRACKING_PORT,
-      useExisting: ViewTrackingService,
-    },
-    {
-      provide: SNAPSHOT_PORT,
-      useExisting: SnapshotService,
-    },
-    {
-      provide: AtsScoringPort,
-      useExisting: ATSScoreService,
-    },
+    { provide: ViewTrackingPort, useExisting: ViewTrackingService },
+    { provide: SnapshotPort, useExisting: SnapshotService },
+    { provide: AtsScoringPort, useExisting: ATSScoreService },
   ],
   exports: [ResumeAnalyticsFacade],
 })

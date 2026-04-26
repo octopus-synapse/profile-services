@@ -19,10 +19,8 @@ import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.modul
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 
 // Application Compositions (Clean Architecture)
-import {
-  buildExportUseCases,
-  EXPORT_USE_CASES,
-} from './application/compositions/export.composition';
+import { buildExportUseCases } from './application/compositions/export.composition';
+import { ExportUseCases } from './application/ports/export.port';
 import { UserDataPort } from './domain/ports/user-data.port';
 // Infrastructure Adapters (external services)
 import { BannerCaptureService } from './infrastructure/adapters/external-services/banner-capture.service';
@@ -55,7 +53,7 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
   providers: [
     // Use Cases (Clean Architecture)
     {
-      provide: EXPORT_USE_CASES,
+      provide: ExportUseCases,
       useFactory: (
         prisma: PrismaService,
         docxBuilder: DocxBuilderService,
@@ -86,7 +84,7 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
     PdfCacheService,
   ],
   exports: [
-    EXPORT_USE_CASES,
+    ExportUseCases,
     BannerCaptureService,
     BrowserManagerService,
     TypstPdfGeneratorService,

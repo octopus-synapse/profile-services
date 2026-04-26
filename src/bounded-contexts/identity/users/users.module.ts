@@ -5,20 +5,15 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { UserManagementUseCases } from './application/ports/user-management.port';
+import { UserPreferencesUseCases } from './application/ports/user-preferences.port';
+import { UserProfileUseCases } from './application/ports/user-profile.port';
+import { UsernameUseCases } from './application/ports/username.port';
 import { UserManagementService, UsernameService } from './application/services';
-import {
-  buildUserManagementUseCases,
-  USER_MANAGEMENT_USE_CASES,
-} from './application/user-management.composition';
-import {
-  buildUserPreferencesUseCases,
-  USER_PREFERENCES_USE_CASES,
-} from './application/user-preferences.composition';
-import {
-  buildUserProfileUseCases,
-  USER_PROFILE_USE_CASES,
-} from './application/user-profile.composition';
-import { buildUsernameUseCases, USERNAME_USE_CASES } from './application/username.composition';
+import { buildUserManagementUseCases } from './application/user-management.composition';
+import { buildUserPreferencesUseCases } from './application/user-preferences.composition';
+import { buildUserProfileUseCases } from './application/user-profile.composition';
+import { buildUsernameUseCases } from './application/username.composition';
 import {
   UserMutationRepository,
   UserQueryRepository,
@@ -42,23 +37,23 @@ import {
   providers: [
     // Use Cases
     {
-      provide: USER_PROFILE_USE_CASES,
+      provide: UserProfileUseCases,
       useFactory: (prisma: PrismaService, resumesRepo: ResumesRepository) =>
         buildUserProfileUseCases(prisma, resumesRepo),
       inject: [PrismaService, ResumesRepository],
     },
     {
-      provide: USER_PREFERENCES_USE_CASES,
+      provide: UserPreferencesUseCases,
       useFactory: (prisma: PrismaService) => buildUserPreferencesUseCases(prisma),
       inject: [PrismaService],
     },
     {
-      provide: USERNAME_USE_CASES,
+      provide: UsernameUseCases,
       useFactory: (prisma: PrismaService) => buildUsernameUseCases(prisma),
       inject: [PrismaService],
     },
     {
-      provide: USER_MANAGEMENT_USE_CASES,
+      provide: UserManagementUseCases,
       useFactory: (prisma: PrismaService) =>
         buildUserManagementUseCases(prisma, (password: string) =>
           Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 }),

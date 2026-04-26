@@ -6,7 +6,7 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { SEARCH_SERVICE_PORT } from './ports';
+import { SearchServicePort } from './ports/search.port';
 import { ResumeSearchService } from './resume-search.service';
 import { SearchController } from './search.controller';
 
@@ -15,10 +15,7 @@ import { SearchController } from './search.controller';
   controllers: [SearchController],
   providers: [
     ResumeSearchService,
-    {
-      provide: SEARCH_SERVICE_PORT,
-      useExisting: ResumeSearchService,
-    },
+    { provide: SearchServicePort, useExisting: ResumeSearchService },
   ],
   exports: [ResumeSearchService],
 })

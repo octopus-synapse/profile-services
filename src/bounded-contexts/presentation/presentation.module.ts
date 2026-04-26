@@ -8,8 +8,5 @@
 import { Module } from '@nestjs/common';
 import { PublicResumesModule } from './public-resumes/public-resumes.module';
 
-@Module({
-  imports: [PublicResumesModule],
-  exports: [PublicResumesModule],
-})
+@Module({ imports: [PublicResumesModule], exports: [PublicResumesModule] })
 export class PresentationModule {}

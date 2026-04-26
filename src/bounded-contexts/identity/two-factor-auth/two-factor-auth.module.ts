@@ -8,15 +8,7 @@
 import { Module } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-// Application Ports
-import {
-  DISABLE_2FA_PORT,
-  GET_2FA_STATUS_PORT,
-  REGENERATE_BACKUP_CODES_PORT,
-  SETUP_2FA_PORT,
-  VALIDATE_2FA_INBOUND_PORT,
-  VERIFY_AND_ENABLE_2FA_PORT,
-} from './application/ports';
+import { Validate2faInboundPort } from './application/ports/validate-2fa.inbound-port';
 // Application Use Cases
 import { Disable2faUseCase } from './application/use-cases/disable-2fa';
 import { Get2faStatusUseCase } from './application/use-cases/get-2fa-status';
@@ -26,16 +18,11 @@ import { Validate2faUseCase } from './application/use-cases/validate-2fa';
 import { VerifyAndEnable2faUseCase } from './application/use-cases/verify-and-enable-2fa';
 // Domain Ports
 import {
-  HASH_SERVICE_PORT,
-  type HashServicePort,
-  QR_CODE_SERVICE_PORT,
-  type QrCodeServicePort,
-  TOTP_SERVICE_PORT,
-  type TotpServicePort,
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
+  HashServicePort,
+  QrCodeServicePort,
+  TotpServicePort,
+  TwoFactorRepositoryPort,
 } from './domain/ports';
-
 // Infrastructure Adapters
 import {
   BcryptHashAdapter,
@@ -43,7 +30,6 @@ import {
   SpeakeasyTotpAdapter,
   TwoFactorRepository,
 } from './infrastructure/adapters';
-
 // Infrastructure Controllers
 import {
   Disable2faController,
@@ -64,56 +50,51 @@ import {
   ],
   providers: [
     // Outbound Adapters
-    { provide: TWO_FACTOR_REPOSITORY_PORT, useClass: TwoFactorRepository },
-    { provide: TOTP_SERVICE_PORT, useClass: SpeakeasyTotpAdapter },
-    { provide: QR_CODE_SERVICE_PORT, useClass: QrCodeAdapter },
-    { provide: HASH_SERVICE_PORT, useClass: BcryptHashAdapter },
+    { provide: TwoFactorRepositoryPort, useClass: TwoFactorRepository },
+    { provide: TotpServicePort, useClass: SpeakeasyTotpAdapter },
+    { provide: QrCodeServicePort, useClass: QrCodeAdapter },
+    { provide: HashServicePort, useClass: BcryptHashAdapter },
 
-    // Inbound Ports (use-cases)
+    // Inbound Ports (use-cases) — wired by class as DI token (no Symbol indirection)
     {
-      provide: SETUP_2FA_PORT,
+      provide: Setup2faUseCase,
       useFactory: (repo: TwoFactorRepositoryPort, totp: TotpServicePort, qr: QrCodeServicePort) =>
         new Setup2faUseCase(repo, totp, qr),
-      inject: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, QR_CODE_SERVICE_PORT],
+      inject: [TwoFactorRepositoryPort, TotpServicePort, QrCodeServicePort],
     },
     {
-      provide: VERIFY_AND_ENABLE_2FA_PORT,
+      provide: VerifyAndEnable2faUseCase,
       useFactory: (repo: TwoFactorRepositoryPort, totp: TotpServicePort, hash: HashServicePort) =>
         new VerifyAndEnable2faUseCase(repo, totp, hash),
-      inject: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, HASH_SERVICE_PORT],
+      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort],
     },
     {
-      provide: DISABLE_2FA_PORT,
+      provide: Disable2faUseCase,
       useFactory: (repo: TwoFactorRepositoryPort) => new Disable2faUseCase(repo),
-      inject: [TWO_FACTOR_REPOSITORY_PORT],
+      inject: [TwoFactorRepositoryPort],
     },
     {
-      provide: GET_2FA_STATUS_PORT,
+      provide: Get2faStatusUseCase,
       useFactory: (repo: TwoFactorRepositoryPort) => new Get2faStatusUseCase(repo),
-      inject: [TWO_FACTOR_REPOSITORY_PORT],
+      inject: [TwoFactorRepositoryPort],
     },
     {
-      provide: REGENERATE_BACKUP_CODES_PORT,
+      provide: RegenerateBackupCodesUseCase,
       useFactory: (repo: TwoFactorRepositoryPort, hash: HashServicePort) =>
         new RegenerateBackupCodesUseCase(repo, hash),
-      inject: [TWO_FACTOR_REPOSITORY_PORT, HASH_SERVICE_PORT],
+      inject: [TwoFactorRepositoryPort, HashServicePort],
     },
     {
-      provide: VALIDATE_2FA_INBOUND_PORT,
+      provide: Validate2faInboundPort,
       useFactory: (
         repo: TwoFactorRepositoryPort,
         totp: TotpServicePort,
         hash: HashServicePort,
         cache: CacheService,
       ) => new Validate2faUseCase(repo, totp, hash, cache),
-      inject: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, HASH_SERVICE_PORT, CacheService],
+      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, CacheService],
     },
   ],
-  exports: [
-    TWO_FACTOR_REPOSITORY_PORT,
-    TOTP_SERVICE_PORT,
-    HASH_SERVICE_PORT,
-    VALIDATE_2FA_INBOUND_PORT,
-  ],
+  exports: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, Validate2faInboundPort],
 })
 export class TwoFactorAuthModule {}

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ShadowGithubApiAdapter } from './github-api.adapter';
-import { SHADOW_GITHUB_API } from './ports/github-api.port';
+import { ShadowGithubApi } from './ports/github-api.port';
 import { ShadowProfileController } from './shadow-profile.controller';
 import { ShadowProfileService } from './shadow-profile.service';
 
@@ -11,7 +11,7 @@ import { ShadowProfileService } from './shadow-profile.service';
   providers: [
     ShadowProfileService,
     ShadowGithubApiAdapter,
-    { provide: SHADOW_GITHUB_API, useExisting: ShadowGithubApiAdapter },
+    { provide: ShadowGithubApi, useExisting: ShadowGithubApiAdapter },
   ],
   exports: [ShadowProfileService],
 })

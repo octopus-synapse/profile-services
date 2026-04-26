@@ -6,8 +6,9 @@
 import { Module } from '@nestjs/common';
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { VIEW_CAREER_GRAPH_PORT, ViewCareerGraphUseCase } from './application';
-import { CAREER_COHORT_REPOSITORY_PORT, type CareerCohortRepositoryPort } from './domain';
+import { ViewCareerGraphUseCase } from './application';
+import { ViewCareerGraphPort } from './application/ports/view-career-graph.inbound-port';
+import { CareerCohortRepositoryPort } from './domain';
 import { PrismaCareerCohortRepository } from './infrastructure/adapters';
 import { ViewCareerGraphController } from './infrastructure/controllers';
 
@@ -15,16 +16,13 @@ import { ViewCareerGraphController } from './infrastructure/controllers';
   imports: [PrismaModule, RateLimitModule],
   controllers: [ViewCareerGraphController],
   providers: [
+    { provide: CareerCohortRepositoryPort, useClass: PrismaCareerCohortRepository },
     {
-      provide: CAREER_COHORT_REPOSITORY_PORT,
-      useClass: PrismaCareerCohortRepository,
-    },
-    {
-      provide: VIEW_CAREER_GRAPH_PORT,
+      provide: ViewCareerGraphPort,
       useFactory: (repo: CareerCohortRepositoryPort) => new ViewCareerGraphUseCase(repo),
-      inject: [CAREER_COHORT_REPOSITORY_PORT],
+      inject: [CareerCohortRepositoryPort],
     },
   ],
-  exports: [VIEW_CAREER_GRAPH_PORT],
+  exports: [ViewCareerGraphPort],
 })
 export class CareerGraphModule {}

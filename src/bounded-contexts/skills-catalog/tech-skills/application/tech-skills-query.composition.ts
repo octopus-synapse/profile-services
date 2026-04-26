@@ -5,7 +5,7 @@ import { ProgrammingLanguageRepository } from '../infrastructure/adapters/persis
 import { TechAreaRepository } from '../infrastructure/adapters/persistence/tech-area.repository';
 import { TechNicheRepository } from '../infrastructure/adapters/persistence/tech-niche.repository';
 import { TechSkillRepository } from '../infrastructure/adapters/persistence/tech-skill.repository';
-import { TECH_SKILLS_USE_CASES, type TechSkillsUseCases } from './ports/tech-skills.port';
+import { TechSkillsUseCases } from './ports/tech-skills.port';
 import { GetAllAreasUseCase } from './use-cases/get-all-areas/get-all-areas.use-case';
 import { GetAllLanguagesUseCase } from './use-cases/get-all-languages/get-all-languages.use-case';
 import { GetAllNichesUseCase } from './use-cases/get-all-niches/get-all-niches.use-case';
@@ -17,7 +17,7 @@ import { SearchAllUseCase } from './use-cases/search-all/search-all.use-case';
 import { SearchLanguagesUseCase } from './use-cases/search-languages/search-languages.use-case';
 import { SearchSkillsUseCase } from './use-cases/search-skills/search-skills.use-case';
 
-export { TECH_SKILLS_USE_CASES };
+export { TechSkillsUseCases };
 
 export function buildTechSkillsUseCases(
   prisma: PrismaService,

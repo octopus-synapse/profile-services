@@ -1,11 +1,13 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
+import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { NotificationsModule } from '@/bounded-contexts/notifications/notifications.module';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { JobLoaderPort } from './domain/ports/job-loader.port';
@@ -54,7 +56,45 @@ import {
   ],
   controllers: [JobMatchController],
   providers: [
-    ComputeMatchUseCase,
+    {
+      provide: ComputeMatchUseCase,
+      useFactory: (
+        resumeExistence: ResumeExistencePort,
+        jobLoader: JobLoaderPort,
+        fitState: UserFitStatePort,
+        keywordSource: ResumeKeywordSourcePort,
+        requirementsMatcher: RequirementsMatcherPort,
+        semanticMatcher: SemanticMatcherPort,
+        similarity: SimilarityPort,
+        cache: MatchCachePort,
+        events: EventPublisher,
+        logger: LoggerPort,
+      ) =>
+        new ComputeMatchUseCase(
+          resumeExistence,
+          jobLoader,
+          fitState,
+          keywordSource,
+          requirementsMatcher,
+          semanticMatcher,
+          similarity,
+          cache,
+          events,
+          logger,
+        ),
+      inject: [
+        ResumeExistencePort,
+        JobLoaderPort,
+        UserFitStatePort,
+        ResumeKeywordSourcePort,
+        RequirementsMatcherPort,
+        SemanticMatcherPort,
+        SimilarityPort,
+        MatchCachePort,
+        EventPublisher,
+        LoggerPort,
+      ],
+    },
     PrismaResumeExistence,
     PrismaJobLoader,
     PrismaUserFitStateAdapter,

@@ -1,4 +1,4 @@
-import type { SkillManagementPort } from '../ports/skill-management.port';
+import { SkillManagementPort } from '../ports/skill-management.port';
 import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 import { AddSkillUseCase } from '../use-cases/add-skill.use-case';
 import { DeleteSkillUseCase } from '../use-cases/delete-skill.use-case';

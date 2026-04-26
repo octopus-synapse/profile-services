@@ -13,10 +13,7 @@ import { EventEmitterAnalyticsEventBusAdapter } from '../../infrastructure/adapt
 import { PrismaResumeOwnershipRepository } from '../../infrastructure/adapters/persistence/resume-ownership.repository';
 import { PrismaSnapshotRepository } from '../../infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from '../../infrastructure/adapters/persistence/view-tracking.repository';
-import {
-  RESUME_ANALYTICS_USE_CASES,
-  type ResumeAnalyticsUseCases,
-} from '../ports/resume-analytics.port';
+import { ResumeAnalyticsUseCases } from '../ports/resume-analytics.port';
 import { AnalyzeKeywordsUseCase } from '../use-cases/analyze-keywords/analyze-keywords.use-case';
 import { BuildAnalyticsDashboardUseCase } from '../use-cases/build-analytics-dashboard/build-analytics-dashboard.use-case';
 import { CalculateAtsScoreUseCase } from '../use-cases/calculate-ats-score/calculate-ats-score.use-case';
@@ -27,7 +24,7 @@ import { GetViewStatsUseCase } from '../use-cases/get-view-stats/get-view-stats.
 import { SaveSnapshotUseCase } from '../use-cases/save-snapshot/save-snapshot.use-case';
 import { TrackViewUseCase } from '../use-cases/track-view/track-view.use-case';
 
-export { RESUME_ANALYTICS_USE_CASES };
+export { ResumeAnalyticsUseCases };
 
 export function buildResumeAnalyticsUseCases(
   prisma: PrismaService,

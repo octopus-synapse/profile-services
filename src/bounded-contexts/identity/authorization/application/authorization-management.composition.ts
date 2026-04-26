@@ -6,10 +6,7 @@
 
 import { EventPublisherPort } from '@/shared-kernel';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
-import {
-  AUTHORIZATION_MANAGEMENT_USE_CASES,
-  type AuthorizationManagementUseCases,
-} from './ports/authorization-use-cases.port';
+import { AuthorizationManagementUseCases } from './ports/authorization-use-cases.port';
 import { AddToGroupUseCase } from './use-cases/authorization-management/add-to-group.use-case';
 import { AssignRoleUseCase } from './use-cases/authorization-management/assign-role.use-case';
 import { DenyPermissionUseCase } from './use-cases/authorization-management/deny-permission.use-case';
@@ -17,7 +14,7 @@ import { GrantPermissionUseCase } from './use-cases/authorization-management/gra
 import { RemoveFromGroupUseCase } from './use-cases/authorization-management/remove-from-group.use-case';
 import { RevokeRoleUseCase } from './use-cases/authorization-management/revoke-role.use-case';
 
-export { AUTHORIZATION_MANAGEMENT_USE_CASES };
+export { AuthorizationManagementUseCases };
 
 export function buildAuthorizationManagementUseCases(
   userAuthRepo: UserAuthorizationRepository,
