@@ -6,6 +6,7 @@
  */
 import {
   ConflictException,
+  EntityNotFoundException,
   ForbiddenException,
   ValidationException,
 } from '@/shared-kernel/exceptions';
@@ -35,6 +36,20 @@ export class CollaboratorAlreadyInvitedException extends ConflictException {
   readonly code: string = 'COLLABORATOR_ALREADY_INVITED';
   constructor() {
     super('This user is already a collaborator');
+  }
+}
+
+export class CannotInviteSelfAsCollaboratorException extends ValidationException {
+  readonly code: string = 'CANNOT_INVITE_SELF_AS_COLLABORATOR';
+  constructor() {
+    super('Cannot add yourself as a collaborator');
+  }
+}
+
+export class ResumeNotFoundForCollaborationException extends EntityNotFoundException {
+  readonly code: string = 'RESUME_NOT_FOUND_FOR_COLLABORATION';
+  constructor(resumeId: string) {
+    super('Resume', resumeId);
   }
 }
 

@@ -160,6 +160,10 @@ export const ERROR_DICTIONARY = {
     en: 'Cannot follow yourself',
     'pt-BR': 'Você não pode seguir a si mesmo',
   },
+  CANNOT_INVITE_SELF_AS_COLLABORATOR: {
+    en: 'Cannot add yourself as a collaborator',
+    'pt-BR': 'Você não pode se adicionar como colaborador',
+  },
   CANNOT_MESSAGE_SELF: {
     en: 'Cannot send message to yourself',
     'pt-BR': 'Você não pode mandar mensagem para si mesmo',
@@ -769,6 +773,10 @@ export const ERROR_DICTIONARY = {
     'pt-BR': 'A exportação de currículos está temporariamente indisponível',
   },
   RESUME_NOT_FOUND: {
+    en: 'Resume not found',
+    'pt-BR': 'Currículo não encontrado',
+  },
+  RESUME_NOT_FOUND_FOR_COLLABORATION: {
     en: 'Resume not found',
     'pt-BR': 'Currículo não encontrado',
   },
