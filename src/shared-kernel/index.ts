@@ -30,16 +30,15 @@ export * from './enums';
 // ============================================================================
 // Event Bus (Domain Events)
 // ============================================================================
-export {
-  DomainEvent,
-  EventBusModule,
-  EventPublisher,
-  EventPublisherPort,
-} from './event-bus';
+export { DomainEvent, EventBusModule, EventPublisher, EventPublisherPort } from './event-bus';
 // ============================================================================
 // Exceptions (Base Exceptions)
 // ============================================================================
 export * from './exceptions';
+// ============================================================================
+// Logger (Framework-Agnostic Logging Port)
+// ============================================================================
+export * from './logger';
 // ============================================================================
 // Schemas (Shared Validation Contracts)
 // ============================================================================
