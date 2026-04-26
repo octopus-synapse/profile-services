@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { ImportNotFoundException } from '../../../domain/exceptions/import.exceptions';
 import { ImportJobRepositoryPort } from '../../../domain/ports/import-job.repository.port';
 import { ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
@@ -10,6 +11,7 @@ export class ProcessImportUseCase {
   constructor(
     private readonly repository: ImportJobRepositoryPort,
     private readonly resumeCreator: ResumeCreatorPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(importId: string): Promise<ImportResult> {

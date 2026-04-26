@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ImportCannotBeRetriedException,
   ImportNotFoundException,
@@ -16,7 +17,7 @@ describe('RetryImportUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryImportJobRepository();
     resumeCreator = new StubResumeCreator();
-    useCase = new RetryImportUseCase(repository, resumeCreator);
+    useCase = new RetryImportUseCase(repository, resumeCreator, stubLogger);
   });
 
   it('should retry a failed import', async () => {

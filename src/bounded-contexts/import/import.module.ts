@@ -11,6 +11,7 @@ import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { OAuthModule } from '@/bounded-contexts/identity/oauth/oauth.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 // Use Cases
 import { CancelImportUseCase } from './application/use-cases/cancel-import/cancel-import.use-case';
 import { CreateImportJobUseCase } from './application/use-cases/create-import-job/create-import-job.use-case';
@@ -55,9 +56,12 @@ import { ResumeImportController } from './infrastructure/controllers/resume-impo
     },
     {
       provide: ProcessImportUseCase,
-      useFactory: (repo: ImportJobRepositoryPort, creator: ResumeCreatorPort) =>
-        new ProcessImportUseCase(repo, creator),
-      inject: [ImportJobRepositoryPort, ResumeCreatorPort],
+      useFactory: (
+        repo: ImportJobRepositoryPort,
+        creator: ResumeCreatorPort,
+        logger: LoggerPort,
+      ) => new ProcessImportUseCase(repo, creator, logger),
+      inject: [ImportJobRepositoryPort, ResumeCreatorPort, LoggerPort],
     },
     {
       provide: GetImportStatusUseCase,
@@ -76,9 +80,12 @@ import { ResumeImportController } from './infrastructure/controllers/resume-impo
     },
     {
       provide: RetryImportUseCase,
-      useFactory: (repo: ImportJobRepositoryPort, creator: ResumeCreatorPort) =>
-        new RetryImportUseCase(repo, creator),
-      inject: [ImportJobRepositoryPort, ResumeCreatorPort],
+      useFactory: (
+        repo: ImportJobRepositoryPort,
+        creator: ResumeCreatorPort,
+        logger: LoggerPort,
+      ) => new RetryImportUseCase(repo, creator, logger),
+      inject: [ImportJobRepositoryPort, ResumeCreatorPort, LoggerPort],
     },
   ],
   exports: [

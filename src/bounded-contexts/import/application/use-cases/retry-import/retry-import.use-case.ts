@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import {
   ImportCannotBeRetriedException,
   ImportNotFoundException,
@@ -11,6 +12,7 @@ export class RetryImportUseCase {
   constructor(
     private readonly repository: ImportJobRepositoryPort,
     private readonly resumeCreator: ResumeCreatorPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(importId: string): Promise<ImportResult> {
@@ -24,7 +26,11 @@ export class RetryImportUseCase {
 
     await this.repository.updateStatus(importId, 'PENDING');
 
-    const processUseCase = new ProcessImportUseCase(this.repository, this.resumeCreator);
+    const processUseCase = new ProcessImportUseCase(
+      this.repository,
+      this.resumeCreator,
+      this.logger,
+    );
     return processUseCase.execute(importId);
   }
 }
