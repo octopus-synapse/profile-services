@@ -6,7 +6,7 @@
 
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { PrismaAtsScoreCatalogRepository } from '../../infrastructure/adapters/persistence/ats-score-catalog.repository';
 import { PrismaBenchmarkRepository } from '../../infrastructure/adapters/persistence/benchmark.repository';
 import { EventEmitterAnalyticsEventBusAdapter } from '../../infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
@@ -30,6 +30,7 @@ export function buildResumeAnalyticsUseCases(
   prisma: PrismaService,
   eventEmitter: EventEmitter2,
   eventPublisher: EventPublisher,
+  logger: LoggerPort,
 ): ResumeAnalyticsUseCases {
   // Infrastructure adapters
   const catalogRepo = new PrismaAtsScoreCatalogRepository(prisma);
@@ -45,14 +46,16 @@ export function buildResumeAnalyticsUseCases(
     ownershipRepo,
     analyticsEventBus,
     eventPublisher,
+    logger,
   );
 
-  const getViewStatsUseCase = new GetViewStatsUseCase(ownershipRepo, viewTrackingRepo);
+  const getViewStatsUseCase = new GetViewStatsUseCase(ownershipRepo, viewTrackingRepo, logger);
 
   const getIndustryBenchmarkUseCase = new GetIndustryBenchmarkUseCase(
     benchmarkRepo,
     ownershipRepo,
     calculateAtsScoreUseCase,
+    logger,
   );
 
   const buildAnalyticsDashboardUseCase = new BuildAnalyticsDashboardUseCase(
@@ -60,6 +63,7 @@ export function buildResumeAnalyticsUseCases(
     getViewStatsUseCase,
     calculateAtsScoreUseCase,
     snapshotRepo,
+    logger,
   );
 
   const analyzeKeywordsUseCase = new AnalyzeKeywordsUseCase(ownershipRepo);
@@ -68,13 +72,27 @@ export function buildResumeAnalyticsUseCases(
     ownershipRepo,
     snapshotRepo,
     calculateAtsScoreUseCase,
+    logger,
   );
 
-  const getSnapshotHistoryUseCase = new GetSnapshotHistoryUseCase(ownershipRepo, snapshotRepo);
+  const getSnapshotHistoryUseCase = new GetSnapshotHistoryUseCase(
+    ownershipRepo,
+    snapshotRepo,
+    logger,
+  );
 
-  const getScoreProgressionUseCase = new GetScoreProgressionUseCase(ownershipRepo, snapshotRepo);
+  const getScoreProgressionUseCase = new GetScoreProgressionUseCase(
+    ownershipRepo,
+    snapshotRepo,
+    logger,
+  );
 
-  const trackViewUseCase = new TrackViewUseCase(ownershipRepo, viewTrackingRepo, analyticsEventBus);
+  const trackViewUseCase = new TrackViewUseCase(
+    ownershipRepo,
+    viewTrackingRepo,
+    analyticsEventBus,
+    logger,
+  );
 
   return {
     calculateAtsScoreUseCase,

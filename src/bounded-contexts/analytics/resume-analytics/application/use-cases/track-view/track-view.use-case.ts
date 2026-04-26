@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { LoggerPort } from '@/shared-kernel';
 import { TRAFFIC_SOURCES } from '../../../domain/value-objects/traffic-sources';
 import type { TrackView } from '../../../interfaces';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
@@ -9,6 +10,7 @@ export class TrackViewUseCase {
     private readonly ownership: ResumeOwnershipPort,
     private readonly viewTrackingRepo: ViewTrackingRepositoryPort,
     private readonly eventBus: AnalyticsEventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: TrackView): Promise<void> {

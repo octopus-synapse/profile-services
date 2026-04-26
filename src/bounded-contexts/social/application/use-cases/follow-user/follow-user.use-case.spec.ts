@@ -8,6 +8,7 @@ import {
   EntityNotFoundException,
   ValidationException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { FollowUserUseCase } from './follow-user.use-case';
 
@@ -77,7 +78,6 @@ describe('FollowUserUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
     useCase = new FollowUserUseCase(repository, stubEventPublisher, stubLogger);
   });
 

@@ -4,6 +4,7 @@
  * Compares a resume's ATS score against industry-wide data.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type {
   BenchmarkRecommendation,
   IndustryBenchmark,
@@ -19,6 +20,7 @@ export class GetIndustryBenchmarkUseCase {
     private readonly benchmarkRepo: BenchmarkRepositoryPort,
     private readonly ownership: ResumeOwnershipPort,
     private readonly atsScore: AtsScoringPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

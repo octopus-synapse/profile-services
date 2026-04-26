@@ -9,7 +9,7 @@ const idempotency = {
   once: <T>(_key: string, fn: () => Promise<T>) => fn(),
 } as unknown as IdempotencyService;
 
-const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+import { stubLogger } from '@/shared-kernel/logger/testing';
 
 class StubActivityCreator extends ActivityCreatorPort {
   createActivity = mock(

@@ -4,6 +4,7 @@
  * Aggregates view stats, ATS score, and progression into a dashboard.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type {
   AnalyticsDashboard,
   ATSScoreResult,
@@ -19,6 +20,7 @@ export class BuildAnalyticsDashboardUseCase {
     private readonly viewStats: ViewStatsProviderPort,
     private readonly atsScore: AtsScoringPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string, userId: string): Promise<AnalyticsDashboard> {

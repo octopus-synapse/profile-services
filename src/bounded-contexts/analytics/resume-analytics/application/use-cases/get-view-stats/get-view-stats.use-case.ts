@@ -4,6 +4,7 @@
  * Retrieves view statistics for a resume.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { ViewStats, ViewStatsOptions } from '../../../interfaces';
 import { ViewStatsProviderPort } from '../../ports/facade.ports';
 import { ResumeOwnershipPort, ViewTrackingRepositoryPort } from '../../ports/resume-analytics.port';
@@ -12,6 +13,7 @@ export class GetViewStatsUseCase extends ViewStatsProviderPort {
   constructor(
     private readonly ownership: ResumeOwnershipPort,
     private readonly viewTrackingRepo: ViewTrackingRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }

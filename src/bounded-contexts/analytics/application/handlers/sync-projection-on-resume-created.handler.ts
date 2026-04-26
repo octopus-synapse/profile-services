@@ -1,23 +1,27 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
+import { LoggerPort } from '@/shared-kernel';
 import { AnalyticsProjectionPort } from '../ports/analytics-projection.port';
+
+const CTX = 'SyncProjectionOnResumeCreatedHandler';
 
 @Injectable()
 export class SyncProjectionOnResumeCreatedHandler {
-  private readonly logger = new Logger(SyncProjectionOnResumeCreatedHandler.name);
-
-  constructor(private readonly projection: AnalyticsProjectionPort) {}
+  constructor(
+    private readonly projection: AnalyticsProjectionPort,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent(ResumeCreatedEvent.TYPE)
   async handle(event: ResumeCreatedEvent): Promise<void> {
     const resumeId = event.aggregateId;
     const { userId, title } = event.payload;
 
-    this.logger.log(`Creating analytics projection for resume: ${resumeId}`);
+    this.logger.log(`Creating analytics projection for resume: ${resumeId}`, CTX);
 
     await this.projection.upsertProjection(resumeId, { userId, title });
 
-    this.logger.log(`Analytics projection created for resume: ${resumeId}`);
+    this.logger.log(`Analytics projection created for resume: ${resumeId}`, CTX);
   }
 }

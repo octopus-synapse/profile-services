@@ -93,7 +93,7 @@ const stubEventPublisher = {
 };
 
 const stubEventEmitter = { emit: () => true, emitAsync: () => Promise.resolve([]) };
-const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+import { stubLogger } from '@/shared-kernel/logger/testing';
 
 describe('CreateActivityUseCase', () => {
   let useCase: CreateActivityUseCase;

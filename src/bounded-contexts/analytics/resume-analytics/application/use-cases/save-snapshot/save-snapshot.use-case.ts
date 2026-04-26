@@ -4,6 +4,7 @@
  * Saves an analytics snapshot for progress tracking.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { AnalyticsSnapshot } from '../../../interfaces';
 import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 import type { CalculateAtsScoreUseCase } from '../calculate-ats-score/calculate-ats-score.use-case';
@@ -13,6 +14,7 @@ export class SaveSnapshotUseCase {
     private readonly ownership: ResumeOwnershipPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
     private readonly atsScore: CalculateAtsScoreUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string, userId: string): Promise<AnalyticsSnapshot> {

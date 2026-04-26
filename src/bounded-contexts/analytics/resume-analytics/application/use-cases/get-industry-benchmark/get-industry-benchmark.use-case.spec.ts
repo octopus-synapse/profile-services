@@ -9,6 +9,7 @@ import {
   defaultResumeAnalytics,
   InMemoryBenchmarkRepository,
 } from '@/bounded-contexts/analytics/testing';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { AtsScoringPort } from '../../ports/facade.ports';
 import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetIndustryBenchmarkUseCase } from './get-industry-benchmark.use-case';
@@ -38,7 +39,7 @@ describe('GetIndustryBenchmarkUseCase', () => {
       },
     };
 
-    useCase = new GetIndustryBenchmarkUseCase(benchmarkRepo, ownership, atsScore);
+    useCase = new GetIndustryBenchmarkUseCase(benchmarkRepo, ownership, atsScore, stubLogger);
   });
 
   describe('getIndustryBenchmark', () => {

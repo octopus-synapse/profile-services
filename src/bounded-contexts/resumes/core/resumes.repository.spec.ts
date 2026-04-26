@@ -11,6 +11,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -101,7 +102,6 @@ describe('ResumesRepository', () => {
   beforeEach(async () => {
     store = new InMemoryResumesStore();
 
-    const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
     repository = new ResumesRepository({ resume: store } as unknown as PrismaService, stubLogger);
   });
 

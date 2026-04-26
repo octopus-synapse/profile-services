@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { LoggerPort } from '@/shared-kernel';
 import { ShareAnalyticsService } from '../services/share-analytics.service';
 
 /**
@@ -25,7 +26,10 @@ interface ShareDomainEvent<T> {
 
 @Injectable()
 export class ShareEventHandler {
-  constructor(private readonly analyticsService: ShareAnalyticsService) {}
+  constructor(
+    private readonly analyticsService: ShareAnalyticsService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent('presentation.share.viewed')
   async handleShareViewed(event: ShareDomainEvent<ShareViewedPayload>): Promise<void> {

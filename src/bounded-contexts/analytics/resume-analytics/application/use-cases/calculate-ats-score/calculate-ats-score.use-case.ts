@@ -5,7 +5,7 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { AtsScoreCalculatedEvent } from '../../../../shared-kernel/domain/events';
 import { generateRecommendations } from '../../../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
@@ -21,6 +21,7 @@ export class CalculateAtsScoreUseCase extends AtsScoringPort {
     private readonly ownership: ResumeOwnershipPort,
     private readonly eventBus: AnalyticsEventBusPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }

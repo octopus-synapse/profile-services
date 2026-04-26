@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import type { EventPublisher, LoggerPort } from '@/shared-kernel';
+import type { EventPublisher } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ContentQualityPort,
   type ContentQualityResult,
@@ -25,8 +26,6 @@ const stubEventPublisher: EventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
-
-const stubLogger: LoggerPort = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 class FixtureLoader extends ResumeLoaderPort {
   constructor(private readonly resume: ResumeForCompleteness) {

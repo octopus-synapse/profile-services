@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { ResumeForAnalytics } from '../../../domain/types';
 import type { ATSScoreResult, ViewStats, ViewStatsOptions } from '../../../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../../../testing';
@@ -90,6 +91,7 @@ describe('BuildAnalyticsDashboardUseCase', () => {
       viewStatsProvider,
       mockAtsScore,
       snapshotRepo,
+      stubLogger,
     );
 
     // Seed default data

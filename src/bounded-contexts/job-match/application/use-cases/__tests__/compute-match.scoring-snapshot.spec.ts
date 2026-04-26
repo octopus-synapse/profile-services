@@ -3,7 +3,8 @@ import {
   SimilarityPort,
   type SimilarityResult,
 } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
-import type { EventPublisher, LoggerPort } from '@/shared-kernel';
+import type { EventPublisher } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { type JobForMatch, JobLoaderPort } from '../../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../../domain/ports/match-cache.port';
 import {
@@ -31,8 +32,6 @@ const stubEventPublisher: EventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
-
-const stubLogger: LoggerPort = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 class FakeExists extends ResumeExistencePort {
   async exists() {

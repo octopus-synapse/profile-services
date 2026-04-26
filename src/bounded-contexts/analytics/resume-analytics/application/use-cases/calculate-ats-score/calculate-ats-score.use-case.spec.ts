@@ -12,6 +12,7 @@ import {
 } from '@/bounded-contexts/analytics/testing';
 import { EventPublisherPort } from '@/shared-kernel';
 import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
 import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
@@ -81,7 +82,13 @@ describe('CalculateAtsScoreUseCase', () => {
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
     };
 
-    useCase = new CalculateAtsScoreUseCase(atsScoreRepo, ownership, eventBus, eventPublisher);
+    useCase = new CalculateAtsScoreUseCase(
+      atsScoreRepo,
+      ownership,
+      eventBus,
+      eventPublisher,
+      stubLogger,
+    );
   });
 
   describe('calculate', () => {

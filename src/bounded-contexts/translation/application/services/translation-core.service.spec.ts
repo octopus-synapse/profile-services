@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TranslationCoreService } from './translation-core.service';
 
 const LIBRETRANSLATE_URL = 'http://localhost:5000';
-const noopLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 let fetchCalls: Array<{ url: string; init?: RequestInit }> = [];
 let fetchResult: { ok: boolean; status: number; json: () => Promise<unknown> } = {
@@ -23,7 +23,7 @@ describe('TranslationCoreService', () => {
       fetchCalls.push({ url: String(url), init });
       return fetchResult as unknown as Response;
     }) as unknown as typeof fetch;
-    service = new TranslationCoreService(LIBRETRANSLATE_URL, noopLogger);
+    service = new TranslationCoreService(LIBRETRANSLATE_URL, stubLogger);
   });
 
   afterEach(() => {

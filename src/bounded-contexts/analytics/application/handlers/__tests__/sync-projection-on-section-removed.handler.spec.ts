@@ -22,10 +22,12 @@ class StubAnalyticsProjection implements AnalyticsProjectionPort {
   }
 }
 
+import { stubLogger } from '@/shared-kernel/logger/testing';
+
 describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('decrements projection count using semantic sectionKind', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnSectionRemovedHandler(projection);
+    const handler = new SyncProjectionOnSectionRemovedHandler(projection, stubLogger);
     const event = new SectionRemovedEvent('resume-1', {
       userId: 'user-1',
       sectionId: 'item-1',
@@ -41,7 +43,7 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
 
   it('ignores events without sectionKind', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnSectionRemovedHandler(projection);
+    const handler = new SyncProjectionOnSectionRemovedHandler(projection, stubLogger);
     const event = new SectionRemovedEvent('resume-3', { userId: 'user-1', sectionId: 'item-3' });
 
     await handler.handle(event);

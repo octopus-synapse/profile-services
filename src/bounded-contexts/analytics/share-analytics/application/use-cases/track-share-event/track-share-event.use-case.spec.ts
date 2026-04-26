@@ -6,6 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { GeoLocation } from '../../../ports/geo-lookup.port';
 import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
@@ -24,7 +25,7 @@ describe('TrackShareEventUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    useCase = new TrackShareEventUseCase(repository, new StubGeoLookup(null));
+    useCase = new TrackShareEventUseCase(repository, new StubGeoLookup(null), stubLogger);
   });
 
   it('should create an analytics record with hashed IP', async () => {
@@ -112,6 +113,7 @@ describe('TrackShareEventUseCase', () => {
     const geoCase = new TrackShareEventUseCase(
       repoWithGeo,
       new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
+      stubLogger,
     );
 
     const result = await geoCase.execute({
@@ -129,6 +131,7 @@ describe('TrackShareEventUseCase', () => {
     const geoCase = new TrackShareEventUseCase(
       repoWithGeo,
       new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
+      stubLogger,
     );
 
     const result = await geoCase.execute({

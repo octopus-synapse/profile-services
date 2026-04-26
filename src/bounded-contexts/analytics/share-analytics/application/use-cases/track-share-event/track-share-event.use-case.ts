@@ -6,6 +6,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { LoggerPort } from '@/shared-kernel';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import type { AnalyticsEvent } from '../../ports/share-analytics.port';
@@ -28,6 +29,7 @@ export class TrackShareEventUseCase {
   constructor(
     private readonly repository: ShareAnalyticsRepositoryPort,
     private readonly geoLookup: GeoLookupPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(dto: TrackEvent) {

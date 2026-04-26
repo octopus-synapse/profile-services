@@ -4,6 +4,7 @@
  * Wires share analytics use cases with their dependencies.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import type { ShareAnalyticsRepositoryPort } from '../../ports';
 import { GeoLookupPort } from '../../ports/geo-lookup.port';
 import { ShareAnalyticsUseCases } from '../ports/share-analytics.port';
@@ -16,8 +17,9 @@ export { ShareAnalyticsUseCases };
 export function buildShareAnalyticsUseCases(
   repository: ShareAnalyticsRepositoryPort,
   geoLookup: GeoLookupPort,
+  logger: LoggerPort,
 ): ShareAnalyticsUseCases {
-  const trackShareEventUseCase = new TrackShareEventUseCase(repository, geoLookup);
+  const trackShareEventUseCase = new TrackShareEventUseCase(repository, geoLookup, logger);
   const getShareAnalyticsUseCase = new GetShareAnalyticsUseCase(repository);
   const getShareEventsUseCase = new GetShareEventsUseCase(repository);
 
