@@ -5,14 +5,13 @@
  * This ensures that compromised sessions are invalidated when credentials are reset.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PasswordChangedEvent } from '../../../password-management/domain/events';
 import { JwtStrategy } from '../../../shared-kernel/infrastructure/strategies';
-import type { AuthenticationRepositoryPort } from '../../domain/ports';
-import { AUTHENTICATION_REPOSITORY_PORT } from '../../domain/ports';
+import { AuthenticationRepositoryPort } from '../../domain/ports';
 
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
@@ -20,7 +19,6 @@ const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
 @Injectable()
 export class InvalidateSessionsOnCredentialChangeHandler {
   constructor(
-    @Inject(AUTHENTICATION_REPOSITORY_PORT)
     private readonly authRepository: AuthenticationRepositoryPort,
     private readonly cacheService: CacheService,
     private readonly logger: AppLoggerService,

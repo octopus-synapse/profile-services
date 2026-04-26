@@ -21,11 +21,7 @@ export type UserResumesPaginatedResult = {
   pagination: UserResumesPagination;
 };
 
-export type ResumeSlots = {
-  used: number;
-  limit: number;
-  remaining: number;
-};
+export type ResumeSlots = { used: number; limit: number; remaining: number };
 
 export type ResumeResult = {
   id: string;
@@ -39,11 +35,7 @@ export type ResumeResult = {
   createdAt: Date;
   updatedAt: Date;
   styleId?: string | null;
-  style?: {
-    id: string;
-    name: string;
-    description?: string | null;
-  } | null;
+  style?: { id: string; name: string; description?: string | null } | null;
   resumeSections?: Array<{
     id: string;
     order: number;
@@ -55,11 +47,7 @@ export type ResumeResult = {
       title?: string | null;
       version?: number | null;
     };
-    items: Array<{
-      id: string;
-      order: number;
-      content?: Record<string, unknown> | null;
-    }>;
+    items: Array<{ id: string; order: number; content?: Record<string, unknown> | null }>;
   }>;
   fullName?: string | null;
   email?: string | null;

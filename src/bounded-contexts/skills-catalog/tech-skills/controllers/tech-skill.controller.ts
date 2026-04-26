@@ -15,11 +15,7 @@ import { SkillQueryService } from '../services/skill-query.service';
 import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 
-@SdkExport({
-  tag: 'tech-skills',
-  description: 'Tech Skills API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'tech-skills', description: 'Tech Skills API', requiresAuth: false })
 @ApiTags('tech-skills')
 @Controller('v1/tech-skills')
 export class TechSkillController {
@@ -56,9 +52,7 @@ export class TechSkillController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by type' })
   @ApiParam({ name: 'type', description: 'Skill type', type: String })
-  @ApiDataResponse(TechSkillListDataDto, {
-    description: 'List of skills by type',
-  })
+  @ApiDataResponse(TechSkillListDataDto, { description: 'List of skills by type' })
   async getSkillsByType(
     @Param('type') type: SkillType,
     @Query('limit') limit?: string,

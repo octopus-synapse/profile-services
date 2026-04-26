@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   type FitQuestionPatch,
   type FitQuestionRecord,
@@ -12,7 +11,6 @@ export class FitQuestionNotFoundError extends Error {
   }
 }
 
-@Injectable()
 export class UpdateFitQuestionUseCase {
   constructor(private readonly repository: FitQuestionRepositoryPort) {}
 

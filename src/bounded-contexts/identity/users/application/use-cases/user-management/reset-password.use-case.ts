@@ -1,5 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { UserManagementRepositoryPort } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class ResetPasswordUseCase {
   constructor(

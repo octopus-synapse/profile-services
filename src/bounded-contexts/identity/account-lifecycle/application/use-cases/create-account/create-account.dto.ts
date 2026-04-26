@@ -5,8 +5,7 @@ import { z } from 'zod';
 export const CreateAccountSchema = z.object({
   name: z.string().optional(),
   email: z.string().email(),
-  password: z.string().min(8),
-  // LGPD: explicit consent required at signup. Versions must match current TOS_VERSION/PRIVACY_POLICY_VERSION.
+  password: z.string().min(8), // LGPD: explicit consent required at signup. Versions must match current TOS_VERSION/PRIVACY_POLICY_VERSION.
   acceptedTosVersion: z.string().min(1),
   acceptedPrivacyVersion: z.string().min(1),
 });
@@ -15,8 +14,7 @@ export const CreateAccountSchema = z.object({
 export const CreateAccountResponseSchema = z.object({
   userId: z.string(),
   email: z.string(),
-  message: z.string(),
-  // Auth tokens (auto-login)
+  message: z.string(), // Auth tokens (auto-login)
   accessToken: z.string(),
   refreshToken: z.string(),
   expiresIn: z.number(),

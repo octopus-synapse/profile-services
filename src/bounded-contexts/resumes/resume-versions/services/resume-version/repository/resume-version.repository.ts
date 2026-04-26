@@ -22,17 +22,11 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
           resumeSections: {
             include: {
               sectionType: {
-                select: {
-                  key: true,
-                  semanticKind: true,
-                  version: true,
-                },
+                select: { key: true, semanticKind: true, version: true },
               },
               items: {
                 orderBy: { order: 'asc' },
-                select: {
-                  content: true,
-                },
+                select: { content: true },
               },
             },
           },
@@ -46,12 +40,8 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
         return {
           userId: resume.userId,
           resumeSections: resume.resumeSections.map((section) => ({
-            sectionType: {
-              semanticKind: section.sectionType.semanticKind,
-            },
-            items: section.items.map((item) => ({
-              content: this.fromPrismaJson(item.content),
-            })),
+            sectionType: { semanticKind: section.sectionType.semanticKind },
+            items: section.items.map((item) => ({ content: this.fromPrismaJson(item.content) })),
           })),
         };
       });
@@ -74,10 +64,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     label?: string;
   }): Promise<ResumeVersionRecord> {
     const created = await this.prisma.resumeVersion.create({
-      data: {
-        ...data,
-        snapshot: this.toPrismaInputJsonObject(data.snapshot),
-      },
+      data: { ...data, snapshot: this.toPrismaInputJsonObject(data.snapshot) },
       select: {
         id: true,
         resumeId: true,
@@ -88,10 +75,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
       },
     });
 
-    return {
-      ...created,
-      snapshot: this.fromPrismaJson(created.snapshot),
-    };
+    return { ...created, snapshot: this.fromPrismaJson(created.snapshot) };
   }
 
   findResumeOwner(resumeId: string): Promise<{ userId: string } | null> {
@@ -105,12 +89,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
     return this.prisma.resumeVersion.findMany({
       where: { resumeId },
       orderBy: { versionNumber: 'desc' },
-      select: {
-        id: true,
-        versionNumber: true,
-        label: true,
-        createdAt: true,
-      },
+      select: { id: true, versionNumber: true, label: true, createdAt: true },
     });
   }
 
@@ -131,10 +110,7 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
       return null;
     }
 
-    return {
-      ...version,
-      snapshot: this.fromPrismaJson(version.snapshot),
-    };
+    return { ...version, snapshot: this.fromPrismaJson(version.snapshot) };
   }
 
   async updateResumeFromSnapshot(

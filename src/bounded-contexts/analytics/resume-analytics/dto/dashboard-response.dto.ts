@@ -12,33 +12,16 @@ export const DashboardResponseSchema = z.object({
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),
-  viewTrend: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
-  topSources: z.array(
-    z.object({
-      source: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  viewTrend: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
+  topSources: z.array(z.object({ source: z.string(), count: z.number().int().nonnegative() })),
   keywordHealth: z.object({
     score: z.number().min(0).max(100),
     topKeywords: z.array(z.string()),
     missingCritical: z.array(z.string()),
   }),
-  industryPosition: z.object({
-    percentile: z.number().min(0).max(100),
-    trend: TrendEnum,
-  }),
+  industryPosition: z.object({ percentile: z.number().min(0).max(100), trend: TrendEnum }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string() }),
   ),
 });
 

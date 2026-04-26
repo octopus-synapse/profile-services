@@ -48,10 +48,7 @@ export class AdminSectionTypesService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return {
-      ...result,
-      items: result.items.map(this.toResponseDto),
-    };
+    return { ...result, items: result.items.map(this.toResponseDto) };
   }
 
   /**

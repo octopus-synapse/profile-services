@@ -3,14 +3,14 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { SkillSectionTypeNotConfiguredException } from '@/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions';
 import type { SectionItem, SkillItemRecord, SkillSection } from '../ports/skill-management.port';
 import { SkillManagementPort } from '../ports/skill-management.port';
-import type { ISkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
+import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 
 @Injectable()
 export class SkillManagementRepository
   extends SkillManagementPort
-  implements ISkillManagementRepositoryPort
+  implements SkillManagementRepositoryPort
 {
   constructor(private readonly prisma: PrismaService) {
     super();
@@ -40,10 +40,7 @@ export class SkillManagementRepository
 
     const existing = await this.prisma.resumeSection.findUnique({
       where: {
-        resumeId_sectionTypeId: {
-          resumeId,
-          sectionTypeId: sectionType.id,
-        },
+        resumeId_sectionTypeId: { resumeId, sectionTypeId: sectionType.id },
       },
       select: { id: true },
     });
@@ -58,11 +55,7 @@ export class SkillManagementRepository
     });
 
     const section = await this.prisma.resumeSection.create({
-      data: {
-        resumeId,
-        sectionTypeId: sectionType.id,
-        order: (maxOrder._max.order ?? -1) + 1,
-      },
+      data: { resumeId, sectionTypeId: sectionType.id, order: (maxOrder._max.order ?? -1) + 1 },
       select: { id: true },
     });
 
@@ -83,11 +76,7 @@ export class SkillManagementRepository
     order: number,
   ): Promise<SkillItemRecord> {
     const item = await this.prisma.sectionItem.create({
-      data: {
-        resumeSectionId: sectionId,
-        content: content as object,
-        order,
-      },
+      data: { resumeSectionId: sectionId, content: content as object, order },
       select: { id: true, order: true, content: true },
     });
     return item;
@@ -105,10 +94,7 @@ export class SkillManagementRepository
 
     const section = await this.prisma.resumeSection.findUnique({
       where: {
-        resumeId_sectionTypeId: {
-          resumeId,
-          sectionTypeId: sectionType.id,
-        },
+        resumeId_sectionTypeId: { resumeId, sectionTypeId: sectionType.id },
       },
       include: {
         items: {
@@ -132,10 +118,7 @@ export class SkillManagementRepository
       return null;
     }
 
-    return {
-      id: section.id,
-      items: section.items,
-    };
+    return { id: section.id, items: section.items };
   }
 
   async findSkillById(skillId: string): Promise<SectionItem | null> {

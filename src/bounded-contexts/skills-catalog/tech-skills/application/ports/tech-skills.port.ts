@@ -48,37 +48,27 @@ export abstract class CachePort {
 // Use Cases Interface
 // ============================================================================
 
-export const TECH_SKILLS_USE_CASES = Symbol('TECH_SKILLS_USE_CASES');
-
-export interface TechSkillsUseCases {
-  getAllSkillsUseCase: {
-    execute: () => Promise<TechSkill[]>;
-  };
-  getSkillsByNicheUseCase: {
+export abstract class TechSkillsUseCases {
+  abstract readonly getAllSkillsUseCase: { execute: () => Promise<TechSkill[]> };
+  abstract readonly getSkillsByNicheUseCase: {
     execute: (nicheSlug: string) => Promise<TechSkill[]>;
   };
-  getSkillsByTypeUseCase: {
+  abstract readonly getSkillsByTypeUseCase: {
     execute: (type: SkillType, limit?: number) => Promise<TechSkill[]>;
   };
-  searchSkillsUseCase: {
+  abstract readonly searchSkillsUseCase: {
     execute: (query: string, limit?: number) => Promise<TechSkill[]>;
   };
-  getAllAreasUseCase: {
-    execute: () => Promise<TechArea[]>;
-  };
-  getAllNichesUseCase: {
-    execute: () => Promise<TechNiche[]>;
-  };
-  getNichesByAreaUseCase: {
+  abstract readonly getAllAreasUseCase: { execute: () => Promise<TechArea[]> };
+  abstract readonly getAllNichesUseCase: { execute: () => Promise<TechNiche[]> };
+  abstract readonly getNichesByAreaUseCase: {
     execute: (areaType: TechAreaType) => Promise<TechNiche[]>;
   };
-  getAllLanguagesUseCase: {
-    execute: () => Promise<ProgrammingLanguage[]>;
-  };
-  searchLanguagesUseCase: {
+  abstract readonly getAllLanguagesUseCase: { execute: () => Promise<ProgrammingLanguage[]> };
+  abstract readonly searchLanguagesUseCase: {
     execute: (query: string, limit?: number) => Promise<ProgrammingLanguage[]>;
   };
-  searchAllUseCase: {
+  abstract readonly searchAllUseCase: {
     execute: (
       query: string,
       limit?: number,

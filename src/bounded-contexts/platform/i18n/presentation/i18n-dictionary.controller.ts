@@ -84,7 +84,7 @@ export class I18nDictionaryController {
     summary: 'Notification-template dictionary in the negotiated locale',
     description:
       'Returns `{ locale, entries: { [TYPE]: { title, body, params[] } } }`. ' +
-      'Templates may contain `{param}` placeholders — the client substitutes ' +
+      'Templates may contain `{ param }` placeholders — the client substitutes ' +
       'them at render time using the `params` list as the allowed key set.',
   })
   @ApiOkResponse({ type: NotificationsDictionaryDto })

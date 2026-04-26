@@ -16,8 +16,8 @@ import type {
   CookieReader,
   CookieWriter,
   SessionCookieOptions,
-  SessionStoragePort,
 } from '../../domain/ports/session-storage.port';
+import { SessionStoragePort } from '../../domain/ports/session-storage.port';
 
 @Injectable()
 export class CookieSessionStorage implements SessionStoragePort {

@@ -4,9 +4,9 @@ import {
 } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type {
   OnboardingProgressData,
-  OnboardingProgressRepositoryPort,
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
 /**
  * Save Progress Use Case

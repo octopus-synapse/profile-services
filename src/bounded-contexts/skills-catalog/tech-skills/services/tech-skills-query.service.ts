@@ -16,12 +16,7 @@ import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill
 import type { SkillType, TechAreaType } from '../interfaces';
 
 // Re-export DTOs for centralized consumption
-export type {
-  ProgrammingLanguage,
-  TechArea,
-  TechNiche,
-  TechSkill,
-} from '../dto';
+export type { ProgrammingLanguage, TechArea, TechNiche, TechSkill } from '../dto';
 
 @Injectable()
 export class TechSkillsQueryService {
@@ -82,10 +77,7 @@ export class TechSkillsQueryService {
   async searchAll(
     query: string,
     limit = 20,
-  ): Promise<{
-    languages: ProgrammingLanguage[];
-    skills: TechSkill[];
-  }> {
+  ): Promise<{ languages: ProgrammingLanguage[]; skills: TechSkill[] }> {
     const [languages, skills] = await Promise.all([
       this.searchLanguages(query, Math.floor(limit / 2)),
       this.searchSkills(query, Math.floor(limit / 2)),

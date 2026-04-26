@@ -221,7 +221,7 @@
     },
     "/api/v1/i18n/dictionary/notifications": {
       "get": {
-        "description": "Returns `{ locale, entries: { [TYPE]: { title, body, params[] } } }`. Templates may contain `{param}` placeholders — the client substitutes them at render time using the `params` list as the allowed key set.",
+        "description": "Returns `{ locale, entries: { [TYPE]: { title, body, params[] } } }`. Templates may contain `{ param }` placeholders — the client substitutes them at render time using the `params` list as the allowed key set.",
         "operationId": "i18n_getNotifications",
         "parameters": [
           {
@@ -15495,7 +15495,7 @@
   },
   "info": {
     "title": "ProFile API",
-    "description": "## ProFile - Resume & Portfolio Management API\n\nProFile is a comprehensive platform for creating, managing, and exporting professional resumes and portfolios.\n\n### Features\n- **Authentication**: JWT-based authentication with email verification and password reset\n- **Resume Management**: Full CRUD operations for resumes with multiple sections\n- **Rich Content Sections**: Education, Experience, Skills, Projects, Certifications, and more\n- **Export Options**: Generate PDF and DOCX documents from resumes\n- **File Upload**: Upload profile pictures and attachments via S3-compatible storage\n- **User Onboarding**: Guided onboarding flow for new users\n\n### Authentication\nAll protected endpoints require a valid JWT token in the Authorization header:\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\n### Rate Limiting\n- Authentication endpoints: 5 requests per minute\n- General API: 100 requests per minute\n\n### Error Responses\nAll errors follow a consistent format:\n```json\n{\n  \"statusCode\": 400,\n  \"message\": \"Error description\",\n  \"error\": \"Bad Request\"\n}\n```",
+    "description": "## ProFile - Resume & Portfolio Management API\n\nProFile is a comprehensive platform for creating, managing, and exporting professional resumes and portfolios.\n\n### Features\n- **Authentication**: JWT-based authentication with email verification and password reset\n- **Resume Management**: Full CRUD operations for resumes with multiple sections\n- **Rich Content Sections**: Education, Experience, Skills, Projects, Certifications, and more\n- **Export Options**: Generate PDF and DOCX documents from resumes\n- **File Upload**: Upload profile pictures and attachments via S3-compatible storage\n- **User Onboarding**: Guided onboarding flow for new users\n\n### Authentication\nAll protected endpoints require a valid JWT token in the Authorization header:\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\n### Rate Limiting\n- Authentication endpoints: 5 requests per minute\n- General API: 100 requests per minute\n\n### Error Responses\nAll errors follow a consistent format:\n```json\n{ \"statusCode\": 400, \"message\": \"Error description\", \"error\": \"Bad Request\" }\n```",
     "version": "1.0.0",
     "contact": {
       "name": "ProFile Team",
@@ -15642,12 +15642,12 @@
           "title": {
             "type": "string",
             "description": "Short title for UI surfaces like the bell dropdown.",
-            "example": "{actorName} curtiu seu post"
+            "example": "{ actorName } curtiu seu post"
           },
           "body": {
             "type": "string",
             "description": "Longer body for the notifications page / email.",
-            "example": "{actorName} curtiu seu post \"{postExcerpt}\""
+            "example": "{ actorName } curtiu seu post \"{ postExcerpt }\""
           },
           "params": {
             "description": "Placeholder names that must be supplied when rendering.",
@@ -21120,7 +21120,7 @@
           },
           "shadow": {
             "type": "string",
-            "example": "0 2px 4px rgba(0,0,0,0.1)"
+            "example": "0 2px 4px rgba(0, 0, 0, 0.1)"
           }
         },
         "required": [

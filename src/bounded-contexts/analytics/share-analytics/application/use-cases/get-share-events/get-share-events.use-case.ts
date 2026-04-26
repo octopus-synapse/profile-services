@@ -14,11 +14,7 @@ export class GetShareEventsUseCase {
   async execute(
     shareId: string,
     userId: string,
-    filters?: {
-      startDate?: Date;
-      endDate?: Date;
-      eventType?: 'VIEW' | 'DOWNLOAD';
-    },
+    filters?: { startDate?: Date; endDate?: Date; eventType?: 'VIEW' | 'DOWNLOAD' },
   ) {
     const share = await this.repository.findShareWithOwner(shareId);
 

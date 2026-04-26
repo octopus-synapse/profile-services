@@ -11,8 +11,7 @@ import type { CreateGroupInput } from '../domain/entities/group.entity';
  * Group definition with role assignments
  */
 export interface GroupDefinition extends CreateGroupInput {
-  /** Role names assigned to this group */
-  roles: string[];
+  /** Role names assigned to this group */ roles: string[];
   /** Direct permissions in "resource:action" format */
   permissions?: string[];
 }

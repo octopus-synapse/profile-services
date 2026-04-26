@@ -5,11 +5,8 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  ANALYTICS_EVENT_BUS_PORT,
-  AnalyticsEventBusPort,
-} from '../application/ports/analytics-event-bus.port';
+import { Injectable } from '@nestjs/common';
+import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import {
   AtsScoreCatalogPort,
   type SectionTypeAtsConfig,
@@ -22,7 +19,6 @@ import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../interfa
 export class ATSScoreService {
   constructor(
     private readonly catalog: AtsScoreCatalogPort,
-    @Inject(ANALYTICS_EVENT_BUS_PORT)
     private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
@@ -173,10 +169,7 @@ export class ATSScoreService {
             code: 'MISSING_WEIGHTED_FIELDS',
             severity: missingRoles.length > 2 ? 'high' : 'medium',
             message: `Section ${section.semanticKind} item is missing fields: ${missingRoles.join(', ')}`,
-            context: {
-              sectionKind: section.semanticKind,
-              missingFields: missingRoles,
-            },
+            context: { sectionKind: section.semanticKind, missingFields: missingRoles },
           });
         }
       }

@@ -8,17 +8,15 @@
  * and session establishment (sets secure cookie).
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-
 /** Narrow view of ConfigService used by this use case (DIP). */
 export interface SessionConfigPort {
   get<T>(key: string, defaultValue: T): T;
 }
 
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { Session, SessionCreatedEvent } from '../../../domain';
 import { SessionUserNotFoundException } from '../../../domain/exceptions/authentication.exceptions';
-import type {
+import {
   AuthenticationRepositoryPort,
   SessionStoragePort,
   TokenGeneratorPort,
@@ -30,24 +28,13 @@ import type {
   SessionUserData,
 } from '../../ports';
 
-// Injection tokens
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const SESSION_STORAGE = Symbol('SessionStoragePort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class CreateSessionUseCase implements CreateSessionPort {
   private readonly sessionExpiryDays: number;
 
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(SESSION_STORAGE)
     private readonly sessionStorage: SessionStoragePort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
     private readonly configService: SessionConfigPort,
   ) {
@@ -102,5 +89,3 @@ export class CreateSessionUseCase implements CreateSessionPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, EVENT_BUS, SESSION_STORAGE, TOKEN_GENERATOR };

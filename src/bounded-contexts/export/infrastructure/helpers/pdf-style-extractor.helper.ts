@@ -32,12 +32,7 @@ export class PdfStyleExtractor {
         .map((name) => `${name}: ${rootStyle.getPropertyValue(name)};`)
         .join(' ');
 
-      return {
-        linkTags,
-        styleTags,
-        resumeHTML: resumeEl ? resumeEl.outerHTML : '',
-        cssVars,
-      };
+      return { linkTags, styleTags, resumeHTML: resumeEl ? resumeEl.outerHTML : '', cssVars };
     });
   }
 

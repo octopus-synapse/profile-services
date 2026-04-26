@@ -41,10 +41,7 @@ export interface ResolvedTokens {
     contentPaddingPx: number;
     densityFactor: number;
   };
-  effects: {
-    borderRadiusPx: number;
-    boxShadow: string;
-  };
+  effects: { borderRadiusPx: number; boxShadow: string };
 }
 
 @Injectable()

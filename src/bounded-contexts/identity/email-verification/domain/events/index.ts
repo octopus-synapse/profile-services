@@ -1,4 +1,1 @@
-export {
-  EmailVerifiedEvent,
-  VerificationEmailSentEvent,
-} from './email-verification.events';
+export { EmailVerifiedEvent, VerificationEmailSentEvent } from './email-verification.events';

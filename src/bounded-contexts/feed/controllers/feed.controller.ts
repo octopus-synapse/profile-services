@@ -25,11 +25,7 @@ import {
 import { FeedService } from '../services/feed.service';
 import { PostService } from '../services/post.service';
 
-@SdkExport({
-  tag: 'feed',
-  description: 'Feed API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'feed', description: 'Feed API', requiresAuth: true })
 @ApiTags('feed')
 @ApiBearerAuth('JWT-auth')
 @RequirePermission(Permission.FEED_USE)
@@ -55,9 +51,7 @@ export class FeedController {
     type: Boolean,
     description: 'When true, restricts to posts from users the viewer follows ("Minha bolha").',
   })
-  @ApiDataResponse(FeedTimelineDataDto, {
-    description: 'Feed timeline with posts',
-  })
+  @ApiDataResponse(FeedTimelineDataDto, { description: 'Feed timeline with posts' })
   async getTimeline(
     @CurrentUser() user: UserPayload,
     @Query('cursor') cursor?: string,
@@ -82,9 +76,7 @@ export class FeedController {
   @ApiOperation({ summary: 'Get bookmarked posts' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiDataResponse(FeedBookmarksDataDto, {
-    description: 'Bookmarked posts',
-  })
+  @ApiDataResponse(FeedBookmarksDataDto, { description: 'Bookmarked posts' })
   async getBookmarks(
     @CurrentUser() user: UserPayload,
     @Query('cursor') cursor?: string,

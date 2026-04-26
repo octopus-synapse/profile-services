@@ -32,10 +32,7 @@ export interface KeywordMatchInput {
 
 export interface KeywordMatchResult extends SubScoreResult {
   readonly score: number;
-  readonly detail: Readonly<{
-    matched: readonly string[];
-    missing: readonly string[];
-  }>;
+  readonly detail: Readonly<{ matched: readonly string[]; missing: readonly string[] }>;
 }
 
 /**

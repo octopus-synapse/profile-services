@@ -16,12 +16,7 @@ import {
   PostNotFoundException,
 } from '../domain/exceptions/feed.exceptions';
 
-const AUTHOR_SELECT = {
-  id: true,
-  name: true,
-  username: true,
-  photoURL: true,
-} as const;
+const AUTHOR_SELECT = { id: true, name: true, username: true, photoURL: true } as const;
 
 @Injectable()
 export class EngagementService {
@@ -89,13 +84,7 @@ export class EngagementService {
       postId,
     );
 
-    return {
-      postId,
-      userId,
-      reactionType,
-      postAuthorId: post.authorId,
-      alreadyLiked: false,
-    };
+    return { postId, userId, reactionType, postAuthorId: post.authorId, alreadyLiked: false };
   }
 
   /**
@@ -199,12 +188,7 @@ export class EngagementService {
 
     // Check for duplicate repost
     const existingRepost = await this.prisma.post.findFirst({
-      where: {
-        type: 'REPOST',
-        originalPostId: postId,
-        authorId: userId,
-        isDeleted: false,
-      },
+      where: { type: 'REPOST', originalPostId: postId, authorId: userId, isDeleted: false },
     });
 
     if (existingRepost) {

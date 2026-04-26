@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { AnalyticsRecorder } from '../../application/handlers';
+import { AnalyticsRecorder } from '../../application/handlers';
 
 /**
  * Adapter that implements the AnalyticsRecorder port.

@@ -41,8 +41,6 @@ const FitQuestionResponseSchema = z.object({
 
 export class FitQuestionResponseDto extends createZodDto(FitQuestionResponseSchema) {}
 
-const FitQuestionListResponseSchema = z.object({
-  items: z.array(FitQuestionResponseSchema),
-});
+const FitQuestionListResponseSchema = z.object({ items: z.array(FitQuestionResponseSchema) });
 
 export class FitQuestionListResponseDto extends createZodDto(FitQuestionListResponseSchema) {}

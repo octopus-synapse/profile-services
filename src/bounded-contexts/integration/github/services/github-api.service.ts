@@ -17,9 +17,7 @@ export class GitHubApiService {
   }
 
   async fetchGitHub<T>(endpoint: string): Promise<T> {
-    const headers: Record<string, string> = {
-      Accept: 'application/vnd.github.v3+json',
-    };
+    const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
 
     if (this.githubToken) {
       headers.Authorization = `Bearer ${this.githubToken}`;
@@ -102,11 +100,7 @@ export class GitHubApiService {
   }
 
   private createHttpException(status: HttpStatus, message: string, error: string): HttpException {
-    const exceptionResponse = {
-      statusCode: status,
-      message,
-      error,
-    };
+    const exceptionResponse = { statusCode: status, message, error };
     const exception = new HttpException(exceptionResponse, status);
 
     Object.defineProperty(exception, 'response', {

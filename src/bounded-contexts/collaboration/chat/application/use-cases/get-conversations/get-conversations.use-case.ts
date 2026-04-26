@@ -3,7 +3,7 @@ import type {
   PaginatedConversationsResponse,
 } from '../../../schemas/chat.schema';
 import { mapConversationToResponse } from '../../mappers/chat.mapper';
-import type { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
+import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationsUseCase {
   constructor(

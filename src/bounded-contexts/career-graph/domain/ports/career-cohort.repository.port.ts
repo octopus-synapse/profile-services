@@ -22,16 +22,14 @@ export interface CohortRequest {
   readonly maxBuckets: number;
 }
 
-export interface CareerCohortRepositoryPort {
-  loadCohortBuckets(input: CohortRequest): Promise<ReadonlyArray<CohortBucket>>;
+export abstract class CareerCohortRepositoryPort {
+  abstract loadCohortBuckets(input: CohortRequest): Promise<ReadonlyArray<CohortBucket>>;
 
   /**
    * Light read: the requester's own current `experienceYears` + `jobTitle`
    * from their primary resume. Null jobTitle is fine (early-career users).
    */
-  loadRequesterSnapshot(
+  abstract loadRequesterSnapshot(
     requesterId: string,
   ): Promise<{ experienceYears: number; jobTitle: string | null } | null>;
 }
-
-export const CAREER_COHORT_REPOSITORY_PORT = Symbol('CareerCohortRepositoryPort');

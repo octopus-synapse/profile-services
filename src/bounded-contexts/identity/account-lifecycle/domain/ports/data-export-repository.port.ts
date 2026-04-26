@@ -67,26 +67,24 @@ export interface ExportedAuditLog {
   ipAddress: string | null;
 }
 
-export interface DataExportRepositoryPort {
+export abstract class DataExportRepositoryPort {
   /**
    * Get user data for export
    */
-  getUserData(userId: string): Promise<ExportedUserData | null>;
+  abstract getUserData(userId: string): Promise<ExportedUserData | null>;
 
   /**
    * Get user consents
    */
-  getUserConsents(userId: string): Promise<ExportedConsent[]>;
+  abstract getUserConsents(userId: string): Promise<ExportedConsent[]>;
 
   /**
    * Get user resumes with all related data
    */
-  getUserResumes(userId: string): Promise<ExportedResume[]>;
+  abstract getUserResumes(userId: string): Promise<ExportedResume[]>;
 
   /**
    * Get user audit logs (limited to last 1000)
    */
-  getUserAuditLogs(userId: string, limit?: number): Promise<ExportedAuditLog[]>;
+  abstract getUserAuditLogs(userId: string, limit?: number): Promise<ExportedAuditLog[]>;
 }
-
-export const DATA_EXPORT_REPOSITORY_PORT = Symbol('DataExportRepositoryPort');

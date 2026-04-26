@@ -1,11 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  LoginAttemptRecord,
-  LoginAttemptsPort,
-  LoginLockStatus,
-} from '../../domain/ports/login-attempts.port';
+import type { LoginAttemptRecord, LoginLockStatus } from '../../domain/ports/login-attempts.port';
+import { LoginAttemptsPort } from '../../domain/ports/login-attempts.port';
 
 @Injectable()
 export class PrismaLoginAttemptsAdapter implements LoginAttemptsPort {
@@ -57,12 +54,7 @@ export class PrismaLoginAttemptsAdapter implements LoginAttemptsPort {
     const lockUntil = new Date(oldestFailure.getTime() + this.lockDurationMs);
     const resetInSeconds = Math.max(0, Math.ceil((lockUntil.getTime() - Date.now()) / 1000));
 
-    return {
-      locked: resetInSeconds > 0,
-      failureCount,
-      lockUntil,
-      resetInSeconds,
-    };
+    return { locked: resetInSeconds > 0, failureCount, lockUntil, resetInSeconds };
   }
 
   async clearFailedAttempts(email: string): Promise<void> {

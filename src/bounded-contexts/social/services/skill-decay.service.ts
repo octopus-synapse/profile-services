@@ -77,10 +77,7 @@ export class SkillDecayService {
         type: 'SKILL_DECAY',
         message: `Your "${finding.skillName}" skill hasn't moved in ${finding.daysSinceTouched} days — pick a small project or short course to reactivate it.`,
         messageKey: 'notification.skill_decay',
-        messageParams: {
-          skillName: finding.skillName,
-          daysSinceTouched: finding.daysSinceTouched,
-        },
+        messageParams: { skillName: finding.skillName, daysSinceTouched: finding.daysSinceTouched },
       },
     });
   }

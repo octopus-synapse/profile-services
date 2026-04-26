@@ -28,11 +28,7 @@ export interface CollaboratorWithUser {
   invitedBy: string;
   invitedAt: Date;
   joinedAt: Date | null;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
+  user: { id: string; name: string | null; email: string };
 }
 
 export interface SharedResume {

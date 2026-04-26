@@ -11,8 +11,8 @@ import {
   ResumeShareSlugTakenException,
 } from '../../../domain/exceptions/presentation.exceptions';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
-import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
+import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 interface CreateShareDto {
   resumeId: string;
@@ -60,10 +60,7 @@ export class CreateShareUseCase {
     });
 
     this.eventPublisher.publish(
-      new ResumePublishedEvent(dto.resumeId, {
-        userId: resume.userId,
-        slug,
-      }),
+      new ResumePublishedEvent(dto.resumeId, { userId: resume.userId, slug }),
     );
 
     return share;

@@ -22,10 +22,7 @@ async function seedPermissions(): Promise<Map<string, string>> {
 
     const result = await prisma.permission.upsert({
       where: {
-        resource_action: {
-          resource: permission.resource,
-          action: permission.action,
-        },
+        resource_action: { resource: permission.resource, action: permission.action },
       },
       create: {
         resource: permission.resource,
@@ -33,10 +30,7 @@ async function seedPermissions(): Promise<Map<string, string>> {
         description: permission.description,
         isSystem: permission.isSystem ?? false,
       },
-      update: {
-        description: permission.description,
-        isSystem: permission.isSystem ?? false,
-      },
+      update: { description: permission.description, isSystem: permission.isSystem ?? false },
     });
 
     permissionMap.set(key, result.id);
@@ -77,15 +71,9 @@ async function seedRoles(permissionMap: Map<string, string>): Promise<Map<string
       if (permissionId) {
         await prisma.rolePermission.upsert({
           where: {
-            roleId_permissionId: {
-              roleId: role.id,
-              permissionId,
-            },
+            roleId_permissionId: { roleId: role.id, permissionId },
           },
-          create: {
-            roleId: role.id,
-            permissionId,
-          },
+          create: { roleId: role.id, permissionId },
           update: {},
         });
       } else {
@@ -129,15 +117,9 @@ async function seedGroups(
       if (roleId) {
         await prisma.groupRole.upsert({
           where: {
-            groupId_roleId: {
-              groupId: group.id,
-              roleId,
-            },
+            groupId_roleId: { groupId: group.id, roleId },
           },
-          create: {
-            groupId: group.id,
-            roleId,
-          },
+          create: { groupId: group.id, roleId },
           update: {},
         });
       } else {
@@ -152,15 +134,9 @@ async function seedGroups(
         if (permissionId) {
           await prisma.groupPermission.upsert({
             where: {
-              groupId_permissionId: {
-                groupId: group.id,
-                permissionId,
-              },
+              groupId_permissionId: { groupId: group.id, permissionId },
             },
-            create: {
-              groupId: group.id,
-              permissionId,
-            },
+            create: { groupId: group.id, permissionId },
             update: {},
           });
         }

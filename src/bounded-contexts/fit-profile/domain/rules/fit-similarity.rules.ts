@@ -78,10 +78,7 @@ export function weightedCosineScore(a: FitVector, b: FitVector): number | null {
       cosine: cosineOnBlock(a.schwartz, b.schwartz, SCHWARTZ_DIMENSIONS),
       weight: SIMILARITY_BLOCK_WEIGHTS.schwartz,
     },
-    {
-      cosine: cosineOnBlock(a.sdt, b.sdt, SDT_DIMENSIONS),
-      weight: SIMILARITY_BLOCK_WEIGHTS.sdt,
-    },
+    { cosine: cosineOnBlock(a.sdt, b.sdt, SDT_DIMENSIONS), weight: SIMILARITY_BLOCK_WEIGHTS.sdt },
   ];
 
   const live = blocks.filter((b): b is { cosine: number; weight: number } => b.cosine !== null);

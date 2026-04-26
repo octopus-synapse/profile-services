@@ -4,10 +4,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
-type CachedAlerts = {
-  at: number;
-  data: AdminAlerts;
-};
+type CachedAlerts = { at: number; data: AdminAlerts };
 
 export interface AdminAlerts {
   reportsPending: number;

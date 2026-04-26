@@ -2,7 +2,7 @@
  * I18nService
  *
  * Resolves `(code, params, locale)` to a localized message by looking the
- * code up in the `@packages/i18n` dictionary and interpolating `{param}`
+ * code up in the `@packages/i18n` dictionary and interpolating `{ param }`
  * placeholders from the supplied params. The dictionary is the source of
  * truth — no JSON loading, no runtime fetches, no locale fallback.
  *

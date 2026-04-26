@@ -12,13 +12,13 @@
  */
 
 import { createHash } from 'node:crypto';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ShareAnalyticsNotAuthorizedException } from '../../domain/exceptions/analytics.exceptions';
 import { parseUserAgent } from '../application/utils/parse-user-agent';
-import { SHARE_ANALYTICS_REPOSITORY, type ShareAnalyticsRepositoryPort } from '../ports';
-import { GEO_LOOKUP_PORT, type GeoLookupPort } from '../ports/geo-lookup.port';
+import { ShareAnalyticsRepositoryPort } from '../ports';
+import { GeoLookupPort } from '../ports/geo-lookup.port';
 
 interface TrackEvent {
   shareId: string;
@@ -36,9 +36,7 @@ interface TrackEvent {
 @Injectable()
 export class ShareAnalyticsService {
   constructor(
-    @Inject(SHARE_ANALYTICS_REPOSITORY)
     private readonly repository: ShareAnalyticsRepositoryPort,
-    @Inject(GEO_LOOKUP_PORT)
     private readonly geoLookup: GeoLookupPort,
   ) {}
 
@@ -104,10 +102,7 @@ export class ShareAnalyticsService {
       totalViews: analytics.find((a) => a.event === 'VIEW')?._count.event ?? 0,
       totalDownloads: analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
       uniqueVisitors: uniqueViews.length,
-      byCountry: byCountry.map((c) => ({
-        country: c.country,
-        count: c._count.country,
-      })),
+      byCountry: byCountry.map((c) => ({ country: c.country, count: c._count.country })),
       byDeviceType: byDeviceType.map((d) => ({
         deviceType: d.deviceType,
         count: d._count.deviceType,
@@ -119,11 +114,7 @@ export class ShareAnalyticsService {
   async getEvents(
     shareId: string,
     userId: string,
-    filters?: {
-      startDate?: Date;
-      endDate?: Date;
-      eventType?: 'VIEW' | 'DOWNLOAD';
-    },
+    filters?: { startDate?: Date; endDate?: Date; eventType?: 'VIEW' | 'DOWNLOAD' },
   ) {
     // Verify ownership
     const share = await this.repository.findShareWithOwner(shareId);

@@ -39,12 +39,7 @@ export class PermissionCollector {
 
   addFromRole(permissionId: PermissionId, roleId: RoleId, roleName: string): void {
     const entry = this.getOrCreate(permissionId);
-    entry.sources.push({
-      type: 'role',
-      sourceId: roleId,
-      sourceName: roleName,
-      inherited: false,
-    });
+    entry.sources.push({ type: 'role', sourceId: roleId, sourceName: roleName, inherited: false });
     if (!entry.hasDenial) {
       entry.granted = true;
     }
@@ -57,12 +52,7 @@ export class PermissionCollector {
     inherited: boolean,
   ): void {
     const entry = this.getOrCreate(permissionId);
-    entry.sources.push({
-      type: 'group',
-      sourceId: groupId,
-      sourceName: groupName,
-      inherited,
-    });
+    entry.sources.push({ type: 'group', sourceId: groupId, sourceName: groupName, inherited });
     if (!entry.hasDenial) {
       entry.granted = true;
     }
@@ -77,11 +67,7 @@ export class PermissionCollector {
     for (const [permissionId, entry] of this.entries) {
       const permission = permissionMap.get(permissionId);
       if (permission) {
-        resolved.push({
-          permission,
-          sources: entry.sources,
-          granted: entry.granted,
-        });
+        resolved.push({ permission, sources: entry.sources, granted: entry.granted });
       }
     }
     return resolved;

@@ -17,8 +17,8 @@ export interface PdfCacheKeyInput {
  * MinIO-backed cache for rendered resume PDFs.
  *
  * Cache key:
- *   `pdfs/resume/{userId}-{resumeId}-{styleId|none}-{styleVersion|0}-
- *    {resumeUpdatedAtMs}-{renderArgsHash}.pdf`
+ *   `pdfs/resume/{ userId }-{ resumeId }-{ styleId|none }-{ styleVersion|0 }-
+ *    { resumeUpdatedAtMs }-{ renderArgsHash }.pdf`
  *
  * Why these components:
  * - `resumeId`/`styleId`/`styleVersion`: every visual or template

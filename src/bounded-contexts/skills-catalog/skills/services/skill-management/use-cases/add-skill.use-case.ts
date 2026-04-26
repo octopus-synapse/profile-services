@@ -15,10 +15,7 @@ export class AddSkillUseCase {
     const section = await this.repository.ensureSkillSection(resumeId);
     const order = await this.repository.getNextOrderValue(section.id);
 
-    const content: Record<string, unknown> = {
-      name: data.name,
-      category: data.category,
-    };
+    const content: Record<string, unknown> = { name: data.name, category: data.category };
 
     if (data.level !== undefined) {
       content.level = data.level;

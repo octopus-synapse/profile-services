@@ -106,10 +106,7 @@ export function scoreCompleteness(resume: ResumeForCompleteness): CompletenessRe
     }
   }
 
-  return {
-    score: Math.max(0, Math.min(100, score)),
-    issues,
-  };
+  return { score: Math.max(0, Math.min(100, score)), issues };
 }
 
 function nonBlank(value: string | null | undefined): boolean {

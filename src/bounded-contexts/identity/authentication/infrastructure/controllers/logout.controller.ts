@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AllowUnverifiedEmail } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
@@ -17,8 +7,8 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { LogoutPort, TerminateSessionPort } from '../../application/ports';
-import { LOGOUT_PORT, TERMINATE_SESSION_PORT } from '../../application/ports';
+import { LogoutPort, TerminateSessionPort } from '../../application/ports';
+
 import { LogoutDto, LogoutResponseDto } from '../../application/use-cases/logout/logout.dto';
 import type {
   CookieReader,
@@ -34,9 +24,7 @@ interface AuthenticatedUser {
  * Creates a CookieReader adapter from Express Request
  */
 function createCookieReader(req: Request): CookieReader {
-  return {
-    getCookie: (name: string) => req.cookies?.[name],
-  };
+  return { getCookie: (name: string) => req.cookies?.[name] };
 }
 
 /**
@@ -45,10 +33,7 @@ function createCookieReader(req: Request): CookieReader {
 function createCookieWriter(res: Response): CookieWriter {
   return {
     setCookie: (name: string, value: string, options: SessionCookieOptions) => {
-      res.cookie(name, value, {
-        ...options,
-        expires: new Date(Date.now() + options.maxAge),
-      });
+      res.cookie(name, value, { ...options, expires: new Date(Date.now() + options.maxAge) });
     },
     clearCookie: (name: string, options: Partial<SessionCookieOptions>) => {
       res.clearCookie(name, options);
@@ -62,9 +47,7 @@ function createCookieWriter(res: Response): CookieWriter {
 @Controller('auth')
 export class LogoutController {
   constructor(
-    @Inject(LOGOUT_PORT)
     private readonly logoutService: LogoutPort,
-    @Inject(TERMINATE_SESSION_PORT)
     private readonly terminateSessionService: TerminateSessionPort,
   ) {}
 
@@ -77,9 +60,7 @@ export class LogoutController {
     summary: 'Logout',
     description: 'Logs out the user by invalidating refresh token(s) and clearing session cookie.',
   })
-  @ApiDataResponse(LogoutResponseDto, {
-    description: 'Logout successful',
-  })
+  @ApiDataResponse(LogoutResponseDto, { description: 'Logout successful' })
   async logout(
     @Body() dto: LogoutDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -106,9 +87,7 @@ export class LogoutController {
 
     return {
       success: true,
-      data: {
-        message,
-      },
+      data: { message },
     };
   }
 }

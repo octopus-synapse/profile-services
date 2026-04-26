@@ -86,10 +86,7 @@ export class RateLimitService {
 
     // Window expired or no entry - start fresh
     if (!entry || entry.expiresAt < now) {
-      const newEntry: RateLimitEntry = {
-        count: 1,
-        expiresAt: windowEnd,
-      };
+      const newEntry: RateLimitEntry = { count: 1, expiresAt: windowEnd };
       await this.cacheService.set(key, newEntry, duration);
 
       return {
@@ -112,10 +109,7 @@ export class RateLimitService {
 
     // Increment counter
     const newCount = entry.count + 1;
-    const updatedEntry: RateLimitEntry = {
-      count: newCount,
-      expiresAt: entry.expiresAt,
-    };
+    const updatedEntry: RateLimitEntry = { count: newCount, expiresAt: entry.expiresAt };
     const remainingTtl = Math.ceil((entry.expiresAt - now) / 1000);
     await this.cacheService.set(key, updatedEntry, remainingTtl);
 
@@ -141,10 +135,7 @@ export class RateLimitService {
     };
 
     if (result.isBlocked) {
-      return {
-        ...headers,
-        'Retry-After': Math.ceil(result.msBeforeNext / 1000),
-      };
+      return { ...headers, 'Retry-After': Math.ceil(result.msBeforeNext / 1000) };
     }
 
     return headers;
@@ -197,10 +188,7 @@ export class RateLimitService {
    * Resets the rate limit counter for a key.
    */
   async reset(key: string): Promise<void> {
-    const entry: RateLimitEntry = {
-      count: 0,
-      expiresAt: Date.now() + 60000,
-    };
+    const entry: RateLimitEntry = { count: 0, expiresAt: Date.now() + 60000 };
     await this.cacheService.set(key, entry, 60);
   }
 }

@@ -3,7 +3,7 @@
  * Single Responsibility: Track security-critical and compliance-related actions
  *
  * Usage:
- *   constructor(private auditLog: AuditLogService) {}
+ *   constructor(private auditLog: AuditLogService) {  }
  *   await this.auditLog.log(userId, AuditAction.USERNAME_CHANGED, 'User', userId, { before, after }, request);
  */
 
@@ -27,9 +27,7 @@ export interface RequestMetadataSource {
   method?: string;
   originalUrl?: string;
   path?: string;
-  socket?: {
-    remoteAddress?: string;
-  };
+  socket?: { remoteAddress?: string };
 }
 
 @Injectable()
@@ -53,10 +51,7 @@ export class AuditLogService {
     action: AuditAction,
     entityType: string,
     entityId: string,
-    changes?: {
-      before?: Prisma.InputJsonValue;
-      after?: Prisma.InputJsonValue;
-    },
+    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
     request?: RequestMetadataSource,
   ): Promise<void> {
     try {
@@ -135,9 +130,7 @@ export class AuditLogService {
       AuditAction.RESUME_DELETED,
       'Resume',
       resumeId,
-      {
-        before: resumeData,
-      },
+      { before: resumeData },
       request,
     );
   }
@@ -219,10 +212,7 @@ export class AuditLogService {
       AuditAction.PREFERENCES_UPDATED,
       'UserPreferences',
       userId,
-      {
-        before: oldPreferences,
-        after: newPreferences,
-      },
+      { before: oldPreferences, after: newPreferences },
       request,
     );
   }
@@ -258,11 +248,7 @@ export class AuditLogService {
       take: limit,
       include: {
         user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
+          select: { id: true, username: true, email: true },
         },
       },
     });
@@ -316,9 +302,7 @@ export class AuditLogService {
 
     const result = await this.prisma.auditLog.deleteMany({
       where: {
-        createdAt: {
-          lt: cutoffDate,
-        },
+        createdAt: { lt: cutoffDate },
       },
     });
 

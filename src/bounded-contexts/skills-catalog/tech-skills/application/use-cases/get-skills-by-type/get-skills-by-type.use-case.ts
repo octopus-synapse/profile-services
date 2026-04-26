@@ -1,6 +1,6 @@
 import type { TechSkill } from '../../../dto/tech-skill.dto';
 import type { SkillType } from '../../../interfaces';
-import type { TechSkillRepositoryPort } from '../../ports/tech-skills.port';
+import { TechSkillRepositoryPort } from '../../ports/tech-skills.port';
 
 export class GetSkillsByTypeUseCase {
   constructor(private readonly repository: TechSkillRepositoryPort) {}

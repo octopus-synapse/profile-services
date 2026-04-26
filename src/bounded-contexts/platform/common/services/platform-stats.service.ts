@@ -43,9 +43,7 @@ export class PlatformStatsService {
         withOnboarding: usersWithOnboarding,
         recentSignups,
       },
-      resumes: {
-        total: totalResumes,
-      },
+      resumes: { total: totalResumes },
     };
   }
 

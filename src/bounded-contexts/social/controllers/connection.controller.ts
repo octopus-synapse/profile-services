@@ -318,10 +318,7 @@ export class ConnectionController {
   ): Promise<DataResponse<ConnectionStatsDto>> {
     const stats = await this.connectionService.getConnectionStats(userId);
 
-    return {
-      success: true,
-      data: stats,
-    };
+    return { success: true, data: stats };
   }
 
   /**
@@ -340,9 +337,6 @@ export class ConnectionController {
   ): Promise<DataResponse<ConnectionCheckDto>> {
     const status = await this.connectionService.getConnectionStatusWith(user.userId, targetUserId);
 
-    return {
-      success: true,
-      data: status,
-    };
+    return { success: true, data: status };
   }
 }

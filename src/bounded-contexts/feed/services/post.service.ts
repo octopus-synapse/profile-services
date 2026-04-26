@@ -118,8 +118,7 @@ export class PostService {
         scheduledAt,
         isPublished,
         threadId: dto.threadId,
-        codeSnippet: dto.codeSnippet,
-        // Blind Mode — author id is still persisted for moderation/anti-spam;
+        codeSnippet: dto.codeSnippet, // Blind Mode — author id is still persisted for moderation/anti-spam;
         // the read-time serializer hides identity fields when `isAnonymous`.
         isAnonymous: dto.isAnonymous === true,
         anonymousCategory: dto.isAnonymous ? (dto.anonymousCategory ?? null) : null,
@@ -187,10 +186,7 @@ export class PostService {
 
     return this.prisma.post.update({
       where: { id },
-      data: {
-        isDeleted: true,
-        deletedAt: new Date(),
-      },
+      data: { isDeleted: true, deletedAt: new Date() },
     });
   }
 

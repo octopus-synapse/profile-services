@@ -41,11 +41,7 @@ export class UploadService {
       throw new UploadStorageUnavailableException();
     }
 
-    this.logger.log('Profile image uploaded', 'UploadService', {
-      userId,
-      key,
-      size: file.size,
-    });
+    this.logger.log('Profile image uploaded', 'UploadService', { userId, key, size: file.size });
 
     return result;
   }

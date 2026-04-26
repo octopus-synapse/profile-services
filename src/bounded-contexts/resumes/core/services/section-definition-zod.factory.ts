@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
   DuplicatedSectionFieldKeyException,
@@ -19,7 +18,6 @@ import {
  * - All field knowledge comes from SectionType.definition (DB)
  * - Validation rules are driven by the definition, not hardcoded
  */
-@Injectable()
 export class SectionDefinitionZodFactory {
   private readonly schemaCache = new Map<string, z.ZodType<Record<string, unknown>>>();
 

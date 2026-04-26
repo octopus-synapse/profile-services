@@ -1,5 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ResumeEventPublisher } from '../../../../domain/ports';
+import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 
 export class DeleteResumeForUserUseCase {

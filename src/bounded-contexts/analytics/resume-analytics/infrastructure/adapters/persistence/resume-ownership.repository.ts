@@ -6,7 +6,7 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ResumeOwnershipPort } from '../../../application/ports/resume-analytics.port';
+import { ResumeOwnershipPort } from '../../../application/ports/resume-analytics.port';
 import type { ResumeForAnalytics } from '../../../domain/types';
 
 export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
@@ -37,16 +37,11 @@ export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                semanticKind: true,
-              },
+              select: { semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
-              select: {
-                id: true,
-                content: true,
-              },
+              select: { id: true, content: true },
             },
           },
         },

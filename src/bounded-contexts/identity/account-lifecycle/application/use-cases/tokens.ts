@@ -1,10 +1,30 @@
 /**
- * DI tokens for account-lifecycle use-cases.
+ * DI ports for account-lifecycle use-cases.
  *
  * Lives outside any controller file so the ConsentGuard (in shared-kernel)
- * can depend on the symbol without dragging in controller code that itself
- * imports JwtAuthGuard from shared-kernel — which would form a cycle.
+ * can depend on these abstract classes without dragging in controller code
+ * that itself imports JwtAuthGuard from shared-kernel — which would form a
+ * cycle.
  */
-export const ACCEPT_CONSENT_USE_CASE = Symbol('AcceptConsentUseCase');
-export const GET_CONSENT_STATUS_USE_CASE = Symbol('GetConsentStatusUseCase');
-export const GET_CONSENT_HISTORY_USE_CASE = Symbol('GetConsentHistoryUseCase');
+
+import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent/accept-consent.dto';
+import type {
+  GetConsentHistoryInput,
+  GetConsentHistoryOutput,
+} from './get-consent-history/get-consent-history.dto';
+import type {
+  GetConsentStatusInput,
+  GetConsentStatusOutput,
+} from './get-consent-status/get-consent-status.dto';
+
+export abstract class AcceptConsentUseCasePort {
+  abstract execute(input: AcceptConsentInput): Promise<AcceptConsentOutput>;
+}
+
+export abstract class GetConsentStatusUseCasePort {
+  abstract execute(input: GetConsentStatusInput): Promise<GetConsentStatusOutput>;
+}
+
+export abstract class GetConsentHistoryUseCasePort {
+  abstract execute(input: GetConsentHistoryInput): Promise<GetConsentHistoryOutput>;
+}

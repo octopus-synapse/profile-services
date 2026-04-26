@@ -17,14 +17,10 @@ export class MecStatsService {
   async getMecStatistics(): Promise<MecStats> {
     const totalInstitutionCount = await this.institutionRepo.countActiveInstitutions();
     const totalCourseCount: number = await this.courseRepo.countActiveCourses();
-    const coursesByDegreeCount: Array<{
-      grau: string | null;
-      _count: number;
-    }> = await this.courseRepo.countCoursesByDegree();
-    const institutionsByUfCount: Array<{
-      uf: string;
-      _count: number;
-    }> = await this.institutionRepo.countInstitutionsByUf();
+    const coursesByDegreeCount: Array<{ grau: string | null; _count: number }> =
+      await this.courseRepo.countCoursesByDegree();
+    const institutionsByUfCount: Array<{ uf: string; _count: number }> =
+      await this.institutionRepo.countInstitutionsByUf();
 
     const coursesByGrauStatistics = coursesByDegreeCount.map((degreeGroup) => ({
       grau: degreeGroup.grau ?? 'Não informado',

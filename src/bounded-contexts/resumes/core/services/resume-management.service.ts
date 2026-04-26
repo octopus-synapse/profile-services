@@ -7,18 +7,10 @@
  * Single Responsibility: CRUD operations on resumes requiring 'resume:*' permissions.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  RESUME_MANAGEMENT_USE_CASES,
-  type ResumeManagementUseCases,
-} from './resume-management/ports/resume-management.port';
+import { ResumeManagementUseCases } from './resume-management/ports/resume-management.port';
 
-@Injectable()
 export class ResumeManagementService {
-  constructor(
-    @Inject(RESUME_MANAGEMENT_USE_CASES)
-    private readonly useCases: ResumeManagementUseCases,
-  ) {}
+  constructor(private readonly useCases: ResumeManagementUseCases) {}
 
   // ============================================================================
   // Query Operations (require 'resume:read' or 'resume:manage')

@@ -1,4 +1,4 @@
-import type { ChatCachePort, MessageRepositoryPort } from '../../ports/chat.port';
+import { ChatCachePort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetUnreadCountUseCase {
   constructor(

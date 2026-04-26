@@ -37,8 +37,6 @@ export class StyleSummaryDto extends createZodDto(StyleSummarySchema) {}
 export class StyleDetailDto extends createZodDto(StyleDetailSchema) {}
 export class StyleListResponseDto extends createZodDto(StyleListResponseSchema) {}
 
-const ApplyStyleRequestSchema = z.object({
-  styleId: z.string().min(1),
-});
+const ApplyStyleRequestSchema = z.object({ styleId: z.string().min(1) });
 
 export class ApplyStyleRequestDto extends createZodDto(ApplyStyleRequestSchema) {}

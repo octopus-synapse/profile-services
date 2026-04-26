@@ -1,15 +1,14 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { VERIFY_AND_ENABLE_2FA_PORT } from '../../application/ports';
 import {
   VerifyAndEnable2faRequestDto,
   VerifyAndEnable2faResponseDto,
 } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.dto';
-import type { VerifyAndEnable2faUseCase } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.use-case';
+import { VerifyAndEnable2faUseCase } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -24,10 +23,7 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class VerifyAndEnable2faController {
-  constructor(
-    @Inject(VERIFY_AND_ENABLE_2FA_PORT)
-    private readonly useCase: VerifyAndEnable2faUseCase,
-  ) {}
+  constructor(private readonly useCase: VerifyAndEnable2faUseCase) {}
 
   @Post('verify')
   @HttpCode(HttpStatus.OK)

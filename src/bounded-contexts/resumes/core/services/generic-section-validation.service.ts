@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   SectionItemContentInvalidException,
   UnknownSectionTypeException,
@@ -24,7 +23,6 @@ import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
  * - Full resume validation
  * - Detailed error reporting
  */
-@Injectable()
 export class GenericSectionValidationService {
   constructor(
     private readonly zodFactory: SectionDefinitionZodFactory,
@@ -107,13 +105,7 @@ export class GenericSectionValidationService {
     const allItemsValid = itemResults.every((r) => r.isValid);
     const isValid = allItemsValid && sectionErrors.length === 0;
 
-    return {
-      isValid,
-      sectionId,
-      sectionTypeKey,
-      itemResults,
-      sectionErrors,
-    };
+    return { isValid, sectionId, sectionTypeKey, itemResults, sectionErrors };
   }
 
   /**
@@ -125,11 +117,7 @@ export class GenericSectionValidationService {
       sectionTypeKey: string;
       items: Array<{ id?: string; content: Record<string, unknown> }>;
     }>,
-  ): {
-    isValid: boolean;
-    sectionResults: SectionValidationResult[];
-    resumeErrors: string[];
-  } {
+  ): { isValid: boolean; sectionResults: SectionValidationResult[]; resumeErrors: string[] } {
     const sectionResults: SectionValidationResult[] = [];
     const resumeErrors: string[] = [];
 
@@ -169,10 +157,7 @@ export class GenericSectionValidationService {
   checkSemanticRoles(
     sectionTypeKey: string,
     content: Record<string, unknown>,
-  ): {
-    presentRoles: string[];
-    missingRequiredRoles: string[];
-  } {
+  ): { presentRoles: string[]; missingRequiredRoles: string[] } {
     const sectionType = this.getSectionType(sectionTypeKey);
     const definition = sectionType.definition;
 

@@ -30,10 +30,7 @@ export class ErrorsDictionaryDto extends DictionaryLocaleDto {
     description: 'Map from stable error code to the localized message.',
     type: 'object',
     additionalProperties: { type: 'string' },
-    example: {
-      ENTITY_NOT_FOUND: 'Usuário não encontrado',
-      CONFLICT: 'Conflito',
-    },
+    example: { ENTITY_NOT_FOUND: 'Usuário não encontrado', CONFLICT: 'Conflito' },
   })
   entries!: Record<string, string>;
 }
@@ -72,13 +69,13 @@ export class EnumsDictionaryDto extends DictionaryLocaleDto {
 export class NotificationTemplateDto {
   @ApiProperty({
     description: 'Short title for UI surfaces like the bell dropdown.',
-    example: '{actorName} curtiu seu post',
+    example: '{ actorName } curtiu seu post',
   })
   title!: string;
 
   @ApiProperty({
     description: 'Longer body for the notifications page / email.',
-    example: '{actorName} curtiu seu post "{postExcerpt}"',
+    example: '{ actorName } curtiu seu post "{ postExcerpt }"',
   })
   body!: string;
 

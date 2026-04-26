@@ -10,8 +10,7 @@ export const APP_CONFIG = {
 
 export const RATE_LIMIT_CONFIG = {
   TTL: 60,
-  TTL_MS: 60000,
-  // Allow override via env for E2E tests (RATE_LIMIT_MAX=1000)
+  TTL_MS: 60000, // Allow override via env for E2E tests (RATE_LIMIT_MAX=1000)
   MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10),
   AUTH_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_AUTH_MAX ?? '5', 10),
 };
@@ -21,15 +20,9 @@ export const FILE_UPLOAD_CONFIG = {
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as const,
 } as const;
 
-export const CACHE_CONFIG = {
-  TTL_SHORT: 300,
-  TTL_MEDIUM: 1800,
-  TTL_LONG: 3600,
-} as const;
+export const CACHE_CONFIG = { TTL_SHORT: 300, TTL_MEDIUM: 1800, TTL_LONG: 3600 } as const;
 
-export const AUTH_CONFIG = {
-  SESSION_COOKIE_NAME: 'session',
-} as const;
+export const AUTH_CONFIG = { SESSION_COOKIE_NAME: 'session' } as const;
 
 export const API_LIMITS = {
   MAX_REPOS_TO_PROCESS: 20,

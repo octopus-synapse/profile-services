@@ -6,7 +6,7 @@ import {
   ResumeShareAccessDeniedException,
   ShareNotFoundException,
 } from '../../../domain/exceptions/presentation.exceptions';
-import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 export class DeleteShareUseCase {
   constructor(private readonly shareRepo: ShareRepositoryPort) {}

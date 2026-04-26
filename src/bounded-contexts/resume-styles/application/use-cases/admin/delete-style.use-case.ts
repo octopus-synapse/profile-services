@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import {
   StyleNotEditableError,
   StyleNotFoundError,
 } from '../../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../../domain/ports/resume-style.repository.port';
 
-@Injectable()
 export class DeleteStyleUseCase {
   constructor(private readonly repo: ResumeStyleRepositoryPort) {}
 

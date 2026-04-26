@@ -28,10 +28,7 @@ export class AddToGroupUseCase {
     });
 
     this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(params.userId, {
-        groupId: params.groupId,
-        action: 'added',
-      }),
+      new GroupMembershipChangedEvent(params.userId, { groupId: params.groupId, action: 'added' }),
     );
   }
 }

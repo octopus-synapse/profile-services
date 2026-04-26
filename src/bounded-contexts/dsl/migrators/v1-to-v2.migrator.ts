@@ -19,10 +19,7 @@ export class DslV1ToV2Migrator implements DslMigrator {
 
     // Example migration: Just update version
     // In real scenarios, this would handle actual schema changes
-    const migratedDsl: ResumeDsl = {
-      ...dsl,
-      version: this.toVersion,
-    };
+    const migratedDsl: ResumeDsl = { ...dsl, version: this.toVersion };
 
     this.logger.log('Migration v1→v2 completed');
     return migratedDsl;

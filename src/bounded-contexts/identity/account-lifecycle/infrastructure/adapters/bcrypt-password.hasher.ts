@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PasswordHasherPort } from '../../domain/ports';
+import { PasswordHasherPort } from '../../domain/ports';
 
 const BCRYPT_COST = 12;
 

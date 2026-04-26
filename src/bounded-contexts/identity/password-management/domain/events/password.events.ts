@@ -25,10 +25,7 @@ export class PasswordResetRequestedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email,
-    };
+    return { userId: this.userId, email: this.email };
   }
 }
 
@@ -54,9 +51,6 @@ export class PasswordChangedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      changedVia: this.changedVia,
-    };
+    return { userId: this.userId, changedVia: this.changedVia };
   }
 }

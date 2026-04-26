@@ -91,11 +91,6 @@ export function toPaginatedResumesData(
   for (const r of result) data.push(toResumeListItemDto(r));
   return {
     data,
-    meta: {
-      total: result.length,
-      page: fallback.page,
-      limit: fallback.limit,
-      totalPages: 1,
-    },
+    meta: { total: result.length, page: fallback.page, limit: fallback.limit, totalPages: 1 },
   };
 }

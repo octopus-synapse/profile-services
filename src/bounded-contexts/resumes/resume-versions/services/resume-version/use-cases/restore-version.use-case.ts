@@ -1,4 +1,4 @@
-import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,

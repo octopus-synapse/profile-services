@@ -8,7 +8,7 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { SessionInvalidationPort } from '../../../domain/ports';
+import { SessionInvalidationPort } from '../../../domain/ports';
 
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;

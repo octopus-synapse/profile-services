@@ -5,10 +5,7 @@
  */
 
 import type { ScoreProgression, ScoreProgressionPoint } from '../../../interfaces';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class GetScoreProgressionUseCase {
   constructor(
@@ -20,10 +17,7 @@ export class GetScoreProgressionUseCase {
     await this.ownership.verifyOwnership(resumeId, userId);
     const points = await this.snapshotRepo.getScoreProgression(resumeId, days);
     return {
-      snapshots: points.map((p) => ({
-        date: new Date(p.date),
-        score: p.score,
-      })),
+      snapshots: points.map((p) => ({ date: new Date(p.date), score: p.score })),
       trend: this.calculateTrend(points),
       changePercent: this.calculateChangePercent(points),
     };

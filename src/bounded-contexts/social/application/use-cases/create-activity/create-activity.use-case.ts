@@ -1,12 +1,12 @@
-import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityCreatedEvent, type SocialActivityType } from '../../../domain/events';
-import type {
-  ActivityRepositoryPort,
-  ActivityType,
-  ActivityWithUser,
-} from '../../ports/activity.port';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import type { ActivityType, ActivityWithUser } from '../../ports/activity.port';
+import { ActivityRepositoryPort } from '../../ports/activity.port';
+import { FollowRepositoryPort } from '../../ports/follow.port';
+
+export interface FeedEmitterPort {
+  emit(channel: string, payload: unknown): void;
+}
 
 const ACTIVITY_TYPE_MAPPING: Record<ActivityType, SocialActivityType> = {
   RESUME_CREATED: 'resume_created',
@@ -26,7 +26,7 @@ export class CreateActivityUseCase {
     private readonly activityRepository: ActivityRepositoryPort,
     private readonly followRepository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    private readonly eventEmitter: Pick<EventEmitter2, 'emit'>,
+    private readonly feedEmitter: FeedEmitterPort,
   ) {}
 
   async execute(
@@ -58,7 +58,7 @@ export class CreateActivityUseCase {
     // Get followers and emit to their feeds
     const followerIds = await this.followRepository.findFollowerIds(userId);
     for (const followerId of followerIds) {
-      this.eventEmitter.emit(`feed:user:${followerId}`, activityWithUser);
+      this.feedEmitter.emit(`feed:user:${followerId}`, activityWithUser);
     }
 
     return activity;

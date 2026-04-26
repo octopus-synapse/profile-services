@@ -14,11 +14,7 @@ import type { TechAreaType } from '../interfaces';
 import { TechAreaQueryService } from '../services/area-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 
-@SdkExport({
-  tag: 'tech-areas',
-  description: 'Tech Areas API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'tech-areas', description: 'Tech Areas API', requiresAuth: false })
 @ApiTags('tech-areas')
 @Controller('v1/tech-areas')
 export class TechAreaController {
@@ -42,9 +38,7 @@ export class TechAreaController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get niches by area type' })
   @ApiParam({ name: 'areaType', description: 'Tech area type', type: String })
-  @ApiDataResponse(TechNicheListDataDto, {
-    description: 'List of niches for the area',
-  })
+  @ApiDataResponse(TechNicheListDataDto, { description: 'List of niches for the area' })
   async getNichesByArea(
     @Param('areaType') areaType: TechAreaType,
   ): Promise<DataResponse<TechNicheListDataDto>> {

@@ -1,11 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { ResetPasswordPort } from '../../application/ports';
-import { RESET_PASSWORD_PORT } from '../../application/ports';
+import { ResetPasswordPort } from '../../application/ports';
 import { ResetPasswordDto, ResetPasswordResponseDto } from './reset-password.dto';
 
 @SdkExport({
@@ -16,10 +15,7 @@ import { ResetPasswordDto, ResetPasswordResponseDto } from './reset-password.dto
 @ApiTags('Password Management')
 @Controller('auth')
 export class ResetPasswordController {
-  constructor(
-    @Inject(RESET_PASSWORD_PORT)
-    private readonly resetPassword: ResetPasswordPort,
-  ) {}
+  constructor(private readonly resetPassword: ResetPasswordPort) {}
 
   @Post('reset-password')
   @Public()

@@ -20,11 +20,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminTechNichesService } from './admin-tech-niches.service';
 import { TechNicheDataDto, TechNicheListDataDto } from './dto/admin-tech-niches-response.dto';
 
-@SdkExport({
-  tag: 'admin-tech-niches',
-  description: 'Admin Tech Niches API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'admin-tech-niches', description: 'Admin Tech Niches API', requiresAuth: true })
 @ApiTags('Admin - Tech Niches')
 @ApiBearerAuth()
 @RequirePermission(Permission.SKILL_MANAGE)

@@ -18,17 +18,7 @@
  *   POST /                   → Complete with explicit payload
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Query } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -41,12 +31,9 @@ import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import type { OnboardingThemeOption } from '../../domain/config/onboarding-steps.config';
 import { OnboardingCompletionInProgressException } from '../../domain/exceptions/onboarding-extra.exceptions';
-import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
+import { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
-import {
-  ONBOARDING_PROGRESS_USE_CASES,
-  type OnboardingProgressUseCases,
-} from '../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressUseCases } from '../../domain/ports/onboarding-progress.port';
 import { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
 import { SystemThemesPort } from '../../domain/ports/system-themes.port';
 import {
@@ -84,9 +71,7 @@ const ONBOARDING_STEP_DATA_REQUEST_SCHEMA = {
 @Controller('v1/onboarding')
 export class OnboardingController {
   constructor(
-    @Inject(ONBOARDING_USE_CASES)
     private readonly useCases: OnboardingUseCases,
-    @Inject(ONBOARDING_PROGRESS_USE_CASES)
     private readonly progressUseCases: OnboardingProgressUseCases,
     private readonly systemThemes: SystemThemesPort,
     private readonly onboardingConfig: OnboardingConfigPort,
@@ -104,9 +89,7 @@ export class OnboardingController {
   // ==========================================================================
 
   @Get('session')
-  @ApiOperation({
-    summary: 'Get onboarding session with field definitions and navigation',
-  })
+  @ApiOperation({ summary: 'Get onboarding session with field definitions and navigation' })
   @ApiQuery({
     name: 'locale',
     required: false,
@@ -136,10 +119,7 @@ export class OnboardingController {
         strengthConfig,
         locale,
         systemThemes,
-        {
-          name: user.name,
-          email: user.email,
-        },
+        { name: user.name, email: user.email },
         sectionTypes,
       ),
     };
@@ -266,9 +246,7 @@ export class OnboardingController {
 
   @Post('session/complete')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Complete onboarding — backend builds payload from saved progress',
-  })
+  @ApiOperation({ summary: 'Complete onboarding — backend builds payload from saved progress' })
   @ApiDataResponse(CompleteOnboardingResponseDto, {
     description: 'Onboarding completed, resume created',
   })
@@ -325,9 +303,7 @@ export class OnboardingController {
 
   @Get('progress')
   @ApiOperation({ summary: '[Legacy] Get onboarding progress' })
-  @ApiDataResponse(OnboardingSessionDto, {
-    description: 'Enriched progress data',
-  })
+  @ApiDataResponse(OnboardingSessionDto, { description: 'Enriched progress data' })
   async getProgress(@CurrentUser() user: UserPayload): Promise<DataResponse<OnboardingSessionDto>> {
     const [data, stepConfigs, strengthConfig] = await Promise.all([
       this.progressUseCases.getProgressUseCase.execute(user.userId),
@@ -339,18 +315,13 @@ export class OnboardingController {
 
   @Get('status')
   @ApiOperation({ summary: '[Legacy] Get onboarding completion status' })
-  @ApiDataResponse(OnboardingStatusResponseDto, {
-    description: 'Onboarding completion status',
-  })
+  @ApiDataResponse(OnboardingStatusResponseDto, { description: 'Onboarding completion status' })
   async getStatus(
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<OnboardingStatusResponseDto>> {
     const status = await this.useCases.getOnboardingStatusUseCase.execute(user.userId);
-    return {
-      success: true,
-      data: status,
-      ...status,
-    } as DataResponse<OnboardingStatusResponseDto> & OnboardingStatusResponseDto;
+    return { success: true, data: status, ...status } as DataResponse<OnboardingStatusResponseDto> &
+      OnboardingStatusResponseDto;
   }
 
   @Put('progress')
@@ -368,13 +339,9 @@ export class OnboardingController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: '[Legacy] Complete onboarding with explicit payload',
-  })
+  @ApiOperation({ summary: '[Legacy] Complete onboarding with explicit payload' })
   @ApiBody({ type: CompleteOnboardingRequestDto })
-  @ApiDataResponse(CompleteOnboardingResponseDto, {
-    description: 'Onboarding completed',
-  })
+  @ApiDataResponse(CompleteOnboardingResponseDto, { description: 'Onboarding completed' })
   async completeOnboarding(
     @CurrentUser() user: UserPayload,
     @Body(createZodPipe(OnboardingDataSchema)) data: OnboardingData,

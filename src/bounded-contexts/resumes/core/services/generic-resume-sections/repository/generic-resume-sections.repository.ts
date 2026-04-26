@@ -52,31 +52,21 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
 
   findActiveSectionTypeByKey(sectionTypeKey: string) {
     return this.prisma.sectionType.findFirst({
-      where: {
-        key: sectionTypeKey,
-        isActive: true,
-      },
+      where: { key: sectionTypeKey, isActive: true },
     });
   }
 
   findResumeSection(resumeId: string, sectionTypeId: string) {
     return this.prisma.resumeSection.findUnique({
       where: {
-        resumeId_sectionTypeId: {
-          resumeId,
-          sectionTypeId,
-        },
+        resumeId_sectionTypeId: { resumeId, sectionTypeId },
       },
     });
   }
 
   createResumeSection(resumeId: string, sectionTypeId: string, order: number) {
     return this.prisma.resumeSection.create({
-      data: {
-        resumeId,
-        sectionTypeId,
-        order,
-      },
+      data: { resumeId, sectionTypeId, order },
     });
   }
 
@@ -90,10 +80,7 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
     return this.prisma.sectionItem.findFirst({
       where: {
         id: itemId,
-        resumeSection: {
-          resumeId,
-          sectionTypeId,
-        },
+        resumeSection: { resumeId, sectionTypeId },
       },
       select: { id: true },
     });
@@ -101,20 +88,14 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
 
   createSectionItem(resumeSectionId: string, order: number, content: Prisma.InputJsonValue) {
     return this.prisma.sectionItem.create({
-      data: {
-        resumeSectionId,
-        order,
-        content,
-      },
+      data: { resumeSectionId, order, content },
     });
   }
 
   updateSectionItem(itemId: string, content: Prisma.InputJsonValue) {
     return this.prisma.sectionItem.update({
       where: { id: itemId },
-      data: {
-        content,
-      },
+      data: { content },
     });
   }
 

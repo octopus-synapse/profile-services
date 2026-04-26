@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   QualityScoreRepositoryPort,
   type SavedQualityScore,
@@ -8,7 +7,6 @@ import {
  * `null` when the quality worker hasn't run yet. Callers that want a
  * guaranteed-fresh result should trigger `ComputeQualityUseCase`
  * synchronously via the POST endpoint. */
-@Injectable()
 export class GetLatestQualityUseCase {
   constructor(private readonly repository: QualityScoreRepositoryPort) {}
 

@@ -48,9 +48,7 @@ export class PlatformStatsController {
   @Get('stats')
   @RequirePermission('stats', 'read')
   @ApiOperation({ summary: 'Get platform statistics' })
-  @ApiDataResponse(PlatformStatsResponseDto, {
-    description: 'Statistics retrieved successfully',
-  })
+  @ApiDataResponse(PlatformStatsResponseDto, { description: 'Statistics retrieved successfully' })
   async getStatistics(): Promise<DataResponse<PlatformStatsResponseDto>> {
     const stats = await this.statsService.getStatistics();
     return {

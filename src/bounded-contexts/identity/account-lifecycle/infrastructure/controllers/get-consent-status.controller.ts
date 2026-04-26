@@ -2,7 +2,7 @@
  * Get Consent Status Controller
  */
 
-import { Controller, Get, HttpCode, HttpStatus, Inject, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -13,24 +13,18 @@ import {
   SkipTosCheck,
 } from '../../../shared-kernel/infrastructure';
 import { ConsentStatusResponseDto } from '../../application/use-cases/get-consent-status/get-consent-status.dto';
-import { GetConsentStatusUseCase } from '../../application/use-cases/get-consent-status/get-consent-status.use-case';
-import { GET_CONSENT_STATUS_USE_CASE } from '../../application/use-cases/tokens';
+import { GetConsentStatusUseCasePort } from '../../application/use-cases/tokens';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
-
-export { GET_CONSENT_STATUS_USE_CASE };
 
 @ApiTags('User Consent')
 @Controller('v1/users/me')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GetConsentStatusController {
-  constructor(
-    @Inject(GET_CONSENT_STATUS_USE_CASE)
-    private readonly getConsentStatusUseCase: GetConsentStatusUseCase,
-  ) {}
+  constructor(private readonly getConsentStatusUseCase: GetConsentStatusUseCasePort) {}
 
   @Get('consent-status')
   @HttpCode(HttpStatus.OK)
@@ -46,13 +40,8 @@ export class GetConsentStatusController {
   async checkConsentStatus(
     @Req() req: RequestWithUser,
   ): Promise<DataResponse<ConsentStatusResponseDto>> {
-    const result = await this.getConsentStatusUseCase.execute({
-      userId: req.user.userId,
-    });
+    const result = await this.getConsentStatusUseCase.execute({ userId: req.user.userId });
 
-    return {
-      success: true,
-      data: result,
-    };
+    return { success: true, data: result };
   }
 }

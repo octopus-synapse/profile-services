@@ -1,4 +1,4 @@
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
@@ -10,7 +10,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CHAT_USE_CASES, type ChatUseCases } from '../application/ports/chat.port';
+import { ChatUseCases } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';
 import { ChatCacheService } from '../services/chat-cache.service';
@@ -18,10 +18,7 @@ import { type AuthenticatedSocket, WsAuthGuard } from './ws-auth.guard';
 
 @WebSocketGateway({
   namespace: '/chat',
-  cors: {
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-  },
+  cors: { origin: process.env.FRONTEND_URL, credentials: true },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -35,7 +32,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly jwtService: JwtService,
-    @Inject(CHAT_USE_CASES) private readonly chat: ChatUseCases,
+    private readonly chat: ChatUseCases,
     private readonly conversationRepo: ConversationRepository,
     private readonly chatCache: ChatCacheService,
   ) {
@@ -198,9 +195,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private async broadcastUserStatus(userId: string, isOnline: boolean) {
-    const { conversations } = await this.conversationRepo.findByUserId(userId, {
-      limit: 100,
-    });
+    const { conversations } = await this.conversationRepo.findByUserId(userId, { limit: 100 });
 
     for (const conv of conversations) {
       this.server.to(`conversation:${conv.id}`).emit('user:status', {

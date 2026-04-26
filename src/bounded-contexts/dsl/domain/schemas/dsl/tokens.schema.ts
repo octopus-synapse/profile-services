@@ -28,10 +28,7 @@ export const HeadingStyleSchema = z.enum([
 ]);
 
 export const TypographyTokensSchema = z.object({
-  fontFamily: z.object({
-    heading: FontFamilySchema,
-    body: FontFamilySchema,
-  }),
+  fontFamily: z.object({ heading: FontFamilySchema, body: FontFamilySchema }),
   fontSize: FontSizeSchema,
   headingStyle: HeadingStyleSchema,
 });
@@ -41,11 +38,7 @@ export const ColorPaletteSchema = z.object({
   secondary: z.string(),
   background: z.string(),
   surface: z.string(),
-  text: z.object({
-    primary: z.string(),
-    secondary: z.string(),
-    accent: z.string(),
-  }),
+  text: z.object({ primary: z.string(), secondary: z.string(), accent: z.string() }),
   border: z.string(),
   divider: z.string(),
 });
@@ -58,10 +51,7 @@ export const ColorTokensSchema = z.object({
   borderRadius: BorderRadiusSchema,
   shadows: ShadowSchema,
   gradients: z
-    .object({
-      enabled: z.boolean(),
-      direction: z.enum(['to-right', 'to-bottom', 'diagonal']),
-    })
+    .object({ enabled: z.boolean(), direction: z.enum(['to-right', 'to-bottom', 'diagonal']) })
     .optional(),
 });
 

@@ -23,10 +23,7 @@ const ProjectionSchema = z.object({
 
 const ViewCareerGraphDataSchema = z.object({
   stack: z.array(z.string()),
-  user: z.object({
-    experienceYears: z.number().int(),
-    jobTitle: z.string().nullable(),
-  }),
+  user: z.object({ experienceYears: z.number().int(), jobTitle: z.string().nullable() }),
   totalPeers: z.number().int(),
   current: BucketSchema.nullable(),
   buckets: z.array(BucketSchema),

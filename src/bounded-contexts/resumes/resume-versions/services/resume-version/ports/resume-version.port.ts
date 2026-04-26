@@ -24,21 +24,14 @@ export type JsonValue =
   | { [key: string]: JsonValue | undefined }
   | JsonValue[];
 
-export type ResumeSectionItem = {
-  content: JsonValue;
-};
+export type ResumeSectionItem = { content: JsonValue };
 
 export type ResumeSectionForSnapshot = {
-  sectionType: {
-    semanticKind: string | null;
-  };
+  sectionType: { semanticKind: string | null };
   items: ResumeSectionItem[];
 };
 
-export type ResumeForSnapshot = {
-  userId: string;
-  resumeSections: ResumeSectionForSnapshot[];
-};
+export type ResumeForSnapshot = { userId: string; resumeSections: ResumeSectionForSnapshot[] };
 
 export type ResumeVersionRecord = {
   id: string;
@@ -49,9 +42,7 @@ export type ResumeVersionRecord = {
   createdAt: Date;
 };
 
-export type VersionRestoreResult = {
-  restoredFrom: Date;
-};
+export type VersionRestoreResult = { restoredFrom: Date };
 
 // ============================================================================
 // Repository Port (Abstraction)
@@ -89,16 +80,14 @@ export abstract class ResumeVersionRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const RESUME_VERSION_USE_CASES = Symbol('RESUME_VERSION_USE_CASES');
-
-export interface ResumeVersionUseCases {
-  createSnapshotUseCase: {
+export abstract class ResumeVersionUseCases {
+  abstract readonly createSnapshotUseCase: {
     execute: (resumeId: string, label?: string) => Promise<ResumeVersionRecord>;
   };
-  getVersionsUseCase: {
+  abstract readonly getVersionsUseCase: {
     execute: (resumeId: string, userId: string) => Promise<ResumeVersionListItem[]>;
   };
-  restoreVersionUseCase: {
+  abstract readonly restoreVersionUseCase: {
     execute: (resumeId: string, versionId: string, userId: string) => Promise<VersionRestoreResult>;
   };
 }

@@ -3,17 +3,7 @@
  * Handles user profile operations
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Param,
-  Patch,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -30,11 +20,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateUser, UpdateUsername } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import {
-  USER_PROFILE_USE_CASES,
-  type UserProfile,
-  type UserProfileUseCases,
-} from '../../application/ports/user-profile.port';
+import { type UserProfile, UserProfileUseCases } from '../../application/ports/user-profile.port';
 import { UsernameService } from '../../application/services/username.service';
 import {
   PublicProfileDataDto,
@@ -69,7 +55,6 @@ class UpdateUsernameRequestDto {
 @Controller('v1/users')
 export class UsersProfileController {
   constructor(
-    @Inject(USER_PROFILE_USE_CASES)
     private readonly profile: UserProfileUseCases,
     private readonly usernameService: UsernameService,
   ) {}
@@ -98,10 +83,7 @@ export class UsersProfileController {
   @ApiDataResponse(UserProfileDataDto, { description: 'User profile retrieved successfully' })
   async getProfile(@CurrentUser() user: UserPayload): Promise<DataResponse<UserProfileDataDto>> {
     const result = await this.profile.getProfileUseCase.execute(user.userId);
-    return {
-      success: true,
-      data: this.buildProfileData(result),
-    };
+    return { success: true, data: this.buildProfileData(result) };
   }
 
   @RequirePermission(Permission.USER_PROFILE_UPDATE)
@@ -115,10 +97,7 @@ export class UsersProfileController {
     @Body() updateUserData: UpdateUser,
   ): Promise<DataResponse<UserProfileDataDto>> {
     const result = await this.profile.updateProfileUseCase.execute(user.userId, updateUserData);
-    return {
-      success: true,
-      data: this.buildProfileData(result),
-    };
+    return { success: true, data: this.buildProfileData(result) };
   }
 
   @RequirePermission(Permission.USER_PROFILE_UPDATE)

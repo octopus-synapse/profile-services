@@ -2,7 +2,7 @@ import * as crypto from 'node:crypto';
 import { API_LIMITS } from '@/shared-kernel';
 import type { TechSkill } from '../../../dto/tech-skill.dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../../../interfaces';
-import type { CachePort, TechSkillRepositoryPort } from '../../ports/tech-skills.port';
+import { CachePort, TechSkillRepositoryPort } from '../../ports/tech-skills.port';
 
 export class SearchSkillsUseCase {
   constructor(

@@ -56,11 +56,7 @@ import {
 import { LinkPreviewService } from '../services/link-preview.service';
 import { PostService } from '../services/post.service';
 
-@SdkExport({
-  tag: 'posts',
-  description: 'Posts API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'posts', description: 'Posts API', requiresAuth: true })
 @ApiTags('posts')
 @ApiBearerAuth('JWT-auth')
 @RequirePermission(Permission.FEED_USE)
@@ -79,10 +75,7 @@ export class PostController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiBody({ type: CreatePostDto })
-  @ApiDataResponse(PostCreatedDataDto, {
-    status: 201,
-    description: 'Post created successfully',
-  })
+  @ApiDataResponse(PostCreatedDataDto, { status: 201, description: 'Post created successfully' })
   async create(@CurrentUser() user: UserPayload, @Body() body: CreatePostDto) {
     // Auto-fetch link preview if linkUrl is provided
     let linkPreview: Prisma.InputJsonValue | undefined;
@@ -94,8 +87,7 @@ export class PostController {
     }
 
     return this.postService.create(user.userId, {
-      ...body,
-      // `data` is `unknown` on the Zod DTO (validation pushed to the consuming
+      ...body, // `data` is `unknown` on the Zod DTO (validation pushed to the consuming
       // service so each post type can enforce its own shape). Prisma's column
       // is `Json?` which accepts any JSON; the cast only bridges TS.
       data: body.data as Prisma.InputJsonValue | undefined,
@@ -144,9 +136,7 @@ export class PostController {
       },
     },
   })
-  @ApiDataResponse(PostImageUploadDataDto, {
-    description: 'Image uploaded successfully',
-  })
+  @ApiDataResponse(PostImageUploadDataDto, { description: 'Image uploaded successfully' })
   async uploadImage(@CurrentUser() user: UserPayload, @UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new FileRequiredException();

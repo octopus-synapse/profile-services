@@ -49,8 +49,6 @@ export class OnboardingConfigAdapter extends OnboardingConfigPort {
       where: { key: 'default' },
     });
 
-    return {
-      levels: strengthLevelsSchema.parse(config?.strengthLevels ?? []),
-    };
+    return { levels: strengthLevelsSchema.parse(config?.strengthLevels ?? []) };
   }
 }

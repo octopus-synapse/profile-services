@@ -10,11 +10,11 @@
  * resume and skip steps the user already has data for.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { buildShadowPayload, ShadowPayloadSchema } from './build-shadow-payload';
-import { SHADOW_GITHUB_API, type ShadowGithubApi } from './ports/github-api.port';
+import { ShadowGithubApi } from './ports/github-api.port';
 import {
   ShadowProfileAlreadyClaimedException,
   ShadowProfileNotFoundException,
@@ -33,7 +33,7 @@ export interface ShadowProfileSnapshot {
 export class ShadowProfileService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(SHADOW_GITHUB_API) private readonly github: ShadowGithubApi,
+    private readonly github: ShadowGithubApi,
   ) {}
 
   async upsertGithub(input: { token: string; username: string }): Promise<ShadowProfileSnapshot> {
@@ -44,12 +44,7 @@ export class ShadowProfileService {
 
     const row = await this.prisma.shadowProfile.upsert({
       where: { source_externalHandle: { source: 'github', externalHandle: user.login } },
-      create: {
-        source: 'github',
-        externalHandle: user.login,
-        contactEmail: null,
-        payload,
-      },
+      create: { source: 'github', externalHandle: user.login, contactEmail: null, payload },
       update: { payload },
     });
 
@@ -132,8 +127,7 @@ export class ShadowProfileService {
       await this.prisma.resume.update({
         where: { id: user.primaryResumeId },
         data: {
-          primaryStack: merged,
-          // Don't clobber a custom job title; only fill when empty.
+          primaryStack: merged, // Don't clobber a custom job title; only fill when empty.
           jobTitle: resume?.jobTitle ?? headline,
         },
       });

@@ -57,9 +57,7 @@ export class UserManagementController {
   @Get()
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'List all users with pagination' })
-  @ApiDataResponse(UserManagementListDataDto, {
-    description: 'Users retrieved successfully',
-  })
+  @ApiDataResponse(UserManagementListDataDto, { description: 'Users retrieved successfully' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
@@ -83,9 +81,7 @@ export class UserManagementController {
   @Get(':id')
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'Get user details by ID' })
-  @ApiDataResponse(UserDetailsDataDto, {
-    description: 'User retrieved successfully',
-  })
+  @ApiDataResponse(UserDetailsDataDto, { description: 'User retrieved successfully' })
   async getUserDetails(@Param('id') userId: string): Promise<DataResponse<UserDetailsDataDto>> {
     const user = await this.userManagement.getUserDetails(userId);
     return { success: true, data: toUserDetailsData(user) };
@@ -103,19 +99,14 @@ export class UserManagementController {
     const result = await this.userManagement.createUser(data);
     return {
       success: true,
-      data: {
-        user: toCreatedUserMutation(result),
-        message: 'User created successfully',
-      },
+      data: { user: toCreatedUserMutation(result), message: 'User created successfully' },
     };
   }
 
   @Patch(':id')
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Update user information' })
-  @ApiDataResponse(UserMutationDataDto, {
-    description: 'User updated successfully',
-  })
+  @ApiDataResponse(UserMutationDataDto, { description: 'User updated successfully' })
   async updateUser(
     @Param('id') userId: string,
     @Body() data: AdminUpdateUserDto,
@@ -123,10 +114,7 @@ export class UserManagementController {
     const result = await this.userManagement.updateUser(userId, data);
     return {
       success: true,
-      data: {
-        user: toUpdatedUserMutation(result),
-        message: 'User updated successfully',
-      },
+      data: { user: toUpdatedUserMutation(result), message: 'User updated successfully' },
     };
   }
 
@@ -136,9 +124,7 @@ export class UserManagementController {
     summary: 'Delete a user',
     description: 'GDPR-compliant deletion that removes all user data.',
   })
-  @ApiDataResponse(UserOperationMessageDataDto, {
-    description: 'User deleted successfully',
-  })
+  @ApiDataResponse(UserOperationMessageDataDto, { description: 'User deleted successfully' })
   async deleteUser(
     @Param('id') userId: string,
     @Req() req: { user: { userId: string } },
@@ -151,9 +137,7 @@ export class UserManagementController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Reset user password' })
-  @ApiDataResponse(UserOperationMessageDataDto, {
-    description: 'Password reset successfully',
-  })
+  @ApiDataResponse(UserOperationMessageDataDto, { description: 'Password reset successfully' })
   async resetPassword(
     @Param('id') userId: string,
     @Body() data: AdminResetPasswordDto,

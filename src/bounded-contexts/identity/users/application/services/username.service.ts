@@ -5,7 +5,7 @@
  * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type {
   UpdateUsername,
@@ -16,9 +16,8 @@ import { RESERVED_USERNAMES as RESERVED_USERNAMES_LIST } from '@/shared-kernel/s
 import { UsersRepository } from '../../infrastructure/adapters/persistence/users.repository';
 import {
   type UpdatedUsername,
-  USERNAME_USE_CASES,
   type UsernameAvailability,
-  type UsernameUseCases,
+  UsernameUseCases,
 } from '../ports/username.port';
 
 const RESERVED_USERNAMES: ReadonlySet<string> = new Set(RESERVED_USERNAMES_LIST);
@@ -26,7 +25,6 @@ const RESERVED_USERNAMES: ReadonlySet<string> = new Set(RESERVED_USERNAMES_LIST)
 @Injectable()
 export class UsernameService {
   constructor(
-    @Inject(USERNAME_USE_CASES)
     private readonly useCases: UsernameUseCases,
     private readonly usersRepository: UsersRepository,
     private readonly logger: AppLoggerService,
@@ -98,27 +96,18 @@ export class UsernameService {
 
     // Check for uppercase
     if (trimmed !== trimmed.toLowerCase()) {
-      errors.push({
-        code: 'UPPERCASE',
-        message: 'Username must contain only lowercase letters',
-      });
+      errors.push({ code: 'UPPERCASE', message: 'Username must contain only lowercase letters' });
     }
 
     const normalized = trimmed.toLowerCase();
 
     // Check length
     if (normalized.length < 3) {
-      errors.push({
-        code: 'TOO_SHORT',
-        message: 'Username must be at least 3 characters',
-      });
+      errors.push({ code: 'TOO_SHORT', message: 'Username must be at least 3 characters' });
     }
 
     if (normalized.length > 30) {
-      errors.push({
-        code: 'TOO_LONG',
-        message: 'Username cannot exceed 30 characters',
-      });
+      errors.push({ code: 'TOO_LONG', message: 'Username cannot exceed 30 characters' });
     }
 
     // Check format (only lowercase letters, numbers, underscores)
@@ -131,18 +120,12 @@ export class UsernameService {
 
     // Check start character
     if (normalized.length >= 1 && !/^[a-z]/.test(normalized)) {
-      errors.push({
-        code: 'INVALID_START',
-        message: 'Username must start with a letter',
-      });
+      errors.push({ code: 'INVALID_START', message: 'Username must start with a letter' });
     }
 
     // Check end character
     if (normalized.length >= 1 && !/[a-z0-9]$/.test(normalized)) {
-      errors.push({
-        code: 'INVALID_END',
-        message: 'Username must end with a letter or number',
-      });
+      errors.push({ code: 'INVALID_END', message: 'Username must end with a letter or number' });
     }
 
     // Check consecutive underscores
@@ -155,10 +138,7 @@ export class UsernameService {
 
     // Check reserved usernames
     if (RESERVED_USERNAMES.has(normalized)) {
-      errors.push({
-        code: 'RESERVED',
-        message: 'This username is reserved',
-      });
+      errors.push({ code: 'RESERVED', message: 'This username is reserved' });
     }
 
     // Only check availability if format is valid
@@ -170,18 +150,10 @@ export class UsernameService {
       available = !isTaken;
 
       if (isTaken) {
-        errors.push({
-          code: 'ALREADY_TAKEN',
-          message: 'This username is already taken',
-        });
+        errors.push({ code: 'ALREADY_TAKEN', message: 'This username is already taken' });
       }
     }
 
-    return {
-      username: normalized,
-      valid: errors.length === 0,
-      available,
-      errors,
-    };
+    return { username: normalized, valid: errors.length === 0, available, errors };
   }
 }

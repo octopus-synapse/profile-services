@@ -17,9 +17,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 
-const UserPermissionsDataSchema = z.object({
-  permissions: z.array(z.string()),
-});
+const UserPermissionsDataSchema = z.object({ permissions: z.array(z.string()) });
 
 export class UserPermissionsDataDto extends createZodDto(UserPermissionsDataSchema) {}
 
@@ -33,9 +31,7 @@ export class UserPermissionsController {
   @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('me/permissions')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'List permission keys granted to the current user (for UI gating)',
-  })
+  @ApiOperation({ summary: 'List permission keys granted to the current user (for UI gating)' })
   @ApiDataResponse(UserPermissionsDataDto, {
     description: 'Flat list of permission keys like "job:create"',
   })

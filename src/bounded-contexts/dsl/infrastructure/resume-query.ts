@@ -11,12 +11,7 @@ export const RESUME_RELATIONS_INCLUDE = {
     orderBy: { order: 'asc' as const },
     include: {
       sectionType: {
-        select: {
-          key: true,
-          title: true,
-          semanticKind: true,
-          translations: true,
-        },
+        select: { key: true, title: true, semanticKind: true, translations: true },
       },
       items: {
         where: { isVisible: true },

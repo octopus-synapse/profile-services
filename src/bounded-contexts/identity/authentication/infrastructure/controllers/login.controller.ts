@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -20,8 +10,8 @@ import {
   RateLimitGuard,
 } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import type { CreateSessionPort, LoginPort } from '../../application/ports';
-import { CREATE_SESSION_PORT, LOGIN_PORT } from '../../application/ports';
+import { CreateSessionPort, LoginPort } from '../../application/ports';
+
 import {
   LoginDto,
   LoginResponseDto,
@@ -38,10 +28,7 @@ import type { CookieWriter, SessionCookieOptions } from '../../domain/ports/sess
 function createCookieWriter(res: Response): CookieWriter {
   return {
     setCookie: (name: string, value: string, options: SessionCookieOptions) => {
-      res.cookie(name, value, {
-        ...options,
-        expires: new Date(Date.now() + options.maxAge),
-      });
+      res.cookie(name, value, { ...options, expires: new Date(Date.now() + options.maxAge) });
     },
     clearCookie: (name: string, options: Partial<SessionCookieOptions>) => {
       res.clearCookie(name, options);
@@ -54,9 +41,7 @@ function createCookieWriter(res: Response): CookieWriter {
 @Controller('auth')
 export class LoginController {
   constructor(
-    @Inject(LOGIN_PORT)
     private readonly loginService: LoginPort,
-    @Inject(CREATE_SESSION_PORT)
     private readonly createSessionService: CreateSessionPort,
   ) {}
 
@@ -69,12 +54,8 @@ export class LoginController {
     description:
       'Authenticates user with email and password. Returns twoFactorRequired when 2FA is enabled.',
   })
-  @ApiDataResponse(LoginResponseDto, {
-    description: 'Login successful or 2FA challenge required',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Invalid credentials',
-  })
+  @ApiDataResponse(LoginResponseDto, { description: 'Login successful or 2FA challenge required' })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   async login(
     @Body(createZodPipe(LoginSchema)) dto: LoginDto,
     @Req() req: Request,
@@ -91,10 +72,7 @@ export class LoginController {
     if (result.twoFactorRequired) {
       return {
         success: true,
-        data: {
-          userId: result.userId,
-          twoFactorRequired: true,
-        },
+        data: { userId: result.userId, twoFactorRequired: true },
       };
     }
 
@@ -128,12 +106,8 @@ export class LoginController {
     summary: 'Verify 2FA code during login',
     description: 'Completes login by validating a TOTP or backup code.',
   })
-  @ApiDataResponse(LoginResponseDto, {
-    description: 'Login completed after 2FA verification',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Invalid 2FA code',
-  })
+  @ApiDataResponse(LoginResponseDto, { description: 'Login completed after 2FA verification' })
+  @ApiUnauthorizedResponse({ description: 'Invalid 2FA code' })
   async verifyLogin2fa(
     @Body(createZodPipe(LoginVerify2faSchema)) dto: LoginVerify2faDto,
     @Req() req: Request,

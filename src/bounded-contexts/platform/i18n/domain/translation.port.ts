@@ -33,5 +33,3 @@ export abstract class TranslationPort {
   abstract translate(code: string, params: TranslationParams, locale: SupportedLocale): string;
   abstract has(code: string, locale: SupportedLocale): boolean;
 }
-
-export const TRANSLATION_PORT = Symbol('TranslationPort');

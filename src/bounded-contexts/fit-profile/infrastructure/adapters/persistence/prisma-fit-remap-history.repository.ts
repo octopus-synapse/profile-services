@@ -15,10 +15,7 @@ export class PrismaFitRemapHistoryRepository extends FitRemapHistoryRepositoryPo
 
   async append(userId: string, vector: FitVector): Promise<FitRemapSnapshot> {
     const row = await this.prisma.fitRemapHistory.create({
-      data: {
-        userId,
-        vectorJson: vector as unknown as Prisma.InputJsonValue,
-      },
+      data: { userId, vectorJson: vector as unknown as Prisma.InputJsonValue },
     });
     return this.toDomain(row);
   }

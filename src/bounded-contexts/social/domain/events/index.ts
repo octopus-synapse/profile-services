@@ -11,7 +11,4 @@ export {
   ConnectionRequestedEvent,
   type ConnectionRequestedPayload,
 } from './connection-requested.event';
-export {
-  UserFollowedEvent,
-  type UserFollowedPayload,
-} from './user-followed.event';
+export { UserFollowedEvent, type UserFollowedPayload } from './user-followed.event';

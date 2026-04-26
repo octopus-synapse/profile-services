@@ -18,10 +18,7 @@ export class RemoveFromGroupUseCase {
     await this.userAuthRepo.removeFromGroup(userId, groupId);
 
     this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(userId, {
-        groupId,
-        action: 'removed',
-      }),
+      new GroupMembershipChangedEvent(userId, { groupId, action: 'removed' }),
     );
   }
 }

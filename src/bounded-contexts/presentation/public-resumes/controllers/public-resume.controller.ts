@@ -24,11 +24,7 @@ import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { OgImageService } from '../services/og-image.service';
 import { ResumeShareService } from '../services/resume-share.service';
 
-@SdkExport({
-  tag: 'resumes',
-  description: 'Public Resume API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'resumes', description: 'Public Resume API', requiresAuth: false })
 @ApiTags('public-resumes')
 @Controller('v1/public/resumes')
 @Public() // Public endpoint - no auth required
@@ -56,9 +52,7 @@ export class PublicResumeController {
 
   @Get(':slug')
   @ApiOperation({ summary: 'Get public resume by share slug' })
-  @ApiDataResponse(PublicResumeDataDto, {
-    description: 'Public resume returned',
-  })
+  @ApiDataResponse(PublicResumeDataDto, { description: 'Public resume returned' })
   async getPublicResume(
     @Param('slug') slug: string,
     @Headers('x-share-password') password: string | undefined,
@@ -109,17 +103,11 @@ export class PublicResumeController {
     );
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
-    const shareInfo = {
-      slug: share.slug,
-      expiresAt: share.expiresAt,
-    };
+    const shareInfo = { slug: share.slug, expiresAt: share.expiresAt };
 
     return {
       success: true,
-      data: {
-        resume,
-        share: shareInfo,
-      },
+      data: { resume, share: shareInfo },
       resume,
       share: shareInfo,
     } as DataResponse<PublicResumeDataDto> & {
@@ -130,9 +118,7 @@ export class PublicResumeController {
 
   @Get(':slug/download')
   @ApiOperation({ summary: 'Download public resume by share slug' })
-  @ApiDataResponse(PublicResumeDataDto, {
-    description: 'Public resume download payload returned',
-  })
+  @ApiDataResponse(PublicResumeDataDto, { description: 'Public resume download payload returned' })
   async downloadPublicResume(
     @Param('slug') slug: string,
     @Headers('x-share-password') password: string | undefined,
@@ -183,17 +169,11 @@ export class PublicResumeController {
     );
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
-    const shareInfo = {
-      slug: share.slug,
-      expiresAt: share.expiresAt,
-    };
+    const shareInfo = { slug: share.slug, expiresAt: share.expiresAt };
 
     return {
       success: true,
-      data: {
-        resume,
-        share: shareInfo,
-      },
+      data: { resume, share: shareInfo },
       resume,
       share: shareInfo,
     } as DataResponse<PublicResumeDataDto> & {

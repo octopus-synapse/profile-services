@@ -16,13 +16,9 @@ const ResumeVersionItemSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
-const ResumeVersionListDataSchema = z.object({
-  versions: z.array(ResumeVersionItemSchema),
-});
+const ResumeVersionListDataSchema = z.object({ versions: z.array(ResumeVersionItemSchema) });
 
-const ResumeVersionDataSchema = z.object({
-  version: ResumeVersionItemSchema,
-});
+const ResumeVersionDataSchema = z.object({ version: ResumeVersionItemSchema });
 
 const ResumeVersionRestoreDataSchema = z.object({
   success: z.boolean(),

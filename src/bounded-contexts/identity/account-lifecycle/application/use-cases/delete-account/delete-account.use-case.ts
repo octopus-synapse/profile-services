@@ -1,6 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import {
   DELETION_CONFIRMATION_PHRASE,
   DeleteAccountCommand,
@@ -9,17 +8,11 @@ import {
 } from '../../../application/ports';
 import { AccountDeletedEvent } from '../../../domain/events';
 import { AccountDeletionRequiresConfirmationException } from '../../../domain/exceptions';
-import type { AccountLifecycleRepositoryPort } from '../../../domain/ports';
+import { AccountLifecycleRepositoryPort } from '../../../domain/ports';
 
-const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class DeleteAccountUseCase implements DeleteAccountPort {
   constructor(
-    @Inject(ACCOUNT_REPOSITORY)
     private readonly repository: AccountLifecycleRepositoryPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
   ) {}
 

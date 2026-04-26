@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { CandidateDirectoryRepositoryPort, SearchableCandidateRecord } from '../../../domain';
+import type { SearchableCandidateRecord } from '../../../domain';
+import { CandidateDirectoryRepositoryPort } from '../../../domain';
 
 /**
  * Prisma adapter for the `CandidateDirectoryRepositoryPort`.

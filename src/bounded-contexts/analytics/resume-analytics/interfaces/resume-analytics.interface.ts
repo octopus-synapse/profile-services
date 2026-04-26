@@ -23,15 +23,8 @@ export interface ViewStatsOptions {
 export interface ViewStats {
   totalViews: number;
   uniqueVisitors: number;
-  viewsByDay: Array<{
-    date: string;
-    count: number;
-  }>;
-  topSources: Array<{
-    source: string;
-    count: number;
-    percentage: number;
-  }>;
+  viewsByDay: Array<{ date: string; count: number }>;
+  topSources: Array<{ source: string; count: number; percentage: number }>;
 }
 
 export interface ATSScoreResult {
@@ -51,10 +44,7 @@ export interface ATSIssue {
   code: string;
   severity: 'low' | 'medium' | 'high';
   message: string;
-  context?: {
-    sectionKind?: string;
-    missingFields?: string[];
-  };
+  context?: { sectionKind?: string; missingFields?: string[] };
 }
 
 export interface KeywordSuggestionsOptions {
@@ -63,11 +53,7 @@ export interface KeywordSuggestionsOptions {
 }
 
 export interface KeywordSuggestions {
-  existingKeywords: Array<{
-    keyword: string;
-    count: number;
-    relevance: number;
-  }>;
+  existingKeywords: Array<{ keyword: string; count: number; relevance: number }>;
   missingKeywords: string[];
   keywordDensity: number;
   warnings: KeywordWarning[];
@@ -92,11 +78,7 @@ export interface JobMatchResult {
   matchScore: number;
   matchedKeywords: string[];
   missingKeywords: string[];
-  partialMatches: Array<{
-    resumeKeyword: string;
-    jobKeyword: string;
-    similarity: number;
-  }>;
+  partialMatches: Array<{ resumeKeyword: string; jobKeyword: string; similarity: number }>;
   recommendations: string[];
   /** Per-dimension coverage; populated by callers that have the context. */
   dimensions?: JobMatchDimensions;
@@ -189,10 +171,7 @@ export interface AnalyticsSnapshot {
 }
 
 export interface ScoreProgression {
-  snapshots: Array<{
-    date: Date;
-    score: number;
-  }>;
+  snapshots: Array<{ date: Date; score: number }>;
   trend: 'improving' | 'stable' | 'declining';
   changePercent: number;
 }

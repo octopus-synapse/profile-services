@@ -27,9 +27,6 @@ export class UserRegisteredEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      email: this.payload.email,
-      username: this.payload.username,
-    };
+    return { email: this.payload.email, username: this.payload.username };
   }
 }

@@ -60,10 +60,7 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       create: { userId, ...progressData },
     });
 
-    return {
-      currentStep: progress.currentStep,
-      completedSteps: progress.completedSteps,
-    };
+    return { currentStep: progress.currentStep, completedSteps: progress.completedSteps };
   }
 
   async deleteProgress(userId: string): Promise<void> {

@@ -2,7 +2,7 @@
  * Permission-aware menu builder.
  *
  * Returns the navigation tree the current user is allowed to see, with
- * labels already localized. UI renders <NavTree data={menu} /> and never
+ * labels already localized. UI renders <NavTree data={ menu } /> and never
  * needs to hide/show items based on roles or feature flags.
  */
 

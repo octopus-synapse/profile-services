@@ -33,10 +33,7 @@ export class GetShareAnalyticsUseCase {
       totalViews: analytics.find((a) => a.event === 'VIEW')?._count.event ?? 0,
       totalDownloads: analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
       uniqueVisitors: uniqueViews.length,
-      byCountry: byCountry.map((c) => ({
-        country: c.country,
-        count: c._count.country,
-      })),
+      byCountry: byCountry.map((c) => ({ country: c.country, count: c._count.country })),
       byDeviceType: byDeviceType.map((d) => ({
         deviceType: d.deviceType,
         count: d._count.deviceType,

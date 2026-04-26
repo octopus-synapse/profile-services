@@ -63,10 +63,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
   }
 
   async create(
-    input: CreateStyleInput & {
-      styleScore: number;
-      atsSafetyBreakdown: Record<string, number>;
-    },
+    input: CreateStyleInput & { styleScore: number; atsSafetyBreakdown: Record<string, number> },
   ): Promise<StyleDetail> {
     const row = await this.prisma.resumeStyle.create({
       data: {
@@ -87,10 +84,7 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
 
   async update(
     id: string,
-    patch: UpdateStylePatch & {
-      styleScore?: number;
-      atsSafetyBreakdown?: Record<string, number>;
-    },
+    patch: UpdateStylePatch & { styleScore?: number; atsSafetyBreakdown?: Record<string, number> },
   ): Promise<StyleDetail> {
     const data: Prisma.ResumeStyleUpdateInput = {};
     if (patch.name !== undefined) data.name = patch.name;

@@ -20,11 +20,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminTechSkillsService } from './admin-tech-skills.service';
 import { TechSkillDataDto, TechSkillListDataDto } from './dto/admin-tech-skills-response.dto';
 
-@SdkExport({
-  tag: 'admin-tech-skills',
-  description: 'Admin Tech Skills API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'admin-tech-skills', description: 'Admin Tech Skills API', requiresAuth: true })
 @ApiTags('Admin - Tech Skills')
 @ApiBearerAuth()
 @RequirePermission(Permission.SKILL_MANAGE)

@@ -21,10 +21,7 @@ export abstract class ResumeStyleRepositoryPort {
   ): Promise<StyleDetail>;
   abstract update(
     id: string,
-    patch: UpdateStylePatch & {
-      styleScore?: number;
-      atsSafetyBreakdown?: Record<string, number>;
-    },
+    patch: UpdateStylePatch & { styleScore?: number; atsSafetyBreakdown?: Record<string, number> },
   ): Promise<StyleDetail>;
   abstract delete(id: string): Promise<void>;
   /**

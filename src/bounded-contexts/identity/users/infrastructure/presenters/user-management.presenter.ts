@@ -56,15 +56,9 @@ export function toUserDetailsData(user: UserDetails): UserDetailsDataDto {
 }
 
 export function toCreatedUserMutation(user: CreatedUser) {
-  return {
-    ...user,
-    createdAt: user.createdAt.toISOString(),
-  };
+  return { ...user, createdAt: user.createdAt.toISOString() };
 }
 
 export function toUpdatedUserMutation(user: UpdatedUser) {
-  return {
-    ...user,
-    updatedAt: user.updatedAt.toISOString(),
-  };
+  return { ...user, updatedAt: user.updatedAt.toISOString() };
 }

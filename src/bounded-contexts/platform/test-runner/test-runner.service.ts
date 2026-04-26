@@ -197,11 +197,7 @@ export class TestRunnerService {
         await this.runTest('Create temp user', async () => {
           const hash = await Bun.password.hash(testPassword);
           await this.prisma.user.create({
-            data: {
-              email: testEmail,
-              name: '__test_user',
-              passwordHash: hash,
-            },
+            data: { email: testEmail, name: '__test_user', passwordHash: hash },
           });
           return `Created user with email ${testEmail}`;
         }),
@@ -397,10 +393,7 @@ export class TestRunnerService {
       results.push(
         await this.runTest('Create resume', async () => {
           const resume = await this.prisma.resume.create({
-            data: {
-              userId,
-              title: '__test_resume',
-            },
+            data: { userId, title: '__test_resume' },
           });
           resumeId = resume.id;
           return `Created resume: ${resumeId}`;

@@ -17,11 +17,7 @@ export type TransactionClient = unknown;
 /**
  * Section progress data for a single section type.
  */
-export type SectionProgressData = {
-  sectionTypeKey: string;
-  items?: unknown[];
-  noData?: boolean;
-};
+export type SectionProgressData = { sectionTypeKey: string; items?: unknown[]; noData?: boolean };
 
 export type OnboardingProgressData = {
   currentStep: string;
@@ -33,10 +29,7 @@ export type OnboardingProgressData = {
   templateSelection?: unknown;
 };
 
-export type SaveProgressResult = {
-  currentStep: string;
-  completedSteps: string[];
-};
+export type SaveProgressResult = { currentStep: string; completedSteps: string[] };
 
 export type ProgressRecord = {
   userId: string;
@@ -73,16 +66,12 @@ export abstract class OnboardingProgressRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const ONBOARDING_PROGRESS_USE_CASES = Symbol('ONBOARDING_PROGRESS_USE_CASES');
-
-export interface OnboardingProgressUseCases {
-  saveProgressUseCase: {
+export abstract class OnboardingProgressUseCases {
+  abstract readonly saveProgressUseCase: {
     execute: (userId: string, data: OnboardingProgressData) => Promise<SaveProgressResult>;
   };
-  getProgressUseCase: {
+  abstract readonly getProgressUseCase: {
     execute: (userId: string) => Promise<OnboardingProgressData>;
   };
-  deleteProgressUseCase: {
-    execute: (userId: string) => Promise<void>;
-  };
+  abstract readonly deleteProgressUseCase: { execute: (userId: string) => Promise<void> };
 }

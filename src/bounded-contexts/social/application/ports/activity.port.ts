@@ -32,12 +32,7 @@ export type ActivityWithUser = {
   entityId: string | null;
   entityType: string | null;
   createdAt: Date;
-  user?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
+  user?: { id: string; name: string | null; username: string | null; photoURL: string | null };
 };
 
 // ============================================================================
@@ -78,10 +73,8 @@ export abstract class ActivityRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const ACTIVITY_USE_CASES = Symbol('ACTIVITY_USE_CASES');
-
-export interface ActivityUseCases {
-  createActivityUseCase: {
+export abstract class ActivityUseCases {
+  abstract readonly createActivityUseCase: {
     execute: (
       userId: string,
       type: ActivityType,
@@ -90,26 +83,24 @@ export interface ActivityUseCases {
       entityType?: string,
     ) => Promise<ActivityWithUser>;
   };
-  getFeedUseCase: {
+  abstract readonly getFeedUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
     ) => Promise<PaginatedResult<ActivityWithUser>>;
   };
-  getUserActivitiesUseCase: {
+  abstract readonly getUserActivitiesUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
     ) => Promise<PaginatedResult<ActivityWithUser>>;
   };
-  getActivitiesByTypeUseCase: {
+  abstract readonly getActivitiesByTypeUseCase: {
     execute: (
       userId: string,
       type: ActivityType,
       pagination: PaginationParams,
     ) => Promise<PaginatedResult<ActivityWithUser>>;
   };
-  purgeOldActivitiesUseCase: {
-    execute: (days: number) => Promise<number>;
-  };
+  abstract readonly purgeOldActivitiesUseCase: { execute: (days: number) => Promise<number> };
 }

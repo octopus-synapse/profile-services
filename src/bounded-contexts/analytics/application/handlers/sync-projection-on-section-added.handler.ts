@@ -1,19 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SectionAddedEvent } from '@/bounded-contexts/resumes';
-import {
-  ANALYTICS_PROJECTION_PORT,
-  AnalyticsProjectionPort,
-} from '../ports/analytics-projection.port';
+import { AnalyticsProjectionPort } from '../ports/analytics-projection.port';
 
 @Injectable()
 export class SyncProjectionOnSectionAddedHandler {
   private readonly logger = new Logger(SyncProjectionOnSectionAddedHandler.name);
 
-  constructor(
-    @Inject(ANALYTICS_PROJECTION_PORT)
-    private readonly projection: AnalyticsProjectionPort,
-  ) {}
+  constructor(private readonly projection: AnalyticsProjectionPort) {}
 
   @OnEvent(SectionAddedEvent.TYPE)
   async handle(event: SectionAddedEvent): Promise<void> {

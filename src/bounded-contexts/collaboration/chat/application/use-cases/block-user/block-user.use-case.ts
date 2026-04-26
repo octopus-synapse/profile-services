@@ -1,7 +1,7 @@
 import { CannotBlockSelfException } from '@/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions';
 import type { BlockedUserResponse, BlockUser } from '../../../schemas/chat.schema';
 import { mapBlockedUserToResponse } from '../../mappers/chat.mapper';
-import type { BlockRepositoryPort } from '../../ports/block.port';
+import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class BlockUserUseCase {
   constructor(private readonly repository: BlockRepositoryPort) {}

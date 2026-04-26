@@ -35,14 +35,7 @@ export class NotificationService {
     }
 
     const notification = await this.prisma.notification.create({
-      data: {
-        userId,
-        type,
-        actorId,
-        message,
-        entityType,
-        entityId,
-      },
+      data: { userId, type, actorId, message, entityType, entityId },
     });
 
     this.eventEmitter.emit(`notif:user:${userId}`, notification);
@@ -245,12 +238,7 @@ export class NotificationService {
       orderBy: { createdAt: 'desc' },
       include: {
         actor: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            photoURL: true,
-          },
+          select: { id: true, name: true, username: true, photoURL: true },
         },
       },
     });
@@ -258,10 +246,7 @@ export class NotificationService {
     const nextCursor =
       notifications.length === limit ? notifications[notifications.length - 1].id : null;
 
-    return {
-      data: notifications,
-      nextCursor,
-    };
+    return { data: notifications, nextCursor };
   }
 
   async getUnreadCount(userId: string) {

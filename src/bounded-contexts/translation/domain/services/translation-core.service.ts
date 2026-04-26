@@ -3,7 +3,7 @@
  * Handles basic translation operations using LibreTranslate
  */
 
-import type { LoggerPort } from '../ports/logger.port';
+import { LoggerPort } from '@/shared-kernel';
 import type {
   LanguageDetectionResult,
   SourceLanguage,
@@ -49,22 +49,12 @@ export class TranslationCoreService {
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
     if (!text || text.trim().length === 0) {
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
     if (!this.isServiceAvailable) {
       this.logger.warn('Translation service unavailable, returning original text');
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
     try {
@@ -98,12 +88,7 @@ export class TranslationCoreService {
       this.logger.error(
         `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
   }
 

@@ -5,7 +5,7 @@ import {
   CollaboratorAlreadyInvitedException,
   OnlyResumeOwnerCanInviteException,
 } from '../../../domain/exceptions/collaboration.exceptions';
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,
   InviteCollaboratorParams,

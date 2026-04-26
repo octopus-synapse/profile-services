@@ -33,10 +33,7 @@ export interface ExportResult {
 @Injectable()
 @Processor('export', {
   concurrency: 5,
-  limiter: {
-    max: 10,
-    duration: 1000,
-  },
+  limiter: { max: 10, duration: 1000 },
 })
 export class ExportProcessor extends WorkerHost {
   private readonly logger = new Logger(ExportProcessor.name);

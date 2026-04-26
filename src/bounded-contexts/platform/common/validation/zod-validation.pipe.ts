@@ -25,8 +25,7 @@ import { ERROR_CODES, validate } from '@/shared-kernel';
  * import { ZodValidationPipe } from './common/validation/zod-validation.pipe';
  *
  * @Post('login')
- * async login(@Body(new ZodValidationPipe(LoginCredentialsSchema)) dto: LoginCredentials) {
- *   return this.authService.login(dto);
+ * async login(@Body(new ZodValidationPipe(LoginCredentialsSchema)) dto: LoginCredentials) { *   return this.authService.login(dto);
  * }
  * ```
  */
@@ -43,9 +42,7 @@ export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {
         error: {
           code: ERROR_CODES.VALIDATION_ERROR,
           message: 'Validation failed',
-          details: {
-            errors: result.errors,
-          },
+          details: { errors: result.errors },
         },
       });
     }
@@ -62,7 +59,7 @@ export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {
  * @example
  * ```typescript
  * @Post('login')
- * async login(@Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials) {}
+ * async login(@Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials) {  }
  * ```
  */
 export const createZodPipe = <T>(schema: ZodSchema<T>) => new ZodValidationPipe(schema);

@@ -20,10 +20,7 @@ export type PublicProfileUser = {
   github: string | null;
 };
 
-export type PublicProfileData = {
-  user: PublicProfileUser;
-  resume: Record<string, unknown> | null;
-};
+export type PublicProfileData = { user: PublicProfileUser; resume: Record<string, unknown> | null };
 
 export type UserProfile = {
   id: string;
@@ -88,16 +85,12 @@ export abstract class UserProfileRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const USER_PROFILE_USE_CASES = Symbol('USER_PROFILE_USE_CASES');
-
-export interface UserProfileUseCases {
-  getPublicProfileUseCase: {
+export abstract class UserProfileUseCases {
+  abstract readonly getPublicProfileUseCase: {
     execute: (username: string) => Promise<PublicProfileData>;
   };
-  getProfileUseCase: {
-    execute: (userId: string) => Promise<UserProfile>;
-  };
-  updateProfileUseCase: {
+  abstract readonly getProfileUseCase: { execute: (userId: string) => Promise<UserProfile> };
+  abstract readonly updateProfileUseCase: {
     execute: (userId: string, data: UpdateProfileData) => Promise<UserProfile>;
   };
 }

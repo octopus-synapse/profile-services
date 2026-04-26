@@ -5,16 +5,7 @@
  * Handles user consent acceptance with audit trail.
  */
 
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -29,15 +20,11 @@ import {
   AcceptConsentRequestDto,
   AcceptConsentResponseDto,
 } from '../../application/use-cases/accept-consent/accept-consent.dto';
-import { AcceptConsentUseCase } from '../../application/use-cases/accept-consent/accept-consent.use-case';
-
-import { ACCEPT_CONSENT_USE_CASE } from '../../application/use-cases/tokens';
+import { AcceptConsentUseCasePort } from '../../application/use-cases/tokens';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
-
-export { ACCEPT_CONSENT_USE_CASE };
 
 @SdkExport({ tag: 'user-consent', description: 'User Consent API' })
 @ApiTags('User Consent')
@@ -45,10 +32,7 @@ export { ACCEPT_CONSENT_USE_CASE };
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class AcceptConsentController {
-  constructor(
-    @Inject(ACCEPT_CONSENT_USE_CASE)
-    private readonly acceptConsentUseCase: AcceptConsentUseCase,
-  ) {}
+  constructor(private readonly acceptConsentUseCase: AcceptConsentUseCasePort) {}
 
   @Post('accept-consent')
   @HttpCode(HttpStatus.CREATED)

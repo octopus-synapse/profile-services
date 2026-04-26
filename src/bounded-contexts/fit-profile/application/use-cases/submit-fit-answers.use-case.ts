@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import type { FitQuestionRecord } from '../../domain/ports/fit-question.repository.port';
@@ -72,10 +71,7 @@ export interface SubmitFitAnswersInput {
  * the ordering is: answers → profile → history → completed, so a
  * crash leaves the user able to retry without duplicate vectors.
  */
-@Injectable()
 export class SubmitFitAnswersUseCase {
-  private readonly logger = new Logger(SubmitFitAnswersUseCase.name);
-
   constructor(
     private readonly questionSets: FitQuestionSetRepositoryPort,
     private readonly questions: FitQuestionRepositoryPort,
@@ -83,6 +79,7 @@ export class SubmitFitAnswersUseCase {
     private readonly profiles: UserFitProfileRepositoryPort,
     private readonly history: FitRemapHistoryRepositoryPort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(
@@ -163,6 +160,7 @@ export class SubmitFitAnswersUseCase {
       // reconciles drift from the history table anyway.
       this.logger.warn(
         `Failed to append FitRemapHistory for user ${input.userId}: ${(err as Error).message}`,
+        'SubmitFitAnswersUseCase',
       );
     }
 

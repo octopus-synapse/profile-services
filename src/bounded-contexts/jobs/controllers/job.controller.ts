@@ -183,9 +183,7 @@ export class JobController {
   @Get(':id/applications')
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'List applications received for a job (job owner only)',
-  })
+  @ApiOperation({ summary: 'List applications received for a job (job owner only)' })
   @ApiParam({ name: 'id', type: 'string' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -228,9 +226,7 @@ export class JobController {
   @Get(':id/fit')
   @RequirePermission(Permission.FEED_USE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: "Fit score breakdown for this job against the viewer's primary resume",
-  })
+  @ApiOperation({ summary: "Fit score breakdown for this job against the viewer's primary resume" })
   @ApiParam({ name: 'id', type: 'string' })
   async getFit(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
     return this.jobService.getFit(id, req.user.userId);
@@ -292,10 +288,7 @@ export class JobController {
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new job posting' })
-  @ApiDataResponse(JobResponseDto, {
-    description: 'Job created',
-    status: HttpStatus.CREATED,
-  })
+  @ApiDataResponse(JobResponseDto, { description: 'Job created', status: HttpStatus.CREATED })
   async create(
     @Req() req: { user: { userId: string } },
     @Body(createZodPipe(CreateJobSchema)) body: CreateJobDto,

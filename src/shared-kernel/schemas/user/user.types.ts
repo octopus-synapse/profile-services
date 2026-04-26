@@ -98,17 +98,13 @@ export const UserPublicInfoSchema = z.object({
 export type UserPublicInfo = z.infer<typeof UserPublicInfoSchema>;
 
 export const UserProfileResponseSchema = z.object({
-  data: z.object({
-    user: UserProfileApiSchema,
-  }),
+  data: z.object({ user: UserProfileApiSchema }),
 });
 
 export type UserProfileResponseEnvelope = z.infer<typeof UserProfileResponseSchema>;
 
 export const PublicUserProfileResponseSchema = z.object({
-  data: z.object({
-    profile: UserPublicInfoSchema,
-  }),
+  data: z.object({ profile: UserPublicInfoSchema }),
 });
 
 export type PublicUserProfileResponseEnvelope = z.infer<typeof PublicUserProfileResponseSchema>;
@@ -183,9 +179,6 @@ export const UpdateUserResponseSchema = z.object({
 
 export type UpdateUserResponse = z.infer<typeof UpdateUserResponseSchema>;
 
-export const ApiMessageResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
+export const ApiMessageResponseSchema = z.object({ success: z.boolean(), message: z.string() });
 
 export type ApiMessageResponse = z.infer<typeof ApiMessageResponseSchema>;

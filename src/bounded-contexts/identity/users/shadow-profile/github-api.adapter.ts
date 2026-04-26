@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ShadowGithubApi, ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
+import type { ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
+import { ShadowGithubApi } from './ports/github-api.port';
 import { ShadowGitHubApiRequestFailedException } from './shadow-profile.exceptions';
 
 const BASE = 'https://api.github.com';

@@ -257,11 +257,7 @@ export class MetricsService implements OnModuleInit {
     const result: Record<string, unknown> = {};
 
     for (const metric of metrics) {
-      result[metric.name] = {
-        help: metric.help,
-        type: metric.type,
-        values: metric.values,
-      };
+      result[metric.name] = { help: metric.help, type: metric.type, values: metric.values };
     }
 
     return result;

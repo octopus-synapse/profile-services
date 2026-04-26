@@ -6,11 +6,7 @@ import { AdminDashboardMetricsDataDto } from '@/bounded-contexts/platform/common
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminDashboardService } from '../services/admin-dashboard.service';
 
-@SdkExport({
-  tag: 'admin-dashboard',
-  description: 'Admin Dashboard API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'admin-dashboard', description: 'Admin Dashboard API', requiresAuth: true })
 @ApiTags('Admin - Dashboard')
 @ApiBearerAuth()
 @RequirePermission(Permission.PLATFORM_STATS_READ)

@@ -13,23 +13,11 @@ export class BlockedUserRepository {
       where: {
         blockerId_blockedId: { blockerId, blockedId },
       },
-      create: {
-        blockerId,
-        blockedId,
-        reason,
-      },
-      update: {
-        reason,
-        createdAt: new Date(),
-      },
+      create: { blockerId, blockedId, reason },
+      update: { reason, createdAt: new Date() },
       include: {
         blocked: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -82,12 +70,7 @@ export class BlockedUserRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         blocked: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });

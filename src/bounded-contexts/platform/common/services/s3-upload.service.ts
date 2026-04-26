@@ -59,10 +59,7 @@ export class S3UploadService {
         this.client = new S3Client({
           endpoint,
           region: 'us-east-1', // MinIO requires a region but doesn't use it
-          credentials: {
-            accessKeyId,
-            secretAccessKey,
-          },
+          credentials: { accessKeyId, secretAccessKey },
           forcePathStyle: true, // Required for MinIO
         });
         this.bucket = bucket ?? null;
@@ -107,10 +104,7 @@ export class S3UploadService {
     const endpoint = process.env.MINIO_PUBLIC_ENDPOINT ?? process.env.MINIO_ENDPOINT;
     const url = `${endpoint}/${this.bucket}/${key}`;
 
-    this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', {
-      key,
-      contentType,
-    });
+    this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', { key, contentType });
 
     return { url, key };
   }
@@ -145,16 +139,11 @@ export class S3UploadService {
     }
 
     try {
-      const command = new DeleteObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
+      const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
 
       await this.client.send(command);
 
-      this.logger.log('File deleted from MinIO successfully', 'S3UploadService', {
-        key,
-      });
+      this.logger.log('File deleted from MinIO successfully', 'S3UploadService', { key });
 
       return true;
     } catch (error) {

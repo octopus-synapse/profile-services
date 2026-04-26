@@ -3,7 +3,7 @@ import {
   ConnectionNotAcceptedException,
   NotPartOfConnectionException,
 } from '../../../domain/exceptions/social.exceptions';
-import type { ConnectionRepositoryPort } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class RemoveConnectionUseCase {
   constructor(private readonly repository: ConnectionRepositoryPort) {}

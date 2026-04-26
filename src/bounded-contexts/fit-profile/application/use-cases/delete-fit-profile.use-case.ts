@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import { UserFitProfileRepositoryPort } from '../../domain/ports/user-fit-profile.repository.port';
 
@@ -11,7 +10,6 @@ import { UserFitProfileRepositoryPort } from '../../domain/ports/user-fit-profil
  * snapshot telemetry per the plan — but the current vector no longer
  * feeds any Match computation.
  */
-@Injectable()
 export class DeleteFitProfileUseCase {
   constructor(
     private readonly answers: FitAnswerRepositoryPort,

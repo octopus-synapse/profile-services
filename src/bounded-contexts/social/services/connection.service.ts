@@ -5,7 +5,8 @@
  * Delegates persistence to ConnectionRepositoryPort.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
@@ -14,7 +15,6 @@ import {
   type ConnectionWithUser,
 } from '../application/ports/connection.port';
 import type { PaginatedResult, PaginationParams } from '../application/ports/follow.port';
-import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { ConnectionAcceptedEvent, ConnectionRequestedEvent } from '../domain/events';
 import {
   AlreadyConnectedException,
@@ -46,8 +46,7 @@ export class ConnectionService {
   constructor(
     private readonly connectionRepo: ConnectionRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    @Inject(SOCIAL_LOGGER_PORT)
-    private readonly logger: SocialLoggerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async sendConnectionRequest(requesterId: string, targetId: string): Promise<ConnectionWithUser> {
@@ -208,10 +207,7 @@ export class ConnectionService {
     const { data, total } = await this.connectionRepo.findSentRequests(userId, pagination);
 
     return {
-      data: data.map((conn) => ({
-        ...conn,
-        user: conn.target,
-      })),
+      data: data.map((conn) => ({ ...conn, user: conn.target })),
       total,
       page,
       limit,
@@ -278,12 +274,6 @@ export class ConnectionService {
     const { page, limit } = pagination;
     const { data, total } = await this.connectionRepo.findRankedSuggestions(userId, pagination);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

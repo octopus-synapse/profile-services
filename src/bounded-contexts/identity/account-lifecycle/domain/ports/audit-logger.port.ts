@@ -29,10 +29,21 @@ export const AuditAction = {
 } as const;
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];
 
-export interface AuditLoggerPort {
-  log(userId: string, action: AuditAction, entityType: string, entityId: string): Promise<void>;
-  logDataExportRequested(userId: string, ipAddress?: string, userAgent?: string): Promise<void>;
-  logDataExportDownloaded(userId: string, ipAddress?: string, userAgent?: string): Promise<void>;
+export abstract class AuditLoggerPort {
+  abstract log(
+    userId: string,
+    action: AuditAction,
+    entityType: string,
+    entityId: string,
+  ): Promise<void>;
+  abstract logDataExportRequested(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void>;
+  abstract logDataExportDownloaded(
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void>;
 }
-
-export const AUDIT_LOGGER_PORT = Symbol('AuditLoggerPort');

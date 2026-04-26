@@ -65,9 +65,7 @@ export const ResumeSchema = z.object({
   isPublic: z.boolean(),
   slug: z.string().nullable(),
   createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-
-  // Personal info
+  updatedAt: z.string().datetime(), // Personal info
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),
@@ -75,12 +73,8 @@ export const ResumeSchema = z.object({
   location: z.string().nullable(),
   linkedin: z.string().url().nullable(),
   github: z.string().url().nullable(),
-  website: z.string().url().nullable(),
-
-  // Theme
-  styleId: z.string().uuid().nullable(),
-
-  // Sections
+  website: z.string().url().nullable(), // Theme
+  styleId: z.string().uuid().nullable(), // Sections
   resumeSections: z.array(ResumeSectionSchema).default([]),
 });
 
@@ -89,9 +83,7 @@ export type Resume = z.infer<typeof ResumeSchema>;
 /**
  * Resume List Item (without sections)
  */
-export const ResumeListItemSchema = ResumeSchema.omit({
-  resumeSections: true,
-});
+export const ResumeListItemSchema = ResumeSchema.omit({ resumeSections: true });
 
 export type ResumeListItem = z.infer<typeof ResumeListItemSchema>;
 
@@ -100,35 +92,22 @@ export type ResumeListItem = z.infer<typeof ResumeListItemSchema>;
 // ============================================================================
 
 export const ResumeResponseSchema = z.object({
-  data: z.object({
-    resume: ResumeSchema,
-  }),
+  data: z.object({ resume: ResumeSchema }),
 });
 
 export type ResumeResponseEnvelope = z.infer<typeof ResumeResponseSchema>;
 
 export const ResumeListResponseSchema = z.object({
-  data: z.object({
-    resumes: z.array(ResumeListItemSchema),
-  }),
+  data: z.object({ resumes: z.array(ResumeListItemSchema) }),
   meta: z
-    .object({
-      total: z.number(),
-      page: z.number(),
-      limit: z.number(),
-      totalPages: z.number(),
-    })
+    .object({ total: z.number(), page: z.number(), limit: z.number(), totalPages: z.number() })
     .optional(),
 });
 
 export type ResumeListResponseEnvelope = z.infer<typeof ResumeListResponseSchema>;
 
 export const ResumeSlotsResponseSchema = z.object({
-  data: z.object({
-    remaining: z.number(),
-    total: z.number(),
-    used: z.number(),
-  }),
+  data: z.object({ remaining: z.number(), total: z.number(), used: z.number() }),
 });
 
 export type ResumeSlotsResponseEnvelope = z.infer<typeof ResumeSlotsResponseSchema>;
@@ -137,17 +116,13 @@ export type ResumeSlotsResponseEnvelope = z.infer<typeof ResumeSlotsResponseSche
  * Generic section response - works with any section type
  */
 export const SectionResponseSchema = z.object({
-  data: z.object({
-    section: ResumeSectionSchema,
-  }),
+  data: z.object({ section: ResumeSectionSchema }),
 });
 
 export type SectionResponseEnvelope = z.infer<typeof SectionResponseSchema>;
 
 export const SectionListResponseSchema = z.object({
-  data: z.object({
-    sections: z.array(ResumeSectionSchema),
-  }),
+  data: z.object({ sections: z.array(ResumeSectionSchema) }),
 });
 
 export type SectionListResponseEnvelope = z.infer<typeof SectionListResponseSchema>;
@@ -156,17 +131,13 @@ export type SectionListResponseEnvelope = z.infer<typeof SectionListResponseSche
  * Section item response
  */
 export const SectionItemResponseSchema = z.object({
-  data: z.object({
-    item: ResumeSectionItemSchema,
-  }),
+  data: z.object({ item: ResumeSectionItemSchema }),
 });
 
 export type SectionItemResponseEnvelope = z.infer<typeof SectionItemResponseSchema>;
 
 export const SectionItemListResponseSchema = z.object({
-  data: z.object({
-    items: z.array(ResumeSectionItemSchema),
-  }),
+  data: z.object({ items: z.array(ResumeSectionItemSchema) }),
 });
 
 export type SectionItemListResponseEnvelope = z.infer<typeof SectionItemListResponseSchema>;

@@ -74,10 +74,7 @@ export const ThemeParser = {
     const result = ThemeDefinitionSchema.safeParse(input);
 
     if (result.success) {
-      return {
-        success: true,
-        data: result.data,
-      };
+      return { success: true, data: result.data };
     }
 
     const errors = result.error.issues.map((issue) => ({
@@ -85,10 +82,7 @@ export const ThemeParser = {
       message: issue.message,
     }));
 
-    return {
-      success: false,
-      errors,
-    };
+    return { success: false, errors };
   },
 
   /**

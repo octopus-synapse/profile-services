@@ -51,11 +51,7 @@ export class OnboardingPreviewController {
         return from(this.renderer.renderPreview(userId)).pipe(
           filter((buffer): buffer is Buffer => buffer !== null),
           map((buffer) => ({
-            data: {
-              type: 'preview',
-              version: currentVersion,
-              image: buffer.toString('base64'),
-            },
+            data: { type: 'preview', version: currentVersion, image: buffer.toString('base64') },
             id: `preview-${currentVersion}`,
             type: 'preview',
             retry: 15000,

@@ -5,7 +5,8 @@
  * to ActivityRepositoryPort and follower lookup to FollowRepositoryPort.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ActivityRepositoryPort,
@@ -18,11 +19,7 @@ import {
   ActivityReaderPort,
 } from '../application/ports/facade.ports';
 import { FollowRepositoryPort } from '../application/ports/follow.port';
-import {
-  SOCIAL_EVENT_BUS_PORT,
-  SocialEventBusPort,
-} from '../application/ports/social-event-bus.port';
-import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
+import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
 import { ActivityCreatedEvent, type SocialActivityType } from '../domain/events';
 import type { PaginatedResult, PaginationParams } from './follow.service';
 
@@ -37,9 +34,7 @@ export class ActivityService
     private readonly activityRepo: ActivityRepositoryPort,
     private readonly followRepo: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    @Inject(SOCIAL_LOGGER_PORT)
-    private readonly logger: SocialLoggerPort,
-    @Inject(SOCIAL_EVENT_BUS_PORT)
+    private readonly logger: LoggerPort,
     private readonly eventBus: SocialEventBusPort,
   ) {
     super();

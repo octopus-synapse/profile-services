@@ -18,15 +18,9 @@ import type {
 // Domain Types
 // ============================================================================
 
-type ChatUserProfile = {
-  id: string;
-  name: string | null;
-  photoURL: string | null;
-};
+type ChatUserProfile = { id: string; name: string | null; photoURL: string | null };
 
-type ChatUserProfileWithUsername = ChatUserProfile & {
-  username: string | null;
-};
+type ChatUserProfileWithUsername = ChatUserProfile & { username: string | null };
 
 export type MessageWithSender = {
   id: string;
@@ -93,19 +87,14 @@ export abstract class MessageRepositoryPort {
   abstract findByConversationId(
     conversationId: string,
     options: { cursor?: string; limit: number },
-  ): Promise<{
-    messages: MessageWithSender[];
-    nextCursor: string | null;
-    hasMore: boolean;
-  }>;
+  ): Promise<{ messages: MessageWithSender[]; nextCursor: string | null; hasMore: boolean }>;
   abstract markConversationAsRead(
     conversationId: string,
     userId: string,
   ): Promise<{ count: number }>;
-  abstract getUnreadCount(userId: string): Promise<{
-    totalUnread: number;
-    byConversation: Record<string, number>;
-  }>;
+  abstract getUnreadCount(
+    userId: string,
+  ): Promise<{ totalUnread: number; byConversation: Record<string, number> }>;
   abstract getUnreadCountByConversation(conversationId: string, userId: string): Promise<number>;
 }
 
@@ -125,41 +114,38 @@ export abstract class ChatCachePort {
 // Use Cases Interface
 // ============================================================================
 
-export const CHAT_USE_CASES = Symbol('CHAT_USE_CASES');
-
-export interface ChatUseCases {
-  sendMessageUseCase: {
+export abstract class ChatUseCases {
+  abstract readonly sendMessageUseCase: {
     execute: (senderId: string, dto: SendMessage) => Promise<MessageResponse>;
   };
-  sendMessageToConversationUseCase: {
+  abstract readonly sendMessageToConversationUseCase: {
     execute: (
       senderId: string,
       conversationId: string,
       content: string,
     ) => Promise<MessageResponse>;
   };
-  getMessagesUseCase: {
+  abstract readonly getMessagesUseCase: {
     execute: (userId: string, query: GetMessagesQuery) => Promise<PaginatedMessagesResponse>;
   };
-  getConversationsUseCase: {
+  abstract readonly getConversationsUseCase: {
     execute: (
       userId: string,
       query: GetConversationsQuery,
     ) => Promise<PaginatedConversationsResponse>;
   };
-  getConversationUseCase: {
+  abstract readonly getConversationUseCase: {
     execute: (userId: string, conversationId: string) => Promise<ConversationResponse>;
   };
-  markConversationReadUseCase: {
+  abstract readonly markConversationReadUseCase: {
     execute: (userId: string, conversationId: string) => Promise<{ count: number }>;
   };
-  getUnreadCountUseCase: {
-    execute: (userId: string) => Promise<{
-      totalUnread: number;
-      byConversation: Record<string, number>;
-    }>;
+  abstract readonly getUnreadCountUseCase: {
+    execute: (
+      userId: string,
+    ) => Promise<{ totalUnread: number; byConversation: Record<string, number> }>;
   };
-  getConversationIdUseCase: {
+  abstract readonly getConversationIdUseCase: {
     execute: (userId: string, otherUserId: string) => Promise<string | null>;
   };
 }

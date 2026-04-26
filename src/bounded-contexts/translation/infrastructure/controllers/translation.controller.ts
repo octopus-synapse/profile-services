@@ -34,9 +34,7 @@ export class TranslationController {
   @Public()
   @Get('health')
   @ApiOperation({ summary: 'Check translation service health' })
-  @ApiDataResponse(HealthCheckResponseDto, {
-    description: 'Service health status',
-  })
+  @ApiDataResponse(HealthCheckResponseDto, { description: 'Service health status' })
   async healthCheck(): Promise<DataResponse<HealthCheckResponseDto>> {
     const isAvailable = await this.translationService.checkServiceHealth();
     return {
@@ -52,10 +50,7 @@ export class TranslationController {
   @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate a single text' })
-  @ApiDataResponse(TranslationResultDto, {
-    status: 201,
-    description: 'Translation result',
-  })
+  @ApiDataResponse(TranslationResultDto, { status: 201, description: 'Translation result' })
   async translateText(@Body() dto: TranslateTextDto): Promise<DataResponse<TranslationResultDto>> {
     const result = await this.translationService.translate(
       dto.text,
@@ -100,10 +95,7 @@ export class TranslationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate Portuguese to English' })
   @ApiBody({ type: TranslateSimpleDto })
-  @ApiDataResponse(TranslationResultDto, {
-    status: 201,
-    description: 'Translation result',
-  })
+  @ApiDataResponse(TranslationResultDto, { status: 201, description: 'Translation result' })
   async translatePtToEn(
     @Body() body: TranslateSimpleDto,
   ): Promise<DataResponse<TranslationResultDto>> {
@@ -116,10 +108,7 @@ export class TranslationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate English to Portuguese' })
   @ApiBody({ type: TranslateSimpleDto })
-  @ApiDataResponse(TranslationResultDto, {
-    status: 201,
-    description: 'Translation result',
-  })
+  @ApiDataResponse(TranslationResultDto, { status: 201, description: 'Translation result' })
   async translateEnToPt(
     @Body() body: TranslateSimpleDto,
   ): Promise<DataResponse<TranslationResultDto>> {

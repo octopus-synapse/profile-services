@@ -60,12 +60,7 @@ export class WebhookConfigService {
   ): Promise<{ webhook: WebhookView; secret: string }> {
     const secret = crypto.randomBytes(32).toString('hex');
     const webhook = await this.prisma.webhookConfig.create({
-      data: {
-        userId,
-        url: input.url,
-        events: input.events,
-        secret,
-      },
+      data: { userId, url: input.url, events: input.events, secret },
       select: { id: true, url: true, events: true, enabled: true, createdAt: true },
     });
     return { webhook: webhook as WebhookView, secret };

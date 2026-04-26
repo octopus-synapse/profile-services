@@ -5,8 +5,7 @@
 
 export const SCALAR_CUSTOM_CSS = `
 /* ProFile Dark Purple Theme */
-:root {
-  --scalar-background-1: #1a1625 !important;
+:root { --scalar-background-1: #1a1625 !important;
   --scalar-background-2: #252033 !important;
   --scalar-background-3: #3d2e5c !important;
   --scalar-background-accent: #7c3aed !important;
@@ -25,8 +24,7 @@ export const SCALAR_CUSTOM_CSS = `
 
   --scalar-button-1: #7c3aed !important;
   --scalar-button-1-hover: #6d28d9 !important;
-  --scalar-button-1-color: #ffffff !important;
-}
+  --scalar-button-1-color: #ffffff !important; }
 
 /* Sidebar */
 .sidebar { background: #1a1625 !important; border-right: 1px solid #4c3a6e !important; }
@@ -39,23 +37,15 @@ export const SCALAR_CUSTOM_CSS = `
 [class*="sidebar"] a:hover, [class*="sidebar"] button:hover { background: #252033 !important; }
 
 /* Method badges */
-.scalar-api-reference [data-method="get"] {
-  background: #8b5cf6 !important;
-  color: #fff !important;
-}
-.scalar-api-reference [data-method="post"] {
-  background: #a855f7 !important;
-  color: #fff !important;
-}
+.scalar-api-reference [data-method="get"] { background: #8b5cf6 !important;
+  color: #fff !important; }
+.scalar-api-reference [data-method="post"] { background: #a855f7 !important;
+  color: #fff !important; }
 .scalar-api-reference [data-method="put"],
-.scalar-api-reference [data-method="patch"] {
-  background: #c084fc !important;
-  color: #fff !important;
-}
-.scalar-api-reference [data-method="delete"] {
-  background: #ef4444 !important;
-  color: #fff !important;
-}
+.scalar-api-reference [data-method="patch"] { background: #c084fc !important;
+  color: #fff !important; }
+.scalar-api-reference [data-method="delete"] { background: #ef4444 !important;
+  color: #fff !important; }
 
 /* Content area */
 .scalar-api-reference { background: #1a1625 !important; }
@@ -65,11 +55,9 @@ export const SCALAR_CUSTOM_CSS = `
 pre, code { background: #1e1a2e !important; }
 
 /* Inputs */
-input, textarea, select {
-  background: #252033 !important;
+input, textarea, select { background: #252033 !important;
   border-color: #4c3a6e !important;
-  color: #e9d5ff !important;
-}
+  color: #e9d5ff !important; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }

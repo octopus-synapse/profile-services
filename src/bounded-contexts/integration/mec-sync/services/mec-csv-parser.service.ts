@@ -87,13 +87,7 @@ export class MecCsvParserService {
 
     const { institutions, courses, errors } = this.rowProcessor.processDataRows(lines, columnMap);
 
-    return {
-      institutions,
-      courses,
-      errors,
-      totalRows: lines.length - 1,
-      fileSize,
-    };
+    return { institutions, courses, errors, totalRows: lines.length - 1, fileSize };
   }
 
   private splitIntoLines(content: string): string[] {

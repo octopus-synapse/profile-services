@@ -8,12 +8,10 @@ export interface ForgotPasswordCommand {
   email: string;
 }
 
-export interface ForgotPasswordPort {
+export abstract class ForgotPasswordPort {
   /**
    * Initiates password reset by sending email with reset token.
    * Always returns success to prevent email enumeration attacks.
    */
-  execute(command: ForgotPasswordCommand): Promise<void>;
+  abstract execute(command: ForgotPasswordCommand): Promise<void>;
 }
-
-export const FORGOT_PASSWORD_PORT = Symbol('ForgotPasswordPort');

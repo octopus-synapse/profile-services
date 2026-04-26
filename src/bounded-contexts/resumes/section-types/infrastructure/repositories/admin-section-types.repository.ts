@@ -48,9 +48,7 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
   }
 
   async create(data: CreateSectionTypeData): Promise<SectionTypeRecord> {
-    return this.prisma.sectionType.create({
-      data: data as Prisma.SectionTypeCreateInput,
-    });
+    return this.prisma.sectionType.create({ data: data as Prisma.SectionTypeCreateInput });
   }
 
   async update(key: string, data: UpdateSectionTypeData): Promise<SectionTypeRecord> {

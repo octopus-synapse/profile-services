@@ -75,8 +75,6 @@ export type InviteCollaborator = z.infer<typeof InviteCollaboratorSchema>;
 // Update Role Request
 // ============================================================================
 
-export const UpdateCollaboratorRoleSchema = z.object({
-  role: CollaboratorRoleSchema,
-});
+export const UpdateCollaboratorRoleSchema = z.object({ role: CollaboratorRoleSchema });
 
 export type UpdateCollaboratorRole = z.infer<typeof UpdateCollaboratorRoleSchema>;

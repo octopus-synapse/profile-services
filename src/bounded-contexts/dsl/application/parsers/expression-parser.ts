@@ -89,17 +89,14 @@ export class ExpressionParser {
 
     while (!this.isAtEnd()) {
       if (this.check(TokenType.STRING)) {
-        parts.push({
-          type: ExpressionType.LITERAL,
-          value: this.advance().value,
-        });
+        parts.push({ type: ExpressionType.LITERAL, value: this.advance().value });
       } else if (this.check(TokenType.EXPR_START)) {
         this.advance(); // consume ${
         const expr = this.parseExpression();
         parts.push(expr);
 
         if (!this.check(TokenType.EXPR_END)) {
-          throw new DslExpectedTokenException('} after expression');
+          throw new DslExpectedTokenException(' } after expression');
         }
         this.advance(); // consume }
       } else {

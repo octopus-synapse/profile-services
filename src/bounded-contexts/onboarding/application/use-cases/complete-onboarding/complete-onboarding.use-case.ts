@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   OnboardingDataValidationFailedException,
@@ -7,21 +8,13 @@ import {
   OnboardingAlreadyCompletedException,
   OnboardingUsernameTakenException,
 } from '../../../domain/exceptions/onboarding-extra.exceptions';
-import type { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
-import type {
-  CompletionResult,
-  OnboardingCompletionPort,
-} from '../../../domain/ports/onboarding-completion.port';
+import { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
+import type { CompletionResult } from '../../../domain/ports/onboarding-completion.port';
+import { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   type OnboardingData,
   onboardingDataSchema,
 } from '../../../domain/schemas/onboarding.schema';
-
-export interface CompleteOnboardingLogger {
-  log: (msg: string, ctx: string, meta?: Record<string, unknown>) => void;
-  warn: (msg: string, ctx: string, meta?: Record<string, unknown>) => void;
-  error: (msg: string, trace?: string, ctx?: string, meta?: Record<string, unknown>) => void;
-}
 
 export interface CompleteOnboardingAuditLog {
   logOnboardingCompleted: (userId: string, username: string, resumeId: string) => Promise<void>;
@@ -31,7 +24,7 @@ export class CompleteOnboardingUseCase {
   constructor(
     private readonly repository: OnboardingRepositoryPort,
     private readonly completionAdapter: OnboardingCompletionPort,
-    private readonly logger: CompleteOnboardingLogger,
+    private readonly logger: LoggerPort,
     private readonly auditLog: CompleteOnboardingAuditLog,
   ) {}
 
@@ -108,10 +101,7 @@ export class CompleteOnboardingUseCase {
       this.logger.warn(
         'Username conflict detected during transaction',
         'CompleteOnboardingUseCase',
-        {
-          username: data.username,
-          userId,
-        },
+        { username: data.username, userId },
       );
       throw new OnboardingUsernameTakenException();
     }

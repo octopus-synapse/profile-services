@@ -1,6 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { OnlyResumeOwnerCanUpdateRolesException } from '../../../domain/exceptions/collaboration.exceptions';
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,
   UpdateRoleParams,

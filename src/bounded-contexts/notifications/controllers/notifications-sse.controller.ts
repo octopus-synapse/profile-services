@@ -3,7 +3,7 @@
  *
  * Streams real-time notifications to the authenticated user. Mirrors the
  * pattern in `activity-feed-sse.controller.ts`. The notification service emits
- * to the `notif:user:{userId}` namespace on the shared EventEmitter bus.
+ * to the `notif:user:{ userId }` namespace on the shared EventEmitter bus.
  */
 
 import { Controller, MessageEvent, Sse } from '@nestjs/common';
@@ -46,12 +46,7 @@ export class NotificationsSseController {
   subscribe(@CurrentUser() user: UserPayload): Observable<MessageEvent> {
     return fromEvent<NotificationStreamEvent>(this.eventEmitter, `notif:user:${user.userId}`).pipe(
       filter((n): n is NotificationStreamEvent => Boolean(n)),
-      map((n) => ({
-        data: n,
-        id: n.id,
-        type: 'notification',
-        retry: 10000,
-      })),
+      map((n) => ({ data: n, id: n.id, type: 'notification', retry: 10000 })),
     );
   }
 }

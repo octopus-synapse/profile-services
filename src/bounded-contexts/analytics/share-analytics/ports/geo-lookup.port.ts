@@ -3,8 +3,6 @@ export interface GeoLocation {
   city: string | null;
 }
 
-export const GEO_LOOKUP_PORT = Symbol('GeoLookupPort');
-
-export interface GeoLookupPort {
-  lookup(ip: string): Promise<GeoLocation | null>;
+export abstract class GeoLookupPort {
+  abstract lookup(ip: string): Promise<GeoLocation | null>;
 }

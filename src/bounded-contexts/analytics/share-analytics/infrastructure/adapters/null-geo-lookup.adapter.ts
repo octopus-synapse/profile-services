@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { GeoLocation, GeoLookupPort } from '../../ports/geo-lookup.port';
+import type { GeoLocation } from '../../ports/geo-lookup.port';
+import { GeoLookupPort } from '../../ports/geo-lookup.port';
 
 /**
  * Default adapter — resolves no geo info. Replace via module override

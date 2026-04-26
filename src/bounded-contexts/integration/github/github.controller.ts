@@ -106,17 +106,11 @@ export class GitHubController {
           description: 'GitHub username to sync',
           example: 'octocat',
         },
-        resumeId: {
-          type: 'string',
-          description: 'Target resume ID',
-          example: 'clxyz123',
-        },
+        resumeId: { type: 'string', description: 'Target resume ID', example: 'clxyz123' },
       },
     },
   })
-  @ApiDataResponse(GitHubSyncResponseDto, {
-    description: 'GitHub data synced successfully',
-  })
+  @ApiDataResponse(GitHubSyncResponseDto, { description: 'GitHub data synced successfully' })
   async syncGitHub(
     @CurrentUser() user: UserPayload,
     @Body() body: { githubUsername: string; resumeId: string },
@@ -135,9 +129,7 @@ export class GitHubController {
   @ApiOperation({ summary: 'Auto-sync GitHub from resume GitHub link' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID to sync' })
   @ApiBody({ type: AutoSyncGitHubRequestDto })
-  @ApiDataResponse(GitHubSyncResponseDto, {
-    description: 'GitHub data auto-synced successfully',
-  })
+  @ApiDataResponse(GitHubSyncResponseDto, { description: 'GitHub data auto-synced successfully' })
   async autoSyncGitHub(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
@@ -173,11 +165,7 @@ export class GitHubController {
     name?: string | null;
     bio?: string | null;
     publicRepos: number;
-    topRepos?: Array<{
-      name: string;
-      description?: string | null;
-      url: string;
-    }>;
+    topRepos?: Array<{ name: string; description?: string | null; url: string }>;
   }): GitHubSummaryDto {
     return {
       username: result.username,

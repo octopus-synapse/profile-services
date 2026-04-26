@@ -28,11 +28,7 @@ export class WeightedCosineSimilarityAdapter extends SimilarityPort {
     // Culture profiles live behind a future `CompanyFitProfile` table.
     // Until that exists, surface `null` so the caller can decide
     // whether to degrade to a neutral Fit or propagate the gap.
-    return {
-      score: null,
-      algorithm: 'weighted-cosine',
-      rulesVersion: FIT_RULES_VERSION,
-    };
+    return { score: null, algorithm: 'weighted-cosine', rulesVersion: FIT_RULES_VERSION };
   }
 
   async role(userId: string, jobId: string): Promise<SimilarityResult> {
@@ -42,18 +38,10 @@ export class WeightedCosineSimilarityAdapter extends SimilarityPort {
     ]);
 
     if (!user || user.vector === null || !job) {
-      return {
-        score: null,
-        algorithm: 'weighted-cosine',
-        rulesVersion: FIT_RULES_VERSION,
-      };
+      return { score: null, algorithm: 'weighted-cosine', rulesVersion: FIT_RULES_VERSION };
     }
 
     const score = weightedCosineScore(user.vector, job.vector);
-    return {
-      score,
-      algorithm: 'weighted-cosine',
-      rulesVersion: FIT_RULES_VERSION,
-    };
+    return { score, algorithm: 'weighted-cosine', rulesVersion: FIT_RULES_VERSION };
   }
 }

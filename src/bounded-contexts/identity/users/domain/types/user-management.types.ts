@@ -41,11 +41,7 @@ export type UserDetails = {
     updatedAt: Date;
   }[];
   preferences: unknown | null;
-  counts: {
-    accounts: number;
-    sessions: number;
-    resumes: number;
-  };
+  counts: { accounts: number; sessions: number; resumes: number };
 };
 
 export type CreatedUser = {
@@ -66,53 +62,29 @@ export type UpdatedUser = {
 
 export type UserListResult = {
   users: UserListItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: { page: number; limit: number; total: number; totalPages: number };
 };
 
-export type CreateUserData = {
-  email: string;
-  password: string;
-  name?: string;
-};
+export type CreateUserData = { email: string; password: string; name?: string };
 
-export type UpdateUserData = {
-  email?: string;
-  name?: string;
-  username?: string;
-};
+export type UpdateUserData = { email?: string; name?: string; username?: string };
 
-export type UserListOptions = {
-  page: number;
-  limit: number;
-  search?: string;
-  roleName?: string;
-};
+export type UserListOptions = { page: number; limit: number; search?: string; roleName?: string };
 
 // Use Cases Interface Symbol
-export const USER_MANAGEMENT_USE_CASES = Symbol('USER_MANAGEMENT_USE_CASES');
-
-export interface UserManagementUseCases {
-  listUsersUseCase: {
+export abstract class UserManagementUseCases {
+  abstract readonly listUsersUseCase: {
     execute: (options: UserListOptions) => Promise<UserListResult>;
   };
-  getUserDetailsUseCase: {
-    execute: (userId: string) => Promise<UserDetails>;
-  };
-  createUserUseCase: {
-    execute: (data: CreateUserData) => Promise<CreatedUser>;
-  };
-  updateUserUseCase: {
+  abstract readonly getUserDetailsUseCase: { execute: (userId: string) => Promise<UserDetails> };
+  abstract readonly createUserUseCase: { execute: (data: CreateUserData) => Promise<CreatedUser> };
+  abstract readonly updateUserUseCase: {
     execute: (userId: string, data: UpdateUserData) => Promise<UpdatedUser>;
   };
-  deleteUserUseCase: {
+  abstract readonly deleteUserUseCase: {
     execute: (userId: string, requesterId: string) => Promise<void>;
   };
-  resetPasswordUseCase: {
+  abstract readonly resetPasswordUseCase: {
     execute: (userId: string, newPassword: string) => Promise<void>;
   };
 }

@@ -7,7 +7,8 @@ import {
   UsernameReservedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
-import type { UpdatedUsername, UsernameRepositoryPort } from '../../ports/username.port';
+import type { UpdatedUsername } from '../../ports/username.port';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 

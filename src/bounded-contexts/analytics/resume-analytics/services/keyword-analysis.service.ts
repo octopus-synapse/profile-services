@@ -94,11 +94,7 @@ export class KeywordAnalysisService {
       .map((keyword) => {
         const matches = textLower.match(new RegExp(keyword, 'gi'));
         return matches
-          ? {
-              keyword,
-              count: matches.length,
-              relevance: Math.min(matches.length * 20, 100),
-            }
+          ? { keyword, count: matches.length, relevance: Math.min(matches.length * 20, 100) }
           : null;
       })
       .filter((r): r is { keyword: string; count: number; relevance: number } => r !== null)

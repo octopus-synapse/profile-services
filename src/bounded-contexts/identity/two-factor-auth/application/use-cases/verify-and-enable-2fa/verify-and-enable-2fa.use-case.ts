@@ -6,9 +6,9 @@
  */
 
 import { InvalidTotpTokenException, TwoFactorNotSetupException } from '../../../domain/exceptions';
-import type { HashServicePort } from '../../../domain/ports/hash-service.port';
-import type { TotpServicePort } from '../../../domain/ports/totp-service.port';
-import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
+import { HashServicePort } from '../../../domain/ports/hash-service.port';
+import { TotpServicePort } from '../../../domain/ports/totp-service.port';
+import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 const BACKUP_CODE_COUNT = 10;
 

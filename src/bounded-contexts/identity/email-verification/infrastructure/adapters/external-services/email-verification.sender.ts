@@ -1,10 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { VerificationEmailSenderPort } from '../../../domain/ports';
+import { VerificationEmailSenderPort } from '../../../domain/ports';
 
-// Interface for the email service port from shared kernel
-interface EmailServicePort {
-  sendEmail(options: {
+/** Abstract port for the platform email service (so adapters bind to it via DI). */
+export abstract class EmailServicePort {
+  abstract sendEmail(options: {
     to: string;
     subject: string;
     template: string;
@@ -12,17 +12,15 @@ interface EmailServicePort {
   }): Promise<void>;
 }
 
-const EMAIL_SERVICE = Symbol('EmailServicePort');
-
 @Injectable()
-export class EmailVerificationSender implements VerificationEmailSenderPort {
+export class EmailVerificationSender extends VerificationEmailSenderPort {
   private readonly appUrl: string;
 
   constructor(
-    @Inject(EMAIL_SERVICE)
     private readonly emailService: EmailServicePort,
     private readonly configService: ConfigService,
   ) {
+    super();
     this.appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
   }
 
@@ -37,13 +35,7 @@ export class EmailVerificationSender implements VerificationEmailSenderPort {
       to: email,
       subject: 'Verify Your Email Address',
       template: 'email-verification',
-      context: {
-        userName: userName || 'User',
-        verificationUrl,
-        expirationHours: 24,
-      },
+      context: { userName: userName || 'User', verificationUrl, expirationHours: 24 },
     });
   }
 }
-
-export { EMAIL_SERVICE };

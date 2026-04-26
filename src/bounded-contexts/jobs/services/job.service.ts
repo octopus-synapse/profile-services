@@ -182,10 +182,7 @@ export class JobService {
 
     return {
       ...match,
-      dimensions: {
-        hardSkills: hardSkillsPct,
-        softSkills: softSkillsPct,
-      },
+      dimensions: { hardSkills: hardSkillsPct, softSkills: softSkillsPct },
     };
   }
 
@@ -194,12 +191,7 @@ export class JobService {
       where: { id },
       include: {
         author: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            photoURL: true,
-          },
+          select: { id: true, name: true, username: true, photoURL: true },
         },
       },
     });
@@ -610,7 +602,7 @@ export class JobService {
       data: { ...rest, expiresAt: expiresAt ? new Date(expiresAt) : undefined },
     });
     // Match Score cache is keyed by jobId — the recompute worker wipes
-    // `match:*:{jobId}:*` when this event fires.
+    // `match:*:{ jobId }:*` when this event fires.
     this.events.publish(
       new JobUpdatedEvent(id, { editedByUserId: userId, changedFields: Object.keys(rest) }),
     );
@@ -687,13 +679,7 @@ export class JobService {
         ? []
         : await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              email: true,
-              photoURL: true,
-            },
+            select: { id: true, name: true, username: true, email: true, photoURL: true },
           });
     const userById = new Map(users.map((u) => [u.id, u]));
 

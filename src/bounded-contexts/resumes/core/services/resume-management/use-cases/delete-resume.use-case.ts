@@ -1,4 +1,4 @@
-import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeManagementRepositoryPort } from '../ports/resume-management.port';
 
@@ -18,8 +18,6 @@ export class DeleteResumeUseCase {
     // Delete first, then publish event (prevents cache invalidation if delete fails)
     await this.repository.deleteResumeById(resumeId);
 
-    this.eventPublisher.publishResumeDeleted(resumeId, {
-      userId: resume.userId,
-    });
+    this.eventPublisher.publishResumeDeleted(resumeId, { userId: resume.userId });
   }
 }

@@ -17,13 +17,9 @@ const SpokenLanguageSchema = z.object({
   nativeName: z.string().nullable(),
 });
 
-const SpokenLanguageListDataSchema = z.object({
-  languages: z.array(SpokenLanguageSchema),
-});
+const SpokenLanguageListDataSchema = z.object({ languages: z.array(SpokenLanguageSchema) });
 
-const SpokenLanguageDataSchema = z.object({
-  language: SpokenLanguageSchema,
-});
+const SpokenLanguageDataSchema = z.object({ language: SpokenLanguageSchema });
 
 // ============================================================================
 // DTOs

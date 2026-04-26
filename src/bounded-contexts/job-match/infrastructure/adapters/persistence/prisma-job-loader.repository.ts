@@ -26,8 +26,7 @@ export class PrismaJobLoader extends JobLoaderPort {
         skills: true,
         requirementsStructured: true,
         requirementsEnrichedByAi: true,
-        culturalProfileCaptured: true,
-        // `Job.company` is a free-text string at this stage (the
+        culturalProfileCaptured: true, // `Job.company` is a free-text string at this stage (the
         // employer isn't modelled yet). We pass it through as the
         // "company id" so SimilarityPort can decide whether a culture
         // vector exists for it (today: always null; the adapter stays

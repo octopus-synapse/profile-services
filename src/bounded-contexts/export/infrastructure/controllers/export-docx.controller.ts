@@ -8,7 +8,6 @@ import {
   Controller,
   Get,
   Header,
-  Inject,
   InternalServerErrorException,
   StreamableFile,
 } from '@nestjs/common';
@@ -20,7 +19,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -29,7 +28,6 @@ import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '.
 @Controller('v1/export')
 export class ExportDocxController {
   constructor(
-    @Inject(EXPORT_USE_CASES)
     private readonly useCases: ExportUseCases,
     private readonly logger: AppLoggerService,
     private readonly eventEmitter: EventEmitter2,

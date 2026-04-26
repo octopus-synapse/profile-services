@@ -10,12 +10,10 @@ import { AuditAction } from '../../../domain/ports/audit-logger.port';
 import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.dto';
 import type { ConsentRepositoryPort } from './accept-consent.port';
 
-export const VERSION_CONFIG_PORT = Symbol('VersionConfigPort');
-
-export interface VersionConfigPort {
-  getTosVersion(): string;
-  getPrivacyPolicyVersion(): string;
-  getMarketingConsentVersion(): string;
+export abstract class VersionConfigPort {
+  abstract getTosVersion(): string;
+  abstract getPrivacyPolicyVersion(): string;
+  abstract getMarketingConsentVersion(): string;
 }
 
 export class AcceptConsentUseCase {

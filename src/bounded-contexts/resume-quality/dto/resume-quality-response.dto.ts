@@ -19,9 +19,12 @@ const ResumeQualityResponseSchema = z.object({
   id: z.string(),
   resumeId: z.string(),
   overallScore: z.number().int().min(0).max(100),
-  completenessScore: z.number().int().min(0).max(100),
-  /** `null` means the Content Quality path was disabled or failed;
-   * clients should fall back to `completenessScore`. */
+  completenessScore: z
+    .number()
+    .int()
+    .min(0)
+    .max(100) /** `null` means the Content Quality path was disabled or failed;
+   * clients should fall back to `completenessScore`. */,
   contentQualityScore: z.number().int().min(0).max(100).nullable(),
   issues: z.array(IssueSchema),
   scoringRulesVersion: z.string(),

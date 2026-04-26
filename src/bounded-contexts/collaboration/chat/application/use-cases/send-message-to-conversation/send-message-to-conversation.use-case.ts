@@ -5,7 +5,7 @@ import {
 } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { MessageResponse } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
-import type {
+import {
   BlockedUserRepositoryPort,
   ChatCachePort,
   ConversationRepositoryPort,
@@ -43,11 +43,7 @@ export class SendMessageToConversationUseCase {
       throw new CannotSendMessageToUserException();
     }
 
-    const message = await this.messageRepo.create({
-      conversationId,
-      senderId,
-      content,
-    });
+    const message = await this.messageRepo.create({ conversationId, senderId, content });
 
     await this.conversationRepo.updateLastMessage(conversationId, {
       content,

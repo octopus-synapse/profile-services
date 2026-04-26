@@ -232,19 +232,13 @@ export class AuthorizationService extends AuthorizationServicePort {
       }
     }
 
-    this.cache.set(userId, {
-      context,
-      expiresAt: Date.now() + DEFAULT_CACHE_TTL_SECONDS * 1000,
-    });
+    this.cache.set(userId, { context, expiresAt: Date.now() + DEFAULT_CACHE_TTL_SECONDS * 1000 });
   }
 
   /**
    * Get cache statistics (for monitoring)
    */
   getCacheStats(): { size: number; maxSize: number } {
-    return {
-      size: this.cache.size,
-      maxSize: MAX_CACHE_SIZE,
-    };
+    return { size: this.cache.size, maxSize: MAX_CACHE_SIZE };
   }
 }

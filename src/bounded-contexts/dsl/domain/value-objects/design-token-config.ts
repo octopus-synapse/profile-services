@@ -21,12 +21,7 @@ export const FONT_SIZES: Record<string, { base: number; heading: number }> = {
   lg: { base: 18, heading: 26 },
 };
 
-export const SPACING_SIZES: Record<string, number> = {
-  sm: 12,
-  md: 16,
-  lg: 24,
-  xl: 32,
-};
+export const SPACING_SIZES: Record<string, number> = { sm: 12, md: 16, lg: 24, xl: 32 };
 
 export const DENSITY_FACTORS: Record<string, number> = {
   compact: 0.75,
@@ -34,13 +29,7 @@ export const DENSITY_FACTORS: Record<string, number> = {
   spacious: 1.25,
 };
 
-export const BORDER_RADII: Record<string, number> = {
-  none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  full: 9999,
-};
+export const BORDER_RADII: Record<string, number> = { none: 0, sm: 4, md: 8, lg: 12, full: 9999 };
 
 export const SHADOWS: Record<string, string> = {
   none: 'none',

@@ -19,10 +19,7 @@ export type OAuthProfile = {
   raw: Record<string, unknown>;
 };
 
-export type OAuthUpsertResult = {
-  userId: string;
-  created: boolean;
-};
+export type OAuthUpsertResult = { userId: string; created: boolean };
 
 @Injectable()
 export class OAuthService {
@@ -87,15 +84,8 @@ export class OAuthService {
 
   private async refreshAccountTokens(userId: string, profile: OAuthProfile) {
     await this.prisma.account.updateMany({
-      where: {
-        userId,
-        provider: profile.provider,
-        providerAccountId: profile.providerAccountId,
-      },
-      data: {
-        access_token: profile.accessToken,
-        refresh_token: profile.refreshToken,
-      },
+      where: { userId, provider: profile.provider, providerAccountId: profile.providerAccountId },
+      data: { access_token: profile.accessToken, refresh_token: profile.refreshToken },
     });
   }
 

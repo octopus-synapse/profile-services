@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,8 +11,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { ChangePasswordPort } from '../../application/ports';
-import { CHANGE_PASSWORD_PORT } from '../../application/ports';
+import { ChangePasswordPort } from '../../application/ports';
 import { ChangePasswordDto, ChangePasswordResponseDto } from './change-password.dto';
 
 interface AuthenticatedUser {
@@ -27,10 +26,7 @@ interface AuthenticatedUser {
 @ApiTags('Password Management')
 @Controller('password')
 export class ChangePasswordController {
-  constructor(
-    @Inject(CHANGE_PASSWORD_PORT)
-    private readonly changePassword: ChangePasswordPort,
-  ) {}
+  constructor(private readonly changePassword: ChangePasswordPort) {}
 
   @Post('change')
   @HttpCode(HttpStatus.OK)

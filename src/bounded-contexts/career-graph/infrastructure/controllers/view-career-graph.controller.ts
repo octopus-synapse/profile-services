@@ -1,24 +1,11 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RateLimit, RateLimitGuard } from '@/bounded-contexts/platform/common/rate-limit';
-import {
-  VIEW_CAREER_GRAPH_PORT,
-  type ViewCareerGraphOutput,
-  type ViewCareerGraphPort,
-} from '../../application';
+import { type ViewCareerGraphOutput, ViewCareerGraphPort } from '../../application';
 import { ViewCareerGraphDataDto, ViewCareerGraphRequestDto } from './view-career-graph.dto';
 
 /**
@@ -32,10 +19,7 @@ import { ViewCareerGraphDataDto, ViewCareerGraphRequestDto } from './view-career
 @Controller('v1/career-graph')
 @UseGuards(JwtAuthGuard)
 export class ViewCareerGraphController {
-  constructor(
-    @Inject(VIEW_CAREER_GRAPH_PORT)
-    private readonly useCase: ViewCareerGraphPort,
-  ) {}
+  constructor(private readonly useCase: ViewCareerGraphPort) {}
 
   @Post('view')
   @UseGuards(RateLimitGuard)

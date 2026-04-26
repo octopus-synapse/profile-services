@@ -64,10 +64,7 @@ export const ResumeHeaderSchema = z
   .optional();
 
 export const ResumeAstSchema = z.object({
-  meta: z.object({
-    version: z.string(),
-    generatedAt: z.string(),
-  }),
+  meta: z.object({ version: z.string(), generatedAt: z.string() }),
   header: ResumeHeaderSchema,
   page: PageLayoutSchema,
   sections: z.array(PlacedSectionSchema),

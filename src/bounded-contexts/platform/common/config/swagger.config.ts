@@ -24,9 +24,7 @@ export function isSwaggerEnabled(): boolean {
 export function configureSwagger(app: INestApplication): void {
   const document = createSwaggerDocument(app);
 
-  SwaggerModule.setup('api/docs', app, document, {
-    customSiteTitle: 'ProFile API Documentation',
-  });
+  SwaggerModule.setup('api/docs', app, document, { customSiteTitle: 'ProFile API Documentation' });
 
   SwaggerModule.setup('api/swagger', app, document);
   SwaggerModule.setup('api/client-swagger', app, unwrapClientSpec(document));
@@ -41,29 +39,17 @@ export function createSwaggerDocument(app: INestApplication): OpenAPIObject {
   });
 }
 
-type ControllerClass = {
-  name: string;
-  prototype: Record<string, unknown>;
-};
+type ControllerClass = { name: string; prototype: Record<string, unknown> };
 
-type ControllerWrapper = {
-  metatype?: ControllerClass;
-};
+type ControllerWrapper = { metatype?: ControllerClass };
 
-type ModuleWithControllers = {
-  controllers: Map<unknown, ControllerWrapper>;
-};
+type ModuleWithControllers = { controllers: Map<unknown, ControllerWrapper> };
 
 type NestApplicationWithContainer = INestApplication & {
-  container: {
-    getModules(): Map<unknown, ModuleWithControllers>;
-  };
+  container: { getModules(): Map<unknown, ModuleWithControllers> };
 };
 
-type ControllerOperationMetadata = {
-  sdkPrefix?: string;
-  routeMethodNames: string[];
-};
+type ControllerOperationMetadata = { sdkPrefix?: string; routeMethodNames: string[] };
 
 function buildOperationIdStrategy(app: INestApplication) {
   const controllerMetadata = collectControllerMetadata(app);
@@ -226,10 +212,6 @@ Authorization: Bearer <your-jwt-token>
 ### Error Responses
 All errors follow a consistent format:
 \`\`\`json
-{
-  "statusCode": 400,
-  "message": "Error description",
-  "error": "Bad Request"
-}
+{ "statusCode": 400, "message": "Error description", "error": "Bad Request" }
 \`\`\`
 `.trim();

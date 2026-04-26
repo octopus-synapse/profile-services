@@ -46,10 +46,7 @@ export class AntiGhostingService {
     private readonly email: EmailService,
   ) {}
 
-  async scanAndNotify(now: Date = new Date()): Promise<{
-    scanned: number;
-    reminded: number;
-  }> {
+  async scanAndNotify(now: Date = new Date()): Promise<{ scanned: number; reminded: number }> {
     const cutoff = new Date(now.getTime() - 7 * MS_PER_DAY);
 
     // Grab applications potentially idle for ≥ 7 days — we do the precise

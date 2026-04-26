@@ -80,10 +80,7 @@ export function parseMappedData(value: unknown): ParsedResumeData | undefined {
           .map((name) => ({ name })),
       });
     } else {
-      sections.push({
-        sectionTypeKey,
-        items: value as Array<Record<string, unknown>>,
-      });
+      sections.push({ sectionTypeKey, items: value as Array<Record<string, unknown>> });
     }
   }
 
@@ -112,9 +109,5 @@ export function toImportResultDto(data: {
 }
 
 export function toParsedResumeDataDto(data: ParsedResumeData): ParsedResumeDataDto {
-  return {
-    personalInfo: data.personalInfo,
-    summary: data.summary,
-    sections: data.sections,
-  };
+  return { personalInfo: data.personalInfo, summary: data.summary, sections: data.sections };
 }

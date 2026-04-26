@@ -69,9 +69,5 @@ export function buildWeeklyDigest(input: WeeklyDigestInput): WeeklyDigestOutput 
   </body>
 </html>`;
 
-  return {
-    subject: `[Patch Careers] Your weekly activity`,
-    html,
-    text: textBody,
-  };
+  return { subject: `[Patch Careers] Your weekly activity`, html, text: textBody };
 }

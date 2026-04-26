@@ -20,10 +20,7 @@ import { z } from 'zod';
  * Generic item with JSON content.
  * Content fields are validated against SectionType.definition.
  */
-export const GenericItemSchema = z.object({
-  id: z.string(),
-  content: z.record(z.unknown()),
-});
+export const GenericItemSchema = z.object({ id: z.string(), content: z.record(z.unknown()) });
 
 export type GenericItem = z.infer<typeof GenericItemSchema>;
 

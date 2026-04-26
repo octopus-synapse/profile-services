@@ -9,11 +9,6 @@ export { JobFitProfileRepositoryPort } from './domain/ports/job-fit-profile.repo
 export { SimilarityPort, type SimilarityResult } from './domain/ports/similarity.port';
 export type { SavedUserFitProfile } from './domain/ports/user-fit-profile.repository.port';
 export { UserFitProfileRepositoryPort } from './domain/ports/user-fit-profile.repository.port';
-export type {
-  FitDimension,
-  FitProfileStatus,
-  FitScaleType,
-  FitVector,
-} from './domain/types';
+export type { FitDimension, FitProfileStatus, FitScaleType, FitVector } from './domain/types';
 export { FIT_DIMENSIONS, FIT_RULES_VERSION, FIT_VECTOR_TTL_DAYS } from './domain/types';
 export * from './fit-profile.module';

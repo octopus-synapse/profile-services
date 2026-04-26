@@ -18,12 +18,7 @@ export class SkillProficiencyService {
     return this.prisma.userSkillProficiency.findMany({
       where: { userId },
       orderBy: { skillName: 'asc' },
-      select: {
-        skillName: true,
-        proficiency: true,
-        yearsOfExperience: true,
-        updatedAt: true,
-      },
+      select: { skillName: true, proficiency: true, yearsOfExperience: true, updatedAt: true },
     });
   }
 

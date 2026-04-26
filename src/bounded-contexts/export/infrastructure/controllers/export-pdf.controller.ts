@@ -8,7 +8,6 @@ import {
   Controller,
   Get,
   Header,
-  Inject,
   InternalServerErrorException,
   Param,
   Query,
@@ -27,7 +26,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { FeatureFlag } from '@/bounded-contexts/platform/feature-flags/infrastructure/guards/feature-flag.guard';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { sanitizeQueryParam } from '../helpers';
 import { PdfCacheService } from '../services/pdf-cache.service';
@@ -38,7 +37,6 @@ import { PdfCacheService } from '../services/pdf-cache.service';
 @Controller('v1/export')
 export class ExportPdfController {
   constructor(
-    @Inject(EXPORT_USE_CASES)
     private readonly useCases: ExportUseCases,
     private readonly logger: AppLoggerService,
     private readonly eventEmitter: EventEmitter2,

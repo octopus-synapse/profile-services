@@ -5,16 +5,14 @@
  * Implementation uses bcrypt.
  */
 
-export interface HashServicePort {
+export abstract class HashServicePort {
   /**
    * Hash a value
    */
-  hash(value: string): Promise<string>;
+  abstract hash(value: string): Promise<string>;
 
   /**
    * Compare a value against a hash
    */
-  compare(value: string, hash: string): Promise<boolean>;
+  abstract compare(value: string, hash: string): Promise<boolean>;
 }
-
-export const HASH_SERVICE_PORT = Symbol('HashServicePort');

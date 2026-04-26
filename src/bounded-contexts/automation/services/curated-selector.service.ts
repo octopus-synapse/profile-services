@@ -38,9 +38,7 @@ export class CuratedSelectorService {
       select: {
         primaryResumeId: true,
         preferences: {
-          select: {
-            applyCriteria: true,
-          },
+          select: { applyCriteria: true },
         },
       },
     });
@@ -73,13 +71,7 @@ export class CuratedSelectorService {
       where,
       orderBy: { createdAt: 'desc' },
       take: 80,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        requirements: true,
-        skills: true,
-      },
+      select: { id: true, title: true, description: true, requirements: true, skills: true },
     });
 
     const scored: Array<{ jobId: string; matchScore: number }> = [];

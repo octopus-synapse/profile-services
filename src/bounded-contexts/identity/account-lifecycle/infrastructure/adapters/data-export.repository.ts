@@ -7,12 +7,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
-  DataExportRepositoryPort,
   ExportedAuditLog,
   ExportedConsent,
   ExportedResume,
   ExportedUserData,
 } from '../../domain/ports/data-export-repository.port';
+import { DataExportRepositoryPort } from '../../domain/ports/data-export-repository.port';
 
 const DEFAULT_AUDIT_LOG_LIMIT = 1000;
 
@@ -60,10 +60,7 @@ export class DataExportRepository implements DataExportRepositoryPort {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                key: true,
-                semanticKind: true,
-              },
+              select: { key: true, semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
@@ -112,13 +109,7 @@ export class DataExportRepository implements DataExportRepositoryPort {
   ): Promise<ExportedAuditLog[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { userId },
-      select: {
-        action: true,
-        entityType: true,
-        entityId: true,
-        createdAt: true,
-        ipAddress: true,
-      },
+      select: { action: true, entityType: true, entityId: true, createdAt: true, ipAddress: true },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

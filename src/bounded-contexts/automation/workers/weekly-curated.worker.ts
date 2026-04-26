@@ -105,10 +105,7 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
         weekOf,
         status: 'PENDING',
         items: {
-          create: picks.map((p) => ({
-            jobId: p.jobId,
-            matchScore: p.matchScore,
-          })),
+          create: picks.map((p) => ({ jobId: p.jobId, matchScore: p.matchScore })),
         },
       },
       update: {}, // items pre-exist if this is a retry of an already-populated batch

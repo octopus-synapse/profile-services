@@ -1,7 +1,7 @@
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import { OnboardingAlreadyAtLastStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
-import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
+import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { OnboardingStepDataMapper } from '../shared/onboarding-step-data.mapper';
 

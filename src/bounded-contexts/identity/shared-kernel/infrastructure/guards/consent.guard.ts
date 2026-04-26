@@ -1,20 +1,11 @@
-import { type CanActivate, type ExecutionContext, Inject, Injectable } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { GET_CONSENT_STATUS_USE_CASE } from '@/bounded-contexts/identity/account-lifecycle/application/use-cases/tokens';
+import { GetConsentStatusUseCasePort } from '@/bounded-contexts/identity/account-lifecycle/application/use-cases/tokens';
 // Import from a leaf token file (NOT a controller, NOT a use-case) to avoid
 // any circular dependency: the account-lifecycle controllers and use-cases
 // transitively import from this same shared-kernel infrastructure barrel.
 import { ConsentRequiredException } from '@/bounded-contexts/identity/account-lifecycle/domain/exceptions';
-
-// Structural type — avoids importing the use-case class which would drag in
-// the whole accept-consent / repository graph.
-interface ConsentStatusReader {
-  execute(input: { userId: string }): Promise<{
-    tosAccepted: boolean;
-    privacyPolicyAccepted: boolean;
-  }>;
-}
 
 import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -46,8 +37,7 @@ export class ConsentGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     config: ConfigService,
-    @Inject(GET_CONSENT_STATUS_USE_CASE)
-    private readonly getConsentStatus: ConsentStatusReader,
+    private readonly getConsentStatus: GetConsentStatusUseCasePort,
   ) {
     this.skipTosCheck = config.get<string>('SKIP_TOS_CHECK') === 'true';
   }

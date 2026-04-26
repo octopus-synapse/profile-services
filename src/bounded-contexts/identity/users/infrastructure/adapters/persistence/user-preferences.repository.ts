@@ -49,11 +49,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
   async findPreferences(userId: string): Promise<UserPreferences | null> {
     const prefs = await this.prisma.userPreferences.findUnique({
       where: { userId },
-      select: {
-        theme: true,
-        language: true,
-        emailNotifications: true,
-      },
+      select: { theme: true, language: true, emailNotifications: true },
     });
 
     if (!prefs) return null;
@@ -68,16 +64,10 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
   async updatePreferences(userId: string, data: UpdatePreferencesData): Promise<void> {
     await this.prisma.userPreferences.upsert({
       where: { userId },
-      create: {
-        userId,
-        palette: data.palette ?? 'ocean',
-        bannerColor: data.bannerColor ?? null,
-      },
+      create: { userId, palette: data.palette ?? 'ocean', bannerColor: data.bannerColor ?? null },
       update: {
         ...(data.palette !== undefined && { palette: data.palette }),
-        ...(data.bannerColor !== undefined && {
-          bannerColor: data.bannerColor,
-        }),
+        ...(data.bannerColor !== undefined && { bannerColor: data.bannerColor }),
       },
     });
 
@@ -86,9 +76,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          ...(data.name !== undefined && {
-            name: data.name,
-          }),
+          ...(data.name !== undefined && { name: data.name }),
           ...(data.photoURL !== undefined && { image: data.photoURL }),
         },
       });
@@ -163,9 +151,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       update: {
         ...(data.theme !== undefined && { theme: data.theme }),
         ...(data.palette !== undefined && { palette: data.palette }),
-        ...(data.bannerColor !== undefined && {
-          bannerColor: data.bannerColor,
-        }),
+        ...(data.bannerColor !== undefined && { bannerColor: data.bannerColor }),
         ...(data.language !== undefined && { language: data.language }),
         ...(data.dateFormat !== undefined && { dateFormat: data.dateFormat }),
         ...(data.timezone !== undefined && { timezone: data.timezone }),
@@ -175,21 +161,13 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         ...(data.resumeExpiryAlerts !== undefined && {
           resumeExpiryAlerts: data.resumeExpiryAlerts,
         }),
-        ...(data.weeklyDigest !== undefined && {
-          weeklyDigest: data.weeklyDigest,
-        }),
-        ...(data.marketingEmails !== undefined && {
-          marketingEmails: data.marketingEmails,
-        }),
-        ...(data.emailMilestones !== undefined && {
-          emailMilestones: data.emailMilestones,
-        }),
+        ...(data.weeklyDigest !== undefined && { weeklyDigest: data.weeklyDigest }),
+        ...(data.marketingEmails !== undefined && { marketingEmails: data.marketingEmails }),
+        ...(data.emailMilestones !== undefined && { emailMilestones: data.emailMilestones }),
         ...(data.emailShareExpiring !== undefined && {
           emailShareExpiring: data.emailShareExpiring,
         }),
-        ...(data.profileVisibility !== undefined && {
-          profileVisibility: data.profileVisibility,
-        }),
+        ...(data.profileVisibility !== undefined && { profileVisibility: data.profileVisibility }),
         ...(data.showEmail !== undefined && { showEmail: data.showEmail }),
         ...(data.showPhone !== undefined && { showPhone: data.showPhone }),
         ...(data.allowSearchEngineIndex !== undefined && {
@@ -201,9 +179,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         ...(data.includePhotoInExport !== undefined && {
           includePhotoInExport: data.includePhotoInExport,
         }),
-        ...(data.applyMode !== undefined && {
-          applyMode: data.applyMode as ApplyMode,
-        }),
+        ...(data.applyMode !== undefined && { applyMode: data.applyMode as ApplyMode }),
       },
     });
 

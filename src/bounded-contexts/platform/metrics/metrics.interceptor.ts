@@ -21,11 +21,7 @@ export class MetricsInterceptor implements NestInterceptor {
     const method = request.method;
     const route = request.route.path;
 
-    const endTimer = this.metricsService.startApiTimer({
-      method,
-      route,
-      status: '200',
-    });
+    const endTimer = this.metricsService.startApiTimer({ method, route, status: '200' });
 
     return next.handle().pipe(
       tap({
@@ -33,20 +29,12 @@ export class MetricsInterceptor implements NestInterceptor {
           const response = context.switchToHttp().getResponse<Response>();
           const statusCode = response.statusCode.toString();
 
-          this.metricsService.observeApiLatency(endTimer(), {
-            method,
-            route,
-            status: statusCode,
-          });
+          this.metricsService.observeApiLatency(endTimer(), { method, route, status: statusCode });
         },
         error: (error: HttpError) => {
           const statusCode = (error.status ?? 500).toString();
 
-          this.metricsService.observeApiLatency(endTimer(), {
-            method,
-            route,
-            status: statusCode,
-          });
+          this.metricsService.observeApiLatency(endTimer(), { method, route, status: statusCode });
         },
       }),
     );

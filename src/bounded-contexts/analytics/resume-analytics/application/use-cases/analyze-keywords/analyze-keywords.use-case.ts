@@ -12,7 +12,7 @@ import type {
   KeywordSuggestions,
   KeywordSuggestionsOptions,
 } from '../../../interfaces';
-import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 
 /**
  * Extract all string values from a content object recursively.
@@ -116,11 +116,7 @@ export class AnalyzeKeywordsUseCase {
       .map((keyword) => {
         const matches = textLower.match(new RegExp(keyword, 'gi'));
         return matches
-          ? {
-              keyword,
-              count: matches.length,
-              relevance: Math.min(matches.length * 20, 100),
-            }
+          ? { keyword, count: matches.length, relevance: Math.min(matches.length * 20, 100) }
           : null;
       })
       .filter((r): r is { keyword: string; count: number; relevance: number } => r !== null)

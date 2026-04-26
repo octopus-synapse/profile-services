@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { StyleNotFoundError } from '../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../domain/ports/resume-style.repository.port';
 import { StylePreviewPort } from '../../domain/ports/style-preview.port';
@@ -9,7 +8,6 @@ import { StylePreviewPort } from '../../domain/ports/style-preview.port';
  * `StylePreviewPort`. No real resume data is involved — the PDF
  * backend falls back to its built-in fixture content.
  */
-@Injectable()
 export class PreviewStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,

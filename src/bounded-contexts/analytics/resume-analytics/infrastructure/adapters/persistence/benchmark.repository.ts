@@ -9,7 +9,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { BenchmarkRepositoryPort } from '../../../application/ports/resume-analytics.port';
+import { BenchmarkRepositoryPort } from '../../../application/ports/resume-analytics.port';
 
 export class PrismaBenchmarkRepository implements BenchmarkRepositoryPort {
   constructor(private readonly _prisma: PrismaService) {}

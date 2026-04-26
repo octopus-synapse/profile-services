@@ -72,11 +72,7 @@ export class CourseRepository {
       grau: c.grau,
       modalidade: c.modalidade,
       areaConhecimento: c.areaConhecimento,
-      institution: {
-        nome: c.institution_nome,
-        sigla: c.institution_sigla,
-        uf: c.institution_uf,
-      },
+      institution: { nome: c.institution_nome, sigla: c.institution_sigla, uf: c.institution_uf },
     }));
   }
 
@@ -97,10 +93,7 @@ export class CourseRepository {
       where: { isActive: true },
       _count: { _all: true },
     });
-    return result.map((r) => ({
-      grau: r.grau,
-      _count: r._count._all,
-    }));
+    return result.map((r) => ({ grau: r.grau, _count: r._count._all }));
   }
 
   async count(): Promise<number> {

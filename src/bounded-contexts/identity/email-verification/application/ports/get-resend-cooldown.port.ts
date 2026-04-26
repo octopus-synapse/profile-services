@@ -12,8 +12,6 @@ export interface GetResendCooldownQuery {
   userId: string;
 }
 
-export interface GetResendCooldownPort {
-  execute(query: GetResendCooldownQuery): Promise<ResendCooldown>;
+export abstract class GetResendCooldownPort {
+  abstract execute(query: GetResendCooldownQuery): Promise<ResendCooldown>;
 }
-
-export const GET_RESEND_COOLDOWN_PORT = Symbol('GetResendCooldownPort');

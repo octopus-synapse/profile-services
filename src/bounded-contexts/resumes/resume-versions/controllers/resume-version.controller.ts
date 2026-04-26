@@ -26,9 +26,7 @@ export class ResumeVersionController {
   @Get('resumes/:resumeId/versions')
   @ApiOperation({ summary: 'List resume versions (nested route)' })
   @ApiParam({ name: 'resumeId', type: 'string' })
-  @ApiDataResponse(ResumeVersionListDataDto, {
-    description: 'Resume versions returned',
-  })
+  @ApiDataResponse(ResumeVersionListDataDto, { description: 'Resume versions returned' })
   async getVersionsNested(
     @Param('resumeId') resumeId: string,
     @Req() req: RequestWithUser,
@@ -37,9 +35,7 @@ export class ResumeVersionController {
 
     return {
       success: true,
-      data: {
-        versions: toVersionIsoList(versions),
-      },
+      data: { versions: toVersionIsoList(versions) },
     };
   }
 
@@ -47,9 +43,7 @@ export class ResumeVersionController {
   @ApiOperation({ summary: 'Restore resume version (nested route)' })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiParam({ name: 'versionId', type: 'string' })
-  @ApiDataResponse(ResumeVersionRestoreDataDto, {
-    description: 'Resume version restored',
-  })
+  @ApiDataResponse(ResumeVersionRestoreDataDto, { description: 'Resume version restored' })
   async restoreVersionNested(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
@@ -59,10 +53,7 @@ export class ResumeVersionController {
 
     return {
       success: true,
-      data: {
-        success: true,
-        restoredFrom: restored.restoredFrom.toISOString(),
-      },
+      data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
     };
   }
 
@@ -70,9 +61,7 @@ export class ResumeVersionController {
   @Get('versions/:resumeId')
   @ApiOperation({ summary: 'List resume versions' })
   @ApiParam({ name: 'resumeId', type: 'string' })
-  @ApiDataResponse(ResumeVersionListDataDto, {
-    description: 'Resume versions returned',
-  })
+  @ApiDataResponse(ResumeVersionListDataDto, { description: 'Resume versions returned' })
   async getVersions(
     @Param('resumeId') resumeId: string,
     @Req() req: RequestWithUser,
@@ -81,9 +70,7 @@ export class ResumeVersionController {
 
     return {
       success: true,
-      data: {
-        versions: toVersionIsoList(versions),
-      },
+      data: { versions: toVersionIsoList(versions) },
     };
   }
 
@@ -91,9 +78,7 @@ export class ResumeVersionController {
   @ApiOperation({ summary: 'Get a specific resume version' })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiParam({ name: 'versionId', type: 'string' })
-  @ApiDataResponse(ResumeVersionDataDto, {
-    description: 'Resume version returned',
-  })
+  @ApiDataResponse(ResumeVersionDataDto, { description: 'Resume version returned' })
   async getVersion(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
@@ -118,9 +103,7 @@ export class ResumeVersionController {
   @ApiOperation({ summary: 'Restore resume version' })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiParam({ name: 'versionId', type: 'string' })
-  @ApiDataResponse(ResumeVersionRestoreDataDto, {
-    description: 'Resume version restored',
-  })
+  @ApiDataResponse(ResumeVersionRestoreDataDto, { description: 'Resume version restored' })
   async restoreVersion(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
@@ -130,10 +113,7 @@ export class ResumeVersionController {
 
     return {
       success: true,
-      data: {
-        success: true,
-        restoredFrom: restored.restoredFrom.toISOString(),
-      },
+      data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
     };
   }
 }

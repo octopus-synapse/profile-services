@@ -22,7 +22,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
  * @example
  * @PublicEndpoint()
  * @Get('health')
- * health() {}
+ * health() {  }
  */
 export const PublicEndpoint = () =>
   applyDecorators(SetMetadata(IS_PUBLIC_KEY, true), ApiSecurity('public'));

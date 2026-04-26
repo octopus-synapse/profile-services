@@ -173,17 +173,13 @@ export function resolveSectionTypeForLocale(
     key: sectionType.key,
     slug: sectionType.slug,
     semanticKind: sectionType.semanticKind,
-    version: sectionType.version,
-
-    // Resolved translations (fallback to DB fields if translation missing)
+    version: sectionType.version, // Resolved translations (fallback to DB fields if translation missing)
     title: resolved.title || sectionType.title,
     description: resolved.description || sectionType.description || '',
     label: resolved.label || sectionType.key,
     noDataLabel: resolved.noDataLabel || "I don't have items to add",
     placeholder: resolved.placeholder || 'Add items...',
-    addLabel: resolved.addLabel || 'Add Item',
-
-    // Pass through
+    addLabel: resolved.addLabel || 'Add Item', // Pass through
     iconType: sectionType.iconType,
     icon: sectionType.icon,
     isActive: sectionType.isActive,
@@ -274,8 +270,7 @@ function resolveFieldMeta(
   );
 
   return {
-    ...rest,
-    // Resolved translations (fallback to original values)
+    ...rest, // Resolved translations (fallback to original values)
     label: resolved.label || label,
     placeholder: resolved.placeholder || placeholder,
     helpText: resolved.helpText || helpText,
@@ -362,8 +357,5 @@ export function resolveDefinitionFieldsForLocale(
   const def = definition as SectionDefinitionJson;
   if (!def.fields) return definition;
 
-  return {
-    ...def,
-    fields: resolveFieldsForLocale(def.fields, locale),
-  };
+  return { ...def, fields: resolveFieldsForLocale(def.fields, locale) };
 }

@@ -1,8 +1,5 @@
-import type {
-  UserListOptions,
-  UserListResult,
-  UserManagementRepositoryPort,
-} from '../../ports/user-management.port';
+import type { UserListOptions, UserListResult } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class ListUsersUseCase {
   constructor(private readonly repository: UserManagementRepositoryPort) {}
@@ -13,12 +10,7 @@ export class ListUsersUseCase {
 
     return {
       users,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 }

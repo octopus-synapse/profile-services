@@ -35,9 +35,7 @@ export class NotificationController {
   @ApiOperation({ summary: 'Get notifications for current user' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiDataResponse(NotificationsListDataDto, {
-    description: 'List of notifications',
-  })
+  @ApiDataResponse(NotificationsListDataDto, { description: 'List of notifications' })
   async getByUser(
     @Req() req: { user: { userId: string } },
     @Query('cursor') cursor?: string,
@@ -53,9 +51,7 @@ export class NotificationController {
   @Get('unread-count')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get unread notification count' })
-  @ApiDataResponse(UnreadCountDataDto, {
-    description: 'Unread notification count',
-  })
+  @ApiDataResponse(UnreadCountDataDto, { description: 'Unread notification count' })
   async getUnreadCount(@Req() req: { user: { userId: string } }) {
     const count = await this.notificationService.getUnreadCount(req.user.userId);
     return { count };
@@ -64,9 +60,7 @@ export class NotificationController {
   @Post('mark-read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mark notifications as read' })
-  @ApiDataResponse(MarkReadDataDto, {
-    description: 'Notifications marked as read',
-  })
+  @ApiDataResponse(MarkReadDataDto, { description: 'Notifications marked as read' })
   async markRead(
     @Req() req: { user: { userId: string } },
     @Body() body: { notificationId?: string },

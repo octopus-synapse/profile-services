@@ -15,11 +15,7 @@ import { APP_CONFIG } from '@/shared-kernel';
 import { MecCourseDataDto, MecCourseListDataDto } from '../dto/controller-response.dto';
 import { CourseQueryService } from '../services/course-query.service';
 
-@SdkExport({
-  tag: 'mec-courses',
-  description: 'Mec Courses API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'mec-courses', description: 'Mec Courses API', requiresAuth: false })
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')
 export class MecCourseController {
@@ -28,9 +24,7 @@ export class MecCourseController {
   @Get('search')
   @Public()
   @ApiOperation({ summary: 'Search courses' })
-  @ApiDataResponse(MecCourseListDataDto, {
-    description: 'Courses search results returned',
-  })
+  @ApiDataResponse(MecCourseListDataDto, { description: 'Courses search results returned' })
   @ApiQuery({ name: 'q', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async searchCoursesByName(
@@ -49,18 +43,14 @@ export class MecCourseController {
 
     return {
       success: true,
-      data: {
-        courses,
-      },
+      data: { courses },
     };
   }
 
   @Get(':codigoCurso')
   @Public()
   @ApiOperation({ summary: 'Get course by MEC code' })
-  @ApiDataResponse(MecCourseDataDto, {
-    description: 'Course returned by MEC code',
-  })
+  @ApiDataResponse(MecCourseDataDto, { description: 'Course returned by MEC code' })
   @ApiParam({ name: 'codigoCurso', type: Number })
   async getCourseByCode(
     @Param('codigoCurso', ParseIntPipe) codigoCurso: number,
@@ -69,9 +59,7 @@ export class MecCourseController {
 
     return {
       success: true,
-      data: {
-        course,
-      },
+      data: { course },
     };
   }
 }

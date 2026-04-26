@@ -56,10 +56,7 @@ export class ResumeAnalyticsController {
   @Public()
   @Post(':resumeId/track-view')
   @ApiOperation({ summary: 'Track resume view (public endpoint)' })
-  @ApiDataResponse(MessageResponseDto, {
-    status: 201,
-    description: 'View tracked successfully',
-  })
+  @ApiDataResponse(MessageResponseDto, { status: 201, description: 'View tracked successfully' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   async trackView(
     @Param('resumeId') resumeId: string,
@@ -116,9 +113,7 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get keyword optimization suggestions' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiDataResponse(Object, {
-    description: 'Keyword suggestions retrieved',
-  })
+  @ApiDataResponse(Object, { description: 'Keyword suggestions retrieved' })
   async getKeywordSuggestions(
     @Param('resumeId') resumeId: string,
     @Query() options: KeywordOptionsDto,
@@ -130,10 +125,7 @@ export class ResumeAnalyticsController {
       options,
     );
 
-    return {
-      success: true,
-      data: suggestions as KeywordSuggestionsResponseDto,
-    };
+    return { success: true, data: suggestions as KeywordSuggestionsResponseDto };
   }
 
   @Post(':resumeId/match-job')

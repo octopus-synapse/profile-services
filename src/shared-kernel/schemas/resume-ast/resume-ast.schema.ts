@@ -83,10 +83,7 @@ export class ResolvedTypographyDto {
   @ApiProperty({ example: 400 })
   fontWeight!: number;
 
-  @ApiProperty({
-    enum: ['none', 'uppercase', 'lowercase', 'capitalize'],
-    example: 'none',
-  })
+  @ApiProperty({ enum: ['none', 'uppercase', 'lowercase', 'capitalize'], example: 'none' })
   textTransform!: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 
   @ApiProperty({ enum: ['none', 'underline', 'line-through'], example: 'none' })
@@ -112,7 +109,7 @@ export class ResolvedBoxStyleDto {
   @ApiProperty({ example: 24 })
   marginBottomPx!: number;
 
-  @ApiPropertyOptional({ example: '0 2px 4px rgba(0,0,0,0.1)' })
+  @ApiPropertyOptional({ example: '0 2px 4px rgba(0, 0, 0, 0.1)' })
   shadow?: string;
 }
 

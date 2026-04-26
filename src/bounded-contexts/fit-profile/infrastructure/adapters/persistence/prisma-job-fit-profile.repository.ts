@@ -24,16 +24,8 @@ export class PrismaJobFitProfileRepository extends JobFitProfileRepositoryPort {
     const vectorJson = input.vector as unknown as Prisma.InputJsonValue;
     const row = await this.prisma.jobFitProfile.upsert({
       where: { jobId: input.jobId },
-      create: {
-        jobId: input.jobId,
-        vectorJson,
-        editedByUserId: input.editedByUserId,
-      },
-      update: {
-        vectorJson,
-        editedByUserId: input.editedByUserId,
-        computedAt: new Date(),
-      },
+      create: { jobId: input.jobId, vectorJson, editedByUserId: input.editedByUserId },
+      update: { vectorJson, editedByUserId: input.editedByUserId, computedAt: new Date() },
     });
     return this.toDomain(row);
   }

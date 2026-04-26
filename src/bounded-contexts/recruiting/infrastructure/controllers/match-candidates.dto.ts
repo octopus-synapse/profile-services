@@ -26,10 +26,7 @@ const FitBreakdownSchema = z.object({
   missingSkills: z.array(z.string()),
 });
 
-const FitScoreSchema = z.object({
-  score: z.number(),
-  breakdown: FitBreakdownSchema,
-});
+const FitScoreSchema = z.object({ score: z.number(), breakdown: FitBreakdownSchema });
 
 const RankedCandidateSchema = z.object({
   userId: z.string(),

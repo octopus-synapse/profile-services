@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   Post,
   Req,
@@ -27,7 +26,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { BLOCK_USE_CASES, type BlockUseCases } from '../application/ports/block.port';
+import { BlockUseCases } from '../application/ports/block.port';
 import {
   type BlockedUserResponse,
   BlockUserRequestDto,
@@ -55,15 +54,12 @@ export class IsBlockedDataDto {
 @RequirePermission(Permission.CHAT_USE)
 @Controller('chat/blocked')
 export class BlockController {
-  constructor(@Inject(BLOCK_USE_CASES) private readonly block: BlockUseCases) {}
+  constructor(private readonly block: BlockUseCases) {}
 
   @Post()
   @ApiOperation({ summary: 'Block a user' })
   @ApiBody({ type: BlockUserRequestDto })
-  @ApiDataResponse(BlockUserDataDto, {
-    status: 201,
-    description: 'User blocked',
-  })
+  @ApiDataResponse(BlockUserDataDto, { status: 201, description: 'User blocked' })
   async blockUser(
     @Req() req: AuthenticatedRequest,
     @Body(createZodPipe(BlockUserSchema))
@@ -77,10 +73,7 @@ export class BlockController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Unblock a user' })
   @ApiParam({ name: 'userId', type: 'string' })
-  @ApiEmptyDataResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'User unblocked',
-  })
+  @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: 'User unblocked' })
   async unblockUser(
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
@@ -90,9 +83,7 @@ export class BlockController {
 
   @Get()
   @ApiOperation({ summary: 'Get all blocked users' })
-  @ApiDataResponse(BlockedUsersListDataDto, {
-    description: 'List of blocked users',
-  })
+  @ApiDataResponse(BlockedUsersListDataDto, { description: 'List of blocked users' })
   async getBlockedUsers(
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<BlockedUsersListDataDto>> {

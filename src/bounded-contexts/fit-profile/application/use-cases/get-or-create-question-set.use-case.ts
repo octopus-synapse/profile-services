@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   type FitQuestionRecord,
   FitQuestionRepositoryPort,
@@ -35,7 +34,6 @@ export class EmptyFitQuestionPoolError extends Error {
  * the active pool via `sampleQuestions` — we don't persist them, so
  * the sampler is the single source of truth for question-set content.
  */
-@Injectable()
 export class GetOrCreateQuestionSetUseCase {
   constructor(
     private readonly questions: FitQuestionRepositoryPort,

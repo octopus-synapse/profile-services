@@ -5,7 +5,8 @@ import {
   ConnectionNotPendingException,
   NotConnectionTargetException,
 } from '../../../domain/exceptions/social.exceptions';
-import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
+import type { ConnectionWithUser } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class AcceptConnectionUseCase {
   constructor(

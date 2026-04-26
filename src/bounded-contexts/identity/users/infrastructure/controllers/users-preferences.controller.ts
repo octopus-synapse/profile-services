@@ -3,7 +3,7 @@
  * Handles user preferences operations
  */
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Patch } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -12,10 +12,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { UpdateFullPreferencesDto, UpdatePreferencesDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import {
-  USER_PREFERENCES_USE_CASES,
-  type UserPreferencesUseCases,
-} from '../../application/ports/user-preferences.port';
+import { UserPreferencesUseCases } from '../../application/ports/user-preferences.port';
 import {
   UserFullPreferencesDataDto,
   UserFullPreferencesDataSchema,
@@ -28,10 +25,7 @@ import {
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users')
 export class UsersPreferencesController {
-  constructor(
-    @Inject(USER_PREFERENCES_USE_CASES)
-    private readonly preferences: UserPreferencesUseCases,
-  ) {}
+  constructor(private readonly preferences: UserPreferencesUseCases) {}
 
   @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('preferences')

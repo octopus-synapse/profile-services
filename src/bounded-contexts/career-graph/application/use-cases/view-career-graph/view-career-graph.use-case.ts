@@ -1,10 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  CAREER_COHORT_REPOSITORY_PORT,
-  CareerCohort,
-  type CareerCohortRepositoryPort,
-  type CohortBucket,
-} from '../../../domain';
+import { CareerCohort, CareerCohortRepositoryPort, type CohortBucket } from '../../../domain';
 import type {
   CareerGraphBucketOutput,
   CareerGraphProjectionOutput,
@@ -27,12 +21,8 @@ import type {
 
 const PROJECTION_HORIZONS_YEARS = [3, 5, 10] as const;
 
-@Injectable()
 export class ViewCareerGraphUseCase {
-  constructor(
-    @Inject(CAREER_COHORT_REPOSITORY_PORT)
-    private readonly repo: CareerCohortRepositoryPort,
-  ) {}
+  constructor(private readonly repo: CareerCohortRepositoryPort) {}
 
   async execute(input: ViewCareerGraphInput): Promise<ViewCareerGraphOutput> {
     const [snapshot, rawBuckets] = await Promise.all([
@@ -56,10 +46,7 @@ export class ViewCareerGraphUseCase {
     const buckets = cohort.toPlain().buckets.map(toBucketOutput);
 
     const projections: CareerGraphProjectionOutput[] = PROJECTION_HORIZONS_YEARS.map(
-      (yearsAhead) => ({
-        yearsAhead,
-        bucket: projectBucket(cohort, yearsAhead),
-      }),
+      (yearsAhead) => ({ yearsAhead, bucket: projectBucket(cohort, yearsAhead) }),
     );
 
     const current = cohort.currentBucket();

@@ -10,11 +10,8 @@ import type {
   ScoreProgressionPoint,
   ViewStats,
 } from '../../../interfaces';
-import type { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class BuildAnalyticsDashboardUseCase {
   constructor(
@@ -76,11 +73,7 @@ export class BuildAnalyticsDashboardUseCase {
       },
       viewTrend: viewStats.viewsByDay,
       topSources: viewStats.topSources,
-      keywordHealth: {
-        score: avgSectionScore,
-        topKeywords: [],
-        missingCritical: [],
-      },
+      keywordHealth: { score: avgSectionScore, topKeywords: [], missingCritical: [] },
       industryPosition: { percentile: 0, trend },
       recommendations: atsResult.recommendations.map((msg) => ({
         type: 'improve_content' as const,

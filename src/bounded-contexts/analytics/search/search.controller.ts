@@ -9,7 +9,7 @@
  * - GET /search/similar/:id - Find similar resumes
  */
 
-import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { SEARCH_SERVICE_PORT, type SearchServicePort } from './ports';
+import { SearchServicePort } from './ports';
 import type { SearchParams } from './resume-search.service';
 import { parseCsvQuery } from './search.presenter';
 
@@ -38,9 +38,7 @@ const SuggestionsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
-const SimilarQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(5),
-});
+const SimilarQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(50).default(5) });
 
 /** DTO for search result item */
 export class SearchResultItemDto {
@@ -108,19 +106,12 @@ export class SimilarResumesResponseDto {
   resumes!: SearchResultItemDto[];
 }
 
-@SdkExport({
-  tag: 'search',
-  description: 'Resume Search API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'search', description: 'Resume Search API', requiresAuth: false })
 @ApiTags('search')
 @Controller('search')
 @Throttle({ default: { limit: 30, ttl: 60_000 } })
 export class SearchController {
-  constructor(
-    @Inject(SEARCH_SERVICE_PORT)
-    private readonly searchService: SearchServicePort,
-  ) {}
+  constructor(private readonly searchService: SearchServicePort) {}
 
   /**
    * Search public resumes
@@ -136,9 +127,7 @@ export class SearchController {
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Default 1, max 1000' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 20, max 100' })
   @ApiQuery({ name: 'sortBy', required: false, enum: ['relevance', 'date', 'views'] })
-  @ApiDataResponse(SearchResultsResponseDto, {
-    description: 'Search results returned',
-  })
+  @ApiDataResponse(SearchResultsResponseDto, { description: 'Search results returned' })
   async search(
     @Query(createZodPipe(SearchQuerySchema)) q: z.infer<typeof SearchQuerySchema>,
   ): Promise<DataResponse<SearchResultsResponseDto>> {
@@ -165,9 +154,7 @@ export class SearchController {
   @ApiOperation({ summary: 'Get search autocomplete suggestions' })
   @ApiQuery({ name: 'prefix', required: false, type: String, description: 'Max 50 chars' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 10, max 50' })
-  @ApiDataResponse(SearchSuggestionsResponseDto, {
-    description: 'Suggestions returned',
-  })
+  @ApiDataResponse(SearchSuggestionsResponseDto, { description: 'Suggestions returned' })
   async suggestions(
     @Query(createZodPipe(SuggestionsQuerySchema)) q: z.infer<typeof SuggestionsQuerySchema>,
   ): Promise<DataResponse<SearchSuggestionsResponseDto>> {
@@ -182,9 +169,7 @@ export class SearchController {
   @Get('similar/:id')
   @ApiOperation({ summary: 'Find similar resumes by resume id' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 5, max 50' })
-  @ApiDataResponse(SimilarResumesResponseDto, {
-    description: 'Similar resumes returned',
-  })
+  @ApiDataResponse(SimilarResumesResponseDto, { description: 'Similar resumes returned' })
   async similar(
     @Param('id') id: string,
     @Query(createZodPipe(SimilarQuerySchema)) q: z.infer<typeof SimilarQuerySchema>,

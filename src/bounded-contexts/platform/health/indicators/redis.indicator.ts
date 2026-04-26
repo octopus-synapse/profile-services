@@ -26,10 +26,7 @@ export class RedisHealthIndicator extends HealthIndicator {
       const retrieved = await this.cacheService.get<string>(testKey);
 
       if (retrieved === testValue) {
-        return this.getStatus(key, true, {
-          message: 'Redis is connected',
-          configured: true,
-        });
+        return this.getStatus(key, true, { message: 'Redis is connected', configured: true });
       }
 
       // Internal health-check assertion: caught immediately below and converted

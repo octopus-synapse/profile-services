@@ -4,7 +4,7 @@ import {
   TECH_SKILLS_CACHE_TTL,
   type TechAreaType,
 } from '../../../interfaces';
-import type { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
+import { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
 
 export class GetNichesByAreaUseCase {
   constructor(

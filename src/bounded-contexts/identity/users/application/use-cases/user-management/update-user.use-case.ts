@@ -4,11 +4,8 @@ import {
   UniqueConstraintViolatedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
-import type {
-  UpdatedUser,
-  UpdateUserData,
-  UserManagementRepositoryPort,
-} from '../../ports/user-management.port';
+import type { UpdatedUser, UpdateUserData } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class UpdateUserUseCase {
   constructor(private readonly repository: UserManagementRepositoryPort) {}

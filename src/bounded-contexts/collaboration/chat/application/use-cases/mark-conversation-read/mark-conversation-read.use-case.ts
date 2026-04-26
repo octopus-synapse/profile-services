@@ -1,5 +1,5 @@
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
-import type {
+import {
   ChatCachePort,
   ConversationRepositoryPort,
   MessageRepositoryPort,

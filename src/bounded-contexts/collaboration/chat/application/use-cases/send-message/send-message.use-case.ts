@@ -6,7 +6,7 @@ import {
 import { MessageSentEvent } from '../../../../shared-kernel/domain/events';
 import type { MessageResponse, SendMessage } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
-import type {
+import {
   BlockedUserRepositoryPort,
   ChatCachePort,
   ConversationRepositoryPort,

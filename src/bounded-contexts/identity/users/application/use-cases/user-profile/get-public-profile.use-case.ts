@@ -1,5 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { PublicProfileData, UserProfileRepositoryPort } from '../../ports/user-profile.port';
+import type { PublicProfileData } from '../../ports/user-profile.port';
+import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 
 /**
  * Get Public Profile Use Case

@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Inject, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiConflictResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { DeactivateAccountPort } from '../../application/ports';
-import { DEACTIVATE_ACCOUNT_PORT } from '../../application/ports';
+import { DeactivateAccountPort } from '../../application/ports';
 import {
   DeactivateAccountDto,
   DeactivateAccountResponseDto,
@@ -18,10 +17,7 @@ interface AuthenticatedUser {
 @ApiTags('Account Lifecycle')
 @Controller('accounts')
 export class DeactivateAccountController {
-  constructor(
-    @Inject(DEACTIVATE_ACCOUNT_PORT)
-    private readonly deactivateAccount: DeactivateAccountPort,
-  ) {}
+  constructor(private readonly deactivateAccount: DeactivateAccountPort) {}
 
   @Delete('deactivate')
   @HttpCode(HttpStatus.OK)

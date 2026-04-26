@@ -25,13 +25,11 @@ export interface CreateAccountResult {
   expiresIn: number;
 }
 
-export interface CreateAccountPort {
+export abstract class CreateAccountPort {
   /**
    * Creates a new user account and generates auth tokens for auto-login.
    * @throws AccountAlreadyExistsException if email is already registered
    * @throws WeakPasswordException if password doesn't meet requirements
    */
-  execute(command: CreateAccountCommand): Promise<CreateAccountResult>;
+  abstract execute(command: CreateAccountCommand): Promise<CreateAccountResult>;
 }
-
-export const CREATE_ACCOUNT_PORT = Symbol('CreateAccountPort');

@@ -8,9 +8,7 @@ const ChangePasswordSchema = z.object({
 });
 
 // Response Schema
-const ChangePasswordResponseSchema = z.object({
-  message: z.string(),
-});
+const ChangePasswordResponseSchema = z.object({ message: z.string() });
 
 // DTO Classes
 export class ChangePasswordDto extends createZodDto(ChangePasswordSchema) {}

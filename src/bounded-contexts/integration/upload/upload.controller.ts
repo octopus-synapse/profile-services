@@ -45,9 +45,7 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload user profile image' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadProfileImageRequestDto })
-  @ApiDataResponse(UploadResponseDto, {
-    description: 'Profile image uploaded successfully',
-  })
+  @ApiDataResponse(UploadResponseDto, { description: 'Profile image uploaded successfully' })
   async uploadProfileImage(
     @CurrentUser() user: UserPayload,
     @UploadedFile() file: Express.Multer.File,
@@ -68,9 +66,7 @@ export class UploadController {
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiBody({ type: UploadCompanyLogoRequestDto })
-  @ApiDataResponse(UploadResponseDto, {
-    description: 'Company logo uploaded successfully',
-  })
+  @ApiDataResponse(UploadResponseDto, { description: 'Company logo uploaded successfully' })
   async uploadCompanyLogo(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
@@ -89,17 +85,13 @@ export class UploadController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete uploaded file' })
   @ApiParam({ name: 'key', description: 'File key in S3' })
-  @ApiDataResponse(DeleteResponseDto, {
-    description: 'File deleted successfully',
-  })
+  @ApiDataResponse(DeleteResponseDto, { description: 'File deleted successfully' })
   async deleteFile(@Param('key') key: string): Promise<DataResponse<DeleteResponseDto>> {
     const result = await this.uploadService.deleteFile(key);
 
     return {
       success: true,
-      data: {
-        deleted: result,
-      },
+      data: { deleted: result },
     };
   }
 }

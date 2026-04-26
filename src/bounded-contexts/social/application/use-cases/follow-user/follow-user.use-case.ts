@@ -5,7 +5,8 @@ import {
   AlreadyFollowingException,
   CannotFollowSelfException,
 } from '../../../domain/exceptions/social.exceptions';
-import type { FollowRepositoryPort, FollowWithUser } from '../../ports/follow.port';
+import type { FollowWithUser } from '../../ports/follow.port';
+import { FollowRepositoryPort } from '../../ports/follow.port';
 
 export class FollowUserUseCase {
   constructor(

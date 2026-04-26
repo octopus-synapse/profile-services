@@ -13,11 +13,7 @@ export type PublicSuccessStory = {
   quote: string;
   timeframeDays: number | null;
   publishedAt: string | null;
-  user: {
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
+  user: { name: string | null; username: string | null; photoURL: string | null };
 };
 
 @Injectable()

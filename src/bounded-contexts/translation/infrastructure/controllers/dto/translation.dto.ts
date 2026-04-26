@@ -35,9 +35,7 @@ export class TranslateBatchDto extends createZodDto(TranslateBatchSchema) {}
 /**
  * Schema for simple text translation (used by pt-to-en and en-to-pt endpoints)
  */
-const TranslateSimpleSchema = z.object({
-  text: z.string().min(1, 'Text is required'),
-});
+const TranslateSimpleSchema = z.object({ text: z.string().min(1, 'Text is required') });
 
 export class TranslateSimpleDto extends createZodDto(TranslateSimpleSchema) {}
 
@@ -71,10 +69,7 @@ export class TranslationResultDto extends createZodDto(TranslationResultSchema) 
 /**
  * Schema for failed translation item
  */
-const FailedTranslationSchema = z.object({
-  text: z.string(),
-  error: z.string(),
-});
+const FailedTranslationSchema = z.object({ text: z.string(), error: z.string() });
 
 export class FailedTranslationDto extends createZodDto(FailedTranslationSchema) {}
 

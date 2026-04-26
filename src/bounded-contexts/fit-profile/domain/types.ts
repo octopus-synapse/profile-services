@@ -57,22 +57,14 @@ export interface FitVector {
  * ratios are intentionally proportional to the number of dimensions in
  * each block (5/10/3) with a +1 nudge on Schwartz to fill to 25. */
 export const QUESTION_SET_SIZE = 25;
-export const BLOCK_SAMPLE_COUNTS = {
-  bigFive: 7,
-  schwartz: 13,
-  sdt: 5,
-} as const;
+export const BLOCK_SAMPLE_COUNTS = { bigFive: 7, schwartz: 13, sdt: 5 } as const;
 
 /** Weights used when blending the three blocks into the concatenated
  * similarity vector. They are intentionally equal across sub-blocks
  * (mean-pooled per block, then 1/3 each) so early tweaks do not bias
  * toward any single framework. Mahalanobis + ML-learned weights are
  * tracked as TODOs in `docs/scoring/SCORES_TODO.md`. */
-export const SIMILARITY_BLOCK_WEIGHTS = {
-  bigFive: 1 / 3,
-  schwartz: 1 / 3,
-  sdt: 1 / 3,
-} as const;
+export const SIMILARITY_BLOCK_WEIGHTS = { bigFive: 1 / 3, schwartz: 1 / 3, sdt: 1 / 3 } as const;
 
 /** Semver of the deterministic fit-profile rule set (sampler +
  * vectoriser + similarity math). Bump MAJOR when the vector shape

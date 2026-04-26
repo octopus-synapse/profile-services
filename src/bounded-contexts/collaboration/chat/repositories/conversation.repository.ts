@@ -19,20 +19,10 @@ export class ConversationRepository {
       },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -43,20 +33,10 @@ export class ConversationRepository {
       data: { participant1Id, participant2Id },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -70,20 +50,10 @@ export class ConversationRepository {
       where: { id: conversationId },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -107,20 +77,10 @@ export class ConversationRepository {
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });

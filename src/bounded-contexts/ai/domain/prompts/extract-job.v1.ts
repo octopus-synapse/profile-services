@@ -12,20 +12,13 @@ structured JSON object matching the schema below. Never invent data: if a field 
 isn't present in the text, return null or an empty array.
 
 Schema:
-{
-  "title": string | null,
-  "company": string | null,
-  "location": string | null,           // city/region if present
-  "description": string | null,        // cleaned prose, 1-3 paragraphs
-  "requirements": [string],            // bullet-style requirements
-  "skills": [string],                  // canonical tech names (e.g. "Rust", "PostgreSQL")
-  "salaryRange": string | null,        // as shown, e.g. "R$ 10.000 - R$ 14.000" or "$120k-$150k"
-  "applyUrl": string | null,           // only if an explicit apply link is in the text
-  "jobType": "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "FREELANCE" | null,
-  "remotePolicy": "REMOTE" | "HYBRID" | "ONSITE" | null,
-  "paymentCurrency": "BRL" | "USD" | "EUR" | "GBP" | null,
-  "minEnglishLevel": "BASIC" | "INTERMEDIATE" | "ADVANCED" | "FLUENT" | null
-}
+{ "title": string | null, "company": string | null, "location": string | null, // city/region if present
+  "description": string | null, // cleaned prose, 1-3 paragraphs
+  "requirements": [string], // bullet-style requirements
+  "skills": [string], // canonical tech names (e.g. "Rust", "PostgreSQL")
+  "salaryRange": string | null, // as shown, e.g. "R$ 10.000 - R$ 14.000" or "$120k-$150k"
+  "applyUrl": string | null, // only if an explicit apply link is in the text
+  "jobType": "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP" | "FREELANCE" | null, "remotePolicy": "REMOTE" | "HYBRID" | "ONSITE" | null, "paymentCurrency": "BRL" | "USD" | "EUR" | "GBP" | null, "minEnglishLevel": "BASIC" | "INTERMEDIATE" | "ADVANCED" | "FLUENT" | null }
 
 Rules:
 - Enum fields: use null when uncertain. Do not guess.

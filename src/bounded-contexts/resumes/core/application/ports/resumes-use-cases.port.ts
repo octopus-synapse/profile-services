@@ -5,29 +5,25 @@ import type {
   UserResumesPaginatedResult,
 } from '../../ports/resumes-service.port';
 
-export const RESUMES_USE_CASES = Symbol('RESUMES_USE_CASES');
-
-export interface ResumesUseCases {
-  findAllUserResumesUseCase: {
+export abstract class ResumesUseCases {
+  abstract readonly findAllUserResumesUseCase: {
     execute: (
       userId: string,
       page?: number,
       limit?: number,
     ) => Promise<ResumeResult[] | UserResumesPaginatedResult>;
   };
-  findResumeByIdForUserUseCase: {
+  abstract readonly findResumeByIdForUserUseCase: {
     execute: (id: string, userId: string) => Promise<ResumeResult>;
   };
-  createResumeForUserUseCase: {
+  abstract readonly createResumeForUserUseCase: {
     execute: (userId: string, data: CreateResume) => Promise<ResumeResult>;
   };
-  updateResumeForUserUseCase: {
+  abstract readonly updateResumeForUserUseCase: {
     execute: (id: string, userId: string, data: UpdateResume) => Promise<ResumeResult>;
   };
-  deleteResumeForUserUseCase: {
+  abstract readonly deleteResumeForUserUseCase: {
     execute: (id: string, userId: string) => Promise<void>;
   };
-  getRemainingSlotsUseCase: {
-    execute: (userId: string) => Promise<ResumeSlots>;
-  };
+  abstract readonly getRemainingSlotsUseCase: { execute: (userId: string) => Promise<ResumeSlots> };
 }

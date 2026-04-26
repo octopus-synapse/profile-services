@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
 import type {
-  GithubApiPort,
   GithubRepoSummary,
   GithubUserSummary,
 } from '../../application/use-cases/import-github/github-api.port';
+import { GithubApiPort } from '../../application/use-cases/import-github/github-api.port';
 
 const BASE = 'https://api.github.com';
 const UA = 'patch-careers/1.0';

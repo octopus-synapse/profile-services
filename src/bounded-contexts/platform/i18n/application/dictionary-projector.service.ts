@@ -44,11 +44,7 @@ export class DictionaryProjectorService {
     return Object.fromEntries(
       Object.entries(NOTIFICATION_DICTIONARY).map(([type, tpl]) => [
         type,
-        {
-          title: tpl.title[locale],
-          body: tpl.body[locale],
-          params: [...tpl.params],
-        },
+        { title: tpl.title[locale], body: tpl.body[locale], params: [...tpl.params] },
       ]),
     );
   }

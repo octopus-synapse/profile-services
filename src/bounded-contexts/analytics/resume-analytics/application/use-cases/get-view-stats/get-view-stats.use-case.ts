@@ -6,10 +6,7 @@
 
 import type { ViewStats, ViewStatsOptions } from '../../../interfaces';
 import { ViewStatsProviderPort } from '../../ports/facade.ports';
-import type {
-  ResumeOwnershipPort,
-  ViewTrackingRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort, ViewTrackingRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class GetViewStatsUseCase extends ViewStatsProviderPort {
   constructor(
@@ -32,12 +29,7 @@ export class GetViewStatsUseCase extends ViewStatsProviderPort {
       this.viewTrackingRepo.countUniqueVisitors(resumeId, startDate, endDate),
     ]);
 
-    return {
-      totalViews,
-      uniqueVisitors,
-      viewsByDay: [],
-      topSources: [],
-    };
+    return { totalViews, uniqueVisitors, viewsByDay: [], topSources: [] };
   }
 
   private getDateRange(period: 'day' | 'week' | 'month' | 'year'): {

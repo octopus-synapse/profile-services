@@ -11,12 +11,10 @@ export {
   ImportNotFoundException,
   InvalidImportDataException,
 } from './domain/exceptions/import.exceptions';
-export type { ImportJobRepositoryPort } from './domain/ports/import-job.repository.port';
 
 // Domain Ports
-export { IMPORT_JOB_REPOSITORY } from './domain/ports/import-job.repository.port';
-export type { ResumeCreatorPort } from './domain/ports/resume-creator.port';
-export { RESUME_CREATOR } from './domain/ports/resume-creator.port';
+export { ImportJobRepositoryPort } from './domain/ports/import-job.repository.port';
+export { ResumeCreatorPort } from './domain/ports/resume-creator.port';
 // Domain Services
 export { JsonResumeParser } from './domain/services/json-resume-parser';
 // Domain Types (framework-agnostic)

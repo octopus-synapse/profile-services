@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Header,
-  Inject,
   InternalServerErrorException,
   Query,
   StreamableFile,
@@ -23,7 +22,7 @@ function sanitizeQueryParam(input: string | undefined): string | undefined {
   }
 
   // Detect shell injection attempts
-  if (/[;|`$(){}]/.test(input)) {
+  if (/[;|`$(){ {2}}]/.test(input)) {
     return undefined;
   }
 
@@ -46,7 +45,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { ExportUseCases } from '../../application/ports/export.port';
 import { parseBundleFormats } from '../../application/utils/parse-bundle-formats';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
@@ -58,7 +57,6 @@ import { BannerCaptureService } from '../adapters/external-services/banner-captu
 export class ExportController {
   constructor(
     private readonly bannerCaptureService: BannerCaptureService,
-    @Inject(EXPORT_USE_CASES)
     private readonly useCases: ExportUseCases,
     private readonly logger: AppLoggerService,
     private readonly eventPublisher: EventPublisher,
@@ -73,16 +71,8 @@ export class ExportController {
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
   @ApiStreamResponse({ mimeType: 'image/png', description: 'PNG image file' })
   @ApiProduces('image/png')
-  @ApiQuery({
-    name: 'palette',
-    required: false,
-    description: 'Color palette name',
-  })
-  @ApiQuery({
-    name: 'logo',
-    required: false,
-    description: 'Logo URL to include in banner',
-  })
+  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name' })
+  @ApiQuery({ name: 'logo', required: false, description: 'Logo URL to include in banner' })
   async exportBanner(
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,
@@ -111,26 +101,11 @@ export class ExportController {
   @ApiOperation({ summary: 'Export resume as PDF' })
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')
-  @ApiStreamResponse({
-    mimeType: 'application/pdf',
-    description: 'PDF document file',
-  })
+  @ApiStreamResponse({ mimeType: 'application/pdf', description: 'PDF document file' })
   @ApiProduces('application/pdf')
-  @ApiQuery({
-    name: 'palette',
-    required: false,
-    description: 'Color palette name for styling',
-  })
-  @ApiQuery({
-    name: 'lang',
-    required: false,
-    description: 'Language code (e.g., en, pt)',
-  })
-  @ApiQuery({
-    name: 'bannerColor',
-    required: false,
-    description: 'Custom banner color (hex)',
-  })
+  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name for styling' })
+  @ApiQuery({ name: 'lang', required: false, description: 'Language code (e.g., en, pt)' })
+  @ApiQuery({ name: 'bannerColor', required: false, description: 'Custom banner color (hex)' })
   async exportResumePDF(
     @CurrentUser() user: UserPayload,
     @Query('palette') palette?: string,
@@ -161,10 +136,7 @@ export class ExportController {
       });
 
       this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, {
-          resumeId: 'user-default',
-          fileUrl: 'inline',
-        }),
+        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
       );
 
       return new StreamableFile(buffer);
@@ -172,10 +144,7 @@ export class ExportController {
       const reason = error instanceof Error ? error.message : String(error);
 
       this.eventPublisher.publish(
-        new ExportFailedEvent(exportId, {
-          resumeId: 'user-default',
-          reason,
-        }),
+        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
       );
 
       this.logger.errorWithMeta('Failed to generate PDF', {
@@ -215,10 +184,7 @@ export class ExportController {
       const buffer = await this.useCases.exportDocxUseCase.execute({ userId: user.userId });
 
       this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, {
-          resumeId: 'user-default',
-          fileUrl: 'inline',
-        }),
+        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
       );
 
       return new StreamableFile(buffer);
@@ -226,10 +192,7 @@ export class ExportController {
       const reason = error instanceof Error ? error.message : String(error);
 
       this.eventPublisher.publish(
-        new ExportFailedEvent(exportId, {
-          resumeId: 'user-default',
-          reason,
-        }),
+        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
       );
 
       this.logger.errorWithMeta('Failed to generate DOCX', {
@@ -253,7 +216,7 @@ export class ExportController {
   @ApiQuery({
     name: 'formats',
     required: false,
-    description: 'Comma-separated subset of pdf,docx,json (default: all)',
+    description: 'Comma-separated subset of pdf, docx, json (default: all)',
   })
   async exportResumeBundle(
     @CurrentUser() user: UserPayload,
@@ -278,10 +241,7 @@ export class ExportController {
       });
 
       this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, {
-          resumeId: 'user-default',
-          fileUrl: 'inline',
-        }),
+        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
       );
 
       return new StreamableFile(buffer);

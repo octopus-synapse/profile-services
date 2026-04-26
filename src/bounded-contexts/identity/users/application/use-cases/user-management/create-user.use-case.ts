@@ -1,9 +1,6 @@
 import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
-import type {
-  CreatedUser,
-  CreateUserData,
-  UserManagementRepositoryPort,
-} from '../../ports/user-management.port';
+import type { CreatedUser, CreateUserData } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class CreateUserUseCase {
   constructor(

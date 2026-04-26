@@ -21,12 +21,7 @@ export class ChatUserSearchService {
           },
         ],
       },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        photoURL: true,
-      },
+      select: { id: true, name: true, username: true, photoURL: true },
       take: limit,
       orderBy: { createdAt: 'desc' },
     });

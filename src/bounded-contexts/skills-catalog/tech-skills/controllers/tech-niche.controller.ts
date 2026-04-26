@@ -13,11 +13,7 @@ import { TechNicheListDataDto, TechSkillListDataDto } from '../dto/controller-re
 import { TechNicheQueryService } from '../services/niche-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 
-@SdkExport({
-  tag: 'tech-niches',
-  description: 'Tech Niches API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'tech-niches', description: 'Tech Niches API', requiresAuth: false })
 @ApiTags('tech-niches')
 @Controller('v1/tech-niches')
 export class TechNicheController {
@@ -41,9 +37,7 @@ export class TechNicheController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by niche slug' })
   @ApiParam({ name: 'nicheSlug', description: 'Niche slug', type: String })
-  @ApiDataResponse(TechSkillListDataDto, {
-    description: 'List of skills for the niche',
-  })
+  @ApiDataResponse(TechSkillListDataDto, { description: 'List of skills for the niche' })
   async getSkillsByNiche(
     @Param('nicheSlug') nicheSlug: string,
   ): Promise<DataResponse<TechSkillListDataDto>> {

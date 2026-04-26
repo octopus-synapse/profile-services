@@ -64,11 +64,7 @@ export class PrismaFeatureFlagRepository extends FeatureFlagRepositoryPort {
             enabled: input.defaultEnabled,
             deprecated: false,
           },
-          update: {
-            name: input.name,
-            description: input.description,
-            deprecated: false,
-          },
+          update: { name: input.name, description: input.description, deprecated: false },
         });
       }
 

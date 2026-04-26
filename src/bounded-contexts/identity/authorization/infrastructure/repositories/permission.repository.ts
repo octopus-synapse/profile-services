@@ -42,10 +42,7 @@ export class PermissionRepository implements IPermissionRepository {
   async findByKey(resource: string, action: string): Promise<Permission | null> {
     const record = await this.prisma.permission.findUnique({
       where: {
-        resource_action: {
-          resource: resource.toLowerCase(),
-          action: action.toLowerCase(),
-        },
+        resource_action: { resource: resource.toLowerCase(), action: action.toLowerCase() },
       },
     });
 
@@ -89,10 +86,7 @@ export class PermissionRepository implements IPermissionRepository {
   async update(permission: Permission): Promise<Permission> {
     const record = await this.prisma.permission.update({
       where: { id: permission.id },
-      data: {
-        description: permission.description,
-        updatedAt: new Date(),
-      },
+      data: { description: permission.description, updatedAt: new Date() },
     });
 
     return this.toDomain(record);
@@ -106,10 +100,7 @@ export class PermissionRepository implements IPermissionRepository {
 
   async exists(resource: string, action: string): Promise<boolean> {
     const count = await this.prisma.permission.count({
-      where: {
-        resource: resource.toLowerCase(),
-        action: action.toLowerCase(),
-      },
+      where: { resource: resource.toLowerCase(), action: action.toLowerCase() },
     });
 
     return count > 0;

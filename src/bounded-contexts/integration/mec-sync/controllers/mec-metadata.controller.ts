@@ -18,11 +18,7 @@ import { CourseQueryService } from '../services/course-query.service';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { MecStatsService } from '../services/mec-stats.service';
 
-@SdkExport({
-  tag: 'mec-metadata',
-  description: 'Mec Metadata API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'mec-metadata', description: 'Mec Metadata API', requiresAuth: false })
 @ApiTags('mec-metadata')
 @Controller('v1/mec')
 export class MecMetadataController {
@@ -35,51 +31,39 @@ export class MecMetadataController {
   @Get('ufs')
   @Public()
   @ApiOperation({ summary: 'List all states (UFs)' })
-  @ApiDataResponse(MecStateCodesDataDto, {
-    description: 'State codes returned',
-  })
+  @ApiDataResponse(MecStateCodesDataDto, { description: 'State codes returned' })
   async listAllStateCodes(): Promise<DataResponse<MecStateCodesDataDto>> {
     const states = await this.institutionQuery.findAllStateCodes();
 
     return {
       success: true,
-      data: {
-        states,
-      },
+      data: { states },
     };
   }
 
   @Get('areas')
   @Public()
   @ApiOperation({ summary: 'List knowledge areas' })
-  @ApiDataResponse(MecKnowledgeAreasDataDto, {
-    description: 'Knowledge areas returned',
-  })
+  @ApiDataResponse(MecKnowledgeAreasDataDto, { description: 'Knowledge areas returned' })
   async listAllKnowledgeAreas(): Promise<DataResponse<MecKnowledgeAreasDataDto>> {
     const areas = await this.courseQuery.findAllKnowledgeAreas();
 
     return {
       success: true,
-      data: {
-        areas,
-      },
+      data: { areas },
     };
   }
 
   @Get('stats')
   @Public()
   @ApiOperation({ summary: 'Get MEC statistics' })
-  @ApiDataResponse(MecStatisticsDataDto, {
-    description: 'MEC statistics returned',
-  })
+  @ApiDataResponse(MecStatisticsDataDto, { description: 'MEC statistics returned' })
   async getMecStatistics(): Promise<DataResponse<MecStatisticsDataDto>> {
     const stats = await this.statsService.getMecStatistics();
 
     return {
       success: true,
-      data: {
-        stats,
-      },
+      data: { stats },
     };
   }
 }

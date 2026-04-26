@@ -125,10 +125,7 @@ export class AuthorizationManagementService {
     });
 
     this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(params.userId, {
-        groupId: params.groupId,
-        action: 'added',
-      }),
+      new GroupMembershipChangedEvent(params.userId, { groupId: params.groupId, action: 'added' }),
     );
   }
 
@@ -136,10 +133,7 @@ export class AuthorizationManagementService {
     await this.userAuthRepo.removeFromGroup(userId, groupId);
 
     this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(userId, {
-        groupId,
-        action: 'removed',
-      }),
+      new GroupMembershipChangedEvent(userId, { groupId, action: 'removed' }),
     );
   }
 }

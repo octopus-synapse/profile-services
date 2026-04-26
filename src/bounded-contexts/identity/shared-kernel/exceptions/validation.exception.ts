@@ -17,10 +17,7 @@ export class ValidationException extends DomainException {
   }
 
   override toJSON(): Record<string, unknown> {
-    return {
-      ...super.toJSON(),
-      violations: this.violations,
-    };
+    return { ...super.toJSON(), violations: this.violations };
   }
 }
 

@@ -18,21 +18,19 @@ export interface UserBasic {
   name: string | null;
 }
 
-export interface PasswordRepositoryPort {
+export abstract class PasswordRepositoryPort {
   /**
    * Finds a user by email with password hash
    */
-  findByEmail(email: string): Promise<UserWithPassword | null>;
+  abstract findByEmail(email: string): Promise<UserWithPassword | null>;
 
   /**
    * Finds a user by ID with password hash
    */
-  findById(userId: string): Promise<UserWithPassword | null>;
+  abstract findById(userId: string): Promise<UserWithPassword | null>;
 
   /**
    * Updates user password by ID
    */
-  updatePassword(userId: string, passwordHash: string): Promise<void>;
+  abstract updatePassword(userId: string, passwordHash: string): Promise<void>;
 }
-
-export const PASSWORD_REPOSITORY_PORT = Symbol('PasswordRepositoryPort');

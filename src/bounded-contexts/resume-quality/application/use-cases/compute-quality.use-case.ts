@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeQualityComputedEvent, summariseIssues } from '../../domain/events';
 import { ContentQualityPort } from '../../domain/ports/content-quality.port';
 import {
@@ -33,15 +32,13 @@ export class ResumeNotFoundForQualityError extends Error {
  * to the Completeness score alone so the user still gets a useful
  * signal when the AI provider is down or the kill-switch is off.
  */
-@Injectable()
 export class ComputeQualityUseCase {
-  private readonly logger = new Logger(ComputeQualityUseCase.name);
-
   constructor(
     private readonly resumeLoader: ResumeLoaderPort,
     private readonly contentQuality: ContentQualityPort,
     private readonly repository: QualityScoreRepositoryPort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string): Promise<SavedQualityScore> {
@@ -57,7 +54,10 @@ export class ComputeQualityUseCase {
     } catch (err) {
       // Graceful degradation — the Port returning null or throwing both
       // land here; we keep going with Completeness alone.
-      this.logger.warn(`Content Quality failed for resume ${resumeId}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Content Quality failed for resume ${resumeId}: ${(err as Error).message}`,
+        'ComputeQualityUseCase',
+      );
       contentQuality = {
         score: null,
         issues: [] as readonly QualityIssue[],

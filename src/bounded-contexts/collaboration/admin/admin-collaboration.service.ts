@@ -9,10 +9,7 @@ export class AdminCollaborationService {
   async getStats() {
     const [totalCollaborations, byRole] = await Promise.all([
       this.prisma.resumeCollaborator.count(),
-      this.prisma.resumeCollaborator.groupBy({
-        by: ['role'],
-        _count: true,
-      }),
+      this.prisma.resumeCollaborator.groupBy({ by: ['role'], _count: true }),
     ]);
 
     return {

@@ -74,10 +74,7 @@ export class DslCompilerService {
     const sections = this.placeSections(validatedDsl, tokens, resumeData, sectionTypeTitles);
 
     return {
-      meta: {
-        version: validatedDsl.version,
-        generatedAt: new Date().toISOString(),
-      },
+      meta: { version: validatedDsl.version, generatedAt: new Date().toISOString() },
       header: resumeData
         ? {
             fullName: resumeData.fullName,
@@ -183,10 +180,7 @@ export class DslCompilerService {
     // Generic compilation - filter visible items
     const visibleItems = section.items
       .filter((item) => isItemVisible(item.id, overrides))
-      .map((item) => ({
-        id: item.id,
-        content: item.content,
-      }));
+      .map((item) => ({ id: item.id, content: item.content }));
 
     return {
       semanticKind: section.semanticKind,

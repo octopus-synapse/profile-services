@@ -20,13 +20,9 @@ const OnboardingStepSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-const OnboardingStepListDataSchema = z.object({
-  steps: z.array(OnboardingStepSchema),
-});
+const OnboardingStepListDataSchema = z.object({ steps: z.array(OnboardingStepSchema) });
 
-const OnboardingStepDataSchema = z.object({
-  step: OnboardingStepSchema,
-});
+const OnboardingStepDataSchema = z.object({ step: OnboardingStepSchema });
 
 // --- OnboardingStats ---
 
@@ -39,9 +35,7 @@ const OnboardingStatsSchema = z.object({
   dropOffByStep: DropOffByStepSchema,
 });
 
-const OnboardingStatsDataSchema = z.object({
-  stats: OnboardingStatsSchema,
-});
+const OnboardingStatsDataSchema = z.object({ stats: OnboardingStatsSchema });
 
 // --- OnboardingConfig ---
 
@@ -53,9 +47,7 @@ const OnboardingConfigSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-const OnboardingConfigDataSchema = z.object({
-  config: OnboardingConfigSchema.nullable(),
-});
+const OnboardingConfigDataSchema = z.object({ config: OnboardingConfigSchema.nullable() });
 
 // --- DTOs ---
 

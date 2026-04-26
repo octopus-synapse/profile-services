@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import {
   type SavedUserFitProfile,
@@ -20,13 +19,11 @@ import {
  * Keep this idempotent: calling it twice for the same expired profile
  * is allowed and returns the same shape.
  */
-@Injectable()
 export class ExpireFitProfileUseCase {
-  private readonly logger = new Logger(ExpireFitProfileUseCase.name);
-
   constructor(
     private readonly profiles: UserFitProfileRepositoryPort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(
@@ -38,7 +35,7 @@ export class ExpireFitProfileUseCase {
 
     const isExpired = profile.expiresAt.getTime() <= now.getTime();
     if (isExpired) {
-      this.logger.log(`UserFitProfile expired for user ${userId}`);
+      this.logger.log(`UserFitProfile expired for user ${userId}`, 'ExpireFitProfileUseCase');
       this.events.publish(
         new UserFitProfileUpdatedEvent(userId, { version: profile.version, cause: 'expired' }),
       );

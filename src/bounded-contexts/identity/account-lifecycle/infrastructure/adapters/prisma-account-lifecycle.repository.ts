@@ -9,13 +9,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   async findById(userId: string): Promise<AccountData | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     if (!user) {
@@ -34,13 +28,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   async findByEmail(email: string): Promise<AccountData | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     if (!user) {
@@ -73,13 +61,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
         isActive: true,
         emailVerified: null,
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     return {

@@ -15,7 +15,7 @@ import { FONT_FAMILIES } from '@/bounded-contexts/dsl/domain/value-objects/desig
  */
 const CSS_TO_TYPST_FONT: Record<string, string> = Object.fromEntries(
   Object.entries(FONT_FAMILIES).map(([, cssStack]) => {
-    const primaryFont = cssStack.split(',')[0].trim();
+    const primaryFont = cssStack.split(', ')[0].trim();
     return [cssStack, primaryFont];
   }),
 );
@@ -90,7 +90,7 @@ export class TypstDataSerializerService {
   }
 
   private mapFont(cssFontFamily: string): string {
-    return CSS_TO_TYPST_FONT[cssFontFamily] ?? cssFontFamily.split(',')[0].trim();
+    return CSS_TO_TYPST_FONT[cssFontFamily] ?? cssFontFamily.split(', ')[0].trim();
   }
 
   private pxToPt(px: number): number {
@@ -116,12 +116,7 @@ export interface TypstResumeData {
   header: TypstResumeHeader | null;
   page: TypstPageLayout;
   sections: TypstPlacedSection[];
-  globalStyles: {
-    background: string;
-    textPrimary: string;
-    textSecondary: string;
-    accent: string;
-  };
+  globalStyles: { background: string; textPrimary: string; textSecondary: string; accent: string };
 }
 
 export interface TypstPageLayout {
@@ -140,11 +135,7 @@ export interface TypstPlacedSection {
   columnId: string;
   order: number;
   data: unknown;
-  styles: {
-    container: TypstBoxStyle;
-    title: TypstTypography;
-    content: TypstTypography;
-  };
+  styles: { container: TypstBoxStyle; title: TypstTypography; content: TypstTypography };
 }
 
 export interface TypstBoxStyle {

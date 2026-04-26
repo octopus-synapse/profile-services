@@ -16,56 +16,19 @@ export interface VerificationTokenData {
   expiresAt: Date;
 }
 
-export interface EmailVerificationRepositoryPort {
-  /**
-   * Finds a user by ID with verification status
-   */
-  findUserById(userId: string): Promise<UserVerificationStatus | null>;
-
-  /**
-   * Finds a user by email with verification status
-   */
-  findUserByEmail(email: string): Promise<UserVerificationStatus | null>;
-
-  /**
-   * Stores a new verification token
-   */
-  createVerificationToken(
+export abstract class EmailVerificationRepositoryPort {
+  abstract findUserById(userId: string): Promise<UserVerificationStatus | null>;
+  abstract findUserByEmail(email: string): Promise<UserVerificationStatus | null>;
+  abstract createVerificationToken(
     userId: string,
     token: string,
     expiresAt: Date,
     email: string,
   ): Promise<void>;
-
-  /**
-   * Finds a verification token
-   */
-  findVerificationToken(token: string): Promise<VerificationTokenData | null>;
-
-  /**
-   * Deletes a verification token
-   */
-  deleteVerificationToken(token: string): Promise<void>;
-
-  /**
-   * Deletes all tokens for a user
-   */
-  deleteUserVerificationTokens(userId: string): Promise<void>;
-
-  /**
-   * Marks user email as verified
-   */
-  markEmailAsVerified(userId: string): Promise<void>;
-
-  /**
-   * Checks if user has a recent token (within minutes)
-   */
-  hasRecentToken(userId: string, withinMinutes: number): Promise<boolean>;
-
-  /**
-   * Returns the creation timestamp of the most recent verification token for
-   * the user, or null if the user has no tokens. Used to compute the resend
-   * cooldown so the UI can honor the same throttle that the backend enforces.
-   */
-  getLastTokenCreatedAt(userId: string): Promise<Date | null>;
+  abstract findVerificationToken(token: string): Promise<VerificationTokenData | null>;
+  abstract deleteVerificationToken(token: string): Promise<void>;
+  abstract deleteUserVerificationTokens(userId: string): Promise<void>;
+  abstract markEmailAsVerified(userId: string): Promise<void>;
+  abstract hasRecentToken(userId: string, withinMinutes: number): Promise<boolean>;
+  abstract getLastTokenCreatedAt(userId: string): Promise<Date | null>;
 }

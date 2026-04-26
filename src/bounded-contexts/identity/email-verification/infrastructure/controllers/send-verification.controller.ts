@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus, Inject, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -12,8 +12,8 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { GetResendCooldownPort, SendVerificationEmailPort } from '../../application/ports';
-import { GET_RESEND_COOLDOWN_PORT, SEND_VERIFICATION_EMAIL_PORT } from '../../application/ports';
+import { GetResendCooldownPort, SendVerificationEmailPort } from '../../application/ports';
+
 import {
   ResendCooldownResponseDto,
   SendVerificationEmailResponseDto,
@@ -23,18 +23,13 @@ interface AuthenticatedUser {
   id: string;
 }
 
-@SdkExport({
-  tag: 'email-verification',
-  description: 'Send verification email',
-})
+@SdkExport({ tag: 'email-verification', description: 'Send verification email' })
 @ApiTags('Email Verification')
 @AllowUnverifiedEmail()
 @Controller('email-verification')
 export class SendVerificationController {
   constructor(
-    @Inject(SEND_VERIFICATION_EMAIL_PORT)
     private readonly sendVerification: SendVerificationEmailPort,
-    @Inject(GET_RESEND_COOLDOWN_PORT)
     private readonly getResendCooldown: GetResendCooldownPort,
   ) {}
 
@@ -46,15 +41,9 @@ export class SendVerificationController {
     summary: 'Send verification email',
     description: 'Sends a verification email to the authenticated user. No body required.',
   })
-  @ApiDataResponse(SendVerificationEmailResponseDto, {
-    description: 'Verification email sent',
-  })
-  @ApiConflictResponse({
-    description: 'Email already verified',
-  })
-  @ApiTooManyRequestsResponse({
-    description: 'Verification email sent too recently',
-  })
+  @ApiDataResponse(SendVerificationEmailResponseDto, { description: 'Verification email sent' })
+  @ApiConflictResponse({ description: 'Email already verified' })
+  @ApiTooManyRequestsResponse({ description: 'Verification email sent too recently' })
   async handle(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<DataResponse<SendVerificationEmailResponseDto>> {
@@ -62,10 +51,7 @@ export class SendVerificationController {
 
     return {
       success: true,
-      data: {
-        message: 'Verification email has been sent.',
-        cooldown,
-      },
+      data: { message: 'Verification email has been sent.', cooldown },
     };
   }
 
@@ -78,17 +64,12 @@ export class SendVerificationController {
     description:
       'Returns how many seconds the authenticated user must wait before requesting another verification email. The UI uses this so the countdown survives page reloads.',
   })
-  @ApiDataResponse(ResendCooldownResponseDto, {
-    description: 'Current resend cooldown',
-  })
+  @ApiDataResponse(ResendCooldownResponseDto, { description: 'Current resend cooldown' })
   async resendStatus(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<DataResponse<ResendCooldownResponseDto>> {
     const cooldown = await this.getResendCooldown.execute({ userId: user.id });
 
-    return {
-      success: true,
-      data: cooldown,
-    };
+    return { success: true, data: cooldown };
   }
 }

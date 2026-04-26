@@ -34,16 +34,12 @@ export class SpokenLanguagesController {
   @RequirePermission(Permission.SKILL_READ)
   @Get()
   @ApiOperation({ summary: 'Get all active spoken languages' })
-  @ApiDataResponse(SpokenLanguagesListDataDto, {
-    description: 'Active spoken languages returned',
-  })
+  @ApiDataResponse(SpokenLanguagesListDataDto, { description: 'Active spoken languages returned' })
   async findAllActiveLanguages(): Promise<DataResponse<SpokenLanguagesListDataDto>> {
     const languages = await this.spokenLanguagesService.findAllActiveLanguages();
     return {
       success: true,
-      data: {
-        languages,
-      },
+      data: { languages },
     };
   }
 
@@ -74,9 +70,7 @@ export class SpokenLanguagesController {
     );
     return {
       success: true,
-      data: {
-        languages,
-      },
+      data: { languages },
     };
   }
 
@@ -87,9 +81,7 @@ export class SpokenLanguagesController {
   @Get(':code')
   @ApiOperation({ summary: 'Get spoken language by code' })
   @ApiParam({ name: 'code', description: 'Language code', type: String })
-  @ApiDataResponse(SpokenLanguageDataDto, {
-    description: 'Spoken language returned',
-  })
+  @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language returned' })
   async findLanguageByCode(
     @Param('code') languageCode: string,
   ): Promise<DataResponse<SpokenLanguageDataDto>> {
@@ -99,9 +91,7 @@ export class SpokenLanguagesController {
     }
     return {
       success: true,
-      data: {
-        language,
-      },
+      data: { language },
     };
   }
 }

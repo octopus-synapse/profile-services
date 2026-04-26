@@ -91,12 +91,7 @@ export class DocxSectionsService {
       properties: {
         type: SectionType.NEXT_PAGE,
         page: {
-          margin: {
-            top: '0.5in',
-            right: '0.5in',
-            bottom: '0.5in',
-            left: '0.5in',
-          },
+          margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' },
         },
       },
       children,

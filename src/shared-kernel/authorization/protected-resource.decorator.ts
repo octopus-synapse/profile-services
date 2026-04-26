@@ -7,7 +7,7 @@
  * Usage:
  * @ProtectedResource(Permission.RESUME_UPDATE, 'id', 'userId', 'resume')
  * @Patch(':id')
- * update() {}
+ * update() {  }
  */
 import { applyDecorators, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
@@ -27,7 +27,7 @@ import { RequirePermission } from './require-permission.decorator';
  * @example
  * @ProtectedResource(Permission.RESUME_UPDATE, 'id', 'userId', 'resume')
  * @Patch(':id')
- * update() {}
+ * update() {  }
  */
 export const ProtectedResource = (
   permission: Permission,
@@ -50,12 +50,12 @@ export const ProtectedResource = (
  * @example
  * @ProtectedResume(Permission.RESUME_UPDATE)
  * @Patch(':id')
- * update() {}
+ * update() {  }
  *
  * @example
  * @ProtectedResume(Permission.RESUME_DELETE, 'resumeId')
  * @Delete(':resumeId')
- * delete() {}
+ * delete() {  }
  */
 export const ProtectedResume = (permission: Permission, paramName = 'id') =>
   ProtectedResource(permission, paramName, 'userId', 'resume');
@@ -69,7 +69,7 @@ export const ProtectedResume = (permission: Permission, paramName = 'id') =>
  * @example
  * @ProtectedUserProfile(Permission.USER_PROFILE_UPDATE)
  * @Patch(':id')
- * updateProfile() {}
+ * updateProfile() {  }
  */
 export const ProtectedUserProfile = (permission: Permission, paramName = 'id') =>
   ProtectedResource(permission, paramName, 'id', 'user');
@@ -81,7 +81,7 @@ export const ProtectedUserProfile = (permission: Permission, paramName = 'id') =
  * @example
  * @AuthenticatedOnly()
  * @Get('me')
- * getCurrentUser() {}
+ * getCurrentUser() {  }
  */
 export const AuthenticatedOnly = () =>
   applyDecorators(

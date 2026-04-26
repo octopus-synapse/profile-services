@@ -6,11 +6,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminMetricsOverviewDataDto } from './dto/admin-metrics-response.dto';
 import { MetricsService } from './metrics.service';
 
-@SdkExport({
-  tag: 'admin-metrics',
-  description: 'Admin Metrics API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'admin-metrics', description: 'Admin Metrics API', requiresAuth: true })
 @ApiTags('Admin - Metrics')
 @ApiBearerAuth()
 @RequirePermission(Permission.PLATFORM_MANAGE)

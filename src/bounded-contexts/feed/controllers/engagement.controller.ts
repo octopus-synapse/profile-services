@@ -35,11 +35,7 @@ import { EngagementService } from '../services/engagement.service';
 import { PollService } from '../services/poll.service';
 import { ReportService } from '../services/report.service';
 
-@SdkExport({
-  tag: 'engagement',
-  description: 'Engagement API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'engagement', description: 'Engagement API', requiresAuth: true })
 @ApiTags('engagement')
 @ApiBearerAuth('JWT-auth')
 @RequirePermission(Permission.FEED_USE)

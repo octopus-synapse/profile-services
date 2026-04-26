@@ -13,7 +13,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   NotFoundException,
   Param,
   Post,
@@ -39,12 +38,12 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import type { CancelImportUseCase } from '../../application/use-cases/cancel-import/cancel-import.use-case';
-import type { CreateImportJobUseCase } from '../../application/use-cases/create-import-job/create-import-job.use-case';
-import type { GetImportStatusUseCase } from '../../application/use-cases/get-import-status/get-import-status.use-case';
-import type { ListImportHistoryUseCase } from '../../application/use-cases/list-import-history/list-import-history.use-case';
-import type { ProcessImportUseCase } from '../../application/use-cases/process-import/process-import.use-case';
-import type { RetryImportUseCase } from '../../application/use-cases/retry-import/retry-import.use-case';
+import { CancelImportUseCase } from '../../application/use-cases/cancel-import/cancel-import.use-case';
+import { CreateImportJobUseCase } from '../../application/use-cases/create-import-job/create-import-job.use-case';
+import { GetImportStatusUseCase } from '../../application/use-cases/get-import-status/get-import-status.use-case';
+import { ListImportHistoryUseCase } from '../../application/use-cases/list-import-history/list-import-history.use-case';
+import { ProcessImportUseCase } from '../../application/use-cases/process-import/process-import.use-case';
+import { RetryImportUseCase } from '../../application/use-cases/retry-import/retry-import.use-case';
 import {
   ImportCannotBeCancelledException,
   ImportCannotBeRetriedException,
@@ -68,18 +67,7 @@ import {
   toParsedResumeDataDto,
 } from '../mappers/import.mapper';
 
-// Use-case injection tokens
-export const CREATE_IMPORT_JOB = Symbol('CreateImportJobUseCase');
-export const PROCESS_IMPORT = Symbol('ProcessImportUseCase');
-export const GET_IMPORT_STATUS = Symbol('GetImportStatusUseCase');
-export const LIST_IMPORT_HISTORY = Symbol('ListImportHistoryUseCase');
-export const CANCEL_IMPORT = Symbol('CancelImportUseCase');
-export const RETRY_IMPORT = Symbol('RetryImportUseCase');
-
-@SdkExport({
-  tag: 'resume-import',
-  description: 'Resume import from JSON Resume format',
-})
+@SdkExport({ tag: 'resume-import', description: 'Resume import from JSON Resume format' })
 @ApiTags('Resume Import')
 @ApiBearerAuth('JWT-auth')
 @RequirePermission(Permission.RESUME_IMPORT)
@@ -88,12 +76,12 @@ export class ResumeImportController {
   private readonly parser = new JsonResumeParser();
 
   constructor(
-    @Inject(CREATE_IMPORT_JOB) private readonly createImportJob: CreateImportJobUseCase,
-    @Inject(PROCESS_IMPORT) private readonly processImport: ProcessImportUseCase,
-    @Inject(GET_IMPORT_STATUS) private readonly getImportStatus: GetImportStatusUseCase,
-    @Inject(LIST_IMPORT_HISTORY) private readonly listImportHistory: ListImportHistoryUseCase,
-    @Inject(CANCEL_IMPORT) private readonly cancelImport: CancelImportUseCase,
-    @Inject(RETRY_IMPORT) private readonly retryImport: RetryImportUseCase,
+    private readonly createImportJob: CreateImportJobUseCase,
+    private readonly processImport: ProcessImportUseCase,
+    private readonly getImportStatus: GetImportStatusUseCase,
+    private readonly listImportHistory: ListImportHistoryUseCase,
+    private readonly cancelImport: CancelImportUseCase,
+    private readonly retryImport: RetryImportUseCase,
     private readonly pdfImport: PdfImportService,
     private readonly githubImport: GithubImportService,
   ) {}
@@ -112,11 +100,7 @@ export class ResumeImportController {
       type: 'object',
       required: ['file'],
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-          description: 'PDF file (max 5MB)',
-        },
+        file: { type: 'string', format: 'binary', description: 'PDF file (max 5MB)' },
       },
     },
   })
@@ -145,16 +129,11 @@ export class ResumeImportController {
     description:
       "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
   })
-  @ApiDataResponse(ImportResultDto, {
-    status: HttpStatus.OK,
-    description: 'GitHub data imported',
-  })
-  async importGithub(@CurrentUser() user: UserPayload): Promise<
-    DataResponse<{
-      primaryStack: string[];
-      buildPostsCreated: number;
-      profileUpdated: boolean;
-    }>
+  @ApiDataResponse(ImportResultDto, { status: HttpStatus.OK, description: 'GitHub data imported' })
+  async importGithub(
+    @CurrentUser() user: UserPayload,
+  ): Promise<
+    DataResponse<{ primaryStack: string[]; buildPostsCreated: number; profileUpdated: boolean }>
   > {
     const result = await this.githubImport.import(user.userId);
     return {

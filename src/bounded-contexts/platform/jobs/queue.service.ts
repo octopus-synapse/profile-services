@@ -32,17 +32,9 @@ export interface JobOptions {
 
 const DEFAULT_JOB_OPTIONS = {
   attempts: 3,
-  backoff: {
-    type: 'exponential' as const,
-    delay: 2000,
-  },
-  removeOnComplete: {
-    age: 24 * 3600,
-    count: 1000,
-  },
-  removeOnFail: {
-    age: 7 * 24 * 3600,
-  },
+  backoff: { type: 'exponential' as const, delay: 2000 },
+  removeOnComplete: { age: 24 * 3600, count: 1000 },
+  removeOnFail: { age: 7 * 24 * 3600 },
 };
 
 @Injectable()

@@ -32,17 +32,12 @@ export class TechSkillsSyncController {
   @RequirePermission(Permission.SKILL_MANAGE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger tech skills synchronization' })
-  @ApiDataResponse(TechSkillsSyncDataDto, {
-    description: 'Tech skills sync execution result',
-  })
+  @ApiDataResponse(TechSkillsSyncDataDto, { description: 'Tech skills sync execution result' })
   async triggerSync(): Promise<DataResponse<TechSkillsSyncDataDto>> {
     const result = await this.syncService.runSync();
     return {
       success: true,
-      data: {
-        message: 'Tech skills sync completed',
-        result,
-      },
+      data: { message: 'Tech skills sync completed', result },
     };
   }
 }

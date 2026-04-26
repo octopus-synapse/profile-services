@@ -1,31 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { PasswordResetRequestedEvent } from '../../../domain/events';
-import type {
+import {
   PasswordRepositoryPort,
   PasswordResetEmailPort,
   PasswordResetTokenPort,
 } from '../../../domain/ports';
-import {
-  PASSWORD_REPOSITORY_PORT,
-  PASSWORD_RESET_EMAIL_PORT,
-  PASSWORD_RESET_TOKEN_PORT,
-} from '../../../domain/ports';
 import { PasswordResetToken } from '../../../domain/value-objects';
 import type { ForgotPasswordCommand, ForgotPasswordPort } from '../../ports';
 
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class ForgotPasswordUseCase implements ForgotPasswordPort {
   constructor(
-    @Inject(PASSWORD_REPOSITORY_PORT)
     private readonly passwordRepository: PasswordRepositoryPort,
-    @Inject(PASSWORD_RESET_TOKEN_PORT)
     private readonly tokenService: PasswordResetTokenPort,
-    @Inject(PASSWORD_RESET_EMAIL_PORT)
     private readonly emailSender: PasswordResetEmailPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
   ) {}
 
@@ -53,5 +40,3 @@ export class ForgotPasswordUseCase implements ForgotPasswordPort {
     this.eventBus.publish(event);
   }
 }
-
-export { EVENT_BUS };

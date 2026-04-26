@@ -5,11 +5,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { MetricsGuard } from './metrics.guard';
 import { MetricsService } from './metrics.service';
 
-@SdkExport({
-  tag: 'metrics',
-  description: 'Prometheus Metrics API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'metrics', description: 'Prometheus Metrics API', requiresAuth: false })
 @ApiTags('Metrics')
 @Controller('metrics')
 @UseGuards(MetricsGuard)

@@ -11,8 +11,6 @@ import type {
   MatchCandidatesForJobOutput,
 } from '../use-cases/match-candidates-for-job/match-candidates-for-job.dto';
 
-export interface MatchCandidatesForJobPort {
-  execute(input: MatchCandidatesForJobInput): Promise<MatchCandidatesForJobOutput>;
+export abstract class MatchCandidatesForJobPort {
+  abstract execute(input: MatchCandidatesForJobInput): Promise<MatchCandidatesForJobOutput>;
 }
-
-export const MATCH_CANDIDATES_FOR_JOB_PORT = Symbol('MatchCandidatesForJobPort');

@@ -6,11 +6,7 @@ import { AdminAlertsDataDto } from '@/bounded-contexts/platform/common/dto/admin
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminAlertsService } from '../services/admin-alerts.service';
 
-@SdkExport({
-  tag: 'admin-alerts',
-  description: 'Admin Alerts API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'admin-alerts', description: 'Admin Alerts API', requiresAuth: true })
 @ApiTags('Admin - Alerts')
 @ApiBearerAuth()
 @RequirePermission(Permission.PLATFORM_STATS_READ)

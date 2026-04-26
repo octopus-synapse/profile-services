@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { FitQuestionSetRepositoryPort } from '../../domain/ports/fit-question-set.repository.port';
 import {
   type SavedUserFitProfile,
@@ -19,7 +18,6 @@ export interface FitProfileStatusView {
  * lockout banner. The Fit Score itself is intentionally opaque to the
  * user per `docs/scoring/README.md`, so this endpoint returns the raw
  * vector (for debugging / advanced clients) but never a score. */
-@Injectable()
 export class GetFitProfileStatusUseCase {
   constructor(
     private readonly profiles: UserFitProfileRepositoryPort,

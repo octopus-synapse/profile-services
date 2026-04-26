@@ -11,10 +11,7 @@ interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
-type BadgeEntry = {
-  kind: string;
-  awardedAt: string;
-};
+type BadgeEntry = { kind: string; awardedAt: string };
 
 @SdkExport({ tag: 'badges', description: 'User achievement badges' })
 @ApiTags('badges')

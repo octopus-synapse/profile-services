@@ -20,12 +20,7 @@ import { GitHubDatabaseService } from './github-database.service';
  * Result of a GitHub sync operation
  */
 export interface GitHubSyncResult {
-  profile: {
-    username: string;
-    name: string | null;
-    bio: string | null;
-    publicRepos: number;
-  };
+  profile: { username: string; name: string | null; bio: string | null; publicRepos: number };
   stats: {
     totalStars: number;
     publicRepos: number;

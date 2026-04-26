@@ -19,11 +19,7 @@ import {
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
 
-@SdkExport({
-  tag: 'mec-internal',
-  description: 'Mec Internal API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'mec-internal', description: 'Mec Internal API', requiresAuth: false })
 @ApiTags('mec-internal')
 @Controller('v1/mec/internal')
 export class MecSyncInternalController {
@@ -59,9 +55,7 @@ export class MecSyncInternalController {
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync status' })
-  @ApiDataResponse(MecSyncStatusDataDto, {
-    description: 'Sync status returned',
-  })
+  @ApiDataResponse(MecSyncStatusDataDto, { description: 'Sync status returned' })
   @ApiHeader({ name: 'x-internal-token', required: true })
   async getSyncStatus(): Promise<DataResponse<MecSyncStatusDataDto>> {
     const [isRunning, metadata, lastLog] = await Promise.all([
@@ -80,9 +74,7 @@ export class MecSyncInternalController {
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync history' })
-  @ApiDataResponse(MecSyncHistoryDataDto, {
-    description: 'Sync history returned',
-  })
+  @ApiDataResponse(MecSyncHistoryDataDto, { description: 'Sync history returned' })
   @ApiHeader({ name: 'x-internal-token', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getSyncHistory(

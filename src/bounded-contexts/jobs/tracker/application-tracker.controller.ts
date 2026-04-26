@@ -84,9 +84,7 @@ export class ApplicationTrackerController {
   @Get('companies/:company/response-stats')
   @RequirePermission(Permission.FEED_USE)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Per-company response percentiles (p50/p90 days to first response).',
-  })
+  @ApiOperation({ summary: 'Per-company response percentiles (p50/p90 days to first response).' })
   @ApiParam({ name: 'company', type: 'string' })
   async companyResponseStats(
     @Param('company') company: string,

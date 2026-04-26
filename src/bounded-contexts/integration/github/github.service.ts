@@ -55,9 +55,7 @@ export class GitHubService {
         include: {
           sectionType: { select: { semanticKind: true } },
           items: {
-            select: {
-              content: true,
-            },
+            select: { content: true },
           },
         },
       },
@@ -107,9 +105,7 @@ export class GitHubService {
   async getGitHubSummary(username: string) {
     try {
       const profile = await this.apiService.getUserProfile(username);
-      const repos = await this.apiService.getUserRepos(username, {
-        per_page: 100,
-      });
+      const repos = await this.apiService.getUserRepos(username, { per_page: 100 });
       const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
 
       const topRepos = repos

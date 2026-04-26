@@ -13,12 +13,7 @@ export const SECTION_TYPE_PERMISSIONS: CreatePermissionInput[] = [
     description: 'Create section types',
     isSystem: true,
   },
-  {
-    resource: 'section_types',
-    action: 'read',
-    description: 'View section types',
-    isSystem: true,
-  },
+  { resource: 'section_types', action: 'read', description: 'View section types', isSystem: true },
   {
     resource: 'section_types',
     action: 'update',
@@ -31,12 +26,7 @@ export const SECTION_TYPE_PERMISSIONS: CreatePermissionInput[] = [
     description: 'Delete section types',
     isSystem: true,
   },
-  {
-    resource: 'section_types',
-    action: 'list',
-    description: 'List section types',
-    isSystem: true,
-  },
+  { resource: 'section_types', action: 'list', description: 'List section types', isSystem: true },
   {
     resource: 'section_types',
     action: 'manage',

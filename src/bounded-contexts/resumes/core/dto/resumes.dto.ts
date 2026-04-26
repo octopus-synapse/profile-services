@@ -98,10 +98,7 @@ const ResumeFullResponseSchema = ResumeResponseSchema.extend({
   summary: z.string().optional(),
 });
 
-const DeleteResponseSchema = z.object({
-  deleted: z.boolean(),
-  id: z.string(),
-});
+const DeleteResponseSchema = z.object({ deleted: z.boolean(), id: z.string() });
 
 const PaginationMetaSchema = z.object({
   total: z.number().int(),

@@ -13,43 +13,27 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
   async findUserById(userId: string): Promise<UserVerificationStatus | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-      },
+      select: { id: true, email: true, emailVerified: true },
     });
 
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      emailVerified: user.emailVerified !== null,
-    };
+    return { id: user.id, email: user.email ?? '', emailVerified: user.emailVerified !== null };
   }
 
   async findUserByEmail(email: string): Promise<UserVerificationStatus | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-      },
+      select: { id: true, email: true, emailVerified: true },
     });
 
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      emailVerified: user.emailVerified !== null,
-    };
+    return { id: user.id, email: user.email ?? '', emailVerified: user.emailVerified !== null };
   }
 
   async createVerificationToken(
@@ -59,12 +43,7 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
     email: string,
   ): Promise<void> {
     await this.prisma.emailVerificationToken.create({
-      data: {
-        userId,
-        token,
-        expiresAt,
-        email,
-      },
+      data: { userId, token, expiresAt, email },
     });
   }
 

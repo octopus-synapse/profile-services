@@ -103,7 +103,7 @@ export function zodIssueToCode(issue: ZodIssue): ConvertedIssue {
       return {
         ...base,
         code: 'ENUM_INVALID',
-        params: { allowed: options.map((o) => String(o)).join(',') },
+        params: { allowed: options.map((o) => String(o)).join(', ') },
       };
     }
 
@@ -112,7 +112,7 @@ export function zodIssueToCode(issue: ZodIssue): ConvertedIssue {
 
     case 'unrecognized_keys': {
       const keys = (issue as { keys?: string[] }).keys ?? [];
-      return { ...base, code: 'UNRECOGNIZED_KEYS', params: { keys: keys.join(',') } };
+      return { ...base, code: 'UNRECOGNIZED_KEYS', params: { keys: keys.join(', ') } };
     }
 
     case 'invalid_union':

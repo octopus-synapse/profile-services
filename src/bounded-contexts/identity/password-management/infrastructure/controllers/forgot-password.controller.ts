@@ -1,12 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { ForgotPasswordPort } from '../../application/ports';
-import { FORGOT_PASSWORD_PORT } from '../../application/ports';
+import { ForgotPasswordPort } from '../../application/ports';
 import { ForgotPasswordDto, ForgotPasswordResponseDto } from './forgot-password.dto';
 
 @SdkExport({
@@ -17,10 +16,7 @@ import { ForgotPasswordDto, ForgotPasswordResponseDto } from './forgot-password.
 @ApiTags('Password Management')
 @Controller('auth')
 export class ForgotPasswordController {
-  constructor(
-    @Inject(FORGOT_PASSWORD_PORT)
-    private readonly forgotPassword: ForgotPasswordPort,
-  ) {}
+  constructor(private readonly forgotPassword: ForgotPasswordPort) {}
 
   @Post('forgot-password')
   @Public()

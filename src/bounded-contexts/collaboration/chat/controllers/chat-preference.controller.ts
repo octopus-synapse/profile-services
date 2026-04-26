@@ -12,8 +12,8 @@ const SetPinSchema = z.object({ pinned: z.boolean() });
 export class SetPinDto extends createZodDto(SetPinSchema) {}
 
 const SetMuteSchema = z.object({
-  muted: z.boolean(),
-  /** Optional absolute timestamp. If omitted and muted=true, mute is indefinite. */
+  muted:
+    z.boolean() /** Optional absolute timestamp. If omitted and muted=true, mute is indefinite. */,
   mutedUntil: z.string().datetime().optional(),
 });
 export class SetMuteDto extends createZodDto(SetMuteSchema) {}

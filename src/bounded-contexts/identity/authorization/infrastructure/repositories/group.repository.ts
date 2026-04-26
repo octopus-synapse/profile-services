@@ -217,11 +217,7 @@ export class GroupRepository implements IGroupRepository {
       where: {
         groupId_roleId: { groupId, roleId },
       },
-      create: {
-        groupId,
-        roleId,
-        assignedBy,
-      },
+      create: { groupId, roleId, assignedBy },
       update: {},
     });
   }
@@ -241,11 +237,7 @@ export class GroupRepository implements IGroupRepository {
       where: {
         groupId_permissionId: { groupId, permissionId },
       },
-      create: {
-        groupId,
-        permissionId,
-        assignedBy,
-      },
+      create: { groupId, permissionId, assignedBy },
       update: {},
     });
   }

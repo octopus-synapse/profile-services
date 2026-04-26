@@ -1,45 +1,30 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { AccountDeactivatedException } from '../../../../account-lifecycle/domain/exceptions';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
-import type { Validate2faInboundPort } from '../../../../two-factor-auth/application/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
+import { Validate2faInboundPort } from '../../../../two-factor-auth/application/ports';
 import { LoginFailedEvent, UserLoggedInEvent } from '../../../domain/events';
 import {
   AccountLockedException,
   Invalid2faCodeException,
   InvalidCredentialsException,
 } from '../../../domain/exceptions';
-import type {
+import {
   AuthenticationRepositoryPort,
   LoginAttemptsPort,
   PasswordHasherPort,
   TokenGeneratorPort,
 } from '../../../domain/ports';
-import { LOGIN_ATTEMPTS_PORT } from '../../../domain/ports';
 import type { LoginCommand, LoginPort, LoginResult, LoginVerify2faCommand } from '../../ports';
-
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const PASSWORD_HASHER = Symbol('PasswordHasherPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const EVENT_BUS = Symbol('EventBusPort');
-const VALIDATE_2FA = Symbol('Validate2faPort');
 
 // Refresh token expiration: 7 days
 const REFRESH_TOKEN_DAYS = 7;
 
-@Injectable()
 export class LoginUseCase implements LoginPort {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(PASSWORD_HASHER)
     private readonly passwordHasher: PasswordHasherPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
-    @Inject(VALIDATE_2FA)
     private readonly validate2fa: Validate2faInboundPort,
-    @Inject(LOGIN_ATTEMPTS_PORT)
     private readonly loginAttempts: LoginAttemptsPort,
   ) {}
 
@@ -175,5 +160,3 @@ export class LoginUseCase implements LoginPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, EVENT_BUS, PASSWORD_HASHER, TOKEN_GENERATOR, VALIDATE_2FA };

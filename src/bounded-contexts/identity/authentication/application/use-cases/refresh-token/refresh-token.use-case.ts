@@ -1,25 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { TokenRefreshedEvent } from '../../../domain/events';
 import { InvalidRefreshTokenException } from '../../../domain/exceptions';
-import type { AuthenticationRepositoryPort, TokenGeneratorPort } from '../../../domain/ports';
+import { AuthenticationRepositoryPort, TokenGeneratorPort } from '../../../domain/ports';
 import type { RefreshTokenCommand, RefreshTokenPort, RefreshTokenResult } from '../../ports';
-
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const EVENT_BUS = Symbol('EventBusPort');
 
 // Refresh token expiration: 7 days
 const REFRESH_TOKEN_DAYS = 7;
 
-@Injectable()
 export class RefreshTokenUseCase implements RefreshTokenPort {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
   ) {}
 
@@ -75,5 +66,3 @@ export class RefreshTokenUseCase implements RefreshTokenPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, EVENT_BUS, TOKEN_GENERATOR };

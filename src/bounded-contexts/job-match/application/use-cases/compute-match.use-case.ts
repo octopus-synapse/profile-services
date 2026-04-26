@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { MatchComputedEvent } from '../../domain/events';
 import { JobLoaderPort } from '../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
@@ -52,10 +51,7 @@ export interface ComputeMatchInput {
  * breakdown inline and optionally hit the cache so repeated views of
  * the same job in the same day don't spin up four AI calls.
  */
-@Injectable()
 export class ComputeMatchUseCase {
-  private readonly logger = new Logger(ComputeMatchUseCase.name);
-
   constructor(
     private readonly resumeExistence: ResumeExistencePort,
     private readonly jobLoader: JobLoaderPort,
@@ -66,6 +62,7 @@ export class ComputeMatchUseCase {
     private readonly similarity: SimilarityPort,
     private readonly cache: MatchCachePort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: ComputeMatchInput): Promise<MatchBreakdown> {
@@ -108,12 +105,10 @@ export class ComputeMatchUseCase {
       this.runFit(userId, jobId, job),
     ]);
 
-    const subScores = {
-      keyword: keywords,
-      requirements,
-      semantic,
-      fit: fitSub,
-    } satisfies Record<string, SubScoreResult>;
+    const subScores = { keyword: keywords, requirements, semantic, fit: fitSub } satisfies Record<
+      string,
+      SubScoreResult
+    >;
 
     const { overallScore, effectiveWeights } = blendMatch(subScores);
     const breakdown: MatchBreakdown = {
@@ -128,17 +123,10 @@ export class ComputeMatchUseCase {
     try {
       await this.cache.set(cacheKey, breakdown);
     } catch (err) {
-      this.logger.warn(`Match cache set failed: ${(err as Error).message}`);
+      this.logger.warn(`Match cache set failed: ${(err as Error).message}`, 'ComputeMatchUseCase');
     }
 
-    this.publishComputed({
-      userId,
-      resumeId,
-      jobId,
-      breakdown,
-      fromCache: false,
-      startedAt,
-    });
+    this.publishComputed({ userId, resumeId, jobId, breakdown, fromCache: false, startedAt });
 
     return breakdown;
   }
@@ -179,7 +167,10 @@ export class ComputeMatchUseCase {
       const candidate = await this.keywordSource.getKeywords(resumeId);
       return scoreKeywordMatch({ required, candidate });
     } catch (err) {
-      this.logger.warn(`Keyword sub-score failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Keyword sub-score failed: ${(err as Error).message}`,
+        'ComputeMatchUseCase',
+      );
       return { score: null };
     }
   }
@@ -197,7 +188,10 @@ export class ComputeMatchUseCase {
         enrichedByAi: job?.enrichedByAi,
       });
     } catch (err) {
-      this.logger.warn(`Requirements sub-score failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Requirements sub-score failed: ${(err as Error).message}`,
+        'ComputeMatchUseCase',
+      );
       return { score: null };
     }
   }
@@ -206,7 +200,10 @@ export class ComputeMatchUseCase {
     try {
       return await this.semanticMatcher.match({ resumeId, jobId });
     } catch (err) {
-      this.logger.warn(`Semantic sub-score failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Semantic sub-score failed: ${(err as Error).message}`,
+        'ComputeMatchUseCase',
+      );
       return { score: null };
     }
   }
@@ -238,7 +235,7 @@ export class ComputeMatchUseCase {
         detail: role.score === null ? undefined : { role: role.score },
       };
     } catch (err) {
-      this.logger.warn(`Fit sub-score failed: ${(err as Error).message}`);
+      this.logger.warn(`Fit sub-score failed: ${(err as Error).message}`, 'ComputeMatchUseCase');
       return { score: null };
     }
   }

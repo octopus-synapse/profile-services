@@ -97,12 +97,7 @@ export class PrismaShareAnalyticsRepository implements ShareAnalyticsRepositoryP
       where: { shareId },
       orderBy: { createdAt: 'desc' },
       take: limit,
-      select: {
-        event: true,
-        country: true,
-        city: true,
-        createdAt: true,
-      },
+      select: { event: true, country: true, city: true, createdAt: true },
     });
   }
 

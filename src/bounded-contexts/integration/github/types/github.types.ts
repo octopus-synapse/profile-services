@@ -25,9 +25,7 @@ export interface GitHubRepo {
   created_at: string;
   updated_at: string;
   pushed_at: string;
-  owner: {
-    login: string;
-  };
+  owner: { login: string };
 }
 
 export interface GitHubFetchOptions {

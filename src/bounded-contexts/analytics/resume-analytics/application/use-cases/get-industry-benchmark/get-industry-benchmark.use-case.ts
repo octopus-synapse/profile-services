@@ -11,11 +11,8 @@ import type {
   IndustryComparison,
   TopPerformersProfile,
 } from '../../../interfaces';
-import type { AtsScoringPort } from '../../ports/facade.ports';
-import type {
-  BenchmarkRepositoryPort,
-  ResumeOwnershipPort,
-} from '../../ports/resume-analytics.port';
+import { AtsScoringPort } from '../../ports/facade.ports';
+import { BenchmarkRepositoryPort, ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 
 export class GetIndustryBenchmarkUseCase {
   constructor(

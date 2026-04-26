@@ -12,10 +12,7 @@ export interface RequirementsMatchInput {
 
 export interface RequirementsMatchResult extends SubScoreResult {
   readonly score: number | null;
-  readonly detail?: Readonly<{
-    matchedSlots: readonly string[];
-    missingSlots: readonly string[];
-  }>;
+  readonly detail?: Readonly<{ matchedSlots: readonly string[]; missingSlots: readonly string[] }>;
 }
 
 /**

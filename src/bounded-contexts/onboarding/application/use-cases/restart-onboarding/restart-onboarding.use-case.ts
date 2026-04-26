@@ -1,6 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingStepConfig } from '../../../domain/ports/onboarding-config.port';
-import type { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
 export interface RestartOnboardingResult {
   success: boolean;
@@ -76,21 +76,14 @@ export class RestartOnboardingUseCase {
       sections:
         resume?.resumeSections?.map((section) => ({
           sectionTypeKey: section.sectionType.key,
-          items:
-            section.items?.map((item) => ({
-              id: item.id,
-              content: item.content,
-            })) ?? [],
+          items: section.items?.map((item) => ({ id: item.id, content: item.content })) ?? [],
         })) ?? [],
     });
 
     // Mark user as needing onboarding again
     await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        hasCompletedOnboarding: false,
-        onboardingCompletedAt: null,
-      },
+      data: { hasCompletedOnboarding: false, onboardingCompletedAt: null },
     });
 
     return { success: true };

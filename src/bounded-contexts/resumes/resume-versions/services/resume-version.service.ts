@@ -1,16 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
-import {
-  RESUME_VERSION_USE_CASES,
-  type ResumeVersionUseCases,
-} from './resume-version/ports/resume-version.port';
+import { ResumeVersionUseCases } from './resume-version/ports/resume-version.port';
 
-@Injectable()
 export class ResumeVersionService extends ResumeVersionServicePort {
-  constructor(
-    @Inject(RESUME_VERSION_USE_CASES)
-    private readonly useCases: ResumeVersionUseCases,
-  ) {
+  constructor(private readonly useCases: ResumeVersionUseCases) {
     super();
   }
 

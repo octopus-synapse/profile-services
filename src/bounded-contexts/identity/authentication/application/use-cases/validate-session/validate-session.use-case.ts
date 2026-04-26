@@ -9,10 +9,9 @@
  * - Session endpoint to return current user
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import type {
+import type { SessionPayload } from '../../../domain/ports';
+import {
   AuthenticationRepositoryPort,
-  SessionPayload,
   SessionStoragePort,
   TokenGeneratorPort,
 } from '../../../domain/ports';
@@ -23,19 +22,10 @@ import type {
   ValidateSessionResult,
 } from '../../ports';
 
-// Injection tokens
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const SESSION_STORAGE = Symbol('SessionStoragePort');
-
-@Injectable()
 export class ValidateSessionUseCase implements ValidateSessionPort {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(SESSION_STORAGE)
     private readonly sessionStorage: SessionStoragePort,
   ) {}
 
@@ -105,5 +95,3 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, SESSION_STORAGE, TOKEN_GENERATOR };

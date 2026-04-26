@@ -125,9 +125,7 @@ export const CreateSectionTypeSchema = z
       .string()
       .min(2)
       .max(50)
-      .regex(/^[a-z][a-z0-9-]*$/, {
-        message: 'Slug must be kebab-case (e.g., my-section)',
-      }),
+      .regex(/^[a-z][a-z0-9-]*$/, { message: 'Slug must be kebab-case (e.g., my-section)' }),
     title: z.string().min(1).max(100),
     description: z.string().max(500).optional(),
     semanticKind: z.string().min(1).max(50),
@@ -169,8 +167,7 @@ export const UpdateSectionTypeSchema = z
   .object({
     // These fields are only included to detect and reject attempts to modify them on system types
     key: z.string().optional(),
-    semanticKind: z.string().optional(),
-    // Updatable fields
+    semanticKind: z.string().optional(), // Updatable fields
     slug: z
       .string()
       .min(2)

@@ -34,16 +34,10 @@ export class ResumeSectionOnboardingAdapter {
 
     const resumeSection = await tx.resumeSection.upsert({
       where: {
-        resumeId_sectionTypeId: {
-          resumeId: input.resumeId,
-          sectionTypeId: sectionType.id,
-        },
+        resumeId_sectionTypeId: { resumeId: input.resumeId, sectionTypeId: sectionType.id },
       },
       update: {},
-      create: {
-        resumeId: input.resumeId,
-        sectionTypeId: sectionType.id,
-      },
+      create: { resumeId: input.resumeId, sectionTypeId: sectionType.id },
       select: { id: true },
     });
 

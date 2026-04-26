@@ -67,9 +67,7 @@ export type UserPreferencesEntity = {
   updatedAt: Date;
 };
 
-export type UserWithPreferences = UserEntity & {
-  preferences: UserPreferencesEntity | null;
-};
+export type UserWithPreferences = UserEntity & { preferences: UserPreferencesEntity | null };
 
 export abstract class UsersRepositoryPort {
   abstract findUserById(userId: string): Promise<UserEntity | null>;

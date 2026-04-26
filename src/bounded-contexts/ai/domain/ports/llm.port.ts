@@ -6,8 +6,6 @@
  * corresponds to a named prompt in `domain/prompts/`.
  */
 
-export const LLM_PORT = Symbol('LLM_PORT');
-
 export type TailorResumeBullet = {
   /** Stable id so the UI can diff. For section items we pass the item id;
    * for single-field rewrites (summary, jobTitle) we pass the field name. */
@@ -41,8 +39,7 @@ export type TailorResumeInput = {
 };
 
 export type TailorResumeOutput = {
-  /** Rewritten summary (null to leave as-is). */
-  summary: string | null;
+  /** Rewritten summary (null to leave as-is). */ summary: string | null;
   /** Optional new job title to mirror the target role. */
   jobTitle: string | null;
   /** One entry per bullet the LLM chose to change; omit unchanged items. */

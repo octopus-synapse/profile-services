@@ -24,12 +24,10 @@ Schema:
   "summary": string | null,        // rewritten summary; null means leave as-is
   "jobTitle": string | null,       // optional mirror of the target title; null to leave as-is
   "bullets": [
-    {
-      "id": string,                // exactly the id we gave you
-      "original": string,          // the original text, verbatim
-      "tailored": string,          // your rewrite
-      "highlights": [string]       // verbatim job keywords you used inside \`tailored\`
-    }
+    { "id": string, // exactly the id we gave you
+      "original": string, // the original text, verbatim
+      "tailored": string, // your rewrite
+      "highlights": [string]       // verbatim job keywords you used inside \`tailored\` }
   ]
 }`;
 

@@ -17,13 +17,11 @@ export interface ValidateSessionResult {
   user: SessionUserData | null;
 }
 
-export interface ValidateSessionPort {
+export abstract class ValidateSessionPort {
   /**
    * Validates session cookie and returns user data if valid
    * @param command - Validation parameters with cookie reader
    * @returns User data or null if not authenticated
    */
-  execute(command: ValidateSessionCommand): Promise<ValidateSessionResult>;
+  abstract execute(command: ValidateSessionCommand): Promise<ValidateSessionResult>;
 }
-
-export const VALIDATE_SESSION_PORT = Symbol('ValidateSessionPort');

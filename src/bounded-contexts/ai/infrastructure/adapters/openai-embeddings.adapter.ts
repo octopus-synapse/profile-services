@@ -37,10 +37,7 @@ export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
     const trimmed = text.trim();
     if (!trimmed) throw new AiEmptyInputException('embed');
 
-    const response = await this.client.embeddings.create({
-      model: this.model,
-      input: trimmed,
-    });
+    const response = await this.client.embeddings.create({ model: this.model, input: trimmed });
     const first = response.data[0];
     if (!first) throw new Error('openai embeddings returned no data');
     return { vector: first.embedding, tokensUsed: response.usage.total_tokens };

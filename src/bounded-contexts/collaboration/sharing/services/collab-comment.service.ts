@@ -64,11 +64,7 @@ export class CollabCommentService {
     await this.assertViewer(comment.resumeId, viewerId);
     return this.prisma.collaborationComment.update({
       where: { id: commentId },
-      data: {
-        resolved: true,
-        resolvedAt: new Date(),
-        resolvedById: viewerId,
-      },
+      data: { resolved: true, resolvedAt: new Date(), resolvedById: viewerId },
     });
   }
 

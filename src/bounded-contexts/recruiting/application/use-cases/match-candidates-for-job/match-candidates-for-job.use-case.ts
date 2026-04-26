@@ -1,9 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  CANDIDATE_DIRECTORY_REPOSITORY_PORT,
-  type CandidateDirectoryRepositoryPort,
-  RankedCandidate,
-} from '../../../domain';
+import { CandidateDirectoryRepositoryPort, RankedCandidate } from '../../../domain';
 import type {
   MatchCandidatesForJobInput,
   MatchCandidatesForJobOutput,
@@ -23,12 +18,8 @@ import type {
 
 const CANDIDATE_POOL_CAP = 200;
 
-@Injectable()
 export class MatchCandidatesForJobUseCase {
-  constructor(
-    @Inject(CANDIDATE_DIRECTORY_REPOSITORY_PORT)
-    private readonly directory: CandidateDirectoryRepositoryPort,
-  ) {}
+  constructor(private readonly directory: CandidateDirectoryRepositoryPort) {}
 
   async execute(input: MatchCandidatesForJobInput): Promise<MatchCandidatesForJobOutput> {
     const pool = await this.directory.loadSearchablePool({

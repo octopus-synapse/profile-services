@@ -7,7 +7,7 @@
  * DELETE /auth/sessions/:id - Revokes a specific session by token id.
  */
 
-import { Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Req } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -15,8 +15,8 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import type { ValidateSessionPort } from '../../application/ports';
-import { VALIDATE_SESSION_PORT } from '../../application/ports';
+import { ValidateSessionPort } from '../../application/ports';
+
 import { SessionResponseDto } from '../../application/use-cases/session/session.dto';
 import type { CookieReader } from '../../domain/ports/session-storage.port';
 import { SessionDeviceService, type SessionDeviceView } from '../adapters/session-device.service';
@@ -30,9 +30,7 @@ interface RequestWithUser extends Request {
  * Bridges infrastructure (Express) to domain abstraction
  */
 function createCookieReader(req: Request): CookieReader {
-  return {
-    getCookie: (name: string) => req.cookies?.[name],
-  };
+  return { getCookie: (name: string) => req.cookies?.[name] };
 }
 
 @SdkExport({ tag: 'auth', description: 'Session validation' })
@@ -40,7 +38,6 @@ function createCookieReader(req: Request): CookieReader {
 @Controller('auth')
 export class SessionController {
   constructor(
-    @Inject(VALIDATE_SESSION_PORT)
     private readonly validateSessionService: ValidateSessionPort,
     private readonly sessionDevices: SessionDeviceService,
   ) {}
@@ -53,9 +50,7 @@ export class SessionController {
     summary: 'Get Session',
     description: 'Validates session cookie and returns current user data if authenticated.',
   })
-  @ApiDataResponse(SessionResponseDto, {
-    description: 'Session status',
-  })
+  @ApiDataResponse(SessionResponseDto, { description: 'Session status' })
   async getSession(@Req() req: Request): Promise<DataResponse<SessionResponseDto>> {
     const result = await this.validateSessionService.execute({
       cookieReader: createCookieReader(req),
@@ -63,10 +58,7 @@ export class SessionController {
 
     return {
       success: true,
-      data: {
-        authenticated: result.success,
-        user: result.user,
-      },
+      data: { authenticated: result.success, user: result.user },
     };
   }
 

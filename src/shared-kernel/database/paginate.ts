@@ -42,11 +42,7 @@ export async function paginate<T, TWhere = unknown, TOrderBy = unknown>(
   const pageSize = options.pageSize ?? 20;
   const skip = (page - 1) * pageSize;
 
-  const findArgs: Record<string, unknown> = {
-    where: options.where,
-    skip,
-    take: pageSize,
-  };
+  const findArgs: Record<string, unknown> = { where: options.where, skip, take: pageSize };
 
   if (options.orderBy) findArgs.orderBy = options.orderBy;
   if (options.include) findArgs.include = options.include;
@@ -57,11 +53,5 @@ export async function paginate<T, TWhere = unknown, TOrderBy = unknown>(
     delegate.count({ where: options.where }),
   ]);
 
-  return {
-    items: items as T[],
-    total,
-    page,
-    pageSize,
-    totalPages: Math.ceil(total / pageSize),
-  };
+  return { items: items as T[], total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }

@@ -34,10 +34,7 @@ type ConstructorType = abstract new (...args: never[]) => object;
 
 const buildModelSchema = (model: ConstructorType) => {
   if (model === Object) {
-    return {
-      type: 'object',
-      additionalProperties: true,
-    };
+    return { type: 'object', additionalProperties: true };
   }
 
   return { $ref: getSchemaPath(model) };
@@ -59,9 +56,7 @@ export const ApiDataResponse = (
           { $ref: getSchemaPath(ApiResponseDto) },
           {
             type: 'object',
-            properties: {
-              data: buildModelSchema(model),
-            },
+            properties: { data: buildModelSchema(model) },
             required: ['data'],
           },
         ],
@@ -87,10 +82,7 @@ export const ApiPaginatedDataResponse = (
           {
             type: 'object',
             properties: {
-              data: {
-                type: 'array',
-                items: buildModelSchema(model),
-              },
+              data: { type: 'array', items: buildModelSchema(model) },
               meta: { $ref: getSchemaPath(PaginatedMetaDto) },
             },
             required: ['data', 'meta'],
@@ -106,12 +98,7 @@ export const ApiEmptyDataResponse = (options?: ApiDataResponseOptions): MethodDe
 
   // 204 No Content should not have a response body
   if (status === HttpStatus.NO_CONTENT) {
-    return applyDecorators(
-      ApiResponse({
-        status,
-        description: options?.description,
-      }),
-    );
+    return applyDecorators(ApiResponse({ status, description: options?.description }));
   }
 
   return applyDecorators(
@@ -165,10 +152,7 @@ export const ApiStreamResponse = (options: ApiStreamResponseOptions): MethodDeco
       description: options.description,
       content: {
         [options.mimeType]: {
-          schema: {
-            type: 'string',
-            format: 'binary',
-          },
+          schema: { type: 'string', format: 'binary' },
         },
       },
     }),

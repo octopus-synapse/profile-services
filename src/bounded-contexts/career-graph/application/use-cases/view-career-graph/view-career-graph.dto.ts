@@ -17,10 +17,7 @@ export interface CareerGraphProjectionOutput {
 
 export interface ViewCareerGraphOutput {
   readonly stack: ReadonlyArray<string>;
-  readonly user: {
-    readonly experienceYears: number;
-    readonly jobTitle: string | null;
-  };
+  readonly user: { readonly experienceYears: number; readonly jobTitle: string | null };
   readonly totalPeers: number;
   readonly current: CareerGraphBucketOutput | null;
   readonly buckets: ReadonlyArray<CareerGraphBucketOutput>;

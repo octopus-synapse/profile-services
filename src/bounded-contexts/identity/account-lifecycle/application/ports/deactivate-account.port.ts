@@ -13,13 +13,11 @@ export interface DeactivateAccountResult {
   success: true;
 }
 
-export interface DeactivateAccountPort {
+export abstract class DeactivateAccountPort {
   /**
    * Deactivates a user account (soft delete).
    * @throws EntityNotFoundException if user not found
    * @throws AccountDeactivatedException if account is already deactivated
    */
-  execute(command: DeactivateAccountCommand): Promise<DeactivateAccountResult>;
+  abstract execute(command: DeactivateAccountCommand): Promise<DeactivateAccountResult>;
 }
-
-export const DEACTIVATE_ACCOUNT_PORT = Symbol('DeactivateAccountPort');

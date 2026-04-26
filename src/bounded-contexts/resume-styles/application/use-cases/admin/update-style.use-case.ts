@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   StyleBelowAtsThresholdError,
   StyleNotEditableError,
@@ -19,7 +18,6 @@ import { ATS_SAFE_THRESHOLD, type StyleDetail, type UpdateStylePatch } from '../
  * - Monotonic styleScore (invariant 1) is double-enforced: a clean
  *   422 here, a Postgres trigger as the last line of defence.
  */
-@Injectable()
 export class UpdateStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,

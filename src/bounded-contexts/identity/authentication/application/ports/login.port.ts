@@ -28,21 +28,19 @@ export interface LoginResult {
   email?: string;
 }
 
-export interface LoginPort {
+export abstract class LoginPort {
   /**
    * Authenticates user with email and password.
    * Returns twoFactorRequired: true when 2FA is enabled (no tokens issued).
    * @throws InvalidCredentialsException if credentials are invalid
    * @throws AccountDeactivatedException if account is deactivated
    */
-  execute(command: LoginCommand): Promise<LoginResult>;
+  abstract execute(command: LoginCommand): Promise<LoginResult>;
 
   /**
    * Completes login by validating a 2FA code after password verification.
    * @throws InvalidCredentialsException if userId is invalid
    * @throws Invalid2faCodeException if the code is wrong
    */
-  completeWithTwoFactor(command: LoginVerify2faCommand): Promise<LoginResult>;
+  abstract completeWithTwoFactor(command: LoginVerify2faCommand): Promise<LoginResult>;
 }
-
-export const LOGIN_PORT = Symbol('LoginPort');

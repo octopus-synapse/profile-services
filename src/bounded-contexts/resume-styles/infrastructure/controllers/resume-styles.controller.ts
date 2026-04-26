@@ -104,11 +104,7 @@ export class ResumeStylesController {
     @CurrentUser() user: UserPayload,
   ): Promise<void> {
     try {
-      await this.applyUseCase.execute({
-        userId: user.userId,
-        resumeId,
-        styleId: body.styleId,
-      });
+      await this.applyUseCase.execute({ userId: user.userId, resumeId, styleId: body.styleId });
     } catch (err) {
       if (err instanceof StyleNotFoundError || err instanceof ResumeNotFoundForStyleApplyError) {
         throw new NotFoundException(err.message);

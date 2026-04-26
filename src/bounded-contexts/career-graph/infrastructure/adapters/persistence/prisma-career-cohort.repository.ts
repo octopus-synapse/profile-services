@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { CareerCohortRepositoryPort, CohortRequest } from '../../../domain';
-import { type CohortBucket, SIMILARITY_THRESHOLD } from '../../../domain';
+import type { CohortRequest } from '../../../domain';
+import {
+  CareerCohortRepositoryPort,
+  type CohortBucket,
+  SIMILARITY_THRESHOLD,
+} from '../../../domain';
 
 /**
  * Prisma adapter for the career-graph cohort lookups.
@@ -58,11 +62,7 @@ export class PrismaCareerCohortRepository implements CareerCohortRepositoryPort 
       take: CANDIDATE_POOL_CAP,
       select: {
         primaryResume: {
-          select: {
-            experienceYears: true,
-            jobTitle: true,
-            primaryStack: true,
-          },
+          select: { experienceYears: true, jobTitle: true, primaryStack: true },
         },
       },
     });

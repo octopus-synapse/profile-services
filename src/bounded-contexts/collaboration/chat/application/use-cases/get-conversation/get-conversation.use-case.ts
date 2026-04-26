@@ -2,7 +2,7 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.excep
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
 import { mapConversationToResponse } from '../../mappers/chat.mapper';
-import type { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
+import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationUseCase {
   constructor(

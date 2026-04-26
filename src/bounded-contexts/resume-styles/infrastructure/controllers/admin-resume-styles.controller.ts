@@ -138,10 +138,7 @@ export class AdminResumeStylesController {
       });
     }
     if (err instanceof StyleNotEditableError) {
-      throw new UnprocessableEntityException({
-        code: 'style_not_editable',
-        message: err.message,
-      });
+      throw new UnprocessableEntityException({ code: 'style_not_editable', message: err.message });
     }
     throw err;
   }

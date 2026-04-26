@@ -6,8 +6,6 @@
  * replacement still swaps them together.
  */
 
-export const SCORING_LLM_PORT = Symbol('SCORING_LLM_PORT');
-
 // ── Content Quality ──────────────────────────────────────────────
 export interface ContentQualityInput {
   /** Narrow projection of the resume the prompt cares about — keeping
@@ -15,10 +13,7 @@ export interface ContentQualityInput {
    * the Zod validator has to guard. */
   readonly summary: string | null;
   readonly jobTitle: string | null;
-  readonly bullets: ReadonlyArray<{
-    readonly id: string;
-    readonly text: string;
-  }>;
+  readonly bullets: ReadonlyArray<{ readonly id: string; readonly text: string }>;
 }
 
 export interface ContentQualityIssue {

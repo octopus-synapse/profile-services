@@ -1,11 +1,7 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 // pdf-parse v2 ships a class-based API (`PDFParse`), not a callable default.
 import { PDFParse } from 'pdf-parse';
-import {
-  type ExtractedResume,
-  LLM_PORT,
-  type LlmPort,
-} from '@/bounded-contexts/ai/domain/ports/llm.port';
+import { type ExtractedResume, LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   PdfBufferRequiredException,
@@ -13,11 +9,7 @@ import {
   PdfTooLargeException,
 } from '../../domain/exceptions/import.exceptions';
 
-export type PdfImportResult = {
-  userId: string;
-  resumeId: string;
-  extracted: ExtractedResume;
-};
+export type PdfImportResult = { userId: string; resumeId: string; extracted: ExtractedResume };
 
 /** Hard cap so a malicious upload can't blow up memory. 5MB fits virtually
  * every text-based CV; visually heavy PDFs get rejected. */
@@ -29,7 +21,7 @@ export class PdfImportService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(LLM_PORT) private readonly llm: LlmPort,
+    private readonly llm: LlmPort,
   ) {}
 
   async import(

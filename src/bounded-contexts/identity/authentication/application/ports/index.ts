@@ -1,43 +1,33 @@
 export {
-  CREATE_SESSION_PORT,
   type CreateSessionCommand,
-  type CreateSessionPort,
+  CreateSessionPort,
   type CreateSessionResult,
   type SessionUserData,
 } from './create-session.port';
 
 export {
-  LOGIN_PORT,
   type LoginCommand,
-  type LoginPort,
+  LoginPort,
   type LoginResult,
   type LoginVerify2faCommand,
 } from './login.port';
 
-export {
-  LOGOUT_PORT,
-  type LogoutCommand,
-  type LogoutPort,
-  type LogoutResult,
-} from './logout.port';
+export { type LogoutCommand, LogoutPort, type LogoutResult } from './logout.port';
 
 export {
-  REFRESH_TOKEN_PORT,
   type RefreshTokenCommand,
-  type RefreshTokenPort,
+  RefreshTokenPort,
   type RefreshTokenResult,
 } from './refresh-token.port';
 
 export {
-  TERMINATE_SESSION_PORT,
   type TerminateSessionCommand,
-  type TerminateSessionPort,
+  TerminateSessionPort,
   type TerminateSessionResult,
 } from './terminate-session.port';
 
 export {
-  VALIDATE_SESSION_PORT,
   type ValidateSessionCommand,
-  type ValidateSessionPort,
+  ValidateSessionPort,
   type ValidateSessionResult,
 } from './validate-session.port';

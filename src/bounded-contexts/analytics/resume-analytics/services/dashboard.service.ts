@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AtsScoringPort } from '../application/ports/facade.ports';
 import type { ResumeForAnalytics } from '../domain/types';
 import type {
@@ -7,20 +7,13 @@ import type {
   ScoreProgressionPoint,
   ViewStats,
 } from '../interfaces';
-import {
-  SNAPSHOT_PORT,
-  type SnapshotPort,
-  VIEW_TRACKING_PORT,
-  type ViewTrackingPort,
-} from '../ports';
+import { SnapshotPort, ViewTrackingPort } from '../ports';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @Inject(VIEW_TRACKING_PORT)
     private readonly viewTracking: ViewTrackingPort,
     private readonly atsScore: AtsScoringPort,
-    @Inject(SNAPSHOT_PORT)
     private readonly snapshot: SnapshotPort,
   ) {}
 
@@ -60,11 +53,7 @@ export class DashboardService {
       },
       viewTrend: viewStats.viewsByDay,
       topSources: viewStats.topSources,
-      keywordHealth: {
-        score: avgSectionScore,
-        topKeywords: [],
-        missingCritical: [],
-      },
+      keywordHealth: { score: avgSectionScore, topKeywords: [], missingCritical: [] },
       industryPosition: { percentile: 0, trend },
       recommendations: atsResult.recommendations.map((msg) => ({
         type: 'improve_content' as const,

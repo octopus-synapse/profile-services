@@ -23,10 +23,7 @@ export class StorageHealthIndicator extends HealthIndicator {
       const canConnect = await this.s3Service.checkConnection();
 
       if (canConnect) {
-        return this.getStatus(key, true, {
-          message: 'S3/MinIO is connected',
-          configured: true,
-        });
+        return this.getStatus(key, true, { message: 'S3/MinIO is connected', configured: true });
       }
 
       // Internal health-check assertion: caught immediately below and converted

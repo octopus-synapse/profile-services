@@ -20,73 +20,71 @@ export interface BackupCodeRecord {
   usedAt: Date | null;
 }
 
-export interface TwoFactorRepositoryPort {
+export abstract class TwoFactorRepositoryPort {
   /**
    * Find 2FA record by user ID
    */
-  findByUserId(userId: string): Promise<TwoFactorRecord | null>;
+  abstract findByUserId(userId: string): Promise<TwoFactorRecord | null>;
 
   /**
    * Create a new 2FA record (not enabled yet)
    */
-  create(userId: string, secret: string): Promise<TwoFactorRecord>;
+  abstract create(userId: string, secret: string): Promise<TwoFactorRecord>;
 
   /**
    * Update 2FA secret (during setup)
    */
-  updateSecret(userId: string, secret: string): Promise<TwoFactorRecord>;
+  abstract updateSecret(userId: string, secret: string): Promise<TwoFactorRecord>;
 
   /**
    * Enable 2FA for user
    */
-  enable(userId: string): Promise<TwoFactorRecord>;
+  abstract enable(userId: string): Promise<TwoFactorRecord>;
 
   /**
    * Update last used timestamp
    */
-  updateLastUsed(userId: string): Promise<void>;
+  abstract updateLastUsed(userId: string): Promise<void>;
 
   /**
    * Delete 2FA record
    */
-  delete(userId: string): Promise<void>;
+  abstract delete(userId: string): Promise<void>;
 
   /**
    * Find unused backup codes for user
    */
-  findUnusedBackupCodes(userId: string): Promise<BackupCodeRecord[]>;
+  abstract findUnusedBackupCodes(userId: string): Promise<BackupCodeRecord[]>;
 
   /**
    * Create backup codes for user
    */
-  createBackupCodes(userId: string, codeHashes: string[]): Promise<void>;
+  abstract createBackupCodes(userId: string, codeHashes: string[]): Promise<void>;
 
   /**
    * Mark backup code as used
    */
-  markBackupCodeUsed(codeId: string): Promise<void>;
+  abstract markBackupCodeUsed(codeId: string): Promise<void>;
 
   /**
    * Atomically try to consume a backup code (mark as used).
    * Returns true if the code was successfully consumed (was unused).
    * Returns false if the code was already used (race condition prevented).
    */
-  tryConsumeBackupCode(codeId: string): Promise<boolean>;
+  abstract tryConsumeBackupCode(codeId: string): Promise<boolean>;
 
   /**
    * Delete all backup codes for user
    */
-  deleteBackupCodes(userId: string): Promise<void>;
+  abstract deleteBackupCodes(userId: string): Promise<void>;
 
   /**
    * Count unused backup codes
    */
-  countUnusedBackupCodes(userId: string): Promise<number>;
+  abstract countUnusedBackupCodes(userId: string): Promise<number>;
 
   /**
    * Get user email for QR code label
    */
-  getUserEmail(userId: string): Promise<string | null>;
+  abstract getUserEmail(userId: string): Promise<string | null>;
 }
-
-export const TWO_FACTOR_REPOSITORY_PORT = Symbol('TwoFactorRepositoryPort');

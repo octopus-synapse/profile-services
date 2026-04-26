@@ -63,7 +63,7 @@ export class JobMatchRecomputeWorker extends WorkerHost {
   }
 
   /** Redis glob — the orchestrator keys breakdowns as
-   * `match:match:{resumeId}:{jobId}:{userId}:{rulesVersion}` so each
+   * `match:match:{ resumeId }:{ jobId }:{ userId }:{ rulesVersion }` so each
    * of the three invalidation axes maps to a single wildcard pattern. */
   private patternFor(data: JobMatchRecomputeJobData): string | null {
     switch (data.kind) {

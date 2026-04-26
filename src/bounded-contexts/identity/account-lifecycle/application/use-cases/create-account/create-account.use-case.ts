@@ -1,10 +1,7 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import {
-  TOKEN_GENERATOR_PORT,
-  type TokenGeneratorPort,
-} from '@/bounded-contexts/identity/authentication/domain/ports';
+import { BadRequestException } from '@nestjs/common';
+import { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/domain/ports';
 import { Password } from '../../../../password-management/domain/value-objects';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import type {
   CreateAccountCommand,
   CreateAccountPort,
@@ -12,27 +9,18 @@ import type {
 } from '../../../application/ports';
 import { AccountCreatedEvent } from '../../../domain/events';
 import { AccountAlreadyExistsException } from '../../../domain/exceptions';
-import type {
+import {
   AccountLifecycleRepositoryPort,
   PasswordHasherPort,
   VersionConfigPort,
 } from '../../../domain/ports';
 import { AcceptConsentUseCase } from '../accept-consent/accept-consent.use-case';
 
-const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
-const PASSWORD_HASHER = Symbol('PasswordHasherPort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class CreateAccountUseCase implements CreateAccountPort {
   constructor(
-    @Inject(ACCOUNT_REPOSITORY)
     private readonly repository: AccountLifecycleRepositoryPort,
-    @Inject(PASSWORD_HASHER)
     private readonly passwordHasher: PasswordHasherPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
-    @Inject(TOKEN_GENERATOR_PORT)
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly acceptConsent: AcceptConsentUseCase,
     private readonly versionConfig: VersionConfigPort,

@@ -66,10 +66,7 @@ export class PollService {
 
     const totalVotes = votes.reduce((sum, v) => sum + v._count.id, 0);
 
-    const results = votes.map((v) => ({
-      optionIndex: v.optionIndex,
-      count: v._count.id,
-    }));
+    const results = votes.map((v) => ({ optionIndex: v.optionIndex, count: v._count.id }));
 
     return { totalVotes, results };
   }

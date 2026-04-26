@@ -36,10 +36,7 @@ export class BannerPageSetup {
 
   async navigateToPage(page: Page, url: string): Promise<void> {
     try {
-      await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: TIMEOUT.PAGE_LOAD,
-      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
       this.logger.error('[BannerCapture] Error during page.goto:', err);
@@ -54,14 +51,12 @@ export class BannerPageSetup {
   async applyQualityStyles(page: Page): Promise<void> {
     await page.addStyleTag({
       content: `
-        #banner, #banner * {
-          -webkit-font-smoothing: antialiased !important;
+        #banner, #banner * { -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
           text-rendering: optimizeLegibility !important;
           image-rendering: -webkit-optimize-contrast !important;
           image-rendering: crisp-edges !important;
-          image-rendering: pixelated !important;
-        }
+          image-rendering: pixelated !important; }
       `,
     });
   }

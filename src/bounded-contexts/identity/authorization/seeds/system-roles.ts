@@ -11,8 +11,7 @@ import type { CreateRoleInput } from '../domain/entities/role.entity';
  * Role definition with permission assignments
  */
 export interface RoleDefinition extends CreateRoleInput {
-  /** Permissions in "resource:action" format */
-  permissions: string[];
+  /** Permissions in "resource:action" format */ permissions: string[];
 }
 
 export const SYSTEM_ROLES: RoleDefinition[] = [

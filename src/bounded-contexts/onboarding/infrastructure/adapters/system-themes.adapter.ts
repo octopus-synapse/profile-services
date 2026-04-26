@@ -20,13 +20,7 @@ export class SystemThemesAdapter extends SystemThemesPort {
   async getSystemThemes(): Promise<OnboardingThemeOption[]> {
     return this.prisma.resumeStyle.findMany({
       where: { isSystem: true },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        styleScore: true,
-        thumbnailUrl: true,
-      },
+      select: { id: true, name: true, description: true, styleScore: true, thumbnailUrl: true },
       orderBy: { name: 'asc' },
     });
   }

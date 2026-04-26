@@ -131,11 +131,7 @@ export class RoleRepository implements IRoleRepository {
       where: {
         roleId_permissionId: { roleId, permissionId },
       },
-      create: {
-        roleId,
-        permissionId,
-        assignedBy,
-      },
+      create: { roleId, permissionId, assignedBy },
       update: {},
     });
   }
@@ -158,11 +154,7 @@ export class RoleRepository implements IRoleRepository {
       }),
       // Add new permissions
       this.prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId,
-          permissionId,
-          assignedBy,
-        })),
+        data: permissionIds.map((permissionId) => ({ roleId, permissionId, assignedBy })),
       }),
     ]);
   }

@@ -31,13 +31,13 @@ export type PermissionStrategy = 'any' | 'all';
  * // Static (Permission enum)
  * @RequirePermission(Permission.RESUME_CREATE)
  * @Post()
- * create() {}
+ * create() {  }
  *
  * @example
  * // Dynamic (resource + action)
  * @RequirePermission('resume', 'create')
  * @Post()
- * create() {}
+ * create() {  }
  */
 export function RequirePermission(permission: Permission): ReturnType<typeof applyDecorators>;
 export function RequirePermission(
@@ -106,7 +106,7 @@ export function RequirePermissions(
  * @example
  * @AdminOnly()
  * @Delete(':id')
- * forceDelete() {}
+ * forceDelete() {  }
  */
 export const AdminOnly = () => RequirePermission(Permission.ADMIN_FULL_ACCESS);
 
@@ -120,7 +120,7 @@ export const AdminOnly = () => RequirePermission(Permission.ADMIN_FULL_ACCESS);
  * @example
  * @RequireRole('admin')
  * @Get('admin-panel')
- * adminPanel() {}
+ * adminPanel() {  }
  */
 export const RequireRole = (roleName: string) => SetMetadata(ROLE_KEY, roleName);
 
@@ -130,7 +130,7 @@ export const RequireRole = (roleName: string) => SetMetadata(ROLE_KEY, roleName)
  * @example
  * @RequireRoles(['admin', 'moderator'])
  * @Get('moderation')
- * moderation() {}
+ * moderation() {  }
  */
 export const RequireRoles = (roleNames: string[]) => SetMetadata(ROLES_KEY, roleNames);
 
@@ -144,7 +144,7 @@ export const RequireRoles = (roleNames: string[]) => SetMetadata(ROLES_KEY, role
  * @example
  * @CanManage('theme')
  * @Put(':id')
- * updateTheme() {}
+ * updateTheme() {  }
  */
 export const CanManage = (resource: string) => RequirePermission(resource, 'manage');
 
@@ -154,7 +154,7 @@ export const CanManage = (resource: string) => RequirePermission(resource, 'mana
  * @example
  * @Protected('resume', 'create')
  * @Post()
- * createResume() {}
+ * createResume() {  }
  */
 export const Protected = (resource: string, action: string) => RequirePermission(resource, action);
 

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ViewTracker } from '../../application/handlers';
+import { ViewTracker } from '../../application/handlers';
 
 /**
  * Adapter that implements the ViewTracker port.

@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { LLM_PORT, type LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
+import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
@@ -19,12 +18,7 @@ export type TailorResumeResult = {
   label: string;
   summary: string | null;
   jobTitle: string | null;
-  bullets: Array<{
-    id: string;
-    original: string;
-    tailored: string;
-    highlights: string[];
-  }>;
+  bullets: Array<{ id: string; original: string; tailored: string; highlights: string[] }>;
 };
 
 /**
@@ -35,19 +29,13 @@ export type TailoredVersionDiff = {
   versionId: string;
   summary: { before: string | null; after: string | null } | null;
   jobTitle: { before: string | null; after: string | null } | null;
-  bullets: Array<{
-    id: string;
-    before: string;
-    after: string;
-    highlights: string[];
-  }>;
+  bullets: Array<{ id: string; before: string; after: string; highlights: string[] }>;
 };
 
-@Injectable()
 export class ResumeTailorService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(LLM_PORT) private readonly llm: LlmPort,
+    private readonly llm: LlmPort,
   ) {}
 
   async tailorForJob(params: {
@@ -119,11 +107,7 @@ export class ResumeTailorService {
         isTailored: true,
         tailoredJobId: params.jobId ?? null,
       },
-      select: {
-        id: true,
-        versionNumber: true,
-        label: true,
-      },
+      select: { id: true, versionNumber: true, label: true },
     });
 
     return {
@@ -141,13 +125,7 @@ export class ResumeTailorService {
     return this.prisma.resumeVersion.findMany({
       where: { resumeId, isTailored: true },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        versionNumber: true,
-        label: true,
-        createdAt: true,
-        tailoredJobId: true,
-      },
+      select: { id: true, versionNumber: true, label: true, createdAt: true, tailoredJobId: true },
     });
   }
 
@@ -156,11 +134,7 @@ export class ResumeTailorService {
 
     const version = await this.prisma.resumeVersion.findUnique({
       where: { id: versionId },
-      select: {
-        id: true,
-        resumeId: true,
-        snapshot: true,
-      },
+      select: { id: true, resumeId: true, snapshot: true },
     });
 
     if (!version || version.resumeId !== resumeId) {

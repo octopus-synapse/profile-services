@@ -39,9 +39,7 @@ export const GitHubRepoRawSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   pushed_at: z.string(),
-  owner: z.object({
-    login: z.string(),
-  }),
+  owner: z.object({ login: z.string() }),
 });
 
 export type GitHubRepoRaw = z.infer<typeof GitHubRepoRawSchema>;

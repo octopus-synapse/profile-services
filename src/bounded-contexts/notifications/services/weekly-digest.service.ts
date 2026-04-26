@@ -28,10 +28,9 @@ export class WeeklyDigestService {
     private readonly email: EmailService,
   ) {}
 
-  async sendWeeklyDigests(now: Date = new Date()): Promise<{
-    usersEmailed: number;
-    usersSkipped: number;
-  }> {
+  async sendWeeklyDigests(
+    now: Date = new Date(),
+  ): Promise<{ usersEmailed: number; usersSkipped: number }> {
     const cutoff = new Date(now.getTime() - WEEK_MS);
     const weekKey = this.isoWeekKey(now);
 

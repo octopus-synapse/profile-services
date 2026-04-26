@@ -36,9 +36,7 @@ export class EnumsController {
     summary: 'Get available export formats',
     description: 'Returns all available export formats for resume export',
   })
-  @ApiDataResponse(ExportFormatsDataDto, {
-    description: 'List of export formats',
-  })
+  @ApiDataResponse(ExportFormatsDataDto, { description: 'List of export formats' })
   getExportFormats(): DataResponse<ExportFormatsDataDto> {
     const formats: ExportFormatResponseDto[] = [
       { format: 'PDF' },
@@ -72,9 +70,7 @@ export class EnumsController {
     summary: 'Get available section types',
     description: 'Returns all available resume section types from definitions',
   })
-  @ApiDataResponse(SectionTypesDataDto, {
-    description: 'List of section types',
-  })
+  @ApiDataResponse(SectionTypesDataDto, { description: 'List of section types' })
   getSectionTypes(): DataResponse<SectionTypesDataDto> {
     const types: SectionTypeResponseDto[] = this.sectionTypesService.getAllAsDto();
     return {

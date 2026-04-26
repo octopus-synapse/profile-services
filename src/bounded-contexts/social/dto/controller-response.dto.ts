@@ -43,33 +43,21 @@ const FollowingRowSchema = z.object({
   isFollowedByMe: z.boolean().optional(),
 });
 
-const FollowersPaginatedSchema = PaginatedResultSchema.extend({
-  data: z.array(FollowerRowSchema),
-});
+const FollowersPaginatedSchema = PaginatedResultSchema.extend({ data: z.array(FollowerRowSchema) });
 
 const FollowingPaginatedSchema = PaginatedResultSchema.extend({
   data: z.array(FollowingRowSchema),
 });
 
-const ActivityFeedDataSchema = z.object({
-  feed: PaginatedResultSchema,
-});
+const ActivityFeedDataSchema = z.object({ feed: PaginatedResultSchema });
 
-const ActivityListDataSchema = z.object({
-  activities: PaginatedResultSchema,
-});
+const ActivityListDataSchema = z.object({ activities: PaginatedResultSchema });
 
-const FollowListDataSchema = z.object({
-  followers: FollowersPaginatedSchema,
-});
+const FollowListDataSchema = z.object({ followers: FollowersPaginatedSchema });
 
-const FollowingListDataSchema = z.object({
-  following: FollowingPaginatedSchema,
-});
+const FollowingListDataSchema = z.object({ following: FollowingPaginatedSchema });
 
-const UnfollowDataSchema = z.object({
-  unfollowed: z.boolean(),
-});
+const UnfollowDataSchema = z.object({ unfollowed: z.boolean() });
 
 // ============================================================================
 // DTOs

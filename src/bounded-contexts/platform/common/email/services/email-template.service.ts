@@ -59,11 +59,7 @@ export class EmailTemplateService {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     const html = getWelcomeEmailTemplate(name, frontendUrl);
 
-    await this.senderService.sendEmail({
-      to: email,
-      subject: 'Bem-vindo ao Patch Careers!',
-      html,
-    });
+    await this.senderService.sendEmail({ to: email, subject: 'Bem-vindo ao Patch Careers!', html });
   }
 
   /**

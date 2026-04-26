@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -6,7 +6,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CHAT_USE_CASES, type ChatUseCases } from '../application/ports/chat.port';
+import { ChatUseCases } from '../application/ports/chat.port';
 import {
   GetConversationsQueryDto,
   GetConversationsQuerySchema,
@@ -34,16 +34,13 @@ import { ChatUserSearchService } from '../services/user-search.service';
 @Controller('chat')
 export class ChatController {
   constructor(
-    @Inject(CHAT_USE_CASES) private readonly chat: ChatUseCases,
+    private readonly chat: ChatUseCases,
     private readonly userSearch: ChatUserSearchService,
   ) {}
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
-  @ApiDataResponse(ChatMessageDataDto, {
-    status: 201,
-    description: 'Message sent',
-  })
+  @ApiDataResponse(ChatMessageDataDto, { status: 201, description: 'Message sent' })
   async sendMessage(
     @Req() req: AuthenticatedRequest,
     @Body() dto: SendMessageDto,
@@ -55,10 +52,7 @@ export class ChatController {
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
   @ApiParam({ name: 'conversationId', type: 'string' })
-  @ApiDataResponse(ChatMessageDataDto, {
-    status: 201,
-    description: 'Message sent',
-  })
+  @ApiDataResponse(ChatMessageDataDto, { status: 201, description: 'Message sent' })
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -74,9 +68,7 @@ export class ChatController {
 
   @Get('conversations')
   @ApiOperation({ summary: 'Get all conversations for the current user' })
-  @ApiDataResponse(ConversationsListDataDto, {
-    description: 'List of conversations',
-  })
+  @ApiDataResponse(ConversationsListDataDto, { description: 'List of conversations' })
   async getConversations(
     @Req() req: AuthenticatedRequest,
     @Query(new ZodValidationPipe(GetConversationsQuerySchema)) query: GetConversationsQueryDto,
@@ -120,10 +112,7 @@ export class ChatController {
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
   @ApiParam({ name: 'conversationId', type: 'string' })
-  @ApiDataResponse(MarkAsReadDataDto, {
-    status: 201,
-    description: 'Messages marked as read',
-  })
+  @ApiDataResponse(MarkAsReadDataDto, { status: 201, description: 'Messages marked as read' })
   async markConversationAsRead(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -144,19 +133,14 @@ export class ChatController {
     const unread = await this.chat.getUnreadCountUseCase.execute(req.user.userId);
     return {
       success: true,
-      data: {
-        totalUnread: unread.totalUnread,
-        byConversation: unread.byConversation,
-      },
+      data: { totalUnread: unread.totalUnread, byConversation: unread.byConversation },
     };
   }
 
   @Get('conversation-with/:userId')
   @ApiOperation({ summary: 'Get or create conversation with a user' })
   @ApiParam({ name: 'userId', type: 'string' })
-  @ApiDataResponse(ConversationNullableDataDto, {
-    description: 'Conversation with user',
-  })
+  @ApiDataResponse(ConversationNullableDataDto, { description: 'Conversation with user' })
   async getConversationWith(
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
@@ -177,9 +161,7 @@ export class ChatController {
 
   @Get('users/search')
   @ApiOperation({ summary: 'Search users to start a conversation' })
-  @ApiDataResponse(ChatUserSearchDataDto, {
-    description: 'List of matching users',
-  })
+  @ApiDataResponse(ChatUserSearchDataDto, { description: 'List of matching users' })
   async searchUsers(
     @Req() req: AuthenticatedRequest,
     @Query('q') query: string,

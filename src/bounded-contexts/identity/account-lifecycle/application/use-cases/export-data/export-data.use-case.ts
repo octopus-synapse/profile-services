@@ -6,13 +6,13 @@
  */
 
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
-import type { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
+import { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import type {
-  DataExportRepositoryPort,
   ExportedAuditLog,
   ExportedConsent,
   ExportedResume,
 } from '../../../domain/ports/data-export-repository.port';
+import { DataExportRepositoryPort } from '../../../domain/ports/data-export-repository.port';
 
 export interface GdprExportData {
   exportedAt: string;
@@ -106,10 +106,7 @@ export class ExportDataUseCase {
   }
 
   private formatConsents(consents: ExportedConsent[]): GdprExportData['consents'] {
-    return consents.map((c) => ({
-      ...c,
-      acceptedAt: c.acceptedAt.toISOString(),
-    }));
+    return consents.map((c) => ({ ...c, acceptedAt: c.acceptedAt.toISOString() }));
   }
 
   private formatResumes(resumes: ExportedResume[]): GdprExportData['resumes'] {
@@ -136,9 +133,6 @@ export class ExportDataUseCase {
   }
 
   private formatAuditLogs(logs: ExportedAuditLog[]): GdprExportData['auditLogs'] {
-    return logs.map((l) => ({
-      ...l,
-      createdAt: l.createdAt.toISOString(),
-    }));
+    return logs.map((l) => ({ ...l, createdAt: l.createdAt.toISOString() }));
   }
 }

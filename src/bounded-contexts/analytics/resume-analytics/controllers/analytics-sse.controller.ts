@@ -19,11 +19,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 interface AnalyticsUpdateEvent {
   type: 'view' | 'ats_score';
   resumeId: string;
-  data: {
-    views?: number;
-    atsScore?: number;
-    timestamp: Date;
-  };
+  data: { views?: number; atsScore?: number; timestamp: Date };
 }
 
 @SdkExport({
@@ -46,12 +42,10 @@ export class AnalyticsSseController {
    * const eventSource = new EventSource('/v1/analytics/resume-123/live', {
    *   headers: { Authorization: 'Bearer token' }
    * });
-   * eventSource.addEventListener('view', (event) => {
-   *   const data = JSON.parse(event.data);
+   * eventSource.addEventListener('view', (event) => { *   const data = JSON.parse(event.data);
    *   console.log('New view count:', data.views);
    * });
-   * eventSource.addEventListener('ats_score', (event) => {
-   *   const data = JSON.parse(event.data);
+   * eventSource.addEventListener('ats_score', (event) => { *   const data = JSON.parse(event.data);
    *   console.log('New ATS score:', data.atsScore);
    * });
    * ```

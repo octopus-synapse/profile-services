@@ -17,9 +17,7 @@ const InviteCollaboratorSchema = z.object({
   role: CollaboratorRoleSchema,
 });
 
-const UpdateRoleSchema = z.object({
-  role: CollaboratorRoleSchema,
-});
+const UpdateRoleSchema = z.object({ role: CollaboratorRoleSchema });
 
 // ============================================================================
 // DTOs

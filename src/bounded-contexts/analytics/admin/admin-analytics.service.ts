@@ -62,10 +62,7 @@ export class AdminAnalyticsService {
         WHERE "occurredAt" >= NOW() - INTERVAL '30 days' AND "userId" IS NOT NULL
       `,
     ]);
-    return {
-      dau: Number(dau[0]?.count ?? 0),
-      mau: Number(mau[0]?.count ?? 0),
-    };
+    return { dau: Number(dau[0]?.count ?? 0), mau: Number(mau[0]?.count ?? 0) };
   }
 
   private async getContentStats() {
@@ -106,13 +103,7 @@ export class AdminAnalyticsService {
     ]);
     const applicationsPerJob =
       postedJobs > 0 ? Math.round((applications / postedJobs) * 100) / 100 : 0;
-    return {
-      postedJobs,
-      activeJobs,
-      applications,
-      withdrawn,
-      applicationsPerJob,
-    };
+    return { postedJobs, activeJobs, applications, withdrawn, applicationsPerJob };
   }
 
   private async getUserGrowth(period: 'day' | 'week' | 'month') {
@@ -135,10 +126,7 @@ export class AdminAnalyticsService {
   }
 
   private async getResumesByLanguage() {
-    const results = await this.prisma.resume.groupBy({
-      by: ['primaryLanguage'],
-      _count: true,
-    });
+    const results = await this.prisma.resume.groupBy({ by: ['primaryLanguage'], _count: true });
     return results.map((r) => ({ language: r.primaryLanguage, count: r._count }));
   }
 
@@ -185,10 +173,7 @@ export class AdminAnalyticsService {
   }
 
   private async getImportSources() {
-    const results = await this.prisma.resumeImport.groupBy({
-      by: ['source'],
-      _count: true,
-    });
+    const results = await this.prisma.resumeImport.groupBy({ by: ['source'], _count: true });
     return results.map((r) => ({ source: r.source, count: r._count }));
   }
 

@@ -4,7 +4,6 @@
  * Delegates to specialized services for implementation
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
 import type {
   BatchTranslationResult,
   LanguageDetectionResult,
@@ -16,17 +15,12 @@ import { ResumeTranslationService } from './resume-translation.service';
 import { TranslationBatchService } from './translation-batch.service';
 import { TranslationCoreService } from './translation-core.service';
 
-@Injectable()
-export class TranslationService implements OnModuleInit {
+export class TranslationService {
   constructor(
     private readonly coreService: TranslationCoreService,
     private readonly batchService: TranslationBatchService,
     private readonly resumeService: ResumeTranslationService,
   ) {}
-
-  async onModuleInit() {
-    await this.coreService.checkServiceHealth();
-  }
 
   async checkServiceHealth(): Promise<boolean> {
     return this.coreService.checkServiceHealth();

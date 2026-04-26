@@ -24,9 +24,7 @@ const USER_LIST_SELECT = {
   isActive: true,
   lastLoginAt: true,
   _count: {
-    select: {
-      resumes: true,
-    },
+    select: { resumes: true },
   },
 } as const;
 
@@ -35,10 +33,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
     super();
   }
 
-  async findUsers(options: UserListOptions): Promise<{
-    users: UserListItem[];
-    total: number;
-  }> {
+  async findUsers(options: UserListOptions): Promise<{ users: UserListItem[]; total: number }> {
     const { page, limit, search } = options;
     const skip = (page - 1) * limit;
 
@@ -86,13 +81,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       where: { id: userId },
       include: {
         resumes: {
-          select: {
-            id: true,
-            title: true,
-            isPublic: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+          select: { id: true, title: true, isPublic: true, createdAt: true, updatedAt: true },
         },
         preferences: true,
         _count: {
@@ -128,17 +117,8 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
     name?: string;
   }): Promise<CreatedUser> {
     return this.prisma.user.create({
-      data: {
-        email: data.email,
-        passwordHash: data.hashedPassword,
-        name: data.name,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-      },
+      data: { email: data.email, passwordHash: data.hashedPassword, name: data.name },
+      select: { id: true, email: true, name: true, createdAt: true },
     });
   }
 

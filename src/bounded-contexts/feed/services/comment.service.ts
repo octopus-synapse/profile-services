@@ -10,12 +10,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { CannotDeleteOthersCommentException } from '../domain/exceptions/feed.exceptions';
 
-const AUTHOR_SELECT = {
-  id: true,
-  name: true,
-  username: true,
-  photoURL: true,
-} as const;
+const AUTHOR_SELECT = { id: true, name: true, username: true, photoURL: true } as const;
 
 @Injectable()
 export class CommentService {
@@ -48,12 +43,7 @@ export class CommentService {
 
     const [comment] = await this.prisma.$transaction([
       this.prisma.postComment.create({
-        data: {
-          postId,
-          authorId,
-          content,
-          parentId,
-        },
+        data: { postId, authorId, content, parentId },
         include: {
           author: { select: AUTHOR_SELECT },
         },

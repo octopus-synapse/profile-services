@@ -31,11 +31,7 @@ export type ResumeForJsonExport = {
   jobTitle: string | null;
   createdAt: Date;
   updatedAt: Date;
-  user: {
-    name: string | null;
-    email: string | null;
-    phone: string | null;
-  };
+  user: { name: string | null; email: string | null; phone: string | null };
   sections: GenericSection[];
 };
 
@@ -45,11 +41,7 @@ export type ResumeForLatexExport = {
   emailContact: string | null;
   phone: string | null;
   jobTitle: string | null;
-  user: {
-    name: string | null;
-    email: string | null;
-    phone: string | null;
-  };
+  user: { name: string | null; email: string | null; phone: string | null };
   sections: GenericSectionWithMeta[];
 };
 

@@ -12,11 +12,7 @@ export const KeywordSuggestionsResponseSchema = z.object({
   missingKeywords: z.array(z.string()),
   keywordDensity: z.number().min(0).max(1),
   warnings: z.array(
-    z.object({
-      type: z.string(),
-      message: z.string(),
-      affectedKeywords: z.array(z.string()),
-    }),
+    z.object({ type: z.string(), message: z.string(), affectedKeywords: z.array(z.string()) }),
   ),
   recommendations: z.array(z.string()),
 });

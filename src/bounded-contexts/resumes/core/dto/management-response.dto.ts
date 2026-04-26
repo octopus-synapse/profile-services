@@ -76,9 +76,7 @@ const MgmtResumeListItemSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   resumeSections: z.array(MgmtResumeSectionSchema),
-  _count: z.object({
-    resumeSections: z.number().int(),
-  }),
+  _count: z.object({ resumeSections: z.number().int() }),
 });
 
 // ============================================================================
@@ -119,17 +117,11 @@ const ResumeDetailsSchema = z.object({
 // Wrapper Schemas
 // ============================================================================
 
-const ResumeListDataSchema = z.object({
-  resumes: z.array(MgmtResumeListItemSchema),
-});
+const ResumeListDataSchema = z.object({ resumes: z.array(MgmtResumeListItemSchema) });
 
-const ResumeDetailsDataSchema = z.object({
-  resume: ResumeDetailsSchema,
-});
+const ResumeDetailsDataSchema = z.object({ resume: ResumeDetailsSchema });
 
-const ResumeOperationMessageDataSchema = z.object({
-  message: z.string(),
-});
+const ResumeOperationMessageDataSchema = z.object({ message: z.string() });
 
 // ============================================================================
 // DTOs

@@ -5,10 +5,7 @@
  */
 
 import type { AnalyticsSnapshot } from '../../../interfaces';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 import type { CalculateAtsScoreUseCase } from '../calculate-ats-score/calculate-ats-score.use-case';
 
 export class SaveSnapshotUseCase {

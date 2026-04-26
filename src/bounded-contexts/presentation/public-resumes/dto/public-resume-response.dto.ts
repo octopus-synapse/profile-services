@@ -9,10 +9,7 @@ import { z } from 'zod';
 // Schemas
 // ============================================================================
 
-const PublicShareInfoSchema = z.object({
-  slug: z.string(),
-  expiresAt: z.date().nullable(),
-});
+const PublicShareInfoSchema = z.object({ slug: z.string(), expiresAt: z.date().nullable() });
 
 const PublicResumeSectionSchema = z.object({
   semanticKind: z.string(),

@@ -1,9 +1,6 @@
 import { createHash } from 'node:crypto';
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  ANALYTICS_EVENT_BUS_PORT,
-  AnalyticsEventBusPort,
-} from '../application/ports/analytics-event-bus.port';
+import { Injectable } from '@nestjs/common';
+import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import { ViewTrackingRepositoryPort } from '../application/ports/resume-analytics.port';
 import { TRAFFIC_SOURCES } from '../domain/value-objects/traffic-sources';
 import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
@@ -12,7 +9,6 @@ import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
 export class ViewTrackingService {
   constructor(
     private readonly repository: ViewTrackingRepositoryPort,
-    @Inject(ANALYTICS_EVENT_BUS_PORT)
     private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
@@ -36,10 +32,7 @@ export class ViewTrackingService {
     this.eventBus.emit(`analytics:${dto.resumeId}:view`, {
       type: 'view',
       resumeId: dto.resumeId,
-      data: {
-        views: totalViews,
-        timestamp: now,
-      },
+      data: { views: totalViews, timestamp: now },
     });
   }
 
@@ -51,12 +44,7 @@ export class ViewTrackingService {
       this.repository.countUniqueVisitors(resumeId, startDate, endDate),
     ]);
 
-    return {
-      totalViews,
-      uniqueVisitors,
-      viewsByDay: [],
-      topSources: [],
-    };
+    return { totalViews, uniqueVisitors, viewsByDay: [], topSources: [] };
   }
 
   private anonymizeIP(ip: string): string {

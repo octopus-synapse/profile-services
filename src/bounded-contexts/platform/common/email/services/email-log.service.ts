@@ -42,14 +42,7 @@ export class EmailLogService {
     const { userId, to, subject, template, metadata } = params;
 
     return this.prisma.emailLog.create({
-      data: {
-        userId,
-        to,
-        subject,
-        template,
-        status: 'PENDING',
-        metadata: metadata as object,
-      },
+      data: { userId, to, subject, template, status: 'PENDING', metadata: metadata as object },
     });
   }
 
@@ -59,10 +52,7 @@ export class EmailLogService {
   async markAsSent(logId: string): Promise<void> {
     await this.prisma.emailLog.update({
       where: { id: logId },
-      data: {
-        status: 'SENT',
-        sentAt: new Date(),
-      },
+      data: { status: 'SENT', sentAt: new Date() },
     });
   }
 
@@ -72,11 +62,7 @@ export class EmailLogService {
   async markAsFailed(logId: string, error: string): Promise<void> {
     await this.prisma.emailLog.update({
       where: { id: logId },
-      data: {
-        status: 'FAILED',
-        failedAt: new Date(),
-        error,
-      },
+      data: { status: 'FAILED', failedAt: new Date(), error },
     });
   }
 

@@ -88,13 +88,7 @@ export class AiContentQualityAdapter extends ContentQualityPort {
   }
 
   private empty(): ContentQualityResult {
-    return {
-      score: null,
-      issues: [],
-      promptVersion: null,
-      callsCount: 0,
-      costUsdMicros: 0n,
-    };
+    return { score: null, issues: [], promptVersion: null, callsCount: 0, costUsdMicros: 0n };
   }
 }
 

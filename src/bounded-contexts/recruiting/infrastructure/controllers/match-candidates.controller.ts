@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -15,11 +6,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RateLimit, RateLimitGuard } from '@/bounded-contexts/platform/common/rate-limit';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import {
-  MATCH_CANDIDATES_FOR_JOB_PORT,
-  type MatchCandidatesForJobOutput,
-  type MatchCandidatesForJobPort,
-} from '../../application';
+import { type MatchCandidatesForJobOutput, MatchCandidatesForJobPort } from '../../application';
 import { MatchCandidatesDataDto, MatchCandidatesRequestDto } from './match-candidates.dto';
 
 /**
@@ -34,10 +21,7 @@ import { MatchCandidatesDataDto, MatchCandidatesRequestDto } from './match-candi
 @Controller('v1/recruiting')
 @UseGuards(JwtAuthGuard)
 export class MatchCandidatesController {
-  constructor(
-    @Inject(MATCH_CANDIDATES_FOR_JOB_PORT)
-    private readonly useCase: MatchCandidatesForJobPort,
-  ) {}
+  constructor(private readonly useCase: MatchCandidatesForJobPort) {}
 
   @Post('match-candidates')
   @RequirePermission(Permission.JOB_CREATE)

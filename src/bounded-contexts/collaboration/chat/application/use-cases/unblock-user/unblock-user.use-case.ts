@@ -1,5 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { BlockRepositoryPort } from '../../ports/block.port';
+import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class UnblockUserUseCase {
   constructor(private readonly repository: BlockRepositoryPort) {}

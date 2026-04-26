@@ -2,7 +2,7 @@
  * Build a patch/update payload from a DTO, filtering out undefined values.
  *
  * Replaces the copy-pasted pattern found in 8+ services:
- *   const data: Record<string, unknown> = {};
+ *   const data: Record<string, unknown> = {  };
  *   if (dto.field1 !== undefined) data.field1 = dto.field1;
  *   if (dto.field2 !== undefined) data.field2 = dto.field2;
  *   // ... repeat 10-20 times

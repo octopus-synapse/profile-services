@@ -5,10 +5,7 @@
  * in use-cases without coupling to HTTP or any framework.
  */
 
-export {
-  ConflictException,
-  EmailAlreadyExistsException,
-} from './conflict.exception';
+export { ConflictException, EmailAlreadyExistsException } from './conflict.exception';
 export { DomainException } from './domain.exception';
 export { ForbiddenException } from './forbidden.exception';
 export { EntityNotFoundException } from './not-found.exception';

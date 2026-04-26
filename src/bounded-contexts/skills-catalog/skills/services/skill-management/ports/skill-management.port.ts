@@ -29,9 +29,7 @@ export interface SectionItem {
   content: unknown;
   resumeSection: {
     resumeId: string;
-    sectionType: {
-      key: string;
-    };
+    sectionType: { key: string };
   };
 }
 

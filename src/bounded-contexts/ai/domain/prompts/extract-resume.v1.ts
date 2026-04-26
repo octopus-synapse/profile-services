@@ -23,21 +23,12 @@ Schema:
   "summary": string | null,        // 1–3 sentence professional summary
   "skills": [string],              // canonical names (e.g. "Rust", "PostgreSQL")
   "experiences": [
-    {
-      "company": string,
-      "title": string,
-      "startDate": string | null,   // ISO month (YYYY-MM) when possible
-      "endDate": string | null,     // null when current role
-      "description": string | null
-    }
+    { "company": string, "title": string, "startDate": string | null, // ISO month (YYYY-MM) when possible
+      "endDate": string | null, // null when current role
+      "description": string | null }
   ],
   "education": [
-    {
-      "institution": string,
-      "degree": string | null,
-      "startDate": string | null,
-      "endDate": string | null
-    }
+    { "institution": string, "degree": string | null, "startDate": string | null, "endDate": string | null }
   ]
 }
 

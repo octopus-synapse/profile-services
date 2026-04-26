@@ -27,9 +27,7 @@ export class LinkPreviewService {
 
       const response = await fetch(url, {
         signal: controller.signal,
-        headers: {
-          'User-Agent': 'ProfileBot/1.0 (Link Preview)',
-        },
+        headers: { 'User-Agent': 'ProfileBot/1.0 (Link Preview)' },
       });
 
       clearTimeout(timeout);

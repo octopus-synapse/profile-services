@@ -2,17 +2,12 @@ import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
 } from '../../../domain/exceptions/resumes.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
 
-export interface BaseResumeReader {
-  findById(id: string): Promise<{ id: string; userId: string; isBase: boolean } | null>;
+export abstract class BaseResumeReader {
+  abstract findById(id: string): Promise<{ id: string; userId: string; isBase: boolean } | null>;
 }
-
-export const BASE_RESUME_READER = Symbol('BASE_RESUME_READER');
 
 export class CreateVariantUseCase {
   constructor(

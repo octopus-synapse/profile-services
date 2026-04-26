@@ -76,10 +76,7 @@ export function validateGroup(props: GroupPropsForValidation): GroupValidationRe
   const parentError = validateParentId(props.parentId, props.id);
   if (parentError) errors.push(parentError);
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
+  return { isValid: errors.length === 0, errors };
 }
 
 /** Throws if validation fails */

@@ -65,11 +65,7 @@ export const PERMISSION_GROUPS = {
   },
 
   // User can use social features
-  SOCIAL: {
-    id: 'grp_social',
-    displayName: 'Social',
-    permissions: [Permission.SOCIAL_USE],
-  },
+  SOCIAL: { id: 'grp_social', displayName: 'Social', permissions: [Permission.SOCIAL_USE] },
 
   // User can use feed and jobs
   FEED_USER: {

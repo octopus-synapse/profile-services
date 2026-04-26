@@ -38,11 +38,7 @@ export class DslValidationResultDto {
   @ApiProperty({ example: true })
   valid!: boolean;
 
-  @ApiProperty({
-    type: [DslValidationErrorDto],
-    nullable: true,
-    required: false,
-  })
+  @ApiProperty({ type: [DslValidationErrorDto], nullable: true, required: false })
   errors!: DslValidationErrorDto[] | null;
 }
 
@@ -68,9 +64,7 @@ export class DslController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Validate DSL schema' })
   @ApiBody({ description: 'DSL object to validate' })
-  @ApiDataResponse(DslValidationResultDto, {
-    description: 'DSL validation result',
-  })
+  @ApiDataResponse(DslValidationResultDto, { description: 'DSL validation result' })
   validate(@Body() body: Record<string, unknown>): DataResponse<DslValidationResultDto> {
     const result = this.dslService.validate(body);
     return { success: true, data: result as DslValidationResultDto };
@@ -86,9 +80,7 @@ export class DslController {
   @ApiOperation({ summary: 'Compile DSL to AST (preview, no persistence)' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
   @ApiBody({ description: 'DSL object to compile' })
-  @ApiDataResponse(DslPreviewResultDto, {
-    description: 'Preview AST compiled successfully',
-  })
+  @ApiDataResponse(DslPreviewResultDto, { description: 'Preview AST compiled successfully' })
   preview(
     @Body() body: Record<string, unknown>,
     @Query('target') target: RenderTarget = 'html',

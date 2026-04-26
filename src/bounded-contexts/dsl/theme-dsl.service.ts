@@ -106,10 +106,7 @@ export class ThemeDslService {
       return { valid: true };
     }
 
-    return {
-      valid: false,
-      errors: result.errors,
-    };
+    return { valid: false, errors: result.errors };
   }
 
   /**

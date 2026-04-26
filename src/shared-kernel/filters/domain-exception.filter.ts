@@ -3,7 +3,7 @@
  *
  * Catches every `DomainException` subclass and serializes it into the
  * canonical `ErrorEnvelope`:
- *   { statusCode, error: CODE, message: <translated>, params?: {...} }
+ *   { statusCode, error: CODE, message: <translated>, params?: { ... } }
  *
  * Translation is resolved from `I18nService` using the `Accept-Language`
  * header (RFC 7231 negotiation). Supported locales: pt-BR, en.
@@ -63,9 +63,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<{
-      headers: Record<string, string | string[] | undefined>;
-    }>();
+    const request = ctx.getRequest<{ headers: Record<string, string | string[] | undefined> }>();
 
     const acceptLanguage = request.headers['accept-language'];
     const negotiated = negotiateLocale(
@@ -98,12 +96,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       throw err;
     }
 
-    const envelope: ErrorEnvelope = {
-      statusCode: status,
-      error: exception.code,
-      message,
-      params,
-    };
+    const envelope: ErrorEnvelope = { statusCode: status, error: exception.code, message, params };
 
     response.setHeader('Content-Language', locale);
     if (!negotiated.matched) response.setHeader('Vary', 'Accept-Language');

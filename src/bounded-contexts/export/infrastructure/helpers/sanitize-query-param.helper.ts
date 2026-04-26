@@ -10,7 +10,7 @@ export function sanitizeQueryParam(input: string | undefined): string | undefine
     return undefined;
   }
 
-  if (/[;|`$(){}]/.test(input)) {
+  if (/[;|`$(){ {2}}]/.test(input)) {
     return undefined;
   }
 

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@/shared-kernel';
 import { ResumeStyleAppliedEvent } from '../../domain/events';
 import {
@@ -20,7 +19,6 @@ export interface ApplyStyleInput {
  * authorization patterns); this use case trusts that the caller
  * already validated `userId` owns `resumeId`.
  */
-@Injectable()
 export class ApplyStyleToResumeUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,

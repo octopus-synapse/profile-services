@@ -44,10 +44,7 @@ export class UserQueryRepository {
   async findUserPreferencesById(userId: string): Promise<Partial<User> | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        name: true,
-        photoURL: true,
-      },
+      select: { name: true, photoURL: true },
     });
   }
 

@@ -15,13 +15,11 @@ export interface ResendCooldown {
   cooldownSeconds: number;
 }
 
-export interface SendVerificationEmailPort {
+export abstract class SendVerificationEmailPort {
   /**
    * Sends a verification email to the user.
    * @throws VerificationTokenAlreadySentException if sent too recently
    * @throws EmailAlreadyVerifiedException if email is already verified
    */
-  execute(command: SendVerificationEmailCommand): Promise<ResendCooldown>;
+  abstract execute(command: SendVerificationEmailCommand): Promise<ResendCooldown>;
 }
-
-export const SEND_VERIFICATION_EMAIL_PORT = Symbol('SendVerificationEmailPort');

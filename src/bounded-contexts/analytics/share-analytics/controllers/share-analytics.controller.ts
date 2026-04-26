@@ -23,9 +23,7 @@ export class ShareAnalyticsController {
   @Get('resumes/:resumeId/shares/:shareId/analytics')
   @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics for a shared resume (nested route)' })
-  @ApiDataResponse(ShareAnalyticsSummaryDataDto, {
-    description: 'Share analytics returned',
-  })
+  @ApiDataResponse(ShareAnalyticsSummaryDataDto, { description: 'Share analytics returned' })
   async getAnalyticsNested(
     @Param('resumeId') _resumeId: string,
     @Param('shareId') shareId: string,
@@ -35,9 +33,7 @@ export class ShareAnalyticsController {
 
     return {
       success: true,
-      data: {
-        analytics,
-      },
+      data: { analytics },
     };
   }
 
@@ -45,9 +41,7 @@ export class ShareAnalyticsController {
   @Get('analytics/:shareId')
   @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics for a share id' })
-  @ApiDataResponse(ShareAnalyticsSummaryDataDto, {
-    description: 'Share analytics returned',
-  })
+  @ApiDataResponse(ShareAnalyticsSummaryDataDto, { description: 'Share analytics returned' })
   async getAnalytics(
     @Param('shareId') shareId: string,
     @Req() req: RequestWithUser,
@@ -56,18 +50,14 @@ export class ShareAnalyticsController {
 
     return {
       success: true,
-      data: {
-        analytics,
-      },
+      data: { analytics },
     };
   }
 
   @Get('analytics/:shareId/events')
   @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics events for a share id' })
-  @ApiDataResponse(ShareAnalyticsEventsDataDto, {
-    description: 'Share analytics events returned',
-  })
+  @ApiDataResponse(ShareAnalyticsEventsDataDto, { description: 'Share analytics events returned' })
   async getAnalyticsEvents(
     @Param('shareId') shareId: string,
     @Req() req: RequestWithUser,
@@ -83,9 +73,7 @@ export class ShareAnalyticsController {
 
     return {
       success: true,
-      data: {
-        events,
-      },
+      data: { events },
     };
   }
 }

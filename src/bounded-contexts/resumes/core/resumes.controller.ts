@@ -74,9 +74,7 @@ export class ResumesController {
   @Get(':id/full')
   @RequirePermission(Permission.RESUME_READ)
   @ApiOperation({ summary: 'Get a resume with all sections' })
-  @ApiDataResponse(ResumeFullResponseDto, {
-    description: 'Resume with all sections',
-  })
+  @ApiDataResponse(ResumeFullResponseDto, { description: 'Resume with all sections' })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getResumeByIdWithAllSections(
     @Param('id', ParseCuidPipe) id: string,
@@ -127,10 +125,7 @@ export class ResumesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new resume' })
   @ApiBody({ type: CreateResumeRequestDto })
-  @ApiDataResponse(ResumeResponseDto, {
-    status: 201,
-    description: 'Resume created',
-  })
+  @ApiDataResponse(ResumeResponseDto, { status: 201, description: 'Resume created' })
   async createResumeForUser(
     @CurrentUser() user: UserPayload,
     @Body(ParseJsonBodyPipe) createResume: CreateResume,

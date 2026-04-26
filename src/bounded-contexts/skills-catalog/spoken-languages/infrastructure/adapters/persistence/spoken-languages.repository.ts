@@ -13,13 +13,7 @@ export class SpokenLanguagesRepository extends SpokenLanguagesRepositoryPort {
     return this.prisma.spokenLanguage.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
+      select: { code: true, nameEn: true, namePtBr: true, nameEs: true, nativeName: true },
     });
   }
 
@@ -36,26 +30,14 @@ export class SpokenLanguagesRepository extends SpokenLanguagesRepositoryPort {
       },
       orderBy: { order: 'asc' },
       take: limit,
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
+      select: { code: true, nameEn: true, namePtBr: true, nameEs: true, nativeName: true },
     });
   }
 
   async findByCode(code: string): Promise<SpokenLanguage | null> {
     return this.prisma.spokenLanguage.findUnique({
       where: { code },
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
+      select: { code: true, nameEn: true, namePtBr: true, nameEs: true, nativeName: true },
     });
   }
 }

@@ -115,11 +115,7 @@ export class RateLimitGuard implements CanActivate {
       // DomainExceptionFilter does not currently serialize. The error string
       // 'Too Many Requests' below is the stable, well-known HTTP-level code.
       throw new HttpException(
-        {
-          statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          error: 'Too Many Requests',
-          ...errorPayload,
-        },
+        { statusCode: HttpStatus.TOO_MANY_REQUESTS, error: 'Too Many Requests', ...errorPayload },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
@@ -130,7 +126,7 @@ export class RateLimitGuard implements CanActivate {
   private getClientIp(request: Request): string {
     const forwarded = request.headers['x-forwarded-for'];
     if (typeof forwarded === 'string') {
-      return forwarded.split(',')[0].trim();
+      return forwarded.split(', ')[0].trim();
     }
     return request.ip ?? request.socket.remoteAddress ?? 'unknown';
   }

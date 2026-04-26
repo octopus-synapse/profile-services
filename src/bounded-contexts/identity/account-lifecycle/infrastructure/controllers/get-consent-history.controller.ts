@@ -2,7 +2,7 @@
  * Get Consent History Controller
  */
 
-import { Controller, Get, HttpCode, HttpStatus, Inject, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -13,25 +13,19 @@ import {
   SkipTosCheck,
 } from '../../../shared-kernel/infrastructure';
 import { ConsentHistoryResponseDto } from '../../application/use-cases/get-consent-history/get-consent-history.dto';
-import { GetConsentHistoryUseCase } from '../../application/use-cases/get-consent-history/get-consent-history.use-case';
-import { GET_CONSENT_HISTORY_USE_CASE } from '../../application/use-cases/tokens';
+import { GetConsentHistoryUseCasePort } from '../../application/use-cases/tokens';
 import { toConsentHistoryResponse } from '../presenters/get-consent-history.presenter';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
-export { GET_CONSENT_HISTORY_USE_CASE };
-
 @ApiTags('User Consent')
 @Controller('v1/users/me')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class GetConsentHistoryController {
-  constructor(
-    @Inject(GET_CONSENT_HISTORY_USE_CASE)
-    private readonly getConsentHistoryUseCase: GetConsentHistoryUseCase,
-  ) {}
+  constructor(private readonly getConsentHistoryUseCase: GetConsentHistoryUseCasePort) {}
 
   @Get('consent-history')
   @HttpCode(HttpStatus.OK)
@@ -47,9 +41,7 @@ export class GetConsentHistoryController {
   async getConsentHistory(
     @Req() req: RequestWithUser,
   ): Promise<DataResponse<ConsentHistoryResponseDto[]>> {
-    const result = await this.getConsentHistoryUseCase.execute({
-      userId: req.user.userId,
-    });
+    const result = await this.getConsentHistoryUseCase.execute({ userId: req.user.userId });
 
     return { success: true, data: toConsentHistoryResponse(result) };
   }

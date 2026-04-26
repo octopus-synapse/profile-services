@@ -53,8 +53,7 @@ export const ROLES = {
       'grp_analytics_own',
       'grp_catalog_reader',
       'grp_collaborator',
-      'grp_social',
-      // Gated automation access
+      'grp_social', // Gated automation access
       'grp_automation_beta',
     ],
     isSystem: true,
@@ -74,10 +73,8 @@ export const ROLES = {
       'grp_analytics_own',
       'grp_catalog_reader',
       'grp_collaborator',
-      'grp_social',
-      // Automation (ADMIN always has access to gated features)
-      'grp_automation_beta',
-      // Admin permissions
+      'grp_social', // Automation (ADMIN always has access to gated features)
+      'grp_automation_beta', // Admin permissions
       'grp_resume_admin',
       'grp_user_admin',
       'grp_theme_admin',

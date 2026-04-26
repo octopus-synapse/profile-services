@@ -7,7 +7,7 @@
  * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
 import {
   InvalidUserRoleException,
@@ -22,17 +22,15 @@ import type {
 import {
   type CreatedUser,
   type UpdatedUser,
-  USER_MANAGEMENT_USE_CASES,
   type UserDetails,
   type UserListOptions,
   type UserListResult,
-  type UserManagementUseCases,
+  UserManagementUseCases,
 } from '../ports/user-management.port';
 
 @Injectable()
 export class UserManagementService {
   constructor(
-    @Inject(USER_MANAGEMENT_USE_CASES)
     private readonly useCases: UserManagementUseCases,
     private readonly authService: AuthorizationServicePort,
   ) {}

@@ -19,8 +19,7 @@ const SessionUserResponseSchema = z.object({
   hasCompletedOnboarding: z.boolean(),
   emailVerified: z.boolean(),
   role: z.enum(['USER', 'ADMIN']),
-  roles: z.array(z.string()),
-  // Calculated fields - frontend should NOT calculate these
+  roles: z.array(z.string()), // Calculated fields - frontend should NOT calculate these
   isAdmin: z.boolean(),
   needsOnboarding: z.boolean(),
   needsEmailVerification: z.boolean(),

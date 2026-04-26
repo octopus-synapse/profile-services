@@ -35,12 +35,10 @@ export function blendMatch(
   }
 
   const totalConfiguredWeight = presentKeys.reduce((sum, k) => sum + MATCH_WEIGHTS[k], 0);
-  const effectiveWeights = {
-    keyword: 0,
-    requirements: 0,
-    semantic: 0,
-    fit: 0,
-  } as Record<SubScoreKey, number>;
+  const effectiveWeights = { keyword: 0, requirements: 0, semantic: 0, fit: 0 } as Record<
+    SubScoreKey,
+    number
+  >;
 
   let weighted = 0;
   for (const k of presentKeys) {
@@ -49,8 +47,5 @@ export function blendMatch(
     weighted += (subScores[k].score as number) * renormalised;
   }
 
-  return {
-    overallScore: Math.round(Math.max(0, Math.min(100, weighted))),
-    effectiveWeights,
-  };
+  return { overallScore: Math.round(Math.max(0, Math.min(100, weighted))), effectiveWeights };
 }

@@ -64,12 +64,7 @@ export class ResumeShareService {
       }
 
       const created = await tx.resumeShare.create({
-        data: {
-          resumeId: dto.resumeId,
-          slug,
-          password: hashedPassword,
-          expiresAt: dto.expiresAt,
-        },
+        data: { resumeId: dto.resumeId, slug, password: hashedPassword, expiresAt: dto.expiresAt },
       });
 
       return { share: created, ownerId: resume.userId };
@@ -194,15 +189,11 @@ export class ResumeShareService {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                semanticKind: true,
-              },
+              select: { semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -248,7 +239,7 @@ export class ResumeShareService {
 
   async getShareOgContext(slug: string): Promise<{ name: string; title: string | null } | null> {
     const share = await this.getBySlug(slug);
-    if (!share || !share.isActive) return null;
+    if (!share?.isActive) return null;
     if (share.expiresAt && new Date() > share.expiresAt) return null;
 
     const resume = await this.prisma.resume.findUnique({

@@ -10,11 +10,7 @@
 import type { SkillLevel } from '../enums/skill-level.enum';
 
 // Re-export from enums for centralized skill-level access
-export {
-  type SkillLevel,
-  SkillLevelSchema,
-  SkillLevelToNumeric,
-} from '../enums/skill-level.enum';
+export { type SkillLevel, SkillLevelSchema, SkillLevelToNumeric } from '../enums/skill-level.enum';
 
 /**
  * Numeric to Skill Level Mapping

@@ -1,10 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiConflictResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import {
-  CREATE_SESSION_PORT,
-  type CreateSessionPort,
-} from '@/bounded-contexts/identity/authentication/application/ports';
+import { CreateSessionPort } from '@/bounded-contexts/identity/authentication/application/ports';
 import type {
   CookieWriter,
   SessionCookieOptions,
@@ -14,8 +11,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import type { CreateAccountPort } from '../../application/ports';
-import { CREATE_ACCOUNT_PORT } from '../../application/ports';
+import { CreateAccountPort } from '../../application/ports';
 import {
   CreateAccountDto,
   CreateAccountResponseDto,
@@ -45,9 +41,7 @@ function createCookieWriter(res: Response): CookieWriter {
 @Controller('accounts')
 export class CreateAccountController {
   constructor(
-    @Inject(CREATE_ACCOUNT_PORT)
     private readonly createAccountService: CreateAccountPort,
-    @Inject(CREATE_SESSION_PORT)
     private readonly createSessionService: CreateSessionPort,
   ) {}
 

@@ -1,5 +1,5 @@
 import { ResumeAccessDeniedException } from '../../../domain/exceptions/collaboration.exceptions';
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser } from '../../domain/types/collaboration.types';
 
 export class GetCollaboratorsUseCase {

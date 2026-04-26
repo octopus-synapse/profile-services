@@ -25,11 +25,7 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
   async getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]> {
     const records = await this.prisma.userPermission.findMany({
       where: { userId },
-      select: {
-        permissionId: true,
-        granted: true,
-        expiresAt: true,
-      },
+      select: { permissionId: true, granted: true, expiresAt: true },
     });
 
     return records.map((r) => ({
@@ -42,31 +38,19 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
   async getUserRoles(userId: UserId): Promise<UserRoleAssignment[]> {
     const records = await this.prisma.userRoleAssignment.findMany({
       where: { userId },
-      select: {
-        roleId: true,
-        expiresAt: true,
-      },
+      select: { roleId: true, expiresAt: true },
     });
 
-    return records.map((r) => ({
-      roleId: r.roleId,
-      expiresAt: r.expiresAt ?? undefined,
-    }));
+    return records.map((r) => ({ roleId: r.roleId, expiresAt: r.expiresAt ?? undefined }));
   }
 
   async getUserGroups(userId: UserId): Promise<UserGroupMembership[]> {
     const records = await this.prisma.userGroup.findMany({
       where: { userId },
-      select: {
-        groupId: true,
-        expiresAt: true,
-      },
+      select: { groupId: true, expiresAt: true },
     });
 
-    return records.map((r) => ({
-      groupId: r.groupId,
-      expiresAt: r.expiresAt ?? undefined,
-    }));
+    return records.map((r) => ({ groupId: r.groupId, expiresAt: r.expiresAt ?? undefined }));
   }
 
   // ============================================================================
@@ -82,15 +66,8 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
       where: {
         userId_roleId: { userId, roleId },
       },
-      create: {
-        userId,
-        roleId,
-        assignedBy: options?.assignedBy,
-        expiresAt: options?.expiresAt,
-      },
-      update: {
-        expiresAt: options?.expiresAt,
-      },
+      create: { userId, roleId, assignedBy: options?.assignedBy, expiresAt: options?.expiresAt },
+      update: { expiresAt: options?.expiresAt },
     });
   }
 
@@ -112,11 +89,7 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
       }),
       // Add new roles
       this.prisma.userRoleAssignment.createMany({
-        data: roleIds.map((roleId) => ({
-          userId,
-          roleId,
-          assignedBy: options?.assignedBy,
-        })),
+        data: roleIds.map((roleId) => ({ userId, roleId, assignedBy: options?.assignedBy })),
       }),
     ]);
   }
@@ -134,15 +107,8 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
       where: {
         userId_groupId: { userId, groupId },
       },
-      create: {
-        userId,
-        groupId,
-        assignedBy: options?.assignedBy,
-        expiresAt: options?.expiresAt,
-      },
-      update: {
-        expiresAt: options?.expiresAt,
-      },
+      create: { userId, groupId, assignedBy: options?.assignedBy, expiresAt: options?.expiresAt },
+      update: { expiresAt: options?.expiresAt },
     });
   }
 
@@ -164,11 +130,7 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
       }),
       // Add new groups
       this.prisma.userGroup.createMany({
-        data: groupIds.map((groupId) => ({
-          userId,
-          groupId,
-          assignedBy: options?.assignedBy,
-        })),
+        data: groupIds.map((groupId) => ({ userId, groupId, assignedBy: options?.assignedBy })),
       }),
     ]);
   }
@@ -194,11 +156,7 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
         expiresAt: options?.expiresAt,
         reason: options?.reason,
       },
-      update: {
-        granted: true,
-        expiresAt: options?.expiresAt,
-        reason: options?.reason,
-      },
+      update: { granted: true, expiresAt: options?.expiresAt, reason: options?.reason },
     });
   }
 
@@ -219,11 +177,7 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
         expiresAt: options?.expiresAt,
         reason: options?.reason,
       },
-      update: {
-        granted: false,
-        expiresAt: options?.expiresAt,
-        reason: options?.reason,
-      },
+      update: { granted: false, expiresAt: options?.expiresAt, reason: options?.reason },
     });
   }
 

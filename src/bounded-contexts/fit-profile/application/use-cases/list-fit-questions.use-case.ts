@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   type FitQuestionRecord,
   FitQuestionRepositoryPort,
@@ -7,7 +6,6 @@ import {
 /** Admin read — returns every question in the pool, active or not.
  * The user-facing 25-question path uses `listActive` on the repository
  * directly via `GetOrCreateQuestionSetUseCase`, not this one. */
-@Injectable()
 export class ListFitQuestionsUseCase {
   constructor(private readonly repository: FitQuestionRepositoryPort) {}
 

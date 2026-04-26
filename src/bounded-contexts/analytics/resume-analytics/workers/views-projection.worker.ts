@@ -29,9 +29,7 @@ export class ViewsProjectionWorker {
       await this.refreshDay(startOfYesterday);
     } catch (err) {
       this.logger.error(
-        `Views projection failed for ${startOfYesterday.toISOString()}: ${
-          err instanceof Error ? err.message : 'unknown'
-        }`,
+        `Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`,
       );
     }
   }
@@ -77,10 +75,7 @@ export class ViewsProjectionWorker {
           viewCount: b.viewCount,
           uniqueVisitorCount: b.uniqueVisitors.size,
         },
-        update: {
-          viewCount: b.viewCount,
-          uniqueVisitorCount: b.uniqueVisitors.size,
-        },
+        update: { viewCount: b.viewCount, uniqueVisitorCount: b.uniqueVisitors.size },
       });
       upserted += 1;
     }

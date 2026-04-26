@@ -36,9 +36,7 @@ export class ActivityController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get authenticated user activity feed' })
   @ApiParam({ name: 'userId', type: 'string' })
-  @ApiDataResponse(ActivityFeedDataDto, {
-    description: 'Activity feed returned',
-  })
+  @ApiDataResponse(ActivityFeedDataDto, { description: 'Activity feed returned' })
   async getFeed(
     @CurrentUser() user: UserPayload,
     @Query('page') page = 1,
@@ -51,9 +49,7 @@ export class ActivityController {
 
     return {
       success: true,
-      data: {
-        feed: result,
-      },
+      data: { feed: result },
     };
   }
 
@@ -65,9 +61,7 @@ export class ActivityController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get public activities for a user' })
   @ApiParam({ name: 'userId', type: 'string' })
-  @ApiDataResponse(ActivityListDataDto, {
-    description: 'User activities returned',
-  })
+  @ApiDataResponse(ActivityListDataDto, { description: 'User activities returned' })
   async getUserActivities(
     @Param('userId') userId: string,
     @Query('page') page = 1,
@@ -80,9 +74,7 @@ export class ActivityController {
 
     return {
       success: true,
-      data: {
-        activities: result,
-      },
+      data: { activities: result },
     };
   }
 
@@ -94,9 +86,7 @@ export class ActivityController {
   @ApiOperation({ summary: 'Get user activities filtered by type' })
   @ApiParam({ name: 'userId', type: 'string' })
   @ApiParam({ name: 'type', type: 'string' })
-  @ApiDataResponse(ActivityListDataDto, {
-    description: 'Filtered activities returned',
-  })
+  @ApiDataResponse(ActivityListDataDto, { description: 'Filtered activities returned' })
   async getActivitiesByType(
     @Param('userId') userId: string,
     @Param('type') type: string,
@@ -110,9 +100,7 @@ export class ActivityController {
 
     return {
       success: true,
-      data: {
-        activities: result,
-      },
+      data: { activities: result },
     };
   }
 }

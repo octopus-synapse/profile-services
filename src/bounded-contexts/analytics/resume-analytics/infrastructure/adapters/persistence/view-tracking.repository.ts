@@ -5,7 +5,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ViewTrackingRepositoryPort } from '../../../application/ports/resume-analytics.port';
+import { ViewTrackingRepositoryPort } from '../../../application/ports/resume-analytics.port';
 
 export class PrismaViewTrackingRepository implements ViewTrackingRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}

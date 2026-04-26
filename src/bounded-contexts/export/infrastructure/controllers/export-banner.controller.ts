@@ -37,16 +37,8 @@ export class ExportBannerController {
   @ApiOperation({ summary: 'Export LinkedIn banner image' })
   @ApiStreamResponse({ mimeType: 'image/png', description: 'PNG image file' })
   @ApiProduces('image/png')
-  @ApiQuery({
-    name: 'palette',
-    required: false,
-    description: 'Color palette name',
-  })
-  @ApiQuery({
-    name: 'logo',
-    required: false,
-    description: 'Logo URL to include in banner',
-  })
+  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name' })
+  @ApiQuery({ name: 'logo', required: false, description: 'Logo URL to include in banner' })
   async exportBanner(
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,

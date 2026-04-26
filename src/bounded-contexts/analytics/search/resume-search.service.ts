@@ -146,13 +146,7 @@ export class ResumeSearchService {
 
     const total = countResult[0].count;
 
-    return {
-      data: filteredResults,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data: filteredResults, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   /**
@@ -193,9 +187,7 @@ export class ResumeSearchService {
           },
           include: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -235,9 +227,7 @@ export class ResumeSearchService {
           },
           include: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },

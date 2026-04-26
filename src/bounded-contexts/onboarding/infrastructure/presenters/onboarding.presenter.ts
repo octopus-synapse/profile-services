@@ -201,11 +201,7 @@ export function resolveSteps(
 
 function buildSectionsView(sections: OnboardingProgressData['sections']) {
   if (!sections) return undefined;
-  const out: Array<{
-    sectionTypeKey: string;
-    items?: SectionItemDto[];
-    noData?: boolean;
-  }> = [];
+  const out: Array<{ sectionTypeKey: string; items?: SectionItemDto[]; noData?: boolean }> = [];
   for (const s of sections) {
     const itemsView: SectionItemDto[] | undefined = s.items ? [] : undefined;
     if (s.items && itemsView) {
@@ -233,10 +229,7 @@ export function buildSession(
   const personalInfo =
     rawPersonalInfo ??
     (userDefaults
-      ? {
-          fullName: userDefaults.name ?? '',
-          email: userDefaults.email ?? '',
-        }
+      ? { fullName: userDefaults.name ?? '', email: userDefaults.email ?? '' }
       : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
   const templateSelection = toTemplateSelection(data.templateSelection);

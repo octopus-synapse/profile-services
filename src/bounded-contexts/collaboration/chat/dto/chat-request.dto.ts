@@ -44,9 +44,7 @@ const BlockUserSchema = z.object({
   reason: z.string().max(500, 'Reason too long').optional(),
 });
 
-const UnblockUserSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-});
+const UnblockUserSchema = z.object({ userId: z.string().min(1, 'User ID is required') });
 
 // ============================================================================
 // DTOs

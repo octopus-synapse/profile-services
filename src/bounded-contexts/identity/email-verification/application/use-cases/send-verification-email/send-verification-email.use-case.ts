@@ -1,12 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { VerificationEmailSentEvent } from '../../../domain/events';
 import {
   EmailAlreadyVerifiedException,
   VerificationTokenAlreadySentException,
 } from '../../../domain/exceptions';
-import type {
+import {
   EmailVerificationRepositoryPort,
   VerificationEmailSenderPort,
 } from '../../../domain/ports';
@@ -17,22 +16,14 @@ import type {
   SendVerificationEmailPort,
 } from '../../ports';
 
-const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');
-const EMAIL_SENDER = Symbol('VerificationEmailSenderPort');
-const EVENT_BUS = Symbol('EventBusPort');
-
 // Cooldown between verification emails. Source of truth for the UI timer —
 // exposed via GET /email-verification/resend-status.
 export const RESEND_COOLDOWN_SECONDS = 60;
 
-@Injectable()
 export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
   constructor(
-    @Inject(EMAIL_VERIFICATION_REPOSITORY)
     private readonly repository: EmailVerificationRepositoryPort,
-    @Inject(EMAIL_SENDER)
     private readonly emailSender: VerificationEmailSenderPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
   ) {}
 

@@ -40,7 +40,5 @@ export function presentFitQuestion(q: FitQuestionRecord): FitQuestionResponseDto
 export function presentFitQuestionList(
   rows: readonly FitQuestionRecord[],
 ): FitQuestionListResponseDto {
-  return {
-    items: rows.map((q) => presentFitQuestion(q)),
-  };
+  return { items: rows.map((q) => presentFitQuestion(q)) };
 }

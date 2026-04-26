@@ -1,12 +1,11 @@
-import { Controller, Get, Inject, Req } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { GET_2FA_STATUS_PORT } from '../../application/ports';
 import { Get2faStatusResponseDto } from '../../application/use-cases/get-2fa-status/get-2fa-status.dto';
-import type { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
+import { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -21,10 +20,7 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Get2faStatusController {
-  constructor(
-    @Inject(GET_2FA_STATUS_PORT)
-    private readonly useCase: Get2faStatusUseCase,
-  ) {}
+  constructor(private readonly useCase: Get2faStatusUseCase) {}
 
   @Get('status')
   @ApiOperation({
@@ -38,10 +34,7 @@ export class Get2faStatusController {
     const result = await this.useCase.execute(req.user.id);
     return {
       success: true,
-      data: {
-        ...result,
-        lastUsedAt: result.lastUsedAt?.toISOString() ?? null,
-      },
+      data: { ...result, lastUsedAt: result.lastUsedAt?.toISOString() ?? null },
     };
   }
 }

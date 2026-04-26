@@ -17,10 +17,7 @@ export class AnalyticsProjectionAdapter extends AnalyticsProjectionPort {
         title: data.title,
         sectionCounts: {},
       },
-      update: {
-        userId: data.userId,
-        title: data.title,
-      },
+      update: { userId: data.userId, title: data.title },
     });
   }
 

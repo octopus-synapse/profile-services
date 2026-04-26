@@ -20,9 +20,7 @@ export class UpdateSkillUseCase {
 
     const currentContent = this.asRecord(existingSkill.content);
 
-    const newContent: Record<string, unknown> = {
-      ...currentContent,
-    };
+    const newContent: Record<string, unknown> = { ...currentContent };
 
     if (data.name !== undefined) {
       newContent.name = data.name;

@@ -31,10 +31,7 @@ export class SyncLogRepository {
 
   async create(params: CreateSyncLogParams) {
     return this.prisma.mecSyncLog.create({
-      data: {
-        status: MecSyncStatus.RUNNING,
-        triggeredBy: params.triggeredBy,
-      },
+      data: { status: MecSyncStatus.RUNNING, triggeredBy: params.triggeredBy },
     });
   }
 

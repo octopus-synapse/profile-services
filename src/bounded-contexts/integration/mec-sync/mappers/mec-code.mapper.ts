@@ -42,10 +42,7 @@ const DEGREE_MAP: Record<string, string> = {
 /**
  * Teaching Modality (Modalidade de Ensino)
  */
-const MODALITY_MAP: Record<string, string> = {
-  '1': 'Presencial',
-  '2': 'EaD',
-};
+const MODALITY_MAP: Record<string, string> = { '1': 'Presencial', '2': 'EaD' };
 
 /**
  * Course Status (Situação do Curso)

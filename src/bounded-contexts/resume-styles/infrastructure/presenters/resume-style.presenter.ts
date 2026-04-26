@@ -34,10 +34,5 @@ export function presentDetail(s: StyleDetail): StyleDetailDto {
 }
 
 export function presentList(p: PaginatedStyles): StyleListResponseDto {
-  return {
-    items: p.items.map(presentSummary),
-    total: p.total,
-    page: p.page,
-    limit: p.limit,
-  };
+  return { items: p.items.map(presentSummary), total: p.total, page: p.page, limit: p.limit };
 }

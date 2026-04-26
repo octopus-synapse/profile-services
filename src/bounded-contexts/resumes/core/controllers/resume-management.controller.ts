@@ -33,9 +33,7 @@ export class ResumeManagementController {
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'List all resumes for a specific user' })
   @ApiParam({ name: 'userId', type: 'string' })
-  @ApiDataResponse(ResumeListDataDto, {
-    description: 'Resumes retrieved successfully',
-  })
+  @ApiDataResponse(ResumeListDataDto, { description: 'Resumes retrieved successfully' })
   async listResumesForUser(
     @Param('userId') userId: string,
   ): Promise<DataResponse<ResumeListDataDto>> {
@@ -47,9 +45,7 @@ export class ResumeManagementController {
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'Get full resume details' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(ResumeDetailsDataDto, {
-    description: 'Resume retrieved successfully',
-  })
+  @ApiDataResponse(ResumeDetailsDataDto, { description: 'Resume retrieved successfully' })
   async getResumeDetails(
     @Param('id') resumeId: string,
   ): Promise<DataResponse<ResumeDetailsDataDto>> {
@@ -62,9 +58,7 @@ export class ResumeManagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(ResumeOperationMessageDataDto, {
-    description: 'Resume deleted successfully',
-  })
+  @ApiDataResponse(ResumeOperationMessageDataDto, { description: 'Resume deleted successfully' })
   async deleteResume(
     @Param('id') resumeId: string,
   ): Promise<DataResponse<ResumeOperationMessageDataDto>> {

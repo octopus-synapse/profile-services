@@ -5,7 +5,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { HashServicePort } from '../../../domain/ports/hash-service.port';
+import { HashServicePort } from '../../../domain/ports/hash-service.port';
 
 const BCRYPT_COST = 10;
 

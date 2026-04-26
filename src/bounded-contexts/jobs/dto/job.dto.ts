@@ -66,9 +66,7 @@ export class ApplyToJobDto extends createZodDto(ApplyToJobSchema) {}
 // ============================================================================
 // Import-from-URL (LLM preview)
 // ============================================================================
-export const ImportJobFromUrlSchema = z.object({
-  url: z.string().url().max(2000),
-});
+export const ImportJobFromUrlSchema = z.object({ url: z.string().url().max(2000) });
 
 export class ImportJobFromUrlDto extends createZodDto(ImportJobFromUrlSchema) {}
 

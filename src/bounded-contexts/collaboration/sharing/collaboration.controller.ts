@@ -11,7 +11,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Inject,
   Param,
   Patch,
   Post,
@@ -26,10 +25,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import {
-  COLLABORATION_USE_CASES,
-  type CollaborationUseCases,
-} from './application/collaboration.composition';
+import { CollaborationUseCases } from './application/collaboration.composition';
 import type { CollaboratorWithUser } from './domain/types/collaboration.types';
 import { CreateCollabCommentDto } from './dto/collab-comment.dto';
 import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
@@ -60,7 +56,6 @@ export class SharedResumesListDataDto {
 @Controller('resumes')
 export class CollaborationController {
   constructor(
-    @Inject(COLLABORATION_USE_CASES)
     private readonly collaboration: CollaborationUseCases,
     private readonly comments: CollabCommentService,
   ) {}
@@ -90,9 +85,7 @@ export class CollaborationController {
 
   @Get(':resumeId/collaborators')
   @ApiOperation({ summary: 'Get collaborators for a resume' })
-  @ApiDataResponse(CollaboratorsListDataDto, {
-    description: 'List of collaborators',
-  })
+  @ApiDataResponse(CollaboratorsListDataDto, { description: 'List of collaborators' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   async getCollaborators(
     @Param('resumeId') resumeId: string,
@@ -126,10 +119,7 @@ export class CollaborationController {
   @Delete(':resumeId/collaborators/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove collaborator from resume' })
-  @ApiEmptyDataResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Collaborator removed',
-  })
+  @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: 'Collaborator removed' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
   async remove(
@@ -146,9 +136,7 @@ export class CollaborationController {
 
   @Get('shared-with-me')
   @ApiOperation({ summary: 'Get resumes shared with current user' })
-  @ApiDataResponse(SharedResumesListDataDto, {
-    description: 'List of shared resumes',
-  })
+  @ApiDataResponse(SharedResumesListDataDto, { description: 'List of shared resumes' })
   async getSharedWithMe(
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<SharedResumesListDataDto>> {

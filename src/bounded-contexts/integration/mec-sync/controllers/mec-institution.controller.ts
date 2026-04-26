@@ -18,11 +18,7 @@ import {
 import { CourseQueryService } from '../services/course-query.service';
 import { InstitutionQueryService } from '../services/institution-query.service';
 
-@SdkExport({
-  tag: 'mec-institutions',
-  description: 'Mec Institutions API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'mec-institutions', description: 'Mec Institutions API', requiresAuth: false })
 @ApiTags('mec-institutions')
 @Controller('v1/mec/institutions')
 export class MecInstitutionController {
@@ -34,9 +30,7 @@ export class MecInstitutionController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'List institutions' })
-  @ApiDataResponse(MecInstitutionListDataDto, {
-    description: 'Institutions returned',
-  })
+  @ApiDataResponse(MecInstitutionListDataDto, { description: 'Institutions returned' })
   @ApiQuery({ name: 'uf', required: false, description: 'Filter by state' })
   async listInstitutions(
     @Query('uf') stateCode?: string,
@@ -47,9 +41,7 @@ export class MecInstitutionController {
 
     return {
       success: true,
-      data: {
-        institutions: await institutions,
-      },
+      data: { institutions: await institutions },
     };
   }
 
@@ -73,18 +65,14 @@ export class MecInstitutionController {
 
     return {
       success: true,
-      data: {
-        institutions,
-      },
+      data: { institutions },
     };
   }
 
   @Get(':codigoIes')
   @Public()
   @ApiOperation({ summary: 'Get institution by MEC code' })
-  @ApiDataResponse(MecInstitutionDataDto, {
-    description: 'Institution returned by MEC code',
-  })
+  @ApiDataResponse(MecInstitutionDataDto, { description: 'Institution returned by MEC code' })
   @ApiParam({ name: 'codigoIes', type: Number })
   async getInstitutionByCodeWithCourses(
     @Param('codigoIes', ParseIntPipe) codigoIes: number,
@@ -93,9 +81,7 @@ export class MecInstitutionController {
 
     return {
       success: true,
-      data: {
-        institution,
-      },
+      data: { institution },
     };
   }
 
@@ -113,9 +99,7 @@ export class MecInstitutionController {
 
     return {
       success: true,
-      data: {
-        courses,
-      },
+      data: { courses },
     };
   }
 }

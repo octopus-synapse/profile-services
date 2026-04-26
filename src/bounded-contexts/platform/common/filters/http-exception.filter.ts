@@ -13,11 +13,7 @@ import { AppLoggerService } from '../logger/logger.service';
 
 interface ValidationError extends Error {
   name: 'ValidationError';
-  errors: Array<{
-    path: string;
-    message: string;
-    code: string;
-  }>;
+  errors: Array<{ path: string; message: string; code: string }>;
 }
 
 function isValidationError(error: unknown): error is ValidationError {
@@ -45,11 +41,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (isValidationError(exception)) {
       const status = HttpStatus.BAD_REQUEST;
-      const details = {
-        errors: exception.errors,
-        path: request.url,
-        method: request.method,
-      };
+      const details = { errors: exception.errors, path: request.url, method: request.method };
 
       this.logException(exception, request, status);
 
@@ -57,11 +49,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         success: false,
         statusCode: status,
         message: 'Validation failed',
-        error: {
-          code: ERROR_CODES.VALIDATION_ERROR,
-          message: 'Validation failed',
-          details,
-        },
+        error: { code: ERROR_CODES.VALIDATION_ERROR, message: 'Validation failed', details },
       });
     }
 

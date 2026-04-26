@@ -12,7 +12,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { SnapshotRepositoryPort } from '../../../application/ports/resume-analytics.port';
+import { SnapshotRepositoryPort } from '../../../application/ports/resume-analytics.port';
 import type { AnalyticsSnapshot } from '../../../interfaces';
 
 export class PrismaSnapshotRepository implements SnapshotRepositoryPort {

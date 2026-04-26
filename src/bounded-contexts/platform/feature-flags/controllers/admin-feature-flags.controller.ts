@@ -47,9 +47,7 @@ export class AdminFeatureFlagsController {
 
   @Get(':key/impact')
   @RequirePermission(Permission.FEATURE_FLAG_READ)
-  @ApiOperation({
-    summary: 'Preview transitive descendants affected when a flag is turned OFF',
-  })
+  @ApiOperation({ summary: 'Preview transitive descendants affected when a flag is turned OFF' })
   @ApiDataResponse(FeatureFlagImpactDto, { description: 'Impact tree rooted at the given flag' })
   async getImpact(@Param('key') key: string): Promise<FeatureFlagImpactDto> {
     return { tree: await this.impact.execute(key) };
@@ -78,11 +76,7 @@ export class AdminFeatureFlagsController {
     });
     // The list use-case recomputes blockedBy/effectiveGlobal; return the simpler
     // row here — the UI refetches the full list on mutation success anyway.
-    return {
-      ...record,
-      blockedBy: [],
-      effectiveGlobal: record.enabled,
-    };
+    return { ...record, blockedBy: [], effectiveGlobal: record.enabled };
   }
 
   @Post('broadcast-refresh')

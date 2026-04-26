@@ -45,12 +45,7 @@ type PrismaResumeData = {
     titleOverride: string | null;
     isVisible: boolean;
     order: number;
-    sectionType: {
-      key: string;
-      title: string;
-      semanticKind: string;
-      translations: unknown;
-    };
+    sectionType: { key: string; title: string; semanticKind: string; translations: unknown };
     items: Array<{
       id: string;
       order: number;
@@ -62,11 +57,7 @@ type PrismaResumeData = {
   }>;
 };
 
-type SectionTypeData = {
-  key: string;
-  title: string;
-  translations: unknown;
-};
+type SectionTypeData = { key: string; title: string; translations: unknown };
 
 type DslPrismaPort = {
   resume: {
@@ -79,15 +70,9 @@ type DslPrismaPort = {
     findUnique: (args: {
       where: { slug: string };
       include: {
-        resume: {
-          include: typeof RESUME_RELATIONS_INCLUDE;
-        };
+        resume: { include: typeof RESUME_RELATIONS_INCLUDE };
       };
-    }) => Promise<{
-      isActive: boolean;
-      expiresAt: Date | null;
-      resume: PrismaResumeData;
-    } | null>;
+    }) => Promise<{ isActive: boolean; expiresAt: Date | null; resume: PrismaResumeData } | null>;
   };
   sectionType: {
     findMany: (args: {
@@ -101,10 +86,7 @@ type DslCompilerPort = Pick<
   'compileFromRaw' | 'compileForHtml' | 'compileForPdf'
 >;
 type DslValidatorPort = {
-  validate: (dsl: unknown) => {
-    valid: boolean;
-    errors?: unknown[] | null;
-  };
+  validate: (dsl: unknown) => { valid: boolean; errors?: unknown[] | null };
   validateOrThrow: (dsl: unknown) => ResumeDsl;
 };
 
@@ -160,9 +142,7 @@ export class DslRepository {
       this.prisma.resumeShare.findUnique({
         where: { slug },
         include: {
-          resume: {
-            include: RESUME_RELATIONS_INCLUDE,
-          },
+          resume: { include: RESUME_RELATIONS_INCLUDE },
         },
       }),
       this.fetchSectionTypeTitles(locale),

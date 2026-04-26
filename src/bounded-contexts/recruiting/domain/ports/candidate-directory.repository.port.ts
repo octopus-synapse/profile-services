@@ -25,16 +25,14 @@ export interface SearchableCandidateRecord {
   readonly skills: ReadonlyArray<string>;
 }
 
-export interface CandidateDirectoryRepositoryPort {
+export abstract class CandidateDirectoryRepositoryPort {
   /**
    * Fetch up to `poolCap` opt-in candidates whose resumes will be scored
    * against the supplied job. Ordering is not guaranteed — the use-case
    * sorts by `FitScore.score` after computing it for every record.
    */
-  loadSearchablePool(params: {
+  abstract loadSearchablePool(params: {
     excludeUserId: string;
     poolCap: number;
   }): Promise<ReadonlyArray<SearchableCandidateRecord>>;
 }
-
-export const CANDIDATE_DIRECTORY_REPOSITORY_PORT = Symbol('CandidateDirectoryRepositoryPort');

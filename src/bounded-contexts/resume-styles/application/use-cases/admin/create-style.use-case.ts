@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { StyleBelowAtsThresholdError } from '../../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../../domain/ports/resume-style.repository.port';
 import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
@@ -10,7 +9,6 @@ import { ATS_SAFE_THRESHOLD, type CreateStyleInput, type StyleDetail } from '../
  * and creation is rejected (`422 style_below_ats_threshold`) when
  * the score is below the configured threshold (default 70).
  */
-@Injectable()
 export class CreateStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,

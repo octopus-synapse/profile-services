@@ -50,19 +50,16 @@ export class CsvDownloaderService {
   }
 
   private async launchBrowser(): Promise<Browser> {
-    return puppeteerExtra.launch({
-      headless: true,
-      args: [...PUPPETEER_ARGS],
-    });
+    return puppeteerExtra.launch({ headless: true, args: [...PUPPETEER_ARGS] });
   }
 
   private async createPage(browser: Browser): Promise<Page> {
     const page = await browser.newPage();
 
     await page.setExtraHTTPHeaders({
-      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Accept-Language': 'pt-BR, pt;q=0.9, en-US;q=0.8, en;q=0.7',
       Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'text/html, application/xhtml+xml, application/xml;q=0.9, image/avif, image/webp, image/apng, */*;q=0.8',
     });
 
     await page.setViewport({ width: 1920, height: 1080 });

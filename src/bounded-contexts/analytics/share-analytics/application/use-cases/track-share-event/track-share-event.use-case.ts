@@ -7,7 +7,7 @@
 
 import { createHash } from 'node:crypto';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
-import type { GeoLookupPort } from '../../../ports/geo-lookup.port';
+import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import type { AnalyticsEvent } from '../../ports/share-analytics.port';
 import { parseUserAgent } from '../../utils/parse-user-agent';
 

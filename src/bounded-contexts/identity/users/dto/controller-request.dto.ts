@@ -26,9 +26,7 @@ const AdminUpdateUserSchema = z.object({
   isEmailVerified: z.boolean().optional(),
 });
 
-const AdminResetPasswordSchema = z.object({
-  newPassword: z.string().min(8),
-});
+const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) });
 
 // ============================================================================
 // DTOs

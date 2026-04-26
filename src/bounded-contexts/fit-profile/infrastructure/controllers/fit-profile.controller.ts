@@ -87,9 +87,7 @@ export class FitProfileController {
 
   @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'LGPD — wipe the caller’s Fit Answers and anonymize the vector',
-  })
+  @ApiOperation({ summary: 'LGPD — wipe the caller’s Fit Answers and anonymize the vector' })
   async deleteMe(@CurrentUser() user: UserPayload): Promise<void> {
     await this.deleteProfile.execute(user.userId);
   }

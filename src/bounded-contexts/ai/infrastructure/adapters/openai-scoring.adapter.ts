@@ -32,10 +32,7 @@ const ContentQualityOutputSchema = z.object({
         severity: z.enum(['low', 'medium', 'high']),
         freeformMessage: z.string().max(400),
         context: z
-          .object({
-            bulletId: z.string().optional(),
-            excerpt: z.string().max(240).optional(),
-          })
+          .object({ bulletId: z.string().optional(), excerpt: z.string().max(240).optional() })
           .optional(),
       }),
     )
@@ -95,11 +92,7 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
       ContentQualityOutputSchema,
       0.1,
     );
-    return {
-      score: data.score,
-      issues: data.issues,
-      tokensUsed,
-    };
+    return { score: data.score, issues: data.issues, tokensUsed };
   }
 
   async normalizeRequirements(

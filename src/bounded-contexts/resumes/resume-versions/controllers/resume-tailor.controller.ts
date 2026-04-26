@@ -38,9 +38,7 @@ export class ResumeTailorController {
   @Post(':resumeId/tailor')
   @UseGuards(RequireFitProfileGuard, RequireMinQualityGuard)
   @RequireMinQuality(50, 'resumeId')
-  @ApiOperation({
-    summary: 'Rewrite this resume for a specific job using the AI pipeline.',
-  })
+  @ApiOperation({ summary: 'Rewrite this resume for a specific job using the AI pipeline.' })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiBody({ type: TailorResumeRequestDto })
   @ApiDataResponse(TailorResumeDataDto, {
@@ -85,16 +83,12 @@ export class ResumeTailorController {
     const versions = await this.tailor.getTailoredVersions(resumeId, req.user.userId);
     return {
       success: true,
-      data: {
-        versions: toVersionIsoList(versions),
-      },
+      data: { versions: toVersionIsoList(versions) },
     };
   }
 
   @Get(':resumeId/diff')
-  @ApiOperation({
-    summary: 'Structured diff between the master resume and a tailored version.',
-  })
+  @ApiOperation({ summary: 'Structured diff between the master resume and a tailored version.' })
   @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiDataResponse(TailoredVersionDiffDataDto, {
     description: 'Summary / jobTitle / bullets before → after shape.',

@@ -46,10 +46,7 @@ export class PdfPageSetup {
 
   async navigateToPage(page: Page, url: string): Promise<void> {
     try {
-      await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: TIMEOUT.PAGE_LOAD,
-      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.RESUME_GOTO_ERROR });
       this.logger.error('[ResumePDF] Error during page.goto:', err);
@@ -59,8 +56,6 @@ export class PdfPageSetup {
 
   async waitForResumeReady(page: Page): Promise<void> {
     await page.waitForSelector('#resume', { timeout: TIMEOUT.SELECTOR_WAIT });
-    await page.waitForSelector('#resume[data-ready="1"]', {
-      timeout: TIMEOUT.SELECTOR_WAIT,
-    });
+    await page.waitForSelector('#resume[data-ready="1"]', { timeout: TIMEOUT.SELECTOR_WAIT });
   }
 }

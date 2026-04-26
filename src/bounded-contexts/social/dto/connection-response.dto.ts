@@ -36,17 +36,11 @@ const ConnectionDataSchema = z.object({
   user: ConnectionUserSchema.optional(),
 });
 
-const ConnectionListDataSchema = z.object({
-  connections: PaginatedResultSchema,
-});
+const ConnectionListDataSchema = z.object({ connections: PaginatedResultSchema });
 
-const PendingRequestsDataSchema = z.object({
-  pendingRequests: PaginatedResultSchema,
-});
+const PendingRequestsDataSchema = z.object({ pendingRequests: PaginatedResultSchema });
 
-const ConnectionStatsSchema = z.object({
-  connections: z.number().int(),
-});
+const ConnectionStatsSchema = z.object({ connections: z.number().int() });
 
 const ConnectionCheckSchema = z.object({
   isConnected: z.boolean(),
@@ -65,9 +59,7 @@ const SuggestionUserSchema = z.object({
 });
 
 const SuggestionsDataSchema = z.object({
-  suggestions: PaginatedResultSchema.extend({
-    data: z.array(SuggestionUserSchema),
-  }),
+  suggestions: PaginatedResultSchema.extend({ data: z.array(SuggestionUserSchema) }),
 });
 
 const NetworkSummaryStatsSchema = z.object({
@@ -81,9 +73,7 @@ const NetworkSummaryDataSchema = z.object({
   stats: NetworkSummaryStatsSchema,
   pendingRequests: PaginatedResultSchema,
   connections: PaginatedResultSchema,
-  suggestions: PaginatedResultSchema.extend({
-    data: z.array(SuggestionUserSchema),
-  }),
+  suggestions: PaginatedResultSchema.extend({ data: z.array(SuggestionUserSchema) }),
 });
 
 // ============================================================================

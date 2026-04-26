@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   type FitQuestionRecord,
   FitQuestionRepositoryPort,
@@ -6,7 +5,6 @@ import {
 
 /** Wraps the repository `findById` so the admin controller never
  * imports the repository port directly (arch rule). */
-@Injectable()
 export class GetFitQuestionUseCase {
   constructor(private readonly repo: FitQuestionRepositoryPort) {}
 

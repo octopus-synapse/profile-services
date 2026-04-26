@@ -28,9 +28,9 @@ export class InternalAuthGuard implements CanActivate {
       throw new InternalAuthNotConfiguredException();
     }
 
-    const request = context.switchToHttp().getRequest<{
-      headers: Record<string, string | string[] | undefined>;
-    }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ headers: Record<string, string | string[] | undefined> }>();
     const providedToken = request.headers[INTERNAL_TOKEN_HEADER] as string | undefined;
 
     if (!providedToken) {

@@ -96,10 +96,7 @@ export class InstitutionRepository {
       _count: { _all: true },
       orderBy: { uf: 'asc' },
     });
-    return result.map((r) => ({
-      uf: r.uf,
-      _count: r._count._all,
-    }));
+    return result.map((r) => ({ uf: r.uf, _count: r._count._all }));
   }
 
   async countInstitutionsByUf(): Promise<Array<{ uf: string; _count: number }>> {

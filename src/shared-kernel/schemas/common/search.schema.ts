@@ -79,9 +79,7 @@ export const SuggestionSchema = z.object({
 
 export type Suggestion = z.infer<typeof SuggestionSchema>;
 
-export const SuggestionsResponseSchema = z.object({
-  suggestions: z.array(SuggestionSchema),
-});
+export const SuggestionsResponseSchema = z.object({ suggestions: z.array(SuggestionSchema) });
 
 export type SuggestionsResponse = z.infer<typeof SuggestionsResponseSchema>;
 
@@ -99,8 +97,6 @@ export const SimilarProfileSchema = z.object({
 
 export type SimilarProfile = z.infer<typeof SimilarProfileSchema>;
 
-export const SimilarProfilesResponseSchema = z.object({
-  profiles: z.array(SimilarProfileSchema),
-});
+export const SimilarProfilesResponseSchema = z.object({ profiles: z.array(SimilarProfileSchema) });
 
 export type SimilarProfilesResponse = z.infer<typeof SimilarProfilesResponseSchema>;

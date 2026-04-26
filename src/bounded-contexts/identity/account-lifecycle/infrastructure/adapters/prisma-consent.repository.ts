@@ -8,12 +8,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { ConsentDocumentType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  ConsentRecord,
-  ConsentRepositoryPort,
-  CreateConsentData,
-} from '../../domain/ports/consent-repository.port';
-import type { VersionConfigPort } from '../../domain/ports/version-config.port';
+import type { ConsentRecord, CreateConsentData } from '../../domain/ports/consent-repository.port';
+import { ConsentRepositoryPort } from '../../domain/ports/consent-repository.port';
+import { VersionConfigPort } from '../../domain/ports/version-config.port';
 
 @Injectable()
 export class PrismaConsentRepository implements ConsentRepositoryPort {
@@ -37,11 +34,7 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
     version: string,
   ): Promise<ConsentRecord | null> {
     return this.prisma.userConsent.findFirst({
-      where: {
-        userId,
-        documentType,
-        version,
-      },
+      where: { userId, documentType, version },
     });
   }
 

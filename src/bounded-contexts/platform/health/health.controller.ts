@@ -29,11 +29,7 @@ export class HealthCheckResultDto {
   details?: Record<string, { status: string }>;
 }
 
-@SdkExport({
-  tag: 'platform',
-  description: 'Health Check API',
-  requiresAuth: false,
-})
+@SdkExport({ tag: 'platform', description: 'Health Check API', requiresAuth: false })
 @ApiTags('health')
 @Controller('health')
 export class HealthController {
@@ -51,9 +47,7 @@ export class HealthController {
   @Get()
   @HealthCheck()
   @ApiOperation({ summary: 'Run all health checks' })
-  @ApiDataResponse(HealthCheckResultDto, {
-    description: 'Aggregated health status',
-  })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'Aggregated health status' })
   async check(): Promise<DataResponse<HealthCheckResultDto>> {
     const result = await this.health.check([
       () => this.db.isHealthy('database'),
@@ -90,9 +84,7 @@ export class HealthController {
   @Get('db')
   @HealthCheck()
   @ApiOperation({ summary: 'Run database health check' })
-  @ApiDataResponse(HealthCheckResultDto, {
-    description: 'Database health status',
-  })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'Database health status' })
   async checkDatabase(): Promise<DataResponse<HealthCheckResultDto>> {
     const result = await this.health.check([() => this.db.isHealthy('database')]);
     return { success: true, data: result as HealthCheckResultDto };
@@ -112,9 +104,7 @@ export class HealthController {
   @Get('storage')
   @HealthCheck()
   @ApiOperation({ summary: 'Run storage health check' })
-  @ApiDataResponse(HealthCheckResultDto, {
-    description: 'Storage health status',
-  })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'Storage health status' })
   async checkStorage(): Promise<DataResponse<HealthCheckResultDto>> {
     const result = await this.health.check([() => this.storage.isHealthy('storage')]);
     return { success: true, data: result as HealthCheckResultDto };
@@ -124,9 +114,7 @@ export class HealthController {
   @Get('translate')
   @HealthCheck()
   @ApiOperation({ summary: 'Run translation service health check' })
-  @ApiDataResponse(HealthCheckResultDto, {
-    description: 'Translation service health status',
-  })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'Translation service health status' })
   async checkTranslate(): Promise<DataResponse<HealthCheckResultDto>> {
     const result = await this.health.check([() => this.translate.isHealthy('translate')]);
     return { success: true, data: result as HealthCheckResultDto };

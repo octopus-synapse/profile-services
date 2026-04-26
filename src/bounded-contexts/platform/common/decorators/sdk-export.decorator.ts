@@ -10,7 +10,7 @@
  * Usage:
  *   @SdkExport({ tag: 'resumes', description: 'Resume CRUD operations' })
  *   @Controller('v1/resumes')
- *   export class ResumesController {}
+ *   export class ResumesController {  }
  *
  * The script will scan all controllers with this decorator and
  * extract their metadata automatically.

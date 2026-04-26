@@ -19,19 +19,11 @@ import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
 type ResumeSectionWithItems = {
-  sectionType: {
-    key: string;
-    semanticKind: string;
-    title: string;
-  };
-  items: Array<{
-    content: unknown;
-  }>;
+  sectionType: { key: string; semanticKind: string; title: string };
+  items: Array<{ content: unknown }>;
 };
 
-type ResumeWithSections = {
-  resumeSections: ResumeSectionWithItems[];
-};
+type ResumeWithSections = { resumeSections: ResumeSectionWithItems[] };
 
 @Injectable()
 export class DocxBuilderService {

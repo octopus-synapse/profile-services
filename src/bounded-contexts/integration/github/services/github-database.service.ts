@@ -61,14 +61,9 @@ export class GitHubDatabaseService {
         where: {
           resumeSection: {
             resumeId,
-            sectionType: {
-              semanticKind: OPEN_SOURCE_SEMANTIC_KIND,
-            },
+            sectionType: { semanticKind: OPEN_SOURCE_SEMANTIC_KIND },
           },
-          content: {
-            path: ['projectUrl'],
-            string_contains: 'github.com',
-          },
+          content: { path: ['projectUrl'], string_contains: 'github.com' },
         },
       }),
     );
@@ -110,9 +105,7 @@ export class GitHubDatabaseService {
         where: {
           resumeSection: {
             resumeId,
-            sectionType: {
-              semanticKind: ACHIEVEMENT_SEMANTIC_KIND,
-            },
+            sectionType: { semanticKind: ACHIEVEMENT_SEMANTIC_KIND },
           },
           OR: [
             { content: { path: ['type'], equals: 'github_stars' } },
@@ -159,10 +152,7 @@ export class GitHubDatabaseService {
    */
   private async getOrCreateResumeSection(resumeId: string, semanticKind: string) {
     const sectionType = await this.prisma.sectionType.findFirst({
-      where: {
-        semanticKind,
-        isActive: true,
-      },
+      where: { semanticKind, isActive: true },
       select: { id: true },
     });
 
@@ -172,16 +162,10 @@ export class GitHubDatabaseService {
 
     return this.prisma.resumeSection.upsert({
       where: {
-        resumeId_sectionTypeId: {
-          resumeId,
-          sectionTypeId: sectionType.id,
-        },
+        resumeId_sectionTypeId: { resumeId, sectionTypeId: sectionType.id },
       },
       update: {},
-      create: {
-        resumeId,
-        sectionTypeId: sectionType.id,
-      },
+      create: { resumeId, sectionTypeId: sectionType.id },
       select: { id: true },
     });
   }

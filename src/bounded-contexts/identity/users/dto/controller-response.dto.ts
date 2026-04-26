@@ -79,9 +79,7 @@ const UserDetailsSchema = z.object({
   counts: UserCountsSchema,
 });
 
-const UserDetailsDataSchema = z.object({
-  user: UserDetailsSchema,
-});
+const UserDetailsDataSchema = z.object({ user: UserDetailsSchema });
 
 // ============================================================================
 // User Mutations
@@ -108,9 +106,7 @@ const UserMutationDataSchema = z.object({
   message: z.string(),
 });
 
-const UserOperationMessageDataSchema = z.object({
-  message: z.string(),
-});
+const UserOperationMessageDataSchema = z.object({ message: z.string() });
 
 // ============================================================================
 // Profile & Preferences
@@ -170,14 +166,9 @@ const UserProfileSchema = z.object({
   updatedAt: z.date(),
 });
 
-const UserProfileDataSchema = z.object({
-  profile: UserProfileSchema,
-});
+const UserProfileDataSchema = z.object({ profile: UserProfileSchema });
 
-const UsernameUpdateDataSchema = z.object({
-  username: z.string().nullable(),
-  message: z.string(),
-});
+const UsernameUpdateDataSchema = z.object({ username: z.string().nullable(), message: z.string() });
 
 const UsernameAvailabilityDataSchema = z.object({
   username: z.string(),
@@ -229,13 +220,9 @@ const FullUserPreferencesSchema = z.object({
   updatedAt: z.date(),
 });
 
-const UserPreferencesDataSchema = z.object({
-  preferences: BasicUserPreferencesSchema,
-});
+const UserPreferencesDataSchema = z.object({ preferences: BasicUserPreferencesSchema });
 
-export const UserFullPreferencesDataSchema = z.object({
-  preferences: FullUserPreferencesSchema,
-});
+export const UserFullPreferencesDataSchema = z.object({ preferences: FullUserPreferencesSchema });
 
 // ============================================================================
 // DTOs

@@ -58,9 +58,7 @@ const AddAliasSchema = z.object({
     .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
 });
 
-const QrSizeSchema = z.object({
-  size: z.coerce.number().int().min(64).max(1024).default(256),
-});
+const QrSizeSchema = z.object({ size: z.coerce.number().int().min(64).max(1024).default(256) });
 
 @SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
@@ -77,10 +75,7 @@ export class ShareManagementController {
   @RequirePermission(Permission.RESUME_UPDATE)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create share link for a resume' })
-  @ApiDataResponse(ShareCreateDataDto, {
-    status: 201,
-    description: 'Share created successfully',
-  })
+  @ApiDataResponse(ShareCreateDataDto, { status: 201, description: 'Share created successfully' })
   async createShare(
     @CurrentUser() user: UserPayload,
     @Body(createZodPipe(CreateShareSchema)) dto: z.infer<typeof CreateShareSchema>,
@@ -111,9 +106,7 @@ export class ShareManagementController {
   @RequirePermission(Permission.RESUME_UPDATE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a share link' })
-  @ApiDataResponse(ShareDeleteDataDto, {
-    description: 'Share deleted successfully',
-  })
+  @ApiDataResponse(ShareDeleteDataDto, { description: 'Share deleted successfully' })
   async deleteShare(
     @Param('shareId') shareId: string,
     @CurrentUser() user: UserPayload,

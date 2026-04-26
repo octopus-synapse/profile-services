@@ -60,10 +60,7 @@ export class GenericResumeSectionsController {
   @Get('types')
   @RequirePermission(Permission.SECTION_TYPE_READ)
   @ApiOperation({ summary: 'List active dynamic section types with resolved translations' })
-  @ApiParam({
-    name: 'resumeId',
-    description: 'Resume ID (ignored, types are global)',
-  })
+  @ApiParam({ name: 'resumeId', description: 'Resume ID (ignored, types are global)' })
   @ApiQuery({
     name: 'locale',
     required: false,
@@ -91,9 +88,7 @@ export class GenericResumeSectionsController {
   @Get()
   @ApiOperation({ summary: 'List sections and items for a resume' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiDataResponse(ResumeSectionsDataDto, {
-    description: 'Sections for resume',
-  })
+  @ApiDataResponse(ResumeSectionsDataDto, { description: 'Sections for resume' })
   async listResumeSections(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
@@ -102,9 +97,7 @@ export class GenericResumeSectionsController {
 
     return {
       success: true,
-      data: {
-        sections,
-      },
+      data: { sections },
     };
   }
 
@@ -112,15 +105,9 @@ export class GenericResumeSectionsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create section item in a dynamic section type' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiParam({
-    name: 'sectionTypeKey',
-    description: 'Section type key',
-  })
+  @ApiParam({ name: 'sectionTypeKey', description: 'Section type key' })
   @ApiBody({ type: SectionItemPayloadDto })
-  @ApiDataResponse(ResumeSectionItemDataDto, {
-    status: 201,
-    description: 'Section item created',
-  })
+  @ApiDataResponse(ResumeSectionItemDataDto, { status: 201, description: 'Section item created' })
   async createItem(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('sectionTypeKey') sectionTypeKey: string,
@@ -136,9 +123,7 @@ export class GenericResumeSectionsController {
 
     return {
       success: true,
-      data: {
-        item,
-      },
+      data: { item },
     };
   }
 
@@ -148,9 +133,7 @@ export class GenericResumeSectionsController {
   @ApiParam({ name: 'sectionTypeKey', description: 'Section type key' })
   @ApiParam({ name: 'itemId', description: 'Section item ID' })
   @ApiBody({ type: SectionItemPayloadDto })
-  @ApiDataResponse(ResumeSectionItemDataDto, {
-    description: 'Section item updated',
-  })
+  @ApiDataResponse(ResumeSectionItemDataDto, { description: 'Section item updated' })
   async updateItem(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('sectionTypeKey') sectionTypeKey: string,
@@ -168,9 +151,7 @@ export class GenericResumeSectionsController {
 
     return {
       success: true,
-      data: {
-        item,
-      },
+      data: { item },
     };
   }
 
@@ -179,9 +160,7 @@ export class GenericResumeSectionsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'sectionTypeKey', description: 'Section type key' })
   @ApiParam({ name: 'itemId', description: 'Section item ID' })
-  @ApiDataResponse(ResumeSectionDeleteDataDto, {
-    description: 'Section item deleted',
-  })
+  @ApiDataResponse(ResumeSectionDeleteDataDto, { description: 'Section item deleted' })
   async deleteItem(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('sectionTypeKey') sectionTypeKey: string,
@@ -192,9 +171,7 @@ export class GenericResumeSectionsController {
 
     return {
       success: true,
-      data: {
-        deleted: true,
-      },
+      data: { deleted: true },
       message: 'Section item deleted',
     };
   }

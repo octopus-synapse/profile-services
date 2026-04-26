@@ -47,8 +47,7 @@ export const PersonalInfoSchema = z.object({
 export const TemplateSelectionSchema = z.object({
   // SDK format (primary)
   templateId: z.string().optional(),
-  colorScheme: z.string().optional(),
-  // Legacy format (backward compat)
+  colorScheme: z.string().optional(), // Legacy format (backward compat)
   template: z.string().optional(),
   palette: z.string().optional(),
 });
@@ -74,9 +73,7 @@ export function normalizeTemplateSelection(data: TemplateSelection): {
  * Content is validated dynamically against SectionType.definition.
  * The schema here only validates structure, not field-level rules.
  */
-export const OnboardingSectionItemSchema = z.object({
-  content: z.record(z.unknown()),
-});
+export const OnboardingSectionItemSchema = z.object({ content: z.record(z.unknown()) });
 
 export type OnboardingSectionItem = z.infer<typeof OnboardingSectionItemSchema>;
 

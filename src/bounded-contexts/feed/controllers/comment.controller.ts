@@ -33,11 +33,7 @@ import {
 } from '../dto/feed-response.dto';
 import { CommentService } from '../services/comment.service';
 
-@SdkExport({
-  tag: 'comments',
-  description: 'Comments API',
-  requiresAuth: true,
-})
+@SdkExport({ tag: 'comments', description: 'Comments API', requiresAuth: true })
 @ApiTags('comments')
 @ApiBearerAuth('JWT-auth')
 @RequirePermission(Permission.FEED_USE)
@@ -54,9 +50,7 @@ export class CommentController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiDataResponse(CommentsListDataDto, {
-    description: 'List of comments for the post',
-  })
+  @ApiDataResponse(CommentsListDataDto, { description: 'List of comments for the post' })
   async getByPost(
     @Param('id') postId: string,
     @Query('cursor') cursor?: string,
@@ -72,10 +66,7 @@ export class CommentController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a comment' })
   @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(CommentCreatedDataDto, {
-    status: 201,
-    description: 'Comment created',
-  })
+  @ApiDataResponse(CommentCreatedDataDto, { status: 201, description: 'Comment created' })
   async create(
     @CurrentUser() user: UserPayload,
     @Param('id') postId: string,

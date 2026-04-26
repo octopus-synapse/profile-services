@@ -5,10 +5,8 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  AtsScoreCatalogPort,
-  SectionTypeAtsConfig,
-} from '../../../application/ports/resume-analytics.port';
+import type { SectionTypeAtsConfig } from '../../../application/ports/resume-analytics.port';
+import { AtsScoreCatalogPort } from '../../../application/ports/resume-analytics.port';
 
 export class PrismaAtsScoreCatalogRepository implements AtsScoreCatalogPort {
   constructor(private readonly prisma: PrismaService) {}
