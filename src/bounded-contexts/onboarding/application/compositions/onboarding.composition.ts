@@ -1,6 +1,6 @@
 import type { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
-import type { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import { OnboardingRepository } from '../../infrastructure/adapters/persistence/onboarding.repository';
 import { OnboardingCompletionAdapter } from '../../infrastructure/adapters/persistence/onboarding-completion.adapter';
@@ -24,17 +24,22 @@ export { OnboardingUseCases };
 
 export function buildOnboardingUseCases(
   prisma: PrismaService,
-  logger: AppLoggerService,
+  logger: LoggerPort,
   auditLog: AuditLogService,
 ): OnboardingUseCases {
   // Repositories
-  const onboardingRepository = new OnboardingRepository(prisma);
-  const progressRepository = new OnboardingProgressRepository(prisma);
+  const onboardingRepository = new OnboardingRepository(prisma, logger);
+  const progressRepository = new OnboardingProgressRepository(prisma, logger);
 
   // Infrastructure adapters
-  const resumeAdapter = new ResumeOnboardingAdapter(prisma);
+  const resumeAdapter = new ResumeOnboardingAdapter(prisma, logger);
   const sectionAdapter = new ResumeSectionOnboardingAdapter();
-  const completionAdapter = new OnboardingCompletionAdapter(prisma, resumeAdapter, sectionAdapter);
+  const completionAdapter = new OnboardingCompletionAdapter(
+    prisma,
+    resumeAdapter,
+    sectionAdapter,
+    logger,
+  );
   const sectionTypeDefinition = new SectionTypeDefinitionAdapter(prisma);
 
   // Progress use cases (used as functions by navigation use cases)
@@ -58,6 +63,7 @@ export function buildOnboardingUseCases(
   const completeOnboardingFromProgressUseCase = new CompleteOnboardingFromProgressUseCase(
     getProgressFn,
     completeOnboardingUseCase,
+    logger,
   );
 
   // Navigation use cases
@@ -71,15 +77,18 @@ export function buildOnboardingUseCases(
     saveProgressFn,
     getProgressFn,
     sectionTypeDefinition,
+    logger,
   );
   const gotoOnboardingStepUseCase = new GotoOnboardingStepUseCase(
     saveProgressFn,
     getProgressFn,
     sectionTypeDefinition,
+    logger,
   );
   const saveOnboardingStepDataUseCase = new SaveOnboardingStepDataUseCase(
     saveProgressFn,
     getProgressFn,
+    logger,
   );
 
   // Query use cases
@@ -89,7 +98,7 @@ export function buildOnboardingUseCases(
   );
 
   // Restart use case
-  const restartOnboardingUseCase = new RestartOnboardingUseCase(prisma, progressRepository);
+  const restartOnboardingUseCase = new RestartOnboardingUseCase(prisma, progressRepository, logger);
 
   return {
     completeOnboardingUseCase,

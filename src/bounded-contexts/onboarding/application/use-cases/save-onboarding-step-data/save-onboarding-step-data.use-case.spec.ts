@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { createOnboardingProgress, InMemoryOnboardingProgressRepository } from '../../../testing';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
@@ -21,7 +22,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     saveProgressFn = (userId, data) => saveUseCase.execute(userId, data);
     getProgressFn = (userId) => getUseCase.execute(userId);
 
-    useCase = new SaveOnboardingStepDataUseCase(saveProgressFn, getProgressFn);
+    useCase = new SaveOnboardingStepDataUseCase(saveProgressFn, getProgressFn, stubLogger);
   });
 
   it('saves personal-info step data', async () => {

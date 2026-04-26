@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { OnboardingValidationException } from '../../../domain/exceptions/onboarding.exceptions';
 import {
   createOnboardingProgress,
@@ -31,7 +32,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       execute: (userId, data) => completion.executeCompletion(userId, data as never),
     };
 
-    useCase = new CompleteOnboardingFromProgressUseCase(getProgressFn, executor);
+    useCase = new CompleteOnboardingFromProgressUseCase(getProgressFn, executor, stubLogger);
   });
 
   it('completes onboarding with valid progress data', async () => {

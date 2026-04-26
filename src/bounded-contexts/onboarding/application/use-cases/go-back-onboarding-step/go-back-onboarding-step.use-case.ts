@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import { OnboardingAlreadyAtFirstStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
@@ -9,6 +10,7 @@ export class GoBackOnboardingStepUseCase {
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
     private readonly sectionTypeDefinition: SectionTypeDefinitionPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<OnboardingProgressData> {

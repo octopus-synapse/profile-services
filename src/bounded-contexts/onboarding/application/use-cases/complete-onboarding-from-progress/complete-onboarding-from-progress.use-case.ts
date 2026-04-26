@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import {
   OnboardingGenericValidationException,
   OnboardingMissingRequiredDataException,
@@ -15,6 +16,7 @@ export class CompleteOnboardingFromProgressUseCase {
   constructor(
     private readonly getProgress: GetProgressFn,
     private readonly completeOnboarding: CompleteOnboardingExecutor,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<CompletionResult> {

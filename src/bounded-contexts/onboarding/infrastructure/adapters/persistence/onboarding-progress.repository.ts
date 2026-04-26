@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type {
   OnboardingProgressData,
   ProgressRecord,
@@ -16,7 +17,10 @@ type JsonObject = Prisma.JsonObject;
  * Stores section data in the `sections` JSON column.
  */
 export class OnboardingProgressRepository extends OnboardingProgressRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

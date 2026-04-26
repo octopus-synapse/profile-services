@@ -5,16 +5,19 @@
  * Moved from application/services/resume-onboarding.service.ts.
  */
 
-import { Logger } from '@nestjs/common';
 import { type Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 import { normalizeTemplateSelection } from '../../../domain/schemas/onboarding-data.schema';
 
-export class ResumeOnboardingAdapter {
-  private readonly logger = new Logger(ResumeOnboardingAdapter.name);
+const CTX = 'ResumeOnboardingAdapter';
 
-  constructor(private readonly prisma: PrismaService) {}
+export class ResumeOnboardingAdapter {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async upsertResume(userId: string, data: OnboardingData) {
     return this.upsertResumeWithTx(this.prisma, userId, data);
@@ -58,14 +61,14 @@ export class ResumeOnboardingAdapter {
         where: { id: userId },
         data: { primaryResumeId: resume.id },
       });
-      this.logger.log(`Set resume ${resume.id} as primary for user ${userId}`);
+      this.logger.log(`Set resume ${resume.id} as primary for user ${userId}`, CTX);
     }
 
     if (selectedStyleId) {
-      this.logger.log(`Applied style ${selectedStyleId} to resume ${resume.id}`);
+      this.logger.log(`Applied style ${selectedStyleId} to resume ${resume.id}`, CTX);
     }
 
-    this.logger.log(`Resume upserted: ${resume.id}`);
+    this.logger.log(`Resume upserted: ${resume.id}`, CTX);
     return resume;
   }
 

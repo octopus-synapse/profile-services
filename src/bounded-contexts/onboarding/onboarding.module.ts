@@ -9,9 +9,9 @@ import { forwardRef, Module } from '@nestjs/common';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingUseCases } from './application/compositions/onboarding.composition';
 import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
 import { OnboardingUseCases } from './domain/ports/onboarding.port';
@@ -47,14 +47,15 @@ import { AdminOnboardingService } from './infrastructure/services/admin-onboardi
     },
     {
       provide: OnboardingProgressUseCases,
-      useFactory: (prisma: PrismaService) => buildOnboardingProgressUseCases(prisma),
-      inject: [PrismaService],
+      useFactory: (prisma: PrismaService, logger: LoggerPort) =>
+        buildOnboardingProgressUseCases(prisma, logger),
+      inject: [PrismaService, LoggerPort],
     },
     {
       provide: OnboardingUseCases,
-      useFactory: (prisma: PrismaService, logger: AppLoggerService, auditLog: AuditLogService) =>
+      useFactory: (prisma: PrismaService, logger: LoggerPort, auditLog: AuditLogService) =>
         buildOnboardingUseCases(prisma, logger, auditLog),
-      inject: [PrismaService, AppLoggerService, AuditLogService],
+      inject: [PrismaService, LoggerPort, AuditLogService],
     },
   ],
   exports: [OnboardingUseCases],

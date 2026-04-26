@@ -7,6 +7,7 @@
 
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   type CompletionResult,
   OnboardingCompletionPort,
@@ -22,6 +23,7 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     private readonly prisma: PrismaService,
     private readonly resumeAdapter: ResumeOnboardingAdapter,
     private readonly sectionAdapter: ResumeSectionOnboardingAdapter,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }

@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type { OnboardingStepConfig } from '../../../domain/ports/onboarding-config.port';
 import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
@@ -16,6 +17,7 @@ export class RestartOnboardingUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly progressRepository: OnboardingProgressRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, steps: OnboardingStepConfig[]): Promise<RestartOnboardingResult> {
