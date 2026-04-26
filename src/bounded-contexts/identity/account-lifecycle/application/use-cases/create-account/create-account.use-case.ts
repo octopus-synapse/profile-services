@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/domain/ports';
 import { LoggerPort } from '@/shared-kernel';
 import { Password } from '../../../../password-management/domain/value-objects';
@@ -9,7 +8,10 @@ import type {
   CreateAccountResult,
 } from '../../../application/ports';
 import { AccountCreatedEvent } from '../../../domain/events';
-import { AccountAlreadyExistsException } from '../../../domain/exceptions';
+import {
+  AccountAlreadyExistsException,
+  ConsentVersionMismatchException,
+} from '../../../domain/exceptions';
 import {
   AccountLifecycleRepositoryPort,
   PasswordHasherPort,
@@ -43,9 +45,7 @@ export class CreateAccountUseCase implements CreateAccountPort {
     const currentTos = this.versionConfig.getTosVersion();
     const currentPrivacy = this.versionConfig.getPrivacyPolicyVersion();
     if (acceptedTosVersion !== currentTos || acceptedPrivacyVersion !== currentPrivacy) {
-      throw new BadRequestException(
-        `consent_version_mismatch: expected TOS=${currentTos}, Privacy=${currentPrivacy}`,
-      );
+      throw new ConsentVersionMismatchException(currentTos, currentPrivacy);
     }
 
     // Validate password strength (throws WeakPasswordException if invalid)

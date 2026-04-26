@@ -1,7 +1,12 @@
 /**
  * Account Lifecycle Domain Exceptions
  */
-import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 /**
  * Account Already Exists Exception
@@ -65,5 +70,23 @@ export class ConsentRequiredException extends ForbiddenException {
   readonly code: string = 'CONSENT_REQUIRED';
   constructor() {
     super('consent_required');
+  }
+}
+
+/**
+ * Consent Version Mismatch Exception
+ *
+ * Thrown during signup when the client did not acknowledge the current
+ * Terms of Service / Privacy Policy versions. LGPD: signup MUST capture
+ * the user's acceptance of the very versions the server believes are in
+ * force right now.
+ */
+export class ConsentVersionMismatchException extends ValidationException {
+  readonly code: string = 'CONSENT_VERSION_MISMATCH';
+  constructor(
+    public readonly expectedTos: string,
+    public readonly expectedPrivacy: string,
+  ) {
+    super(`consent_version_mismatch: expected TOS=${expectedTos}, Privacy=${expectedPrivacy}`);
   }
 }
