@@ -107,10 +107,10 @@ function collectUseCaseRoots(): string[] {
 }
 
 interface Smells {
-  readonly NEST_EXCEPTION_THROW: number;
-  readonly MANUAL_ERROR_MAPPING: number;
-  readonly DIRECT_PRISMA: number;
-  readonly MULTI_RESPONSIBILITY: number;
+  NEST_EXCEPTION_THROW: number;
+  MANUAL_ERROR_MAPPING: number;
+  DIRECT_PRISMA: number;
+  MULTI_RESPONSIBILITY: number;
 }
 
 const ZERO: Smells = {
@@ -121,7 +121,7 @@ const ZERO: Smells = {
 };
 
 function analyse(src: string): Smells {
-  const out = { ...ZERO } as { [K in keyof Smells]: number };
+  const out: Smells = { ...ZERO };
 
   // NEST_EXCEPTION_THROW — count each `throw new <NestExc>(` occurrence.
   for (const m of src.matchAll(new RegExp(NEST_THROW_RE, 'g'))) void m, out.NEST_EXCEPTION_THROW++;
@@ -154,7 +154,7 @@ function analyse(src: string): Smells {
   for (const _m of src.matchAll(/\bthis\.audit\./g)) void _m, out.MULTI_RESPONSIBILITY++;
   for (const _m of src.matchAll(/\bthis\.events\./g)) void _m, out.MULTI_RESPONSIBILITY++;
 
-  return out as Smells;
+  return out;
 }
 
 /** Walk braces from `openIdx` (the `{`) and return the body string up to
@@ -191,7 +191,7 @@ interface PerFile {
 function audit(): { totals: Smells; perFile: PerFile[] } {
   const useCaseRoots = collectUseCaseRoots();
   const perFile: PerFile[] = [];
-  const totals = { ...ZERO } as { [K in keyof Smells]: number };
+  const totals: Smells = { ...ZERO };
 
   for (const path of walk(SRC)) {
     if (!path.endsWith('.controller.ts')) continue;
