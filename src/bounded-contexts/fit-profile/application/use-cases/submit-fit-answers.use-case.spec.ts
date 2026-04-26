@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 
 const stubEventPublisher: EventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
+
+const stubLogger: LoggerPort = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 import {
   FitAnswerRepositoryPort,
@@ -208,6 +210,7 @@ describe('SubmitFitAnswersUseCase', () => {
       profiles,
       history,
       stubEventPublisher,
+      stubLogger,
     );
     seedPool(questions);
   });

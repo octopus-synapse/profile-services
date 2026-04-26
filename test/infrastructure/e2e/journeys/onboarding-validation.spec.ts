@@ -35,10 +35,7 @@ function createValidBasePayload(suffix: string = '') {
       fullName: 'Test User',
       email: `test_${sanitizedSuffix}@example.com`,
     },
-    professionalProfile: {
-      jobTitle: 'Developer',
-      summary: 'A software developer',
-    },
+    professionalProfile: { jobTitle: 'Developer', summary: 'A software developer' },
     skills: [],
     noSkills: true,
     experiences: [],
@@ -54,13 +51,7 @@ describe('E2E: Onboarding Validation', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();

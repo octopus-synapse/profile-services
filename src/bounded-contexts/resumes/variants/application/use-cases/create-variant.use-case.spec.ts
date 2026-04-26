@@ -3,13 +3,9 @@ import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
 } from '../../../domain/exceptions/resumes.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
-import type { BaseResumeReader } from './create-variant.use-case';
-import { CreateVariantUseCase } from './create-variant.use-case';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import { BaseResumeReader, CreateVariantUseCase } from './create-variant.use-case';
 
 class InMemoryVariantRepository implements VariantRepositoryPort {
   private variants: VariantData[] = [];
@@ -99,11 +95,7 @@ describe('CreateVariantUseCase', () => {
 
   it('throws when base resume not found', async () => {
     await expect(
-      useCase.execute({
-        baseResumeId: 'nonexistent',
-        userId: 'user-1',
-        name: 'My Variant',
-      }),
+      useCase.execute({ baseResumeId: 'nonexistent', userId: 'user-1', name: 'My Variant' }),
     ).rejects.toThrow(ResumeNotFoundException);
   });
 
@@ -111,11 +103,7 @@ describe('CreateVariantUseCase', () => {
     resumeReader.seed({ id: 'resume-1', userId: 'user-1', isBase: true });
 
     await expect(
-      useCase.execute({
-        baseResumeId: 'resume-1',
-        userId: 'user-2',
-        name: 'Unauthorized Variant',
-      }),
+      useCase.execute({ baseResumeId: 'resume-1', userId: 'user-2', name: 'Unauthorized Variant' }),
     ).rejects.toThrow(ResumeAccessDeniedException);
   });
 

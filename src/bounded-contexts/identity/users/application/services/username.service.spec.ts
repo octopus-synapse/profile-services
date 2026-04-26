@@ -15,11 +15,7 @@ import {
 } from '@/bounded-contexts/identity/shared-kernel/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { UsersRepository } from '../../infrastructure/adapters/persistence/users.repository';
-import {
-  type UpdatedUsername,
-  USERNAME_USE_CASES,
-  type UsernameUseCases,
-} from '../ports/username.port';
+import { type UpdatedUsername, UsernameUseCases } from '../ports/username.port';
 import { UsernameService } from './username.service';
 
 describe('UsernameService (Facade)', () => {
@@ -28,15 +24,11 @@ describe('UsernameService (Facade)', () => {
   let usersRepository: InMemoryUsersRepository;
   let logger: StubLogger;
 
-  const mockUpdatedUsername: UpdatedUsername = {
-    username: 'newuser',
-  };
+  const mockUpdatedUsername: UpdatedUsername = { username: 'newuser' };
 
   beforeEach(async () => {
     mockUseCases = {
-      updateUsernameUseCase: {
-        execute: mock(async () => mockUpdatedUsername),
-      },
+      updateUsernameUseCase: { execute: mock(async () => mockUpdatedUsername) },
     };
 
     usersRepository = new InMemoryUsersRepository();
@@ -45,7 +37,7 @@ describe('UsernameService (Facade)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsernameService,
-        { provide: USERNAME_USE_CASES, useValue: mockUseCases },
+        { provide: UsernameUseCases, useValue: mockUseCases },
         { provide: UsersRepository, useValue: usersRepository },
         { provide: AppLoggerService, useValue: logger },
       ],
@@ -56,9 +48,7 @@ describe('UsernameService (Facade)', () => {
 
   describe('updateUsername', () => {
     it('should delegate to updateUsernameUseCase', async () => {
-      const result = await service.updateUsername('user-123', {
-        username: 'newuser',
-      });
+      const result = await service.updateUsername('user-123', { username: 'newuser' });
 
       expect(result).toEqual(mockUpdatedUsername);
       expect(mockUseCases.updateUsernameUseCase.execute).toHaveBeenCalledWith(
@@ -72,10 +62,7 @@ describe('UsernameService (Facade)', () => {
 
       expect(logger.hasLogged('Username updated', 'debug')).toBe(true);
       const lastLog = logger.getLastLog();
-      expect(lastLog?.meta).toEqual({
-        userId: 'user-123',
-        newUsername: 'newuser',
-      });
+      expect(lastLog?.meta).toEqual({ userId: 'user-123', newUsername: 'newuser' });
     });
   });
 

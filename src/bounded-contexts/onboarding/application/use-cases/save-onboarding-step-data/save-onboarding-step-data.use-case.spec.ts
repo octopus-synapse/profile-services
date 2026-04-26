@@ -96,10 +96,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, {
-      templateId: 'MINIMAL',
-      colorScheme: 'dark',
-    });
+    const result = await useCase.execute(USER_ID, { templateId: 'MINIMAL', colorScheme: 'dark' });
 
     // Assert
     expect(result.templateSelection).toEqual({ templateId: 'MINIMAL', colorScheme: 'dark' });
@@ -143,10 +140,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, {
-      fullName: 'John',
-      email: 'john@test.com',
-    });
+    const result = await useCase.execute(USER_ID, { fullName: 'John', email: 'john@test.com' });
 
     // Assert — step and completedSteps should not change
     expect(result.currentStep).toBe('personal-info');

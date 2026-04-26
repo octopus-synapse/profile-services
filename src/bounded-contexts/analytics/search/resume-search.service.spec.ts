@@ -50,13 +50,8 @@ describe('ResumeSearchService', () => {
 
     const mockPrismaService = {
       $queryRaw: async () => [],
-      resume: {
-        findUnique: async () => null,
-        findMany: async () => [],
-      },
-      sectionItem: {
-        findMany: async () => [],
-      },
+      resume: { findUnique: async () => null, findMany: async () => [] },
+      sectionItem: { findMany: async () => [] },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -80,20 +75,14 @@ describe('ResumeSearchService', () => {
     });
 
     it('should filter by skills', async () => {
-      const result = await service.search({
-        query: 'developer',
-        skills: ['typescript', 'react'],
-      });
+      const result = await service.search({ query: 'developer', skills: ['typescript', 'react'] });
 
       expect(result).toBeDefined();
       expect(result.data.length).toBeGreaterThan(0);
     });
 
     it('should filter by location', async () => {
-      const result = await service.search({
-        query: 'developer',
-        location: 'São Paulo',
-      });
+      const result = await service.search({ query: 'developer', location: 'São Paulo' });
 
       expect(result).toBeDefined();
     });
@@ -109,11 +98,7 @@ describe('ResumeSearchService', () => {
     });
 
     it('should support pagination', async () => {
-      const result = await service.search({
-        query: 'developer',
-        page: 2,
-        limit: 10,
-      });
+      const result = await service.search({ query: 'developer', page: 2, limit: 10 });
 
       expect(result).toBeDefined();
       expect(result.page).toBe(2);
@@ -121,10 +106,7 @@ describe('ResumeSearchService', () => {
     });
 
     it('should support sorting', async () => {
-      const result = await service.search({
-        query: 'developer',
-        sortBy: 'relevance',
-      });
+      const result = await service.search({ query: 'developer', sortBy: 'relevance' });
 
       expect(result).toBeDefined();
     });

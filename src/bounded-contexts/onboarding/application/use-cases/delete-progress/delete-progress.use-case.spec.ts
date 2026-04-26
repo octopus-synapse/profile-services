@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 import { DeleteProgressUseCase } from './delete-progress.use-case';
 
 describe('DeleteProgressUseCase', () => {
@@ -9,10 +9,7 @@ describe('DeleteProgressUseCase', () => {
   beforeEach(() => {
     repository = {
       findProgressByUserId: mock(async () => null),
-      upsertProgress: mock(async () => ({
-        currentStep: 'welcome',
-        completedSteps: [],
-      })),
+      upsertProgress: mock(async () => ({ currentStep: 'welcome', completedSteps: [] })),
       deleteProgress: mock(async () => undefined),
       deleteProgressWithTx: mock(async () => undefined),
       findUserByUsername: mock(async () => null),

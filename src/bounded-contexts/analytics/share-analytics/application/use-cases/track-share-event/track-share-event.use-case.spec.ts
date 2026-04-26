@@ -6,7 +6,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { GeoLocation, GeoLookupPort } from '../../../ports/geo-lookup.port';
+import type { GeoLocation } from '../../../ports/geo-lookup.port';
+import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { TrackShareEventUseCase } from './track-share-event.use-case';
 
@@ -27,11 +28,7 @@ describe('TrackShareEventUseCase', () => {
   });
 
   it('should create an analytics record with hashed IP', async () => {
-    const result = await useCase.execute({
-      shareId: 'share-1',
-      event: 'VIEW',
-      ip: '192.168.1.1',
-    });
+    const result = await useCase.execute({ shareId: 'share-1', event: 'VIEW', ip: '192.168.1.1' });
 
     expect(result.shareId).toBe('share-1');
     expect(result.event).toBe('VIEW');
@@ -73,11 +70,7 @@ describe('TrackShareEventUseCase', () => {
   });
 
   it('should set optional fields to null when not provided', async () => {
-    const result = await useCase.execute({
-      shareId: 'share-1',
-      event: 'VIEW',
-      ip: '1.1.1.1',
-    });
+    const result = await useCase.execute({ shareId: 'share-1', event: 'VIEW', ip: '1.1.1.1' });
 
     expect(result.userAgent).toBeNull();
     expect(result.referer).toBeNull();

@@ -82,11 +82,7 @@ describe('buildTimeCapsuleEmail', () => {
   });
 
   it('escapes HTML in user name', () => {
-    const out = buildTimeCapsuleEmail({
-      userName: 'Enzo <b>',
-      snapshotYear: 2025,
-      diff: baseDiff,
-    });
+    const out = buildTimeCapsuleEmail({ userName: 'Enzo <b>', snapshotYear: 2025, diff: baseDiff });
     expect(out?.html).not.toContain('<b>');
     expect(out?.html).toContain('&lt;b&gt;');
   });

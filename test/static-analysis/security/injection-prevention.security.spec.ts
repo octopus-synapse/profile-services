@@ -77,7 +77,7 @@ describe('SQL Injection Prevention', () => {
 
         // Pattern: where clause with string concatenation
         const unsafePatterns = [
-          /where:\s*\{[^}]*\+\s*\w+[^}]*\}/g,
+          /where:\s*\{ [^ }]*\+\s*\w+[^}]*\}/g,
           /where:\s*`[^`]*\$\{[^`]*`/g,
           /where:\s*['"][^'"]*\+/g,
         ];

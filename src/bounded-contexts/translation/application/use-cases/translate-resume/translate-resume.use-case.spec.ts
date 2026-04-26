@@ -14,9 +14,7 @@ import { TranslateResumeUseCase } from './translate-resume.use-case';
 
 describe('TranslateResumeUseCase', () => {
   let useCase: TranslateResumeUseCase;
-  let fakeTranslationService: {
-    translate: ReturnType<typeof mock>;
-  };
+  let fakeTranslationService: { translate: ReturnType<typeof mock> };
 
   beforeEach(() => {
     fakeTranslationService = {
@@ -93,10 +91,7 @@ describe('TranslateResumeUseCase', () => {
   describe('nested objects', () => {
     it('should translate nested object fields', async () => {
       const resume = {
-        experience: {
-          title: 'Senior Developer',
-          description: 'Led team of 5',
-        },
+        experience: { title: 'Senior Developer', description: 'Led team of 5' },
       };
 
       const result = await useCase.execute(resume, 'pt-to-en');

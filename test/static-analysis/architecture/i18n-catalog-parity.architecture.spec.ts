@@ -52,8 +52,8 @@ function extractBody(src: string, from: number): string {
   let depth = 0;
   for (let i = open; i < src.length; i++) {
     const ch = src[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') {
+    if (ch === '{ ') depth++;
+    else if (ch === ' }') {
       depth--;
       if (depth === 0) return src.slice(open, i + 1);
     }
@@ -71,7 +71,7 @@ function discoverCodes(): Set<string> {
     while (true) {
       match = CLASS_DECL_RE.exec(src);
       if (!match) break;
-      const [, isAbstract, , parent] = match;
+      const [, isAbstract, parent] = match;
       if (isAbstract) continue;
       if (!KNOWN_BASES.has(parent)) continue;
       const body = extractBody(src, match.index);
@@ -125,7 +125,7 @@ describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
     }
     expect(
       leaks,
-      `Entries with raw \${...} template leakage. Use {param} named placeholders instead.\n${leaks.join('\n')}`,
+      `Entries with raw \${ ... } template leakage. Use { param } named placeholders instead.\n${leaks.join('\n')}`,
     ).toEqual([]);
   });
 

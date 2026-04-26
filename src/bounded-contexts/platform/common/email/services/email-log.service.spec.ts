@@ -78,9 +78,7 @@ describe('EmailLogService', () => {
       });
 
       expect(mockPrismaService.emailLog.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          userId: undefined,
-        }),
+        data: expect.objectContaining({ userId: undefined }),
       });
     });
 
@@ -107,10 +105,7 @@ describe('EmailLogService', () => {
 
       expect(mockPrismaService.emailLog.update).toHaveBeenCalledWith({
         where: { id: 'log-123' },
-        data: {
-          status: 'SENT',
-          sentAt: expect.any(Date),
-        },
+        data: { status: 'SENT', sentAt: expect.any(Date) },
       });
     });
   });
@@ -123,11 +118,7 @@ describe('EmailLogService', () => {
 
       expect(mockPrismaService.emailLog.update).toHaveBeenCalledWith({
         where: { id: 'log-123' },
-        data: {
-          status: 'FAILED',
-          failedAt: expect.any(Date),
-          error: errorMessage,
-        },
+        data: { status: 'FAILED', failedAt: expect.any(Date), error: errorMessage },
       });
     });
   });
@@ -187,11 +178,7 @@ describe('EmailLogService', () => {
 
       const stats = await service.getEmailStats('user-123');
 
-      expect(stats).toMatchObject({
-        total: 100,
-        sent: 95,
-        failed: 5,
-      });
+      expect(stats).toMatchObject({ total: 100, sent: 95, failed: 5 });
     });
   });
 

@@ -27,13 +27,7 @@ describe('E2E Journey: Email Verification', () => {
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
   let prisma: PrismaService;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -55,11 +49,9 @@ describe('E2E Journey: Email Verification', () => {
       testUser = authHelper.createTestUser('email-verify');
 
       // Register (but DO NOT verify email or accept ToS via helper)
-      const signupResponse = await request(app.getHttpServer()).post('/api/accounts').send({
-        email: testUser.email,
-        password: testUser.password,
-        name: testUser.name,
-      });
+      const signupResponse = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email: testUser.email, password: testUser.password, name: testUser.name });
 
       expect(signupResponse.status).toBe(201);
       expect(signupResponse.body.success).toBe(true);
@@ -89,10 +81,9 @@ describe('E2E Journey: Email Verification', () => {
     });
 
     it('should login even with unverified email', async () => {
-      const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: testUser.email, password: testUser.password });
 
       // Login should succeed - email guard blocks routes, not login
       expect(loginResponse.status).toBe(200);
@@ -169,10 +160,9 @@ describe('E2E Journey: Email Verification', () => {
       expect(user?.emailVerified).not.toBeNull();
 
       // Re-login to get a fresh token that includes emailVerified claim
-      const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: testUser.email, password: testUser.password });
 
       expect(loginResponse.status).toBe(200);
       testUser.token = loginResponse.body.data.accessToken;
@@ -203,9 +193,7 @@ describe('E2E Journey: Email Verification', () => {
       const response = await request(app.getHttpServer())
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .send({
-          title: 'Post-Verification Resume',
-        });
+        .send({ title: 'Post-Verification Resume' });
 
       // Should succeed now
       expect(response.status).toBe(201);

@@ -5,7 +5,7 @@ describe('CSV Line Parser', () => {
   describe('parseCsvLine', () => {
     describe('Basic Parsing', () => {
       it('should parse a simple CSV line', () => {
-        const line = 'value1,value2,value3';
+        const line = 'value1, value2, value3';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value1', 'value2', 'value3']);
@@ -19,21 +19,21 @@ describe('CSV Line Parser', () => {
       });
 
       it('should handle trailing comma', () => {
-        const line = 'value1,value2,';
+        const line = 'value1, value2, ';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value1', 'value2', '']);
       });
 
       it('should handle leading comma', () => {
-        const line = ',value1,value2';
+        const line = ', value1, value2';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['', 'value1', 'value2']);
       });
 
       it('should trim whitespace from values', () => {
-        const line = '  value1  ,  value2  ,  value3  ';
+        const line = '  value1, value2, value3  ';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value1', 'value2', 'value3']);
@@ -42,35 +42,35 @@ describe('CSV Line Parser', () => {
 
     describe('Quoted Fields', () => {
       it('should handle quoted values', () => {
-        const line = '"quoted value",normal,another';
+        const line = '"quoted value", normal, another';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['quoted value', 'normal', 'another']);
       });
 
       it('should handle commas inside quotes', () => {
-        const line = '"value, with comma",normal,another';
+        const line = '"value, with comma", normal, another';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value, with comma', 'normal', 'another']);
       });
 
       it('should handle escaped quotes (double quotes)', () => {
-        const line = '"value with ""quotes""",normal';
+        const line = '"value with ""quotes""", normal';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value with "quotes"', 'normal']);
       });
 
       it('should handle multiple quoted fields', () => {
-        const line = '"first, value","second, value","third"';
+        const line = '"first, value", "second, value", "third"';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['first, value', 'second, value', 'third']);
       });
 
       it('should handle empty quoted value', () => {
-        const line = '"",value,""';
+        const line = '"", value, ""';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['', 'value', '']);
@@ -98,21 +98,21 @@ describe('CSV Line Parser', () => {
 
       it('should handle newlines inside quotes', () => {
         // This tests the parser's handling, even if newlines should be escaped
-        const line = '"value\nwith\nnewlines",normal';
+        const line = '"value\nwith\nnewlines", normal';
         const result = parseCsvLine(line);
 
         expect(result[0].includes('\n')).toBe(true);
       });
 
       it('should handle unicode characters', () => {
-        const line = 'São Paulo,Universidade,Educação';
+        const line = 'São Paulo, Universidade, Educação';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['São Paulo', 'Universidade', 'Educação']);
       });
 
       it('should handle special characters', () => {
-        const line = 'value@test,value#hash,value$dollar';
+        const line = 'value@test, value#hash, value$dollar';
         const result = parseCsvLine(line);
 
         expect(result).toEqual(['value@test', 'value#hash', 'value$dollar']);
@@ -122,7 +122,7 @@ describe('CSV Line Parser', () => {
     describe('MEC CSV Specific Cases', () => {
       it('should handle typical MEC institution row', () => {
         const line =
-          '1,Universidade Federal do Rio de Janeiro,UFRJ,Universidade,Pública Federal,3304557,Rio de Janeiro,RJ';
+          '1, Universidade Federal do Rio de Janeiro, UFRJ, Universidade, Pública Federal, 3304557, Rio de Janeiro, RJ';
         const result = parseCsvLine(line);
 
         expect(result).toHaveLength(8);
@@ -134,7 +134,7 @@ describe('CSV Line Parser', () => {
 
       it('should handle quoted institution names with commas', () => {
         const line =
-          '100,"Faculdade de Tecnologia, Ciências e Administração",FATEC,Faculdade,Privada';
+          '100, "Faculdade de Tecnologia, Ciências e Administração", FATEC, Faculdade, Privada';
         const result = parseCsvLine(line);
 
         expect(result[1]).toBe('Faculdade de Tecnologia, Ciências e Administração');

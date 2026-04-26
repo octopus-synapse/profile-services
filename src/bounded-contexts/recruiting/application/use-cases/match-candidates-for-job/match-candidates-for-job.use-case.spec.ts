@@ -28,14 +28,7 @@ describe('MatchCandidatesForJobUseCase', () => {
       bio: null,
       skills: ['react', 'typescript', 'postgres'],
     });
-    repo.add({
-      userId: 'u3',
-      username: 'c',
-      name: 'C',
-      photoURL: null,
-      bio: null,
-      skills: ['go'],
-    });
+    repo.add({ userId: 'u3', username: 'c', name: 'C', photoURL: null, bio: null, skills: ['go'] });
 
     const out = await useCase.execute({
       requesterId: 'recruiter',

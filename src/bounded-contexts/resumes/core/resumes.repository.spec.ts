@@ -9,7 +9,6 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import {
@@ -86,10 +85,7 @@ class InMemoryResumesStore {
   }
 
   seed(resume: { id: string; userId: string; title: string; updatedAt?: Date }): void {
-    this.resumes.set(resume.id, {
-      ...resume,
-      updatedAt: resume.updatedAt ?? new Date(),
-    });
+    this.resumes.set(resume.id, { ...resume, updatedAt: resume.updatedAt ?? new Date() });
   }
 
   clear(): void {
@@ -105,17 +101,8 @@ describe('ResumesRepository', () => {
   beforeEach(async () => {
     store = new InMemoryResumesStore();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumesRepository,
-        {
-          provide: PrismaService,
-          useValue: { resume: store },
-        },
-      ],
-    }).compile();
-
-    repository = module.get<ResumesRepository>(ResumesRepository);
+    const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+    repository = new ResumesRepository({ resume: store } as unknown as PrismaService, stubLogger);
   });
 
   describe('findAll', () => {
@@ -126,21 +113,9 @@ describe('ResumesRepository', () => {
     });
 
     it('should return all resumes for the user', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'Resume A',
-      });
-      store.seed({
-        id: 'r2',
-        userId: 'user-1',
-        title: 'Resume B',
-      });
-      store.seed({
-        id: 'r3',
-        userId: 'user-2',
-        title: 'Other User',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'Resume A' });
+      store.seed({ id: 'r2', userId: 'user-1', title: 'Resume B' });
+      store.seed({ id: 'r3', userId: 'user-2', title: 'Other User' });
 
       const result = await repository.findAllUserResumes('user-1');
 
@@ -151,19 +126,11 @@ describe('ResumesRepository', () => {
 
   describe('findOne', () => {
     it('should return resume when it exists and belongs to user', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'My Resume',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'My Resume' });
 
       const result = await repository.findResumeByIdAndUserId('r1', 'user-1');
 
-      expect(result).toMatchObject({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'My Resume',
-      });
+      expect(result).toMatchObject({ id: 'r1', userId: 'user-1', title: 'My Resume' });
     });
 
     it('should return null when resume does not exist', async () => {
@@ -173,11 +140,7 @@ describe('ResumesRepository', () => {
     });
 
     it('should return null when resume belongs to another user', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'My Resume',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'My Resume' });
 
       const result = await repository.findResumeByIdAndUserId('r1', 'user-2');
 
@@ -187,10 +150,7 @@ describe('ResumesRepository', () => {
 
   describe('create', () => {
     it('should create resume and return it with generated id', async () => {
-      const createDto: CreateResume = {
-        title: 'New Resume',
-        isPublic: false,
-      };
+      const createDto: CreateResume = { title: 'New Resume', isPublic: false };
 
       const result = await repository.createResumeForUser('user-1', createDto);
 
@@ -216,36 +176,21 @@ describe('ResumesRepository', () => {
 
   describe('update', () => {
     it('should update resume when user owns it', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'Original',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'Original' });
 
-      const result = await repository.updateResumeForUser('r1', 'user-1', {
-        title: 'Updated',
-      });
+      const result = await repository.updateResumeForUser('r1', 'user-1', { title: 'Updated' });
 
-      expect(result).toMatchObject({
-        id: 'r1',
-        title: 'Updated',
-      });
+      expect(result).toMatchObject({ id: 'r1', title: 'Updated' });
     });
 
     it('should throw ResumeAccessDeniedException when resume does not exist', async () => {
       await expect(
-        repository.updateResumeForUser('non-existent', 'user-1', {
-          title: 'New',
-        }),
+        repository.updateResumeForUser('non-existent', 'user-1', { title: 'New' }),
       ).rejects.toThrow(ResumeAccessDeniedException);
     });
 
     it('should throw ResumeAccessDeniedException when user does not own resume', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'Original',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'Original' });
 
       await expect(
         repository.updateResumeForUser('r1', 'user-2', { title: 'Stolen' }),
@@ -255,11 +200,7 @@ describe('ResumesRepository', () => {
 
   describe('delete', () => {
     it('should delete resume and return true when user owns it', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'To Delete',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'To Delete' });
 
       const result = await repository.deleteResumeForUser('r1', 'user-1');
 
@@ -273,11 +214,7 @@ describe('ResumesRepository', () => {
     });
 
     it('should throw ResumeAccessDeniedException when user does not own resume', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'My Resume',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'My Resume' });
 
       await expect(async () => await repository.deleteResumeForUser('r1', 'user-2')).toThrow(
         ResumeAccessDeniedException,
@@ -293,19 +230,11 @@ describe('ResumesRepository', () => {
     });
 
     it('should return first resume for user', async () => {
-      store.seed({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'User Resume',
-      });
+      store.seed({ id: 'r1', userId: 'user-1', title: 'User Resume' });
 
       const result = await repository.findResumeByUserId('user-1');
 
-      expect(result).toMatchObject({
-        id: 'r1',
-        userId: 'user-1',
-        title: 'User Resume',
-      });
+      expect(result).toMatchObject({ id: 'r1', userId: 'user-1', title: 'User Resume' });
     });
   });
 });

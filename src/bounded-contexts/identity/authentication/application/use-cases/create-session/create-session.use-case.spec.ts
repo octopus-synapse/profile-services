@@ -31,9 +31,7 @@ function createCookieWriter(): CookieWriter & {
   return writer;
 }
 
-const mockConfigService = {
-  get: <T>(_key: string, defaultValue: T) => defaultValue,
-};
+const mockConfigService = { get: <T>(_key: string, defaultValue: T) => defaultValue };
 
 describe('CreateSessionUseCase', () => {
   let useCase: CreateSessionUseCase;
@@ -109,11 +107,7 @@ describe('CreateSessionUseCase', () => {
 
     // Act & Assert
     await expect(
-      useCase.execute({
-        userId: 'nonexistent-user',
-        email: 'ghost@example.com',
-        cookieWriter,
-      }),
+      useCase.execute({ userId: 'nonexistent-user', email: 'ghost@example.com', cookieWriter }),
     ).rejects.toThrow('User not found after session creation');
   });
 

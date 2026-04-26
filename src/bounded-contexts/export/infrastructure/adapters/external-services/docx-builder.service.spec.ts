@@ -18,11 +18,7 @@ import { DocxStylesService } from './docx-styles.service';
 describe('DocxBuilderService', () => {
   let service: DocxBuilderService;
 
-  const mockUser = {
-    id: 'user-1',
-    name: 'John Doe',
-    email: 'john@example.com',
-  };
+  const mockUser = { id: 'user-1', name: 'John Doe', email: 'john@example.com' };
 
   const mockResume = {
     ...createMockResume({
@@ -39,17 +35,11 @@ describe('DocxBuilderService', () => {
     children: [],
   };
 
-  const stubResumesRepository = {
-    findResumeByUserId: mock().mockResolvedValue(mockResume),
-  };
+  const stubResumesRepository = { findResumeByUserId: mock().mockResolvedValue(mockResume) };
 
-  const stubUsersRepository = {
-    findById: mock().mockResolvedValue(mockUser),
-  };
+  const stubUsersRepository = { findById: mock().mockResolvedValue(mockUser) };
 
-  const stubSectionsService = {
-    createMainSection: mock().mockReturnValue(mockSection),
-  };
+  const stubSectionsService = { createMainSection: mock().mockReturnValue(mockSection) };
 
   const stubStylesService = {
     getDocumentStyles: mock().mockReturnValue({
@@ -108,10 +98,7 @@ describe('DocxBuilderService', () => {
 
       // Now uses generic sections instead of typed DocxResumeData
       expect(stubSectionsService.createMainSection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'John Doe',
-          email: 'john@example.com',
-        }),
+        expect.objectContaining({ name: 'John Doe', email: 'john@example.com' }),
         // Sections array is empty because mockResume.resumeSections is empty
         expect.arrayContaining([]),
       );

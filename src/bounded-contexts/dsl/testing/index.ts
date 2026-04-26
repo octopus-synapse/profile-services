@@ -38,13 +38,7 @@ export class InMemoryDslResumeRepository {
   private resumes = new Map<string, GenericResume>();
   private shares = new Map<
     string,
-    {
-      id: string;
-      slug: string;
-      isActive: boolean;
-      expiresAt: Date | null;
-      resume: GenericResume;
-    }
+    { id: string; slug: string; isActive: boolean; expiresAt: Date | null; resume: GenericResume }
   >();
 
   async findResumeByIdAndUser(resumeId: string, userId: string): Promise<GenericResume | null> {

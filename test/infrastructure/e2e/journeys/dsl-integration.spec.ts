@@ -33,13 +33,7 @@ describe('E2E Journey 6: DSL Integration', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
   let shareSlug: string;
 

@@ -117,21 +117,13 @@ describe('QueueService', () => {
         expect(result.jobId).toBe('job-1');
         expect(exportQueue.add).toHaveBeenCalledWith(
           'generate-pdf',
-          expect.objectContaining({
-            type: 'pdf',
-            resumeId: 'resume-123',
-            userId: 'user-456',
-          }),
+          expect.objectContaining({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' }),
           expect.any(Object),
         );
       });
 
       it('should add DOCX export job to queue', async () => {
-        await service.queueExportJob({
-          type: 'docx',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        await service.queueExportJob({ type: 'docx', resumeId: 'resume-123', userId: 'user-456' });
 
         expect(exportQueue.add).toHaveBeenCalledWith(
           'generate-docx',
@@ -141,21 +133,14 @@ describe('QueueService', () => {
       });
 
       it('should set job options with retry attempts', async () => {
-        await service.queueExportJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        await service.queueExportJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
 
         expect(exportQueue.add).toHaveBeenCalledWith(
           expect.any(String),
           expect.any(Object),
           expect.objectContaining({
             attempts: 3,
-            backoff: expect.objectContaining({
-              type: 'exponential',
-              delay: 2000,
-            }),
+            backoff: expect.objectContaining({ type: 'exponential', delay: 2000 }),
           }),
         );
       });
@@ -164,11 +149,7 @@ describe('QueueService', () => {
     describe('getExportJobStatus', () => {
       it('should return job status', async () => {
         // First create a job
-        await service.queueExportJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        await service.queueExportJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
 
         const status = await service.getExportJobStatus('job-1');
 
@@ -176,9 +157,7 @@ describe('QueueService', () => {
         expect(status?.jobId).toBe('job-1');
         expect(status?.status).toBe('completed');
         expect(status?.progress).toBe(100);
-        expect(status?.result).toEqual({
-          downloadUrl: 'https://example.com/file.pdf',
-        });
+        expect(status?.result).toEqual({ downloadUrl: 'https://example.com/file.pdf' });
       });
 
       it('should return null for non-existent job', async () => {

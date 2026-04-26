@@ -53,22 +53,10 @@ describe('UsernameSchema', () => {
 
   describe('invalid usernames - format', () => {
     const invalidFormats = [
-      {
-        value: 'John-Doe',
-        error: 'lowercase letters, numbers, and underscores',
-      },
-      {
-        value: 'user.name',
-        error: 'lowercase letters, numbers, and underscores',
-      },
-      {
-        value: 'user name',
-        error: 'lowercase letters, numbers, and underscores',
-      },
-      {
-        value: 'user@domain',
-        error: 'lowercase letters, numbers, and underscores',
-      },
+      { value: 'John-Doe', error: 'lowercase letters, numbers, and underscores' },
+      { value: 'user.name', error: 'lowercase letters, numbers, and underscores' },
+      { value: 'user name', error: 'lowercase letters, numbers, and underscores' },
+      { value: 'user@domain', error: 'lowercase letters, numbers, and underscores' },
       { value: '_username', error: 'must start with a letter or number' },
       { value: 'username_', error: 'must end with a letter or number' },
       { value: 'user__name', error: 'cannot contain consecutive underscores' },

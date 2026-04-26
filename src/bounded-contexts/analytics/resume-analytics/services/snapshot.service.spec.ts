@@ -40,12 +40,7 @@ describe('SnapshotService', () => {
     });
 
     it('should use empty arrays for optional keywords', async () => {
-      const input = {
-        resumeId: 'resume-1',
-        atsScore: 85,
-        keywordScore: 80,
-        completenessScore: 90,
-      };
+      const input = { resumeId: 'resume-1', atsScore: 85, keywordScore: 80, completenessScore: 90 };
 
       const result = await service.save(input);
 

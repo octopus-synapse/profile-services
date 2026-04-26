@@ -16,10 +16,7 @@ describe('ResumeCreatedHandler', () => {
   });
 
   it('records resume creation with correct resumeId', async () => {
-    const event = new ResumeCreatedEvent('resume-123', {
-      userId: 'user-1',
-      title: 'Dev Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-123', { userId: 'user-1', title: 'Dev Resume' });
 
     await handler.handle(event);
 

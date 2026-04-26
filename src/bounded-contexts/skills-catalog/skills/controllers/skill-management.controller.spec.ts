@@ -44,12 +44,7 @@ describe('SkillManagementController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SkillManagementController],
-      providers: [
-        {
-          provide: SkillManagementService,
-          useValue: mockService,
-        },
-      ],
+      providers: [{ provide: SkillManagementService, useValue: mockService }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })

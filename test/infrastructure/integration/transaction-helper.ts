@@ -7,13 +7,11 @@
  * each test runs in a transaction and rolls back (fast).
  *
  * Usage:
- *   beforeEach(async () => {
- *     await beginTransaction();
- *   });
+ *   beforeEach(async () => { *     await beginTransaction();
+ * });
  *
- *   afterEach(async () => {
- *     await rollbackTransaction();
- *   });
+ *   afterEach(async () => { *     await rollbackTransaction();
+ * });
  */
 
 import { PrismaClient } from '@prisma/client';

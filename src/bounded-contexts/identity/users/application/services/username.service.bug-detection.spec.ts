@@ -15,7 +15,7 @@ import {
 } from '@/bounded-contexts/identity/shared-kernel/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { UsersRepository } from '../../infrastructure/adapters/persistence/users.repository';
-import { USERNAME_USE_CASES, type UsernameUseCases } from '../ports/username.port';
+import { UsernameUseCases } from '../ports/username.port';
 import { UsernameService } from './username.service';
 
 describe('UsernameService - Bug Detection', () => {
@@ -36,7 +36,7 @@ describe('UsernameService - Bug Detection', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsernameService,
-        { provide: USERNAME_USE_CASES, useValue: mockUseCases },
+        { provide: UsernameUseCases, useValue: mockUseCases },
         { provide: UsersRepository, useValue: usersRepository },
         { provide: AppLoggerService, useValue: logger },
       ],

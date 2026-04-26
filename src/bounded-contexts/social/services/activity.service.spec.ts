@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityType } from '../application/ports/activity.port';
 import {

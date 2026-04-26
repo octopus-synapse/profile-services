@@ -47,12 +47,7 @@ describe('Edge Cases Integration', () => {
       const response = await getRequest()
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: '',
-          summary: '',
-          fullName: '',
-          jobTitle: '',
-        });
+        .send({ title: '', summary: '', fullName: '', jobTitle: '' });
 
       // 422 is valid - Zod validation error
       expect([201, 400, 422]).toContain(response.status);
@@ -62,10 +57,7 @@ describe('Edge Cases Integration', () => {
       const response = await getRequest()
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: '   ',
-          summary: '\t\n  ',
-        });
+        .send({ title: '   ', summary: '\t\n  ' });
 
       // Should trim and either create or reject
       expect(response.status).not.toBe(500);
@@ -282,11 +274,7 @@ describe('Edge Cases Integration', () => {
       const response = await getRequest()
         .post(`/api/v1/resumes/${resumeId}/experiences`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          company: 'Date Corp',
-          position: 'Developer',
-          startDate: 'not-a-date',
-        });
+        .send({ company: 'Date Corp', position: 'Developer', startDate: 'not-a-date' });
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);

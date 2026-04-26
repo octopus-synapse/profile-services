@@ -31,10 +31,7 @@ describe('MecMetadataController - Contract', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MecMetadataController],
       providers: [
-        {
-          provide: InstitutionQueryService,
-          useValue: createInstitutionQueryService(),
-        },
+        { provide: InstitutionQueryService, useValue: createInstitutionQueryService() },
         { provide: CourseQueryService, useValue: createCourseQueryService() },
         { provide: MecStatsService, useValue: createStatsService() },
       ],

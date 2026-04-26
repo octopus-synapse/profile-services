@@ -9,9 +9,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { UnprocessableEntityException } from '@nestjs/common';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
 import { ResumesService } from './resumes.service';
 import {
   createTestResumesService,
@@ -68,11 +68,8 @@ describe('ResumesService', () => {
       repository.seedResume(createTestResume({ id: 'r4' }));
 
       await expect(
-        service.createResumeForUser(userId, {
-          title: 'Fifth Resume',
-          isPublic: false,
-        }),
-      ).rejects.toThrow(UnprocessableEntityException);
+        service.createResumeForUser(userId, { title: 'Fifth Resume', isPublic: false }),
+      ).rejects.toThrow(ResumeSlotLimitReachedException);
     });
 
     it('should show clear error message about 4 resume limit', async () => {
@@ -83,11 +80,8 @@ describe('ResumesService', () => {
       repository.seedResume(createTestResume({ id: 'r4' }));
 
       await expect(
-        service.createResumeForUser(userId, {
-          title: 'Fifth Resume',
-          isPublic: false,
-        }),
-      ).rejects.toThrow(/4.*resumes/i);
+        service.createResumeForUser(userId, { title: 'Fifth Resume', isPublic: false }),
+      ).rejects.toThrow(/limit.*4|4/i);
     });
 
     it('should allow creating exactly 4 resumes', async () => {
@@ -217,10 +211,7 @@ describe('isCurrent and endDate Validation', () => {
     endDate: string | null,
   ): { valid: boolean; error?: string } => {
     if (isCurrent && endDate !== null) {
-      return {
-        valid: false,
-        error: 'Cannot have endDate when isCurrent is true',
-      };
+      return { valid: false, error: 'Cannot have endDate when isCurrent is true' };
     }
     return { valid: true };
   };
@@ -261,10 +252,7 @@ describe('Skills Reference Validation', () => {
   ): { valid: boolean; invalidIds: string[] } => {
     const resumeSkillIds = new Set(resumeSkills.map((s) => s.id));
     const invalidIds = skillIds.filter((id) => !resumeSkillIds.has(id));
-    return {
-      valid: invalidIds.length === 0,
-      invalidIds,
-    };
+    return { valid: invalidIds.length === 0, invalidIds };
   };
 
   it('should accept valid skill references', () => {

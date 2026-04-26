@@ -64,10 +64,7 @@ describe('Disable2faUseCase', () => {
     it('should not affect other users records when disabling', async () => {
       // Arrange
       repository.seedTwoFactor(DEFAULT_ENABLED_TWO_FACTOR_RECORD);
-      const otherUserRecord = createTwoFactorRecord({
-        userId: 'other-user',
-        enabled: true,
-      });
+      const otherUserRecord = createTwoFactorRecord({ userId: 'other-user', enabled: true });
       repository.seedTwoFactor(otherUserRecord);
       repository.seedBackupCode(
         createBackupCodeRecord({

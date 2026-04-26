@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { USER_PROFILE_USE_CASES } from '../../application/ports/user-profile.port';
+import { UserProfileUseCases } from '../../application/ports/user-profile.port';
 import { UsernameService } from '../../application/services/username.service';
 import { UsersProfileController } from './users-profile.controller';
 
@@ -73,12 +73,7 @@ const createMockUsernameService = () => ({
 });
 
 function createAuthUser(overrides: Partial<UserPayload> = {}): UserPayload {
-  return {
-    userId: 'user-1',
-    email: 'test@test.com',
-    hasCompletedOnboarding: true,
-    ...overrides,
-  };
+  return { userId: 'user-1', email: 'test@test.com', hasCompletedOnboarding: true, ...overrides };
 }
 
 describe('UsersProfileController - Contract', () => {
@@ -90,7 +85,7 @@ describe('UsersProfileController - Contract', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersProfileController],
       providers: [
-        { provide: USER_PROFILE_USE_CASES, useValue: createMockProfileUseCases() },
+        { provide: UserProfileUseCases, useValue: createMockProfileUseCases() },
         { provide: UsernameService, useValue: createMockUsernameService() },
       ],
     }).compile();

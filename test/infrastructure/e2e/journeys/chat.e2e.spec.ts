@@ -109,10 +109,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({
-          recipientId: user2.userId,
-          content: 'Hello from User 1!',
-        });
+        .send({ recipientId: user2.userId, content: 'Hello from User 1!' });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -128,10 +125,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({
-          recipientId: user1.userId,
-          content: 'Hello to myself',
-        });
+        .send({ recipientId: user1.userId, content: 'Hello to myself' });
 
       expect(response.status).toBe(400);
     });
@@ -187,9 +181,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post(`/api/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${user2.token}`)
-        .send({
-          content: 'Hello back from User 2!',
-        });
+        .send({ content: 'Hello back from User 2!' });
 
       expect(response.status).toBe(201);
       expect(response.body.data.message.content).toBe('Hello back from User 2!');
@@ -206,9 +198,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post(`/api/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${result3.token}`)
-        .send({
-          content: 'Intruder message',
-        });
+        .send({ content: 'Intruder message' });
 
       expect(response.status).toBe(403);
 
@@ -300,9 +290,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/blocked')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({
-          userId: user2.userId,
-        });
+        .send({ userId: user2.userId });
 
       expect(response.status).toBe(201);
       expect(response.body.data.block).toBeDefined();
@@ -331,10 +319,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({
-          recipientId: user2.userId,
-          content: 'Message to blocked user',
-        });
+        .send({ recipientId: user2.userId, content: 'Message to blocked user' });
 
       expect(response.status).toBe(403);
     });
@@ -343,10 +328,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/messages')
         .set('Authorization', `Bearer ${user2.token}`)
-        .send({
-          recipientId: user1.userId,
-          content: 'Message from blocked user',
-        });
+        .send({ recipientId: user1.userId, content: 'Message from blocked user' });
 
       expect(response.status).toBe(403);
     });
@@ -374,10 +356,7 @@ describe('E2E Journey: Chat', () => {
       const response = await request(app.getHttpServer())
         .post('/api/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({
-          recipientId: user2.userId,
-          content: 'Message after unblock',
-        });
+        .send({ recipientId: user2.userId, content: 'Message after unblock' });
 
       expect(response.status).toBe(201);
       expect(response.body.data.message.content).toBe('Message after unblock');
@@ -392,10 +371,9 @@ describe('E2E Journey: Chat', () => {
     });
 
     it('should reject unauthenticated access to messages', async () => {
-      const response = await request(app.getHttpServer()).post('/api/chat/messages').send({
-        recipientId: user2.userId,
-        content: 'Unauthorized message',
-      });
+      const response = await request(app.getHttpServer())
+        .post('/api/chat/messages')
+        .send({ recipientId: user2.userId, content: 'Unauthorized message' });
 
       expect(response.status).toBe(401);
     });

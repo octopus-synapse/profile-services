@@ -50,9 +50,7 @@ const createRepo = (overrides: Partial<GitHubRepo> = {}): GitHubRepo => ({
   full_name: 'testuser/test-repo',
   html_url: 'https://github.com/testuser/test-repo',
   description: 'A test repository',
-  owner: {
-    login: 'testuser',
-  },
+  owner: { login: 'testuser' },
   stargazers_count: 10,
   forks_count: 5,
   language: 'TypeScript',
@@ -163,9 +161,7 @@ describe('GitHubContributionService', () => {
       const recentDate = new Date();
       recentDate.setDate(recentDate.getDate() - 30); // 30 days ago
 
-      const repo = createRepo({
-        pushed_at: recentDate.toISOString(),
-      });
+      const repo = createRepo({ pushed_at: recentDate.toISOString() });
 
       const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
@@ -176,9 +172,7 @@ describe('GitHubContributionService', () => {
       const oldDate = new Date();
       oldDate.setDate(oldDate.getDate() - 100); // 100 days ago
 
-      const repo = createRepo({
-        pushed_at: oldDate.toISOString(),
-      });
+      const repo = createRepo({ pushed_at: oldDate.toISOString() });
 
       const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
@@ -197,10 +191,7 @@ describe('GitHubContributionService', () => {
     });
 
     it('should fallback to language when no topics', async () => {
-      const repo = createRepo({
-        topics: [],
-        language: 'Python',
-      });
+      const repo = createRepo({ topics: [], language: 'Python' });
 
       const result = await service.processContributions('resume-123', 'testuser', [repo]);
 

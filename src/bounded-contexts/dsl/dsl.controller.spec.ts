@@ -24,20 +24,14 @@ describe('DslController', () => {
 
   const mockDsl = {
     version: '2.0',
-    content: {
-      name: 'John Doe',
-      title: 'Software Engineer',
-    },
+    content: { name: 'John Doe', title: 'Software Engineer' },
     styles: {
       typography: { fontSize: 'md' },
     },
   };
 
   const mockAst = {
-    meta: {
-      version: '1.0',
-      generatedAt: '2024-01-01T00:00:00.000Z',
-    },
+    meta: { version: '1.0', generatedAt: '2024-01-01T00:00:00.000Z' },
     page: {
       widthMm: 210,
       heightMm: 297,
@@ -52,11 +46,7 @@ describe('DslController', () => {
     globalStyles: {},
   };
 
-  const mockValidationResult = {
-    valid: true,
-    errors: [],
-    warnings: [],
-  };
+  const mockValidationResult = { valid: true, errors: [], warnings: [] };
 
   beforeEach(() => {
     mockDslService = {

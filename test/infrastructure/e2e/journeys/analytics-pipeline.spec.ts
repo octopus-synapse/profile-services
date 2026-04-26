@@ -31,13 +31,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
   let prisma: PrismaService;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
   let _firstSnapshotAtsScore: number;
 

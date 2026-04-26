@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import type {
   ResumeVersionListItem,
   ResumeVersionRecord,
-  ResumeVersionUseCases,
   VersionRestoreResult,
 } from './resume-version/ports/resume-version.port';
+import { ResumeVersionUseCases } from './resume-version/ports/resume-version.port';
 import { ResumeVersionService } from './resume-version.service';
 
 /**
@@ -14,11 +14,7 @@ import { ResumeVersionService } from './resume-version.service';
 class StubUseCases implements ResumeVersionUseCases {
   lastCreateSnapshotCall: { resumeId: string; label?: string } | null = null;
   lastGetVersionsCall: { resumeId: string; userId: string } | null = null;
-  lastRestoreVersionCall: {
-    resumeId: string;
-    versionId: string;
-    userId: string;
-  } | null = null;
+  lastRestoreVersionCall: { resumeId: string; versionId: string; userId: string } | null = null;
   shouldThrowOnRestore = false;
 
   createSnapshotUseCase = {
@@ -38,14 +34,7 @@ class StubUseCases implements ResumeVersionUseCases {
   getVersionsUseCase = {
     execute: async (resumeId: string, userId: string): Promise<ResumeVersionListItem[]> => {
       this.lastGetVersionsCall = { resumeId, userId };
-      return [
-        {
-          id: 'v-1',
-          versionNumber: 1,
-          label: 'label',
-          createdAt: new Date('2026-01-01'),
-        },
-      ];
+      return [{ id: 'v-1', versionNumber: 1, label: 'label', createdAt: new Date('2026-01-01') }];
     },
   };
 
@@ -59,9 +48,7 @@ class StubUseCases implements ResumeVersionUseCases {
         throw new Error('cannot restore');
       }
       this.lastRestoreVersionCall = { resumeId, versionId, userId };
-      return {
-        restoredFrom: new Date('2026-01-01'),
-      };
+      return { restoredFrom: new Date('2026-01-01') };
     },
   };
 }
@@ -78,10 +65,7 @@ describe('ResumeVersionService (Facade)', () => {
   it('delegates createSnapshot to use case', async () => {
     const result = await service.createSnapshot('resume-1', 'label');
 
-    expect(useCases.lastCreateSnapshotCall).toEqual({
-      resumeId: 'resume-1',
-      label: 'label',
-    });
+    expect(useCases.lastCreateSnapshotCall).toEqual({ resumeId: 'resume-1', label: 'label' });
 
     expect(result).toBeUndefined();
   });
@@ -89,18 +73,10 @@ describe('ResumeVersionService (Facade)', () => {
   it('delegates getVersions to use case', async () => {
     const result = await service.getVersions('resume-1', 'user-1');
 
-    expect(useCases.lastGetVersionsCall).toEqual({
-      resumeId: 'resume-1',
-      userId: 'user-1',
-    });
+    expect(useCases.lastGetVersionsCall).toEqual({ resumeId: 'resume-1', userId: 'user-1' });
 
     expect(result).toEqual([
-      {
-        id: 'v-1',
-        versionNumber: 1,
-        label: 'label',
-        createdAt: expect.any(Date),
-      },
+      { id: 'v-1', versionNumber: 1, label: 'label', createdAt: expect.any(Date) },
     ]);
   });
 
@@ -113,9 +89,7 @@ describe('ResumeVersionService (Facade)', () => {
       userId: 'user-1',
     });
 
-    expect(result).toEqual({
-      restoredFrom: expect.any(Date),
-    });
+    expect(result).toEqual({ restoredFrom: expect.any(Date) });
   });
 
   it('propagates errors from restoreVersion use case', async () => {
@@ -129,10 +103,7 @@ describe('ResumeVersionService (Facade)', () => {
   it('creates snapshot without label', async () => {
     await service.createSnapshot('resume-1');
 
-    expect(useCases.lastCreateSnapshotCall).toEqual({
-      resumeId: 'resume-1',
-      label: undefined,
-    });
+    expect(useCases.lastCreateSnapshotCall).toEqual({ resumeId: 'resume-1', label: undefined });
 
     expect(useCases.lastCreateSnapshotCall?.label).toBeUndefined();
   });

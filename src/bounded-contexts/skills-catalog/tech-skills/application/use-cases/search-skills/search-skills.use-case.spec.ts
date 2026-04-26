@@ -71,10 +71,7 @@ describe('SearchSkillsUseCase', () => {
 
     expect(result.length).toBeGreaterThan(0);
     expect(result[0]).toMatchObject({
-      niche: expect.objectContaining({
-        slug: expect.any(String),
-        nameEn: expect.any(String),
-      }),
+      niche: expect.objectContaining({ slug: expect.any(String), nameEn: expect.any(String) }),
     });
   });
 

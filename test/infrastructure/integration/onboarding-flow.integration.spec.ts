@@ -67,21 +67,13 @@ async function createTestAccount(
   password = 'SecurePass123!',
 ): Promise<TestAccount> {
   const email = uniqueEmail(prefix);
-  const response = await getRequest().post('/api/accounts').send({
-    email,
-    password,
-    name,
-  });
+  const response = await getRequest().post('/api/accounts').send({ email, password, name });
 
   if (response.status !== 201 || !response.body.data?.userId) {
     throw new Error(`Signup failed: ${JSON.stringify(response.body)}`);
   }
 
-  return {
-    email,
-    password,
-    userId: response.body.data.userId,
-  };
+  return { email, password, userId: response.body.data.userId };
 }
 
 async function loginTestAccount(email: string, password: string): Promise<string> {
@@ -192,11 +184,9 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should create account with valid credentials', async () => {
-      const response = await getRequest().post('/api/accounts').send({
-        email: testEmail,
-        password: 'SecurePass123!',
-        name: 'Test User',
-      });
+      const response = await getRequest()
+        .post('/api/accounts')
+        .send({ email: testEmail, password: 'SecurePass123!', name: 'Test User' });
 
       expect(response.status).toBe(201);
       expect(response.body.data).toHaveProperty('userId');
@@ -208,20 +198,16 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with existing email', async () => {
       // First signup
-      const first = await getRequest().post('/api/accounts').send({
-        email: testEmail,
-        password: 'SecurePass123!',
-        name: 'First User',
-      });
+      const first = await getRequest()
+        .post('/api/accounts')
+        .send({ email: testEmail, password: 'SecurePass123!', name: 'First User' });
 
       userId = first.body.data?.userId;
 
       // Second signup with same email
-      const response = await getRequest().post('/api/accounts').send({
-        email: testEmail,
-        password: 'DifferentPass123!',
-        name: 'Second User',
-      });
+      const response = await getRequest()
+        .post('/api/accounts')
+        .send({ email: testEmail, password: 'DifferentPass123!', name: 'Second User' });
 
       expect(response.status).toBe(409);
     });
@@ -229,22 +215,16 @@ describe('Complete Onboarding Flow', () => {
     it('should reject signup with weak password', async () => {
       const response = await getRequest()
         .post('/api/accounts')
-        .send({
-          email: uniqueEmail('weak-pass'),
-          password: '123',
-          name: 'Weak Pass User',
-        });
+        .send({ email: uniqueEmail('weak-pass'), password: '123', name: 'Weak Pass User' });
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
     });
 
     it('should reject signup with invalid email format', async () => {
-      const response = await getRequest().post('/api/accounts').send({
-        email: 'not-an-email',
-        password: 'SecurePass123!',
-        name: 'Invalid Email User',
-      });
+      const response = await getRequest()
+        .post('/api/accounts')
+        .send({ email: 'not-an-email', password: 'SecurePass123!', name: 'Invalid Email User' });
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
@@ -426,10 +406,7 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'personal-info',
           completedSteps: ['welcome'],
-          personalInfo: {
-            fullName: 'Test User',
-            email: 'test@example.com',
-          },
+          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
         });
 
       expect(response.status).toBe(200);
@@ -443,14 +420,8 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'professional-profile',
           completedSteps: ['welcome', 'personal-info'],
-          personalInfo: {
-            fullName: 'Test User',
-            email: 'test@example.com',
-          },
-          professionalProfile: {
-            jobTitle: 'Software Engineer',
-            summary: 'Experienced developer',
-          },
+          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
+          professionalProfile: { jobTitle: 'Software Engineer', summary: 'Experienced developer' },
         });
 
       expect(response.status).toBe(200);
@@ -463,13 +434,7 @@ describe('Complete Onboarding Flow', () => {
         .send(
           createSectionProgressPayload(
             'work_experience_v1',
-            [
-              {
-                company: 'Tech Corp',
-                role: 'Developer',
-                startDate: '2020-01-01',
-              },
-            ],
+            [{ company: 'Tech Corp', role: 'Developer', startDate: '2020-01-01' }],
             ['welcome', 'personal-info', 'professional-profile'],
           ),
         );
@@ -648,11 +613,7 @@ describe('Complete Onboarding Flow', () => {
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
-          createOnboardingPayload({
-            username,
-            fullName: 'First User',
-            email: 'first@test.com',
-          }),
+          createOnboardingPayload({ username, fullName: 'First User', email: 'first@test.com' }),
         );
 
       if (first.status !== 200 && first.status !== 201) return;
@@ -671,11 +632,7 @@ describe('Complete Onboarding Flow', () => {
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${token2}`)
         .send(
-          createOnboardingPayload({
-            username,
-            fullName: 'Second User',
-            email: 'second@test.com',
-          }),
+          createOnboardingPayload({ username, fullName: 'Second User', email: 'second@test.com' }),
         );
 
       expect(response.status).toBe(409);

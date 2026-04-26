@@ -120,11 +120,7 @@ export class InMemoryResumeRepository {
     import?: { connect: { id: string } };
   }): Promise<{ id: string }> {
     const id = `resume-${this.idCounter++}`;
-    const resume = {
-      id,
-      userId: data.userId,
-      title: data.title,
-    };
+    const resume = { id, userId: data.userId, title: data.title };
     this.resumes.set(id, resume);
     return resume;
   }

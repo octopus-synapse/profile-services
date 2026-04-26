@@ -10,10 +10,7 @@ describe('scoreKeywordMatch', () => {
   });
 
   it('matches case-insensitively', () => {
-    const result = scoreKeywordMatch({
-      required: ['rust', 'tokio'],
-      candidate: ['Rust', 'TOKIO'],
-    });
+    const result = scoreKeywordMatch({ required: ['rust', 'tokio'], candidate: ['Rust', 'TOKIO'] });
     expect(result.score).toBe(100);
     expect(result.detail.missing).toEqual([]);
   });
@@ -27,20 +24,14 @@ describe('scoreKeywordMatch', () => {
   });
 
   it('emits misses with the original casing for UI display', () => {
-    const result = scoreKeywordMatch({
-      required: ['Rust', 'Kubernetes'],
-      candidate: ['Rust'],
-    });
+    const result = scoreKeywordMatch({ required: ['Rust', 'Kubernetes'], candidate: ['Rust'] });
     expect(result.score).toBe(50);
     expect(result.detail.matched).toEqual(['Rust']);
     expect(result.detail.missing).toEqual(['Kubernetes']);
   });
 
   it('dedupes the required side so duplicates cannot inflate denominator', () => {
-    const result = scoreKeywordMatch({
-      required: ['Rust', 'rust', 'RUST'],
-      candidate: ['Rust'],
-    });
+    const result = scoreKeywordMatch({ required: ['Rust', 'rust', 'RUST'], candidate: ['Rust'] });
     expect(result.score).toBe(100);
     expect(result.detail.matched).toEqual(['Rust']);
   });

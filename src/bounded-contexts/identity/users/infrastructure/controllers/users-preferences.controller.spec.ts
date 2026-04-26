@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { USER_PREFERENCES_USE_CASES } from '../../application/ports/user-preferences.port';
+import { UserPreferencesUseCases } from '../../application/ports/user-preferences.port';
 import { UsersPreferencesController } from './users-preferences.controller';
 
 const makeFullPreferences = () => ({
@@ -44,24 +44,13 @@ const createMockPreferencesUseCases = () => ({
   getPreferencesUseCase: {
     execute: mock(() => Promise.resolve({ locale: 'pt-BR', timezone: 'America/Sao_Paulo' })),
   },
-  updatePreferencesUseCase: {
-    execute: mock(() => Promise.resolve()),
-  },
-  getFullPreferencesUseCase: {
-    execute: mock(() => Promise.resolve(makeFullPreferences())),
-  },
-  updateFullPreferencesUseCase: {
-    execute: mock(() => Promise.resolve(makeFullPreferences())),
-  },
+  updatePreferencesUseCase: { execute: mock(() => Promise.resolve()) },
+  getFullPreferencesUseCase: { execute: mock(() => Promise.resolve(makeFullPreferences())) },
+  updateFullPreferencesUseCase: { execute: mock(() => Promise.resolve(makeFullPreferences())) },
 });
 
 function createAuthUser(overrides: Partial<UserPayload> = {}): UserPayload {
-  return {
-    userId: 'user-1',
-    email: 'test@test.com',
-    hasCompletedOnboarding: true,
-    ...overrides,
-  };
+  return { userId: 'user-1', email: 'test@test.com', hasCompletedOnboarding: true, ...overrides };
 }
 
 describe('UsersPreferencesController - Contract', () => {
@@ -74,9 +63,7 @@ describe('UsersPreferencesController - Contract', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersPreferencesController],
-      providers: [
-        { provide: USER_PREFERENCES_USE_CASES, useValue: createMockPreferencesUseCases() },
-      ],
+      providers: [{ provide: UserPreferencesUseCases, useValue: createMockPreferencesUseCases() }],
     }).compile();
 
     controller = module.get<UsersPreferencesController>(UsersPreferencesController);

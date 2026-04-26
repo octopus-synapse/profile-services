@@ -54,7 +54,7 @@ function extractControllerInfo(filePath: string) {
 function normalizePath(path: string): string {
   return path
     .replace(/^\/api\/?/, '/')
-    .replace(/\{[^}]+\}/g, ':param')
+    .replace(/\{ [^ }]+\}/g, ':param')
     .replace(/:[^/]+/g, ':param')
     .replace(/\/+/g, '/')
     .replace(/\/$/, '')

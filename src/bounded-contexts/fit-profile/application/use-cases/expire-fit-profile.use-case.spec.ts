@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 import {
   type SavedUserFitProfile,
   UserFitProfileRepositoryPort,
@@ -11,6 +11,8 @@ const stubEventPublisher: EventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
+
+const stubLogger: LoggerPort = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 class StubProfiles extends UserFitProfileRepositoryPort {
   public row: SavedUserFitProfile | null = null;
@@ -29,7 +31,7 @@ describe('ExpireFitProfileUseCase', () => {
 
   beforeEach(() => {
     profiles = new StubProfiles();
-    useCase = new ExpireFitProfileUseCase(profiles, stubEventPublisher);
+    useCase = new ExpireFitProfileUseCase(profiles, stubEventPublisher, stubLogger);
   });
 
   it('reports not expired when there is no row', async () => {

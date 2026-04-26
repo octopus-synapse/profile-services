@@ -81,7 +81,7 @@ function validDesignTokens() {
       fontSize: 10,
       fontFamily: 'Inter',
       color: '#333',
-      separator: ',',
+      separator: ', ',
       separatorColor: '#999',
       justify: false,
     },

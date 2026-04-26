@@ -112,11 +112,9 @@ describe('Error Handling Integration', () => {
 
   describe('BUG-029: Validation Error Format', () => {
     it('should return structured validation errors', async () => {
-      const response = await getRequest().post('/api/accounts').send({
-        email: 'not-an-email',
-        password: 'short',
-        name: '',
-      });
+      const response = await getRequest()
+        .post('/api/accounts')
+        .send({ email: 'not-an-email', password: 'short', name: '' });
 
       // 400 or 422 for validation errors (Zod returns 422 by default)
       expect([400, 422]).toContain(response.status);
@@ -126,10 +124,7 @@ describe('Error Handling Integration', () => {
     });
 
     it('should list all validation errors', async () => {
-      const response = await getRequest().post('/api/auth/login').send({
-        email: '',
-        password: '',
-      });
+      const response = await getRequest().post('/api/auth/login').send({ email: '', password: '' });
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);

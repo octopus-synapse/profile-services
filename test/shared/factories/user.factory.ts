@@ -92,8 +92,5 @@ export function createMockSuperAdmin(options: CreateMockUserOptions = {}): User 
 }
 
 export function createMockVerifiedUser(options: CreateMockUserOptions = {}): User {
-  return createMockUser({
-    ...options,
-    emailVerified: new Date(),
-  });
+  return createMockUser({ ...options, emailVerified: new Date() });
 }

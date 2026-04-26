@@ -57,9 +57,7 @@ export async function createE2ETestApp(): Promise<{
     };
   }
 
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
-  })
+  const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(EmailSenderService)
     .useClass(MockEmailSenderService)
     .compile();

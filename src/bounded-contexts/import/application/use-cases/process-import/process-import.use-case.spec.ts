@@ -51,10 +51,7 @@ describe('ProcessImportUseCase', () => {
   });
 
   it('should fail when no raw data', async () => {
-    const job = await repository.create({
-      userId: 'user-123',
-      source: 'JSON',
-    });
+    const job = await repository.create({ userId: 'user-123', source: 'JSON' });
 
     const result = await useCase.execute(job.id);
 

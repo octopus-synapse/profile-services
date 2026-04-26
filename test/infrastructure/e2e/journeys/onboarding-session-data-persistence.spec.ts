@@ -20,13 +20,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -156,10 +150,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       expect(beforeTemplate.body.data.currentStep).toBe('template');
 
       // Now advance from template to review WITH template data
-      const templateData = {
-        templateId: 'modern',
-        colorScheme: 'blue',
-      };
+      const templateData = { templateId: 'modern', colorScheme: 'blue' };
 
       const advanceResponse = await request(app.getHttpServer())
         .post('/api/v1/onboarding/session/next')
@@ -216,10 +207,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       await request(app.getHttpServer())
         .post('/api/v1/onboarding/session/next')
         .set('Authorization', `Bearer ${completeTestUser.token}`)
-        .send({
-          fullName: 'Complete Test User',
-          email: completeTestUser.email,
-        });
+        .send({ fullName: 'Complete Test User', email: completeTestUser.email });
 
       // Step 3: username -> professional-profile
       await request(app.getHttpServer())

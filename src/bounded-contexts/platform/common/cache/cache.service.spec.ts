@@ -63,10 +63,7 @@ describe('CacheService (Adapter)', () => {
         return value;
       }),
     },
-    redisConnection: {
-      onModuleDestroy: mock().mockResolvedValue(undefined),
-      client: null,
-    },
+    redisConnection: { onModuleDestroy: mock().mockResolvedValue(undefined), client: null },
   });
 
   beforeEach(async () => {

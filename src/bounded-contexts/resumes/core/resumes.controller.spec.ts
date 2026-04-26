@@ -52,10 +52,7 @@ class StubResumesService extends ResumesServicePort {
     page?: number,
     limit?: number,
   ): Promise<ResumeResult[] | UserResumesPaginatedResult> {
-    this.calls.push({
-      method: 'findAllUserResumes',
-      args: [userId, page, limit],
-    });
+    this.calls.push({ method: 'findAllUserResumes', args: [userId, page, limit] });
     return this.mockPaginatedResumes;
   }
 
@@ -75,10 +72,7 @@ class StubResumesService extends ResumesServicePort {
   }
 
   async updateResumeForUser(id: string, userId: string, data: UpdateResume): Promise<ResumeResult> {
-    this.calls.push({
-      method: 'updateResumeForUser',
-      args: [id, userId, data],
-    });
+    this.calls.push({ method: 'updateResumeForUser', args: [id, userId, data] });
     return this.mockResume;
   }
 
@@ -180,11 +174,7 @@ describe('ResumesController', () => {
 
   describe('createResumeForUser', () => {
     it('should return DataResponse with created resume', async () => {
-      const createData = {
-        title: 'New Resume',
-        template: 'MINIMAL' as const,
-        isPublic: false,
-      };
+      const createData = { title: 'New Resume', template: 'MINIMAL' as const, isPublic: false };
 
       const result = await controller.createResumeForUser(mockUser, createData);
 

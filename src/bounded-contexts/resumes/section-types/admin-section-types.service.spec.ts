@@ -84,16 +84,8 @@ describe('AdminSectionTypesService', () => {
     });
 
     it('should filter by isActive', async () => {
-      repository.seedSectionType({
-        key: 'active_v1',
-        title: 'Active',
-        isActive: true,
-      });
-      repository.seedSectionType({
-        key: 'inactive_v1',
-        title: 'Inactive',
-        isActive: false,
-      });
+      repository.seedSectionType({ key: 'active_v1', title: 'Active', isActive: true });
+      repository.seedSectionType({ key: 'inactive_v1', title: 'Inactive', isActive: false });
 
       const result = await service.findAll({ isActive: true, page: 1, pageSize: 10 });
 
@@ -107,11 +99,7 @@ describe('AdminSectionTypesService', () => {
         title: 'Work',
         semanticKind: 'WORK_EXPERIENCE',
       });
-      repository.seedSectionType({
-        key: 'edu_v1',
-        title: 'Education',
-        semanticKind: 'EDUCATION',
-      });
+      repository.seedSectionType({ key: 'edu_v1', title: 'Education', semanticKind: 'EDUCATION' });
 
       const result = await service.findAll({
         semanticKind: 'WORK_EXPERIENCE',
@@ -187,21 +175,14 @@ describe('AdminSectionTypesService', () => {
     });
 
     it('should throw ConflictException if slug + version exists', async () => {
-      repository.seedSectionType({
-        key: 'test_section_v1',
-        slug: 'new-section',
-        version: 1,
-      });
+      repository.seedSectionType({ key: 'test_section_v1', slug: 'new-section', version: 1 });
 
       await expect(service.create(createDto)).rejects.toThrow(ConflictException);
     });
   });
 
   describe('update', () => {
-    const updateDto = {
-      title: 'Updated Title',
-      icon: '🔄',
-    };
+    const updateDto = { title: 'Updated Title', icon: '🔄' };
 
     beforeEach(() => {
       repository.seedSectionType({
@@ -312,10 +293,7 @@ describe('AdminSectionTypesService', () => {
     it('should throw ValidationException if section type is in use', async () => {
       const sectionType = repository.getSectionType('test_section_v1');
       if (!sectionType) throw new Error('Section type not found in test setup');
-      repository.seedResumeSection({
-        resumeId: 'resume-1',
-        sectionTypeId: sectionType.id,
-      });
+      repository.seedResumeSection({ resumeId: 'resume-1', sectionTypeId: sectionType.id });
 
       await expect(service.remove('test_section_v1')).rejects.toThrow(ValidationException);
     });
@@ -323,22 +301,10 @@ describe('AdminSectionTypesService', () => {
 
   describe('getSemanticKinds', () => {
     it('should return unique semantic kinds', async () => {
-      repository.seedSectionType({
-        key: 'work_v1',
-        semanticKind: 'WORK_EXPERIENCE',
-      });
-      repository.seedSectionType({
-        key: 'work_v2',
-        semanticKind: 'WORK_EXPERIENCE',
-      });
-      repository.seedSectionType({
-        key: 'edu_v1',
-        semanticKind: 'EDUCATION',
-      });
-      repository.seedSectionType({
-        key: 'skill_v1',
-        semanticKind: 'SKILL_SET',
-      });
+      repository.seedSectionType({ key: 'work_v1', semanticKind: 'WORK_EXPERIENCE' });
+      repository.seedSectionType({ key: 'work_v2', semanticKind: 'WORK_EXPERIENCE' });
+      repository.seedSectionType({ key: 'edu_v1', semanticKind: 'EDUCATION' });
+      repository.seedSectionType({ key: 'skill_v1', semanticKind: 'SKILL_SET' });
 
       const result = await service.getSemanticKinds();
 

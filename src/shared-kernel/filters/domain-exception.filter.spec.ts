@@ -23,10 +23,7 @@ function mockHost(acceptLanguage?: string): {
   };
   const host = {
     getType: () => 'http',
-    switchToHttp: () => ({
-      getResponse: () => response,
-      getRequest: () => request,
-    }),
+    switchToHttp: () => ({ getResponse: () => response, getRequest: () => request }),
   } as unknown as ArgumentsHost;
   return { host, status, json, setHeader };
 }

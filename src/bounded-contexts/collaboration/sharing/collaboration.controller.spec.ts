@@ -22,26 +22,15 @@ describe('CollaborationController', () => {
   let repo: InMemoryCollaborationRepository;
   type AuthUser = Parameters<CollaborationController['invite']>[2];
 
-  const mockUser = {
-    userId: 'user-1',
-    email: 'test@example.com',
-  } as unknown as AuthUser;
+  const mockUser = { userId: 'user-1', email: 'test@example.com' } as unknown as AuthUser;
 
   beforeEach(() => {
     repo = new InMemoryCollaborationRepository();
     const useCases = buildCollaborationUseCases(repo, noopEventPublisher);
     controller = new CollaborationController(useCases, stubCommentService);
 
-    repo.seedResume({
-      id: 'resume-1',
-      userId: 'user-1',
-      title: 'Test Resume',
-    });
-    repo.seedUser({
-      id: 'user-2',
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-    });
+    repo.seedResume({ id: 'resume-1', userId: 'user-1', title: 'Test Resume' });
+    repo.seedUser({ id: 'user-2', name: 'Jane Doe', email: 'jane@example.com' });
   });
 
   describe('invite', () => {
@@ -96,16 +85,8 @@ describe('CollaborationController', () => {
 
   describe('getSharedWithMe', () => {
     it('should return resumes shared with user', async () => {
-      repo.seedResume({
-        id: 'resume-2',
-        userId: 'other-user',
-        title: 'Shared Resume',
-      });
-      repo.seedCollaborator({
-        resumeId: 'resume-2',
-        userId: 'user-1',
-        role: 'EDITOR',
-      });
+      repo.seedResume({ id: 'resume-2', userId: 'other-user', title: 'Shared Resume' });
+      repo.seedCollaborator({ resumeId: 'resume-2', userId: 'user-1', role: 'EDITOR' });
 
       const result = await controller.getSharedWithMe(mockUser);
 

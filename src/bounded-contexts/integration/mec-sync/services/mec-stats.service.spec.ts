@@ -71,10 +71,7 @@ describe('MecStatsService', () => {
       const result = await service.getMecStatistics();
 
       expect(result.institutionsByUf).toHaveLength(3);
-      expect(result.institutionsByUf[0]).toMatchObject({
-        uf: 'SP',
-        count: 500,
-      });
+      expect(result.institutionsByUf[0]).toMatchObject({ uf: 'SP', count: 500 });
     });
 
     it('should handle null degree gracefully', async () => {

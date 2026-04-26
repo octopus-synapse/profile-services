@@ -56,10 +56,9 @@ describe('ToS Acceptance Flow Integration', () => {
 
     await verifyUserEmailInDb(email);
 
-    const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-      email,
-      password,
-    });
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email, password });
 
     return {
       userId: signupResponse.body.data.userId,
@@ -76,14 +75,9 @@ describe('ToS Acceptance Flow Integration', () => {
   }
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
+    const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(EmailSenderService)
-      .useValue({
-        sendEmail: mock().mockResolvedValue(true),
-        isConfigured: true,
-      })
+      .useValue({ sendEmail: mock().mockResolvedValue(true), isConfigured: true })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -134,9 +128,7 @@ describe('ToS Acceptance Flow Integration', () => {
       const tosResponse = await request(app.getHttpServer())
         .post('/api/v1/users/me/accept-consent')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          documentType: ConsentDocumentType.TERMS_OF_SERVICE,
-        })
+        .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
         .expect(201);
 
       expect(tosResponse.body.data.consent).toBeDefined();
@@ -145,9 +137,7 @@ describe('ToS Acceptance Flow Integration', () => {
       const privacyResponse = await request(app.getHttpServer())
         .post('/api/v1/users/me/accept-consent')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          documentType: ConsentDocumentType.PRIVACY_POLICY,
-        })
+        .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
         .expect(201);
 
       expect(privacyResponse.body.data.consent).toBeDefined();

@@ -26,7 +26,7 @@ describe('SDK Generation - Swagger Spec Validation', () => {
     // Should have paths
     expect(swagger.paths).toBeDefined();
     expect(Object.keys(swagger.paths)).toContain('/api/resume-import/json');
-    expect(Object.keys(swagger.paths)).toContain('/api/resume-import/{importId}');
+    expect(Object.keys(swagger.paths)).toContain('/api/resume-import/{ importId }');
   });
 
   test('resume-import endpoints have correct operations', () => {
@@ -39,8 +39,8 @@ describe('SDK Generation - Swagger Spec Validation', () => {
     expect(importJson.operationId).toBe('importJson');
     expect(importJson.tags).toContain('resume-import');
 
-    // GET /api/resume-import/{importId}
-    const getStatus = swagger.paths['/api/resume-import/{importId}']?.get;
+    // GET /api/resume-import/{ importId }
+    const getStatus = swagger.paths['/api/resume-import/{ importId }']?.get;
     expect(getStatus).toBeDefined();
     expect(getStatus.operationId).toBe('getImportStatus');
     expect(getStatus.parameters).toBeDefined();
@@ -127,11 +127,11 @@ describe('SDK Generation - Operation Definitions', () => {
     expect(schema.$ref).toBe('#/components/schemas/ImportResultDto');
   });
 
-  test('GET /api/resume-import/{importId} parameters are correct', () => {
+  test('GET /api/resume-import/{ importId } parameters are correct', () => {
     const swaggerPath = SWAGGER_TEST_PATH;
     const swagger = JSON.parse(readFileSync(swaggerPath, 'utf-8'));
 
-    const operation = swagger.paths['/api/resume-import/{importId}'].get;
+    const operation = swagger.paths['/api/resume-import/{ importId }'].get;
     const params = operation.parameters;
 
     expect(params).toHaveLength(1);

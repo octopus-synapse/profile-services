@@ -96,11 +96,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
             items: [{ content: { company: 'Acme', role: 'Dev' } }],
             noData: false,
           },
-          {
-            sectionTypeKey: 'education_v1',
-            items: [],
-            noData: true,
-          },
+          { sectionTypeKey: 'education_v1', items: [], noData: true },
         ],
       }),
     );

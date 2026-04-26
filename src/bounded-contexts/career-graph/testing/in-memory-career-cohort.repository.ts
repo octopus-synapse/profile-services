@@ -1,4 +1,5 @@
-import type { CareerCohortRepositoryPort, CohortBucket, CohortRequest } from '../domain';
+import type { CohortBucket, CohortRequest } from '../domain';
+import { CareerCohortRepositoryPort } from '../domain';
 
 /**
  * In-memory cohort directory for specs. Seed with `setBuckets()` /
@@ -8,10 +9,7 @@ import type { CareerCohortRepositoryPort, CohortBucket, CohortRequest } from '..
  */
 export class InMemoryCareerCohortRepository implements CareerCohortRepositoryPort {
   private buckets: CohortBucket[] = [];
-  private requesterSnapshot: {
-    experienceYears: number;
-    jobTitle: string | null;
-  } | null = null;
+  private requesterSnapshot: { experienceYears: number; jobTitle: string | null } | null = null;
 
   setBuckets(buckets: CohortBucket[]): void {
     this.buckets = [...buckets];

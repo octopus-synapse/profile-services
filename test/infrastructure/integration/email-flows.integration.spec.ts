@@ -32,15 +32,10 @@ describe('Email Flows Integration', () => {
   let prisma: PrismaService;
   const sendEmailMock = mock().mockResolvedValue(undefined);
 
-  const mockEmailService = {
-    sendEmail: sendEmailMock,
-    isConfigured: true,
-  };
+  const mockEmailService = { sendEmail: sendEmailMock, isConfigured: true };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
+    const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(EmailSenderService)
       .useValue(mockEmailService)
       .compile();
@@ -65,11 +60,9 @@ describe('Email Flows Integration', () => {
       const email = `email-reg-${uniqueTestId()}@example.com`;
       sendEmailMock.mockClear();
 
-      const response = await request(app.getHttpServer()).post('/api/accounts').send({
-        email,
-        password: 'SecurePass123!',
-        name: 'Email Test User',
-      });
+      const response = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email, password: 'SecurePass123!', name: 'Email Test User' });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -95,11 +88,9 @@ describe('Email Flows Integration', () => {
       const email = `email-verify-${uniqueTestId()}@example.com`;
 
       // Create user
-      const signupResponse = await request(app.getHttpServer()).post('/api/accounts').send({
-        email,
-        password: 'SecurePass123!',
-        name: 'Verify Test User',
-      });
+      const signupResponse = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email, password: 'SecurePass123!', name: 'Verify Test User' });
 
       expect(signupResponse.status).toBe(201);
       const userId = signupResponse.body.data.userId;
@@ -108,10 +99,9 @@ describe('Email Flows Integration', () => {
       // Accept ToS so login works
       await acceptTosWithPrisma(prisma, userId);
 
-      const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email,
-        password: 'SecurePass123!',
-      });
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email, password: 'SecurePass123!' });
 
       // Login may succeed even without email verification
       // (email guard blocks protected routes, not login itself)
@@ -148,11 +138,9 @@ describe('Email Flows Integration', () => {
       const email = `email-reset-${uniqueTestId()}@example.com`;
 
       // Create and verify user
-      const signupResponse = await request(app.getHttpServer()).post('/api/accounts').send({
-        email,
-        password: 'SecurePass123!',
-        name: 'Reset Test User',
-      });
+      const signupResponse = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email, password: 'SecurePass123!', name: 'Reset Test User' });
 
       expect(signupResponse.status).toBe(201);
       const userId = signupResponse.body.data.userId;
@@ -201,11 +189,9 @@ describe('Email Flows Integration', () => {
       const newPassword = 'NewSecurePass456!';
 
       // Create and verify user
-      const signupResponse = await request(app.getHttpServer()).post('/api/accounts').send({
-        email,
-        password,
-        name: 'Change Pass Test User',
-      });
+      const signupResponse = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email, password, name: 'Change Pass Test User' });
 
       expect(signupResponse.status).toBe(201);
       const userId = signupResponse.body.data.userId;
@@ -230,10 +216,7 @@ describe('Email Flows Integration', () => {
       const changeResponse = await request(app.getHttpServer())
         .post('/api/auth/change-password')
         .set('Authorization', `Bearer ${token}`)
-        .send({
-          currentPassword: password,
-          newPassword,
-        });
+        .send({ currentPassword: password, newPassword });
 
       if (changeResponse.status === 200) {
         // Give async handlers time to complete
@@ -246,10 +229,7 @@ describe('Email Flows Integration', () => {
         const altResponse = await request(app.getHttpServer())
           .patch('/api/v1/users/me/password')
           .set('Authorization', `Bearer ${token}`)
-          .send({
-            currentPassword: password,
-            newPassword,
-          });
+          .send({ currentPassword: password, newPassword });
 
         if (altResponse.status === 200) {
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -273,9 +253,7 @@ describe('Email Flows Integration', () => {
         isConfigured: false,
       };
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      })
+      const moduleFixture: TestingModule = await Test.createTestingModule({ imports: [AppModule] })
         .overrideProvider(EmailSenderService)
         .useValue(unconfiguredMock)
         .compile();
@@ -292,11 +270,9 @@ describe('Email Flows Integration', () => {
       const email = `email-degrade-${uniqueTestId()}@example.com`;
 
       // Registration should still succeed even if email is not configured
-      const response = await request(testApp.getHttpServer()).post('/api/accounts').send({
-        email,
-        password: 'SecurePass123!',
-        name: 'Degradation Test User',
-      });
+      const response = await request(testApp.getHttpServer())
+        .post('/api/accounts')
+        .send({ email, password: 'SecurePass123!', name: 'Degradation Test User' });
 
       // Registration should not fail due to email issues
       expect(response.status).toBe(201);

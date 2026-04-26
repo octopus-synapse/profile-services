@@ -34,16 +34,9 @@ function createValidJsonResume(suffix?: string) {
       label: 'Software Engineer',
       email: `import-${id}@example.com`,
       summary: 'Experienced software engineer with a passion for clean code.',
-      location: {
-        city: 'San Francisco',
-        countryCode: 'US',
-      },
+      location: { city: 'San Francisco', countryCode: 'US' },
       profiles: [
-        {
-          network: 'LinkedIn',
-          url: 'https://linkedin.com/in/testuser',
-          username: 'testuser',
-        },
+        { network: 'LinkedIn', url: 'https://linkedin.com/in/testuser', username: 'testuser' },
       ],
     },
     work: [
@@ -65,19 +58,8 @@ function createValidJsonResume(suffix?: string) {
         endDate: '2018-06',
       },
     ],
-    skills: [
-      {
-        name: 'TypeScript',
-        level: 'Expert',
-        keywords: ['Node.js', 'React', 'NestJS'],
-      },
-    ],
-    languages: [
-      {
-        language: 'English',
-        fluency: 'Native',
-      },
-    ],
+    skills: [{ name: 'TypeScript', level: 'Expert', keywords: ['Node.js', 'React', 'NestJS'] }],
+    languages: [{ language: 'English', fluency: 'Native' }],
   };
 }
 
@@ -267,9 +249,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
-            basics: {
-              email: 'test@example.com',
-            },
+            basics: { email: 'test@example.com' },
           },
         });
 
@@ -300,9 +280,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
-            basics: {
-              name: 'Minimal User',
-            },
+            basics: { name: 'Minimal User' },
           },
         });
 
@@ -360,10 +338,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
-            basics: {
-              name: "'; DROP TABLE users; --",
-              summary: "1' OR '1'='1",
-            },
+            basics: { name: "'; DROP TABLE users; --", summary: "1' OR '1'='1" },
           },
         });
 

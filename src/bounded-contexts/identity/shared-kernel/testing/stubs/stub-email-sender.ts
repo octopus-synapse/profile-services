@@ -4,7 +4,7 @@
  * Test double for email operations with verification helpers.
  */
 
-import type { PasswordResetEmailPort } from '../../../password-management/domain/ports';
+import { PasswordResetEmailPort } from '../../../password-management/domain/ports';
 
 export interface SentEmail {
   email: string;
@@ -21,12 +21,7 @@ export class StubEmailSender implements PasswordResetEmailPort {
     if (this.shouldFail) {
       throw new Error('Email sending failed');
     }
-    this.sentEmails.push({
-      email,
-      userName,
-      resetToken,
-      sentAt: new Date(),
-    });
+    this.sentEmails.push({ email, userName, resetToken, sentAt: new Date() });
   }
 
   // Test helpers

@@ -38,19 +38,13 @@ describe('RateLimitService', () => {
 
   describe('generateKey', () => {
     it('should generate IP-based key', () => {
-      const key = service.generateKey({
-        keyStrategy: 'ip',
-        ip: '192.168.1.1',
-      });
+      const key = service.generateKey({ keyStrategy: 'ip', ip: '192.168.1.1' });
 
       expect(key).toBe('ratelimit:ip:192.168.1.1');
     });
 
     it('should generate user-based key', () => {
-      const key = service.generateKey({
-        keyStrategy: 'user',
-        userId: 'user-123',
-      });
+      const key = service.generateKey({ keyStrategy: 'user', userId: 'user-123' });
 
       expect(key).toBe('ratelimit:user:user-123');
     });
@@ -76,10 +70,7 @@ describe('RateLimitService', () => {
     });
 
     it('should fallback to IP when user not available for user strategy', () => {
-      const key = service.generateKey({
-        keyStrategy: 'user',
-        ip: '192.168.1.1',
-      });
+      const key = service.generateKey({ keyStrategy: 'user', ip: '192.168.1.1' });
 
       expect(key).toBe('ratelimit:ip:192.168.1.1');
     });
@@ -90,10 +81,7 @@ describe('RateLimitService', () => {
       mockCacheService.get.mockResolvedValue(null);
       mockCacheService.increment.mockResolvedValue(1);
 
-      const result = await service.consume('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const result = await service.consume('test-key', { points: 100, duration: 60 });
 
       expect(result.isBlocked).toBe(false);
       expect(result.remainingPoints).toBe(99);
@@ -101,47 +89,29 @@ describe('RateLimitService', () => {
     });
 
     it('should block request when at limit', async () => {
-      mockCacheService.get.mockResolvedValue({
-        count: 100,
-        expiresAt: Date.now() + 30000,
-      });
+      mockCacheService.get.mockResolvedValue({ count: 100, expiresAt: Date.now() + 30000 });
 
-      const result = await service.consume('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const result = await service.consume('test-key', { points: 100, duration: 60 });
 
       expect(result.isBlocked).toBe(true);
       expect(result.remainingPoints).toBe(0);
     });
 
     it('should calculate correct remaining points', async () => {
-      mockCacheService.get.mockResolvedValue({
-        count: 50,
-        expiresAt: Date.now() + 30000,
-      });
+      mockCacheService.get.mockResolvedValue({ count: 50, expiresAt: Date.now() + 30000 });
       mockCacheService.increment.mockResolvedValue(51);
 
-      const result = await service.consume('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const result = await service.consume('test-key', { points: 100, duration: 60 });
 
       expect(result.remainingPoints).toBe(49);
       expect(result.consumedPoints).toBe(51);
     });
 
     it('should reset counter when window expires', async () => {
-      mockCacheService.get.mockResolvedValue({
-        count: 100,
-        expiresAt: Date.now() - 1000,
-      });
+      mockCacheService.get.mockResolvedValue({ count: 100, expiresAt: Date.now() - 1000 });
       mockCacheService.increment.mockResolvedValue(1);
 
-      const result = await service.consume('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const result = await service.consume('test-key', { points: 100, duration: 60 });
 
       expect(result.isBlocked).toBe(false);
       expect(result.consumedPoints).toBe(1);
@@ -194,10 +164,7 @@ describe('RateLimitService', () => {
     });
 
     it('should return auth config for auth endpoints', () => {
-      const config = service.getContextConfig({
-        isAuthenticated: false,
-        isAuthEndpoint: true,
-      });
+      const config = service.getContextConfig({ isAuthenticated: false, isAuthEndpoint: true });
 
       expect(config.points).toBe(10);
       expect(config.duration).toBe(900);
@@ -215,29 +182,17 @@ describe('RateLimitService', () => {
 
   describe('isBlocked', () => {
     it('should return false when under limit', async () => {
-      mockCacheService.get.mockResolvedValue({
-        count: 50,
-        expiresAt: Date.now() + 30000,
-      });
+      mockCacheService.get.mockResolvedValue({ count: 50, expiresAt: Date.now() + 30000 });
 
-      const blocked = await service.isBlocked('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const blocked = await service.isBlocked('test-key', { points: 100, duration: 60 });
 
       expect(blocked).toBe(false);
     });
 
     it('should return true when at or over limit', async () => {
-      mockCacheService.get.mockResolvedValue({
-        count: 100,
-        expiresAt: Date.now() + 30000,
-      });
+      mockCacheService.get.mockResolvedValue({ count: 100, expiresAt: Date.now() + 30000 });
 
-      const blocked = await service.isBlocked('test-key', {
-        points: 100,
-        duration: 60,
-      });
+      const blocked = await service.isBlocked('test-key', { points: 100, duration: 60 });
 
       expect(blocked).toBe(true);
     });

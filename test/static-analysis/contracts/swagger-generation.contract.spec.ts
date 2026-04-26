@@ -13,9 +13,7 @@ type SwaggerSchema = {
     $ref?: string;
     type?: string;
     properties?: {
-      data?: {
-        $ref?: string;
-      };
+      data?: { $ref?: string };
     };
     required?: string[];
   }>;
@@ -184,7 +182,7 @@ test('documented mutation bodies are available for generated sdk payloads', () =
   expect(getRequestSchemaRef('/api/v1/resumes', 'post')).toBe(
     '#/components/schemas/CreateResumeRequestDto',
   );
-  expect(getRequestSchemaRef('/api/v1/resumes/{id}', 'patch')).toBe(
+  expect(getRequestSchemaRef('/api/v1/resumes/{ id }', 'patch')).toBe(
     '#/components/schemas/UpdateResumeRequestDto',
   );
   // `/api/v1/themes/*` endpoints are gone until the new resume-styles
@@ -216,11 +214,14 @@ test('onboarding complete-from-session has no request body', () => {
 });
 
 test('resume skill update includes all path params required by Orval', () => {
-  expectPathParams('/api/v1/resumes/{resumeId}/skills/{skillId}', 'patch', ['resumeId', 'skillId']);
+  expectPathParams('/api/v1/resumes/{ resumeId }/skills/{ skillId }', 'patch', [
+    'resumeId',
+    'skillId',
+  ]);
 });
 
 test('resume skill delete includes all path params required by Orval', () => {
-  expectPathParams('/api/v1/resumes/{resumeId}/skills/{skillId}', 'delete', [
+  expectPathParams('/api/v1/resumes/{ resumeId }/skills/{ skillId }', 'delete', [
     'resumeId',
     'skillId',
   ]);

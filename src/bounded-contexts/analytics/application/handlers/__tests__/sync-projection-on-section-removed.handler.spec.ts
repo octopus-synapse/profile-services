@@ -42,10 +42,7 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('ignores events without sectionKind', async () => {
     const projection = new StubAnalyticsProjection();
     const handler = new SyncProjectionOnSectionRemovedHandler(projection);
-    const event = new SectionRemovedEvent('resume-3', {
-      userId: 'user-1',
-      sectionId: 'item-3',
-    });
+    const event = new SectionRemovedEvent('resume-3', { userId: 'user-1', sectionId: 'item-3' });
 
     await handler.handle(event);
 

@@ -19,17 +19,11 @@ import { FileUpload, UploadService } from './upload.service';
 
 describe('UploadService - SECURITY BUG DETECTION', () => {
   let service: UploadService;
-  let mockS3Service: {
-    uploadFile: ReturnType<typeof mock>;
-    deleteFile: ReturnType<typeof mock>;
-  };
+  let mockS3Service: { uploadFile: ReturnType<typeof mock>; deleteFile: ReturnType<typeof mock> };
 
   beforeEach(async () => {
     mockS3Service = {
-      uploadFile: mock().mockResolvedValue({
-        url: 'http://example.com/file.jpg',
-        key: 'file.jpg',
-      }),
+      uploadFile: mock().mockResolvedValue({ url: 'http://example.com/file.jpg', key: 'file.jpg' }),
       deleteFile: mock().mockResolvedValue(true),
     };
 

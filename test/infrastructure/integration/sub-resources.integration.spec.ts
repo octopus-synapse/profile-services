@@ -49,23 +49,14 @@ const SECTION_TYPES: SectionConfig[] = [
       startDate: '2016-01-01',
       endDate: '2020-01-01',
     },
-    updatePayload: {
-      institution: 'Test University',
-      degree: 'Master',
-    },
+    updatePayload: { institution: 'Test University', degree: 'Master' },
   },
   {
     name: 'skills',
     sectionTypeKey: 'skill_set_v1',
     // Required: name
-    createPayload: {
-      name: 'TypeScript',
-      category: 'Programming Languages',
-    },
-    updatePayload: {
-      name: 'TypeScript',
-      category: 'Backend',
-    },
+    createPayload: { name: 'TypeScript', category: 'Programming Languages' },
+    updatePayload: { name: 'TypeScript', category: 'Backend' },
   },
   {
     name: 'projects',
@@ -76,19 +67,13 @@ const SECTION_TYPES: SectionConfig[] = [
       description: 'A test project',
       technologies: ['TypeScript', 'NestJS'],
     },
-    updatePayload: {
-      name: 'Updated Test Project',
-    },
+    updatePayload: { name: 'Updated Test Project' },
   },
   {
     name: 'certifications',
     sectionTypeKey: 'certification_v1',
     // Required: name, issuer, issueDate
-    createPayload: {
-      name: 'AWS Certified',
-      issuer: 'Amazon',
-      issueDate: '2023-01-01',
-    },
+    createPayload: { name: 'AWS Certified', issuer: 'Amazon', issueDate: '2023-01-01' },
     updatePayload: {
       name: 'AWS Certified Solutions Architect',
       issuer: 'Amazon',
@@ -99,11 +84,7 @@ const SECTION_TYPES: SectionConfig[] = [
     name: 'awards',
     sectionTypeKey: 'award_v1',
     // Required: title, issuer, date
-    createPayload: {
-      title: 'Best Developer Award',
-      issuer: 'Tech Company',
-      date: '2023-06-01',
-    },
+    createPayload: { title: 'Best Developer Award', issuer: 'Tech Company', date: '2023-06-01' },
     updatePayload: {
       title: 'Outstanding Developer Award',
       issuer: 'Tech Company',
@@ -114,11 +95,7 @@ const SECTION_TYPES: SectionConfig[] = [
     name: 'publications',
     sectionTypeKey: 'publication_v1',
     // Required: title, publisher, date
-    createPayload: {
-      title: 'Test Publication',
-      publisher: 'Tech Journal',
-      date: '2023-01-01',
-    },
+    createPayload: { title: 'Test Publication', publisher: 'Tech Journal', date: '2023-01-01' },
     updatePayload: {
       title: 'Updated Test Publication',
       publisher: 'Tech Journal',
@@ -160,27 +137,15 @@ const SECTION_TYPES: SectionConfig[] = [
     name: 'languages',
     sectionTypeKey: 'language_v1',
     // Required: name, level (enum: BASIC, INTERMEDIATE, FLUENT, NATIVE)
-    createPayload: {
-      name: 'English',
-      level: 'NATIVE',
-    },
-    updatePayload: {
-      name: 'English',
-      level: 'FLUENT',
-    },
+    createPayload: { name: 'English', level: 'NATIVE' },
+    updatePayload: { name: 'English', level: 'FLUENT' },
   },
   {
     name: 'interests',
     sectionTypeKey: 'interest_v1',
     // Required: name
-    createPayload: {
-      name: 'Open Source',
-      keywords: ['software', 'community'],
-    },
-    updatePayload: {
-      name: 'Open Source',
-      keywords: ['software', 'community', 'collaboration'],
-    },
+    createPayload: { name: 'Open Source', keywords: ['software', 'community'] },
+    updatePayload: { name: 'Open Source', keywords: ['software', 'community', 'collaboration'] },
   },
   {
     name: 'recommendations',
@@ -192,10 +157,7 @@ const SECTION_TYPES: SectionConfig[] = [
       company: 'Tech Corp',
       text: 'Great developer!',
     },
-    updatePayload: {
-      name: 'John Doe',
-      text: 'Outstanding developer and team player!',
-    },
+    updatePayload: { name: 'John Doe', text: 'Outstanding developer and team player!' },
   },
   {
     name: 'achievements',
@@ -206,9 +168,7 @@ const SECTION_TYPES: SectionConfig[] = [
       description: 'Achieved something great',
       date: '2023-01-01',
     },
-    updatePayload: {
-      title: 'Outstanding Achievement',
-    },
+    updatePayload: { title: 'Outstanding Achievement' },
   },
   {
     name: 'bug bounties',
@@ -221,11 +181,7 @@ const SECTION_TYPES: SectionConfig[] = [
       description: 'SQL Injection vulnerability',
       reward: '1000',
     },
-    updatePayload: {
-      platform: 'HackerOne',
-      date: '2023-01-01',
-      reward: '2000',
-    },
+    updatePayload: { platform: 'HackerOne', date: '2023-01-01', reward: '2000' },
   },
   {
     name: 'open source',
@@ -237,10 +193,7 @@ const SECTION_TYPES: SectionConfig[] = [
       description: 'Open source contribution',
       url: 'https://github.com/test/project',
     },
-    updatePayload: {
-      projectName: 'Test OSS Project',
-      role: 'Creator',
-    },
+    updatePayload: { projectName: 'Test OSS Project', role: 'Creator' },
   },
 ];
 
@@ -255,9 +208,10 @@ describe('Generic Sections Smoke Tests', () => {
     accessToken = login.accessToken;
 
     // Create a resume for testing sections
-    const res = await getRequest().post('/api/v1/resumes').set(authHeader(accessToken)).send({
-      title: 'Generic Sections Test Resume',
-    });
+    const res = await getRequest()
+      .post('/api/v1/resumes')
+      .set(authHeader(accessToken))
+      .send({ title: 'Generic Sections Test Resume' });
 
     if (res.status !== 201) {
       throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);

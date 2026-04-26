@@ -21,9 +21,7 @@ const createShareService = () => ({
   getResumeWithCache: mock(() => Promise.resolve({ id: 'resume-1', title: 'Resume' })),
 });
 
-const createAnalyticsService = () => ({
-  trackEvent: mock(() => Promise.resolve()),
-});
+const createAnalyticsService = () => ({ trackEvent: mock(() => Promise.resolve()) });
 
 const mockRequest = {
   headers: {

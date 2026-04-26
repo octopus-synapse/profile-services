@@ -82,20 +82,14 @@ describe('ATSScoreService', () => {
     it('should detect missing contact info', async () => {
       const result = await service.calculate(createResume({ emailContact: null, phone: null }));
       expect(result.issues).toContainEqual(
-        expect.objectContaining({
-          code: 'MISSING_CONTACT_INFO',
-          severity: 'high',
-        }),
+        expect.objectContaining({ code: 'MISSING_CONTACT_INFO', severity: 'high' }),
       );
     });
 
     it('should detect short summary', async () => {
       const result = await service.calculate(createResume({ summary: 'Short' }));
       expect(result.issues).toContainEqual(
-        expect.objectContaining({
-          code: 'SHORT_SUMMARY',
-          severity: 'medium',
-        }),
+        expect.objectContaining({ code: 'SHORT_SUMMARY', severity: 'medium' }),
       );
     });
 
@@ -116,12 +110,7 @@ describe('ATSScoreService', () => {
       const fullExperience = createResume({
         sections: [
           createSection('WORK_EXPERIENCE', [
-            {
-              company: 'Acme',
-              role: 'Dev',
-              startDate: '2020-01-01',
-              description: 'Built things',
-            },
+            { company: 'Acme', role: 'Dev', startDate: '2020-01-01', description: 'Built things' },
           ]),
           createSection('SKILL_SET', [{ name: 'JS', category: 'FE' }]),
         ],
@@ -173,11 +162,7 @@ describe('ATSScoreService', () => {
 
     it('should generate recommendations from issues', async () => {
       const result = await service.calculate(
-        createResume({
-          summary: 'Too short',
-          emailContact: null,
-          phone: null,
-        }),
+        createResume({ summary: 'Too short', emailContact: null, phone: null }),
       );
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
@@ -186,10 +171,7 @@ describe('ATSScoreService', () => {
       await service.calculate(createResume(), 'resume-123');
       expect(mockEventEmitter.emit).toHaveBeenCalledWith(
         'analytics:resume-123:ats_score',
-        expect.objectContaining({
-          type: 'ats_score',
-          resumeId: 'resume-123',
-        }),
+        expect.objectContaining({ type: 'ats_score', resumeId: 'resume-123' }),
       );
     });
 
@@ -232,12 +214,7 @@ describe('ATSScoreService', () => {
 
     it('should return zero score for empty resume', async () => {
       const result = await service.calculate(
-        createResume({
-          summary: '',
-          emailContact: null,
-          phone: null,
-          sections: [],
-        }),
+        createResume({ summary: '', emailContact: null, phone: null, sections: [] }),
       );
       expect(result.score).toBe(0);
     });

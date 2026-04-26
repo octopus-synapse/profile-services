@@ -27,23 +27,11 @@ describe('E2E Journey: Generic Resume Sections', () => {
   let prisma: PrismaService;
 
   // Primary test user
-  let userA: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let userA: { email: string; password: string; name: string; token?: string; userId?: string };
   let userAResumeId: string;
 
   // Secondary user for cross-user tests
-  let userB: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let userB: { email: string; password: string; name: string; token?: string; userId?: string };
   let userBResumeId: string;
 
   // Custom section type created for this test
@@ -235,10 +223,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   describe('Create Section Items', () => {
     it('should create a section item', async () => {
       const payload = {
-        content: {
-          title: 'First Item Title',
-          description: 'First item description',
-        },
+        content: { title: 'First Item Title', description: 'First item description' },
       };
 
       const response = await request(app.getHttpServer())
@@ -257,10 +242,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should create multiple items in the same section', async () => {
       const payload = {
-        content: {
-          title: 'Second Item Title',
-          description: 'Second item description',
-        },
+        content: { title: 'Second Item Title', description: 'Second item description' },
       };
 
       const response = await request(app.getHttpServer())
@@ -277,9 +259,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should require authentication to create items', async () => {
       const payload = {
-        content: {
-          title: 'Unauthorized Item',
-        },
+        content: { title: 'Unauthorized Item' },
       };
 
       const response = await request(app.getHttpServer())
@@ -291,9 +271,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should prevent user B from creating items in user A resume', async () => {
       const payload = {
-        content: {
-          title: 'Cross User Item',
-        },
+        content: { title: 'Cross User Item' },
       };
 
       const response = await request(app.getHttpServer())
@@ -306,9 +284,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should reject invalid section type key', async () => {
       const payload = {
-        content: {
-          title: 'Test',
-        },
+        content: { title: 'Test' },
       };
 
       const response = await request(app.getHttpServer())
@@ -321,9 +297,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should reject content missing required field', async () => {
       const payload = {
-        content: {
-          description: 'Missing title field',
-        },
+        content: { description: 'Missing title field' },
       };
 
       const response = await request(app.getHttpServer())
@@ -366,10 +340,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   describe('Update Section Items', () => {
     it('should update a section item', async () => {
       const payload = {
-        content: {
-          title: 'Updated Item Title',
-          description: 'Updated description',
-        },
+        content: { title: 'Updated Item Title', description: 'Updated description' },
       };
 
       const response = await request(app.getHttpServer())
@@ -385,9 +356,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should require authentication to update items', async () => {
       const payload = {
-        content: {
-          title: 'Unauthorized Update',
-        },
+        content: { title: 'Unauthorized Update' },
       };
 
       const response = await request(app.getHttpServer())
@@ -399,9 +368,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should prevent user B from updating user A items', async () => {
       const payload = {
-        content: {
-          title: 'Cross User Update',
-        },
+        content: { title: 'Cross User Update' },
       };
 
       const response = await request(app.getHttpServer())
@@ -414,9 +381,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should return error for non-existent item ID', async () => {
       const payload = {
-        content: {
-          title: 'Ghost Item',
-        },
+        content: { title: 'Ghost Item' },
       };
 
       const response = await request(app.getHttpServer())
@@ -486,10 +451,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   describe('User B Section Operations (Isolation)', () => {
     it('should allow user B to create items in their own resume', async () => {
       const payload = {
-        content: {
-          title: 'User B Item',
-          description: 'User B description',
-        },
+        content: { title: 'User B Item', description: 'User B description' },
       };
 
       const response = await request(app.getHttpServer())

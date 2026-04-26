@@ -129,11 +129,7 @@ describe('TokenResolverService', () => {
 
     it('should resolve color tokens', () => {
       const tokenConfig = createTokenConfig({
-        colors: {
-          primary: '#ff0000',
-          secondary: '#00ff00',
-          background: '#0000ff',
-        },
+        colors: { primary: '#ff0000', secondary: '#00ff00', background: '#0000ff' },
         borderRadius: 'lg',
         shadows: 'subtle',
       });
@@ -146,12 +142,7 @@ describe('TokenResolverService', () => {
 
     it('should resolve spacing tokens', () => {
       const tokenConfig = createTokenConfig({
-        spacing: {
-          sectionGap: 'xl',
-          itemGap: 'lg',
-          contentPadding: 'xl',
-          density: 'spacious',
-        },
+        spacing: { sectionGap: 'xl', itemGap: 'lg', contentPadding: 'xl', density: 'spacious' },
       });
 
       const result = service.resolve(tokenConfig);
@@ -173,9 +164,7 @@ describe('TokenResolverService', () => {
     });
 
     it('should handle small font size', () => {
-      const tokenConfig = createTokenConfig({
-        fontSize: 'sm',
-      });
+      const tokenConfig = createTokenConfig({ fontSize: 'sm' });
 
       const result = service.resolve(tokenConfig);
 
@@ -184,9 +173,7 @@ describe('TokenResolverService', () => {
 
     it('should handle compact spacing density', () => {
       const tokenConfig = createTokenConfig({
-        spacing: {
-          density: 'compact',
-        },
+        spacing: { density: 'compact' },
       });
 
       const result = service.resolve(tokenConfig);

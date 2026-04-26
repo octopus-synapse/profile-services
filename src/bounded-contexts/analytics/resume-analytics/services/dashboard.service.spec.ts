@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { AtsScoringPort } from '../application/ports/facade.ports';
+import { AtsScoringPort } from '../application/ports/facade.ports';
 import type { ResumeForAnalytics } from '../domain/types';
 import type { ATSScoreResult } from '../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../testing';
@@ -26,9 +26,7 @@ describe('DashboardService', () => {
     recommendations: ['Add more keywords'],
   };
 
-  const mockAtsScore: AtsScoringPort = {
-    calculate: mock(async () => mockAtsScoreResult),
-  };
+  const mockAtsScore: AtsScoringPort = { calculate: mock(async () => mockAtsScoreResult) };
 
   const mockResume: ResumeForAnalytics = {
     summary: 'Experienced developer',

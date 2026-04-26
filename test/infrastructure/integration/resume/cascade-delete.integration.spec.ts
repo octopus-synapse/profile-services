@@ -65,11 +65,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       if (!resume) {
         resume = await prisma.resume.create({
-          data: {
-            userId,
-            title: 'Test Resume for Cascade',
-            slug: uniqueTestSlug('cascade-test'),
-          },
+          data: { userId, title: 'Test Resume for Cascade', slug: uniqueTestSlug('cascade-test') },
         });
       }
 
@@ -82,11 +78,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create some sections with items
       const section = await prisma.resumeSection.create({
-        data: {
-          resumeId: resume.id,
-          sectionTypeId: sectionType.id,
-          order: 99,
-        },
+        data: { resumeId: resume.id, sectionTypeId: sectionType.id, order: 99 },
       });
 
       // Create items in the section
@@ -141,11 +133,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create a new resume
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'Cache Test Resume',
-          slug: uniqueTestSlug('cache-test'),
-        },
+        data: { userId, title: 'Cache Test Resume', slug: uniqueTestSlug('cache-test') },
       });
 
       // Fetch the resume to populate cache
@@ -188,11 +176,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create a resume to delete
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'Race Condition Test',
-          slug: uniqueTestSlug('race-test'),
-        },
+        data: { userId, title: 'Race Condition Test', slug: uniqueTestSlug('race-test') },
       });
 
       // Send TWO delete requests simultaneously
@@ -305,11 +289,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'Consistency Test',
-          slug: uniqueTestSlug('consistency-test'),
-        },
+        data: { userId, title: 'Consistency Test', slug: uniqueTestSlug('consistency-test') },
       });
 
       // Populate cache
@@ -391,11 +371,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create and immediately delete a resume
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'Hard Delete Test',
-          slug: uniqueTestSlug('hard-delete-test'),
-        },
+        data: { userId, title: 'Hard Delete Test', slug: uniqueTestSlug('hard-delete-test') },
       });
 
       const resumeId = resume.id;
@@ -432,11 +408,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'No Auth Delete Test',
-          slug: uniqueTestSlug('no-auth-test'),
-        },
+        data: { userId, title: 'No Auth Delete Test', slug: uniqueTestSlug('no-auth-test') },
       });
 
       // Try to delete without auth
@@ -463,11 +435,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create a resume
       const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'Analytics Test',
-          slug: uniqueTestSlug('analytics-test'),
-        },
+        data: { userId, title: 'Analytics Test', slug: uniqueTestSlug('analytics-test') },
       });
 
       // Check if there are related tables (versions, analytics, etc.)

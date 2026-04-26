@@ -4,7 +4,7 @@ import {
   ConflictException,
   EntityNotFoundException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
+import { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   createOnboardingData,
   createOnboardingUser,
@@ -31,16 +31,9 @@ describe('CompleteOnboardingUseCase', () => {
       executeCompletion: mock(async () => ({ resumeId: 'resume-123' })),
     };
 
-    mockLogger = {
-      log: mock(),
-      warn: mock(),
-      error: mock(),
-      debug: mock(),
-    };
+    mockLogger = { log: mock(), warn: mock(), error: mock(), debug: mock() };
 
-    mockAuditLog = {
-      logOnboardingCompleted: mock(async () => undefined),
-    };
+    mockAuditLog = { logOnboardingCompleted: mock(async () => undefined) };
 
     useCase = new CompleteOnboardingUseCase(
       onboardingRepository,
@@ -68,10 +61,7 @@ describe('CompleteOnboardingUseCase', () => {
           github: 'https://github.com/johndoe',
           website: 'https://johndoe.com',
         },
-        templateSelection: {
-          template: 'PROFESSIONAL',
-          palette: 'blue',
-        },
+        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
         sections: [
           {
             sectionTypeKey: 'skills_v1',
@@ -112,18 +102,12 @@ describe('CompleteOnboardingUseCase', () => {
       const userId = 'invalid-user';
       const onboardingData = createOnboardingData({
         username: 'johndoe',
-        personalInfo: {
-          fullName: 'John Doe',
-          email: 'john@example.com',
-        },
+        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: {
           jobTitle: 'Developer',
           summary: 'A passionate developer looking to make a difference in tech',
         },
-        templateSelection: {
-          template: 'PROFESSIONAL',
-          palette: 'blue',
-        },
+        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
         sections: [],
       });
 
@@ -135,10 +119,7 @@ describe('CompleteOnboardingUseCase', () => {
 
     it('should throw ConflictException if onboarding already completed', async () => {
       const userId = 'user-123';
-      const mockUser = createOnboardingUser({
-        id: userId,
-        hasCompletedOnboarding: true,
-      });
+      const mockUser = createOnboardingUser({ id: userId, hasCompletedOnboarding: true });
       onboardingRepository.seedUser(mockUser);
 
       const onboardingData = createOnboardingData();

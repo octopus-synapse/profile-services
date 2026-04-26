@@ -86,11 +86,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
   it('merges step data when provided during advance', async () => {
     // Arrange
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     // Act — advance from welcome, providing personal-info data early

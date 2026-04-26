@@ -25,10 +25,7 @@ describe('SyncProjectionOnResumeCreatedHandler', () => {
   it('upserts analytics projection with correct data', async () => {
     const projection = new StubAnalyticsProjection();
     const handler = new SyncProjectionOnResumeCreatedHandler(projection);
-    const event = new ResumeCreatedEvent('resume-1', {
-      userId: 'user-1',
-      title: 'My Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-1', { userId: 'user-1', title: 'My Resume' });
 
     await handler.handle(event);
 

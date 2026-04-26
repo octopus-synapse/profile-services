@@ -41,13 +41,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
   let prisma: PrismaService;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
   let shareSlug: string;
   let shareId: string;
@@ -361,10 +355,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
       const response = await request(app.getHttpServer())
         .post('/api/v1/shares')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .send({
-          resumeId,
-          slug: 'Invalid Slug With Spaces!',
-        });
+        .send({ resumeId, slug: 'Invalid Slug With Spaces!' });
 
       expect(response.status).toBe(400);
     });

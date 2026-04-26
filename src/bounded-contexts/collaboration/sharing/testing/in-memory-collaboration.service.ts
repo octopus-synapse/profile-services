@@ -103,10 +103,7 @@ export class InMemoryCollaborationRepository extends CollaborationRepositoryPort
       .map((c) => ({
         role: c.role,
         invitedAt: c.invitedAt,
-        resume: {
-          id: c.resumeId,
-          title: this.resumes.get(c.resumeId)?.title ?? null,
-        },
+        resume: { id: c.resumeId, title: this.resumes.get(c.resumeId)?.title ?? null },
       }));
   }
 

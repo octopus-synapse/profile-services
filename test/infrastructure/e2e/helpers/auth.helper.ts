@@ -47,11 +47,9 @@ export class AuthHelper {
     const testUser = user || this.createTestUser();
 
     // Register
-    const signupResponse = await request(this.app.getHttpServer()).post('/api/accounts').send({
-      email: testUser.email,
-      password: testUser.password,
-      name: testUser.name,
-    });
+    const signupResponse = await request(this.app.getHttpServer())
+      .post('/api/accounts')
+      .send({ email: testUser.email, password: testUser.password, name: testUser.name });
 
     if (signupResponse.status !== 201) {
       throw new Error(
@@ -146,9 +144,7 @@ export class AuthHelper {
     const tosResponse = await request(this.app.getHttpServer())
       .post('/api/v1/users/me/accept-consent')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        documentType: 'TERMS_OF_SERVICE',
-      });
+      .send({ documentType: 'TERMS_OF_SERVICE' });
 
     if (tosResponse.status !== 201) {
       throw new Error(
@@ -159,9 +155,7 @@ export class AuthHelper {
     const privacyResponse = await request(this.app.getHttpServer())
       .post('/api/v1/users/me/accept-consent')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        documentType: 'PRIVACY_POLICY',
-      });
+      .send({ documentType: 'PRIVACY_POLICY' });
 
     if (privacyResponse.status !== 201) {
       throw new Error(

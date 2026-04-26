@@ -50,10 +50,7 @@ type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdW
 
 class StubResumeReadRepository implements ResumeReadRepositoryPort {
   findById = mock(
-    async (_id: string): Promise<ResumeRecord | null> => ({
-      id: 'resume-456',
-      userId: 'user-123',
-    }),
+    async (_id: string): Promise<ResumeRecord | null> => ({ id: 'resume-456', userId: 'user-123' }),
   );
   async findByIdWithSections(_id: string): Promise<ResumeWithSections> {
     throw new Error('not used in test');
@@ -64,10 +61,7 @@ describe('CreateShareUseCase', () => {
   let useCase: CreateShareUseCase;
   let shareRepo: StubShareRepository;
   let resumeRepo: StubResumeReadRepository;
-  let eventPublisher: {
-    publish: ReturnType<typeof mock>;
-    publishAsync: ReturnType<typeof mock>;
-  };
+  let eventPublisher: { publish: ReturnType<typeof mock>; publishAsync: ReturnType<typeof mock> };
 
   const userId = 'user-123';
   const resumeId = 'resume-456';

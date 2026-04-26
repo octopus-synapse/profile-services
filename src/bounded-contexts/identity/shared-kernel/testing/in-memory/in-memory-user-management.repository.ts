@@ -38,11 +38,7 @@ interface StoredUser {
     updatedAt: Date;
   }[];
   preferences: unknown | null;
-  counts: {
-    accounts: number;
-    sessions: number;
-    resumes: number;
-  };
+  counts: { accounts: number; sessions: number; resumes: number };
 }
 
 export class InMemoryUserManagementRepository extends UserManagementRepositoryPort {
@@ -99,10 +95,7 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
 
   // ============ Repository Port Implementation ============
 
-  async findUsers(options: UserListOptions): Promise<{
-    users: UserListItem[];
-    total: number;
-  }> {
+  async findUsers(options: UserListOptions): Promise<{ users: UserListItem[]; total: number }> {
     const { page, limit, search } = options;
     let filteredUsers = Array.from(this.users.values());
 
@@ -196,12 +189,7 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
     };
     this.users.set(id, user);
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      createdAt: user.createdAt,
-    };
+    return { id: user.id, email: user.email, name: user.name, createdAt: user.createdAt };
   }
 
   async updateUser(userId: string, data: UpdateUserData): Promise<UpdatedUser> {

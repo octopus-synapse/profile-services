@@ -39,11 +39,7 @@ describe('RestoreVersionUseCase', () => {
     });
 
     it('should throw ResumeAccessDeniedException when user is not owner', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'other-user',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'other-user', resumeSections: [] });
 
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
         ResumeAccessDeniedException,
@@ -51,11 +47,7 @@ describe('RestoreVersionUseCase', () => {
     });
 
     it('should throw ResumeVersionNotFoundException when version not found', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
 
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
         ResumeVersionNotFoundException,
@@ -63,11 +55,7 @@ describe('RestoreVersionUseCase', () => {
     });
 
     it('should throw ResumeVersionNotFoundException when version belongs to different resume', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
       repository.seedVersion({
         id: versionId,
         resumeId: 'different-resume',
@@ -83,11 +71,7 @@ describe('RestoreVersionUseCase', () => {
     });
 
     it('should create snapshot before restoring version', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
       repository.seedVersion({
         id: versionId,
         resumeId,
@@ -109,11 +93,7 @@ describe('RestoreVersionUseCase', () => {
 
     it('should restore version and return result', async () => {
       const createdAt = new Date('2024-01-01');
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
       repository.seedVersion({
         id: versionId,
         resumeId,

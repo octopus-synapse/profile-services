@@ -3,12 +3,7 @@ import { buildWeeklyDigest } from './build-weekly-digest';
 
 const baseInput = {
   userName: 'Enzo',
-  stats: {
-    resumeViews: 12,
-    newFollowers: 3,
-    newEndorsements: 2,
-    profileViews: 8,
-  },
+  stats: { resumeViews: 12, newFollowers: 3, newEndorsements: 2, profileViews: 8 },
 };
 
 describe('buildWeeklyDigest', () => {

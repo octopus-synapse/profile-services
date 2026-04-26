@@ -62,11 +62,7 @@ export class InMemoryMessageRepository {
   async findByConversationId(
     conversationId: string,
     options: { cursor?: string; limit: number },
-  ): Promise<{
-    messages: StoredMessage[];
-    nextCursor: string | null;
-    hasMore: boolean;
-  }> {
+  ): Promise<{ messages: StoredMessage[]; nextCursor: string | null; hasMore: boolean }> {
     let messages = Array.from(this.messages.values())
       .filter((m) => m.conversationId === conversationId && !m.isDeleted)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -88,11 +84,7 @@ export class InMemoryMessageRepository {
     // Reverse to get chronological order
     messages.reverse();
 
-    return {
-      messages,
-      nextCursor: hasMore ? (messages[0]?.id ?? null) : null,
-      hasMore,
-    };
+    return { messages, nextCursor: hasMore ? (messages[0]?.id ?? null) : null, hasMore };
   }
 
   async markAsRead(messageId: string, userId: string): Promise<{ count: number }> {
@@ -124,10 +116,9 @@ export class InMemoryMessageRepository {
     return { count };
   }
 
-  async getUnreadCount(userId: string): Promise<{
-    totalUnread: number;
-    byConversation: Record<string, number>;
-  }> {
+  async getUnreadCount(
+    userId: string,
+  ): Promise<{ totalUnread: number; byConversation: Record<string, number> }> {
     const byConversation: Record<string, number> = {};
     let totalUnread = 0;
 
@@ -212,10 +203,7 @@ export class InMemoryMessageRepository {
     participant1Id: string,
     participant2Id: string,
   ): void {
-    this.conversationParticipants.set(conversationId, {
-      participant1Id,
-      participant2Id,
-    });
+    this.conversationParticipants.set(conversationId, { participant1Id, participant2Id });
   }
 
   seedMessage(msg: Partial<StoredMessage> & { id: string }): void {

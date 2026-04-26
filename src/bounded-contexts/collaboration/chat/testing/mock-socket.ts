@@ -41,11 +41,7 @@ export function createMockBroadcastOperator(): TestBroadcastOperator & MockBroad
   const toMock = mock();
   const inMock = mock();
 
-  const operator: TestBroadcastOperator = {
-    emit: emitMock,
-    to: toMock,
-    in: inMock,
-  };
+  const operator: TestBroadcastOperator = { emit: emitMock, to: toMock, in: inMock };
 
   // Self-reference for chaining
   toMock.mockReturnValue(operator);

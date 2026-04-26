@@ -56,7 +56,7 @@ describe('SearchController', () => {
     it('should parse skills from comma-separated string', async () => {
       const result = await controller.search({
         q: '',
-        skills: 'react,typescript',
+        skills: 'react, typescript',
         page: 1,
         limit: 20,
       });

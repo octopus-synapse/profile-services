@@ -12,16 +12,10 @@ class TestEvent extends DomainEvent<{ value: string }> {
 
 describe('EventPublisher', () => {
   let publisher: EventPublisher;
-  let mockEmitter: {
-    emit: ReturnType<typeof mock>;
-    emitAsync: ReturnType<typeof mock>;
-  };
+  let mockEmitter: { emit: ReturnType<typeof mock>; emitAsync: ReturnType<typeof mock> };
 
   beforeEach(() => {
-    mockEmitter = {
-      emit: mock(() => true),
-      emitAsync: mock(() => Promise.resolve([])),
-    };
+    mockEmitter = { emit: mock(() => true), emitAsync: mock(() => Promise.resolve([])) };
     publisher = new EventPublisher(mockEmitter as never);
   });
 

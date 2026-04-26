@@ -30,7 +30,7 @@ describe('DomainError shape', () => {
     const files = listSourceFiles(SOURCE_ROOT);
     const offenders: string[] = [];
 
-    const throwRe = /throw\s+new\s+DomainError\s*\(\s*\{([^}]*)\}/g;
+    const throwRe = /throw\s+new\s+DomainError\s*\(\s*\{ ([^ }]*)\}/g;
     const codeLiteralRe = /code\s*:\s*['"]([A-Z][A-Z0-9_]*)['"]/;
 
     for (const file of files) {

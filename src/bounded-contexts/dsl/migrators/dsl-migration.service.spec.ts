@@ -39,12 +39,7 @@ describe('DslMigrationService', () => {
         fontSize: 'base',
         headingStyle: 'bold',
       },
-      spacing: {
-        density: 'comfortable',
-        sectionGap: 'md',
-        itemGap: 'sm',
-        contentPadding: 'md',
-      },
+      spacing: { density: 'comfortable', sectionGap: 'md', itemGap: 'sm', contentPadding: 'md' },
     },
     sections: [],
   };
@@ -52,19 +47,13 @@ describe('DslMigrationService', () => {
   const mockMigratorV1toV2: DslMigrator = {
     fromVersion: '1.0.0',
     toVersion: '2.0.0',
-    migrate: (dsl: ResumeDsl): ResumeDsl => ({
-      ...dsl,
-      version: '2.0.0',
-    }),
+    migrate: (dsl: ResumeDsl): ResumeDsl => ({ ...dsl, version: '2.0.0' }),
   };
 
   const mockMigratorV2toV3: DslMigrator = {
     fromVersion: '2.0.0',
     toVersion: '3.0.0',
-    migrate: (dsl: ResumeDsl): ResumeDsl => ({
-      ...dsl,
-      version: '3.0.0',
-    }),
+    migrate: (dsl: ResumeDsl): ResumeDsl => ({ ...dsl, version: '3.0.0' }),
   };
 
   beforeEach(async () => {

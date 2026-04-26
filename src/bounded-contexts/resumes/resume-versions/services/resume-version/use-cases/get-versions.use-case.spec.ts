@@ -30,21 +30,13 @@ describe('GetVersionsUseCase', () => {
     });
 
     it('should throw ResumeAccessDeniedException when user is not owner', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'other-user',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'other-user', resumeSections: [] });
 
       await expect(useCase.execute(resumeId, userId)).rejects.toThrow(ResumeAccessDeniedException);
     });
 
     it('should return versions when user is owner', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
       repository.seedVersion({
         id: 'version-1',
         resumeId,
@@ -70,11 +62,7 @@ describe('GetVersionsUseCase', () => {
     });
 
     it('should return empty array when no versions exist', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId,
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId, resumeSections: [] });
 
       const result = await useCase.execute(resumeId, userId);
 

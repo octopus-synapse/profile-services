@@ -26,8 +26,8 @@ describe('I18nService', () => {
     expect(i18n.has('DEFINITELY_NOT_A_REAL_CODE_XYZ', 'en')).toBe(false);
   });
 
-  it('interpolates {param} placeholders from supplied params', () => {
-    // ENTITY_NOT_FOUND has `{entityType}` in both locales.
+  it('interpolates { param } placeholders from supplied params', () => {
+    // ENTITY_NOT_FOUND has `{ entityType }` in both locales.
     const msg = i18n.translate('ENTITY_NOT_FOUND', { entityType: 'User' }, 'en');
     expect(msg).toBe('User not found');
     const msgPt = i18n.translate('ENTITY_NOT_FOUND', { entityType: 'Usuário' }, 'pt-BR');
@@ -37,7 +37,7 @@ describe('I18nService', () => {
   it('leaves unknown placeholders intact instead of silently dropping', () => {
     // biome-ignore lint/suspicious/noExplicitAny: test-only private access
     const anyService = i18n as any;
-    const result = anyService.interpolate('Hi {unknown}', {}, 'TEST', 'en');
-    expect(result).toBe('Hi {unknown}');
+    const result = anyService.interpolate('Hi { unknown }', {}, 'TEST', 'en');
+    expect(result).toBe('Hi { unknown }');
   });
 });

@@ -6,7 +6,7 @@ import {
   UsernameReservedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
-import type { UsernameRepositoryPort } from '../../ports/username.port';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 import { UpdateUsernameUseCase } from './update-username.use-case';
 
 describe('UpdateUsernameUseCase', () => {

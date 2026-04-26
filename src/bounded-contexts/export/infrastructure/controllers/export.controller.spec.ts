@@ -12,29 +12,23 @@ import { InternalServerErrorException, StreamableFile } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
-import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { ExportUseCases } from '../../application/ports/export.port';
 import { InMemoryBannerCapture, NullEventPublisher, NullLogger } from '../../testing';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 import { ExportController } from './export.controller';
 
 const mockExportUseCases: ExportUseCases = {
-  exportDocxUseCase: {
-    execute: async () => Buffer.from('mock-docx-content'),
-  },
-  exportPdfUseCase: {
-    execute: async () => Buffer.from('mock-pdf-content'),
-  },
+  exportDocxUseCase: { execute: async () => Buffer.from('mock-docx-content') },
+  exportPdfUseCase: { execute: async () => Buffer.from('mock-pdf-content') },
   exportJsonUseCase: {
     execute: async () => ({ $schema: 'test' }),
-    executeAsBuffer: async () => Buffer.from('{}'),
+    executeAsBuffer: async () => Buffer.from('{  }'),
   },
   exportLatexUseCase: {
-    execute: async () => '\\documentclass{}',
-    executeAsBuffer: async () => Buffer.from('\\documentclass{}'),
+    execute: async () => '\\documentclass{  }',
+    executeAsBuffer: async () => Buffer.from('\\documentclass{  }'),
   },
-  exportBundleUseCase: {
-    execute: async () => Buffer.from('mock-zip-content'),
-  },
+  exportBundleUseCase: { execute: async () => Buffer.from('mock-zip-content') },
 };
 
 describe('ExportController', () => {
@@ -47,22 +41,10 @@ describe('ExportController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExportController],
       providers: [
-        {
-          provide: BannerCaptureService,
-          useValue: bannerCapture,
-        },
-        {
-          provide: EXPORT_USE_CASES,
-          useValue: mockExportUseCases,
-        },
-        {
-          provide: AppLoggerService,
-          useValue: new NullLogger(),
-        },
-        {
-          provide: EventPublisher,
-          useValue: new NullEventPublisher(),
-        },
+        { provide: BannerCaptureService, useValue: bannerCapture },
+        { provide: ExportUseCases, useValue: mockExportUseCases },
+        { provide: AppLoggerService, useValue: new NullLogger() },
+        { provide: EventPublisher, useValue: new NullEventPublisher() },
       ],
     }).compile();
 

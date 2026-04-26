@@ -27,10 +27,7 @@ describe('CacheCoreService', () => {
     warn: ReturnType<typeof mock>;
     debug: ReturnType<typeof mock>;
   };
-  let mockRedisConnection: {
-    client: typeof mockClient | null;
-    isEnabled: boolean;
-  };
+  let mockRedisConnection: { client: typeof mockClient | null; isEnabled: boolean };
 
   beforeEach(async () => {
     mockClient = {
@@ -42,17 +39,9 @@ describe('CacheCoreService', () => {
       flushdb: mock(),
     };
 
-    mockLogger = {
-      log: mock(),
-      error: mock(),
-      warn: mock(),
-      debug: mock(),
-    };
+    mockLogger = { log: mock(), error: mock(), warn: mock(), debug: mock() };
 
-    mockRedisConnection = {
-      client: mockClient,
-      isEnabled: true,
-    };
+    mockRedisConnection = { client: mockClient, isEnabled: true };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

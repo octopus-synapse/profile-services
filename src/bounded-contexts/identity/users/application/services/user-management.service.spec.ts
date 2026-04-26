@@ -10,7 +10,7 @@ import {
   StubAuthorizationService,
 } from '@/bounded-contexts/identity/shared-kernel/testing';
 import { LastManagerCannotBeDeletedException } from '../../domain/exceptions/users.exceptions';
-import type { UserManagementUseCases } from '../ports/user-management.port';
+import { UserManagementUseCases } from '../ports/user-management.port';
 import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-case';
 import { DeleteUserUseCase } from '../use-cases/user-management/delete-user.use-case';
 import { GetUserDetailsUseCase } from '../use-cases/user-management/get-user-details.use-case';
@@ -67,12 +67,7 @@ describe('UserManagementService (Facade)', () => {
       const result = await service.listUsers(options);
 
       expect(result.users.length).toBe(2);
-      expect(result.pagination).toEqual({
-        page: 1,
-        limit: 20,
-        total: 2,
-        totalPages: 1,
-      });
+      expect(result.pagination).toEqual({ page: 1, limit: 20, total: 2, totalPages: 1 });
     });
 
     it('should apply search filter', async () => {

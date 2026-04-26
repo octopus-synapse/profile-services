@@ -7,7 +7,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { ProgrammingLanguage, TechArea, TechNiche, TechSkill } from '../dto';
 import type { SkillType, TechAreaType } from '../interfaces';
-import type { TechSkillsUseCases } from './ports/tech-skills.port';
+import { TechSkillsUseCases } from './ports/tech-skills.port';
 
 /**
  * Factory functions for creating complete test objects

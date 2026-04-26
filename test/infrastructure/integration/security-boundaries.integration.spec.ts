@@ -60,10 +60,7 @@ describe('Security Boundaries Integration', () => {
       const response = await getRequest()
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          title: 'Test Resume',
-          summary: '<script>document.cookie</script>',
-        });
+        .send({ title: 'Test Resume', summary: '<script>document.cookie</script>' });
 
       if (response.status === 201 && typeof response.body.data.summary === 'string') {
         expect(response.body.data.summary).not.toContain('<script>');
@@ -200,10 +197,7 @@ describe('Security Boundaries Integration', () => {
     });
 
     it('should reject massive JSON payload', async () => {
-      const massivePayload = {
-        title: 'Test',
-        summary: 'X'.repeat(1024 * 1024),
-      };
+      const massivePayload = { title: 'Test', summary: 'X'.repeat(1024 * 1024) };
 
       const response = await getRequest()
         .post('/api/v1/resumes')

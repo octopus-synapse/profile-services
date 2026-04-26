@@ -51,20 +51,20 @@ describe('Swagger Completeness - Resume Import coverage', () => {
   test('resume-import endpoints are documented', () => {
     expect(swagger.paths['/api/resume-import/json']?.post).toBeDefined();
     expect(swagger.paths['/api/resume-import/parse']?.post).toBeDefined();
-    expect(swagger.paths['/api/resume-import/{importId}']?.get).toBeDefined();
-    expect(swagger.paths['/api/resume-import/{importId}']?.delete).toBeDefined();
+    expect(swagger.paths['/api/resume-import/{ importId }']?.get).toBeDefined();
+    expect(swagger.paths['/api/resume-import/{ importId }']?.delete).toBeDefined();
     expect(swagger.paths['/api/resume-import']?.get).toBeDefined();
-    expect(swagger.paths['/api/resume-import/{importId}/retry']?.post).toBeDefined();
+    expect(swagger.paths['/api/resume-import/{ importId }/retry']?.post).toBeDefined();
   });
 
   test('resume-import operationIds use stable sdk-export naming', () => {
     const operations = [
       getOperation('/api/resume-import/json', 'post'),
       getOperation('/api/resume-import/parse', 'post'),
-      getOperation('/api/resume-import/{importId}', 'get'),
-      getOperation('/api/resume-import/{importId}', 'delete'),
+      getOperation('/api/resume-import/{ importId }', 'get'),
+      getOperation('/api/resume-import/{ importId }', 'delete'),
       getOperation('/api/resume-import', 'get'),
-      getOperation('/api/resume-import/{importId}/retry', 'post'),
+      getOperation('/api/resume-import/{ importId }/retry', 'post'),
     ];
 
     operations.forEach((operation) => {
@@ -134,7 +134,7 @@ describe('Swagger Completeness - Structural invariants', () => {
     const payloadEndpoints: Array<[string, string]> = [
       ['/api/resume-import/json', 'post'],
       ['/api/resume-import/parse', 'post'],
-      ['/api/resume-import/{importId}/retry', 'post'],
+      ['/api/resume-import/{ importId }/retry', 'post'],
       ['/api/accounts', 'post'],
       ['/api/auth/login', 'post'],
       ['/api/v1/onboarding/session/next', 'post'],

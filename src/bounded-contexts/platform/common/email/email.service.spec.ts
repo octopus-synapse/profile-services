@@ -19,9 +19,7 @@ describe('EmailService (Adapter)', () => {
   let service: EmailService;
 
   // Stubs que simulam sucesso das operações
-  const stubSenderService = {
-    sendEmail: mock().mockResolvedValue(undefined),
-  };
+  const stubSenderService = { sendEmail: mock().mockResolvedValue(undefined) };
 
   const stubTemplateService = {
     sendVerificationEmail: mock().mockResolvedValue(undefined),
@@ -57,11 +55,7 @@ describe('EmailService (Adapter)', () => {
     it('should propagate error when sending fails', async () => {
       stubSenderService.sendEmail.mockRejectedValueOnce(new Error('SMTP error'));
 
-      const options = {
-        to: 'user@example.com',
-        subject: 'Test',
-        html: '<p>Content</p>',
-      };
+      const options = { to: 'user@example.com', subject: 'Test', html: '<p>Content</p>' };
 
       await expect(async () => await service.sendEmail(options)).toThrow('SMTP error');
     });

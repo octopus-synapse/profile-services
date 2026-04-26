@@ -36,11 +36,7 @@ type ShareLike = {
   resume: ResumeLike;
 };
 
-type SectionTypeLike = {
-  key: string;
-  title: string;
-  translations: unknown;
-};
+type SectionTypeLike = { key: string; title: string; translations: unknown };
 
 /**
  * Simple in-memory Prisma service for testing
@@ -170,10 +166,7 @@ describe('DslRepository', () => {
     it('should render resume AST', async () => {
       const result = await repository.render('resume-123', 'user-123', 'html');
 
-      expect(result).toEqual({
-        ast: mockAst,
-        resumeId: 'resume-123',
-      });
+      expect(result).toEqual({ ast: mockAst, resumeId: 'resume-123' });
     });
 
     it('should throw if resume not found', async () => {
@@ -250,10 +243,7 @@ describe('DslRepository', () => {
 
       const result = await repository.renderPublic('john-doe', 'html');
 
-      expect(result).toEqual({
-        ast: mockAst,
-        slug: 'john-doe',
-      });
+      expect(result).toEqual({ ast: mockAst, slug: 'john-doe' });
     });
 
     it('should throw if public resume not found', async () => {
@@ -336,10 +326,7 @@ describe('DslRepository', () => {
   describe('render - no style scenarios', () => {
     it('should throw descriptive error when resume has no style', async () => {
       const resumeWithoutTheme = {
-        ...createMockResume({
-          id: 'resume-no-theme',
-          userId: 'user-123',
-        }),
+        ...createMockResume({ id: 'resume-no-theme', userId: 'user-123' }),
         style: null,
         customTheme: null,
       };
@@ -351,10 +338,7 @@ describe('DslRepository', () => {
 
     it('should throw when style has null styleConfig', async () => {
       const resumeWithNullConfig = {
-        ...createMockResume({
-          id: 'resume-null-config',
-          userId: 'user-123',
-        }),
+        ...createMockResume({ id: 'resume-null-config', userId: 'user-123' }),
         style: { styleConfig: null },
         customTheme: null,
       };
@@ -366,10 +350,7 @@ describe('DslRepository', () => {
 
     it('should throw when style has empty styleConfig object', async () => {
       const resumeWithEmptyConfig = {
-        ...createMockResume({
-          id: 'resume-empty-config',
-          userId: 'user-123',
-        }),
+        ...createMockResume({ id: 'resume-empty-config', userId: 'user-123' }),
         style: { styleConfig: {} },
         customTheme: null,
       };
@@ -381,10 +362,7 @@ describe('DslRepository', () => {
 
     it('should include actionable message in the error', async () => {
       const resumeWithoutTheme = {
-        ...createMockResume({
-          id: 'resume-actionable',
-          userId: 'user-123',
-        }),
+        ...createMockResume({ id: 'resume-actionable', userId: 'user-123' }),
         style: null,
         customTheme: null,
       };
@@ -447,9 +425,7 @@ describe('DslRepository', () => {
     });
 
     it('should fallback to en when requested locale not found', () => {
-      const partialTranslations: TranslationsJson = {
-        en: mockTranslations.en,
-      };
+      const partialTranslations: TranslationsJson = { en: mockTranslations.en };
       const result = resolveTranslation(partialTranslations, 'pt-BR');
       expect(result.title).toBe('Professional Summary');
     });

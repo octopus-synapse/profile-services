@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ConflictException,
@@ -29,12 +29,7 @@ describe('ConnectionService', () => {
 
   describe('sendConnectionRequest', () => {
     it('should create a connection request', async () => {
-      connectionRepo.seedUser({
-        id: 'user-2',
-        name: 'Two',
-        username: 'two',
-        photoURL: null,
-      });
+      connectionRepo.seedUser({ id: 'user-2', name: 'Two', username: 'two', photoURL: null });
 
       const result = await service.sendConnectionRequest('user-1', 'user-2');
 
@@ -56,12 +51,7 @@ describe('ConnectionService', () => {
     });
 
     it('should throw ConflictException when already connected', async () => {
-      connectionRepo.seedUser({
-        id: 'user-2',
-        name: 'Two',
-        username: 'two',
-        photoURL: null,
-      });
+      connectionRepo.seedUser({ id: 'user-2', name: 'Two', username: 'two', photoURL: null });
       connectionRepo.seedConnection({
         requesterId: 'user-1',
         targetId: 'user-2',
@@ -74,12 +64,7 @@ describe('ConnectionService', () => {
     });
 
     it('should throw ConflictException when request already pending', async () => {
-      connectionRepo.seedUser({
-        id: 'user-2',
-        name: 'Two',
-        username: 'two',
-        photoURL: null,
-      });
+      connectionRepo.seedUser({ id: 'user-2', name: 'Two', username: 'two', photoURL: null });
       connectionRepo.seedConnection({
         requesterId: 'user-1',
         targetId: 'user-2',

@@ -29,10 +29,7 @@ class StubResumeVersionService extends ResumeVersionServicePort {
   }
 
   async restoreVersion(_resumeId: string, _versionId: string, _userId: string) {
-    return {
-      success: true,
-      restoredFrom: new Date('2026-01-02T00:00:00.000Z'),
-    };
+    return { success: true, restoredFrom: new Date('2026-01-02T00:00:00.000Z') };
   }
 }
 

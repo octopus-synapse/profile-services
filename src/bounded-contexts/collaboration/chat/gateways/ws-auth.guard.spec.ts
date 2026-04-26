@@ -13,10 +13,7 @@ function createMockSocket(
 ): Socket {
   return {
     handshake: {
-      headers: {
-        cookie: overrides.cookie,
-        authorization: overrides.authorizationHeader,
-      },
+      headers: { cookie: overrides.cookie, authorization: overrides.authorizationHeader },
       auth: overrides.authToken ? { token: overrides.authToken } : {},
       query: overrides.queryToken ? { token: overrides.queryToken } : {},
     },
@@ -30,9 +27,7 @@ describe('WsAuthGuard', () => {
 
   beforeEach(() => {
     mockVerifyAsync = mock(() => Promise.resolve({ sub: 'user-123', email: 'test@example.com' }));
-    jwtService = {
-      verifyAsync: mockVerifyAsync,
-    } as unknown as JwtService;
+    jwtService = { verifyAsync: mockVerifyAsync } as unknown as JwtService;
     guard = new WsAuthGuard(jwtService);
   });
 

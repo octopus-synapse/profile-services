@@ -83,9 +83,7 @@ describe('UserManagementController - Contract', () => {
   });
 
   it('updateUser returns data with user and message', async () => {
-    const result = await controller.updateUser('user-1', {
-      name: 'Updated User',
-    });
+    const result = await controller.updateUser('user-1', { name: 'Updated User' });
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('user');
@@ -102,9 +100,7 @@ describe('UserManagementController - Contract', () => {
   });
 
   it('resetPassword returns data with message', async () => {
-    const result = await controller.resetPassword('user-1', {
-      newPassword: 'NewPassword123!',
-    });
+    const result = await controller.resetPassword('user-1', { newPassword: 'NewPassword123!' });
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('message');

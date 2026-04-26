@@ -2,13 +2,9 @@ import { describe, expect, it } from 'bun:test';
 import JSZip from 'jszip';
 import { ExportBundleUseCase } from './export-bundle.use-case';
 
-const pdfStub = {
-  execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8'),
-};
+const pdfStub = { execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8') };
 
-const docxStub = {
-  execute: async () => Buffer.from('PK stub docx', 'utf-8'),
-};
+const docxStub = { execute: async () => Buffer.from('PK stub docx', 'utf-8') };
 
 const jsonStub = {
   execute: async () => ({ basics: { name: 'Enzo' } }),

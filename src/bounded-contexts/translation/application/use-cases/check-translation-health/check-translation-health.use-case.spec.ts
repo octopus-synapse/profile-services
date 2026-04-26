@@ -7,14 +7,10 @@ import { CheckTranslationHealthUseCase } from './check-translation-health.use-ca
 
 describe('CheckTranslationHealthUseCase', () => {
   let useCase: CheckTranslationHealthUseCase;
-  let fakeTranslationService: {
-    checkServiceHealth: ReturnType<typeof mock>;
-  };
+  let fakeTranslationService: { checkServiceHealth: ReturnType<typeof mock> };
 
   beforeEach(() => {
-    fakeTranslationService = {
-      checkServiceHealth: mock(() => Promise.resolve(true)),
-    };
+    fakeTranslationService = { checkServiceHealth: mock(() => Promise.resolve(true)) };
 
     useCase = new CheckTranslationHealthUseCase(fakeTranslationService as never);
   });

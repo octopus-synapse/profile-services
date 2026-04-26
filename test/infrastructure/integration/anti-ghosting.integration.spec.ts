@@ -11,9 +11,7 @@ describe('Anti-ghosting Integration', () => {
 
   beforeAll(async () => {
     const app = await getApp();
-    const { userId: id } = await createTestUserAndLogin({
-      email: uniqueTestEmail('ghosting'),
-    });
+    const { userId: id } = await createTestUserAndLogin({ email: uniqueTestEmail('ghosting') });
     userId = id;
 
     const prisma = getPrisma();

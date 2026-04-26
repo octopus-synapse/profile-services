@@ -72,10 +72,10 @@ describe('Public Resumes Integration', () => {
     });
 
     it('should create a password-protected share', async () => {
-      const response = await getRequest().post('/api/v1/shares').set(authHeader()).send({
-        resumeId,
-        password: 'secret123',
-      });
+      const response = await getRequest()
+        .post('/api/v1/shares')
+        .set(authHeader())
+        .send({ resumeId, password: 'secret123' });
 
       expect(response.status).toBe(201);
       expect(response.body.data.share).toHaveProperty('slug');
@@ -113,11 +113,7 @@ describe('Public Resumes Integration', () => {
       });
 
       const protectedShare = await prisma.resumeShare.create({
-        data: {
-          resumeId,
-          slug: uniqueTestSlug('protected'),
-          password: hashedPassword,
-        },
+        data: { resumeId, slug: uniqueTestSlug('protected'), password: hashedPassword },
       });
 
       const failResponse = await getRequest().get(`/api/v1/public/resumes/${protectedShare.slug}`);
@@ -134,11 +130,7 @@ describe('Public Resumes Integration', () => {
     it('should return 404 for expired shares', async () => {
       const prisma = getPrisma();
       const expiredShare = await prisma.resumeShare.create({
-        data: {
-          resumeId,
-          slug: uniqueTestSlug('expired'),
-          expiresAt: new Date(Date.now() - 1000),
-        },
+        data: { resumeId, slug: uniqueTestSlug('expired'), expiresAt: new Date(Date.now() - 1000) },
       });
 
       const response = await getRequest().get(`/api/v1/public/resumes/${expiredShare.slug}`);
@@ -330,10 +322,7 @@ describe('Public Resumes Integration', () => {
     it('should cache public resume data', async () => {
       const prisma = getPrisma();
       const share = await prisma.resumeShare.create({
-        data: {
-          resumeId,
-          slug: uniqueTestSlug('cached'),
-        },
+        data: { resumeId, slug: uniqueTestSlug('cached') },
       });
 
       // First call - should populate cache

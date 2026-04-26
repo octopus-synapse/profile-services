@@ -55,9 +55,7 @@ const createMockPrismaService = (options?: {
       return Promise.resolve(resume ?? null);
     }),
   },
-  user: {
-    findMany: mock(() => Promise.resolve(options?.users ?? [])),
-  },
+  user: { findMany: mock(() => Promise.resolve(options?.users ?? [])) },
 });
 
 const createMockLogger = () => ({
@@ -93,19 +91,12 @@ describe('CacheWarmingService', () => {
   describe('warmPopularResumes', () => {
     it('should fetch and cache popular public resumes', async () => {
       const popularResumes: MockResume[] = [
-        {
-          id: 'res-1',
-          slug: 'popular-1',
-          title: 'Resume 1',
-          profileViews: 100,
-        },
+        { id: 'res-1', slug: 'popular-1', title: 'Resume 1', profileViews: 100 },
         { id: 'res-2', slug: 'popular-2', title: 'Resume 2', profileViews: 80 },
       ];
 
       // Rebuild module with seeded data
-      const prismaWithData = createMockPrismaService({
-        resumes: popularResumes,
-      });
+      const prismaWithData = createMockPrismaService({ resumes: popularResumes });
       const module = await Test.createTestingModule({
         providers: [
           CacheWarmingService,
@@ -142,9 +133,7 @@ describe('CacheWarmingService', () => {
       await service.warmPopularResumes();
 
       expect(mockPrismaService.resume.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: 100,
-        }),
+        expect.objectContaining({ take: 100 }),
       );
     });
 

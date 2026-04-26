@@ -26,7 +26,7 @@ describe('TranslationCoreService', () => {
 
   beforeEach(() => {
     fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(mockFetchResponse({}));
-    const noopLogger = { log: () => {}, warn: () => {}, error: () => {} };
+    const noopLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
     service = new TranslationCoreService(noopLogger, 'http://localhost:5000');
   });
 

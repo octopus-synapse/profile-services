@@ -76,11 +76,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello world',
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ text: 'Hello world', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -95,11 +91,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Olá mundo',
-          sourceLanguage: 'pt',
-          targetLanguage: 'en',
-        });
+        .send({ text: 'Olá mundo', sourceLanguage: 'pt', targetLanguage: 'en' });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -110,11 +102,9 @@ describeIntegration('Translation Integration', () => {
     it('should require authentication', async () => {
       if (setupFailed) return;
 
-      const res = await getRequest().post('/api/v1/translation/text').send({
-        text: 'Hello',
-        sourceLanguage: 'en',
-        targetLanguage: 'pt',
-      });
+      const res = await getRequest()
+        .post('/api/v1/translation/text')
+        .send({ text: 'Hello', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(401);
     });
@@ -125,11 +115,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: '',
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ text: '', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -140,10 +126,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -154,10 +137,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello',
-          targetLanguage: 'pt',
-        });
+        .send({ text: 'Hello', targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -168,10 +148,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello',
-          sourceLanguage: 'en',
-        });
+        .send({ text: 'Hello', sourceLanguage: 'en' });
 
       expect(res.status).toBe(400);
     });
@@ -198,11 +175,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello world! Great job!',
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ text: 'Hello world! Great job!', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -216,11 +189,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: longText,
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ text: longText, sourceLanguage: 'en', targetLanguage: 'pt' });
 
       // Should either succeed or return a controlled error (not 500)
       expect([201, 400, 413]).toContain(res.status);
@@ -324,11 +293,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/batch')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          texts: ['Software Development'],
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ texts: ['Software Development'], sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -340,11 +305,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/batch')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          texts: [],
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ texts: [], sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -355,11 +316,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/batch')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          texts: [''],
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ texts: [''], sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -370,10 +327,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/batch')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          texts: ['Hello'],
-          targetLanguage: 'pt',
-        });
+        .send({ texts: ['Hello'], targetLanguage: 'pt' });
 
       expect(res.status).toBe(400);
     });
@@ -383,11 +337,7 @@ describeIntegration('Translation Integration', () => {
 
       const res = await getRequest()
         .post('/api/v1/translation/batch')
-        .send({
-          texts: ['Hello'],
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ texts: ['Hello'], sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(401);
     });
@@ -415,11 +365,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          text: 'Hello',
-          sourceLanguage: 'en',
-          targetLanguage: 'pt',
-        });
+        .send({ text: 'Hello', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       // Should return error but not 500
       expect([201, 400, 503]).toContain(res.status);

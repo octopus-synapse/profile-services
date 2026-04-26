@@ -191,11 +191,7 @@ describe('GitHubApiService', () => {
 
   describe('Error Handling', () => {
     it('should throw NOT_FOUND for 404 response', async () => {
-      fetchStub.setResponse({
-        ok: false,
-        status: 404,
-        statusText: 'Not Found',
-      });
+      fetchStub.setResponse({ ok: false, status: 404, statusText: 'Not Found' });
 
       await expect(service.getUserProfile('nonexistent')).rejects.toMatchObject({
         response: { statusCode: HttpStatus.NOT_FOUND },
@@ -203,11 +199,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should throw FORBIDDEN for 403 (rate limit) response', async () => {
-      fetchStub.setResponse({
-        ok: false,
-        status: 403,
-        statusText: 'Forbidden',
-      });
+      fetchStub.setResponse({ ok: false, status: 403, statusText: 'Forbidden' });
 
       await expect(service.getUserProfile('testuser')).rejects.toMatchObject({
         response: { statusCode: HttpStatus.FORBIDDEN },
@@ -215,11 +207,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should throw BAD_GATEWAY for other errors', async () => {
-      fetchStub.setResponse({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-      });
+      fetchStub.setResponse({ ok: false, status: 500, statusText: 'Internal Server Error' });
 
       await expect(service.getUserProfile('testuser')).rejects.toBeInstanceOf(HttpException);
     });
@@ -227,10 +215,7 @@ describe('GitHubApiService', () => {
 
   describe('getUserProfile', () => {
     it('should return user profile', async () => {
-      fetchStub.setResponse({
-        ok: true,
-        json: () => Promise.resolve(mockGitHubUser),
-      });
+      fetchStub.setResponse({ ok: true, json: () => Promise.resolve(mockGitHubUser) });
 
       const result = await service.getUserProfile('testuser');
 
@@ -241,10 +226,7 @@ describe('GitHubApiService', () => {
 
   describe('getUserRepos', () => {
     it('should return user repos with default options', async () => {
-      fetchStub.setResponse({
-        ok: true,
-        json: () => Promise.resolve(mockGitHubRepos),
-      });
+      fetchStub.setResponse({ ok: true, json: () => Promise.resolve(mockGitHubRepos) });
 
       const result = await service.getUserRepos('testuser');
 
@@ -255,10 +237,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should accept custom options', async () => {
-      fetchStub.setResponse({
-        ok: true,
-        json: () => Promise.resolve(mockGitHubRepos),
-      });
+      fetchStub.setResponse({ ok: true, json: () => Promise.resolve(mockGitHubRepos) });
 
       await service.getUserRepos('testuser', { sort: 'pushed', per_page: 50 });
 
@@ -281,11 +260,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should return 0 on error (graceful degradation)', async () => {
-      fetchStub.setResponse({
-        ok: false,
-        status: 404,
-        statusText: 'Not Found',
-      });
+      fetchStub.setResponse({ ok: false, status: 404, statusText: 'Not Found' });
 
       const result = await service.getRepoCommitCount('owner', 'repo', 'testuser');
 
@@ -293,10 +268,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should return 0 for non-array response', async () => {
-      fetchStub.setResponse({
-        ok: true,
-        json: () => Promise.resolve(null),
-      });
+      fetchStub.setResponse({ ok: true, json: () => Promise.resolve(null) });
 
       const result = await service.getRepoCommitCount('owner', 'repo', 'testuser');
 
@@ -317,11 +289,7 @@ describe('GitHubApiService', () => {
     });
 
     it('should return 0 on error (graceful degradation)', async () => {
-      fetchStub.setResponse({
-        ok: false,
-        status: 403,
-        statusText: 'Forbidden',
-      });
+      fetchStub.setResponse({ ok: false, status: 403, statusText: 'Forbidden' });
 
       const result = await service.getRepoPullRequests('owner', 'repo', 'testuser');
 

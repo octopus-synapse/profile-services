@@ -38,13 +38,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let defaultResumeId: string; // Resume created by onboarding
   let secondResumeId: string;
   let sectionItemId: string;
@@ -174,9 +168,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
     it('should reject update without authentication', async () => {
       const response = await request(app.getHttpServer())
         .patch(`/api/v1/resumes/${secondResumeId}`)
-        .send({
-          title: 'Hacked Resume',
-        });
+        .send({ title: 'Hacked Resume' });
 
       expect(response.status).toBe(401);
     });

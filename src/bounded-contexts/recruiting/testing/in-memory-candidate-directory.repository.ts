@@ -1,4 +1,5 @@
-import type { CandidateDirectoryRepositoryPort, SearchableCandidateRecord } from '../domain';
+import type { SearchableCandidateRecord } from '../domain';
+import { CandidateDirectoryRepositoryPort } from '../domain';
 
 /**
  * In-memory stand-in for the Prisma-backed directory. Used by the

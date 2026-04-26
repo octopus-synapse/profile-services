@@ -7,7 +7,7 @@
 import { ItemContentValidatorPolicy } from '../services/generic-resume-sections/policies/item-content-validator.policy';
 import { ResumeOwnershipPolicy } from '../services/generic-resume-sections/policies/resume-ownership.policy';
 import { SectionTypePolicy } from '../services/generic-resume-sections/policies/section-type.policy';
-import type { GenericResumeSectionsUseCases } from '../services/generic-resume-sections/ports/generic-resume-sections-repository.port';
+import { GenericResumeSectionsUseCases } from '../services/generic-resume-sections/ports/generic-resume-sections-repository.port';
 import { CreateSectionItemUseCase } from '../services/generic-resume-sections/use-cases/create-section-item.use-case';
 import { DeleteSectionItemUseCase } from '../services/generic-resume-sections/use-cases/delete-section-item.use-case';
 import { ListResumeSectionsUseCase } from '../services/generic-resume-sections/use-cases/list-resume-sections.use-case';

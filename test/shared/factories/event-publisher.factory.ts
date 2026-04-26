@@ -6,8 +6,8 @@
  */
 
 import { mock } from 'bun:test';
-import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { RESUME_EVENT_PUBLISHER } from '@/bounded-contexts/resumes/domain/ports';
+import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+
 import { EventPublisher } from '@/shared-kernel';
 
 /**
@@ -17,26 +17,16 @@ import { EventPublisher } from '@/shared-kernel';
  * ```ts
  * const { mockEventPublisher, eventPublisherProvider } = createMockEventPublisher();
  *
- * const module = await Test.createTestingModule({
- *   providers: [
- *     MyService,
- *     eventPublisherProvider,
- *   ],
- * }).compile();
+ * const module = await Test.createTestingModule({ *   providers: [
+ *     MyService, *     eventPublisherProvider, *   ], * }).compile();
  * ```
  */
 export function createMockEventPublisher() {
-  const mockEventPublisher = {
-    publish: mock(),
-    publishAsync: mock(() => Promise.resolve()),
-  };
+  const mockEventPublisher = { publish: mock(), publishAsync: mock(() => Promise.resolve()) };
 
   return {
     mockEventPublisher,
-    eventPublisherProvider: {
-      provide: EventPublisher,
-      useValue: mockEventPublisher,
-    },
+    eventPublisherProvider: { provide: EventPublisher, useValue: mockEventPublisher },
   };
 }
 
@@ -47,12 +37,8 @@ export function createMockEventPublisher() {
  * ```ts
  * const { mockResumeEventPublisher, resumeEventPublisherProvider } = createMockResumeEventPublisher();
  *
- * const module = await Test.createTestingModule({
- *   providers: [
- *     ResumesService,
- *     resumeEventPublisherProvider,
- *   ],
- * }).compile();
+ * const module = await Test.createTestingModule({ *   providers: [
+ *     ResumesService, *     resumeEventPublisherProvider, *   ], * }).compile();
  * ```
  */
 export function createMockResumeEventPublisher() {
@@ -70,10 +56,10 @@ export function createMockResumeEventPublisher() {
   return {
     mockResumeEventPublisher,
     resumeEventPublisherProvider: {
-      provide: RESUME_EVENT_PUBLISHER,
+      provide: ResumeEventPublisher,
       useValue: mockResumeEventPublisher,
     },
   };
 }
 
-export { RESUME_EVENT_PUBLISHER };
+export { ResumeEventPublisher };

@@ -88,11 +88,7 @@ describe('GotoOnboardingStepUseCase', () => {
   it('throws for an unknown step', async () => {
     // Arrange
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     // Act & Assert
@@ -104,11 +100,7 @@ describe('GotoOnboardingStepUseCase', () => {
 
   it('allows jumping to any step (non-linear flow)', async () => {
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     const result = await useCase.execute(USER_ID, 'professional-profile');

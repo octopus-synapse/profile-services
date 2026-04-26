@@ -68,10 +68,7 @@ describe('Cache Integration', () => {
       const prisma = getPrisma();
       slug = uniqueTestSlug('cache-test');
       await prisma.resumeShare.create({
-        data: {
-          resumeId,
-          slug,
-        },
+        data: { resumeId, slug },
       });
 
       // First fetch (cache miss - should hit database)
@@ -97,9 +94,7 @@ describe('Cache Integration', () => {
       const updateRes = await getRequest()
         .patch(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          jobTitle: 'Senior Software Engineer',
-        });
+        .send({ jobTitle: 'Senior Software Engineer' });
 
       expect(updateRes.status).toBe(200);
 

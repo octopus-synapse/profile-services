@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { UserProfile, UserProfileRepositoryPort } from '../../ports/user-profile.port';
+import type { UserProfile } from '../../ports/user-profile.port';
+import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 import { GetProfileUseCase } from './get-profile.use-case';
 
 const mockProfile: UserProfile = {

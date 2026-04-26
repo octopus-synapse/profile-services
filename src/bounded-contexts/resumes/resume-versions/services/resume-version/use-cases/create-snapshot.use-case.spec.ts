@@ -28,11 +28,7 @@ describe('CreateSnapshotUseCase', () => {
     });
 
     it('should create snapshot with incremented version number', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'user-1',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'user-1', resumeSections: [] });
       repository.seedVersion({
         id: 'v-1',
         resumeId,
@@ -57,11 +53,7 @@ describe('CreateSnapshotUseCase', () => {
     });
 
     it('should start at version 1 when no previous versions exist', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'user-1',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'user-1', resumeSections: [] });
 
       const result = await useCase.execute(resumeId);
 
@@ -69,11 +61,7 @@ describe('CreateSnapshotUseCase', () => {
     });
 
     it('should include label when provided', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'user-1',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'user-1', resumeSections: [] });
 
       const result = await useCase.execute(resumeId, 'Before major update');
 
@@ -81,11 +69,7 @@ describe('CreateSnapshotUseCase', () => {
     });
 
     it('should publish version created event', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'user-1',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'user-1', resumeSections: [] });
 
       await useCase.execute(resumeId);
 
@@ -96,11 +80,7 @@ describe('CreateSnapshotUseCase', () => {
     });
 
     it('should cleanup old versions when exceeding MAX_VERSIONS', async () => {
-      repository.seedResume({
-        id: resumeId,
-        userId: 'user-1',
-        resumeSections: [],
-      });
+      repository.seedResume({ id: resumeId, userId: 'user-1', resumeSections: [] });
 
       // Seed 35 versions (exceeds MAX_VERSIONS of 30)
       for (let i = 1; i <= 35; i++) {

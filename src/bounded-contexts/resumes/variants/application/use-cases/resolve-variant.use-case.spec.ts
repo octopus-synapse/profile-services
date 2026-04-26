@@ -1,12 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
-import type { BaseSectionsReader } from './resolve-variant.use-case';
-import { ResolveVariantUseCase } from './resolve-variant.use-case';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import { BaseSectionsReader, ResolveVariantUseCase } from './resolve-variant.use-case';
 
 class InMemoryVariantRepository implements VariantRepositoryPort {
   private variants: VariantData[] = [];

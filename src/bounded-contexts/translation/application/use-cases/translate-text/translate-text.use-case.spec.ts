@@ -7,9 +7,7 @@ import { TranslateTextUseCase } from './translate-text.use-case';
 
 describe('TranslateTextUseCase', () => {
   let useCase: TranslateTextUseCase;
-  let fakeTranslationService: {
-    translate: ReturnType<typeof mock>;
-  };
+  let fakeTranslationService: { translate: ReturnType<typeof mock> };
 
   beforeEach(() => {
     fakeTranslationService = {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 import {
   ContentQualityPort,
   type ContentQualityResult,
@@ -9,6 +9,8 @@ const stubEventPublisher: EventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
+
+const stubLogger: LoggerPort = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 import {
   QualityScoreRepositoryPort,
@@ -89,7 +91,13 @@ describe('ComputeQualityUseCase', () => {
       callsCount: 1,
       costUsdMicros: 123n,
     });
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
+    const useCase = new ComputeQualityUseCase(
+      loader,
+      contentQuality,
+      repo,
+      stubEventPublisher,
+      stubLogger,
+    );
     await expect(useCase.execute('missing')).rejects.toBeInstanceOf(ResumeNotFoundForQualityError);
   });
 
@@ -102,7 +110,13 @@ describe('ComputeQualityUseCase', () => {
       callsCount: 1,
       costUsdMicros: 123n,
     });
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
+    const useCase = new ComputeQualityUseCase(
+      loader,
+      contentQuality,
+      repo,
+      stubEventPublisher,
+      stubLogger,
+    );
 
     const snapshot = await useCase.execute('r1');
 
@@ -118,7 +132,13 @@ describe('ComputeQualityUseCase', () => {
   it('falls back to completeness alone when the AI port fails', async () => {
     loader.seed('r1', fullResume());
     const contentQuality = new StubContentQuality(new Error('openai down'));
-    const useCase = new ComputeQualityUseCase(loader, contentQuality, repo, stubEventPublisher);
+    const useCase = new ComputeQualityUseCase(
+      loader,
+      contentQuality,
+      repo,
+      stubEventPublisher,
+      stubLogger,
+    );
 
     const snapshot = await useCase.execute('r1');
 

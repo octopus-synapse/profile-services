@@ -8,14 +8,12 @@
  * - Hash service
  */
 
-import type { HashServicePort } from '../domain/ports/hash-service.port';
-import type { QrCodeServicePort } from '../domain/ports/qrcode-service.port';
-import type { TotpSecret, TotpServicePort } from '../domain/ports/totp-service.port';
-import type {
-  BackupCodeRecord,
-  TwoFactorRecord,
-  TwoFactorRepositoryPort,
-} from '../domain/ports/two-factor.repository.port';
+import { HashServicePort } from '../domain/ports/hash-service.port';
+import { QrCodeServicePort } from '../domain/ports/qrcode-service.port';
+import type { TotpSecret } from '../domain/ports/totp-service.port';
+import { TotpServicePort } from '../domain/ports/totp-service.port';
+import type { BackupCodeRecord, TwoFactorRecord } from '../domain/ports/two-factor.repository.port';
+import { TwoFactorRepositoryPort } from '../domain/ports/two-factor.repository.port';
 
 // ═══════════════════════════════════════════════════════════════
 // IN-MEMORY TWO-FACTOR REPOSITORY
@@ -35,12 +33,7 @@ export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
   }
 
   async create(userId: string, secret: string): Promise<TwoFactorRecord> {
-    const record: TwoFactorRecord = {
-      userId,
-      secret,
-      enabled: false,
-      lastUsedAt: null,
-    };
+    const record: TwoFactorRecord = { userId, secret, enabled: false, lastUsedAt: null };
     this.twoFactorRecords.set(userId, record);
     return record;
   }
@@ -307,10 +300,7 @@ export function createBackupCodeRecord(
 // DEFAULT TEST DATA
 // ═══════════════════════════════════════════════════════════════
 
-export const DEFAULT_USER = {
-  id: 'user-1',
-  email: 'test@example.com',
-};
+export const DEFAULT_USER = { id: 'user-1', email: 'test@example.com' };
 
 export const DEFAULT_TWO_FACTOR_RECORD: TwoFactorRecord = {
   userId: 'user-1',

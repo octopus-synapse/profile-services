@@ -184,10 +184,7 @@ describe('FollowController', () => {
       expect(result.success).toBe(true);
       expect(stubFollowReader.getFollowers).toHaveBeenCalledWith(
         'user-1',
-        {
-          page: 1,
-          limit: 10,
-        },
+        { page: 1, limit: 10 },
         'viewer-1',
       );
     });
@@ -239,11 +236,7 @@ describe('FollowController', () => {
 
   describe('GET /users/:userId/social-stats', () => {
     it('should return follower and following counts', async () => {
-      stubFollowReader.setSocialStatsResult({
-        followers: 100,
-        following: 50,
-        connections: 30,
-      });
+      stubFollowReader.setSocialStatsResult({ followers: 100, following: 50, connections: 30 });
 
       const result = await controller.getSocialStats('user-1');
 

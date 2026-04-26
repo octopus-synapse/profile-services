@@ -51,11 +51,7 @@ function buildLatexResume(
     emailContact: base.emailContact,
     phone: base.phone,
     jobTitle: base.jobTitle,
-    user: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1234567890',
-    },
+    user: { name: 'John Doe', email: 'john@example.com', phone: '+1234567890' },
     sections: [
       {
         semanticKind: 'WORK_EXPERIENCE',
@@ -99,12 +95,7 @@ function buildLatexResume(
         semanticKind: 'PROJECT',
         sectionTypeKey: 'projects',
         title: 'Projects',
-        items: [
-          {
-            name: 'Portfolio Platform',
-            description: 'Built with NestJS',
-          },
-        ],
+        items: [{ name: 'Portfolio Platform', description: 'Built with NestJS' }],
       },
       {
         semanticKind: 'LANGUAGE',
@@ -132,8 +123,8 @@ describe('ExportLatexUseCase', () => {
       const result = await useCase.execute({ resumeId: 'resume-123' });
 
       expect(result).toContain('\\documentclass');
-      expect(result).toContain('\\begin{document}');
-      expect(result).toContain('\\end{document}');
+      expect(result).toContain('\\begin{ document }');
+      expect(result).toContain('\\end{ document }');
     });
 
     it('should include personal information', async () => {
@@ -228,10 +219,7 @@ describe('ExportLatexUseCase', () => {
 
   describe('Template options', () => {
     it('should support moderncv template', async () => {
-      const result = await useCase.execute({
-        resumeId: 'resume-123',
-        template: 'moderncv',
-      });
+      const result = await useCase.execute({ resumeId: 'resume-123', template: 'moderncv' });
 
       expect(result).toContain('moderncv');
       expect(result).toContain('\\makecvtitle');
@@ -240,7 +228,7 @@ describe('ExportLatexUseCase', () => {
     it('should support simple template by default', async () => {
       const result = await useCase.execute({ resumeId: 'resume-123' });
 
-      expect(result).toContain('\\documentclass[11pt,a4paper]{article}');
+      expect(result).toContain('\\documentclass[11pt,a4paper]{ article }');
     });
   });
 });

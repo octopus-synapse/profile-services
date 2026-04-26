@@ -31,13 +31,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let _resumeId: string;
 
   beforeAll(async () => {
@@ -141,10 +135,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/export/banner')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .query({
-          palette: 'default',
-          logo: 'https://example.com/logo.png',
-        });
+        .query({ palette: 'default', logo: 'https://example.com/logo.png' });
 
       // Should succeed or gracefully handle invalid logo
       expect([200, 500]).toContain(response.status);
@@ -214,11 +205,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/export/resume/pdf')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .query({
-          palette: 'default',
-          lang: 'en',
-          bannerColor: '#0066cc',
-        });
+        .query({ palette: 'default', lang: 'en', bannerColor: '#0066cc' });
 
       expect([200, 500]).toContain(response.status);
 

@@ -32,13 +32,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   let app: INestApplication;
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
   let shareSlug: string;
   let shareId: string;
@@ -70,11 +64,9 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
     });
 
     it('should reject duplicate email', async () => {
-      const response = await request(app.getHttpServer()).post('/api/accounts').send({
-        email: testUser.email,
-        password: testUser.password,
-        name: testUser.name,
-      });
+      const response = await request(app.getHttpServer())
+        .post('/api/accounts')
+        .send({ email: testUser.email, password: testUser.password, name: testUser.name });
 
       expect(response.status).toBe(409);
     });
@@ -190,7 +182,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       );
 
       expect(response.status).toBe(200);
-      // Public resume returns { success, data: { resume: {...} } }
+      // Public resume returns { success, data: { resume: { ... } } }
       expect(response.body.data).toHaveProperty('resume');
       expect(response.body.data.resume.id).toBe(resumeId);
     });

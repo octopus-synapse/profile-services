@@ -54,15 +54,11 @@ describe('BannerCaptureService', () => {
         BannerCaptureService,
         {
           provide: BrowserManagerService,
-          useValue: {
-            getBrowser: mock().mockResolvedValue(mockBrowser),
-          },
+          useValue: { getBrowser: mock().mockResolvedValue(mockBrowser) },
         },
         {
           provide: ConfigService,
-          useValue: {
-            get: configGetMock,
-          },
+          useValue: { get: configGetMock },
         },
       ],
     }).compile();
@@ -87,10 +83,7 @@ describe('BannerCaptureService', () => {
       });
       expect(mockPage.goto).toHaveBeenCalledWith(
         expect.stringContaining(`palette=${encodeURIComponent(DEFAULT.PALETTE)}`),
-        expect.objectContaining({
-          waitUntil: 'domcontentloaded',
-          timeout: TIMEOUT.PAGE_LOAD,
-        }),
+        expect.objectContaining({ waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD }),
       );
       expect(mockPage.close).toHaveBeenCalledTimes(1);
       expect(result).toBeInstanceOf(Buffer);

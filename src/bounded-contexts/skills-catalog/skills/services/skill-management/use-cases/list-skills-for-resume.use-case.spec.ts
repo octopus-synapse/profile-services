@@ -22,10 +22,7 @@ describe('ListSkillsForResumeUseCase', () => {
   });
 
   it('should return empty array when section has no items', async () => {
-    mockRepository.findSkillSectionWithItems = async () => ({
-      id: 'section-1',
-      items: [],
-    });
+    mockRepository.findSkillSectionWithItems = async () => ({ id: 'section-1', items: [] });
 
     const result = await useCase.execute('resume-1');
     expect(result).toEqual([]);

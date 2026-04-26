@@ -4,10 +4,7 @@ import { Group } from './group.entity';
 describe('Group Entity', () => {
   describe('create', () => {
     it('should create a group with valid name and displayName', () => {
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const group = Group.create({ name: 'developers', displayName: 'Developers' });
 
       expect(group.name).toBe('developers');
       expect(group.displayName).toBe('Developers');
@@ -18,30 +15,20 @@ describe('Group Entity', () => {
     });
 
     it('should normalize name to lowercase with underscores', () => {
-      const group = Group.create({
-        name: 'Senior Developers',
-        displayName: 'Senior Developers',
-      });
+      const group = Group.create({ name: 'Senior Developers', displayName: 'Senior Developers' });
 
       expect(group.name).toBe('senior_developers');
     });
 
     it('should trim whitespace from name and displayName', () => {
-      const group = Group.create({
-        name: '  developers  ',
-        displayName: '  Developers  ',
-      });
+      const group = Group.create({ name: '  developers  ', displayName: '  Developers  ' });
 
       expect(group.name).toBe('developers');
       expect(group.displayName).toBe('Developers');
     });
 
     it('should create a system group when specified', () => {
-      const group = Group.create({
-        name: 'admins',
-        displayName: 'Administrators',
-        isSystem: true,
-      });
+      const group = Group.create({ name: 'admins', displayName: 'Administrators', isSystem: true });
 
       expect(group.isSystem).toBe(true);
     });
@@ -68,10 +55,7 @@ describe('Group Entity', () => {
 
     it('should set timestamps on creation', () => {
       const before = new Date();
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const group = Group.create({ name: 'developers', displayName: 'Developers' });
       const after = new Date();
 
       expect(group.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
@@ -81,59 +65,41 @@ describe('Group Entity', () => {
 
   describe('validation', () => {
     it('should reject empty name', () => {
-      expect(() =>
-        Group.create({
-          name: '',
-          displayName: 'Developers',
-        }),
-      ).toThrow('Group name cannot be empty');
+      expect(() => Group.create({ name: '', displayName: 'Developers' })).toThrow(
+        'Group name cannot be empty',
+      );
     });
 
     it('should reject empty displayName', () => {
-      expect(() =>
-        Group.create({
-          name: 'developers',
-          displayName: '',
-        }),
-      ).toThrow('Group displayName cannot be empty');
+      expect(() => Group.create({ name: 'developers', displayName: '' })).toThrow(
+        'Group displayName cannot be empty',
+      );
     });
 
     it('should reject name starting with number', () => {
-      expect(() =>
-        Group.create({
-          name: '1developers',
-          displayName: 'Developers',
-        }),
-      ).toThrow('must start with lowercase letter');
+      expect(() => Group.create({ name: '1developers', displayName: 'Developers' })).toThrow(
+        'must start with lowercase letter',
+      );
     });
 
     it('should reject name with invalid characters', () => {
-      expect(() =>
-        Group.create({
-          name: 'dev-team',
-          displayName: 'Dev Team',
-        }),
-      ).toThrow('must start with lowercase letter');
+      expect(() => Group.create({ name: 'dev-team', displayName: 'Dev Team' })).toThrow(
+        'must start with lowercase letter',
+      );
     });
 
     it('should reject name exceeding 50 characters', () => {
       const longName = 'a'.repeat(51);
-      expect(() =>
-        Group.create({
-          name: longName,
-          displayName: 'Developers',
-        }),
-      ).toThrow('Group name cannot exceed 50 characters');
+      expect(() => Group.create({ name: longName, displayName: 'Developers' })).toThrow(
+        'Group name cannot exceed 50 characters',
+      );
     });
 
     it('should reject displayName exceeding 100 characters', () => {
       const longDisplayName = 'A'.repeat(101);
-      expect(() =>
-        Group.create({
-          name: 'developers',
-          displayName: longDisplayName,
-        }),
-      ).toThrow('Group displayName cannot exceed 100 characters');
+      expect(() => Group.create({ name: 'developers', displayName: longDisplayName })).toThrow(
+        'Group displayName cannot exceed 100 characters',
+      );
     });
 
     it('should reject description exceeding 500 characters', () => {
@@ -148,10 +114,7 @@ describe('Group Entity', () => {
     });
 
     it('should allow name with underscores', () => {
-      const group = Group.create({
-        name: 'senior_dev_team',
-        displayName: 'Senior Dev Team',
-      });
+      const group = Group.create({ name: 'senior_dev_team', displayName: 'Senior Dev Team' });
 
       expect(group.name).toBe('senior_dev_team');
     });
@@ -159,10 +122,7 @@ describe('Group Entity', () => {
 
   describe('isRoot', () => {
     it('should return true when group has no parent', () => {
-      const group = Group.create({
-        name: 'root',
-        displayName: 'Root Group',
-      });
+      const group = Group.create({ name: 'root', displayName: 'Root Group' });
 
       expect(group.isRoot).toBe(true);
     });
@@ -180,10 +140,7 @@ describe('Group Entity', () => {
 
   describe('addRole', () => {
     it('should add a role and return new group', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.addRole('role-1');
 
@@ -192,10 +149,7 @@ describe('Group Entity', () => {
     });
 
     it('should return same instance if role already exists', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const withRole = original.addRole('role-1');
       const duplicate = withRole.addRole('role-1');
@@ -206,10 +160,9 @@ describe('Group Entity', () => {
 
   describe('removeRole', () => {
     it('should remove a role and return new group', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      }).addRole('role-1');
+      const original = Group.create({ name: 'developers', displayName: 'Developers' }).addRole(
+        'role-1',
+      );
 
       const updated = original.removeRole('role-1');
 
@@ -218,10 +171,7 @@ describe('Group Entity', () => {
     });
 
     it('should return same instance if role does not exist', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const result = original.removeRole('non-existent');
 
@@ -231,19 +181,15 @@ describe('Group Entity', () => {
 
   describe('hasRole', () => {
     it('should return true when group has role', () => {
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      }).addRole('role-1');
+      const group = Group.create({ name: 'developers', displayName: 'Developers' }).addRole(
+        'role-1',
+      );
 
       expect(group.hasRole('role-1')).toBe(true);
     });
 
     it('should return false when group does not have role', () => {
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const group = Group.create({ name: 'developers', displayName: 'Developers' });
 
       expect(group.hasRole('role-1')).toBe(false);
     });
@@ -251,10 +197,7 @@ describe('Group Entity', () => {
 
   describe('addPermission', () => {
     it('should add a permission and return new group', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.addPermission('perm-1');
 
@@ -263,10 +206,7 @@ describe('Group Entity', () => {
     });
 
     it('should return same instance if permission already exists', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const withPerm = original.addPermission('perm-1');
       const duplicate = withPerm.addPermission('perm-1');
@@ -289,10 +229,7 @@ describe('Group Entity', () => {
     });
 
     it('should return same instance if permission does not exist', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const result = original.removePermission('non-existent');
 
@@ -302,19 +239,15 @@ describe('Group Entity', () => {
 
   describe('hasPermission', () => {
     it('should return true when group has permission', () => {
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      }).addPermission('perm-1');
+      const group = Group.create({ name: 'developers', displayName: 'Developers' }).addPermission(
+        'perm-1',
+      );
 
       expect(group.hasPermission('perm-1')).toBe(true);
     });
 
     it('should return false when group does not have permission', () => {
-      const group = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const group = Group.create({ name: 'developers', displayName: 'Developers' });
 
       expect(group.hasPermission('perm-1')).toBe(false);
     });
@@ -322,10 +255,7 @@ describe('Group Entity', () => {
 
   describe('setParent', () => {
     it('should set parent and return new group', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.setParent('parent-id');
 
@@ -409,21 +339,13 @@ describe('Group Entity', () => {
 
   describe('canBeDeleted', () => {
     it('should return true for non-system groups', () => {
-      const group = Group.create({
-        name: 'custom',
-        displayName: 'Custom Group',
-        isSystem: false,
-      });
+      const group = Group.create({ name: 'custom', displayName: 'Custom Group', isSystem: false });
 
       expect(group.canBeDeleted()).toBe(true);
     });
 
     it('should return false for system groups', () => {
-      const group = Group.create({
-        name: 'admins',
-        displayName: 'Administrators',
-        isSystem: true,
-      });
+      const group = Group.create({ name: 'admins', displayName: 'Administrators', isSystem: true });
 
       expect(group.canBeDeleted()).toBe(false);
     });
@@ -431,10 +353,7 @@ describe('Group Entity', () => {
 
   describe('update', () => {
     it('should update displayName', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.update({ displayName: 'Dev Team' });
 
@@ -455,10 +374,7 @@ describe('Group Entity', () => {
     });
 
     it('should update parentId', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.update({ parentId: 'new-parent' });
 
@@ -478,10 +394,7 @@ describe('Group Entity', () => {
     });
 
     it('should trim displayName and description', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
 
       const updated = original.update({
         displayName: '  Trimmed  ',
@@ -495,27 +408,15 @@ describe('Group Entity', () => {
 
   describe('equals', () => {
     it('should return true for groups with same name', () => {
-      const group1 = Group.create({
-        name: 'developers',
-        displayName: 'Developers 1',
-      });
-      const group2 = Group.create({
-        name: 'developers',
-        displayName: 'Developers 2',
-      });
+      const group1 = Group.create({ name: 'developers', displayName: 'Developers 1' });
+      const group2 = Group.create({ name: 'developers', displayName: 'Developers 2' });
 
       expect(group1.equals(group2)).toBe(true);
     });
 
     it('should return false for groups with different names', () => {
-      const group1 = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
-      const group2 = Group.create({
-        name: 'designers',
-        displayName: 'Designers',
-      });
+      const group1 = Group.create({ name: 'developers', displayName: 'Developers' });
+      const group2 = Group.create({ name: 'designers', displayName: 'Designers' });
 
       expect(group1.equals(group2)).toBe(false);
     });
@@ -581,10 +482,7 @@ describe('Group Entity', () => {
 
   describe('immutability', () => {
     it('should not modify original group when adding role', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
       const originalSize = original.roleIds.size;
 
       original.addRole('role-1');
@@ -593,10 +491,7 @@ describe('Group Entity', () => {
     });
 
     it('should not modify original group when adding permission', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Developers',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Developers' });
       const originalSize = original.permissionIds.size;
 
       original.addPermission('perm-1');
@@ -605,10 +500,7 @@ describe('Group Entity', () => {
     });
 
     it('should not modify original group when updating', () => {
-      const original = Group.create({
-        name: 'developers',
-        displayName: 'Original',
-      });
+      const original = Group.create({ name: 'developers', displayName: 'Original' });
 
       original.update({ displayName: 'Updated' });
 

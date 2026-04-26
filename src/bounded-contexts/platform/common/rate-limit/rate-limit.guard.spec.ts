@@ -27,9 +27,7 @@ describe('RateLimitGuard', () => {
     headers: {},
   };
 
-  const mockResponse = {
-    setHeader: mock(),
-  };
+  const mockResponse = { setHeader: mock() };
 
   const createMockContext = (requestOverrides = {}): ExecutionContext =>
     ({
@@ -67,11 +65,7 @@ describe('RateLimitGuard', () => {
               'X-RateLimit-Remaining': 99,
               'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + 60,
             })),
-            getContextConfig: mock(() => ({
-              points: 100,
-              duration: 60,
-              keyStrategy: 'ip',
-            })),
+            getContextConfig: mock(() => ({ points: 100, duration: 60, keyStrategy: 'ip' })),
           },
         },
       ],
@@ -160,9 +154,7 @@ describe('RateLimitGuard', () => {
       await guard.canActivate(createMockContext());
 
       expect(rateLimitService.generateKey).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ip: '192.168.1.1',
-        }),
+        expect.objectContaining({ ip: '192.168.1.1' }),
       );
     });
 
@@ -174,9 +166,7 @@ describe('RateLimitGuard', () => {
       );
 
       expect(rateLimitService.generateKey).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 'user-123',
-        }),
+        expect.objectContaining({ userId: 'user-123' }),
       );
     });
 
@@ -188,9 +178,7 @@ describe('RateLimitGuard', () => {
       );
 
       expect(rateLimitService.generateKey).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ip: '10.0.0.1',
-        }),
+        expect.objectContaining({ ip: '10.0.0.1' }),
       );
     });
   });
@@ -201,30 +189,18 @@ describe('RateLimitGuard', () => {
     });
 
     it('should detect auth endpoints', async () => {
-      await guard.canActivate(
-        createMockContext({
-          path: '/api/v1/auth/login',
-        }),
-      );
+      await guard.canActivate(createMockContext({ path: '/api/v1/auth/login' }));
 
       expect(rateLimitService.getContextConfig).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isAuthEndpoint: true,
-        }),
+        expect.objectContaining({ isAuthEndpoint: true }),
       );
     });
 
     it('should detect expensive operations', async () => {
-      await guard.canActivate(
-        createMockContext({
-          path: '/api/v1/export/pdf',
-        }),
-      );
+      await guard.canActivate(createMockContext({ path: '/api/v1/export/pdf' }));
 
       expect(rateLimitService.getContextConfig).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isExpensiveOperation: true,
-        }),
+        expect.objectContaining({ isExpensiveOperation: true }),
       );
     });
   });
@@ -235,18 +211,13 @@ describe('RateLimitGuard', () => {
     });
 
     it('should use custom limits when specified via decorator', async () => {
-      spyOn(reflector, 'get').mockReturnValue({
-        points: 5,
-        duration: 60,
-      });
+      spyOn(reflector, 'get').mockReturnValue({ points: 5, duration: 60 });
 
       await guard.canActivate(createMockContext());
 
       expect(rateLimitService.consume).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({
-          points: 5,
-        }),
+        expect.objectContaining({ points: 5 }),
       );
     });
   });

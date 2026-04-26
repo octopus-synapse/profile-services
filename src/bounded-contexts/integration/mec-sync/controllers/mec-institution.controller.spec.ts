@@ -22,10 +22,7 @@ describe('MecInstitutionController - Contract', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MecInstitutionController],
       providers: [
-        {
-          provide: InstitutionQueryService,
-          useValue: createInstitutionQueryService(),
-        },
+        { provide: InstitutionQueryService, useValue: createInstitutionQueryService() },
         { provide: CourseQueryService, useValue: createCourseQueryService() },
       ],
     }).compile();

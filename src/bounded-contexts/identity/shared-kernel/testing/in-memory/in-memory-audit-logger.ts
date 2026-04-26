@@ -5,10 +5,8 @@
  * Stores audit entries in memory for verification.
  */
 
-import type {
-  AuditAction,
-  AuditLoggerPort,
-} from '../../../account-lifecycle/domain/ports/audit-logger.port';
+import type { AuditAction } from '../../../account-lifecycle/domain/ports/audit-logger.port';
+import { AuditLoggerPort } from '../../../account-lifecycle/domain/ports/audit-logger.port';
 
 export interface AuditEntry {
   userId: string;
@@ -36,13 +34,7 @@ export class InMemoryAuditLogger implements AuditLoggerPort {
     entityType: string,
     entityId: string,
   ): Promise<void> {
-    this.entries.push({
-      userId,
-      action,
-      entityType,
-      entityId,
-      timestamp: new Date(),
-    });
+    this.entries.push({ userId, action, entityType, entityId, timestamp: new Date() });
   }
 
   async logDataExportRequested(

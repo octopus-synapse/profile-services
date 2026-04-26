@@ -88,10 +88,7 @@ describe('AddSkillUseCase', () => {
       content: { name: 'React', category: 'Framework' },
     }));
 
-    const result = await useCase.execute('resume-1', {
-      name: 'React',
-      category: 'Framework',
-    });
+    const result = await useCase.execute('resume-1', { name: 'React', category: 'Framework' });
 
     expect(result.order).toBe(5);
   });

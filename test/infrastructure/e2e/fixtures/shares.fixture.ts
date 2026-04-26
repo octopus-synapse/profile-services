@@ -91,13 +91,10 @@ export function createSecureExpiringShare(
  */
 export function createShareWithCustomSlug(resumeId: string, customSlug: string) {
   // Validate slug format (lowercase alphanumeric + hyphens)
-  const slugRegex = /^[a-z0-9-]{3,50}$/;
+  const slugRegex = /^[a-z0-9-]{ 3, 50 }$/;
   if (!slugRegex.test(customSlug)) {
     throw new Error('Slug must be lowercase alphanumeric with hyphens (3-50 chars)');
   }
 
-  return {
-    resumeId,
-    slug: customSlug,
-  };
+  return { resumeId, slug: customSlug };
 }

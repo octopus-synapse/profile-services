@@ -51,7 +51,7 @@ describe('TypstPdfGeneratorService', () => {
   };
 
   const mockSerializer = {
-    serialize: mock().mockReturnValue('{"mock":"data"}'),
+    serialize: mock().mockReturnValue('{ "mock":"data" }'),
   };
 
   const mockCompiler = {
@@ -63,7 +63,7 @@ describe('TypstPdfGeneratorService', () => {
     // Reset mocks
     mockPrisma.user.findUnique.mockResolvedValue({ primaryResumeId: 'resume-123' });
     mockDslRepository.render.mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' });
-    mockSerializer.serialize.mockReturnValue('{"mock":"data"}');
+    mockSerializer.serialize.mockReturnValue('{ "mock":"data" }');
     mockCompiler.compile.mockResolvedValue(MOCK_PDF_BUFFER);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -136,17 +136,21 @@ describe('TypstPdfGeneratorService', () => {
       await service.generate({ userId: 'user-1' });
 
       expect(mockSerializer.serialize).toHaveBeenCalledWith(MOCK_AST);
-      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
-        timeout: undefined,
-      });
+      expect(mockCompiler.compile).toHaveBeenCalledWith(
+        '{ "mock":"data" }',
+        '/app/templates/typst',
+        { timeout: undefined },
+      );
     });
 
     it('should pass timeout option to compiler', async () => {
       await service.generate({ userId: 'user-1', timeout: 15000 });
 
-      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
-        timeout: 15000,
-      });
+      expect(mockCompiler.compile).toHaveBeenCalledWith(
+        '{ "mock":"data" }',
+        '/app/templates/typst',
+        { timeout: 15000 },
+      );
     });
   });
 });

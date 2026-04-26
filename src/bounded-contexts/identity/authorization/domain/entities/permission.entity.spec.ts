@@ -4,10 +4,7 @@ import { Permission, StandardActions, StandardResources } from './permission.ent
 describe('Permission Entity', () => {
   describe('create', () => {
     it('should create a permission with valid resource and action', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.resource).toBe('resume');
       expect(permission.action).toBe('create');
@@ -17,31 +14,21 @@ describe('Permission Entity', () => {
     });
 
     it('should normalize resource and action to lowercase', () => {
-      const permission = Permission.create({
-        resource: 'RESUME',
-        action: 'CREATE',
-      });
+      const permission = Permission.create({ resource: 'RESUME', action: 'CREATE' });
 
       expect(permission.resource).toBe('resume');
       expect(permission.action).toBe('create');
     });
 
     it('should trim whitespace from resource and action', () => {
-      const permission = Permission.create({
-        resource: '  resume  ',
-        action: '  create  ',
-      });
+      const permission = Permission.create({ resource: '  resume  ', action: '  create  ' });
 
       expect(permission.resource).toBe('resume');
       expect(permission.action).toBe('create');
     });
 
     it('should create a system permission when specified', () => {
-      const permission = Permission.create({
-        resource: 'user',
-        action: 'manage',
-        isSystem: true,
-      });
+      const permission = Permission.create({ resource: 'user', action: 'manage', isSystem: true });
 
       expect(permission.isSystem).toBe(true);
     });
@@ -58,10 +45,7 @@ describe('Permission Entity', () => {
 
     it('should set timestamps on creation', () => {
       const before = new Date();
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'read',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'read' });
       const after = new Date();
 
       expect(permission.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
@@ -72,82 +56,55 @@ describe('Permission Entity', () => {
 
   describe('validation', () => {
     it('should reject empty resource', () => {
-      expect(() =>
-        Permission.create({
-          resource: '',
-          action: 'create',
-        }),
-      ).toThrow('Permission resource cannot be empty');
+      expect(() => Permission.create({ resource: '', action: 'create' })).toThrow(
+        'Permission resource cannot be empty',
+      );
     });
 
     it('should reject empty action', () => {
-      expect(() =>
-        Permission.create({
-          resource: 'resume',
-          action: '',
-        }),
-      ).toThrow('Permission action cannot be empty');
+      expect(() => Permission.create({ resource: 'resume', action: '' })).toThrow(
+        'Permission action cannot be empty',
+      );
     });
 
     it('should reject resource containing colon', () => {
-      expect(() =>
-        Permission.create({
-          resource: 'resume:section',
-          action: 'create',
-        }),
-      ).toThrow('Permission resource cannot contain ":"');
+      expect(() => Permission.create({ resource: 'resume:section', action: 'create' })).toThrow(
+        'Permission resource cannot contain ":"',
+      );
     });
 
     it('should reject action containing colon', () => {
-      expect(() =>
-        Permission.create({
-          resource: 'resume',
-          action: 'create:item',
-        }),
-      ).toThrow('Permission action cannot contain ":"');
+      expect(() => Permission.create({ resource: 'resume', action: 'create:item' })).toThrow(
+        'Permission action cannot contain ":"',
+      );
     });
 
     it('should reject resource starting with number', () => {
-      expect(() =>
-        Permission.create({
-          resource: '1resume',
-          action: 'create',
-        }),
-      ).toThrow('must start with lowercase letter');
+      expect(() => Permission.create({ resource: '1resume', action: 'create' })).toThrow(
+        'must start with lowercase letter',
+      );
     });
 
     it('should reject action starting with number', () => {
-      expect(() =>
-        Permission.create({
-          resource: 'resume',
-          action: '1create',
-        }),
-      ).toThrow('must start with lowercase letter');
+      expect(() => Permission.create({ resource: 'resume', action: '1create' })).toThrow(
+        'must start with lowercase letter',
+      );
     });
 
     it('should reject resource with invalid characters', () => {
-      expect(() =>
-        Permission.create({
-          resource: 'resume-section',
-          action: 'create',
-        }),
-      ).toThrow('must start with lowercase letter');
+      expect(() => Permission.create({ resource: 'resume-section', action: 'create' })).toThrow(
+        'must start with lowercase letter',
+      );
     });
 
     it('should allow underscore in resource', () => {
-      const permission = Permission.create({
-        resource: 'audit_log',
-        action: 'read',
-      });
+      const permission = Permission.create({ resource: 'audit_log', action: 'read' });
 
       expect(permission.resource).toBe('audit_log');
     });
 
     it('should allow wildcard resource "*"', () => {
-      const permission = Permission.create({
-        resource: '*',
-        action: 'manage',
-      });
+      const permission = Permission.create({ resource: '*', action: 'manage' });
 
       expect(permission.resource).toBe('*');
     });
@@ -155,56 +112,38 @@ describe('Permission Entity', () => {
 
   describe('matches', () => {
     it('should match exact resource and action', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.matches('resume', 'create')).toBe(true);
     });
 
     it('should not match different resource', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.matches('theme', 'create')).toBe(false);
     });
 
     it('should not match different action', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.matches('resume', 'delete')).toBe(false);
     });
 
     it('should match case-insensitively', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.matches('RESUME', 'CREATE')).toBe(true);
     });
 
     it('should trim whitespace when matching', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission.matches('  resume  ', '  create  ')).toBe(true);
     });
 
     describe('manage action (super-action)', () => {
       it('should match any action on the same resource when permission has manage', () => {
-        const permission = Permission.create({
-          resource: 'resume',
-          action: 'manage',
-        });
+        const permission = Permission.create({ resource: 'resume', action: 'manage' });
 
         expect(permission.matches('resume', 'create')).toBe(true);
         expect(permission.matches('resume', 'read')).toBe(true);
@@ -214,10 +153,7 @@ describe('Permission Entity', () => {
       });
 
       it('should not match different resource even with manage action', () => {
-        const permission = Permission.create({
-          resource: 'resume',
-          action: 'manage',
-        });
+        const permission = Permission.create({ resource: 'resume', action: 'manage' });
 
         expect(permission.matches('theme', 'create')).toBe(false);
       });
@@ -225,10 +161,7 @@ describe('Permission Entity', () => {
 
     describe('wildcard resource "*:manage" (super-admin)', () => {
       it('should match any resource and any action', () => {
-        const permission = Permission.create({
-          resource: '*',
-          action: 'manage',
-        });
+        const permission = Permission.create({ resource: '*', action: 'manage' });
 
         expect(permission.matches('resume', 'create')).toBe(true);
         expect(permission.matches('theme', 'approve')).toBe(true);
@@ -275,10 +208,7 @@ describe('Permission Entity', () => {
     });
 
     it('should trim description', () => {
-      const permission = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission = Permission.create({ resource: 'resume', action: 'create' });
 
       const updated = permission.withDescription('  trimmed  ');
 
@@ -286,10 +216,7 @@ describe('Permission Entity', () => {
     });
 
     it('should update updatedAt timestamp', () => {
-      const original = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const original = Permission.create({ resource: 'resume', action: 'create' });
 
       const originalUpdatedAt = original.updatedAt;
 
@@ -302,40 +229,22 @@ describe('Permission Entity', () => {
 
   describe('equals', () => {
     it('should return true for permissions with same resource:action', () => {
-      const permission1 = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
-      const permission2 = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
+      const permission1 = Permission.create({ resource: 'resume', action: 'create' });
+      const permission2 = Permission.create({ resource: 'resume', action: 'create' });
 
       expect(permission1.equals(permission2)).toBe(true);
     });
 
     it('should return false for permissions with different resource', () => {
-      const permission1 = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
-      const permission2 = Permission.create({
-        resource: 'theme',
-        action: 'create',
-      });
+      const permission1 = Permission.create({ resource: 'resume', action: 'create' });
+      const permission2 = Permission.create({ resource: 'theme', action: 'create' });
 
       expect(permission1.equals(permission2)).toBe(false);
     });
 
     it('should return false for permissions with different action', () => {
-      const permission1 = Permission.create({
-        resource: 'resume',
-        action: 'create',
-      });
-      const permission2 = Permission.create({
-        resource: 'resume',
-        action: 'delete',
-      });
+      const permission1 = Permission.create({ resource: 'resume', action: 'create' });
+      const permission2 = Permission.create({ resource: 'resume', action: 'delete' });
 
       expect(permission1.equals(permission2)).toBe(false);
     });

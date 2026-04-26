@@ -13,12 +13,7 @@ describe('ChatCacheService', () => {
   };
 
   beforeEach(async () => {
-    cacheService = {
-      getOrSet: mock(),
-      get: mock(),
-      set: mock(),
-      delete: mock(),
-    };
+    cacheService = { getOrSet: mock(), get: mock(), set: mock(), delete: mock() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [ChatCacheService, { provide: CacheService, useValue: cacheService }],
@@ -116,10 +111,7 @@ describe('ChatCacheService', () => {
 
       expect(cacheService.set).toHaveBeenCalledWith(
         'chat:online:user-123',
-        expect.objectContaining({
-          isOnline: true,
-          lastSeen: expect.any(String),
-        }),
+        expect.objectContaining({ isOnline: true, lastSeen: expect.any(String) }),
         120, // ONLINE_TTL
       );
     });
@@ -131,10 +123,7 @@ describe('ChatCacheService', () => {
 
       expect(cacheService.set).toHaveBeenCalledWith(
         'chat:online:user-123',
-        expect.objectContaining({
-          isOnline: false,
-          lastSeen: expect.any(String),
-        }),
+        expect.objectContaining({ isOnline: false, lastSeen: expect.any(String) }),
         120,
       );
     });
@@ -146,10 +135,7 @@ describe('ChatCacheService', () => {
       await service.setOnlineStatus('user-123', true);
 
       const after = new Date().toISOString();
-      const callArg = cacheService.set.mock.calls[0][1] as {
-        isOnline: boolean;
-        lastSeen: string;
-      };
+      const callArg = cacheService.set.mock.calls[0][1] as { isOnline: boolean; lastSeen: string };
       expect(callArg.lastSeen >= before).toBe(true);
       expect(callArg.lastSeen <= after).toBe(true);
     });

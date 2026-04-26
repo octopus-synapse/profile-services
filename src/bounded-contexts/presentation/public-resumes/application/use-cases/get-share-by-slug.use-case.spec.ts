@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { CachePort } from '../../domain/ports/cache.port';
-import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type {
-  ShareRepositoryPort,
-  ShareWithResume,
-} from '../../domain/ports/share.repository.port';
+import { CachePort } from '../../domain/ports/cache.port';
+import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
+import type { ShareWithResume } from '../../domain/ports/share.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 import { GetShareBySlugUseCase } from './get-share-by-slug.use-case';
 
 describe('GetShareBySlugUseCase', () => {
@@ -26,9 +24,7 @@ describe('GetShareBySlugUseCase', () => {
   };
 
   beforeEach(() => {
-    shareRepo = {
-      findBySlug: mock(() => Promise.resolve(shareWithResume)),
-    };
+    shareRepo = { findBySlug: mock(() => Promise.resolve(shareWithResume)) };
 
     resumeRepo = {
       findByIdWithSections: mock(() =>
@@ -46,10 +42,7 @@ describe('GetShareBySlugUseCase', () => {
       ),
     };
 
-    cache = {
-      get: mock(() => Promise.resolve(null)),
-      set: mock(() => Promise.resolve()),
-    };
+    cache = { get: mock(() => Promise.resolve(null)), set: mock(() => Promise.resolve()) };
 
     useCase = new GetShareBySlugUseCase(
       shareRepo as unknown as ShareRepositoryPort,
@@ -124,10 +117,7 @@ describe('GetShareBySlugUseCase', () => {
 
   describe('verifyPassword', () => {
     it('should return true for a valid password', async () => {
-      const hash = await Bun.password.hash('correct-password', {
-        algorithm: 'bcrypt',
-        cost: 4,
-      });
+      const hash = await Bun.password.hash('correct-password', { algorithm: 'bcrypt', cost: 4 });
 
       const result = await useCase.verifyPassword('correct-password', hash);
 
@@ -135,10 +125,7 @@ describe('GetShareBySlugUseCase', () => {
     });
 
     it('should return false for an invalid password', async () => {
-      const hash = await Bun.password.hash('correct-password', {
-        algorithm: 'bcrypt',
-        cost: 4,
-      });
+      const hash = await Bun.password.hash('correct-password', { algorithm: 'bcrypt', cost: 4 });
 
       const result = await useCase.verifyPassword('wrong-password', hash);
 

@@ -49,11 +49,7 @@ describe('UpsertJobFitProfileUseCase', () => {
     const saved = await useCase.execute({
       jobId: 'job-1',
       editedByUserId: 'rec-1',
-      sliders: {
-        BIG_FIVE_OPENNESS: 0.9,
-        SCHWARTZ_ACHIEVEMENT: 0.7,
-        SDT_AUTONOMY: 0.5,
-      },
+      sliders: { BIG_FIVE_OPENNESS: 0.9, SCHWARTZ_ACHIEVEMENT: 0.7, SDT_AUTONOMY: 0.5 },
     });
     expect(saved.vector.bigFive.BIG_FIVE_OPENNESS).toBe(0.9);
     expect(saved.vector.schwartz.SCHWARTZ_ACHIEVEMENT).toBe(0.7);

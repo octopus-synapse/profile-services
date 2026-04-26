@@ -100,11 +100,7 @@ export function createMockResume(options: CreateMockResumeOptions = {}): Resume 
 }
 
 export function createMockPublicResume(options: CreateMockResumeOptions = {}): Resume {
-  return createMockResume({
-    ...options,
-    isPublic: true,
-    publishedAt: new Date(),
-  });
+  return createMockResume({ ...options, isPublic: true, publishedAt: new Date() });
 }
 
 /**
@@ -116,11 +112,7 @@ export interface ResumeWithSections extends Resume {
     sectionTypeId: string;
     order: number;
     isVisible: boolean;
-    sectionType: {
-      key: string;
-      semanticKind: string;
-      title: string;
-    };
+    sectionType: { key: string; semanticKind: string; title: string };
     items: Array<{
       id: string;
       content: Record<string, unknown>;

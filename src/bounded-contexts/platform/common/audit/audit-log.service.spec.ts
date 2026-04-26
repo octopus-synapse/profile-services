@@ -42,11 +42,7 @@ describe('AuditLogService', () => {
     },
   };
 
-  const stubLogger = {
-    debug: mock(),
-    error: mock(),
-    log: mock(),
-  };
+  const stubLogger = { debug: mock(), error: mock(), log: mock() };
 
   beforeEach(async () => {
     auditLogs.length = 0;

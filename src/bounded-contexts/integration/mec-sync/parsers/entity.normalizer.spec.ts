@@ -48,11 +48,7 @@ describe('Entity Normalizer', () => {
       });
 
       it('should handle missing optional fields', () => {
-        const row = createMockRow({
-          SG_IES: '',
-          NO_MUNICIPIO_IES: '',
-          CO_MUNICIPIO_IES: '',
-        });
+        const row = createMockRow({ SG_IES: '', NO_MUNICIPIO_IES: '', CO_MUNICIPIO_IES: '' });
 
         const result = normalizeInstitution(row);
 
@@ -63,9 +59,7 @@ describe('Entity Normalizer', () => {
       });
 
       it('should normalize text with extra whitespace', () => {
-        const row = createMockRow({
-          NO_IES: '  Universidade   Federal  ',
-        });
+        const row = createMockRow({ NO_IES: '  Universidade   Federal  ' });
 
         const result = normalizeInstitution(row);
 
@@ -141,10 +135,7 @@ describe('Entity Normalizer', () => {
       });
 
       it('should handle missing optional fields', () => {
-        const row = createMockRow({
-          NO_CINE_AREA_GERAL: '',
-          QT_CARGA_HORARIA: '',
-        });
+        const row = createMockRow({ NO_CINE_AREA_GERAL: '', QT_CARGA_HORARIA: '' });
 
         const result = normalizeCourse(row);
 
@@ -223,10 +214,7 @@ describe('Entity Normalizer', () => {
       });
 
       it('should handle floating point numbers (truncates)', () => {
-        const row = createMockRow({
-          CO_CURSO: '12345.67',
-          QT_CARGA_HORARIA: '3200.5',
-        });
+        const row = createMockRow({ CO_CURSO: '12345.67', QT_CARGA_HORARIA: '3200.5' });
 
         const result = normalizeCourse(row);
 

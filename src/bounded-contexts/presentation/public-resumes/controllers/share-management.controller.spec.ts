@@ -50,18 +50,14 @@ describe('ShareManagementController - Contract', () => {
   });
 
   it('listResumeShares returns data with shares', async () => {
-    const result = await controller.listResumeShares('resume-1', {
-      userId: 'user-1',
-    } as never);
+    const result = await controller.listResumeShares('resume-1', { userId: 'user-1' } as never);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('shares');
   });
 
   it('deleteShare returns data with deleted flag', async () => {
-    const result = await controller.deleteShare('share-1', {
-      userId: 'user-1',
-    } as never);
+    const result = await controller.deleteShare('share-1', { userId: 'user-1' } as never);
 
     expect(result.success).toBe(true);
     expect(result.data).toEqual({ deleted: true });

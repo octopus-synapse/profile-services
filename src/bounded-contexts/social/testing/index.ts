@@ -4,6 +4,7 @@
  * Port-level in-memory fakes for social features.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
   ActivityRepositoryPort,
   type ActivityType,
@@ -20,7 +21,6 @@ import {
   type PaginationParams,
 } from '../application/ports/follow.port';
 import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
-import { SocialLoggerPort } from '../application/ports/social-logger.port';
 
 // ═══════════════════════════════════════════════════════════════
 // USER RECORD (fixture type)
@@ -75,10 +75,7 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
     const filtered = this.follows
       .filter((f) => f.followingId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findFollowing(
@@ -89,10 +86,7 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
     const filtered = this.follows
       .filter((f) => f.followerId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countFollowers(userId: string): Promise<number> {
@@ -186,10 +180,7 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
     const filtered = this.activities
       .filter((a) => userIds.includes(a.userId))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivities(
@@ -200,10 +191,7 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
     const filtered = this.activities
       .filter((a) => a.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivitiesByType(
@@ -215,10 +203,7 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
     const filtered = this.activities
       .filter((a) => a.userId === userId && a.type === type)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async deleteOlderThan(date: Date): Promise<number> {
@@ -319,10 +304,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     const filtered = this.connections
       .filter((c) => c.targetId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findSentRequests(
@@ -333,10 +315,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     const filtered = this.connections
       .filter((c) => c.requesterId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findAcceptedConnections(
@@ -347,10 +326,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     const filtered = this.connections
       .filter((c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-    return {
-      data: filtered.slice((page - 1) * limit, page * limit),
-      total: filtered.length,
-    };
+    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countAcceptedConnections(userId: string): Promise<number> {
@@ -391,10 +367,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
       mutualCount: 0,
       commonSkills: [],
     }));
-    return {
-      data: ranked.slice((page - 1) * limit, page * limit),
-      total: ranked.length,
-    };
+    return { data: ranked.slice((page - 1) * limit, page * limit), total: ranked.length };
   }
 
   async userExists(userId: string): Promise<boolean> {
@@ -444,7 +417,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
 // IN-MEMORY LOGGER + EVENT BUS
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemorySocialLogger extends SocialLoggerPort {
+export class InMemorySocialLogger extends LoggerPort {
   log(): void {}
   debug(): void {}
   warn(): void {}

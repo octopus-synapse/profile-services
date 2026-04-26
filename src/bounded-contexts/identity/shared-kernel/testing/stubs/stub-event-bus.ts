@@ -4,8 +4,8 @@
  * Test double for event publishing with verification helpers.
  */
 
-import type { DomainEvent } from '../../domain/events';
-import type { EventBusPort } from '../../ports/event-bus.port';
+import { DomainEvent } from '../../domain/events';
+import { EventBusPort } from '../../ports/event-bus.port';
 
 export interface PublishedEvent {
   event: DomainEvent;
@@ -16,10 +16,7 @@ export class StubEventBus implements EventBusPort {
   private events: PublishedEvent[] = [];
 
   async publish(event: DomainEvent): Promise<void> {
-    this.events.push({
-      event,
-      publishedAt: new Date(),
-    });
+    this.events.push({ event, publishedAt: new Date() });
   }
 
   async publishAll(events: DomainEvent[]): Promise<void> {

@@ -6,7 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   GroupMembershipChangedEvent,
@@ -71,11 +71,7 @@ describe('AssignRoleUseCase', () => {
   });
 
   it('should publish RoleAssignedEvent with correct payload', async () => {
-    await useCase.execute({
-      userId: USER_ID,
-      roleId: ROLE_ID,
-      assignedBy: 'admin-001',
-    });
+    await useCase.execute({ userId: USER_ID, roleId: ROLE_ID, assignedBy: 'admin-001' });
 
     expect(eventBus.hasPublished(RoleAssignedEvent)).toBe(true);
     const events = eventBus.getEventsByType(RoleAssignedEvent);
@@ -258,10 +254,7 @@ describe('DenyPermissionUseCase', () => {
   });
 
   it('should override a previously granted permission', async () => {
-    userAuthRepo.seedPermission(USER_ID, {
-      permissionId: PERMISSION_ID,
-      granted: true,
-    });
+    userAuthRepo.seedPermission(USER_ID, { permissionId: PERMISSION_ID, granted: true });
 
     await useCase.execute({ userId: USER_ID, permissionId: PERMISSION_ID });
 

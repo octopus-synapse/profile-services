@@ -4,7 +4,7 @@
  * Ensures every `NotificationType` Prisma enum value has a matching
  * template in `NOTIFICATION_DICTIONARY`, and vice-versa.
  *
- * Templates use `{param}` placeholders; each entry's `params` array must
+ * Templates use `{ param }` placeholders; each entry's `params` array must
  * list the exact placeholder names used in both locales. Drift between
  * the title / body placeholders and the declared params is a bug.
  */
@@ -15,13 +15,13 @@ import * as path from 'node:path';
 import { LOCALES, NOTIFICATION_DICTIONARY } from '@packages/i18n';
 
 const SCHEMA_DIR = 'prisma/schema';
-const PLACEHOLDER_RE = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+const PLACEHOLDER_RE = /\{ ([a-zA-Z_][a-zA-Z0-9_]*) }/g;
 
 function discoverNotificationTypes(): Set<string> {
   for (const entry of fs.readdirSync(SCHEMA_DIR)) {
     if (!entry.endsWith('.prisma')) continue;
     const src = fs.readFileSync(path.join(SCHEMA_DIR, entry), 'utf8');
-    const match = src.match(/enum\s+NotificationType\s*\{([^}]+)\}/);
+    const match = src.match(/enum\s+NotificationType\s*\{ ([^ }]+)\}/);
     if (!match) continue;
     const values = match[1]
       .split('\n')

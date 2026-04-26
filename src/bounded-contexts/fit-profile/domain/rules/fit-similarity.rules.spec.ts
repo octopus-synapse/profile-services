@@ -43,11 +43,7 @@ describe('weightedCosineScore', () => {
         SCHWARTZ_BENEVOLENCE: 0.9,
         SCHWARTZ_UNIVERSALISM: 0.8,
       },
-      sdt: {
-        SDT_AUTONOMY: 0.7,
-        SDT_COMPETENCE: 0.9,
-        SDT_RELATEDNESS: 0.8,
-      },
+      sdt: { SDT_AUTONOMY: 0.7, SDT_COMPETENCE: 0.9, SDT_RELATEDNESS: 0.8 },
     });
     expect(weightedCosineScore(v, v)).toBe(100);
   });

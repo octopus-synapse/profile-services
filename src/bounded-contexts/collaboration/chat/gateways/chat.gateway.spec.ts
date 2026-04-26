@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Socket } from 'socket.io';
-import { CHAT_USE_CASES } from '../application/ports/chat.port';
+import { ChatUseCases } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { ChatCacheService } from '../services/chat-cache.service';
 import {
@@ -43,7 +43,7 @@ describe('ChatGateway', () => {
       providers: [
         ChatGateway,
         { provide: JwtService, useValue: jwtService },
-        { provide: CHAT_USE_CASES, useValue: chatUseCases },
+        { provide: ChatUseCases, useValue: chatUseCases },
         { provide: ConversationRepository, useValue: conversationRepo },
         { provide: ChatCacheService, useValue: chatCache },
       ],
@@ -177,10 +177,7 @@ describe('ChatGateway', () => {
 
       chatUseCases.sendMessageToConversationUseCase.execute.mockResolvedValue(mockMessage);
 
-      await gateway.handleSendMessage(mockSocket, {
-        conversationId: 'conv-1',
-        content: 'Hello!',
-      });
+      await gateway.handleSendMessage(mockSocket, { conversationId: 'conv-1', content: 'Hello!' });
 
       expect(gateway.server.to).toHaveBeenCalledWith('conversation:conv-1');
       expect(broadcastOperator.emit).toHaveBeenCalledWith('message:new', expect.any(Object));
@@ -270,10 +267,7 @@ describe('ChatGateway', () => {
 
       expect(broadcastOperator.emit).toHaveBeenCalledWith(
         'messages:read',
-        expect.objectContaining({
-          conversationId: 'conv-1',
-          readBy: 'user-1',
-        }),
+        expect.objectContaining({ conversationId: 'conv-1', readBy: 'user-1' }),
       );
     });
 
@@ -294,9 +288,7 @@ describe('ChatGateway', () => {
     it('should allow participant to join conversation room', async () => {
       const mockSocket = createMockSocket();
 
-      const result = await gateway.handleJoinConversation(mockSocket, {
-        conversationId: 'conv-1',
-      });
+      const result = await gateway.handleJoinConversation(mockSocket, { conversationId: 'conv-1' });
 
       expect(result.success).toBe(true);
       expect(mockSocket.join).toHaveBeenCalledWith('conversation:conv-1');
@@ -305,9 +297,7 @@ describe('ChatGateway', () => {
     it('should reject non-participant', async () => {
       const mockSocket = createMockSocket({ userId: 'user-3' });
 
-      const result = await gateway.handleJoinConversation(mockSocket, {
-        conversationId: 'conv-1',
-      });
+      const result = await gateway.handleJoinConversation(mockSocket, { conversationId: 'conv-1' });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Not a participant');
@@ -354,10 +344,7 @@ describe('ChatGateway', () => {
     });
 
     it('should fallback to cache when no local sockets', async () => {
-      chatCache.seedOnlineStatus('user-1', {
-        isOnline: true,
-        lastSeen: new Date().toISOString(),
-      });
+      chatCache.seedOnlineStatus('user-1', { isOnline: true, lastSeen: new Date().toISOString() });
 
       const isOnline = await gateway.isUserOnlineCached('user-1');
 

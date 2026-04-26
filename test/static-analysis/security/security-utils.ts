@@ -21,10 +21,7 @@ export function grepCodebase(pattern: string, exclude: string[] = []): string[] 
     // Use -E for extended regex and single quotes for pattern
     const result = execSync(
       `grep -rEn '${pattern}' ${SRC_DIR} ${excludeArgs} --include='*.ts' 2>/dev/null || true`,
-      {
-        encoding: 'utf-8',
-        maxBuffer: 10 * 1024 * 1024,
-      },
+      { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 },
     );
     return result
       .trim()
@@ -43,10 +40,7 @@ export function grepCodebaseFixed(text: string, exclude: string[] = []): string[
   try {
     const result = execSync(
       `grep -rFn '${text}' ${SRC_DIR} ${excludeArgs} --include='*.ts' 2>/dev/null || true`,
-      {
-        encoding: 'utf-8',
-        maxBuffer: 10 * 1024 * 1024,
-      },
+      { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 },
     );
     return result
       .trim()

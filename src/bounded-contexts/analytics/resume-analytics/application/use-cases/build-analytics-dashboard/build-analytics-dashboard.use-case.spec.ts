@@ -8,11 +8,8 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { ResumeForAnalytics } from '../../../domain/types';
 import type { ATSScoreResult, ViewStats, ViewStatsOptions } from '../../../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../../../testing';
-import type { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 import { BuildAnalyticsDashboardUseCase } from './build-analytics-dashboard.use-case';
 
 describe('BuildAnalyticsDashboardUseCase', () => {
@@ -30,9 +27,7 @@ describe('BuildAnalyticsDashboardUseCase', () => {
     recommendations: ['Add more keywords'],
   };
 
-  const mockAtsScore: AtsScoringPort = {
-    calculate: mock(async () => mockAtsScoreResult),
-  };
+  const mockAtsScore: AtsScoringPort = { calculate: mock(async () => mockAtsScoreResult) };
 
   const mockResume: ResumeForAnalytics = {
     summary: 'Experienced developer',

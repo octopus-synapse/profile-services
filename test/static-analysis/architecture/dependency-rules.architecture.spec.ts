@@ -172,7 +172,7 @@ describe('Architecture', () => {
 
         // Controllers should only call services, not contain logic
         const businessLogicPatterns = [
-          /if\s*\([^)]*\)\s*{[^}]*throw\s+new/, // Direct validation logic
+          /if\s*\([^)]*\)\s*{ [^ }]*throw\s+new/, // Direct validation logic
           /for\s*\(/, // Loops (should be in services)
           /while\s*\(/,
           /\.map\(/, // Array transformations
@@ -242,7 +242,7 @@ describe('Architecture', () => {
               // Check if this parent is imported from @prisma/client
               const importMatch = content.match(
                 new RegExp(
-                  `import\\s*{[^}]*${parentClass}[^}]*}\\s*from\\s*['"]@prisma/client['"]`,
+                  `import\\s*{ [^ }]*${parentClass}[^}]*}\\s*from\\s*['"]@prisma/client['"]`,
                 ),
               );
               if (importMatch) {

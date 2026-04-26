@@ -5,12 +5,12 @@
  */
 
 import type {
-  DataExportRepositoryPort,
   ExportedAuditLog,
   ExportedConsent,
   ExportedResume,
   ExportedUserData,
 } from '../../../account-lifecycle/domain/ports/data-export-repository.port';
+import { DataExportRepositoryPort } from '../../../account-lifecycle/domain/ports/data-export-repository.port';
 
 export class InMemoryDataExportRepository implements DataExportRepositoryPort {
   private users: Map<string, ExportedUserData> = new Map();

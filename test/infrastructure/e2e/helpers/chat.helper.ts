@@ -20,40 +20,23 @@ export class ChatHelper {
     // First, ensure the permission exists
     let permission = await this.prisma.permission.findUnique({
       where: {
-        resource_action: {
-          resource: 'chat',
-          action: 'use',
-        },
+        resource_action: { resource: 'chat', action: 'use' },
       },
     });
 
     if (!permission) {
       permission = await this.prisma.permission.create({
-        data: {
-          resource: 'chat',
-          action: 'use',
-          description: 'Use chat features',
-          isSystem: true,
-        },
+        data: { resource: 'chat', action: 'use', description: 'Use chat features', isSystem: true },
       });
     }
 
     // Assign permission to user (upsert to avoid duplicates)
     await this.prisma.userPermission.upsert({
       where: {
-        userId_permissionId: {
-          userId,
-          permissionId: permission.id,
-        },
+        userId_permissionId: { userId, permissionId: permission.id },
       },
-      create: {
-        userId,
-        permissionId: permission.id,
-        granted: true,
-      },
-      update: {
-        granted: true,
-      },
+      create: { userId, permissionId: permission.id, granted: true },
+      update: { granted: true },
     });
   }
 
