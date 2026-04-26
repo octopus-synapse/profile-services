@@ -1,16 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  NotFoundException,
-  Param,
-  Patch,
-  Post,
-  UnprocessableEntityException,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure/interfaces/auth-request.interface';
@@ -22,29 +10,25 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { AdminOnly } from '@/shared-kernel/authorization';
-import { LoggerPort } from '@/shared-kernel';
 import { CreateStyleUseCase } from '../../application/use-cases/admin/create-style.use-case';
 import { DeleteStyleUseCase } from '../../application/use-cases/admin/delete-style.use-case';
 import { UpdateStyleUseCase } from '../../application/use-cases/admin/update-style.use-case';
-import {
-  StyleBelowAtsThresholdError,
-  StyleNotEditableError,
-  StyleNotFoundError,
-  StyleScoreRegressionError,
-} from '../../domain/exceptions/resume-styles.exceptions';
 import { CreateStyleRequestDto, UpdateStyleRequestDto } from '../dto/admin-resume-style.dto';
 import { StyleDetailDto } from '../dto/resume-style.dto';
 import { presentDetail } from '../presenters/resume-style.presenter';
 
 /**
- * Admin CRUD over `ResumeStyle`. The plan invariants enforced here:
- *   - 422 if the calculated styleScore is below the ATS-safety threshold.
- *   - 422 if an update would regress the styleScore (also enforced by
- *     a Postgres trigger as a hard floor).
- *   - 422 (`style_not_editable`) for any attempt to mutate a system style.
+ * Admin CRUD over `ResumeStyle`. The domain enforces:
+ *   - 404 when the style id does not exist.
+ *   - 422 when the calculated styleScore is below the ATS-safety threshold.
+ *   - 422 when an update would regress the styleScore (also a Postgres
+ *     trigger acts as a hard floor).
+ *   - 422 (`RESUME_STYLE_NOT_EDITABLE`) for any attempt to mutate a system
+ *     style.
+ *
+ * The mapping to HTTP is handled by `DomainExceptionFilter` — domain
+ * subclasses already declare `code` + `statusHint`.
  */
-const CTX = 'AdminResumeStylesController';
-
 @SdkExport({ tag: 'admin-resume-styles', description: 'Admin ResumeStyle CRUD' })
 @ApiTags('admin-resume-styles')
 @ApiBearerAuth('JWT-auth')
@@ -55,7 +39,6 @@ export class AdminResumeStylesController {
     private readonly createUseCase: CreateStyleUseCase,
     private readonly updateUseCase: UpdateStyleUseCase,
     private readonly deleteUseCase: DeleteStyleUseCase,
-    private readonly logger: LoggerPort,
   ) {}
 
   @Post()
@@ -67,20 +50,16 @@ export class AdminResumeStylesController {
     @Body() body: CreateStyleRequestDto,
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<StyleDetailDto>> {
-    try {
-      const created = await this.createUseCase.execute({
-        name: body.name,
-        description: body.description ?? null,
-        typstTemplate: body.typstTemplate,
-        layoutKind: body.layoutKind,
-        styleConfig: body.styleConfig,
-        sectionStyles: body.sectionStyles,
-        authorId: user.userId,
-      });
-      return { success: true, data: presentDetail(created) };
-    } catch (err) {
-      throw this.toHttpException(err);
-    }
+    const created = await this.createUseCase.execute({
+      name: body.name,
+      description: body.description ?? null,
+      typstTemplate: body.typstTemplate,
+      layoutKind: body.layoutKind,
+      styleConfig: body.styleConfig,
+      sectionStyles: body.sectionStyles,
+      authorId: user.userId,
+    });
+    return { success: true, data: presentDetail(created) };
   }
 
   @Patch(':id')
@@ -92,19 +71,15 @@ export class AdminResumeStylesController {
     @Param('id') id: string,
     @Body() body: UpdateStyleRequestDto,
   ): Promise<DataResponse<StyleDetailDto>> {
-    try {
-      const updated = await this.updateUseCase.execute(id, {
-        name: body.name,
-        description: body.description,
-        typstTemplate: body.typstTemplate,
-        layoutKind: body.layoutKind,
-        styleConfig: body.styleConfig,
-        sectionStyles: body.sectionStyles,
-      });
-      return { success: true, data: presentDetail(updated) };
-    } catch (err) {
-      throw this.toHttpException(err);
-    }
+    const updated = await this.updateUseCase.execute(id, {
+      name: body.name,
+      description: body.description,
+      typstTemplate: body.typstTemplate,
+      layoutKind: body.layoutKind,
+      styleConfig: body.styleConfig,
+      sectionStyles: body.sectionStyles,
+    });
+    return { success: true, data: presentDetail(updated) };
   }
 
   @Delete(':id')
@@ -114,43 +89,6 @@ export class AdminResumeStylesController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: 'Style deleted' })
   async delete(@Param('id') id: string): Promise<void> {
-    try {
-      await this.deleteUseCase.execute(id);
-    } catch (err) {
-      throw this.toHttpException(err);
-    }
-  }
-
-  /** Map domain errors to HTTP exceptions. Logs once per failure so the
-   *  audit trail captures every admin-side rejection (regressions, edits
-   *  to system styles, etc.) and not just the ones that surfaced as 5xx. */
-  private toHttpException(err: unknown): unknown {
-    this.logger.warn(
-      `admin resume-styles request failed: ${err instanceof Error ? err.message : 'unknown'}`,
-      CTX,
-    );
-    if (err instanceof StyleNotFoundError) {
-      return new NotFoundException(err.message);
-    }
-    if (err instanceof StyleBelowAtsThresholdError) {
-      return new UnprocessableEntityException({
-        code: 'style_below_ats_threshold',
-        message: err.message,
-        score: err.score,
-        threshold: err.threshold,
-      });
-    }
-    if (err instanceof StyleScoreRegressionError) {
-      return new UnprocessableEntityException({
-        code: 'style_score_regression',
-        message: err.message,
-        currentScore: err.currentScore,
-        attemptedScore: err.attemptedScore,
-      });
-    }
-    if (err instanceof StyleNotEditableError) {
-      return new UnprocessableEntityException({ code: 'style_not_editable', message: err.message });
-    }
-    return err;
+    await this.deleteUseCase.execute(id);
   }
 }
