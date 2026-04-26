@@ -89,16 +89,47 @@ for (const path of walk(SRC)) {
     const s = readConstructor(src);
     if (s && !s.injectsLogger) buckets.handler.push(rel);
   }
-  const catchRe = /catch\s*(?:\([^)]*\))?\s*\{([\s\S]*?)\}/g;
-  let cm: RegExpExecArray | null;
-  while ((cm = catchRe.exec(src))) {
-    const body = cm[1];
+  for (const body of catchBodies(src)) {
     if (body.split('\n').length > 12) continue;
     if (/this\.logger\./.test(body)) continue;
     if (/\bthrow\b/.test(body)) continue;
     if (body.trim().length === 0) continue;
     buckets.silent.push(rel);
     break;
+  }
+}
+
+/** Yields each `catch (...) { ... }` body as a string, with proper brace
+ *  matching so nested `{}` (inline types, object literals) don't truncate
+ *  the body early. Strings/templates are tracked to avoid false matches
+ *  inside literals. */
+function* catchBodies(src: string): Generator<string> {
+  const re = /catch\s*(?:\([^)]*\))?\s*\{/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    const start = m.index + m[0].length;
+    let depth = 1;
+    let i = start;
+    let inStr: string | null = null;
+    while (i < src.length && depth > 0) {
+      const ch = src[i];
+      const prev = src[i - 1];
+      if (inStr) {
+        if (ch === inStr && prev !== '\\') inStr = null;
+        i++;
+        continue;
+      }
+      if (ch === '"' || ch === "'" || ch === '`') {
+        inStr = ch;
+        i++;
+        continue;
+      }
+      if (ch === '{') depth++;
+      else if (ch === '}') depth--;
+      i++;
+    }
+    yield src.slice(start, i - 1);
+    re.lastIndex = i;
   }
 }
 

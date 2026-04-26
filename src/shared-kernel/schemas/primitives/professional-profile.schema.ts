@@ -37,18 +37,7 @@ export const ProfessionalSummarySchema = z
 const OptionalUrlSchema = z
   .string()
   .trim()
-  .refine(
-    (val) => {
-      if (!val || val === '') return true;
-      try {
-        new URL(val);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    { message: 'Invalid URL format' },
-  )
+  .pipe(z.union([z.literal(''), z.string().url('Invalid URL format')]))
   .transform((val) => (val === '' ? undefined : val))
   .optional();
 
