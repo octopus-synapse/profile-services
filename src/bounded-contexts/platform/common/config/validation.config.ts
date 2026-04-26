@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -10,16 +10,13 @@ import { AppLoggerService } from '../logger/logger.service';
  * Single Responsibility: Configure request validation only
  *
  * Uses nestjs-zod ZodValidationPipe globally so all createZodDto DTOs
- * are validated automatically without per-route pipe decoration.
+ * are validated automatically without per-route pipe decoration. Zod
+ * coerces primitives where the schema asks for it (`z.coerce.number()`,
+ * etc.) — there is no need to layer the legacy `ValidationPipe` (with
+ * `class-transformer`/`class-validator`) on top.
  */
 export function configureValidation(app: INestApplication): void {
-  app.useGlobalPipes(
-    new ZodValidationPipe(),
-    new ValidationPipe({
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+  app.useGlobalPipes(new ZodValidationPipe());
 }
 
 /**

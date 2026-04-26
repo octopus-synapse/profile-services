@@ -1,5 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
 export class FeatureFlagEvaluationDto {
   @ApiProperty({
@@ -32,21 +33,15 @@ export class FeatureFlagAdminListDto {
   flags!: FeatureFlagAdminRowDto[];
 }
 
-export class ToggleFeatureFlagDto {
-  @ApiPropertyOptional({ description: 'New enabled state. Omit to leave unchanged.' })
-  @IsOptional()
-  @IsBoolean()
-  enabled?: boolean;
-
-  @ApiPropertyOptional({
-    type: [String],
-    description: 'Roles allowed when enabled. Empty array = no restriction.',
+/** New enabled state (omit to leave unchanged) + optional role allow-list. */
+const ToggleFeatureFlagSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    enabledForRoles: z.array(z.string()).optional(),
   })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  enabledForRoles?: string[];
-}
+  .strict();
+
+export class ToggleFeatureFlagDto extends createZodDto(ToggleFeatureFlagSchema) {}
 
 export class FeatureFlagImpactNodeDto {
   @ApiProperty() key!: string;
