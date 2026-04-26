@@ -1,9 +1,10 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { Job, Queue } from 'bullmq';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
+import { LoggerPort } from '@/shared-kernel';
 
 export const JOB_MATCH_RECOMPUTE_QUEUE = 'job-match-recompute';
 
@@ -26,15 +27,16 @@ export type JobMatchRecomputeJobData =
  * in this MVP. Job-level and fit-profile events flow in later when
  * their owning contexts grow proper domain events.
  */
+const CTX = 'JobMatchRecomputeWorker';
+
 @Injectable()
 @Processor(JOB_MATCH_RECOMPUTE_QUEUE, { concurrency: 4 })
 export class JobMatchRecomputeWorker extends WorkerHost {
-  private readonly logger = new Logger(JobMatchRecomputeWorker.name);
-
   constructor(
     @InjectQueue(JOB_MATCH_RECOMPUTE_QUEUE)
     private readonly queue: Queue<JobMatchRecomputeJobData>,
     private readonly cache: CacheService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -53,10 +55,12 @@ export class JobMatchRecomputeWorker extends WorkerHost {
     if (!pattern) return;
     try {
       await this.cache.deletePattern(pattern);
-      this.logger.log(`Match cache invalidated via pattern=${pattern}`);
+      this.logger.log(`Match cache invalidated via pattern=${pattern}`, CTX);
     } catch (err) {
       this.logger.error(
         `Match cache invalidation failed pattern=${pattern} err=${(err as Error).message}`,
+        (err as Error).stack,
+        CTX,
       );
       throw err;
     }
@@ -80,6 +84,10 @@ export class JobMatchRecomputeWorker extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<JobMatchRecomputeJobData>, err: Error): void {
-    this.logger.error(`job-match-recompute failed kind=${job?.data?.kind} err=${err.message}`);
+    this.logger.error(
+      `job-match-recompute failed kind=${job?.data?.kind} err=${err.message}`,
+      err.stack,
+      CTX,
+    );
   }
 }

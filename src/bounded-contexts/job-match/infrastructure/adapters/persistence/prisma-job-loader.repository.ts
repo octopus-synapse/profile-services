@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { type JobForMatch, JobLoaderPort } from '../../../domain/ports/job-loader.port';
 
 type JobStructuredRequirements = Readonly<Record<string, unknown>>;
@@ -14,7 +15,10 @@ type JobStructuredRequirements = Readonly<Record<string, unknown>>;
  */
 @Injectable()
 export class PrismaJobLoader extends JobLoaderPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

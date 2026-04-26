@@ -1,9 +1,10 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { ComputeMatchUseCase } from '../../application/use-cases/compute-match.use-case';
 
 export const DAILY_RECOMMENDATIONS_QUEUE = 'daily-recommendations';
@@ -40,11 +41,11 @@ const JOB_RECENCY_DAYS = 7;
  * The `scoring.match.daily-recommendations` feature flag gates the
  * whole pipeline — when OFF the schedule job no-ops without enqueueing.
  */
+const CTX = 'DailyRecommendationsWorker';
+
 @Injectable()
 @Processor(DAILY_RECOMMENDATIONS_QUEUE, { concurrency: 2 })
 export class DailyRecommendationsWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(DailyRecommendationsWorker.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
@@ -52,6 +53,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     private readonly notifications: NotificationService,
     @InjectQueue(DAILY_RECOMMENDATIONS_QUEUE)
     private readonly queue: Queue<DailyRecommendationsJobData>,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -82,7 +84,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
 
   private async fanOutActiveUsers(): Promise<void> {
     if (!(await this.flags.isEnabled(FEATURE_FLAG_KEY, null))) {
-      this.logger.log('daily-recommendations: feature flag OFF — skipping schedule');
+      this.logger.log('daily-recommendations: feature flag OFF — skipping schedule', CTX);
       return;
     }
     const cutoff = new Date(Date.now() - ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
@@ -99,7 +101,10 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
       },
       select: { id: true },
     });
-    this.logger.log(`daily-recommendations: fanning out for ${candidates.length} active users`);
+    this.logger.log(
+      `daily-recommendations: fanning out for ${candidates.length} active users`,
+      CTX,
+    );
     for (const u of candidates) {
       await this.queue.add('compute-for-user', { kind: 'compute-for-user', userId: u.id });
     }
@@ -151,6 +156,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
         // One bad job shouldn't poison the batch. Log + continue.
         this.logger.warn(
           `daily-recommendations: compute failed user=${userId} job=${j.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+          CTX,
         );
       }
     }
@@ -170,12 +176,17 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     } catch (err) {
       this.logger.warn(
         `daily-recommendations: notification failed user=${userId}: ${err instanceof Error ? err.message : 'unknown'}`,
+        CTX,
       );
     }
   }
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<DailyRecommendationsJobData>, err: Error): void {
-    this.logger.error(`daily-recommendations failed kind=${job?.data?.kind} err=${err.message}`);
+    this.logger.error(
+      `daily-recommendations failed kind=${job?.data?.kind} err=${err.message}`,
+      err.stack,
+      CTX,
+    );
   }
 }
