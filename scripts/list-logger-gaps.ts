@@ -81,9 +81,9 @@ for (const path of walk(SRC)) {
     if (touch && s && !s.injectsLogger) buckets.infra.push(rel);
   }
   if (rel.endsWith('.worker.ts')) {
-    const hasLog = /this\.logger\.log\s*\(/.test(src);
-    const hasErr = /this\.logger\.(error|warn)\s*\(/.test(src);
-    if (!hasLog || !hasErr) buckets.worker.push(rel);
+    const shape = readConstructor(src);
+    const hasAnyLog = /this\.logger\.(log|debug|warn|error)\s*\(/.test(src);
+    if ((shape && !shape.injectsLogger) || !hasAnyLog) buckets.worker.push(rel);
   }
   if ((/application\/handlers\//.test(rel) || rel.endsWith('.handler.ts')) && !rel.endsWith('.use-case.ts')) {
     const s = readConstructor(src);
