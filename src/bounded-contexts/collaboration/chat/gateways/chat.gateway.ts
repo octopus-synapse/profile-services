@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
@@ -10,11 +9,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { LoggerPort } from '@/shared-kernel';
 import { ChatUseCases } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';
 import { ChatCacheService } from '../services/chat-cache.service';
 import { type AuthenticatedSocket, WsAuthGuard } from './ws-auth.guard';
+
+const CTX = 'ChatGateway';
 
 @WebSocketGateway({
   namespace: '/chat',
@@ -24,7 +26,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private readonly logger = new Logger(ChatGateway.name);
   private readonly authGuard: WsAuthGuard;
 
   // Map userId -> Set of socket IDs
@@ -35,6 +36,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly chat: ChatUseCases,
     private readonly conversationRepo: ConversationRepository,
     private readonly chatCache: ChatCacheService,
+    private readonly logger: LoggerPort,
   ) {
     this.authGuard = new WsAuthGuard(jwtService);
   }
@@ -64,7 +66,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.chatCache.setOnlineStatus(userId, true);
     void this.broadcastUserStatus(userId, true);
 
-    this.logger.log(`User ${userId} connected (socket: ${client.id})`);
+    this.logger.log(`User ${userId} connected (socket: ${client.id})`, CTX);
   }
 
   handleDisconnect(client: AuthenticatedSocket) {
@@ -81,7 +83,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
 
-    this.logger.log(`User ${userId} disconnected (socket: ${client.id})`);
+    this.logger.log(`User ${userId} disconnected (socket: ${client.id})`, CTX);
   }
 
   @SubscribeMessage('message:send')
@@ -110,7 +112,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { success: true, message };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error(`Failed to send message: ${errorMessage}`);
+      this.logger.error(
+        `Failed to send message in ${data.conversationId}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+        CTX,
+      );
       return { success: false, error: errorMessage };
     }
   }
@@ -165,6 +171,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `Failed to mark conversation ${data.conversationId} read: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+        CTX,
+      );
       return { success: false, error: errorMessage };
     }
   }

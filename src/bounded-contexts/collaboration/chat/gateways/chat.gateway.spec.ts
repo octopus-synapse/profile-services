@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Socket } from 'socket.io';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ChatUseCases } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { ChatCacheService } from '../services/chat-cache.service';
@@ -46,6 +48,7 @@ describe('ChatGateway', () => {
         { provide: ChatUseCases, useValue: chatUseCases },
         { provide: ConversationRepository, useValue: conversationRepo },
         { provide: ChatCacheService, useValue: chatCache },
+        { provide: LoggerPort, useValue: stubLogger },
       ],
     }).compile();
 
