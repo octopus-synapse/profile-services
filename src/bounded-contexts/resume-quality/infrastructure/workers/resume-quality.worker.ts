@@ -1,8 +1,9 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { Job, Queue } from 'bullmq';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
+import { LoggerPort } from '@/shared-kernel';
 import { ComputeQualityUseCase } from '../../application/use-cases/compute-quality.use-case';
 
 export const RESUME_QUALITY_QUEUE = 'resume-quality';
@@ -27,15 +28,16 @@ export type ResumeQualityJobData = {
  * through BullMQ's default retry (3 attempts, exponential backoff,
  * configured in AppModule).
  */
+const CTX = 'ResumeQualityWorker';
+
 @Injectable()
 @Processor(RESUME_QUALITY_QUEUE, { concurrency: 4 })
 export class ResumeQualityWorker extends WorkerHost {
-  private readonly logger = new Logger(ResumeQualityWorker.name);
-
   constructor(
     @InjectQueue(RESUME_QUALITY_QUEUE)
     private readonly queue: Queue<ResumeQualityJobData>,
     private readonly compute: ComputeQualityUseCase,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -60,6 +62,8 @@ export class ResumeQualityWorker extends WorkerHost {
   onFailed(job: Job<ResumeQualityJobData>, err: Error): void {
     this.logger.error(
       `resume-quality recompute failed resumeId=${job?.data?.resumeId} err=${err.message}`,
+      err.stack,
+      CTX,
     );
   }
 }
