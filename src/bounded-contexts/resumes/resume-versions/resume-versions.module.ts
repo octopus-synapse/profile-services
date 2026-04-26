@@ -7,7 +7,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters';
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeEventPublisher } from '../domain/ports/resume-event-publisher.port';
 import { ResumeTailorController } from './controllers/resume-tailor.controller';
 import { ResumeVersionController } from './controllers/resume-version.controller';
@@ -40,7 +40,7 @@ import { ResumeVersionService } from './services/resume-version.service';
     {
       provide: ResumeVersionUseCases,
       useFactory: buildResumeVersionUseCases,
-      inject: [PrismaService, ResumeEventPublisher],
+      inject: [PrismaService, ResumeEventPublisher, LoggerPort],
     },
   ],
   exports: [

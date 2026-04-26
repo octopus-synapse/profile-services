@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import { ResumeEventPublisher } from '../../domain/ports';
 import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
 import { ResumesRepositoryPort } from '../ports/resumes-repository.port';
@@ -15,17 +16,19 @@ export function buildResumesUseCases(
   repository: ResumesRepositoryPort,
   versionService: ResumeVersionServicePort,
   eventPublisher: ResumeEventPublisher,
+  logger: LoggerPort,
 ): ResumesUseCases {
   return {
     findAllUserResumesUseCase: new FindAllUserResumesUseCase(repository),
     findResumeByIdForUserUseCase: new FindResumeByIdForUserUseCase(repository),
-    createResumeForUserUseCase: new CreateResumeForUserUseCase(repository, eventPublisher),
+    createResumeForUserUseCase: new CreateResumeForUserUseCase(repository, eventPublisher, logger),
     updateResumeForUserUseCase: new UpdateResumeForUserUseCase(
       repository,
       versionService,
       eventPublisher,
+      logger,
     ),
-    deleteResumeForUserUseCase: new DeleteResumeForUserUseCase(repository, eventPublisher),
+    deleteResumeForUserUseCase: new DeleteResumeForUserUseCase(repository, eventPublisher, logger),
     getRemainingSlotsUseCase: new GetRemainingSlotsUseCase(repository),
   };
 }

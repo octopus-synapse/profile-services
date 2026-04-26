@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { AdminSectionTypesRepository } from '../infrastructure/repositories/admin-section-types.repository';
 import { AdminSectionTypesUseCases } from './ports/admin-section-types.port';
 import { CreateSectionTypeUseCase } from './use-cases/create-section-type/create-section-type.use-case';
@@ -10,8 +11,11 @@ import { UpdateSectionTypeUseCase } from './use-cases/update-section-type/update
 
 export { AdminSectionTypesUseCases };
 
-export function buildAdminSectionTypesUseCases(prisma: PrismaService): AdminSectionTypesUseCases {
-  const repository = new AdminSectionTypesRepository(prisma);
+export function buildAdminSectionTypesUseCases(
+  prisma: PrismaService,
+  logger: LoggerPort,
+): AdminSectionTypesUseCases {
+  const repository = new AdminSectionTypesRepository(prisma, logger);
 
   return {
     listSectionTypesAdminUseCase: new ListSectionTypesAdminUseCase(repository),

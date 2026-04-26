@@ -1,4 +1,4 @@
-import type { UpdateResume } from '@/shared-kernel';
+import type { LoggerPort, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumeVersionServicePort } from '../../../ports/resume-version-service.port';
@@ -16,6 +16,7 @@ export class UpdateResumeForUserUseCase {
     private readonly repository: ResumesRepositoryPort,
     private readonly versionService: ResumeVersionServicePort,
     private readonly eventPublisher: ResumeEventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(id: string, userId: string, data: UpdateResume): Promise<ResumeResult> {

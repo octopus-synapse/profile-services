@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type JsonValue,
   type ResumeForSnapshot,
@@ -9,7 +10,10 @@ import {
 } from '../ports/resume-version.port';
 
 export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

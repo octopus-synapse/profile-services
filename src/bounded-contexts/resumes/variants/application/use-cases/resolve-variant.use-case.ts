@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
 import type { VariantData } from '../ports/variant-repository.port';
 import { VariantRepositoryPort } from '../ports/variant-repository.port';
@@ -27,6 +28,7 @@ export class ResolveVariantUseCase {
   constructor(
     private readonly variantRepo: VariantRepositoryPort,
     private readonly sectionsReader: BaseSectionsReader,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

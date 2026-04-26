@@ -1,4 +1,4 @@
-import type { CreateResume } from '@/shared-kernel';
+import type { CreateResume, LoggerPort } from '@/shared-kernel';
 import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions/resumes.exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
@@ -16,6 +16,7 @@ export class CreateResumeForUserUseCase {
   constructor(
     private readonly repository: ResumesRepositoryPort,
     private readonly eventPublisher: ResumeEventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, data: CreateResume): Promise<ResumeResult> {

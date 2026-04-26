@@ -65,7 +65,7 @@ import { ResumeManagementService } from './services/resume-management.service';
     {
       provide: GenericResumeSectionsUseCases,
       useFactory: buildGenericResumeSectionsUseCases,
-      inject: [PrismaService, SectionDefinitionZodFactory],
+      inject: [PrismaService, SectionDefinitionZodFactory, LoggerPort],
     },
     {
       provide: ResumeManagementUseCases,

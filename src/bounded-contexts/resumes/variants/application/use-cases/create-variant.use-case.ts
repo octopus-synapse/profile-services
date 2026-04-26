@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -13,6 +14,7 @@ export class CreateVariantUseCase {
   constructor(
     private readonly variantRepo: VariantRepositoryPort,
     private readonly resumeReader: BaseResumeReader,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: {

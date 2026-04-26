@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
 import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
 import { VariantRepositoryPort } from '../ports/variant-repository.port';
@@ -105,7 +106,7 @@ describe('ResolveVariantUseCase', () => {
   beforeEach(() => {
     variantRepo = new InMemoryVariantRepository();
     sectionsReader = new StubSectionsReader();
-    useCase = new ResolveVariantUseCase(variantRepo, sectionsReader);
+    useCase = new ResolveVariantUseCase(variantRepo, sectionsReader, stubLogger);
   });
 
   it('resolves variant by loading base sections and applying overrides', async () => {

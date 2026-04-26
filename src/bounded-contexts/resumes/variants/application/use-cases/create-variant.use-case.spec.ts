@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -68,7 +69,7 @@ describe('CreateVariantUseCase', () => {
   beforeEach(() => {
     variantRepo = new InMemoryVariantRepository();
     resumeReader = new StubResumeReader();
-    useCase = new CreateVariantUseCase(variantRepo, resumeReader);
+    useCase = new CreateVariantUseCase(variantRepo, resumeReader, stubLogger);
   });
 
   it('creates variant when base resume exists and user owns it', async () => {

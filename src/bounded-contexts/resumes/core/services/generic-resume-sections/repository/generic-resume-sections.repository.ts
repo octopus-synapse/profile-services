@@ -1,11 +1,15 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
 type PrismaLikeClient = PrismaService | Prisma.TransactionClient;
 
 export class GenericResumeSectionsRepository extends GenericResumeSectionsRepositoryPort {
-  constructor(private readonly prisma: PrismaLikeClient) {
+  constructor(
+    private readonly prisma: PrismaLikeClient,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -19,7 +23,7 @@ export class GenericResumeSectionsRepository extends GenericResumeSectionsReposi
     }
 
     return prismaWithTransaction.$transaction((transactionClient) =>
-      operation(new GenericResumeSectionsRepository(transactionClient)),
+      operation(new GenericResumeSectionsRepository(transactionClient, this.logger)),
     );
   }
 

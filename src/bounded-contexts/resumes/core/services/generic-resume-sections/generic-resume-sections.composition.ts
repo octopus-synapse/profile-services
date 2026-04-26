@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { SectionDefinitionZodFactory } from '../section-definition-zod.factory';
 import { ItemContentValidatorPolicy } from './policies/item-content-validator.policy';
 import { ResumeOwnershipPolicy } from './policies/resume-ownership.policy';
@@ -16,8 +17,9 @@ export { GenericResumeSectionsUseCases };
 export function buildGenericResumeSectionsUseCases(
   prisma: PrismaService,
   sectionSchemaFactory: SectionDefinitionZodFactory,
+  logger: LoggerPort,
 ): GenericResumeSectionsUseCases {
-  const repository = new GenericResumeSectionsRepository(prisma);
+  const repository = new GenericResumeSectionsRepository(prisma, logger);
   const ownershipPolicy = new ResumeOwnershipPolicy(repository);
   const sectionTypePolicy = new SectionTypePolicy(repository);
   const contentValidatorPolicy = new ItemContentValidatorPolicy(sectionSchemaFactory);
