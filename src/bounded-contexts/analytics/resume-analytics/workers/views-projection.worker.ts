@@ -1,6 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+
+const CTX = 'ViewsProjectionWorker';
 
 /**
  * Views Projection Worker
@@ -14,9 +17,10 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
  */
 @Injectable()
 export class ViewsProjectionWorker {
-  private readonly logger = new Logger(ViewsProjectionWorker.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @Cron('30 0 * * *')
   async run(): Promise<void> {
@@ -30,6 +34,8 @@ export class ViewsProjectionWorker {
     } catch (err) {
       this.logger.error(
         `Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
       );
     }
   }
@@ -82,6 +88,7 @@ export class ViewsProjectionWorker {
 
     this.logger.log(
       `Rolled up ${events.length} view events into ${upserted} rows for ${dayStart.toISOString().slice(0, 10)}`,
+      CTX,
     );
     return { rowsUpserted: upserted };
   }
