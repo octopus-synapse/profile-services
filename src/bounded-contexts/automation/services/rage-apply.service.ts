@@ -8,7 +8,8 @@
  * metrics remain apples-to-apples.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -32,14 +33,15 @@ const DEFAULT_MIN_FIT = 80;
 const DEFAULT_MAX_APPLICATIONS = 20;
 const DEFAULT_SINCE_DAYS = 7;
 
+const CTX = 'RageApplyService';
+
 @Injectable()
 export class RageApplyService {
-  private readonly logger = new Logger(RageApplyService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly selector: CuratedSelectorService,
     private readonly tailor: ResumeTailorService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: RageApplyInput): Promise<RageApplyResult> {
@@ -105,7 +107,7 @@ export class RageApplyService {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'unknown';
         result.failed.push({ jobId: pick.jobId, reason: message });
-        this.logger.warn(`Rage-apply failed for job=${pick.jobId}: ${message}`);
+        this.logger.warn(`Rage-apply failed for job=${pick.jobId}: ${message}`, CTX);
       }
     }
 

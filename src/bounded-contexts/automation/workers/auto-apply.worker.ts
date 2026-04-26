@@ -1,9 +1,10 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { type Job, type Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
+import { LoggerPort } from '@/shared-kernel';
 import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
 import { CuratedSelectorService } from '../services/curated-selector.service';
 
@@ -15,16 +16,17 @@ export type AutoApplyJobData = { kind: 'schedule' } | { kind: 'run-for-user'; us
  * recruiters and avoids burning through the user's reputation. */
 const HOURLY_CAP_PER_USER = 5;
 
+const CTX = 'AutoApplyWorker';
+
 @Injectable()
 @Processor(AUTO_APPLY_QUEUE, { concurrency: 2 })
 export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(AutoApplyWorker.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly selector: CuratedSelectorService,
     private readonly tailor: ResumeTailorService,
     @InjectQueue(AUTO_APPLY_QUEUE) private readonly queue: Queue<AutoApplyJobData>,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -67,6 +69,7 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
     const skipped = candidates.length - allowed.length;
     this.logger.log(
       `Enqueueing auto-apply for ${allowed.length} users (skipped ${skipped} without AUTO_APPLY permission)`,
+      CTX,
     );
     if (allowed.length === 0) return;
     await this.queue.addBulk(
@@ -84,7 +87,7 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
       where: { userId, createdAt: { gte: oneHourAgo } },
     });
     if (recent >= HOURLY_CAP_PER_USER) {
-      this.logger.log(`User ${userId} hit hourly cap (${recent}/${HOURLY_CAP_PER_USER})`);
+      this.logger.log(`User ${userId} hit hourly cap (${recent}/${HOURLY_CAP_PER_USER})`, CTX);
       return;
     }
 
@@ -146,10 +149,17 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
       } catch (err) {
         const reason = (err as Error).message;
         failures.push({ jobId: pick.jobId, reason });
-        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`);
+        this.logger.error(
+          `Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`,
+          undefined,
+          CTX,
+        );
       }
     }
-    this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`);
+    this.logger.log(
+      `Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`,
+      CTX,
+    );
     if (failures.length === picks.length && picks.length > 0) {
       throw new AutoApplyAllPicksFailedException(userId, picks.length, failures[0].reason);
     }
@@ -157,6 +167,6 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<AutoApplyJobData>, err: Error): void {
-    this.logger.error(`Job ${job.id} failed: ${err.message}`);
+    this.logger.error(`Job ${job.id} failed: ${err.message}`, err.stack, CTX);
   }
 }
