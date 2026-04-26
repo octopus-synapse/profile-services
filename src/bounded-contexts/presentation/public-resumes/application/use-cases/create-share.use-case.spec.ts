@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -74,7 +75,7 @@ describe('CreateShareUseCase', () => {
       publishAsync: mock(async () => {}),
     };
 
-    useCase = new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher);
+    useCase = new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher, stubLogger);
   });
 
   it('should create a share with a generated slug', async () => {

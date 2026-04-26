@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { CachePort } from '../../domain/ports/cache.port';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareWithResume } from '../../domain/ports/share.repository.port';
@@ -48,6 +49,7 @@ describe('GetShareBySlugUseCase', () => {
       shareRepo as unknown as ShareRepositoryPort,
       resumeRepo as unknown as ResumeReadRepositoryPort,
       cache as unknown as CachePort,
+      stubLogger,
     );
   });
 

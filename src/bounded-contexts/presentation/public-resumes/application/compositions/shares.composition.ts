@@ -6,7 +6,7 @@
 
 import type { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeReadRepository } from '../../infrastructure/adapters/persistence/resume-read.repository';
 import { ShareRepository } from '../../infrastructure/adapters/persistence/share.repository';
 import { ShareUseCases } from '../ports/shares.port';
@@ -21,6 +21,7 @@ export function buildShareUseCases(
   prisma: PrismaService,
   cache: CacheCoreService,
   eventPublisher: EventPublisher,
+  logger: LoggerPort,
 ): ShareUseCases {
   const shareRepo = new ShareRepository(prisma);
   const resumeRepo = new ResumeReadRepository(prisma);
@@ -32,9 +33,9 @@ export function buildShareUseCases(
   };
 
   return {
-    createShareUseCase: new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher),
-    getShareBySlugUseCase: new GetShareBySlugUseCase(shareRepo, resumeRepo, cachePort),
+    createShareUseCase: new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher, logger),
+    getShareBySlugUseCase: new GetShareBySlugUseCase(shareRepo, resumeRepo, cachePort, logger),
     deleteShareUseCase: new DeleteShareUseCase(shareRepo),
-    listUserSharesUseCase: new ListUserSharesUseCase(shareRepo, resumeRepo),
+    listUserSharesUseCase: new ListUserSharesUseCase(shareRepo, resumeRepo, logger),
   };
 }

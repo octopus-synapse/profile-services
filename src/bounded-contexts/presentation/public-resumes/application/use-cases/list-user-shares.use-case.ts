@@ -2,6 +2,7 @@
  * List User Shares Use Case
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -13,6 +14,7 @@ export class ListUserSharesUseCase {
   constructor(
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, resumeId: string) {

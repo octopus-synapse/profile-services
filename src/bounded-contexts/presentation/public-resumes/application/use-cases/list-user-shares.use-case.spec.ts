@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -79,7 +80,7 @@ describe('ListUserSharesUseCase', () => {
   beforeEach(() => {
     shareRepo = new StubShareRepository();
     resumeRepo = new StubResumeReadRepository();
-    useCase = new ListUserSharesUseCase(shareRepo, resumeRepo);
+    useCase = new ListUserSharesUseCase(shareRepo, resumeRepo, stubLogger);
   });
 
   it('should return all shares for a resume owned by the user', async () => {

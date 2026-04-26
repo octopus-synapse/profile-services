@@ -3,7 +3,7 @@
  */
 
 import { randomBytes } from 'node:crypto';
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -26,6 +26,7 @@ export class CreateShareUseCase {
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, dto: CreateShareDto) {

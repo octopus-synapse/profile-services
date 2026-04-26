@@ -4,6 +4,7 @@
  * Also handles resume caching and password verification.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { CachePort } from '../../domain/ports/cache.port';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
@@ -17,6 +18,7 @@ export class GetShareBySlugUseCase {
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(slug: string): Promise<ShareWithResume | null> {
