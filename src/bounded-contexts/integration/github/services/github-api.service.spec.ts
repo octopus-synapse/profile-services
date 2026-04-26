@@ -8,6 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { GitHubRepo, GitHubUser } from '../types/github.types';
 import { GitHubApiService } from './github-api.service';
 
@@ -145,7 +146,7 @@ describe('GitHubApiService', () => {
     stubConfig.setConfigValue('GITHUB_TOKEN', 'test-github-token');
 
     // Instantiate service directly (no NestJS)
-    service = new GitHubApiService(stubConfig as unknown as ConfigService);
+    service = new GitHubApiService(stubConfig as unknown as ConfigService, stubLogger);
   });
 
   afterEach(() => {
@@ -174,7 +175,10 @@ describe('GitHubApiService', () => {
     it('should work without token', async () => {
       // Create service without token
       const noTokenConfig = new StubConfigService();
-      const serviceNoToken = new GitHubApiService(noTokenConfig as unknown as ConfigService);
+      const serviceNoToken = new GitHubApiService(
+        noTokenConfig as unknown as ConfigService,
+        stubLogger,
+      );
 
       fetchStub.setResponse({
         ok: true,

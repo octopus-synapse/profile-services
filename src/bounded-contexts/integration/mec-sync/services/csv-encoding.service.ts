@@ -23,11 +23,9 @@ export class CsvEncodingService {
   }
 
   private isValidUtf8(buffer: Buffer): boolean {
-    try {
-      const content = buffer.toString('utf8');
-      return !content.includes('\uFFFD');
-    } catch {
-      return false;
-    }
+    // `Buffer.toString('utf8')` never throws — it substitutes invalid
+    // sequences with U+FFFD (the replacement char), which is exactly
+    // the signal we use here.
+    return !buffer.toString('utf8').includes('�');
   }
 }

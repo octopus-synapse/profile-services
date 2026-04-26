@@ -62,18 +62,12 @@ export class CsvRowProcessorService {
         courses.push(course);
       }
     } catch (error) {
-      this.recordError(errors, rowIndex, error);
-    }
-  }
-
-  private recordError(errors: SyncError[], rowIndex: number, error: unknown): void {
-    errors.push({
-      row: rowIndex + 1,
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-
-    if (errors.length % 1000 === 0) {
-      this.logger.warn(`${errors.length} parse errors so far...`, this.context);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      errors.push({ row: rowIndex + 1, message });
+      this.logger.debug(`Row ${rowIndex + 1} parse failed: ${message}`, this.context);
+      if (errors.length % 1000 === 0) {
+        this.logger.warn(`${errors.length} parse errors so far...`, this.context);
+      }
     }
   }
 

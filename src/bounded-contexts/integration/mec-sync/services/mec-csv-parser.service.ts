@@ -60,20 +60,14 @@ export class MecCsvParserService {
       this.fileCache.write(buffer);
       return buffer;
     } catch (error) {
-      return this.handleDownloadError(error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Download failed: ${message}`, this.context);
+      if (this.fileCache.exists()) {
+        this.logger.log('Falling back to cached file', this.context);
+        return this.fileCache.read();
+      }
+      throw new MecCsvDownloadFailedException(message);
     }
-  }
-
-  private handleDownloadError(error: unknown): Buffer {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    this.logger.warn(`Download failed: ${message}`, this.context);
-
-    if (this.fileCache.exists()) {
-      this.logger.log('Falling back to cached file', this.context);
-      return this.fileCache.read();
-    }
-
-    throw new MecCsvDownloadFailedException(message);
   }
 
   private parse(content: string, fileSize: number): ParseResult {
