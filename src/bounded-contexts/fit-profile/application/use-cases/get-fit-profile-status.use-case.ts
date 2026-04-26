@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { FitQuestionSetRepositoryPort } from '../../domain/ports/fit-question-set.repository.port';
 import {
   type SavedUserFitProfile,
@@ -22,6 +23,7 @@ export class GetFitProfileStatusUseCase {
   constructor(
     private readonly profiles: UserFitProfileRepositoryPort,
     private readonly questionSets: FitQuestionSetRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, now: Date = new Date()): Promise<FitProfileStatusView> {

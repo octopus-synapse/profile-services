@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   FitQuestionSetRepositoryPort,
   type FitQuestionSetWrite,
@@ -80,7 +81,7 @@ describe('GetFitProfileStatusUseCase', () => {
   beforeEach(() => {
     profiles = new InMemoryUserFitProfiles();
     questionSets = new InMemoryQuestionSets();
-    useCase = new GetFitProfileStatusUseCase(profiles, questionSets);
+    useCase = new GetFitProfileStatusUseCase(profiles, questionSets, stubLogger);
   });
 
   it('reports "never" for a fresh user', async () => {

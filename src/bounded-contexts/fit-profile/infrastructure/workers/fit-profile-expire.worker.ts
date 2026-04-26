@@ -1,7 +1,8 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { ExpireFitProfileUseCase } from '../../application/use-cases/expire-fit-profile.use-case';
 
 export const FIT_PROFILE_EXPIRE_QUEUE = 'fit-profile-expire';
@@ -23,16 +24,17 @@ export type FitProfileExpireJobData =
  * America/Sao_Paulo for the same stagger-from-prod-peak reasoning as
  * the other nightly jobs.
  */
+const CTX = 'FitProfileExpireWorker';
+
 @Injectable()
 @Processor(FIT_PROFILE_EXPIRE_QUEUE, { concurrency: 2 })
 export class FitProfileExpireWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(FitProfileExpireWorker.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly expireUseCase: ExpireFitProfileUseCase,
     @InjectQueue(FIT_PROFILE_EXPIRE_QUEUE)
     private readonly queue: Queue<FitProfileExpireJobData>,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -66,7 +68,7 @@ export class FitProfileExpireWorker extends WorkerHost implements OnModuleInit {
     });
     if (rows.length === 0) return;
 
-    this.logger.log(`fit-profile-expire: enqueueing ${rows.length} users`);
+    this.logger.log(`fit-profile-expire: enqueueing ${rows.length} users`, CTX);
     await this.queue.addBulk(
       rows.map((r) => ({
         name: 'fit-profile-expire-user',
@@ -82,6 +84,6 @@ export class FitProfileExpireWorker extends WorkerHost implements OnModuleInit {
   @OnWorkerEvent('failed')
   onFailed(job: Job<FitProfileExpireJobData>, err: Error): void {
     const userId = job?.data?.kind === 'expire-user' ? job.data.userId : '(schedule)';
-    this.logger.error(`fit-profile-expire failed user=${userId} err=${err.message}`);
+    this.logger.error(`fit-profile-expire failed user=${userId} err=${err.message}`, err.stack, CTX);
   }
 }

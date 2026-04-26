@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   FitAnswerRepositoryPort,
   type FitAnswerWrite,
@@ -64,7 +65,7 @@ describe('DeleteFitProfileUseCase', () => {
   beforeEach(() => {
     answers = new InMemoryAnswers();
     profiles = new InMemoryProfiles();
-    useCase = new DeleteFitProfileUseCase(answers, profiles);
+    useCase = new DeleteFitProfileUseCase(answers, profiles, stubLogger);
   });
 
   it('wipes answers and anonymises the profile for the caller', async () => {

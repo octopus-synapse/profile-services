@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import { UserFitProfileRepositoryPort } from '../../domain/ports/user-fit-profile.repository.port';
 
@@ -14,6 +15,7 @@ export class DeleteFitProfileUseCase {
   constructor(
     private readonly answers: FitAnswerRepositoryPort,
     private readonly profiles: UserFitProfileRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<void> {

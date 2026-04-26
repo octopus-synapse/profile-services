@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type FitQuestionInput,
   type FitQuestionPatch,
@@ -17,7 +18,10 @@ const REVERSE_SCORED_SUFFIX = '.r';
 
 @Injectable()
 export class PrismaFitQuestionRepository extends FitQuestionRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
