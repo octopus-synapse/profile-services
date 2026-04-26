@@ -48,7 +48,15 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
         return { success: false, user: null };
       }
       payload = decoded;
-    } catch {
+    } catch (err) {
+      // Token is malformed/expired/tampered. Don't surface the reason to the
+      // client (info leak about JWT secret state), but emit telemetry so a
+      // spike of failures is visible — investigation of "users keep getting
+      // logged out" starts here.
+      this.logger.debug(
+        `Session token verification failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        'ValidateSessionUseCase',
+      );
       return { success: false, user: null };
     }
 
