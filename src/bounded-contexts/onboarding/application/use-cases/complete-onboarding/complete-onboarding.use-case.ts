@@ -85,11 +85,14 @@ export class CompleteOnboardingUseCase {
 
       return result;
     } catch (error: unknown) {
-      this.handleTransactionError(error, userId, validatedData);
+      throw this.toDomainError(error, userId, validatedData);
     }
   }
 
-  private handleTransactionError(error: unknown, userId: string, data: OnboardingData): never {
+  /** Translate an infrastructure failure into the right domain exception
+   *  (or pass it through). Logs once with full context so the caller's
+   *  rethrow doesn't double-log. */
+  private toDomainError(error: unknown, userId: string, data: OnboardingData): unknown {
     this.logger.error(
       'Onboarding completion failed, progress preserved',
       error instanceof Error ? error.stack : 'Unknown error',
@@ -103,10 +106,10 @@ export class CompleteOnboardingUseCase {
         'CompleteOnboardingUseCase',
         { username: data.username, userId },
       );
-      throw new OnboardingUsernameTakenException();
+      return new OnboardingUsernameTakenException();
     }
 
-    throw error;
+    return error;
   }
 
   private isUsernameConflict(error: unknown): boolean {
