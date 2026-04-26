@@ -1,8 +1,10 @@
 import { Injectable, type OnApplicationBootstrap } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { LoggerPort } from '@/shared-kernel';
 import { validateRegistry } from '../../domain/feature-flag-graph';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import { FEATURE_FLAGS_REGISTRY } from '../../registry/feature-flags.registry';
+
+const CTX = 'FeatureFlagsBootstrap';
 
 /**
  * On boot: validate the code registry, upsert its flags into the DB, and mark
@@ -14,7 +16,7 @@ import { FEATURE_FLAGS_REGISTRY } from '../../registry/feature-flags.registry';
 export class BootstrapFlagsUseCase implements OnApplicationBootstrap {
   constructor(
     private readonly repo: FeatureFlagRepositoryPort,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -40,13 +42,10 @@ export class BootstrapFlagsUseCase implements OnApplicationBootstrap {
       await this.repo.markDeprecated(deprecatedCandidates);
       this.logger.log(
         `Marked ${deprecatedCandidates.length} flag(s) as deprecated: ${deprecatedCandidates.join(', ')}`,
-        'FeatureFlagsBootstrap',
+        CTX,
       );
     }
 
-    this.logger.log(
-      `Feature flags ready — ${FEATURE_FLAGS_REGISTRY.length} registered`,
-      'FeatureFlagsBootstrap',
-    );
+    this.logger.log(`Feature flags ready — ${FEATURE_FLAGS_REGISTRY.length} registered`, CTX);
   }
 }

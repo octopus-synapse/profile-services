@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { evaluateFlags } from '../../domain/feature-flag-graph';
 import type { FlagEvaluationSnapshot } from '../../domain/types';
 import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
@@ -9,6 +10,7 @@ export class EvaluateFlagsUseCase {
   constructor(
     private readonly state: FlagStateService,
     private readonly cache: RedisFlagCache,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userRoles: readonly string[]): Promise<FlagEvaluationSnapshot> {

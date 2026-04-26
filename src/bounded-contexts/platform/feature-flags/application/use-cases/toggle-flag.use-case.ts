@@ -7,6 +7,7 @@ import {
 import { AuditAction } from '@prisma/client';
 import type { Request } from 'express';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { FeatureFlagToggledEvent } from '../../domain/events/feature-flag-toggled.event';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
@@ -30,6 +31,7 @@ export class ToggleFlagUseCase {
     private readonly state: FlagStateService,
     private readonly audit: AuditLogService,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: ToggleFlagInput): Promise<FlagRecord> {

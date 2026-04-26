@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MatchComputedEvent } from '@/bounded-contexts/job-match/domain/events';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { MetricsService } from '../metrics.service';
+
+const CTX = 'ScoreMetricsHandler';
 
 /**
  * Single subscriber that turns scoring `*ComputedEvent`s into the two
@@ -19,9 +22,10 @@ import { MetricsService } from '../metrics.service';
  */
 @Injectable()
 export class ScoreMetricsHandler {
-  private readonly logger = new Logger(ScoreMetricsHandler.name);
-
-  constructor(private readonly metrics: MetricsService) {}
+  constructor(
+    private readonly metrics: MetricsService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent(ResumeQualityComputedEvent.TYPE)
   onResumeQualityComputed(event: ResumeQualityComputedEvent): void {
@@ -45,6 +49,7 @@ export class ScoreMetricsHandler {
         durationMs: event.payload.durationMs,
         outcome,
       }),
+      CTX,
     );
   }
 
@@ -71,6 +76,7 @@ export class ScoreMetricsHandler {
         durationMs: event.payload.durationMs,
         outcome,
       }),
+      CTX,
     );
   }
 }

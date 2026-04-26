@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { MatchComputedEvent } from '@/bounded-contexts/job-match/domain/events';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { MetricsService } from '../../metrics.service';
 import { ScoreMetricsHandler } from '../score-metrics.handler';
 
@@ -18,7 +19,7 @@ describe('ScoreMetricsHandler', () => {
   beforeEach(() => {
     metrics = new MetricsService();
     metrics.onModuleInit();
-    handler = new ScoreMetricsHandler(metrics);
+    handler = new ScoreMetricsHandler(metrics, stubLogger);
   });
 
   it('counts a resume-quality success when content quality has a value', async () => {

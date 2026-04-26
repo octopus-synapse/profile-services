@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
 import { FlagStateService } from '../services/flag-state.service';
 
@@ -12,6 +13,7 @@ export class BroadcastRefreshUseCase {
   constructor(
     private readonly cache: RedisFlagCache,
     private readonly state: FlagStateService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(): Promise<void> {
