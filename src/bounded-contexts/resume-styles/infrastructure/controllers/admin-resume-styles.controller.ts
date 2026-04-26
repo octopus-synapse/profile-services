@@ -79,7 +79,7 @@ export class AdminResumeStylesController {
       });
       return { success: true, data: presentDetail(created) };
     } catch (err) {
-      this.translate(err);
+      throw this.toHttpException(err);
     }
   }
 
@@ -103,7 +103,7 @@ export class AdminResumeStylesController {
       });
       return { success: true, data: presentDetail(updated) };
     } catch (err) {
-      this.translate(err);
+      throw this.toHttpException(err);
     }
   }
 
@@ -117,20 +117,23 @@ export class AdminResumeStylesController {
     try {
       await this.deleteUseCase.execute(id);
     } catch (err) {
-      this.translate(err);
+      throw this.toHttpException(err);
     }
   }
 
-  private translate(err: unknown): never {
+  /** Map domain errors to HTTP exceptions. Logs once per failure so the
+   *  audit trail captures every admin-side rejection (regressions, edits
+   *  to system styles, etc.) and not just the ones that surfaced as 5xx. */
+  private toHttpException(err: unknown): unknown {
     this.logger.warn(
       `admin resume-styles request failed: ${err instanceof Error ? err.message : 'unknown'}`,
       CTX,
     );
     if (err instanceof StyleNotFoundError) {
-      throw new NotFoundException(err.message);
+      return new NotFoundException(err.message);
     }
     if (err instanceof StyleBelowAtsThresholdError) {
-      throw new UnprocessableEntityException({
+      return new UnprocessableEntityException({
         code: 'style_below_ats_threshold',
         message: err.message,
         score: err.score,
@@ -138,7 +141,7 @@ export class AdminResumeStylesController {
       });
     }
     if (err instanceof StyleScoreRegressionError) {
-      throw new UnprocessableEntityException({
+      return new UnprocessableEntityException({
         code: 'style_score_regression',
         message: err.message,
         currentScore: err.currentScore,
@@ -146,8 +149,8 @@ export class AdminResumeStylesController {
       });
     }
     if (err instanceof StyleNotEditableError) {
-      throw new UnprocessableEntityException({ code: 'style_not_editable', message: err.message });
+      return new UnprocessableEntityException({ code: 'style_not_editable', message: err.message });
     }
-    throw err;
+    return err;
   }
 }
