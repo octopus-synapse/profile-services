@@ -1118,4 +1118,197 @@ export const ERROR_DICTIONARY = {
     en: 'Webhook delivery failed',
     'pt-BR': 'Falha na entrega do webhook',
   },
+  AUTHENTICATED_USER_MISSING: {
+    en: 'Authenticated user not present on request',
+    'pt-BR': 'Usuário autenticado não está presente na requisição',
+  },
+  CHAT_CONVERSATION_NOT_FOUND: {
+    en: 'Conversation not found',
+    'pt-BR': 'Conversa não encontrada',
+  },
+  COLLABORATOR_COMMENT_NOT_FOUND: {
+    en: 'Comment not found',
+    'pt-BR': 'Comentário não encontrado',
+  },
+  COLLABORATOR_PARENT_COMMENT_NOT_FOUND: {
+    en: 'Parent comment not found',
+    'pt-BR': 'Comentário pai não encontrado',
+  },
+  COLLABORATOR_SELF_INVITE: {
+    en: 'Cannot add yourself as a collaborator',
+    'pt-BR': 'Você não pode adicionar a si mesmo como colaborador',
+  },
+  CONSENT_VERSION_MISMATCH: {
+    en: 'Consent version mismatch — please accept the latest Terms of Service and Privacy Policy',
+    'pt-BR':
+      'Versão de consentimento incompatível — aceite os Termos de Uso e Política de Privacidade atuais',
+  },
+  EXPORT_BANNER_GENERATION_FAILED: {
+    en: 'Failed to generate banner. Please try again later.',
+    'pt-BR': 'Falha ao gerar o banner. Tente novamente mais tarde.',
+  },
+  EXPORT_DOCX_GENERATION_FAILED: {
+    en: 'Failed to generate DOCX. Please try again later.',
+    'pt-BR': 'Falha ao gerar o DOCX. Tente novamente mais tarde.',
+  },
+  EXPORT_PDF_GENERATION_FAILED: {
+    en: 'Failed to generate PDF. Please try again later.',
+    'pt-BR': 'Falha ao gerar o PDF. Tente novamente mais tarde.',
+  },
+  EXPORT_PIPELINE_FAILED: {
+    en: 'Failed to generate export. Please try again later.',
+    'pt-BR': 'Falha ao gerar a exportação. Tente novamente mais tarde.',
+  },
+  FEATURE_FLAG_DISABLED: {
+    en: 'Not Found',
+    'pt-BR': 'Não encontrado',
+  },
+  FEATURE_FLAG_INVALID_INPUT: {
+    en: 'Invalid feature-flag input',
+    'pt-BR': 'Entrada inválida para feature flag',
+  },
+  FEATURE_FLAG_NOT_FOUND: {
+    en: 'Feature flag not found',
+    'pt-BR': 'Feature flag não encontrada',
+  },
+  FEATURE_FLAG_PARENT_DISABLED: {
+    en: 'Cannot enable this flag while a parent flag is disabled',
+    'pt-BR': 'Não é possível habilitar essa flag enquanto a flag pai estiver desabilitada',
+  },
+  FIT_PROFILE_REQUIRED: {
+    en: 'Fit profile is required for this action',
+    'pt-BR': 'É necessário ter um perfil de fit para esta ação',
+  },
+  ID_REQUIRED: {
+    en: 'ID is required',
+    'pt-BR': 'ID é obrigatório',
+  },
+  IMPORT_FILE_MISSING: {
+    en: 'Missing file (multipart field "file")',
+    'pt-BR': 'Arquivo ausente (campo multipart "file")',
+  },
+  IMPORT_MISSING_BASICS: {
+    en: 'Missing basics section',
+    'pt-BR': 'Seção "basics" ausente',
+  },
+  IMPORT_MISSING_BASICS_NAME: {
+    en: 'Name is required in basics section',
+    'pt-BR': 'Nome é obrigatório na seção "basics"',
+  },
+  INVALID_ID_FORMAT: {
+    en: 'ID must be a valid CUID string',
+    'pt-BR': 'O ID precisa ser uma string CUID válida',
+  },
+  INVALID_JSON_BODY: {
+    en: 'Invalid request body — must be valid JSON',
+    'pt-BR': 'Corpo da requisição inválido — precisa ser JSON válido',
+  },
+  INVALID_LIMIT_PARAMETER: {
+    en: 'Invalid limit parameter — must be a positive integer',
+    'pt-BR': 'Parâmetro "limit" inválido — precisa ser um inteiro positivo',
+  },
+  JOB_FIT_PROFILE_NOT_SET: {
+    en: 'Job fit profile has not been set for this job',
+    'pt-BR': 'O perfil de fit ainda não foi definido para esta vaga',
+  },
+  JOB_MATCH_AUTHENTICATED_USER_MISSING: {
+    en: 'Authenticated user is missing on the request',
+    'pt-BR': 'Usuário autenticado ausente na requisição',
+  },
+  JOB_MATCH_FIT_PROFILE_REQUIRED: {
+    en: 'Fit profile is required to compute matches',
+    'pt-BR': 'É necessário ter um perfil de fit para calcular matches',
+  },
+  JOB_MATCH_JOB_NOT_FOUND: {
+    en: 'Job not found',
+    'pt-BR': 'Vaga não encontrada',
+  },
+  JOB_MATCH_RESUME_NOT_FOUND: {
+    en: 'Resume not found',
+    'pt-BR': 'Currículo não encontrado',
+  },
+  ONBOARDING_NOT_COMPLETED: {
+    en: 'Onboarding must be completed before accessing this resource.',
+    'pt-BR': 'É preciso concluir o onboarding antes de acessar este recurso.',
+  },
+  ONBOARDING_SECTION_PERSISTENCE_FAILED: {
+    en: 'Failed to save resume sections',
+    'pt-BR': 'Falha ao salvar as seções do currículo',
+  },
+  PUBLIC_RESUME_NOT_FOUND: {
+    en: 'Resume not found',
+    'pt-BR': 'Currículo não encontrado',
+  },
+  QR_URL_REQUIRED: {
+    en: 'URL is required',
+    'pt-BR': 'URL é obrigatória',
+  },
+  RESUME_QUALITY_AUTHENTICATED_USER_MISSING: {
+    en: 'Authenticated user not present on request',
+    'pt-BR': 'Usuário autenticado não está presente na requisição',
+  },
+  RESUME_QUALITY_BELOW_THRESHOLD: {
+    en: 'Resume quality score is below the required threshold',
+    'pt-BR': 'A qualidade do currículo está abaixo do mínimo exigido',
+  },
+  RESUME_QUALITY_SCORE_UNAVAILABLE: {
+    en: 'Resume quality has not been computed yet. Trigger a recompute first.',
+    'pt-BR': 'A qualidade do currículo ainda não foi calculada. Solicite um recálculo primeiro.',
+  },
+  RESUME_QUALITY_SNAPSHOT_MISSING: {
+    en: 'No quality snapshot yet — recompute first',
+    'pt-BR': 'Ainda não há snapshot de qualidade — recalcule primeiro',
+  },
+  ROUTE_NOT_FOUND: {
+    en: 'Route not found',
+    'pt-BR': 'Rota não encontrada',
+  },
+  SESSION_NOT_FOUND: {
+    en: 'Session not found or already revoked',
+    'pt-BR': 'Sessão não encontrada ou já revogada',
+  },
+  SHARE_LINK_EXPIRED: {
+    en: 'Share link expired',
+    'pt-BR': 'Link de compartilhamento expirado',
+  },
+  SPOKEN_LANGUAGE_NOT_FOUND: {
+    en: 'Language not found',
+    'pt-BR': 'Idioma não encontrado',
+  },
+  UNKNOWN_ENUM: {
+    en: 'Unknown enum',
+    'pt-BR': 'Enum desconhecido',
+  },
+  URL_REQUIRED: {
+    en: 'URL is required',
+    'pt-BR': 'URL é obrigatória',
+  },
+  WEBHOOK_NOT_FOUND: {
+    en: 'Webhook not found',
+    'pt-BR': 'Webhook não encontrado',
+  },
+  FIT_QUESTION_NOT_FOUND: {
+    en: 'Question not found',
+    'pt-BR': 'Pergunta não encontrada',
+  },
+  RESUME_NOT_FOUND_FOR_STYLE_APPLY: {
+    en: 'Resume not found',
+    'pt-BR': 'Currículo não encontrado',
+  },
+  STYLE_BELOW_ATS_THRESHOLD: {
+    en: 'Style score is below the ATS-safety threshold',
+    'pt-BR': 'Pontuação do estilo está abaixo do limite ATS',
+  },
+  STYLE_NOT_EDITABLE: {
+    en: 'This style is system-managed and cannot be edited or deleted',
+    'pt-BR': 'Esse estilo é gerenciado pelo sistema e não pode ser editado nem excluído',
+  },
+  STYLE_NOT_FOUND: {
+    en: 'Resume style not found',
+    'pt-BR': 'Estilo do currículo não encontrado',
+  },
+  STYLE_SCORE_REGRESSION: {
+    en: 'Style score is monotonic and cannot regress',
+    'pt-BR': 'A pontuação do estilo é monotônica e não pode regredir',
+  },
 } as const satisfies LocalizedDictionary;

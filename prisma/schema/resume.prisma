@@ -21,11 +21,11 @@ model Resume {
   primaryStack    String[]
   experienceYears Int?     @default(0)
 
-  // Contact info
+  // Contact info — email is intentionally NOT stored here. The canonical
+  // address lives on `User.email` and is read via the `user` relation.
   fullName     String?
   jobTitle     String?
   phone        String?
-  emailContact String?
   location     String?
   linkedin     String?
   github       String?

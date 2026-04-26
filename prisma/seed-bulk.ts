@@ -645,7 +645,6 @@ async function main() {
         primaryLanguage: 'pt-br',
         fullName: u.name,
         jobTitle: u.archetype.title(u.archetype.level),
-        emailContact: u.email,
         location: faker.location.city(),
         linkedin: `https://linkedin.com/in/${u.username}`,
         github: u.archetype.id === 'designer' ? null : `https://github.com/${u.username}`,

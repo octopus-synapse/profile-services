@@ -18,6 +18,39 @@
     },
     {
       "includes": [
+        "src/bounded-contexts/*/application/use-cases/**/*.ts",
+        "src/bounded-contexts/*/application/services/**/*.ts",
+        "src/bounded-contexts/*/domain/**/*.ts",
+        "src/bounded-contexts/resumes/core/resumes.service.ts",
+        "src/bounded-contexts/resumes/core/resumes.repository.ts",
+        "src/bounded-contexts/resumes/core/services/**/*.ts",
+        "src/bounded-contexts/resumes/core/application/**/*.ts",
+        "src/bounded-contexts/resumes/infrastructure/adapters/**/*.ts",
+        "src/bounded-contexts/resumes/resume-versions/services/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": "Framework leakage: this layer must stay framework-agnostic POJOs. Wire dependencies in *.module.ts (composition root).",
+                  "@nestjs/core": "Framework leakage: this layer must stay framework-agnostic POJOs. Wire dependencies in *.module.ts.",
+                  "@nestjs/event-emitter": "Use a domain event publisher port. Adapter lives in infrastructure/ and is registered in the composition root.",
+                  "@nestjs/passport": "Auth concerns belong in guards/middleware (infrastructure), not in domain/application code.",
+                  "@nestjs/config": "Pass config values as constructor arguments. The composition root reads ConfigService and forwards them.",
+                  "@nestjs/bullmq": "Queue concerns belong in workers (infrastructure), not in domain/application code.",
+                  "@nestjs/swagger": "OpenAPI metadata belongs on controllers/DTOs (infrastructure), not in domain/application code."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
         "**/*.spec.ts",
         "**/*.test.ts",
         "**/*.e2e-spec.ts",
@@ -26,7 +59,18 @@
         "tests/**"
       ],
       "linter": {
-        "rules": { "correctness": { "noUnusedVariables": "warn" } }
+        "rules": {
+          "correctness": { "noUnusedVariables": "warn" },
+          "style": { "noRestrictedImports": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["src/bounded-contexts/*/application/handlers/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noRestrictedImports": "off" }
+        }
       }
     },
     {

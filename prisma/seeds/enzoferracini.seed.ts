@@ -60,7 +60,6 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       fullName: 'Enzo Ferracini',
       jobTitle: 'Software Engineer',
       phone: '+55 11 99999-0000',
-      emailContact: email,
       location: 'São Paulo, SP',
       linkedin: 'enzoferracini',
       github: 'enzoferracini',
