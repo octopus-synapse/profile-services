@@ -98,10 +98,12 @@ export class TestRunnerService {
       const detail = await fn();
       return { name, pass: true, detail, durationMs: Math.round(performance.now() - start) };
     } catch (err) {
+      const detail = String(err instanceof Error ? err.message : err);
+      this.logger.warn(`Test "${name}" failed: ${detail}`, 'TestRunnerService');
       return {
         name,
         pass: false,
-        detail: String(err instanceof Error ? err.message : err),
+        detail,
         durationMs: Math.round(performance.now() - start),
       };
     }

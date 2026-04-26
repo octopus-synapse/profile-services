@@ -37,7 +37,16 @@ async function bootstrap() {
       _res: unknown,
       next: () => void,
     ) => {
-      req.cookies ??= parseCookieHeader(req.headers.cookie);
+      if (req.cookies === undefined) {
+        const result = parseCookieHeader(req.headers.cookie);
+        req.cookies = result.cookies;
+        if (result.malformed.length > 0) {
+          logger.warn(
+            `Cookie header had ${result.malformed.length} malformed value(s): ${result.malformed.join(', ')}`,
+            'CookieParser',
+          );
+        }
+      }
       next();
     },
   );

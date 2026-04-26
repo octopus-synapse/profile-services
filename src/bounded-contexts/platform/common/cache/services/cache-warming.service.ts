@@ -76,8 +76,12 @@ export class CacheWarmingService {
           try {
             await this.cache.set(`public:resume:${resume.slug}`, resume, CACHE_TTL.POPULAR_RESUME);
             warmed++;
-          } catch {
+          } catch (error) {
             this.stats.errors++;
+            this.logger.warn(
+              `Failed to warm cache for resume: ${resume.slug} — ${error instanceof Error ? error.message : 'unknown'}`,
+              'CacheWarmingService',
+            );
           }
         }
       }

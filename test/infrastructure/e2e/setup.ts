@@ -72,7 +72,9 @@ export async function createE2ETestApp(): Promise<{
       _res: unknown,
       next: () => void,
     ) => {
-      req.cookies ??= parseCookieHeader(req.headers.cookie);
+      if (req.cookies === undefined) {
+        req.cookies = parseCookieHeader(req.headers.cookie).cookies;
+      }
       next();
     },
   );
