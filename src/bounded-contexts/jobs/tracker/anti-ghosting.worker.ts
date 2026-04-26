@@ -1,12 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { LoggerPort } from '@/shared-kernel';
 import { AntiGhostingService } from './anti-ghosting.service';
+
+const CTX = 'AntiGhostingWorker';
 
 @Injectable()
 export class AntiGhostingWorker {
-  private readonly logger = new Logger(AntiGhostingWorker.name);
-
-  constructor(private readonly service: AntiGhostingService) {}
+  constructor(
+    private readonly service: AntiGhostingService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async run(): Promise<void> {
@@ -14,10 +18,13 @@ export class AntiGhostingWorker {
       const result = await this.service.scanAndNotify();
       this.logger.log(
         `Anti-ghosting scan: ${result.scanned} apps checked, ${result.reminded} reminders sent`,
+        CTX,
       );
     } catch (err) {
       this.logger.error(
         `Anti-ghosting scan failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
       );
     }
   }
