@@ -5,6 +5,7 @@
  * Uses recursive descent parsing with operator precedence.
  */
 
+import { ValidationException } from '@/shared-kernel/exceptions';
 import {
   DslExpectedTokenException,
   DslUnexpectedTokenException,
@@ -76,9 +77,14 @@ export class ExpressionParser {
     try {
       return this.parseTemplate();
     } catch (error) {
+      // Expected parser failures (unexpected/expected tokens etc.) are
+      // wrapped as `ErrorExpr` so the evaluator can surface a partial
+      // result without crashing the whole compile. Anything else
+      // (TypeError, RangeError, etc.) is a real bug — let it propagate.
+      if (!(error instanceof ValidationException)) throw error;
       return {
         type: ExpressionType.ERROR,
-        message: error instanceof Error ? error.message : 'Parse error',
+        message: error.message,
         position: this.current,
       };
     }
