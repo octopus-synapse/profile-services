@@ -6,7 +6,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import type {
   ExportedAuditLog,

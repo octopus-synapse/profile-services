@@ -1,11 +1,7 @@
 /**
  * Account Lifecycle Domain Exceptions
  */
-import {
-  ConflictException,
-  DomainException,
-  ForbiddenException,
-} from '../../../shared-kernel/exceptions';
+import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
 
 /**
  * Account Already Exists Exception

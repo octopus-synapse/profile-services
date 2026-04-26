@@ -4,7 +4,7 @@
  * Encapsulates email address with validation.
  * Immutable, normalized (lowercase), and equality-based.
  */
-import { InvalidEmailFormatException } from '../../exceptions';
+import { InvalidEmailFormatException } from '../../exceptions/identity-shared.exceptions';
 
 export class Email {
   private readonly value: string;

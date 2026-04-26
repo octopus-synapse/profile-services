@@ -1,11 +1,7 @@
 /**
  * Users Bounded Context Exceptions
  */
-import {
-  ConflictException,
-  ForbiddenException,
-  ValidationException,
-} from '../../../shared-kernel/exceptions';
+import { ConflictException, ForbiddenException, ValidationException } from '@/shared-kernel/exceptions';
 
 export class UsernameTakenException extends ConflictException {
   readonly code: string = 'USERNAME_TAKEN';

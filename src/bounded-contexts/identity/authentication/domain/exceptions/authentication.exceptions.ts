@@ -1,7 +1,7 @@
 /**
  * Authentication Domain Exceptions
  */
-import { DomainException, UnauthorizedException } from '../../../shared-kernel/exceptions';
+import { DomainException, UnauthorizedException } from '@/shared-kernel/exceptions';
 
 /**
  * Invalid Credentials Exception

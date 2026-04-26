@@ -1,5 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
+import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions/identity-shared.exceptions';
 import {
   UniqueConstraintViolatedException,
   UsernameTakenException,

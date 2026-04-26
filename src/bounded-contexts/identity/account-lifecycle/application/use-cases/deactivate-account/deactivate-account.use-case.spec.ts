@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { AccountDeactivatedEvent } from '../../../domain/events';
 import { AccountDeactivatedException } from '../../../domain/exceptions';

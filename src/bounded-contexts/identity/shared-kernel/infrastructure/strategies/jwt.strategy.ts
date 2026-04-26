@@ -7,7 +7,7 @@ import {
   TokenInvalidException,
   TokenVerificationFailedException,
 } from '@/bounded-contexts/identity/authentication/domain/exceptions';
-import { UnauthorizedException } from '@/bounded-contexts/identity/shared-kernel/exceptions';
+import { UnauthorizedException } from '@/shared-kernel/exceptions';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';

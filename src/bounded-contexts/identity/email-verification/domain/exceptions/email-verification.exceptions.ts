@@ -1,7 +1,7 @@
 /**
  * Email Verification Domain Exceptions
  */
-import { ConflictException, DomainException } from '../../../shared-kernel/exceptions';
+import { ConflictException, DomainException } from '@/shared-kernel/exceptions';
 
 /**
  * Invalid Verification Token Exception

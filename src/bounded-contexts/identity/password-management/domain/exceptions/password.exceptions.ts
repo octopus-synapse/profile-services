@@ -1,11 +1,7 @@
 /**
  * Password Management Domain Exceptions
  */
-import {
-  DomainException,
-  UnauthorizedException,
-  ValidationException,
-} from '../../../shared-kernel/exceptions';
+import { DomainException, UnauthorizedException, ValidationException } from '@/shared-kernel/exceptions';
 
 /**
  * Weak Password Exception
@@ -15,7 +11,7 @@ import {
 export class WeakPasswordException extends ValidationException {
   readonly code: string = 'PASSWORD_WEAK';
   constructor(violations: string[]) {
-    super('Password does not meet security requirements', violations);
+    super('Password does not meet security requirements', { password: violations });
   }
 }
 
@@ -53,8 +49,8 @@ export class InvalidCurrentPasswordException extends UnauthorizedException {
 export class SamePasswordException extends ValidationException {
   readonly code: string = 'PASSWORD_SAME_AS_CURRENT';
   constructor() {
-    super('New password must be different from current password', [
-      'New password cannot be the same as current password',
-    ]);
+    super('New password must be different from current password', {
+      newPassword: ['New password cannot be the same as current password'],
+    });
   }
 }

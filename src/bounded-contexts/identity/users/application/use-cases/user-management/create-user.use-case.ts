@@ -1,5 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
+import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions/identity-shared.exceptions';
 import type { CreatedUser, CreateUserData } from '../../ports/user-management.port';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 

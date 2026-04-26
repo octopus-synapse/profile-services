@@ -1,5 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { PasswordChangedEvent } from '../../../domain/events';
 import { InvalidCurrentPasswordException, SamePasswordException } from '../../../domain/exceptions';

@@ -1,4 +1,4 @@
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { EmailVerificationRepositoryPort } from '../../../domain/ports';
 import type { GetResendCooldownQuery, ResendCooldown } from '../../ports';
 import { GetResendCooldownPort } from '../../ports';
