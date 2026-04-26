@@ -1159,6 +1159,10 @@ export const ERROR_DICTIONARY = {
     en: 'Failed to generate export. Please try again later.',
     'pt-BR': 'Falha ao gerar a exportação. Tente novamente mais tarde.',
   },
+  FEATURE_FLAG_DEPRECATED: {
+    en: 'This feature flag is deprecated and cannot be toggled',
+    'pt-BR': 'Esta feature flag foi descontinuada e não pode ser alterada',
+  },
   FEATURE_FLAG_DISABLED: {
     en: 'Not Found',
     'pt-BR': 'Não encontrado',

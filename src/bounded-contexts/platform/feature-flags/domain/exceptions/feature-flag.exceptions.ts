@@ -23,6 +23,15 @@ export class FeatureFlagInvalidInputException extends ValidationException {
   }
 }
 
+export class FeatureFlagDeprecatedException extends ValidationException {
+  readonly code: string = 'FEATURE_FLAG_DEPRECATED';
+  constructor(public readonly key: string) {
+    super(
+      `Flag "${key}" is deprecated and cannot be toggled. Remove it from the registry or re-add and redeploy.`,
+    );
+  }
+}
+
 export class FeatureFlagParentDisabledException extends ConflictException {
   readonly code: string = 'FEATURE_FLAG_PARENT_DISABLED';
   constructor(

@@ -1,15 +1,15 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuditAction } from '@prisma/client';
 import type { Request } from 'express';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { FeatureFlagToggledEvent } from '../../domain/events/feature-flag-toggled.event';
+import {
+  FeatureFlagDeprecatedException,
+  FeatureFlagNotFoundException,
+  FeatureFlagParentDisabledException,
+} from '../../domain/exceptions/feature-flag.exceptions';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import type { FlagRecord } from '../../domain/types';
 import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
@@ -36,11 +36,9 @@ export class ToggleFlagUseCase {
 
   async execute(input: ToggleFlagInput): Promise<FlagRecord> {
     const current = await this.repo.findByKey(input.key);
-    if (!current) throw new NotFoundException(`Feature flag "${input.key}" not found`);
+    if (!current) throw new FeatureFlagNotFoundException(input.key);
     if (current.deprecated) {
-      throw new BadRequestException(
-        `Flag "${input.key}" is deprecated and cannot be toggled. Remove it from the registry or re-add and redeploy.`,
-      );
+      throw new FeatureFlagDeprecatedException(input.key);
     }
 
     if (input.enabled === true && !current.enabled) {
@@ -93,9 +91,7 @@ export class ToggleFlagUseCase {
       const parent = byKey.get(k);
       if (!parent) continue;
       if (!parent.enabled) {
-        throw new ConflictException(
-          `Cannot enable "${flag.key}": parent flag "${parent.key}" is disabled`,
-        );
+        throw new FeatureFlagParentDisabledException(flag.key, parent.key);
       }
       stack.push(...parent.dependsOn);
     }
