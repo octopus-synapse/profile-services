@@ -1,4 +1,4 @@
-import { EventPublisher } from '@/shared-kernel';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeStyleAppliedEvent } from '../../domain/events';
 import {
   ResumeNotFoundForStyleApplyError,
@@ -23,6 +23,7 @@ export class ApplyStyleToResumeUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,
     private readonly events: EventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: ApplyStyleInput): Promise<void> {

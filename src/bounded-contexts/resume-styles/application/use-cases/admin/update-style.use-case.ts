@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import {
   StyleBelowAtsThresholdError,
   StyleNotEditableError,
@@ -22,6 +23,7 @@ export class UpdateStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,
     private readonly scorer: StyleScorerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(id: string, patch: UpdateStylePatch): Promise<StyleDetail> {

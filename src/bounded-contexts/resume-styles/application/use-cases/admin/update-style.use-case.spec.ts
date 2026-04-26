@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { LayoutKind } from '@prisma/client';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   StyleBelowAtsThresholdError,
   StyleNotEditableError,
@@ -84,7 +85,7 @@ describe('UpdateStyleUseCase', () => {
   });
 
   it('throws StyleNotFoundError when the style is missing', async () => {
-    const useCase = new UpdateStyleUseCase(new FakeRepo(null), scorerHigh);
+    const useCase = new UpdateStyleUseCase(new FakeRepo(null), scorerHigh, stubLogger);
     await expect(useCase.execute('missing', { name: 'x' })).rejects.toBeInstanceOf(
       StyleNotFoundError,
     );
@@ -94,6 +95,7 @@ describe('UpdateStyleUseCase', () => {
     const useCase = new UpdateStyleUseCase(
       new FakeRepo({ ...baseStyle, isSystem: true }),
       scorerHigh,
+      stubLogger,
     );
     await expect(useCase.execute('s', { name: 'x' })).rejects.toBeInstanceOf(StyleNotEditableError);
   });
@@ -102,6 +104,7 @@ describe('UpdateStyleUseCase', () => {
     const useCase = new UpdateStyleUseCase(
       new FakeRepo(baseStyle),
       new StubScorer({ layout: 50, typography: 50, fileLevel: 50 }),
+      stubLogger,
     );
     await expect(useCase.execute('style-1', { styleConfig: {} })).rejects.toBeInstanceOf(
       StyleBelowAtsThresholdError,
@@ -112,6 +115,7 @@ describe('UpdateStyleUseCase', () => {
     const useCase = new UpdateStyleUseCase(
       new FakeRepo(baseStyle),
       new StubScorer({ layout: 75, typography: 75, fileLevel: 75 }),
+      stubLogger,
     );
     await expect(useCase.execute('style-1', { styleConfig: {} })).rejects.toBeInstanceOf(
       StyleScoreRegressionError,
@@ -119,7 +123,7 @@ describe('UpdateStyleUseCase', () => {
   });
 
   it('updates and bumps the version when styleConfig score is monotonic and above threshold', async () => {
-    const useCase = new UpdateStyleUseCase(new FakeRepo(baseStyle), scorerHigh);
+    const useCase = new UpdateStyleUseCase(new FakeRepo(baseStyle), scorerHigh, stubLogger);
     const updated = await useCase.execute('style-1', { styleConfig: {} });
     expect(updated.styleScore).toBe(90);
     expect(updated.version).toBe(2);

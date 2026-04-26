@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { LayoutKind } from '@prisma/client';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { StyleBelowAtsThresholdError } from '../../../domain/exceptions/resume-styles.exceptions';
 import {
   type ListStylesArgs,
@@ -87,6 +88,7 @@ describe('CreateStyleUseCase', () => {
     const useCase = new CreateStyleUseCase(
       repo,
       new StubScorer({ layout: 90, typography: 85, fileLevel: 80 }),
+      stubLogger,
     );
     const created = await useCase.execute(baseInput);
     expect(created.styleScore).toBe(85); // Math.round((90+85+80)/3)
@@ -97,6 +99,7 @@ describe('CreateStyleUseCase', () => {
     const useCase = new CreateStyleUseCase(
       repo,
       new StubScorer({ layout: 60, typography: 60, fileLevel: 60 }),
+      stubLogger,
     );
     await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(StyleBelowAtsThresholdError);
     expect(repo.created).toHaveLength(0);

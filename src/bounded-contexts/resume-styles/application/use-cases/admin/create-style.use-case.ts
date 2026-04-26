@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { StyleBelowAtsThresholdError } from '../../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../../domain/ports/resume-style.repository.port';
 import { StyleScorerPort } from '../../../domain/ports/style-scorer.port';
@@ -13,6 +14,7 @@ export class CreateStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,
     private readonly scorer: StyleScorerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: CreateStyleInput): Promise<StyleDetail> {

@@ -22,6 +22,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { AdminOnly } from '@/shared-kernel/authorization';
+import { LoggerPort } from '@/shared-kernel';
 import { CreateStyleUseCase } from '../../application/use-cases/admin/create-style.use-case';
 import { DeleteStyleUseCase } from '../../application/use-cases/admin/delete-style.use-case';
 import { UpdateStyleUseCase } from '../../application/use-cases/admin/update-style.use-case';
@@ -42,6 +43,8 @@ import { presentDetail } from '../presenters/resume-style.presenter';
  *     a Postgres trigger as a hard floor).
  *   - 422 (`style_not_editable`) for any attempt to mutate a system style.
  */
+const CTX = 'AdminResumeStylesController';
+
 @SdkExport({ tag: 'admin-resume-styles', description: 'Admin ResumeStyle CRUD' })
 @ApiTags('admin-resume-styles')
 @ApiBearerAuth('JWT-auth')
@@ -52,6 +55,7 @@ export class AdminResumeStylesController {
     private readonly createUseCase: CreateStyleUseCase,
     private readonly updateUseCase: UpdateStyleUseCase,
     private readonly deleteUseCase: DeleteStyleUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   @Post()
@@ -118,6 +122,10 @@ export class AdminResumeStylesController {
   }
 
   private translate(err: unknown): never {
+    this.logger.warn(
+      `admin resume-styles request failed: ${err instanceof Error ? err.message : 'unknown'}`,
+      CTX,
+    );
     if (err instanceof StyleNotFoundError) {
       throw new NotFoundException(err.message);
     }

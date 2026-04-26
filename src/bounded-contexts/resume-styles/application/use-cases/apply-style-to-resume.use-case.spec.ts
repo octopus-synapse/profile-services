@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { LayoutKind } from '@prisma/client';
 import type { EventPublisher } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ResumeNotFoundForStyleApplyError,
   StyleNotFoundError,
@@ -72,7 +73,11 @@ describe('ApplyStyleToResumeUseCase', () => {
   });
 
   it('throws StyleNotFoundError when the style does not exist', async () => {
-    const useCase = new ApplyStyleToResumeUseCase(new FakeRepo(null), stubEventPublisher);
+    const useCase = new ApplyStyleToResumeUseCase(
+      new FakeRepo(null),
+      stubEventPublisher,
+      stubLogger,
+    );
     await expect(
       useCase.execute({ userId: 'u1', resumeId: 'r1', styleId: 'missing' }),
     ).rejects.toBeInstanceOf(StyleNotFoundError);
@@ -82,6 +87,7 @@ describe('ApplyStyleToResumeUseCase', () => {
     const useCase = new ApplyStyleToResumeUseCase(
       new FakeRepo(styleFixture, false),
       stubEventPublisher,
+      stubLogger,
     );
     await expect(
       useCase.execute({ userId: 'u1', resumeId: 'missing', styleId: 'style-1' }),
@@ -89,7 +95,7 @@ describe('ApplyStyleToResumeUseCase', () => {
   });
 
   it('applies the style and records the link', async () => {
-    const useCase = new ApplyStyleToResumeUseCase(repo, stubEventPublisher);
+    const useCase = new ApplyStyleToResumeUseCase(repo, stubEventPublisher, stubLogger);
     await useCase.execute({ userId: 'u1', resumeId: 'r1', styleId: 'style-1' });
     expect(repo.applied).toEqual([{ resumeId: 'r1', styleId: 'style-1' }]);
   });

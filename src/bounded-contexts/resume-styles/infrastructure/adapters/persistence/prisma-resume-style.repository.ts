@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type LayoutKind, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type ListStylesArgs,
   type PaginatedStyles,
@@ -35,7 +36,10 @@ type StyleRow = {
 
 @Injectable()
 export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

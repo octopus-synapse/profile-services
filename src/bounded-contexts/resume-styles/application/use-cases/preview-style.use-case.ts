@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { StyleNotFoundError } from '../../domain/exceptions/resume-styles.exceptions';
 import { ResumeStyleRepositoryPort } from '../../domain/ports/resume-style.repository.port';
 import { StylePreviewPort } from '../../domain/ports/style-preview.port';
@@ -12,6 +13,7 @@ export class PreviewStyleUseCase {
   constructor(
     private readonly repo: ResumeStyleRepositoryPort,
     private readonly preview: StylePreviewPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(styleId: string): Promise<Buffer> {

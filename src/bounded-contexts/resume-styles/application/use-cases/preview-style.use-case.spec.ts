@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { LayoutKind } from '@prisma/client';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { StyleNotFoundError } from '../../domain/exceptions/resume-styles.exceptions';
 import {
   type ListStylesArgs,
@@ -62,14 +63,14 @@ const sample: StyleDetail = {
 describe('PreviewStyleUseCase', () => {
   it('renders via the preview port with the style template + config', async () => {
     const preview = new FakePreview();
-    const useCase = new PreviewStyleUseCase(new FakeRepo(sample), preview);
+    const useCase = new PreviewStyleUseCase(new FakeRepo(sample), preview, stubLogger);
     const buf = await useCase.execute('s1');
     expect(buf.toString()).toBe('PDF');
     expect(preview.calls).toEqual([{ typstTemplate: 'default', styleConfig: { foo: 'bar' } }]);
   });
 
   it('throws StyleNotFoundError when the style is missing', async () => {
-    const useCase = new PreviewStyleUseCase(new FakeRepo(null), new FakePreview());
+    const useCase = new PreviewStyleUseCase(new FakeRepo(null), new FakePreview(), stubLogger);
     await expect(useCase.execute('missing')).rejects.toBeInstanceOf(StyleNotFoundError);
   });
 });
