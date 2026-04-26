@@ -1,9 +1,12 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { type Job, type Queue } from 'bullmq';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { CuratedSelectorService } from '../services/curated-selector.service';
+
+const CTX = 'WeeklyCuratedWorker';
 
 /** Queue name exposed so the module can register it with BullMQ. */
 export const WEEKLY_CURATED_QUEUE = 'weekly-curated';
@@ -18,13 +21,12 @@ export type WeeklyCuratedJobData = { kind: 'schedule' } | { kind: 'run-for-user'
 @Injectable()
 @Processor(WEEKLY_CURATED_QUEUE, { concurrency: 4 })
 export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(WeeklyCuratedWorker.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly selector: CuratedSelectorService,
     private readonly email: EmailService,
     @InjectQueue(WEEKLY_CURATED_QUEUE) private readonly queue: Queue<WeeklyCuratedJobData>,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -66,7 +68,7 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
       },
       select: { id: true },
     });
-    this.logger.log(`Enqueueing weekly-curated for ${users.length} users`);
+    this.logger.log(`Enqueueing weekly-curated for ${users.length} users`, CTX);
     for (const u of users) {
       await this.queue.add('weekly-curated-run', { kind: 'run-for-user', userId: u.id });
     }
@@ -81,7 +83,7 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
       select: { id: true, status: true },
     });
     if (existing && existing.status !== 'PENDING') {
-      this.logger.log(`Skipping ${userId} (batch already ${existing.status})`);
+      this.logger.log(`Skipping ${userId} (batch already ${existing.status})`, CTX);
       return;
     }
 
@@ -94,7 +96,7 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
     });
 
     if (picks.length === 0) {
-      this.logger.log(`No qualifying jobs for ${userId} this week`);
+      this.logger.log(`No qualifying jobs for ${userId} this week`, CTX);
       return;
     }
 
@@ -122,7 +124,11 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
         data: { status: 'SENT', sentAt: new Date() },
       });
     } catch (err) {
-      this.logger.error(`Weekly digest email failed for ${userId}: ${(err as Error).message}`);
+      this.logger.error(
+        `Weekly digest email failed for ${userId}: ${(err as Error).message}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
       await this.prisma.weeklyCuratedBatch.update({
         where: { id: batch.id },
         data: { status: 'FAILED' },
@@ -194,7 +200,7 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<WeeklyCuratedJobData>, err: Error): void {
-    this.logger.error(`Job ${job.id} failed: ${err.message}`);
+    this.logger.error(`Job ${job.id} failed: ${err.message}`, err.stack, CTX);
   }
 }
 
