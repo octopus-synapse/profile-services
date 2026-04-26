@@ -1,6 +1,11 @@
 import { SimilarityPort } from '@/bounded-contexts/fit-profile/domain/ports/similarity.port';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { MatchComputedEvent } from '../../domain/events';
+import {
+  JobMatchFitProfileRequiredException,
+  JobMatchJobNotFoundException,
+  JobMatchResumeNotFoundException,
+} from '../../domain/exceptions/job-match.exceptions';
 import { JobLoaderPort } from '../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import { RequirementsMatcherPort } from '../../domain/ports/requirements-matcher.port';
@@ -11,25 +16,6 @@ import { UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import { blendMatch } from '../../domain/rules/blend-match.rules';
 import { scoreKeywordMatch } from '../../domain/rules/keyword-match.rules';
 import { MATCH_RULES_VERSION, type MatchBreakdown, type SubScoreResult } from '../../domain/types';
-
-export class FitProfileRequiredForMatchError extends Error {
-  constructor(public readonly userId: string) {
-    super('Match Score is unavailable: fit profile is missing or expired');
-    this.name = 'FitProfileRequiredForMatchError';
-  }
-}
-export class ResumeNotFoundForMatchError extends Error {
-  constructor(public readonly resumeId: string) {
-    super(`Resume not found for match: ${resumeId}`);
-    this.name = 'ResumeNotFoundForMatchError';
-  }
-}
-export class JobNotFoundForMatchError extends Error {
-  constructor(public readonly jobId: string) {
-    super(`Job not found for match: ${jobId}`);
-    this.name = 'JobNotFoundForMatchError';
-  }
-}
 
 export interface ComputeMatchInput {
   readonly userId: string;
@@ -75,9 +61,11 @@ export class ComputeMatchUseCase {
       this.jobLoader.load(jobId),
       this.fitState.getStatus(userId),
     ]);
-    if (!exists) throw new ResumeNotFoundForMatchError(resumeId);
-    if (!job) throw new JobNotFoundForMatchError(jobId);
-    if (fit.status !== 'responded') throw new FitProfileRequiredForMatchError(userId);
+    if (!exists) throw new JobMatchResumeNotFoundException(resumeId);
+    if (!job) throw new JobMatchJobNotFoundException(jobId);
+    if (fit.status !== 'responded') {
+      throw new JobMatchFitProfileRequiredException(fit.status === 'expired' ? 'expired' : 'never');
+    }
 
     // ── Cache lookup ────────────────────────────────────────────────
     // Version-rich key so mutations anywhere in the graph bust the

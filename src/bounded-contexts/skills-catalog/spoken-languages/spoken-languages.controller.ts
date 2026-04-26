@@ -1,23 +1,18 @@
 /**
  * Spoken Languages Controller
  * Public API endpoints for spoken language catalog
- *
- * BUG-035 FIX: Added parseInt validation with NaN handling
  */
 
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  InvalidLimitParameterException,
+  SpokenLanguageNotFoundException,
+} from '../domain/exceptions/skills-catalog.exceptions';
 import { SpokenLanguageDataDto, SpokenLanguagesListDataDto } from './dto/controller-response.dto';
 import { SpokenLanguagesService } from './services/spoken-languages.service';
 
@@ -56,12 +51,11 @@ export class SpokenLanguagesController {
     @Query('q') searchQuery: string,
     @Query('limit') limit?: string,
   ): Promise<DataResponse<SpokenLanguagesListDataDto>> {
-    // BUG-035 FIX: Validate parseInt result
     let parsedLimit = 10;
     if (limit) {
       parsedLimit = parseInt(limit, 10);
       if (Number.isNaN(parsedLimit) || parsedLimit <= 0) {
-        throw new BadRequestException('Invalid limit parameter. Must be a positive number.');
+        throw new InvalidLimitParameterException();
       }
     }
     const languages = await this.spokenLanguagesService.searchLanguagesByName(
@@ -86,9 +80,7 @@ export class SpokenLanguagesController {
     @Param('code') languageCode: string,
   ): Promise<DataResponse<SpokenLanguageDataDto>> {
     const language = await this.spokenLanguagesService.findLanguageByCode(languageCode);
-    if (!language) {
-      throw new NotFoundException(`Language with code '${languageCode}' not found`);
-    }
+    if (!language) throw new SpokenLanguageNotFoundException(languageCode);
     return {
       success: true,
       data: { language },

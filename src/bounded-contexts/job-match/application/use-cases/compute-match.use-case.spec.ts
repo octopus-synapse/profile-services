@@ -26,11 +26,11 @@ import {
 import { type UserFitState, UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import type { MatchBreakdown } from '../../domain/types';
 import {
-  ComputeMatchUseCase,
-  FitProfileRequiredForMatchError,
-  JobNotFoundForMatchError,
-  ResumeNotFoundForMatchError,
-} from './compute-match.use-case';
+  JobMatchFitProfileRequiredException,
+  JobMatchJobNotFoundException,
+  JobMatchResumeNotFoundException,
+} from '../../domain/exceptions/job-match.exceptions';
+import { ComputeMatchUseCase } from './compute-match.use-case';
 
 class FakeResumeExistence extends ResumeExistencePort {
   constructor(private readonly present: boolean) {
@@ -174,25 +174,25 @@ describe('ComputeMatchUseCase', () => {
     const useCase = build({ exists: false });
     await expect(
       useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(ResumeNotFoundForMatchError);
+    ).rejects.toBeInstanceOf(JobMatchResumeNotFoundException);
   });
 
   it('throws when the job is missing', async () => {
     const useCase = build({ job: null });
     await expect(
       useCase.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(JobNotFoundForMatchError);
+    ).rejects.toBeInstanceOf(JobMatchJobNotFoundException);
   });
 
   it('throws when the user has no fit profile (or expired)', async () => {
     const expired = build({ fit: 'expired' });
     await expect(
       expired.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(FitProfileRequiredForMatchError);
+    ).rejects.toBeInstanceOf(JobMatchFitProfileRequiredException);
     const never = build({ fit: 'never' });
     await expect(
       never.execute({ userId: 'u1', resumeId: 'r1', jobId: 'j1' }),
-    ).rejects.toBeInstanceOf(FitProfileRequiredForMatchError);
+    ).rejects.toBeInstanceOf(JobMatchFitProfileRequiredException);
   });
 
   it('composes the overall score from the four sub-scores when everything succeeds', async () => {

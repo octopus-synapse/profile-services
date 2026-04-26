@@ -6,7 +6,6 @@ import {
   Header,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
   Query,
@@ -22,7 +21,10 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ResumeShareAccessDeniedException } from '../../domain/exceptions/presentation.exceptions';
+import {
+  ResumeShareAccessDeniedException,
+  ShareNotFoundException,
+} from '../../domain/exceptions/presentation.exceptions';
 import {
   ShareCreateDataDto,
   ShareDeleteDataDto,
@@ -168,7 +170,7 @@ export class ShareManagementController {
     @Query(createZodPipe(QrSizeSchema)) q: z.infer<typeof QrSizeSchema>,
   ): Promise<StreamableFile> {
     const share = await this.shareService.getShareWithOwner(shareId);
-    if (!share) throw new NotFoundException('Share not found');
+    if (!share) throw new ShareNotFoundException();
     if (share.resume.userId !== user.userId) throw new ResumeShareAccessDeniedException();
 
     const baseUrl = this.configService.get<string>('PUBLIC_APP_URL') ?? 'https://patchcareers.com';

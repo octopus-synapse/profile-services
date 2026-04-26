@@ -7,6 +7,7 @@
 import {
   ConflictException,
   DomainException,
+  EntityNotFoundException,
   ValidationException,
 } from '@/shared-kernel/exceptions';
 
@@ -78,5 +79,19 @@ export class SkillSectionTypeNotConfiguredException extends DomainException {
   readonly statusHint = 503;
   constructor(public readonly sectionTypeKey: string) {
     super(`SectionType '${sectionTypeKey}' not found`);
+  }
+}
+
+export class SpokenLanguageNotFoundException extends EntityNotFoundException {
+  readonly code: string = 'SPOKEN_LANGUAGE_NOT_FOUND';
+  constructor(code: string) {
+    super('SpokenLanguage', code);
+  }
+}
+
+export class InvalidLimitParameterException extends ValidationException {
+  readonly code: string = 'INVALID_LIMIT_PARAMETER';
+  constructor() {
+    super('Invalid limit parameter — must be a positive integer');
   }
 }

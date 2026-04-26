@@ -1223,6 +1223,10 @@ export const ERROR_DICTIONARY = {
     en: 'Job fit profile has not been set for this job',
     'pt-BR': 'O perfil de fit ainda não foi definido para esta vaga',
   },
+  LINKEDIN_IMPORT_NOT_IMPLEMENTED: {
+    en: 'LinkedIn import is not implemented yet',
+    'pt-BR': 'Importação do LinkedIn ainda não está implementada',
+  },
   JOB_MATCH_AUTHENTICATED_USER_MISSING: {
     en: 'Authenticated user is missing on the request',
     'pt-BR': 'Usuário autenticado ausente na requisição',

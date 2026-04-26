@@ -91,3 +91,40 @@ export class PdfNoTextException extends ValidationException {
     super('PDF does not contain extractable text');
   }
 }
+
+/** Multipart upload arrived without a `file` field. */
+export class MissingPdfUploadException extends ValidationException {
+  readonly code: string = 'IMPORT_FILE_MISSING';
+  constructor() {
+    super('Missing file (multipart field "file")');
+  }
+}
+
+/** JSON Resume payload is missing the required `basics` section. */
+export class JsonResumeBasicsMissingException extends ValidationException {
+  readonly code: string = 'IMPORT_MISSING_BASICS';
+  constructor() {
+    super('Missing basics section');
+  }
+}
+
+/** JSON Resume payload is missing `basics.name`. */
+export class JsonResumeNameMissingException extends ValidationException {
+  readonly code: string = 'IMPORT_MISSING_BASICS_NAME';
+  constructor() {
+    super('Name is required in basics section');
+  }
+}
+
+/**
+ * The LinkedIn import endpoint is a deliberate scaffold — the route exists
+ * so the UI can call it and get a clean 503 instead of a 404, but the
+ * actual LinkedIn v2 API client hasn't landed yet.
+ */
+export class LinkedinImportNotImplementedException extends DomainException {
+  readonly code: string = 'LINKEDIN_IMPORT_NOT_IMPLEMENTED';
+  readonly statusHint = 503;
+  constructor() {
+    super('LinkedIn import not implemented yet');
+  }
+}

@@ -2,21 +2,22 @@
  * Resume Import Controller
  *
  * REST API endpoints for resume import functionality.
- * Thin controller — delegates to use-cases.
+ * Thin controller — delegates to use-cases. Domain exceptions
+ * (`ImportNotFoundException`, `ImportCannotBeCancelledException`,
+ * `MissingPdfUploadException`, etc.) carry their own `code` + `statusHint`
+ * so `DomainExceptionFilter` does the HTTP translation without per-handler
+ * try/catch.
  */
 
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
-  ServiceUnavailableException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -45,9 +46,10 @@ import { ListImportHistoryUseCase } from '../../application/use-cases/list-impor
 import { ProcessImportUseCase } from '../../application/use-cases/process-import/process-import.use-case';
 import { RetryImportUseCase } from '../../application/use-cases/retry-import/retry-import.use-case';
 import {
-  ImportCannotBeCancelledException,
-  ImportCannotBeRetriedException,
-  ImportNotFoundException,
+  JsonResumeBasicsMissingException,
+  JsonResumeNameMissingException,
+  LinkedinImportNotImplementedException,
+  MissingPdfUploadException,
 } from '../../domain/exceptions/import.exceptions';
 import { JsonResumeParser } from '../../domain/services/json-resume-parser';
 import type { JsonResumeSchema } from '../../domain/types/import.types';
@@ -113,9 +115,7 @@ export class ResumeImportController {
     @CurrentUser() user: UserPayload,
     @UploadedFile() file: Express.Multer.File | undefined,
   ): Promise<DataResponse<{ resumeId: string }>> {
-    if (!file) {
-      throw new BadRequestException('Missing file (multipart field "file")');
-    }
+    if (!file) throw new MissingPdfUploadException();
     const result = await this.pdfImport.import(user.userId, {
       buffer: file.buffer,
       originalname: file.originalname,
@@ -155,7 +155,7 @@ export class ResumeImportController {
   async importLinkedin(): Promise<DataResponse<{ status: 'not_implemented' }>> {
     // We keep the route live so the UI can call `available` and get a clean
     // 503 rather than a 404 — this also reminds us where the work lands.
-    throw new ServiceUnavailableException('LinkedIn import not implemented yet');
+    throw new LinkedinImportNotImplementedException();
   }
 
   @Post('json')
@@ -214,15 +214,8 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<DataResponse<ImportJobDto>> {
-    try {
-      const importJob = await this.getImportStatus.execute(importId);
-      return { success: true, data: toImportJobDto(importJob) };
-    } catch (error) {
-      if (error instanceof ImportNotFoundException) {
-        throw new NotFoundException(error.message);
-      }
-      throw error;
-    }
+    const importJob = await this.getImportStatus.execute(importId);
+    return { success: true, data: toImportJobDto(importJob) };
   }
 
   @Get()
@@ -248,14 +241,7 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<void> {
-    try {
-      await this.cancelImport.execute(importId);
-    } catch (error) {
-      if (error instanceof ImportNotFoundException) throw new NotFoundException(error.message);
-      if (error instanceof ImportCannotBeCancelledException)
-        throw new BadRequestException(error.message);
-      throw error;
-    }
+    await this.cancelImport.execute(importId);
   }
 
   @Post(':importId/retry')
@@ -270,31 +256,24 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<DataResponse<ImportResultDto>> {
-    try {
-      const result = await this.retryImport.execute(importId);
-      return {
-        success: true,
-        data: toImportResultDto({
-          importId,
-          status: result.status,
-          resumeId: result.resumeId,
-          errors: result.errors,
-        }),
-      };
-    } catch (error) {
-      if (error instanceof ImportNotFoundException) throw new NotFoundException(error.message);
-      if (error instanceof ImportCannotBeRetriedException)
-        throw new BadRequestException(error.message);
-      throw error;
-    }
+    const result = await this.retryImport.execute(importId);
+    return {
+      success: true,
+      data: toImportResultDto({
+        importId,
+        status: result.status,
+        resumeId: result.resumeId,
+        errors: result.errors,
+      }),
+    };
   }
 
   private validateJsonResume(data: JsonResumeSchema): void {
     if (!data.basics || typeof data.basics !== 'object') {
-      throw new BadRequestException('Missing basics section');
+      throw new JsonResumeBasicsMissingException();
     }
     if (!data.basics.name || typeof data.basics.name !== 'string') {
-      throw new BadRequestException('Name is required in basics section');
+      throw new JsonResumeNameMissingException();
     }
   }
 }
