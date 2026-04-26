@@ -93,6 +93,7 @@ const stubEventPublisher = {
 };
 
 const stubEventEmitter = { emit: () => true, emitAsync: () => Promise.resolve([]) };
+const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 
 describe('CreateActivityUseCase', () => {
   let useCase: CreateActivityUseCase;
@@ -105,6 +106,7 @@ describe('CreateActivityUseCase', () => {
       new StubFollowRepository(),
       stubEventPublisher,
       stubEventEmitter,
+      stubLogger,
     );
   });
 

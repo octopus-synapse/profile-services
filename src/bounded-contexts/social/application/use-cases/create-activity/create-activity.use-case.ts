@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityCreatedEvent, type SocialActivityType } from '../../../domain/events';
 import type { ActivityType, ActivityWithUser } from '../../ports/activity.port';
@@ -27,6 +28,7 @@ export class CreateActivityUseCase {
     private readonly followRepository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
     private readonly feedEmitter: FeedEmitterPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

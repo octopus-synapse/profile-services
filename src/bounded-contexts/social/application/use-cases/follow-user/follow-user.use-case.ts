@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { UserFollowedEvent } from '../../../domain/events';
@@ -12,6 +13,7 @@ export class FollowUserUseCase {
   constructor(
     private readonly repository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(followerId: string, followingId: string): Promise<FollowWithUser> {

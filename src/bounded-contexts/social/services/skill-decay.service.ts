@@ -7,11 +7,13 @@
  * SkillDecayLog — we don't want to nag the same skill every week.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
 const STALE_AFTER_DAYS = 120;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const CTX = 'SkillDecayService';
 
 interface DecayFinding {
   userId: string;
@@ -21,9 +23,10 @@ interface DecayFinding {
 
 @Injectable()
 export class SkillDecayService {
-  private readonly logger = new Logger(SkillDecayService.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async scanAndFlag(now: Date = new Date()): Promise<{ scanned: number; flagged: number }> {
     const cutoff = new Date(now.getTime() - STALE_AFTER_DAYS * MS_PER_DAY);
@@ -63,6 +66,8 @@ export class SkillDecayService {
       } catch (err) {
         this.logger.error(
           `Skill decay flag failed for ${row.userId}/${row.skillName}: ${err instanceof Error ? err.message : 'unknown'}`,
+          undefined,
+          CTX,
         );
       }
     }

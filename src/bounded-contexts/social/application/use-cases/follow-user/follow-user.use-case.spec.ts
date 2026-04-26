@@ -77,7 +77,8 @@ describe('FollowUserUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new FollowUserUseCase(repository, stubEventPublisher);
+    const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+    useCase = new FollowUserUseCase(repository, stubEventPublisher, stubLogger);
   });
 
   it('should create a follow relationship', async () => {

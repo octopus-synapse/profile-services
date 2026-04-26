@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import type { ActivityWithUser } from '../../ports/activity.port';
 import { ActivityRepositoryPort } from '../../ports/activity.port';
 import type { PaginatedResult, PaginationParams } from '../../ports/follow.port';
@@ -7,6 +8,7 @@ export class GetFeedUseCase {
   constructor(
     private readonly activityRepository: ActivityRepositoryPort,
     private readonly followRepository: FollowRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

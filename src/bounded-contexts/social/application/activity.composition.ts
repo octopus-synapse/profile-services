@@ -1,5 +1,6 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityRepository } from '../infrastructure/adapters/persistence/activity.repository';
 import { FollowRepository } from '../infrastructure/adapters/persistence/follow.repository';
@@ -16,6 +17,7 @@ export function buildActivityUseCases(
   prisma: PrismaService,
   eventPublisher: EventPublisherPort,
   eventEmitter: EventEmitter2,
+  logger: LoggerPort,
 ): ActivityUseCases {
   const activityRepository = new ActivityRepository(prisma);
   const followRepository = new FollowRepository(prisma);
@@ -26,8 +28,9 @@ export function buildActivityUseCases(
       followRepository,
       eventPublisher,
       eventEmitter,
+      logger,
     ),
-    getFeedUseCase: new GetFeedUseCase(activityRepository, followRepository),
+    getFeedUseCase: new GetFeedUseCase(activityRepository, followRepository, logger),
     getUserActivitiesUseCase: new GetUserActivitiesUseCase(activityRepository),
     getActivitiesByTypeUseCase: new GetActivitiesByTypeUseCase(activityRepository),
     purgeOldActivitiesUseCase: new PurgeOldActivitiesUseCase(activityRepository),

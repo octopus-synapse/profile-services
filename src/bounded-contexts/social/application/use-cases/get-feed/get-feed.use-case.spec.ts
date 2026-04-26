@@ -85,7 +85,8 @@ describe('GetFeedUseCase', () => {
   beforeEach(() => {
     activityRepo = new StubActivityRepository();
     followRepo = new StubFollowRepository();
-    useCase = new GetFeedUseCase(activityRepo, followRepo);
+    const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+    useCase = new GetFeedUseCase(activityRepo, followRepo, stubLogger);
   });
 
   it('should return activities from followed users', async () => {

@@ -239,9 +239,9 @@ describe('Logger coverage audit', () => {
 // adapter error rates) becomes feasible without bolting on a separate
 // telemetry SDK.
 const BASELINE = {
-  useCaseGaps: 93,
+  useCaseGaps: 88,
   infraAdapterGaps: 34,
   workerGaps: 13,
-  handlerGaps: 20,
+  handlerGaps: 15,
   silentCatches: 32,
 } as const;

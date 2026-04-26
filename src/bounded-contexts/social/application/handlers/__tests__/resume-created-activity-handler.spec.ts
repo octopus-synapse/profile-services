@@ -9,6 +9,8 @@ const idempotency = {
   once: <T>(_key: string, fn: () => Promise<T>) => fn(),
 } as unknown as IdempotencyService;
 
+const stubLogger = { log: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
+
 class StubActivityCreator extends ActivityCreatorPort {
   createActivity = mock(
     async (
@@ -35,7 +37,7 @@ describe('ResumeCreatedActivityHandler', () => {
 
   beforeEach(() => {
     activityCreator = new StubActivityCreator();
-    handler = new ResumeCreatedActivityHandler(activityCreator, idempotency);
+    handler = new ResumeCreatedActivityHandler(activityCreator, idempotency, stubLogger);
   });
 
   it('creates activity with RESUME_CREATED type', async () => {

@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionRequestedEvent } from '../../../domain/events';
@@ -14,6 +15,7 @@ export class SendConnectionRequestUseCase {
   constructor(
     private readonly repository: ConnectionRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(requesterId: string, targetId: string): Promise<ConnectionWithUser> {

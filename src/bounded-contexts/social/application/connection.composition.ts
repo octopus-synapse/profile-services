@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ConnectionRepository } from '../infrastructure/adapters/persistence/connection.repository';
 import { ConnectionUseCases } from './ports/connection.port';
@@ -17,12 +18,17 @@ export { ConnectionUseCases };
 export function buildConnectionUseCases(
   prisma: PrismaService,
   eventPublisher: EventPublisherPort,
+  logger: LoggerPort,
 ): ConnectionUseCases {
   const repository = new ConnectionRepository(prisma);
 
   return {
-    sendConnectionRequestUseCase: new SendConnectionRequestUseCase(repository, eventPublisher),
-    acceptConnectionUseCase: new AcceptConnectionUseCase(repository, eventPublisher),
+    sendConnectionRequestUseCase: new SendConnectionRequestUseCase(
+      repository,
+      eventPublisher,
+      logger,
+    ),
+    acceptConnectionUseCase: new AcceptConnectionUseCase(repository, eventPublisher, logger),
     rejectConnectionUseCase: new RejectConnectionUseCase(repository),
     removeConnectionUseCase: new RemoveConnectionUseCase(repository),
     getPendingRequestsUseCase: new GetPendingRequestsUseCase(repository),

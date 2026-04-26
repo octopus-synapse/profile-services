@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { FollowRepository } from '../infrastructure/adapters/persistence/follow.repository';
 import { FollowUseCases } from './ports/follow.port';
@@ -15,11 +16,12 @@ export { FollowUseCases };
 export function buildFollowUseCases(
   prisma: PrismaService,
   eventPublisher: EventPublisherPort,
+  logger: LoggerPort,
 ): FollowUseCases {
   const repository = new FollowRepository(prisma);
 
   return {
-    followUserUseCase: new FollowUserUseCase(repository, eventPublisher),
+    followUserUseCase: new FollowUserUseCase(repository, eventPublisher, logger),
     unfollowUserUseCase: new UnfollowUserUseCase(repository),
     checkFollowingUseCase: new CheckFollowingUseCase(repository),
     getFollowersUseCase: new GetFollowersUseCase(repository),
