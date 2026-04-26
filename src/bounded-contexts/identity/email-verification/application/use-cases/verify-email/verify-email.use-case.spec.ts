@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { EmailVerifiedEvent } from '../../../domain/events';
@@ -38,7 +39,7 @@ describe('VerifyEmailUseCase', () => {
       DEFAULT_USER.email,
     );
 
-    useCase = new VerifyEmailUseCase(repository, eventBus);
+    useCase = new VerifyEmailUseCase(repository, eventBus, stubLogger);
   });
 
   // ───────────────────────────────────────────────────────────────

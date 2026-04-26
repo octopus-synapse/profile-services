@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { PasswordChangedEvent } from '../../../domain/events';
@@ -46,6 +47,7 @@ describe('ChangePasswordUseCase', () => {
       passwordHasher,
       sessionInvalidation,
       eventBus,
+      stubLogger,
     );
   });
 

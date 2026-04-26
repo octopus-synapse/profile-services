@@ -5,6 +5,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { LoggerPort } from '@/shared-kernel';
 import { UserManagementUseCases } from './application/ports/user-management.port';
 import { UserPreferencesUseCases } from './application/ports/user-preferences.port';
 import { UserProfileUseCases } from './application/ports/user-profile.port';
@@ -44,8 +45,9 @@ import {
     },
     {
       provide: UserPreferencesUseCases,
-      useFactory: (prisma: PrismaService) => buildUserPreferencesUseCases(prisma),
-      inject: [PrismaService],
+      useFactory: (prisma: PrismaService, logger: LoggerPort) =>
+        buildUserPreferencesUseCases(prisma, logger),
+      inject: [PrismaService, LoggerPort],
     },
     {
       provide: UsernameUseCases,
@@ -54,11 +56,13 @@ import {
     },
     {
       provide: UserManagementUseCases,
-      useFactory: (prisma: PrismaService) =>
-        buildUserManagementUseCases(prisma, (password: string) =>
-          Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 }),
+      useFactory: (prisma: PrismaService, logger: LoggerPort) =>
+        buildUserManagementUseCases(
+          prisma,
+          (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 }),
+          logger,
         ),
-      inject: [PrismaService],
+      inject: [PrismaService, LoggerPort],
     },
 
     // Services with real domain logic (not pure facades)

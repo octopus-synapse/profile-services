@@ -5,6 +5,7 @@
  * Does NOT enable 2FA - user must verify with valid token first.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { TwoFactorAlreadyEnabledException } from '../../../domain/exceptions';
 import { QrCodeServicePort } from '../../../domain/ports/qrcode-service.port';
 import { TotpServicePort } from '../../../domain/ports/totp-service.port';
@@ -23,6 +24,7 @@ export class Setup2faUseCase {
     private readonly repository: TwoFactorRepositoryPort,
     private readonly totpService: TotpServicePort,
     private readonly qrCodeService: QrCodeServicePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<Setup2faResult> {

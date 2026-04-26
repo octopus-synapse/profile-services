@@ -5,6 +5,7 @@
  * Used during logout or manual session revocation.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { SessionTerminatedEvent } from '../../../domain';
 import type { SessionPayload } from '../../../domain/ports';
@@ -20,6 +21,7 @@ export class TerminateSessionUseCase implements TerminateSessionPort {
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly sessionStorage: SessionStoragePort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: TerminateSessionCommand): Promise<TerminateSessionResult> {

@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { PasswordChangedEvent } from '../../../domain/events';
 import {
@@ -16,6 +17,7 @@ export class ResetPasswordUseCase implements ResetPasswordPort {
     private readonly passwordHasher: PasswordHasherPort,
     private readonly sessionInvalidation: SessionInvalidationPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<ResetPasswordResult> {

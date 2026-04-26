@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { UserManagementRepository } from '../infrastructure/adapters/persistence/user-management.repository';
 import { UserManagementUseCases } from './ports/user-management.port';
 import { CreateUserUseCase } from './use-cases/user-management/create-user.use-case';
@@ -13,15 +14,16 @@ export { UserManagementUseCases };
 export function buildUserManagementUseCases(
   prisma: PrismaService,
   hashPassword: (password: string) => Promise<string>,
+  logger: LoggerPort,
 ): UserManagementUseCases {
-  const repository = new UserManagementRepository(prisma);
+  const repository = new UserManagementRepository(prisma, logger);
 
   return {
     listUsersUseCase: new ListUsersUseCase(repository),
     getUserDetailsUseCase: new GetUserDetailsUseCase(repository),
-    createUserUseCase: new CreateUserUseCase(repository, hashPassword),
+    createUserUseCase: new CreateUserUseCase(repository, hashPassword, logger),
     updateUserUseCase: new UpdateUserUseCase(repository),
     deleteUserUseCase: new DeleteUserUseCase(repository),
-    resetPasswordUseCase: new ResetPasswordUseCase(repository, hashPassword),
+    resetPasswordUseCase: new ResetPasswordUseCase(repository, hashPassword, logger),
   };
 }

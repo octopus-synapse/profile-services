@@ -6,7 +6,12 @@
 
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
-import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
+import type {
+  LoggerPort,
+  UpdateFullPreferences,
+  UpdatePreferences,
+  UpdateProfile,
+} from '@/shared-kernel';
 import { UserMutationRepository } from './user-mutation.repository';
 import { UserQueryRepository } from './user-query.repository';
 
@@ -15,6 +20,7 @@ export class UsersRepository {
   constructor(
     private readonly queryRepo: UserQueryRepository,
     private readonly mutationRepo: UserMutationRepository,
+    private readonly logger: LoggerPort,
   ) {}
 
   // Query operations

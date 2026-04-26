@@ -8,7 +8,7 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { LoggerPort } from '@/shared-kernel';
 import { PasswordChangedEvent } from '../../../password-management/domain/events';
 import { JwtStrategy } from '../../../shared-kernel/infrastructure/strategies';
 import { AuthenticationRepositoryPort } from '../../domain/ports';
@@ -21,7 +21,7 @@ export class InvalidateSessionsOnCredentialChangeHandler {
   constructor(
     private readonly authRepository: AuthenticationRepositoryPort,
     private readonly cacheService: CacheService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   @OnEvent('auth.session.invalidate')

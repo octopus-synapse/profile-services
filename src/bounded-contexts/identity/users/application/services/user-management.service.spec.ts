@@ -9,6 +9,7 @@ import {
   InMemoryUserManagementRepository,
   StubAuthorizationService,
 } from '@/bounded-contexts/identity/shared-kernel/testing';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { LastManagerCannotBeDeletedException } from '../../domain/exceptions/users.exceptions';
 import { UserManagementUseCases } from '../ports/user-management.port';
 import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-case';
@@ -48,12 +49,14 @@ describe('UserManagementService (Facade)', () => {
       createUserUseCase: new CreateUserUseCase(
         repository,
         async (password: string) => `hashed_${password}`,
+        stubLogger,
       ),
       updateUserUseCase: new UpdateUserUseCase(repository),
       deleteUserUseCase: new DeleteUserUseCase(repository),
       resetPasswordUseCase: new ResetPasswordUseCase(
         repository,
         async (password: string) => `hashed_${password}`,
+        stubLogger,
       ),
     };
 

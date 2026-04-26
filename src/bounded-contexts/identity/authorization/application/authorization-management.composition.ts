@@ -4,7 +4,7 @@
  * Wires all authorization management use cases with their dependencies.
  */
 
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 import { AuthorizationManagementUseCases } from './ports/authorization-use-cases.port';
 import { AddToGroupUseCase } from './use-cases/authorization-management/add-to-group.use-case';
@@ -19,13 +19,14 @@ export { AuthorizationManagementUseCases };
 export function buildAuthorizationManagementUseCases(
   userAuthRepo: UserAuthorizationRepository,
   eventPublisher: EventPublisherPort,
+  logger: LoggerPort,
 ): AuthorizationManagementUseCases {
-  const assignRoleUseCase = new AssignRoleUseCase(userAuthRepo, eventPublisher);
-  const revokeRoleUseCase = new RevokeRoleUseCase(userAuthRepo, eventPublisher);
-  const grantPermissionUseCase = new GrantPermissionUseCase(userAuthRepo, eventPublisher);
-  const denyPermissionUseCase = new DenyPermissionUseCase(userAuthRepo, eventPublisher);
-  const addToGroupUseCase = new AddToGroupUseCase(userAuthRepo, eventPublisher);
-  const removeFromGroupUseCase = new RemoveFromGroupUseCase(userAuthRepo, eventPublisher);
+  const assignRoleUseCase = new AssignRoleUseCase(userAuthRepo, eventPublisher, logger);
+  const revokeRoleUseCase = new RevokeRoleUseCase(userAuthRepo, eventPublisher, logger);
+  const grantPermissionUseCase = new GrantPermissionUseCase(userAuthRepo, eventPublisher, logger);
+  const denyPermissionUseCase = new DenyPermissionUseCase(userAuthRepo, eventPublisher, logger);
+  const addToGroupUseCase = new AddToGroupUseCase(userAuthRepo, eventPublisher, logger);
+  const removeFromGroupUseCase = new RemoveFromGroupUseCase(userAuthRepo, eventPublisher, logger);
 
   return {
     assignRoleUseCase,

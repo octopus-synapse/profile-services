@@ -8,6 +8,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { Group } from '../../../domain/entities/group.entity';
 import { Permission } from '../../../domain/entities/permission.entity';
 import { Role } from '../../../domain/entities/role.entity';
@@ -149,16 +150,16 @@ describe('Authorization Check Use Cases', () => {
 
     // Wire domain service and use cases (mirrors composition)
     resolver = new PermissionResolverService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
-    getAuthContext = new GetAuthContextUseCase(resolver, cache);
+    getAuthContext = new GetAuthContextUseCase(resolver, cache, stubLogger);
     checkPermission = new CheckPermissionUseCase(getAuthContext);
     checkAnyPermission = new CheckAnyPermissionUseCase(getAuthContext);
     checkAllPermissions = new CheckAllPermissionsUseCase(getAuthContext);
     getAllPermissions = new GetAllPermissionsUseCase(getAuthContext);
     getResourcePermissions = new GetResourcePermissionsUseCase(getAuthContext);
-    checkRole = new CheckRoleUseCase(getAuthContext, roleRepo);
-    checkGroupMembership = new CheckGroupMembershipUseCase(getAuthContext, groupRepo);
+    checkRole = new CheckRoleUseCase(getAuthContext, roleRepo, stubLogger);
+    checkGroupMembership = new CheckGroupMembershipUseCase(getAuthContext, groupRepo, stubLogger);
     countUsersWithRole = new CountUsersWithRoleUseCase(userAuthRepo);
-    checkLastAdmin = new CheckLastAdminUseCase(checkRole, countUsersWithRole);
+    checkLastAdmin = new CheckLastAdminUseCase(checkRole, countUsersWithRole, stubLogger);
   });
 
   // =========================================================================

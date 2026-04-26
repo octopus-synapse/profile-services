@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import {
@@ -14,6 +15,7 @@ export class DeleteAccountUseCase implements DeleteAccountPort {
   constructor(
     private readonly repository: AccountLifecycleRepositoryPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: DeleteAccountCommand): Promise<DeleteAccountResult> {

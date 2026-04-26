@@ -5,6 +5,7 @@
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   InMemoryUserManagementRepository,
   StubHashService,
@@ -19,8 +20,10 @@ describe('ResetPasswordUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
     hashService = new StubHashService();
-    useCase = new ResetPasswordUseCase(repository, (password: string) =>
-      hashService.hash(password),
+    useCase = new ResetPasswordUseCase(
+      repository,
+      (password: string) => hashService.hash(password),
+      stubLogger,
     );
   });
 

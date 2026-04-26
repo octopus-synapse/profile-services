@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { TokenRefreshedEvent } from '../../../domain/events';
 import { InvalidRefreshTokenException } from '../../../domain/exceptions';
@@ -12,6 +13,7 @@ export class RefreshTokenUseCase implements RefreshTokenPort {
     private readonly repository: AuthenticationRepositoryPort,
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: RefreshTokenCommand): Promise<RefreshTokenResult> {

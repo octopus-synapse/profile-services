@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import {
   InMemoryAuditLogger,
@@ -44,7 +45,7 @@ describe('ExportDataUseCase', () => {
       },
     ]);
 
-    useCase = new ExportDataUseCase(repository, auditLogger);
+    useCase = new ExportDataUseCase(repository, auditLogger, stubLogger);
   });
 
   it('should export all user data', async () => {

@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryTokenGenerator } from '../../../../authentication/testing';
 import { WeakPasswordException } from '../../../../password-management/domain/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
@@ -76,7 +77,7 @@ function makeConsentStubs() {
     getPrivacyPolicyVersion: () => PRIVACY_VERSION,
     getMarketingConsentVersion: () => '1.0.0',
   };
-  const acceptConsent = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger);
+  const acceptConsent = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger, stubLogger);
   return { acceptConsent, versionConfig, consents };
 }
 
@@ -113,6 +114,7 @@ describe('CreateAccountUseCase', () => {
       tokenGenerator,
       acceptConsent,
       versionConfig,
+      stubLogger,
     );
   });
 

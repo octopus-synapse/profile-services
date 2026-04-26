@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/domain/ports';
+import { LoggerPort } from '@/shared-kernel';
 import { Password } from '../../../../password-management/domain/value-objects';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import type {
@@ -24,6 +25,7 @@ export class CreateAccountUseCase implements CreateAccountPort {
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly acceptConsent: AcceptConsentUseCase,
     private readonly versionConfig: VersionConfigPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: CreateAccountCommand): Promise<CreateAccountResult> {

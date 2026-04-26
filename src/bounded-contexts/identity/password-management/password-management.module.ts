@@ -11,6 +11,7 @@ import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.modu
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 
@@ -96,10 +97,23 @@ const providers = [
       tokenService: PasswordResetTokenPort,
       emailSender: PasswordResetEmailPort,
       eventBus: EventBusPort,
+      logger: LoggerPort,
     ) => {
-      return new ForgotPasswordUseCase(passwordRepository, tokenService, emailSender, eventBus);
+      return new ForgotPasswordUseCase(
+        passwordRepository,
+        tokenService,
+        emailSender,
+        eventBus,
+        logger,
+      );
     },
-    inject: [PasswordRepositoryPort, PasswordResetTokenPort, PasswordResetEmailPort, EventBusPort],
+    inject: [
+      PasswordRepositoryPort,
+      PasswordResetTokenPort,
+      PasswordResetEmailPort,
+      EventBusPort,
+      LoggerPort,
+    ],
   },
   {
     provide: ResetPasswordPort,
@@ -109,6 +123,7 @@ const providers = [
       passwordHasher: PasswordHasherPort,
       sessionInvalidation: SessionInvalidationPort,
       eventBus: EventBusPort,
+      logger: LoggerPort,
     ) => {
       return new ResetPasswordUseCase(
         passwordRepository,
@@ -116,6 +131,7 @@ const providers = [
         passwordHasher,
         sessionInvalidation,
         eventBus,
+        logger,
       );
     },
     inject: [
@@ -124,6 +140,7 @@ const providers = [
       PasswordHasherPort,
       SessionInvalidationPort,
       EventBusPort,
+      LoggerPort,
     ],
   },
   {
@@ -133,15 +150,23 @@ const providers = [
       passwordHasher: PasswordHasherPort,
       sessionInvalidation: SessionInvalidationPort,
       eventBus: EventBusPort,
+      logger: LoggerPort,
     ) => {
       return new ChangePasswordUseCase(
         passwordRepository,
         passwordHasher,
         sessionInvalidation,
         eventBus,
+        logger,
       );
     },
-    inject: [PasswordRepositoryPort, PasswordHasherPort, SessionInvalidationPort, EventBusPort],
+    inject: [
+      PasswordRepositoryPort,
+      PasswordHasherPort,
+      SessionInvalidationPort,
+      EventBusPort,
+      LoggerPort,
+    ],
   },
 ];
 

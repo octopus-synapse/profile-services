@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
 import { CreateUserUseCase } from './create-user.use-case';
 
@@ -8,7 +9,11 @@ describe('CreateUserUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
-    useCase = new CreateUserUseCase(repository, async (password: string) => `hashed_${password}`);
+    useCase = new CreateUserUseCase(
+      repository,
+      async (password: string) => `hashed_${password}`,
+      stubLogger,
+    );
   });
 
   it('creates user and returns domain entity (not envelope)', async () => {

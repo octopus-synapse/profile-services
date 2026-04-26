@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
@@ -5,6 +6,7 @@ export class ResetPasswordUseCase {
   constructor(
     private readonly repository: UserManagementRepositoryPort,
     private readonly hashPassword: (password: string) => Promise<string>,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, newPassword: string): Promise<void> {

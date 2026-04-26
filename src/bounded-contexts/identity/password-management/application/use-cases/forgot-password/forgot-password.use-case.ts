@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { PasswordResetRequestedEvent } from '../../../domain/events';
 import {
@@ -14,6 +15,7 @@ export class ForgotPasswordUseCase implements ForgotPasswordPort {
     private readonly tokenService: PasswordResetTokenPort,
     private readonly emailSender: PasswordResetEmailPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: ForgotPasswordCommand): Promise<void> {

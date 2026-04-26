@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
 import type { CreatedUser, CreateUserData } from '../../ports/user-management.port';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
@@ -6,6 +7,7 @@ export class CreateUserUseCase {
   constructor(
     private readonly repository: UserManagementRepositoryPort,
     private readonly hashPassword: (password: string) => Promise<string>,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(data: CreateUserData): Promise<CreatedUser> {

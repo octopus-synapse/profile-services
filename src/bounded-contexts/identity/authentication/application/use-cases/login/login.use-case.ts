@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { AccountDeactivatedException } from '../../../../account-lifecycle/domain/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { Validate2faInboundPort } from '../../../../two-factor-auth/application/ports';
@@ -26,6 +27,7 @@ export class LoginUseCase implements LoginPort {
     private readonly eventBus: EventBusPort,
     private readonly validate2fa: Validate2faInboundPort,
     private readonly loginAttempts: LoginAttemptsPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: LoginCommand): Promise<LoginResult> {

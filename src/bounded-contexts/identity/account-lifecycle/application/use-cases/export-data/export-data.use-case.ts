@@ -5,6 +5,7 @@
  * Exports all user data in machine-readable format.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import type {
@@ -69,7 +70,8 @@ const DATA_RETENTION_POLICY =
 export class ExportDataUseCase {
   constructor(
     private readonly repository: DataExportRepositoryPort,
-    private readonly auditLogger?: AuditLoggerPort,
+    private readonly auditLogger: AuditLoggerPort | undefined,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, ipAddress?: string, userAgent?: string): Promise<GdprExportData> {

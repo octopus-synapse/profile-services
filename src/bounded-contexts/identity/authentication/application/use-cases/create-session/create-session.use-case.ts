@@ -13,6 +13,7 @@ export interface SessionConfigPort {
   get<T>(key: string, defaultValue: T): T;
 }
 
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { Session, SessionCreatedEvent } from '../../../domain';
 import { SessionUserNotFoundException } from '../../../domain/exceptions/authentication.exceptions';
@@ -37,6 +38,7 @@ export class CreateSessionUseCase implements CreateSessionPort {
     private readonly sessionStorage: SessionStoragePort,
     private readonly eventBus: EventBusPort,
     private readonly configService: SessionConfigPort,
+    private readonly logger: LoggerPort,
   ) {
     this.sessionExpiryDays = this.configService.get<number>('SESSION_EXPIRY_DAYS', 7);
   }

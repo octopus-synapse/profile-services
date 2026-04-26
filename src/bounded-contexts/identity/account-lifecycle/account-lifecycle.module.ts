@@ -9,6 +9,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 import { AuthenticationModule } from '../authentication/authentication.module';
 import { TokenGeneratorPort } from '../authentication/domain/ports';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
@@ -93,6 +94,7 @@ import {
         tokenGenerator: TokenGeneratorPort,
         acceptConsent: AcceptConsentUseCase,
         versionConfig: VersionConfigPort,
+        logger: LoggerPort,
       ) => {
         return new CreateAccountUseCase(
           repository,
@@ -101,6 +103,7 @@ import {
           tokenGenerator,
           acceptConsent,
           versionConfig,
+          logger,
         );
       },
       inject: [
@@ -110,21 +113,30 @@ import {
         TokenGeneratorPort,
         AcceptConsentUseCasePort,
         VersionConfigPort,
+        LoggerPort,
       ],
     },
     {
       provide: DeactivateAccountPort,
-      useFactory: (repository: AccountLifecycleRepositoryPort, eventBus: EventBusPort) => {
-        return new DeactivateAccountUseCase(repository, eventBus);
+      useFactory: (
+        repository: AccountLifecycleRepositoryPort,
+        eventBus: EventBusPort,
+        logger: LoggerPort,
+      ) => {
+        return new DeactivateAccountUseCase(repository, eventBus, logger);
       },
-      inject: [AccountLifecycleRepositoryPort, EventBusPort],
+      inject: [AccountLifecycleRepositoryPort, EventBusPort, LoggerPort],
     },
     {
       provide: DeleteAccountPort,
-      useFactory: (repository: AccountLifecycleRepositoryPort, eventBus: EventBusPort) => {
-        return new DeleteAccountUseCase(repository, eventBus);
+      useFactory: (
+        repository: AccountLifecycleRepositoryPort,
+        eventBus: EventBusPort,
+        logger: LoggerPort,
+      ) => {
+        return new DeleteAccountUseCase(repository, eventBus, logger);
       },
-      inject: [AccountLifecycleRepositoryPort, EventBusPort],
+      inject: [AccountLifecycleRepositoryPort, EventBusPort, LoggerPort],
     },
     {
       provide: AcceptConsentUseCasePort,
@@ -132,17 +144,22 @@ import {
         repository: ConsentRepositoryPort,
         versionConfig: VersionConfigPort,
         auditLogger: AuditLoggerPort,
+        logger: LoggerPort,
       ) => {
-        return new AcceptConsentUseCase(repository, versionConfig, auditLogger);
+        return new AcceptConsentUseCase(repository, versionConfig, auditLogger, logger);
       },
-      inject: [ConsentRepositoryPort, VersionConfigPort, AuditLoggerPort],
+      inject: [ConsentRepositoryPort, VersionConfigPort, AuditLoggerPort, LoggerPort],
     },
     {
       provide: GetConsentStatusUseCasePort,
-      useFactory: (repository: ConsentRepositoryPort, versionConfig: VersionConfigPort) => {
-        return new GetConsentStatusUseCase(repository, versionConfig);
+      useFactory: (
+        repository: ConsentRepositoryPort,
+        versionConfig: VersionConfigPort,
+        logger: LoggerPort,
+      ) => {
+        return new GetConsentStatusUseCase(repository, versionConfig, logger);
       },
-      inject: [ConsentRepositoryPort, VersionConfigPort],
+      inject: [ConsentRepositoryPort, VersionConfigPort, LoggerPort],
     },
     {
       provide: GetConsentHistoryUseCasePort,

@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { AccountDeactivatedException } from '../../../../account-lifecycle/domain/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import type {
@@ -117,6 +118,7 @@ describe('LoginUseCase', () => {
       eventBus,
       validate2fa,
       loginAttempts,
+      stubLogger,
     );
   });
 

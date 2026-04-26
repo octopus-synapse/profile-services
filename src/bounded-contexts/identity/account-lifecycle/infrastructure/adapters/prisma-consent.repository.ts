@@ -8,13 +8,17 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { ConsentDocumentType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import type { ConsentRecord, CreateConsentData } from '../../domain/ports/consent-repository.port';
 import { ConsentRepositoryPort } from '../../domain/ports/consent-repository.port';
 import { VersionConfigPort } from '../../domain/ports/version-config.port';
 
 @Injectable()
 export class PrismaConsentRepository implements ConsentRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async create(data: CreateConsentData): Promise<ConsentRecord> {
     return this.prisma.userConsent.create({

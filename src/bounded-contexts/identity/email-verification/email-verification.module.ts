@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { GetResendCooldownPort } from './application/ports/get-resend-cooldown.port';
@@ -71,8 +72,14 @@ import { SendVerificationController, VerifyEmailController } from './infrastruct
         repository: EmailVerificationRepositoryPort,
         emailSender: VerificationEmailSenderPort,
         eventBus: EventBusPort,
-      ) => new SendVerificationEmailUseCase(repository, emailSender, eventBus),
-      inject: [EmailVerificationRepositoryPort, VerificationEmailSenderPort, EventBusPort],
+        logger: LoggerPort,
+      ) => new SendVerificationEmailUseCase(repository, emailSender, eventBus, logger),
+      inject: [
+        EmailVerificationRepositoryPort,
+        VerificationEmailSenderPort,
+        EventBusPort,
+        LoggerPort,
+      ],
     },
     {
       provide: GetResendCooldownPort,
@@ -82,9 +89,12 @@ import { SendVerificationController, VerifyEmailController } from './infrastruct
     },
     {
       provide: VerifyEmailPort,
-      useFactory: (repository: EmailVerificationRepositoryPort, eventBus: EventBusPort) =>
-        new VerifyEmailUseCase(repository, eventBus),
-      inject: [EmailVerificationRepositoryPort, EventBusPort],
+      useFactory: (
+        repository: EmailVerificationRepositoryPort,
+        eventBus: EventBusPort,
+        logger: LoggerPort,
+      ) => new VerifyEmailUseCase(repository, eventBus, logger),
+      inject: [EmailVerificationRepositoryPort, EventBusPort, LoggerPort],
     },
   ],
   exports: [SendVerificationEmailPort, GetResendCooldownPort, VerifyEmailPort],

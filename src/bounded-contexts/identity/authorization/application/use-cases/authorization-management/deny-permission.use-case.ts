@@ -4,7 +4,7 @@
  * Denies a permission to a user and publishes a domain event.
  */
 
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { PermissionDeniedEvent } from '../../../domain/events';
 import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 
@@ -19,6 +19,7 @@ export class DenyPermissionUseCase {
   constructor(
     private readonly userAuthRepo: IUserAuthorizationRepository,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(params: DenyPermissionParams): Promise<void> {

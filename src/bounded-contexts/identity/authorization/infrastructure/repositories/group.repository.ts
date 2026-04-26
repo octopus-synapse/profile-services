@@ -7,6 +7,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { Group, type GroupId } from '../../domain/entities/group.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
 import type { RoleId } from '../../domain/entities/role.entity';
@@ -14,7 +15,10 @@ import type { IGroupRepository } from '../../domain/ports/authorization-reposito
 
 @Injectable()
 export class GroupRepository implements IGroupRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async findById(id: GroupId): Promise<Group | null> {
     const record = await this.prisma.group.findUnique({

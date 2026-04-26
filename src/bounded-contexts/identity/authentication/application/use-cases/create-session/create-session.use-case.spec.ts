@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionCreatedEvent } from '../../../domain/events';
 import type { CookieWriter } from '../../../domain/ports/session-storage.port';
@@ -51,6 +52,7 @@ describe('CreateSessionUseCase', () => {
       sessionStorage,
       eventBus,
       mockConfigService,
+      stubLogger,
     );
   });
 

@@ -5,6 +5,7 @@
  * Generates backup codes upon successful verification.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { InvalidTotpTokenException, TwoFactorNotSetupException } from '../../../domain/exceptions';
 import { HashServicePort } from '../../../domain/ports/hash-service.port';
 import { TotpServicePort } from '../../../domain/ports/totp-service.port';
@@ -22,6 +23,7 @@ export class VerifyAndEnable2faUseCase {
     private readonly repository: TwoFactorRepositoryPort,
     private readonly totpService: TotpServicePort,
     private readonly hashService: HashServicePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, token: string): Promise<VerifyAndEnable2faResult> {

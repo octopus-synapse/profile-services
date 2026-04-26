@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { LoggerPort } from '@/shared-kernel';
 import { ExportDataResponseDto } from '../../application/use-cases/export-data/export-data.dto';
 import { ExportDataUseCase } from '../../application/use-cases/export-data/export-data.use-case';
 import { AuditLoggerPort } from '../../domain/ports/audit-logger.port';
@@ -19,8 +20,12 @@ interface AuthenticatedRequest extends Request {
 export class ExportDataController {
   private readonly useCase: ExportDataUseCase;
 
-  constructor(repository: DataExportRepositoryPort, auditLogger: AuditLoggerPort) {
-    this.useCase = new ExportDataUseCase(repository, auditLogger);
+  constructor(
+    repository: DataExportRepositoryPort,
+    auditLogger: AuditLoggerPort,
+    logger: LoggerPort,
+  ) {
+    this.useCase = new ExportDataUseCase(repository, auditLogger, logger);
   }
 
   @Get('export')

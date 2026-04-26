@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { UserLoggedOutEvent } from '../../../domain/events';
 import {
@@ -23,7 +24,7 @@ describe('LogoutUseCase', () => {
     repository = new InMemoryAuthenticationRepository();
     eventBus = new InMemoryEventBus();
 
-    useCase = new LogoutUseCase(repository, eventBus);
+    useCase = new LogoutUseCase(repository, eventBus, stubLogger);
   });
 
   describe('execute', () => {

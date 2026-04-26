@@ -6,10 +6,14 @@
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
 @Injectable()
 export class UserQueryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async findUserById(userId: string): Promise<User | null> {
     return await this.prisma.user.findUnique({

@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { DELETION_CONFIRMATION_PHRASE } from '../../../application/ports';
@@ -22,7 +23,7 @@ describe('DeleteAccountUseCase', () => {
     repository = new InMemoryAccountLifecycleRepository();
     eventBus = new InMemoryEventBus();
 
-    useCase = new DeleteAccountUseCase(repository, eventBus);
+    useCase = new DeleteAccountUseCase(repository, eventBus, stubLogger);
   });
 
   it('should permanently delete an account', async () => {

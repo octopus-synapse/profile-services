@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { PasswordChangedEvent } from '../../../domain/events';
@@ -16,6 +17,7 @@ export class ChangePasswordUseCase implements ChangePasswordPort {
     private readonly passwordHasher: PasswordHasherPort,
     private readonly sessionInvalidation: SessionInvalidationPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: ChangePasswordCommand): Promise<ChangePasswordResult> {

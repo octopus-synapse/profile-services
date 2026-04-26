@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { UserLoggedOutEvent } from '../../../domain/events';
 import { AuthenticationRepositoryPort } from '../../../domain/ports';
@@ -7,6 +8,7 @@ export class LogoutUseCase implements LogoutPort {
   constructor(
     private readonly repository: AuthenticationRepositoryPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: LogoutCommand): Promise<LogoutResult> {

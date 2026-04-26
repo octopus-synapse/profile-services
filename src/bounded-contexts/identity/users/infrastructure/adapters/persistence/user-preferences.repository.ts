@@ -1,5 +1,6 @@
 import type { ApplyMode, EnglishLevel, PaymentCurrency, RemotePolicy } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type FullUserPreferences,
   type UpdateFullPreferencesData,
@@ -34,7 +35,10 @@ function toCriteriaData(c: PrismaCriteria | null | undefined): UserApplyCriteria
 }
 
 export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

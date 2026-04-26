@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type CreatedUser,
   type UpdatedUser,
@@ -29,7 +30,10 @@ const USER_LIST_SELECT = {
 } as const;
 
 export class UserManagementRepository extends UserManagementRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

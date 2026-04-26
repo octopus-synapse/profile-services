@@ -4,6 +4,7 @@
  * Wires all authorization check use cases with their dependencies.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import type { AuthorizationCachePort } from '../domain/ports/authorization-cache.port';
 import type {
   IGroupRepository,
@@ -34,26 +35,33 @@ export function buildAuthorizationCheckUseCases(
   roleRepo: RoleRepository,
   groupRepo: GroupRepository,
   userAuthRepo: UserAuthorizationRepository,
+  logger: LoggerPort,
 ): AuthorizationCheckUseCases {
   const resolver = new PermissionResolverService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
 
   const cache: AuthorizationCachePort = new InMemoryAuthorizationCache();
 
-  const getAuthContextUseCase = new GetAuthContextUseCase(resolver, cache);
+  const getAuthContextUseCase = new GetAuthContextUseCase(resolver, cache, logger);
   const checkPermissionUseCase = new CheckPermissionUseCase(getAuthContextUseCase);
   const checkAnyPermissionUseCase = new CheckAnyPermissionUseCase(getAuthContextUseCase);
   const checkAllPermissionsUseCase = new CheckAllPermissionsUseCase(getAuthContextUseCase);
   const getResourcePermissionsUseCase = new GetResourcePermissionsUseCase(getAuthContextUseCase);
   const getAllPermissionsUseCase = new GetAllPermissionsUseCase(getAuthContextUseCase);
-  const checkRoleUseCase = new CheckRoleUseCase(getAuthContextUseCase, roleRepo as IRoleRepository);
+  const checkRoleUseCase = new CheckRoleUseCase(
+    getAuthContextUseCase,
+    roleRepo as IRoleRepository,
+    logger,
+  );
   const checkGroupMembershipUseCase = new CheckGroupMembershipUseCase(
     getAuthContextUseCase,
     groupRepo as IGroupRepository,
+    logger,
   );
   const countUsersWithRoleUseCase = new CountUsersWithRoleUseCase(userAuthRepo);
   const checkLastAdminUseCase = new CheckLastAdminUseCase(
     checkRoleUseCase,
     countUsersWithRoleUseCase,
+    logger,
   );
 
   return {

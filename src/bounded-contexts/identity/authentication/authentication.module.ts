@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
@@ -101,6 +102,7 @@ import {
         eventBus: EventBusPort,
         validate2fa: Validate2faInboundPort,
         loginAttempts: LoginAttemptsPort,
+        logger: LoggerPort,
       ) => {
         return new LoginUseCase(
           repository,
@@ -109,6 +111,7 @@ import {
           eventBus,
           validate2fa,
           loginAttempts,
+          logger,
         );
       },
       inject: [
@@ -118,14 +121,19 @@ import {
         EventBusPort,
         Validate2faInboundPort,
         LoginAttemptsPort,
+        LoggerPort,
       ],
     },
     {
       provide: LogoutPort,
-      useFactory: (repository: AuthenticationRepositoryPort, eventBus: EventBusPort) => {
-        return new LogoutUseCase(repository, eventBus);
+      useFactory: (
+        repository: AuthenticationRepositoryPort,
+        eventBus: EventBusPort,
+        logger: LoggerPort,
+      ) => {
+        return new LogoutUseCase(repository, eventBus, logger);
       },
-      inject: [AuthenticationRepositoryPort, EventBusPort],
+      inject: [AuthenticationRepositoryPort, EventBusPort, LoggerPort],
     },
     {
       provide: RefreshTokenPort,
@@ -133,10 +141,11 @@ import {
         repository: AuthenticationRepositoryPort,
         tokenGenerator: TokenGeneratorPort,
         eventBus: EventBusPort,
+        logger: LoggerPort,
       ) => {
-        return new RefreshTokenUseCase(repository, tokenGenerator, eventBus);
+        return new RefreshTokenUseCase(repository, tokenGenerator, eventBus, logger);
       },
-      inject: [AuthenticationRepositoryPort, TokenGeneratorPort, EventBusPort],
+      inject: [AuthenticationRepositoryPort, TokenGeneratorPort, EventBusPort, LoggerPort],
     },
 
     // Session Use Cases
@@ -148,6 +157,7 @@ import {
         sessionStorage: SessionStoragePort,
         eventBus: EventBusPort,
         configService: ConfigService,
+        logger: LoggerPort,
       ) => {
         return new CreateSessionUseCase(
           repository,
@@ -155,6 +165,7 @@ import {
           sessionStorage,
           eventBus,
           configService,
+          logger,
         );
       },
       inject: [
@@ -163,6 +174,7 @@ import {
         SessionStoragePort,
         EventBusPort,
         ConfigService,
+        LoggerPort,
       ],
     },
     {
@@ -171,10 +183,16 @@ import {
         repository: AuthenticationRepositoryPort,
         tokenGenerator: TokenGeneratorPort,
         sessionStorage: SessionStoragePort,
+        logger: LoggerPort,
       ) => {
-        return new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
+        return new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage, logger);
       },
-      inject: [AuthenticationRepositoryPort, TokenGeneratorPort, SessionStoragePort],
+      inject: [
+        AuthenticationRepositoryPort,
+        TokenGeneratorPort,
+        SessionStoragePort,
+        LoggerPort,
+      ],
     },
     {
       provide: TerminateSessionPort,
@@ -182,10 +200,11 @@ import {
         tokenGenerator: TokenGeneratorPort,
         sessionStorage: SessionStoragePort,
         eventBus: EventBusPort,
+        logger: LoggerPort,
       ) => {
-        return new TerminateSessionUseCase(tokenGenerator, sessionStorage, eventBus);
+        return new TerminateSessionUseCase(tokenGenerator, sessionStorage, eventBus, logger);
       },
-      inject: [TokenGeneratorPort, SessionStoragePort, EventBusPort],
+      inject: [TokenGeneratorPort, SessionStoragePort, EventBusPort, LoggerPort],
     },
 
     // Event Handlers

@@ -8,6 +8,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   GroupMembershipChangedEvent,
   PermissionDeniedEvent,
@@ -59,7 +60,7 @@ describe('AssignRoleUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new AssignRoleUseCase(userAuthRepo, eventBus);
+    useCase = new AssignRoleUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should assign a role to the user', async () => {
@@ -113,7 +114,7 @@ describe('RevokeRoleUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new RevokeRoleUseCase(userAuthRepo, eventBus);
+    useCase = new RevokeRoleUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should remove the role from the user', async () => {
@@ -168,7 +169,7 @@ describe('GrantPermissionUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new GrantPermissionUseCase(userAuthRepo, eventBus);
+    useCase = new GrantPermissionUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should grant a permission to the user', async () => {
@@ -218,7 +219,7 @@ describe('DenyPermissionUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new DenyPermissionUseCase(userAuthRepo, eventBus);
+    useCase = new DenyPermissionUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should deny a permission to the user', async () => {
@@ -272,7 +273,7 @@ describe('AddToGroupUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new AddToGroupUseCase(userAuthRepo, eventBus);
+    useCase = new AddToGroupUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should add the user to a group', async () => {
@@ -318,7 +319,7 @@ describe('RemoveFromGroupUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new RemoveFromGroupUseCase(userAuthRepo, eventBus);
+    useCase = new RemoveFromGroupUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should remove the user from a group', async () => {

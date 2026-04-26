@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {
   createSessionAuthUser,
@@ -31,7 +32,7 @@ describe('ValidateSessionUseCase', () => {
     repository = new InMemoryAuthenticationRepository();
     tokenGenerator = new InMemoryTokenGenerator();
     sessionStorage = new InMemorySessionStorage();
-    useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
+    useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage, stubLogger);
   });
   afterEach(() => {
     if (previousSkipEnv === undefined) delete process.env.SKIP_EMAIL_VERIFICATION;

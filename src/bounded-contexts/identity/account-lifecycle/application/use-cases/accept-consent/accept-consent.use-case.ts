@@ -5,6 +5,7 @@
  * with audit trail including IP and user agent.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import { AuditAction } from '../../../domain/ports/audit-logger.port';
 import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.dto';
@@ -21,6 +22,7 @@ export class AcceptConsentUseCase {
     private readonly consentRepository: ConsentRepositoryPort,
     private readonly versionConfig: VersionConfigPort,
     private readonly auditLogger: AuditLoggerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: AcceptConsentInput): Promise<AcceptConsentOutput> {

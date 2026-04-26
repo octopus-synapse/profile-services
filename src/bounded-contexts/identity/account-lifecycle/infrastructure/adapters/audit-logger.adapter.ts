@@ -10,11 +10,15 @@
 import { Injectable } from '@nestjs/common';
 import { AuditAction } from '@prisma/client';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { LoggerPort } from '@/shared-kernel';
 import { AuditLoggerPort } from '../../domain/ports/audit-logger.port';
 
 @Injectable()
 export class AuditLoggerAdapter implements AuditLoggerPort {
-  constructor(private readonly auditLog: AuditLogService) {}
+  constructor(
+    private readonly auditLog: AuditLogService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async log(
     userId: string,

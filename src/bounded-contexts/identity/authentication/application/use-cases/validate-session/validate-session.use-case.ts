@@ -9,6 +9,7 @@
  * - Session endpoint to return current user
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { SessionPayload } from '../../../domain/ports';
 import {
   AuthenticationRepositoryPort,
@@ -27,6 +28,7 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     private readonly repository: AuthenticationRepositoryPort,
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly sessionStorage: SessionStoragePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: ValidateSessionCommand): Promise<ValidateSessionResult> {

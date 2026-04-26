@@ -1,3 +1,4 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { VerificationEmailSentEvent } from '../../../domain/events';
@@ -25,6 +26,7 @@ export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
     private readonly repository: EmailVerificationRepositoryPort,
     private readonly emailSender: VerificationEmailSenderPort,
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: SendVerificationEmailCommand): Promise<ResendCooldown> {

@@ -8,6 +8,7 @@
 import { Module } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerPort } from '@/shared-kernel';
 import { Validate2faInboundPort } from './application/ports/validate-2fa.inbound-port';
 // Application Use Cases
 import { Disable2faUseCase } from './application/use-cases/disable-2fa';
@@ -58,15 +59,23 @@ import {
     // Inbound Ports (use-cases) — wired by class as DI token (no Symbol indirection)
     {
       provide: Setup2faUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort, totp: TotpServicePort, qr: QrCodeServicePort) =>
-        new Setup2faUseCase(repo, totp, qr),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, QrCodeServicePort],
+      useFactory: (
+        repo: TwoFactorRepositoryPort,
+        totp: TotpServicePort,
+        qr: QrCodeServicePort,
+        logger: LoggerPort,
+      ) => new Setup2faUseCase(repo, totp, qr, logger),
+      inject: [TwoFactorRepositoryPort, TotpServicePort, QrCodeServicePort, LoggerPort],
     },
     {
       provide: VerifyAndEnable2faUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort, totp: TotpServicePort, hash: HashServicePort) =>
-        new VerifyAndEnable2faUseCase(repo, totp, hash),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort],
+      useFactory: (
+        repo: TwoFactorRepositoryPort,
+        totp: TotpServicePort,
+        hash: HashServicePort,
+        logger: LoggerPort,
+      ) => new VerifyAndEnable2faUseCase(repo, totp, hash, logger),
+      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, LoggerPort],
     },
     {
       provide: Disable2faUseCase,
@@ -80,9 +89,12 @@ import {
     },
     {
       provide: RegenerateBackupCodesUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort, hash: HashServicePort) =>
-        new RegenerateBackupCodesUseCase(repo, hash),
-      inject: [TwoFactorRepositoryPort, HashServicePort],
+      useFactory: (
+        repo: TwoFactorRepositoryPort,
+        hash: HashServicePort,
+        logger: LoggerPort,
+      ) => new RegenerateBackupCodesUseCase(repo, hash, logger),
+      inject: [TwoFactorRepositoryPort, HashServicePort, LoggerPort],
     },
     {
       provide: Validate2faInboundPort,
@@ -91,8 +103,15 @@ import {
         totp: TotpServicePort,
         hash: HashServicePort,
         cache: CacheService,
-      ) => new Validate2faUseCase(repo, totp, hash, cache),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, CacheService],
+        logger: LoggerPort,
+      ) => new Validate2faUseCase(repo, totp, hash, cache, logger),
+      inject: [
+        TwoFactorRepositoryPort,
+        TotpServicePort,
+        HashServicePort,
+        CacheService,
+        LoggerPort,
+      ],
     },
   ],
   exports: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, Validate2faInboundPort],
