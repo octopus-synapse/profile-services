@@ -9,15 +9,12 @@
  * This handler exists for future user-level analytics (e.g., aggregated stats).
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import type { LoggerPort } from '@/shared-kernel';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 
-@Injectable()
 export class InitializeAnalyticsOnUserRegisteredHandler {
-  private readonly logger = new Logger(InitializeAnalyticsOnUserRegisteredHandler.name);
+  constructor(private readonly logger: LoggerPort) {}
 
-  @OnEvent(UserRegisteredEvent.TYPE)
   handle(event: UserRegisteredEvent): void {
     // Future: Initialize user-level analytics aggregations
     // Current design: Analytics projections are per-resume, created by SyncProjectionOnResumeCreatedHandler

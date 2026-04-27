@@ -12,19 +12,13 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { fromEvent, map, merge } from 'rxjs';
+import { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
-import {
-  InitializeAnalyticsOnUserRegisteredHandler,
-  ResumeCreatedHandler,
-  ResumeUpdatedHandler,
-  SyncProjectionOnResumeCreatedHandler,
-  SyncProjectionOnResumeDeletedHandler,
-  SyncProjectionOnSectionAddedHandler,
-  SyncProjectionOnSectionRemovedHandler,
-  SyncProjectionOnSectionUpdatedHandler,
-} from '../application/handlers';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
+import { registerResumeAnalyticsHandlers } from '../application/handlers/register-handlers';
 import { AnalyticsRecorder } from '../application/handlers/resume-created.handler';
 import { ViewTracker } from '../application/handlers/resume-updated.handler';
 import { AnalyticsProjectionPort } from '../application/ports/analytics-projection.port';
@@ -101,7 +95,7 @@ function makeAnalyticsSseBundle(emitter: EventEmitter2): AnalyticsSseBundle {
 }
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CacheModule],
   controllers: [
     ...synthesizeRouteControllers(ResumeAnalyticsFacade, resumeAnalyticsRoutes),
     ...synthesizeRouteControllers(AnalyticsSseBundle, resumeAnalyticsSseRoutes),
@@ -115,15 +109,36 @@ function makeAnalyticsSseBundle(emitter: EventEmitter2): AnalyticsSseBundle {
     BenchmarkService,
     SnapshotService,
     DashboardService,
-    // Event Handlers
-    ResumeCreatedHandler,
-    ResumeUpdatedHandler,
-    InitializeAnalyticsOnUserRegisteredHandler,
-    SyncProjectionOnResumeCreatedHandler,
-    SyncProjectionOnResumeDeletedHandler,
-    SyncProjectionOnSectionAddedHandler,
-    SyncProjectionOnSectionUpdatedHandler,
-    SyncProjectionOnSectionRemovedHandler,
+    // Side-effect provider: register framework-free handlers via EventBusPort.
+    {
+      provide: 'RESUME_ANALYTICS_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        recorder: AnalyticsRecorder,
+        tracker: ViewTracker,
+        projection: AnalyticsProjectionPort,
+        idempotency: IdempotencyService,
+        logger: LoggerPort,
+      ): boolean => {
+        registerResumeAnalyticsHandlers({
+          eventBus,
+          recorder,
+          tracker,
+          projection,
+          idempotency,
+          logger,
+        });
+        return true;
+      },
+      inject: [
+        EventBusPort,
+        AnalyticsRecorder,
+        ViewTracker,
+        AnalyticsProjectionPort,
+        IdempotencyService,
+        LoggerPort,
+      ],
+    },
     // Workers
     ViewsProjectionWorker,
     // Port Adapters (infrastructure)
