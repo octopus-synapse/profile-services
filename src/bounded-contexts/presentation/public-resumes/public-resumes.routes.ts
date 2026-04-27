@@ -1,23 +1,24 @@
 /**
- * Route descriptors for the public-resumes BC. Replaces the JSON
- * endpoints of `PublicResumeController` and `ShareManagementController`.
+ * Route descriptors for the public-resumes BC. Replaces both the JSON
+ * endpoints of `PublicResumeController` / `ShareManagementController`
+ * and their binary PNG siblings.
  *
- * The binary-image endpoints stay Nest-decorated:
- * - `GET /v1/public/resumes/:slug/og.png` — `StreamableFile` PNG.
- * - `GET /v1/shares/:shareId/qr.png` — `StreamableFile` PNG.
- *
- * The synthesizer does not yet model `StreamableFile` responses or the
- * `@Header()` decorators required to set `Content-Type`/`Cache-Control`.
+ * Binary endpoints (`/og.png`, `/qr.png`) declare static
+ * `headers: { Content-Type, Cache-Control }` and return a
+ * `StreamableFile` from the handler — the synthesizer's
+ * `Res({ passthrough: true })` lets `StreamableFile` flow through
+ * Nest's response interceptor unchanged.
  */
 
+import { StreamableFile } from '@nestjs/common';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
-import { PublicResumesHttpBundle } from './application/ports/public-resumes.bundle';
 import {
   ResumeShareAccessDeniedException,
   ShareNotFoundException,
 } from '../domain/exceptions/presentation.exceptions';
+import { PublicResumesHttpBundle } from './application/ports/public-resumes.bundle';
 import {
   toAliasPayload,
   toAliasPayloadList,
@@ -50,6 +51,15 @@ const AddAliasSchema = z.object({
     .max(80)
     .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
 });
+
+const QrSizeSchema = z.object({
+  size: z.coerce.number().int().min(64).max(1024).default(256),
+});
+
+const PNG_HEADERS = {
+  'Content-Type': 'image/png',
+  'Cache-Control': 'public, max-age=86400',
+} as const;
 
 function pickIp(headers: Record<string, string | string[] | undefined>): string {
   const forwarded = headers['x-forwarded-for'];
@@ -238,6 +248,58 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
         message: 'Alias deleted successfully',
         data: { deleted: true },
       };
+    },
+  },
+
+  // ===== Binary PNG endpoints =====
+  {
+    method: 'GET',
+    path: '/v1/public/resumes/:slug/og.png',
+    auth: { kind: 'public' },
+    params: SlugParam,
+    headers: PNG_HEADERS,
+    openapi: {
+      summary: 'OpenGraph preview image for a public share slug',
+      tags: ['public-resumes'],
+      description: 'Public Resume API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { slug } = ctx.params as { slug: string };
+      const context = await bundle.shareService.getShareOgContext(slug);
+      if (!context) throw new ShareNotFoundException();
+      const buffer = await bundle.ogImageService.generatePng(context);
+      return new StreamableFile(buffer);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/shares/:shareId/qr.png',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    params: ShareIdParam,
+    query: QrSizeSchema,
+    headers: PNG_HEADERS,
+    openapi: {
+      summary: 'Render a QR code PNG pointing to the share public URL',
+      tags: ['shares'],
+      description: 'Share Management API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { shareId } = ctx.params as { shareId: string };
+      const q = ctx.query as unknown as z.infer<typeof QrSizeSchema>;
+      const share = await bundle.shareService.getShareWithOwner(shareId);
+      if (!share) throw new ShareNotFoundException();
+      if (share.resume.userId !== ctx.user!.userId) {
+        throw new ResumeShareAccessDeniedException();
+      }
+
+      const baseUrl = bundle.publicAppUrl.replace(/\/$/, '');
+      const targetUrl = `${baseUrl}/u/${share.slug}`;
+
+      const buffer = await bundle.qrCodeService.generatePng(targetUrl, { size: q.size });
+      return new StreamableFile(buffer);
     },
   },
 ];
