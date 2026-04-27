@@ -4,24 +4,11 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
 import { FollowService } from '@/bounded-contexts/social/services/follow.service';
-
-// --- Types ---
-
-interface TestResult {
-  name: string;
-  pass: boolean;
-  detail: string;
-  durationMs: number;
-}
-
-interface TestResults {
-  [key: string]: unknown;
-  suite: string;
-  results: TestResult[];
-  totalMs: number;
-  passed: number;
-  failed: number;
-}
+import {
+  type TestResult,
+  type TestResults,
+  TestSuiteRunnerPort,
+} from './domain/ports/test-suite-runner.port';
 
 // --- Available Suites ---
 
@@ -30,13 +17,15 @@ const AVAILABLE_SUITES = ['seed-check', 'auth-flow', 'social-crud', 'onboarding-
 // --- Service ---
 
 @Injectable()
-export class TestRunnerService {
+export class TestRunnerService extends TestSuiteRunnerPort {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
     private readonly connectionService: ConnectionService,
     private readonly followService: FollowService,
-  ) {}
+  ) {
+    super();
+  }
 
   getAvailableSuites(): string[] {
     return [...AVAILABLE_SUITES];
