@@ -20,11 +20,11 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NotificationsUseCases } from './application/ports/notifications.port';
 import { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';
-import { NotificationController } from './infrastructure/controllers/notification.controller';
 import { NotificationsSseController } from './infrastructure/controllers/notifications-sse.controller';
 import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
 import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
@@ -35,6 +35,7 @@ import {
 import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
 import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
 import { buildNotificationsUseCases } from './notifications.composition';
+import { notificationsRoutes } from './notifications.routes';
 
 @Module({
   imports: [
@@ -44,7 +45,10 @@ import { buildNotificationsUseCases } from './notifications.composition';
     CacheModule,
     BullModule.registerQueue({ name: FIT_PROFILE_EXPIRY_REMINDER_QUEUE }),
   ],
-  controllers: [NotificationController, NotificationsSseController],
+  controllers: [
+    ...synthesizeRouteControllers(NotificationsUseCases, notificationsRoutes),
+    NotificationsSseController,
+  ],
   providers: [
     {
       provide: NotificationStreamPort,
