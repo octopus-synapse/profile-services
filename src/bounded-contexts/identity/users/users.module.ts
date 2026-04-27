@@ -23,15 +23,11 @@ import {
   UserQueryRepository,
   UsersRepository,
 } from './infrastructure/adapters/persistence';
-import { UserManagementController } from './infrastructure/controllers';
 import { usersRoutes } from './users.routes';
 
 @Module({
   imports: [PrismaModule, ResumesCoreModule, LoggerModule, AuthorizationModule],
-  controllers: [
-    UserManagementController,
-    ...synthesizeRouteControllers(UsersHttpBundle, usersRoutes),
-  ],
+  controllers: [...synthesizeRouteControllers(UsersHttpBundle, usersRoutes)],
   providers: [
     // Use Cases
     {
@@ -74,8 +70,21 @@ import { usersRoutes } from './users.routes';
         preferences: UserPreferencesUseCases,
         usernameService: UsernameService,
         authorization: AuthorizationService,
-      ): UsersHttpBundle => ({ profile, preferences, usernameService, authorization }),
-      inject: [UserProfileUseCases, UserPreferencesUseCases, UsernameService, AuthorizationService],
+        userManagement: UserManagementService,
+      ): UsersHttpBundle => ({
+        profile,
+        preferences,
+        usernameService,
+        authorization,
+        userManagement,
+      }),
+      inject: [
+        UserProfileUseCases,
+        UserPreferencesUseCases,
+        UsernameService,
+        AuthorizationService,
+        UserManagementService,
+      ],
     },
 
     // Repositories

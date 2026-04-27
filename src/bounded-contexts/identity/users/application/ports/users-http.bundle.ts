@@ -12,6 +12,7 @@
  */
 
 import type { AuthorizationService } from '@/bounded-contexts/identity/authorization/application/services/authorization.service';
+import type { UserManagementService } from '../services/user-management.service';
 import type { UsernameService } from '../services/username.service';
 import type { UserPreferencesUseCases } from './user-preferences.port';
 import type { UserProfileUseCases } from './user-profile.port';
@@ -21,4 +22,5 @@ export abstract class UsersHttpBundle {
   abstract readonly preferences: UserPreferencesUseCases;
   abstract readonly usernameService: UsernameService;
   abstract readonly authorization: AuthorizationService;
+  abstract readonly userManagement: UserManagementService;
 }

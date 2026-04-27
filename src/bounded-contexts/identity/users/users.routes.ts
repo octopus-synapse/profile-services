@@ -3,11 +3,11 @@
  * - `UsersProfileController`
  * - `UsersPreferencesController`
  * - `UserPermissionsController`
+ * - `UserManagementController`
  *
- * `UserManagementController` stays as a legacy controller because it
- * uses dynamic-string permissions (`@RequirePermission('user', 'read')`)
- * and a dynamic role-assignment endpoint that the synthesizer's static
- * `Permission`-enum field cannot model.
+ * The user-management endpoints use the synthesizer's dynamic
+ * `{ resource, action }` permission spec (e.g. `('user', 'read')`)
+ * since those permissions are not in the `Permission` enum.
  */
 
 import { z } from 'zod';
@@ -24,9 +24,43 @@ import {
   PublicProfileDataSchema,
   UserFullPreferencesDataSchema,
 } from './dto/controller-response.dto';
+import {
+  toCreatedUserMutation,
+  toUpdatedUserMutation,
+  toUserDetailsData,
+  toUserManagementListData,
+} from './infrastructure/presenters/user-management.presenter';
 
 const UsernameParam = z.object({ username: z.string() });
 const CheckUsernameQuery = z.object({ username: z.string() });
+
+const UserIdParam = z.object({ id: z.string() });
+
+const ListUsersQuery = z.object({
+  page: z.coerce.number().int().optional(),
+  limit: z.coerce.number().int().optional(),
+  search: z.string().optional(),
+  roleName: z.string().optional(),
+});
+
+const AdminCreateUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().optional(),
+  role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
+});
+
+const AdminUpdateUserSchema = z.object({
+  email: z.string().email().optional(),
+  name: z.string().optional(),
+  role: z.enum(['USER', 'ADMIN']).optional(),
+  isActive: z.boolean().optional(),
+  isEmailVerified: z.boolean().optional(),
+});
+
+const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) });
+
+const AssignRolesSchema = z.object({ roles: z.array(z.string()) });
 
 export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
   // ─── Profile ──────────────────────────────────────────────────────
@@ -226,6 +260,155 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const permissions = await bundle.authorization.getAllPermissions(ctx.user!.userId);
       return { permissions };
+    },
+  },
+  // ─── User Management (admin) ──────────────────────────────────────
+  // Permissions are dynamic `{ resource, action }` pairs (not enum
+  // entries). The synthesizer maps these onto
+  // `RequirePermission(resource, action)`.
+  {
+    method: 'GET',
+    path: '/v1/users/manage',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'read' },
+    query: ListUsersQuery,
+    openapi: {
+      summary: 'List all users with pagination',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const q = ctx.query as z.infer<typeof ListUsersQuery>;
+      const result = await bundle.userManagement.listUsers({
+        page: q.page ? Number(q.page) : 1,
+        limit: q.limit ? Number(q.limit) : 20,
+        search: q.search,
+        roleName: q.roleName,
+      });
+      return { success: true, data: toUserManagementListData(result) };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/users/manage/:id',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'read' },
+    params: UserIdParam,
+    openapi: {
+      summary: 'Get user details by ID',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { id } = ctx.params as { id: string };
+      const user = await bundle.userManagement.getUserDetails(id);
+      return { success: true, data: toUserDetailsData(user) };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/users/manage',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'create' },
+    body: AdminCreateUserSchema,
+    statusCode: 201,
+    openapi: {
+      summary: 'Create a new user',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as z.infer<typeof AdminCreateUserSchema>;
+      const result = await bundle.userManagement.createUser(body);
+      return {
+        success: true,
+        data: { user: toCreatedUserMutation(result), message: 'User created successfully' },
+      };
+    },
+  },
+  {
+    method: 'PATCH',
+    path: '/v1/users/manage/:id',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'update' },
+    params: UserIdParam,
+    body: AdminUpdateUserSchema,
+    openapi: {
+      summary: 'Update user information',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { id } = ctx.params as { id: string };
+      const body = ctx.body as z.infer<typeof AdminUpdateUserSchema>;
+      const result = await bundle.userManagement.updateUser(id, body);
+      return {
+        success: true,
+        data: { user: toUpdatedUserMutation(result), message: 'User updated successfully' },
+      };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/v1/users/manage/:id',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'delete' },
+    params: UserIdParam,
+    openapi: {
+      summary: 'Delete a user',
+      tags: ['users'],
+      description: 'GDPR-compliant deletion that removes all user data.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { id } = ctx.params as { id: string };
+      await bundle.userManagement.deleteUser(id, ctx.user!.userId);
+      return { success: true, data: { message: 'User deleted successfully' } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/users/manage/:id/reset-password',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'update' },
+    params: UserIdParam,
+    body: AdminResetPasswordSchema,
+    statusCode: 200,
+    openapi: {
+      summary: 'Reset user password',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { id } = ctx.params as { id: string };
+      const body = ctx.body as z.infer<typeof AdminResetPasswordSchema>;
+      await bundle.userManagement.resetPassword(id, body);
+      return { success: true, data: { message: 'Password reset successfully' } };
+    },
+  },
+  {
+    method: 'PATCH',
+    path: '/v1/users/manage/:id/roles',
+    auth: { kind: 'jwt' },
+    permission: { resource: 'user', action: 'role_assign' },
+    params: UserIdParam,
+    body: AssignRolesSchema,
+    openapi: {
+      summary: 'Assign roles to a user',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const { id } = ctx.params as { id: string };
+      const body = ctx.body as z.infer<typeof AssignRolesSchema>;
+      await bundle.userManagement.assignRoles(id, body.roles, ctx.user!.userId);
+      return { success: true, data: { message: 'Roles updated successfully' } };
     },
   },
 ];
