@@ -5,14 +5,11 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { EventPublisher } from '@/shared-kernel';
 import {
-  ShareExpiredException,
-  ShareNotFoundException,
-  SharePasswordInvalidException,
-  SharePasswordRequiredException,
-} from '../../domain/exceptions/presentation.exceptions';
-import { ShareDownloadedEvent, ShareViewedEvent } from '../../shared-kernel/domain/events';
+  type AccessMode,
+  AccessPublicResumeUseCase,
+} from '../application/use-cases/access-public-resume.use-case';
+import { ShareNotFoundException } from '../../domain/exceptions/presentation.exceptions';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { OgImageService } from '../services/og-image.service';
 import { ResumeShareService } from '../services/resume-share.service';
@@ -24,8 +21,8 @@ import { ResumeShareService } from '../services/resume-share.service';
 export class PublicResumeController {
   constructor(
     private readonly shareService: ResumeShareService,
-    private readonly eventPublisher: EventPublisher,
     private readonly ogImageService: OgImageService,
+    private readonly accessResume: AccessPublicResumeUseCase,
   ) {}
 
   @Get(':slug/og.png')
@@ -35,10 +32,7 @@ export class PublicResumeController {
   @ApiProduces('image/png')
   async getOgImage(@Param('slug') slug: string): Promise<StreamableFile> {
     const context = await this.shareService.getShareOgContext(slug);
-    if (!context) {
-      throw new ShareNotFoundException();
-    }
-
+    if (!context) throw new ShareNotFoundException();
     const buffer = await this.ogImageService.generatePng(context);
     return new StreamableFile(buffer);
   }
@@ -51,62 +45,7 @@ export class PublicResumeController {
     @Headers('x-share-password') password: string | undefined,
     @Req() req: Request,
   ): Promise<DataResponse<PublicResumeDataDto>> {
-    const share = await this.shareService.getBySlug(slug);
-
-    if (!share) {
-      throw new ShareNotFoundException();
-    }
-
-    if (!share.isActive) {
-      throw new ShareNotFoundException();
-    }
-
-    // Check expiration
-    if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new ShareExpiredException();
-    }
-
-    // Check password
-    if (share.password) {
-      if (!password) {
-        throw new SharePasswordRequiredException();
-      }
-
-      const isValid = await this.shareService.verifyPassword(password, share.password);
-
-      if (!isValid) {
-        throw new SharePasswordInvalidException();
-      }
-    }
-
-    // Track view event
-    const forwarded = req.headers['x-forwarded-for'];
-    const ip =
-      (typeof forwarded === 'string' ? forwarded.split(',')[0] : null) ??
-      req.socket.remoteAddress ??
-      'unknown';
-
-    await this.eventPublisher.publishAsync(
-      new ShareViewedEvent(share.id, {
-        shareId: share.id,
-        ip,
-        userAgent: req.headers['user-agent'],
-        referer: req.headers.referer,
-      }),
-    );
-
-    const resume = await this.shareService.getResumeWithCache(share.resumeId);
-    const shareInfo = { slug: share.slug, expiresAt: share.expiresAt };
-
-    return {
-      success: true,
-      data: { resume, share: shareInfo },
-      resume,
-      share: shareInfo,
-    } as DataResponse<PublicResumeDataDto> & {
-      resume: unknown;
-      share: { slug: string; expiresAt: Date | null };
-    };
+    return this.runAccess(slug, password, req, 'view');
   }
 
   @Get(':slug/download')
@@ -117,61 +56,40 @@ export class PublicResumeController {
     @Headers('x-share-password') password: string | undefined,
     @Req() req: Request,
   ): Promise<DataResponse<PublicResumeDataDto>> {
-    const share = await this.shareService.getBySlug(slug);
+    return this.runAccess(slug, password, req, 'download');
+  }
 
-    if (!share) {
-      throw new ShareNotFoundException();
-    }
-
-    if (!share.isActive) {
-      throw new ShareNotFoundException();
-    }
-
-    // Check expiration
-    if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new ShareExpiredException();
-    }
-
-    // Check password
-    if (share.password) {
-      if (!password) {
-        throw new SharePasswordRequiredException();
-      }
-
-      const isValid = await this.shareService.verifyPassword(password, share.password);
-
-      if (!isValid) {
-        throw new SharePasswordInvalidException();
-      }
-    }
-
-    // Track download event
-    const forwarded = req.headers['x-forwarded-for'];
-    const ip =
-      (typeof forwarded === 'string' ? forwarded.split(',')[0] : null) ??
-      req.socket.remoteAddress ??
-      'unknown';
-
-    this.eventPublisher.publish(
-      new ShareDownloadedEvent(share.id, {
-        shareId: share.id,
-        ip,
-        userAgent: req.headers['user-agent'],
-        referer: req.headers.referer,
-      }),
-    );
-
-    const resume = await this.shareService.getResumeWithCache(share.resumeId);
-    const shareInfo = { slug: share.slug, expiresAt: share.expiresAt };
-
+  private async runAccess(
+    slug: string,
+    password: string | undefined,
+    req: Request,
+    mode: AccessMode,
+  ): Promise<DataResponse<PublicResumeDataDto>> {
+    const { resume, share } = await this.accessResume.execute({
+      slug,
+      password,
+      mode,
+      ip: pickIp(req),
+      userAgent: req.headers['user-agent'],
+      referer: req.headers.referer,
+    });
     return {
       success: true,
-      data: { resume, share: shareInfo },
+      data: { resume, share },
       resume,
-      share: shareInfo,
+      share,
     } as DataResponse<PublicResumeDataDto> & {
       resume: unknown;
       share: { slug: string; expiresAt: Date | null };
     };
   }
+}
+
+function pickIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  return (
+    (typeof forwarded === 'string' ? forwarded.split(',')[0] : null) ??
+    req.socket.remoteAddress ??
+    'unknown'
+  );
 }

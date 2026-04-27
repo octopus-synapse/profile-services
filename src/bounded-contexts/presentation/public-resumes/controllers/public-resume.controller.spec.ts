@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { EventPublisher } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
+import { AccessPublicResumeUseCase } from '../application/use-cases/access-public-resume.use-case';
 import { OgImageService } from '../services/og-image.service';
 import { ResumeShareService } from '../services/resume-share.service';
 import { PublicResumeController } from './public-resume.controller';
@@ -36,15 +38,24 @@ describe('PublicResumeController - Contract', () => {
   let controller: PublicResumeController;
 
   beforeEach(async () => {
+    const shareService = createShareService();
+    const eventPublisher = { publish: () => {}, publishAsync: async () => {} };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PublicResumeController],
       providers: [
-        { provide: ResumeShareService, useValue: createShareService() },
+        { provide: ResumeShareService, useValue: shareService },
         { provide: ShareAnalyticsService, useValue: createAnalyticsService() },
-        { provide: EventPublisher, useValue: { publish: () => {}, publishAsync: async () => {} } },
+        { provide: EventPublisher, useValue: eventPublisher },
         {
           provide: OgImageService,
           useValue: { generatePng: async () => Buffer.from([]), generateSvg: () => '' },
+        },
+        {
+          provide: AccessPublicResumeUseCase,
+          useFactory: (shares: ResumeShareService, events: EventPublisher) =>
+            new AccessPublicResumeUseCase(shares, events, stubLogger),
+          inject: [ResumeShareService, EventPublisher],
         },
       ],
     }).compile();
