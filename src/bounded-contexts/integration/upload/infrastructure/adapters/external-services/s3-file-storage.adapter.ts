@@ -1,0 +1,27 @@
+/**
+ * Adapts the platform-wide `S3UploadService` to the upload BC's
+ * `FileStoragePort`. The service has way more surface than this BC
+ * needs (download, presign, etc.); this adapter narrows it down to
+ * just upload + delete.
+ */
+
+import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
+import { FileStoragePort, type UploadedFileLocation } from '../../../domain/ports/file-storage.port';
+
+export class S3FileStorageAdapter extends FileStoragePort {
+  constructor(private readonly s3: S3UploadService) {
+    super();
+  }
+
+  async uploadFile(
+    file: Buffer,
+    key: string,
+    contentType: string,
+  ): Promise<UploadedFileLocation | null> {
+    return this.s3.uploadFile(file, key, contentType);
+  }
+
+  async deleteFile(key: string): Promise<boolean> {
+    return this.s3.deleteFile(key);
+  }
+}

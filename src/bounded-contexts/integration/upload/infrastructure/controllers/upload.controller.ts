@@ -23,13 +23,15 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { DeleteUploadUseCase } from '../../application/use-cases/delete-upload/delete-upload.use-case';
+import { UploadCompanyLogoUseCase } from '../../application/use-cases/upload-company-logo/upload-company-logo.use-case';
+import { UploadProfileImageUseCase } from '../../application/use-cases/upload-profile-image/upload-profile-image.use-case';
 import {
   DeleteResponseDto,
   UploadCompanyLogoRequestDto,
   UploadProfileImageRequestDto,
   UploadResponseDto,
-} from './dto/upload.dto';
-import { UploadService } from './upload.service';
+} from '../../dto/upload.dto';
 
 @SdkExport({ tag: 'upload', description: 'Upload API' })
 @ApiTags('upload')
@@ -37,7 +39,11 @@ import { UploadService } from './upload.service';
 @Controller('v1/upload')
 @RequirePermission(Permission.RESUME_UPDATE)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(
+    private readonly uploadProfileImage: UploadProfileImageUseCase,
+    private readonly uploadCompanyLogo: UploadCompanyLogoUseCase,
+    private readonly deleteUpload: DeleteUploadUseCase,
+  ) {}
 
   @Post('profile-image')
   @HttpCode(HttpStatus.OK)
@@ -46,11 +52,11 @@ export class UploadController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadProfileImageRequestDto })
   @ApiDataResponse(UploadResponseDto, { description: 'Profile image uploaded successfully' })
-  async uploadProfileImage(
+  async postProfileImage(
     @CurrentUser() user: UserPayload,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<DataResponse<UploadResponseDto>> {
-    const result = await this.uploadService.uploadProfileImage(user.userId, {
+    const result = await this.uploadProfileImage.execute(user.userId, {
       buffer: file.buffer,
       originalname: file.originalname,
       mimetype: file.mimetype,
@@ -67,12 +73,12 @@ export class UploadController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiBody({ type: UploadCompanyLogoRequestDto })
   @ApiDataResponse(UploadResponseDto, { description: 'Company logo uploaded successfully' })
-  async uploadCompanyLogo(
+  async postCompanyLogo(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<DataResponse<UploadResponseDto>> {
-    const result = await this.uploadService.uploadCompanyLogo(user.userId, resumeId, {
+    const result = await this.uploadCompanyLogo.execute(user.userId, resumeId, {
       buffer: file.buffer,
       originalname: file.originalname,
       mimetype: file.mimetype,
@@ -86,12 +92,8 @@ export class UploadController {
   @ApiOperation({ summary: 'Delete uploaded file' })
   @ApiParam({ name: 'key', description: 'File key in S3' })
   @ApiDataResponse(DeleteResponseDto, { description: 'File deleted successfully' })
-  async deleteFile(@Param('key') key: string): Promise<DataResponse<DeleteResponseDto>> {
-    const result = await this.uploadService.deleteFile(key);
-
-    return {
-      success: true,
-      data: { deleted: result },
-    };
+  async deleteByKey(@Param('key') key: string): Promise<DataResponse<DeleteResponseDto>> {
+    const result = await this.deleteUpload.execute(key);
+    return { success: true, data: { deleted: result } };
   }
 }
