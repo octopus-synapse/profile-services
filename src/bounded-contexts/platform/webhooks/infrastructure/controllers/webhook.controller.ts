@@ -17,7 +17,11 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { WebhookConfigService } from './webhook-config.service';
+import { CreateWebhookUseCase } from '../../application/use-cases/create-webhook/create-webhook.use-case';
+import { DeleteWebhookUseCase } from '../../application/use-cases/delete-webhook/delete-webhook.use-case';
+import { ListWebhookDeliveriesUseCase } from '../../application/use-cases/list-webhook-deliveries/list-webhook-deliveries.use-case';
+import { ListWebhooksUseCase } from '../../application/use-cases/list-webhooks/list-webhooks.use-case';
+import { UpdateWebhookUseCase } from '../../application/use-cases/update-webhook/update-webhook.use-case';
 
 const SUPPORTED_EVENTS = ['resume.created', 'resume.published', 'ats.score.updated'] as const;
 
@@ -39,13 +43,19 @@ export class UpdateWebhookDto extends createZodDto(UpdateWebhookSchema) {}
 @ApiBearerAuth()
 @Controller('v1/webhooks')
 export class WebhookController {
-  constructor(private readonly service: WebhookConfigService) {}
+  constructor(
+    private readonly listWebhooks: ListWebhooksUseCase,
+    private readonly createWebhook: CreateWebhookUseCase,
+    private readonly updateWebhook: UpdateWebhookUseCase,
+    private readonly deleteWebhook: DeleteWebhookUseCase,
+    private readonly listWebhookDeliveries: ListWebhookDeliveriesUseCase,
+  ) {}
 
   @Get()
   @RequirePermission(Permission.RESUME_READ)
   @ApiOperation({ summary: 'List webhooks registered by the current user.' })
   async list(@CurrentUser() user: UserPayload): Promise<DataResponse<{ webhooks: unknown[] }>> {
-    const webhooks = await this.service.listForUser(user.userId);
+    const webhooks = await this.listWebhooks.execute(user.userId);
     return { success: true, data: { webhooks } };
   }
 
@@ -57,7 +67,7 @@ export class WebhookController {
     @Body() dto: CreateWebhookDto,
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<{ webhook: unknown; secret: string }>> {
-    const result = await this.service.createForUser(user.userId, dto);
+    const result = await this.createWebhook.execute(user.userId, dto);
     return { success: true, data: result };
   }
 
@@ -69,7 +79,7 @@ export class WebhookController {
     @Body() dto: UpdateWebhookDto,
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<{ webhook: unknown }>> {
-    const webhook = await this.service.updateForUser(user.userId, id, dto);
+    const webhook = await this.updateWebhook.execute(user.userId, id, dto);
     return { success: true, data: { webhook } };
   }
 
@@ -78,7 +88,7 @@ export class WebhookController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a webhook subscription.' })
   async delete(@Param('id') id: string, @CurrentUser() user: UserPayload): Promise<void> {
-    await this.service.deleteForUser(user.userId, id);
+    await this.deleteWebhook.execute(user.userId, id);
   }
 
   @Get(':id/deliveries')
@@ -88,7 +98,7 @@ export class WebhookController {
     @Param('id') id: string,
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<{ deliveries: unknown[] }>> {
-    const deliveries = await this.service.listDeliveries(user.userId, id);
+    const deliveries = await this.listWebhookDeliveries.execute(user.userId, id);
     return { success: true, data: { deliveries } };
   }
 }
