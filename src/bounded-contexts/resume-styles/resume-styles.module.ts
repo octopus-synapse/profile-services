@@ -12,7 +12,6 @@ import { StyleScorerPort } from './domain/ports/style-scorer.port';
 import { PrismaResumeStyleRepository } from './infrastructure/adapters/persistence/prisma-resume-style.repository';
 import { StylePreviewAdapter } from './infrastructure/adapters/style-preview.adapter';
 import { StyleScorerAdapter } from './infrastructure/adapters/style-scorer.adapter';
-import { ResumeStylePreviewController } from './infrastructure/controllers/resume-style-preview.controller';
 import { buildResumeStylesUseCases } from './resume-styles.composition';
 import { resumeStylesRoutes } from './resume-styles.routes';
 
@@ -23,13 +22,13 @@ import { resumeStylesRoutes } from './resume-styles.routes';
  * Admin surface: create / update / delete with the ATS-safety
  * threshold + monotonic-score invariants enforced at the use-case
  * layer (and a Postgres trigger as the floor).
+ *
+ * Every endpoint — including the binary preview PDF — is now
+ * synthesized from `resume-styles.routes.ts`.
  */
 @Module({
   imports: [PrismaModule, EventBusModule, AuthorizationModule, ExportModule],
-  controllers: [
-    ...synthesizeRouteControllers(ResumeStylesUseCases, resumeStylesRoutes),
-    ResumeStylePreviewController,
-  ],
+  controllers: [...synthesizeRouteControllers(ResumeStylesUseCases, resumeStylesRoutes)],
   providers: [
     StyleScorerAdapter,
     StylePreviewAdapter,

@@ -1,14 +1,13 @@
 /**
  * Route descriptors for the resume-styles BC. Replaces
- * `ResumeStylesController` (except the binary preview endpoint) and
- * `AdminResumeStylesController`. Pure data + handler closures over
- * `ResumeStylesUseCases`.
- *
- * Edge case: `GET /v1/resume-styles/:id/preview.pdf` streams a PDF via
- * `@Res() res` and stays as a legacy controller — see
- * `infrastructure/controllers/resume-style-preview.controller.ts`.
+ * `ResumeStylesController` and `AdminResumeStylesController`, plus the
+ * binary preview endpoint that previously lived in
+ * `ResumeStylePreviewController` — the synthesizer now ships a
+ * StreamableFile through unchanged thanks to its
+ * `Res({ passthrough: true })` wiring.
  */
 
+import { StreamableFile } from '@nestjs/common';
 import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
@@ -180,6 +179,27 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
       const { id } = ctx.params as { id: string };
       await bc.deleteStyle.execute(id);
       return { success: true, data: null };
+    },
+  },
+
+  // ─── Binary stream: generic preview PDF ────────────────────────────
+  {
+    method: 'GET',
+    path: '/v1/resume-styles/:id/preview.pdf',
+    auth: { kind: 'jwt' },
+    params: IdParams,
+    openapi: {
+      summary: 'Render a generic preview PDF for the style',
+      tags: ['resume-styles'],
+      description: 'ResumeStyle catalog + apply',
+    },
+    handler: async (ctx, bc) => {
+      const { id } = ctx.params as { id: string };
+      const buffer = await bc.previewStyle.execute(id);
+      return new StreamableFile(buffer, {
+        type: 'application/pdf',
+        disposition: `inline; filename="style-${id}-preview.pdf"`,
+      });
     },
   },
 ];
