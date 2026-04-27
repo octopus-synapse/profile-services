@@ -137,18 +137,14 @@ describe('Smoke Tests - Application Bootstrap', () => {
       expect(ActivityService).toBeDefined();
     });
 
-    it('should import FollowController', async () => {
-      const { FollowController } = await import(
-        '@/bounded-contexts/social/controllers/follow.controller'
-      );
-      expect(FollowController).toBeDefined();
+    it('should import follow routes', async () => {
+      const { followRoutes } = await import('@/bounded-contexts/social/follow.routes');
+      expect(followRoutes).toBeDefined();
     });
 
-    it('should import ActivityController', async () => {
-      const { ActivityController } = await import(
-        '@/bounded-contexts/social/controllers/activity.controller'
-      );
-      expect(ActivityController).toBeDefined();
+    it('should import activity routes', async () => {
+      const { activityRoutes } = await import('@/bounded-contexts/social/activity.routes');
+      expect(activityRoutes).toBeDefined();
     });
 
     it('should export all social features from index', async () => {
@@ -156,8 +152,6 @@ describe('Smoke Tests - Application Bootstrap', () => {
       expect(social.SocialModule).toBeDefined();
       expect(social.FollowService).toBeDefined();
       expect(social.ActivityService).toBeDefined();
-      expect(social.FollowController).toBeDefined();
-      expect(social.ActivityController).toBeDefined();
     });
   });
 

@@ -2,6 +2,11 @@
  * Social Module - ADR-001: Flat Hexagonal Architecture
  *
  * Social features: follow/unfollow, activity feeds, SSE.
+ *
+ * Most controllers have been migrated to framework-free Route
+ * descriptors (see `*.routes.ts`). The SSE controller stays as a
+ * legacy Nest controller because the Route synthesizer doesn't model
+ * SSE yet.
  */
 
 import { Module } from '@nestjs/common';
@@ -10,7 +15,9 @@ import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.modu
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { ActivityRoutesBundle, activityRoutes } from './activity.routes';
 import {
   CleanupSocialOnUserDeleteHandler,
   CreateWelcomeActivityOnUserRegisteredHandler,
@@ -29,13 +36,10 @@ import {
 } from './application/ports/facade.ports';
 import { FollowRepositoryPort } from './application/ports/follow.port';
 import { SocialEventBusPort } from './application/ports/social-event-bus.port';
-
-import { ActivityController } from './controllers/activity.controller';
+import { ConnectionRoutesBundle, connectionRoutes } from './connection.routes';
+import { ConnectionRecsRoutesBundle, connectionRecsRoutes } from './connection-recs.routes';
 import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
-import { ConnectionController } from './controllers/connection.controller';
-import { ConnectionRecsController } from './controllers/connection-recs.controller';
-import { FollowController } from './controllers/follow.controller';
-import { SkillEndorsementController } from './controllers/skill-endorsement.controller';
+import { FollowRoutesBundle, followRoutes } from './follow.routes';
 import { EventEmitterSocialEventBusAdapter } from './infrastructure/adapters/event-emitter-social-event-bus.adapter';
 import { ActivityRepository } from './infrastructure/adapters/persistence/activity.repository';
 import { ConnectionRepository } from './infrastructure/adapters/persistence/connection.repository';
@@ -48,18 +52,19 @@ import { SkillDecayService } from './services/skill-decay.service';
 import { SkillDecayWorker } from './services/skill-decay.worker';
 import { SkillEndorsementService } from './services/skill-endorsement.service';
 import { SkillProficiencyService } from './services/skill-proficiency.service';
-import { SkillProficiencyController } from './skill-proficiency.controller';
+import { SkillEndorsementRoutesBundle, skillEndorsementRoutes } from './skill-endorsement.routes';
+import { SkillProficiencyRoutesBundle, skillProficiencyRoutes } from './skill-proficiency.routes';
 
 @Module({
   imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule, CacheModule],
   controllers: [
-    FollowController,
-    ConnectionController,
-    ConnectionRecsController,
-    ActivityController,
+    ...synthesizeRouteControllers(FollowRoutesBundle, followRoutes),
+    ...synthesizeRouteControllers(ConnectionRoutesBundle, connectionRoutes),
+    ...synthesizeRouteControllers(ConnectionRecsRoutesBundle, connectionRecsRoutes),
+    ...synthesizeRouteControllers(ActivityRoutesBundle, activityRoutes),
+    ...synthesizeRouteControllers(SkillEndorsementRoutesBundle, skillEndorsementRoutes),
+    ...synthesizeRouteControllers(SkillProficiencyRoutesBundle, skillProficiencyRoutes),
     ActivityFeedSseController,
-    SkillEndorsementController,
-    SkillProficiencyController,
   ],
   providers: [
     FollowService,
@@ -103,6 +108,54 @@ import { SkillProficiencyController } from './skill-proficiency.controller';
     { provide: ActivityCreatorPort, useExisting: ActivityService },
     { provide: ActivityLoggerPort, useExisting: ActivityService },
     { provide: ConnectionReaderPort, useExisting: ConnectionService },
+    // Route bundle providers — wrap the underlying services so the
+    // synthesized controllers can resolve a single DI token per bundle.
+    {
+      provide: FollowRoutesBundle,
+      useFactory: (
+        follow: FollowReaderPort,
+        activity: ActivityLoggerPort,
+        connection: ConnectionReaderPort,
+      ): FollowRoutesBundle => ({
+        followService: follow,
+        activityService: activity,
+        connectionService: connection,
+      }),
+      inject: [FollowReaderPort, ActivityLoggerPort, ConnectionReaderPort],
+    },
+    {
+      provide: ConnectionRoutesBundle,
+      useFactory: (
+        connection: ConnectionService,
+        follow: FollowService,
+      ): ConnectionRoutesBundle => ({
+        connectionService: connection,
+        followService: follow,
+      }),
+      inject: [ConnectionService, FollowService],
+    },
+    {
+      provide: ConnectionRecsRoutesBundle,
+      useFactory: (service: ConnectionRecsService): ConnectionRecsRoutesBundle => ({ service }),
+      inject: [ConnectionRecsService],
+    },
+    {
+      provide: ActivityRoutesBundle,
+      useFactory: (activity: ActivityReaderPort): ActivityRoutesBundle => ({
+        activityService: activity,
+      }),
+      inject: [ActivityReaderPort],
+    },
+    {
+      provide: SkillEndorsementRoutesBundle,
+      useFactory: (service: SkillEndorsementService): SkillEndorsementRoutesBundle => ({ service }),
+      inject: [SkillEndorsementService],
+    },
+    {
+      provide: SkillProficiencyRoutesBundle,
+      useFactory: (service: SkillProficiencyService): SkillProficiencyRoutesBundle => ({ service }),
+      inject: [SkillProficiencyService],
+    },
   ],
   exports: [FollowService, ConnectionService, ActivityService],
 })
