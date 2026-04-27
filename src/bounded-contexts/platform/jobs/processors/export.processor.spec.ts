@@ -6,10 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { getQueueToken } from '@nestjs/bullmq';
-import { Test, TestingModule } from '@nestjs/testing';
-import type { Job } from 'bullmq';
-import { ExportProcessor } from './export.processor';
+import { ExportProcessor, type ExportJob } from './export.processor';
 
 // ============================================================================
 // In-Memory Service Implementations
@@ -131,35 +128,21 @@ describe('ExportProcessor', () => {
   let notificationService: InMemoryNotificationService;
   let uploadService: InMemoryUploadService;
 
-  const setupProcessor = async () => {
+  const setupProcessor = (): void => {
     pdfService = new InMemoryResumePdfService();
     docxService = new InMemoryResumeDocxService();
     notificationService = new InMemoryNotificationService();
     uploadService = new InMemoryUploadService();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        {
-          provide: ExportProcessor,
-          useFactory: () =>
-            new ExportProcessor(pdfService, docxService, notificationService, uploadService),
-        },
-        {
-          provide: getQueueToken('export'),
-          useValue: { add: mock() },
-        },
-      ],
-    }).compile();
-
-    processor = module.get<ExportProcessor>(ExportProcessor);
+    processor = new ExportProcessor(pdfService, docxService, notificationService, uploadService);
   };
 
-  beforeEach(async () => {
-    await setupProcessor();
+  beforeEach(() => {
+    setupProcessor();
   });
 
-  // Factory for creating mock Job objects
-  const createMockJob = (data: Record<string, unknown>): Job => {
+  // Factory for creating mock Job objects (structurally compatible with ExportJob).
+  const createMockJob = (data: Record<string, unknown>): ExportJob => {
     const job = {
       id: 'job-123',
       data,
@@ -167,7 +150,7 @@ describe('ExportProcessor', () => {
       opts: { attempts: 3 },
       updateProgress: mock(() => Promise.resolve()),
     };
-    return job as unknown as Job;
+    return job as unknown as ExportJob;
   };
 
   describe('process', () => {

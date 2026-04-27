@@ -6,8 +6,6 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { getQueueToken } from '@nestjs/bullmq';
-import { Test, TestingModule } from '@nestjs/testing';
 import { QueueService } from './queue.service';
 
 // ============================================================================
@@ -81,7 +79,7 @@ describe('QueueService', () => {
   let exportQueue: InMemoryQueue;
   let emailQueue: InMemoryQueue;
 
-  const setupService = async () => {
+  const setupService = (): void => {
     exportQueue = new InMemoryQueue();
     emailQueue = new InMemoryQueue();
 
@@ -90,19 +88,14 @@ describe('QueueService', () => {
       returnValue: { downloadUrl: 'https://example.com/file.pdf' },
     });
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        QueueService,
-        { provide: getQueueToken('export'), useValue: exportQueue },
-        { provide: getQueueToken('email'), useValue: emailQueue },
-      ],
-    }).compile();
-
-    service = module.get<QueueService>(QueueService);
+    service = new QueueService(
+      exportQueue as unknown as ConstructorParameters<typeof QueueService>[0],
+      emailQueue as unknown as ConstructorParameters<typeof QueueService>[1],
+    );
   };
 
-  beforeEach(async () => {
-    await setupService();
+  beforeEach(() => {
+    setupService();
   });
 
   describe('Export Jobs', () => {

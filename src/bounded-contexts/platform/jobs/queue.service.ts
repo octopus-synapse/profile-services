@@ -1,6 +1,13 @@
-import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
-import { Queue } from 'bullmq';
+/**
+ * Queue Service
+ *
+ * Framework-free POJO wrapping the BullMQ-shaped contract for the
+ * `export` and `email` queues. Consumers depend on this class
+ * structurally — adapters can pass either real `bullmq` `Queue`s or
+ * test doubles. New code should prefer the unified `JobQueuePort` for
+ * fan-out + enqueue; this service exists for the few legacy call sites
+ * that need queue introspection (job status / progress).
+ */
 
 export interface ExportJobData {
   type: 'pdf' | 'docx' | 'banner';
@@ -30,6 +37,18 @@ export interface JobOptions {
   delay?: number;
 }
 
+/** Structural shape the service consumes — covers both real `bullmq`
+ *  `Queue`s and in-memory test doubles. */
+export interface QueueLike {
+  add(name: string, data: unknown, opts?: unknown): Promise<{ id: string | undefined | null }>;
+  getJob(id: string): Promise<{
+    id: string | undefined | null;
+    progress: number | unknown;
+    returnvalue?: unknown;
+    getState(): Promise<string>;
+  } | null>;
+}
+
 const DEFAULT_JOB_OPTIONS = {
   attempts: 3,
   backoff: { type: 'exponential' as const, delay: 2000 },
@@ -37,11 +56,10 @@ const DEFAULT_JOB_OPTIONS = {
   removeOnFail: { age: 7 * 24 * 3600 },
 };
 
-@Injectable()
 export class QueueService {
   constructor(
-    @InjectQueue('export') private readonly exportQueue: Queue,
-    @InjectQueue('email') private readonly emailQueue: Queue,
+    private readonly exportQueue: QueueLike,
+    private readonly emailQueue: QueueLike,
   ) {}
 
   async queueExportJob(data: ExportJobData): Promise<JobResult> {
