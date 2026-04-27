@@ -4,11 +4,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 // Shared providers
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import {
+  RATE_LIMIT_KEY,
+  RateLimitGuard,
+} from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
+import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
+import { EmailVerifiedGuard } from '../shared-kernel/infrastructure/guards/email-verified.guard';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { Validate2faInboundPort } from '../two-factor-auth/application/ports';
@@ -25,6 +31,7 @@ import { CreateSessionPort } from './application/ports/create-session.port';
 import { LoginPort } from './application/ports/login.port';
 import { LogoutPort } from './application/ports/logout.port';
 import { RefreshTokenPort } from './application/ports/refresh-token.port';
+import { SessionDevicePort } from './application/ports/session-device.port';
 import { TerminateSessionPort } from './application/ports/terminate-session.port';
 import { ValidateSessionPort } from './application/ports/validate-session.port';
 // Application Use Cases
@@ -54,8 +61,6 @@ import {
 } from './infrastructure/adapters';
 import { PrismaLoginAttemptsAdapter } from './infrastructure/adapters/prisma-login-attempts.adapter';
 import { SessionDeviceService } from './infrastructure/adapters/session-device.service';
-// Infrastructure Controllers
-import { LoginController, LogoutController, SessionController } from './infrastructure/controllers';
 
 @Module({
   imports: [
@@ -78,19 +83,30 @@ import { LoginController, LogoutController, SessionController } from './infrastr
     }),
   ],
   controllers: [
-    // Legacy controllers (see authentication.routes.ts header for why):
-    // - LoginController: cookies + 2FA rate-limit guard.
-    // - LogoutController: cookies + AllowUnverifiedEmail decorator.
-    // - SessionController: cookie reads + Nest-side SessionDeviceService.
-    LoginController,
-    LogoutController,
-    SessionController,
-    ...synthesizeRouteControllers(AuthenticationHttpBundle, authenticationRoutes),
+    ...synthesizeRouteControllers(AuthenticationHttpBundle, authenticationRoutes, {
+      guards: {
+        // 2FA verify endpoint: 5 attempts/minute keyed by IP. The
+        // synthesizer attaches the metadata RateLimitGuard reads.
+        'rate-limit': {
+          guard: RateLimitGuard,
+          metadataKey: RATE_LIMIT_KEY,
+        },
+        // Logout must remain reachable for users with unverified email.
+        // The local EmailVerifiedGuard re-runs but is idempotent — it
+        // short-circuits on the same metadata read.
+        'allow-unverified-email': {
+          guard: EmailVerifiedGuard,
+          metadataKey: ALLOW_UNVERIFIED_EMAIL_KEY,
+        },
+      },
+    }),
   ],
   providers: [
     // JWT Strategy for passport auth
     JwtStrategy,
     SessionDeviceService,
+    // The route bundle resolves SessionDevicePort to the concrete service.
+    { provide: SessionDevicePort, useExisting: SessionDeviceService },
     // Outbound Adapters
     { provide: AuthenticationRepositoryPort, useClass: PrismaAuthenticationRepository },
     { provide: PasswordHasherPort, useClass: BcryptPasswordHasher },
@@ -215,8 +231,32 @@ import { LoginController, LogoutController, SessionController } from './infrastr
     // Aggregated bundle for the route synthesizer.
     {
       provide: AuthenticationHttpBundle,
-      useFactory: (refreshToken: RefreshTokenPort): AuthenticationHttpBundle => ({ refreshToken }),
-      inject: [RefreshTokenPort],
+      useFactory: (
+        login: LoginPort,
+        logout: LogoutPort,
+        createSession: CreateSessionPort,
+        validateSession: ValidateSessionPort,
+        terminateSession: TerminateSessionPort,
+        refreshToken: RefreshTokenPort,
+        sessionDevices: SessionDevicePort,
+      ): AuthenticationHttpBundle => ({
+        login,
+        logout,
+        createSession,
+        validateSession,
+        terminateSession,
+        refreshToken,
+        sessionDevices,
+      }),
+      inject: [
+        LoginPort,
+        LogoutPort,
+        CreateSessionPort,
+        ValidateSessionPort,
+        TerminateSessionPort,
+        RefreshTokenPort,
+        SessionDevicePort,
+      ],
     },
   ],
   exports: [

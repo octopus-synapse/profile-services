@@ -20,6 +20,8 @@ export {
   type RefreshTokenResult,
 } from './refresh-token.port';
 
+export { SessionDevicePort, type SessionDeviceView } from './session-device.port';
+
 export {
   type TerminateSessionCommand,
   TerminateSessionPort,
