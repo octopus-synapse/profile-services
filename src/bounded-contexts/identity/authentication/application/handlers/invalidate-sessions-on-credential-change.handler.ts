@@ -5,8 +5,6 @@
  * This ensures that compromised sessions are invalidated when credentials are reset.
  */
 
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { LoggerPort } from '@/shared-kernel';
 import { PasswordChangedEvent } from '../../../password-management/domain/events';
@@ -16,7 +14,6 @@ import { AuthenticationRepositoryPort } from '../../domain/ports';
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
 
-@Injectable()
 export class InvalidateSessionsOnCredentialChangeHandler {
   constructor(
     private readonly authRepository: AuthenticationRepositoryPort,
@@ -24,7 +21,6 @@ export class InvalidateSessionsOnCredentialChangeHandler {
     private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent('auth.session.invalidate')
   async handleSessionInvalidate(event: { userId: string }): Promise<void> {
     await this.authRepository.invalidateSessionCache(event.userId);
   }
@@ -35,12 +31,10 @@ export class InvalidateSessionsOnCredentialChangeHandler {
    * `emailVerified: false` for up to 10 minutes, and the `/identity/verify-email`
    * screen doesn't redirect even after verification succeeds.
    */
-  @OnEvent('email.verified')
   async handleEmailVerified(event: { userId: string }): Promise<void> {
     await this.authRepository.invalidateSessionCache(event.userId);
   }
 
-  @OnEvent('password.changed')
   async handle(event: PasswordChangedEvent): Promise<void> {
     const { userId, changedVia } = event;
 

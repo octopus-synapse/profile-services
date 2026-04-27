@@ -4,8 +4,10 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 // Shared providers
 import { NestJwtAdapter } from '@/infrastructure/nest-adapter/nest-jwt.adapter';
+import { EventBusPort as SharedEventBusPort } from '@/shared-kernel';
 import { JwtPort } from '@/shared-kernel/auth';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import {
   RATE_LIMIT_KEY,
   RateLimitGuard,
@@ -23,8 +25,8 @@ import { Validate2faInboundPort } from '../two-factor-auth/application/ports';
 
 // Cross-BC: Two-Factor Auth
 import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
-// Application Handlers
-import { InvalidateSessionsOnCredentialChangeHandler } from './application/handlers/invalidate-sessions-on-credential-change.handler';
+// Application Handlers (registered via EventBusPort, not provided directly).
+import { registerAuthenticationHandlers } from './application/handlers/register-handlers';
 
 // Application Ports
 
@@ -233,8 +235,20 @@ import { SessionDeviceService } from './infrastructure/adapters/session-device.s
       inject: [TokenGeneratorPort, SessionStoragePort, EventBusPort, LoggerPort],
     },
 
-    // Event Handlers
-    InvalidateSessionsOnCredentialChangeHandler,
+    // Event Handlers — registered via EventBusPort by side-effect provider.
+    {
+      provide: 'AUTHENTICATION_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: SharedEventBusPort,
+        authRepository: AuthenticationRepositoryPort,
+        cacheService: CacheService,
+        logger: LoggerPort,
+      ): boolean => {
+        registerAuthenticationHandlers({ eventBus, authRepository, cacheService, logger });
+        return true;
+      },
+      inject: [SharedEventBusPort, AuthenticationRepositoryPort, CacheService, LoggerPort],
+    },
 
     // Aggregated bundle for the route synthesizer.
     {
