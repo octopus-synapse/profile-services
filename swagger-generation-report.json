@@ -1,6 +1,6 @@
 {
   "success": true,
-  "generatedBy": "nest-swagger",
+  "generatedBy": "nestjs-zod",
   "paths": 339,
   "operations": 406,
   "schemas": 299,

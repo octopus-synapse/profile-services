@@ -22328,8 +22328,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -22474,8 +22473,7 @@
             "required": [
               "id",
               "name"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "fullName": {
             "type": "string"
@@ -23181,8 +23179,7 @@
               "updatedAt",
               "user",
               "resumeSections"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -23497,8 +23494,7 @@
               "order",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -23612,8 +23608,7 @@
               "versionNumber",
               "label",
               "createdAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -23763,8 +23758,7 @@
               "before",
               "after"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "jobTitle": {
             "type": "object",
@@ -23782,8 +23776,7 @@
               "before",
               "after"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "bullets": {
             "type": "array",
@@ -23872,8 +23865,7 @@
               "schwartz",
               "sdt"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "answeredAt": {
             "type": "string",
@@ -23897,8 +23889,7 @@
                 "minimum": 25,
                 "maximum": 25
               }
-            ],
-            "x-nestjs_zod-empty-type": true
+            ]
           }
         },
         "required": [
@@ -24107,8 +24098,7 @@
               "bigFive",
               "schwartz",
               "sdt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -24130,8 +24120,7 @@
               "exclusiveMinimum": false,
               "maximum": 1,
               "exclusiveMaximum": false
-            },
-            "x-nestjs_zod-self-required": true
+            }
           }
         },
         "required": [
@@ -24887,8 +24876,7 @@
               "resumeCreated",
               "userSignups",
               "exportCompleted"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "gauges": {
             "type": "object",
@@ -24903,8 +24891,7 @@
             "required": [
               "activeUsers",
               "pendingExports"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "process": {
             "type": "object",
@@ -24927,8 +24914,7 @@
               "heapUsedMb",
               "heapTotalMb",
               "eventLoopLagMs"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "latency": {
             "type": "array",
@@ -25066,8 +25052,7 @@
             "required": [
               "secondsUntilResendAllowed",
               "cooldownSeconds"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -25269,8 +25254,7 @@
               "hasCompletedOnboarding",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "consents": {
             "type": "array",
@@ -25478,8 +25462,7 @@
               "acceptedAt",
               "ipAddress",
               "userAgent"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -25743,8 +25726,7 @@
               "needsOnboarding",
               "needsEmailVerification"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -25886,8 +25868,7 @@
               "website",
               "linkedin",
               "github"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "resume": {
             "type": "object",
@@ -25971,8 +25952,7 @@
               "createdAt",
               "updatedAt"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -26041,8 +26021,7 @@
               "email",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -26162,8 +26141,7 @@
               "emailNotifications": {
                 "type": "boolean"
               }
-            },
-            "x-nestjs_zod-self-required": true
+            }
           }
         },
         "required": [
@@ -26374,8 +26352,7 @@
               "applyCriteria",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -26524,8 +26501,7 @@
                 "type": "string",
                 "maxLength": 4000
               }
-            },
-            "x-nestjs_zod-self-required": false
+            }
           }
         }
       },
@@ -26629,8 +26605,7 @@
               "limit",
               "total",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -26765,8 +26740,7 @@
               "resumes",
               "preferences",
               "counts"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -26839,8 +26813,7 @@
                   "updatedAt"
                 ]
               }
-            ],
-            "x-nestjs_zod-empty-type": true
+            ]
           },
           "message": {
             "type": "string"
@@ -27120,27 +27093,23 @@
           },
           "definition": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": true
+            "additionalProperties": {}
           },
           "uiSchema": {
             "type": "object",
             "additionalProperties": {},
-            "nullable": true,
-            "x-nestjs_zod-self-required": false
+            "nullable": true
           },
           "renderHints": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": true
+            "additionalProperties": {}
           },
           "fieldStyles": {
             "type": "object",
             "additionalProperties": {
               "type": "object",
               "additionalProperties": {}
-            },
-            "x-nestjs_zod-self-required": true
+            }
           },
           "iconType": {
             "type": "string"
@@ -27155,8 +27124,7 @@
               "additionalProperties": {
                 "type": "string"
               }
-            },
-            "x-nestjs_zod-self-required": true
+            }
           },
           "createdAt": {
             "type": "string",
@@ -27676,8 +27644,7 @@
               "score",
               "message",
               "level"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "canProceed": {
             "type": "boolean"
@@ -27820,8 +27787,7 @@
             },
             "required": [
               "fullName"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "professionalProfile": {
             "type": "object",
@@ -27844,8 +27810,7 @@
             },
             "required": [
               "jobTitle"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "sections": {
             "type": "array",
@@ -27888,8 +27853,7 @@
               "colorScheme": {
                 "type": "string"
               }
-            },
-            "x-nestjs_zod-self-required": false
+            }
           }
         },
         "required": [
@@ -27990,8 +27954,7 @@
             },
             "required": [
               "fullName"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "professionalProfile": {
             "type": "object",
@@ -28014,8 +27977,7 @@
             },
             "required": [
               "jobTitle"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "sections": {
             "type": "array",
@@ -28058,8 +28020,7 @@
               "colorScheme": {
                 "type": "string"
               }
-            },
-            "x-nestjs_zod-self-required": false
+            }
           }
         },
         "required": [
@@ -28092,8 +28053,7 @@
             },
             "required": [
               "fullName"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "professionalProfile": {
             "type": "object",
@@ -28116,8 +28076,7 @@
             },
             "required": [
               "jobTitle"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "templateSelection": {
             "type": "object",
@@ -28128,8 +28087,7 @@
               "colorScheme": {
                 "type": "string"
               }
-            },
-            "x-nestjs_zod-self-required": true
+            }
           },
           "sections": {
             "type": "array",
@@ -28269,8 +28227,7 @@
               "totalCompleted",
               "completionRate",
               "dropOffByStep"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -28338,8 +28295,7 @@
               "isActive",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -28375,8 +28331,7 @@
               "createdAt",
               "updatedAt"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -28629,8 +28584,7 @@
             },
             "required": [
               "basics"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -28664,8 +28618,7 @@
               "github": {
                 "type": "string"
               }
-            },
-            "x-nestjs_zod-self-required": true
+            }
           },
           "summary": {
             "type": "string"
@@ -28732,8 +28685,7 @@
           },
           "data": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": false
+            "additionalProperties": {}
           },
           "parsedData": {
             "type": "object",
@@ -28793,8 +28745,7 @@
             "required": [
               "personalInfo",
               "sections"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "resumeId": {
             "type": "string"
@@ -29012,14 +28963,12 @@
               "totalCourses",
               "triggeredBy"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "lastSync": {
             "type": "object",
             "properties": {},
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -29180,8 +29129,7 @@
               "organizacao",
               "courses"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -29377,8 +29325,7 @@
               "areaConhecimento",
               "institution"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           }
         },
         "required": [
@@ -29467,8 +29414,7 @@
               "totalCourses",
               "coursesByGrau",
               "institutionsByUf"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -29615,20 +29561,17 @@
           },
           "styleConfig": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": true
+            "additionalProperties": {}
           },
           "sectionStyles": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": true
+            "additionalProperties": {}
           },
           "atsSafetyBreakdown": {
             "type": "object",
             "additionalProperties": {
               "type": "number"
-            },
-            "x-nestjs_zod-self-required": true
+            }
           },
           "previewImages": {
             "type": "array",
@@ -29701,13 +29644,11 @@
           },
           "styleConfig": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": true
+            "additionalProperties": {}
           },
           "sectionStyles": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": false
+            "additionalProperties": {}
           }
         },
         "required": [
@@ -29747,13 +29688,11 @@
           },
           "styleConfig": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": false
+            "additionalProperties": {}
           },
           "sectionStyles": {
             "type": "object",
-            "additionalProperties": {},
-            "x-nestjs_zod-self-required": false
+            "additionalProperties": {}
           }
         }
       },
@@ -29856,8 +29795,7 @@
               "requirements",
               "semantic",
               "fit"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "effectiveWeights": {
             "type": "object",
@@ -29896,8 +29834,7 @@
               "requirements",
               "semantic",
               "fit"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "rulesVersion": {
             "type": "string"
@@ -30046,8 +29983,7 @@
             "type": "object",
             "additionalProperties": {
               "type": "integer"
-            },
-            "x-nestjs_zod-self-required": true
+            }
           }
         },
         "required": [
@@ -30660,8 +30596,7 @@
             "required": [
               "languages",
               "skills"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -30699,8 +30634,7 @@
               "name",
               "category",
               "order"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -30760,8 +30694,7 @@
             },
             "required": [
               "deleted"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -31367,8 +31300,7 @@
               "updatedAt",
               "sections"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "share": {
             "type": "object",
@@ -31383,8 +31315,7 @@
             "required": [
               "slug",
               "expiresAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -31435,8 +31366,7 @@
               "expiresAt",
               "createdAt",
               "publicUrl"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -31582,8 +31512,7 @@
               "uniqueVisitors",
               "byCountry",
               "recentEvents"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -31959,8 +31888,7 @@
             "required": [
               "dau",
               "mau"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "contentStats": {
             "type": "object",
@@ -31979,8 +31907,7 @@
               "posts",
               "comments",
               "reactions"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "socialStats": {
             "type": "object",
@@ -32007,8 +31934,7 @@
               "rejectedConnections",
               "blockedUsers",
               "acceptanceRate"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "jobStats": {
             "type": "object",
@@ -32035,8 +31961,7 @@
               "applications",
               "withdrawn",
               "applicationsPerJob"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -32159,8 +32084,7 @@
               "readAt",
               "createdAt",
               "sender"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -32294,8 +32218,7 @@
               "conversations",
               "nextCursor",
               "hasMore"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -32378,8 +32301,7 @@
               "unreadCount",
               "createdAt",
               "updatedAt"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -32465,8 +32387,7 @@
               "messages",
               "nextCursor",
               "hasMore"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -32565,8 +32486,7 @@
               "createdAt",
               "updatedAt"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": false
+            "nullable": true
           }
         },
         "required": [
@@ -33168,8 +33088,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33261,8 +33180,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33354,8 +33272,7 @@
               "followers",
               "following",
               "pendingInvitations"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "pendingRequests": {
             "type": "object",
@@ -33383,8 +33300,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "connections": {
             "type": "object",
@@ -33412,8 +33328,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "suggestions": {
             "type": "object",
@@ -33485,8 +33400,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33525,8 +33439,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33562,8 +33475,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33643,8 +33555,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33707,8 +33618,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -33744,8 +33654,7 @@
               "page",
               "limit",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -34016,8 +33925,7 @@
           },
           "data": {
             "type": "object",
-            "properties": {},
-            "x-nestjs_zod-self-required": false
+            "properties": {}
           },
           "imageUrl": {
             "type": "string",
@@ -34066,8 +33974,7 @@
             "required": [
               "language",
               "code"
-            ],
-            "x-nestjs_zod-self-required": false
+            ]
           },
           "isAnonymous": {
             "type": "boolean"
@@ -35142,8 +35049,7 @@
               "pageSize",
               "total",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -35251,8 +35157,7 @@
               "pageSize",
               "total",
               "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           }
         },
         "required": [
@@ -35846,8 +35751,7 @@
             "required": [
               "experienceYears",
               "jobTitle"
-            ],
-            "x-nestjs_zod-self-required": true
+            ]
           },
           "totalPeers": {
             "type": "integer"
@@ -35885,8 +35789,7 @@
               "peerCount",
               "topJobTitles"
             ],
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
+            "nullable": true
           },
           "buckets": {
             "type": "array",

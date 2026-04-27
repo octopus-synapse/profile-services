@@ -112,11 +112,11 @@ function expectPathParams(path: string, method: string, expectedParams: string[]
   expect(pathParams).toEqual(expectedParams);
 }
 
-test('swagger artifacts are generated from Nest Swagger', () => {
+test('swagger artifacts are generated from nestjs-zod', () => {
   expect(existsSync(SWAGGER_PATH)).toBe(true);
   expect(existsSync(REPORT_PATH)).toBe(true);
   expect(report.success).toBe(true);
-  expect(report.generatedBy).toBe('nest-swagger');
+  expect(report.generatedBy).toBe('nestjs-zod');
 });
 
 test('auth session publishes wrapped success response', () => {

@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { METHOD_METADATA } from '@nestjs/common/constants';
 import { DocumentBuilder, type OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import {
   SDK_EXPORT_KEY,
   type SdkExportOptions,
@@ -33,10 +34,21 @@ export function configureSwagger(app: INestApplication): void {
 export function createSwaggerDocument(app: INestApplication): OpenAPIObject {
   const operationIdStrategy = buildOperationIdStrategy(app);
 
-  return SwaggerModule.createDocument(app, buildSwaggerConfig(), {
+  const document = SwaggerModule.createDocument(app, buildSwaggerConfig(), {
     operationIdFactory: (controllerKey: string, methodKey: string) =>
       operationIdStrategy.create(controllerKey, methodKey),
   });
+
+  // Bridge `@nestjs/swagger`'s class-decorator-driven discovery with
+  // `nestjs-zod` (which sits on top of zod-to-openapi / zod v4's native
+  // JSON-schema emit). `cleanupOpenApiDoc` walks the components emitted
+  // for `createZodDto`-derived classes, expands them into proper
+  // OpenAPI schemas, lifts referenced sub-schemas into
+  // `components.schemas`, and renames anything that carries an
+  // explicit `id`. The shape of the final document is unchanged for
+  // legacy class-validator DTOs — only the Zod-derived ones get the
+  // new pipeline.
+  return cleanupOpenApiDoc(document, { version: '3.0' });
 }
 
 type ControllerClass = { name: string; prototype: Record<string, unknown> };

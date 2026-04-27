@@ -14,7 +14,7 @@ const REPORT_PATH = resolve(__dirname, '../swagger-generation-report.json');
 
 type SwaggerReport = {
   success: boolean;
-  generatedBy: 'nest-swagger';
+  generatedBy: 'nestjs-zod';
   paths: number;
   operations: number;
   schemas: number;
@@ -30,7 +30,7 @@ function countOperations(document: OpenAPIObject): number {
 function createReport(document: OpenAPIObject): SwaggerReport {
   return {
     success: true,
-    generatedBy: 'nest-swagger',
+    generatedBy: 'nestjs-zod',
     paths: Object.keys(document.paths).length,
     operations: countOperations(document),
     schemas: Object.keys(document.components?.schemas ?? {}).length,
