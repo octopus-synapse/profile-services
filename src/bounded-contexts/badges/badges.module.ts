@@ -1,22 +1,24 @@
 /**
  * Badges Module
  *
- * Thin Nest shell over `buildBadgesUseCases`. All wiring lives in
- * `badges.composition.ts`; this file only adapts the bundle to Nest's
- * DI container so controllers can `constructor(private bc: BadgesUseCases)`.
+ * Thin Nest shell over `buildBadgesUseCases`. The route descriptors
+ * (`badges.routes.ts`) are synthesized into Nest controllers at module
+ * load by `synthesizeRouteControllers`, which produces classes that
+ * inject `BadgesUseCases` from this module's DI scope.
  */
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { BadgesUseCases } from './application/ports/badges.port';
 import { buildBadgesUseCases } from './badges.composition';
-import { BadgeController } from './infrastructure/controllers/badge.controller';
+import { badgesRoutes } from './badges.routes';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [BadgeController],
+  controllers: synthesizeRouteControllers(BadgesUseCases, badgesRoutes),
   providers: [
     {
       provide: BadgesUseCases,

@@ -6,8 +6,11 @@
  */
 
 import { forwardRef, Module } from '@nestjs/common';
+import { DslUseCases } from '@/bounded-contexts/dsl';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
+import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
+import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -35,7 +38,16 @@ import { AdminOnboardingService } from './infrastructure/services/admin-onboardi
   providers: [
     SystemThemesAdapter,
     OnboardingConfigAdapter,
-    OnboardingPreviewAdapter,
+    {
+      provide: OnboardingPreviewAdapter,
+      useFactory: (
+        prisma: PrismaService,
+        dsl: DslUseCases,
+        serializer: TypstDataSerializerService,
+        compiler: TypstCompilerService,
+      ) => new OnboardingPreviewAdapter(prisma, dsl, serializer, compiler),
+      inject: [PrismaService, DslUseCases, TypstDataSerializerService, TypstCompilerService],
+    },
     AdminOnboardingService,
     { provide: SystemThemesPort, useExisting: SystemThemesAdapter },
     { provide: OnboardingConfigPort, useExisting: OnboardingConfigAdapter },

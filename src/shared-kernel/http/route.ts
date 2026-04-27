@@ -59,14 +59,17 @@ export type PipelineStageName =
 
 /**
  * The `handler` is a pure async function that receives the parsed
- * `HttpCtx`. The use-case bundle is closed over via the BC's
- * `buildXyzRoutes(bc)` factory, so the handler itself takes only `ctx`.
+ * `HttpCtx` plus the BC's use-case bundle (`TBundle`). The bundle is
+ * resolved by the host adapter from DI (Nest today, future Elysia
+ * tomorrow) and passed in at request time — handlers stay pure
+ * functions, no closure required.
  */
 export type RouteHandler<
+  TBundle = unknown,
   TBody = unknown,
   TQuery = Record<string, string | string[] | undefined>,
   TParams = Record<string, string>,
-> = (ctx: HttpCtx<TBody, TQuery, TParams>) => Promise<HandlerResult>;
+> = (ctx: HttpCtx<TBody, TQuery, TParams>, bundle: TBundle) => Promise<HandlerResult>;
 
 /** Per-route middleware — the escape hatch for the ~5% of routes that
  *  need behaviour the global pipeline doesn't cover (custom rate-limit
@@ -75,6 +78,7 @@ export type RouteHandler<
 export type RouteMiddleware = (ctx: HttpCtx) => Promise<void>;
 
 export interface Route<
+  TBundle = unknown,
   TBody = unknown,
   TQuery = Record<string, string | string[] | undefined>,
   TParams = Record<string, string>,
@@ -103,5 +107,26 @@ export interface Route<
   readonly skip?: readonly PipelineStageName[];
   readonly middleware?: readonly RouteMiddleware[];
 
-  readonly handler: RouteHandler<TBody, TQuery, TParams>;
+  readonly handler: RouteHandler<TBundle, TBody, TQuery, TParams>;
+}
+
+/**
+ * A `RouteGroup` ties a bundle of routes to the DI token that resolves
+ * their dependency. The Nest adapter uses the token to inject the
+ * bundle into each synthesized controller. Future framework adapters
+ * resolve the token from their own DI graph (or skip it entirely if
+ * they prefer manual wiring).
+ */
+export interface RouteGroup<TBundle> {
+  readonly bundleToken: abstract new (...args: never[]) => TBundle;
+  readonly routes: ReadonlyArray<Route<TBundle>>;
+}
+
+/** Helper to declare a route group with full type inference, so
+ *  callsites read as `defineRouteGroup(BadgesUseCases, [...])`. */
+export function defineRouteGroup<TBundle>(
+  bundleToken: abstract new (...args: never[]) => TBundle,
+  routes: ReadonlyArray<Route<TBundle>>,
+): RouteGroup<TBundle> {
+  return { bundleToken, routes };
 }
