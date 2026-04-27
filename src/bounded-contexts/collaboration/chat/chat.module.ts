@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
-import { EventPublisher, LoggerPort } from '@/shared-kernel';
+import { NestJwtAdapter } from '@/infrastructure/nest-adapter/nest-jwt.adapter';
+import { EventPublisher, JwtPort, LoggerPort } from '@/shared-kernel';
 import { buildBlockUseCases } from './application/block.composition';
 import { buildChatUseCases } from './application/chat.composition';
 import { BlockUseCases } from './application/ports/block.port';
@@ -27,6 +28,11 @@ import { ChatUserSearchService } from './services/user-search.service';
   ],
   controllers: synthesizeRouteControllers(ChatHttpBundle, chatRoutes),
   providers: [
+    {
+      provide: JwtPort,
+      useFactory: (jwt: JwtService) => new NestJwtAdapter(jwt),
+      inject: [JwtService],
+    },
     // Infrastructure
     ChatCacheService,
     ChatPreferenceService,

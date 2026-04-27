@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { JwtService } from '@nestjs/jwt';
 import type { Socket } from 'socket.io';
+import type { JwtPort } from '@/shared-kernel/auth';
 import { WsAuthGuard } from './ws-auth.guard';
 
 function createMockSocket(
@@ -22,12 +22,12 @@ function createMockSocket(
 
 describe('WsAuthGuard', () => {
   let guard: WsAuthGuard;
-  let jwtService: JwtService;
+  let jwtService: JwtPort;
   let mockVerifyAsync: ReturnType<typeof mock>;
 
   beforeEach(() => {
     mockVerifyAsync = mock(() => Promise.resolve({ sub: 'user-123', email: 'test@example.com' }));
-    jwtService = { verifyAsync: mockVerifyAsync } as unknown as JwtService;
+    jwtService = { verifyAsync: mockVerifyAsync } as unknown as JwtPort;
     guard = new WsAuthGuard(jwtService);
   });
 

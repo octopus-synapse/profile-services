@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 // Shared providers
+import { NestJwtAdapter } from '@/infrastructure/nest-adapter/nest-jwt.adapter';
+import { JwtPort } from '@/shared-kernel/auth';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import {
   RATE_LIMIT_KEY,
@@ -102,6 +104,12 @@ import { SessionDeviceService } from './infrastructure/adapters/session-device.s
     }),
   ],
   providers: [
+    // JwtPort: framework-free wrapper around @nestjs/jwt's JwtService.
+    {
+      provide: JwtPort,
+      useFactory: (jwt: JwtService) => new NestJwtAdapter(jwt),
+      inject: [JwtService],
+    },
     // JWT Strategy for passport auth
     JwtStrategy,
     SessionDeviceService,
@@ -267,6 +275,7 @@ import { SessionDeviceService } from './infrastructure/adapters/session-device.s
     ValidateSessionPort,
     TerminateSessionPort,
     TokenGeneratorPort,
+    JwtPort,
     PassportModule,
     JwtStrategy,
   ],

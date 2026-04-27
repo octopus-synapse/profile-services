@@ -1,4 +1,3 @@
-import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { LoggerPort } from '@/shared-kernel';
+import { JwtPort, LoggerPort } from '@/shared-kernel';
 import { ChatUseCases } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';
@@ -32,7 +31,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private userSockets = new Map<string, Set<string>>();
 
   constructor(
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtPort,
     private readonly chat: ChatUseCases,
     private readonly conversationRepo: ConversationRepository,
     private readonly chatCache: ChatCacheService,

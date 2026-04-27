@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { Socket } from 'socket.io';
+import { JwtPort } from '@/shared-kernel/auth';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 
 export interface WsJwtPayload {
@@ -25,7 +25,7 @@ export type AuthenticatedSocket = Socket & { userId: string };
 export class WsAuthGuard {
   private readonly logger = new Logger(WsAuthGuard.name);
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtPort) {}
 
   async authenticate(client: Socket): Promise<string | null> {
     const token = this.extractToken(client);
