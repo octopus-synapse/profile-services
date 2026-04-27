@@ -32,7 +32,7 @@ import {
 } from '../../../domain/entities/anti-ghosting';
 import { AntiGhostingRepositoryPort } from '../../../domain/ports/anti-ghosting.repository.port';
 import { AntiGhostingEmailerPort } from '../../../domain/ports/anti-ghosting-emailer.port';
-import { buildAntiGhostingEmail } from '../../services/build-anti-ghosting-email';
+import { buildAntiGhostingEmail } from '../../services/build-anti-ghosting-email.service';
 
 const CTX = 'RunAntiGhostingSweepUseCase';
 const MS_PER_DAY = 24 * 60 * 60 * 1000;

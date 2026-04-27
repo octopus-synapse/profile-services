@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { buildAntiGhostingEmail } from './build-anti-ghosting-email';
+import { buildAntiGhostingEmail } from './build-anti-ghosting-email.service';
 
 describe('buildAntiGhostingEmail', () => {
   it('uses the 7-day copy at 7 days of silence', () => {

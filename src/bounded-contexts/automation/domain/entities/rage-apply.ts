@@ -7,7 +7,21 @@
  * typed value the controller hands straight back.
  */
 
-import type { UserApplyCriteriaData } from '@/bounded-contexts/identity/users/application/ports/user-preferences.port';
+/**
+ * Subset of the user-preferences `applyCriteria` blob the rage-apply
+ * pipeline cares about. Defined locally so this BC's domain stays
+ * free of cross-BC imports — the persistence adapter projects the
+ * identity-side row into this shape.
+ */
+export interface RageApplyCriteria {
+  readonly minFit: number | null;
+  readonly stacks: string[];
+  readonly seniorities: string[];
+  readonly remotePolicies: Array<'REMOTE' | 'HYBRID' | 'ONSITE'>;
+  readonly paymentCurrencies: Array<'BRL' | 'USD' | 'EUR' | 'GBP'>;
+  readonly minSalaryUsd: number | null;
+  readonly defaultCover: string | null;
+}
 
 /**
  * Subset of the user record the rage-apply pipeline needs:
@@ -17,7 +31,7 @@ import type { UserApplyCriteriaData } from '@/bounded-contexts/identity/users/ap
 export interface RageApplyUserSnapshot {
   readonly isActive: boolean;
   readonly primaryResumeId: string | null;
-  readonly applyCriteria: UserApplyCriteriaData | null;
+  readonly applyCriteria: RageApplyCriteria | null;
 }
 
 /**

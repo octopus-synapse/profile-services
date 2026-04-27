@@ -8,6 +8,10 @@ import type { WeeklyCuratedBatchView } from '../../../domain/entities/weekly-cur
 import type { WeeklyCuratedItemRow } from '../../../domain/entities/weekly-curated-item';
 import { ApplyModeRepositoryPort } from '../../../domain/ports/apply-mode.repository.port';
 
+// Re-exported so the controller can name the response shape without
+// reaching into `domain/entities/` directly (layer-isolation rule).
+export type { WeeklyCuratedBatchView };
+
 export class GetCurrentBatchUseCase {
   constructor(private readonly repository: ApplyModeRepositoryPort) {}
 

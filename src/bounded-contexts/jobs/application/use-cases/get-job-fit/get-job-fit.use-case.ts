@@ -13,7 +13,7 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.excep
 import { NoPrimaryResumeException } from '../../../domain/exceptions/jobs.exceptions';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 import { ResumeJobMatcherPort } from '../../../domain/ports/resume-job-matcher.port';
-import { extractSoftSignals, percentOverlap } from '../../services/fit-signals';
+import { extractSoftSignals, percentOverlap } from '../../services/fit-signals.service';
 
 export class GetJobFitUseCase {
   constructor(

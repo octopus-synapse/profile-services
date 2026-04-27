@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { computeFitScore } from './compute-fit-score';
+import { computeFitScore } from './compute-fit-score.service';
 
 describe('computeFitScore', () => {
   it('scores 100 when every factor matches perfectly', () => {

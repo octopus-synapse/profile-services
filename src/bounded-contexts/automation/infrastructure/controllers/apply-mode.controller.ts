@@ -13,9 +13,11 @@ import {
   RequireMinQualityGuard,
 } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { ApproveCuratedItemUseCase } from '../../application/use-cases/approve-curated-item/approve-curated-item.use-case';
-import { GetCurrentBatchUseCase } from '../../application/use-cases/get-current-batch/get-current-batch.use-case';
+import {
+  GetCurrentBatchUseCase,
+  type WeeklyCuratedBatchView,
+} from '../../application/use-cases/get-current-batch/get-current-batch.use-case';
 import { RejectCuratedItemUseCase } from '../../application/use-cases/reject-curated-item/reject-curated-item.use-case';
-import type { WeeklyCuratedBatchView } from '../../domain/entities/weekly-curated-batch-view';
 
 class CurrentBatchDataDto {
   @ApiProperty({ nullable: true, description: "This week's batch or null if none active" })

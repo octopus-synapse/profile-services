@@ -1,7 +1,7 @@
-import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { ResumeJobMatcherPort } from '../../domain/ports/resume-job-matcher.port';
 
 /**
  * Picks the top N jobs that match a user's primary resume, subject to any
@@ -20,7 +20,7 @@ const CTX = 'CuratedSelectorService';
 export class CuratedSelectorService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly analytics: ResumeAnalyticsFacade,
+    private readonly matcher: ResumeJobMatcherPort,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -93,7 +93,7 @@ export class CuratedSelectorService {
         .join('\n\n');
 
       try {
-        const match = await this.analytics.matchJobDescription(
+        const match = await this.matcher.matchJobDescription(
           user.primaryResumeId,
           userId,
           jobText,

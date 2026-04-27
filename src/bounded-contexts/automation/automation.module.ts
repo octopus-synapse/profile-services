@@ -13,6 +13,8 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
+import { ResumeJobMatcherPort } from './domain/ports/resume-job-matcher.port';
+import { ResumeAnalyticsJobMatcherAdapter } from './infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -60,10 +62,15 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
       inject: [PrismaService, LoggerPort],
     },
     {
+      provide: ResumeJobMatcherPort,
+      useFactory: (facade: ResumeAnalyticsFacade) => new ResumeAnalyticsJobMatcherAdapter(facade),
+      inject: [ResumeAnalyticsFacade],
+    },
+    {
       provide: CuratedSelectorService,
-      useFactory: (prisma: PrismaService, analytics: ResumeAnalyticsFacade, logger: LoggerPort) =>
-        new CuratedSelectorService(prisma, analytics, logger),
-      inject: [PrismaService, ResumeAnalyticsFacade, LoggerPort],
+      useFactory: (prisma: PrismaService, matcher: ResumeJobMatcherPort, logger: LoggerPort) =>
+        new CuratedSelectorService(prisma, matcher, logger),
+      inject: [PrismaService, ResumeJobMatcherPort, LoggerPort],
     },
     {
       provide: GetCurrentBatchUseCase,

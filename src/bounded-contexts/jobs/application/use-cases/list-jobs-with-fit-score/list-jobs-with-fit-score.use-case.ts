@@ -7,7 +7,7 @@
 
 import { LoggerPort } from '@/shared-kernel';
 import type { JobFilters } from '../../../domain/entities/job';
-import type { FitScore } from '../../services/compute-fit-score';
+import type { FitScore } from '../../services/compute-fit-score.service';
 import type { FitScoreBatchService } from '../../services/fit-score-batch.service';
 import { ListJobsUseCase } from '../list-jobs/list-jobs.use-case';
 

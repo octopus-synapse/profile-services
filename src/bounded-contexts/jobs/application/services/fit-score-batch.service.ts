@@ -10,7 +10,7 @@
 
 import type { JobFitInputRow } from '../../domain/entities/job';
 import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
-import { computeFitScore, type FitScore } from './compute-fit-score';
+import { computeFitScore, type FitScore } from './compute-fit-score.service';
 
 export class FitScoreBatchService {
   constructor(private readonly repository: JobsRepositoryPort) {}

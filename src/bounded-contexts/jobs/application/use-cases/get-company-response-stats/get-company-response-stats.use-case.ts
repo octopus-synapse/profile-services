@@ -19,6 +19,10 @@
 import type { CompanyResponseStats } from '../../../domain/entities/application-tracker';
 import { ApplicationTrackerRepositoryPort } from '../../../domain/ports/application-tracker.repository.port';
 
+// Re-exported so the controller can name the response shape without
+// reaching into `domain/entities/` directly (layer-isolation rule).
+export type { CompanyResponseStats };
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export class GetCompanyResponseStatsUseCase {

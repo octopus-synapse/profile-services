@@ -14,13 +14,15 @@ import type { Request } from 'express';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { GetCompanyResponseStatsUseCase } from '../../application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
-import { ListApplicationTimelineUseCase } from '../../application/use-cases/list-application-timeline/list-application-timeline.use-case';
+import {
+  type CompanyResponseStats,
+  GetCompanyResponseStatsUseCase,
+} from '../../application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
+import {
+  ListApplicationTimelineUseCase,
+  type TrackedApplication,
+} from '../../application/use-cases/list-application-timeline/list-application-timeline.use-case';
 import { RecordApplicationEventUseCase } from '../../application/use-cases/record-application-event/record-application-event.use-case';
-import type {
-  CompanyResponseStats,
-  TrackedApplication,
-} from '../../domain/entities/application-tracker';
 import { RecordApplicationEventDto } from '../../dto/application-event.dto';
 
 interface RequestWithUser extends Request {

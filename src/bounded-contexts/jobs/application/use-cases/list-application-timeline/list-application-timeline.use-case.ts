@@ -22,6 +22,10 @@ import type { JobApplicationEventType } from '@prisma/client';
 import type { TrackedApplication } from '../../../domain/entities/application-tracker';
 import { ApplicationTrackerRepositoryPort } from '../../../domain/ports/application-tracker.repository.port';
 
+// Re-exported so the controller can name the response shape without
+// reaching into `domain/entities/` directly (layer-isolation rule).
+export type { TrackedApplication };
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const RESPONSE_EVENT_TYPES: ReadonlySet<JobApplicationEventType> = new Set<JobApplicationEventType>(
