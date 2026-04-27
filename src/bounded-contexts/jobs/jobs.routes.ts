@@ -1,18 +1,27 @@
 /**
  * Route descriptors for the jobs BC. Replaces `JobController` and
- * `ApplicationTrackerController` (excepting the rate-limited
- * `POST /v1/jobs/import-from-url` route, which keeps its existing
- * Nest controller because the synthesizer doesn't model
- * `@UseGuards(RateLimitGuard)` yet).
+ * `ApplicationTrackerController` — including the rate-limited
+ * `POST /v1/jobs/import-from-url` route, which now declares its
+ * `@UseGuards(RateLimitGuard)` requirement via
+ * `Route.guards: [{ id: 'rate-limit', metadata: {...} }]`. The BC's
+ * module wires `RateLimitGuard` into the synthesizer's guard registry.
  */
 
 import type { EnglishLevel, JobType } from '@prisma/client';
 import { z } from 'zod';
+import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { RecordApplicationEventSchema } from './dto/application-event.dto';
-import { ApplyToJobSchema, CreateJobSchema, UpdateJobSchema } from './dto/job.dto';
+import {
+  ApplyToJobSchema,
+  CreateJobSchema,
+  ImportJobFromUrlSchema,
+  UpdateJobSchema,
+} from './dto/job.dto';
+
+export { RATE_LIMIT_KEY };
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,
@@ -431,6 +440,32 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
       const { company } = ctx.params as { company: string };
       const data = await bc.getCompanyResponseStats.execute(company);
       return { success: true, data };
+    },
+  },
+
+  // ─── URL import (rate-limited) ────────────────────────────────────
+  {
+    method: 'POST',
+    path: '/v1/jobs/import-from-url',
+    auth: { kind: 'jwt' },
+    permission: Permission.JOB_CREATE,
+    body: ImportJobFromUrlSchema,
+    statusCode: 200,
+    guards: [
+      {
+        id: 'rate-limit',
+        metadata: { points: 5, duration: 600, keyStrategy: 'user' },
+      },
+    ],
+    openapi: {
+      summary: 'Fetch a careers page and return an LLM-extracted job preview (not persisted)',
+      tags: ['jobs'],
+      description: 'Jobs API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { url: string };
+      return bc.importJobFromUrl.execute(body.url);
     },
   },
 ];
