@@ -7,6 +7,7 @@ import { NotificationsModule } from '@/bounded-contexts/notifications/notificati
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
@@ -24,7 +25,6 @@ import { PrismaJobLoader } from './infrastructure/adapters/persistence/prisma-jo
 import { PrismaResumeExistence } from './infrastructure/adapters/persistence/prisma-resume-existence.repository';
 import { PrismaUserFitStateAdapter } from './infrastructure/adapters/persistence/prisma-user-fit-state.repository';
 import { RedisMatchCacheAdapter } from './infrastructure/adapters/redis-match-cache.adapter';
-import { JobMatchController } from './infrastructure/controllers/job-match.controller';
 import {
   DAILY_RECOMMENDATIONS_QUEUE,
   DailyRecommendationsWorker,
@@ -33,6 +33,7 @@ import {
   JOB_MATCH_RECOMPUTE_QUEUE,
   JobMatchRecomputeWorker,
 } from './infrastructure/workers/job-match-recompute.worker';
+import { jobMatchRoutes } from './job-match.routes';
 
 /**
  * job-match/ bounded context — owner of the Match Score. Consumes
@@ -54,7 +55,7 @@ import {
     BullModule.registerQueue({ name: JOB_MATCH_RECOMPUTE_QUEUE }),
     BullModule.registerQueue({ name: DAILY_RECOMMENDATIONS_QUEUE }),
   ],
-  controllers: [JobMatchController],
+  controllers: [...synthesizeRouteControllers(ComputeMatchUseCase, jobMatchRoutes)],
   providers: [
     {
       provide: ComputeMatchUseCase,
