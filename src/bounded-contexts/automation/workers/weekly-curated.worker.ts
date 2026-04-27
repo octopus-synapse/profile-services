@@ -4,7 +4,7 @@ import { type Job, type Queue } from 'bullmq';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
-import { CuratedSelectorService } from '../services/curated-selector.service';
+import { CuratedSelectorService } from '../application/services/curated-selector.service';
 
 const CTX = 'WeeklyCuratedWorker';
 

@@ -6,7 +6,7 @@ import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { LoggerPort } from '@/shared-kernel';
 import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
-import { CuratedSelectorService } from '../services/curated-selector.service';
+import { CuratedSelectorService } from '../application/services/curated-selector.service';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
 

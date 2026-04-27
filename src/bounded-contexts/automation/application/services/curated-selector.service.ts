@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
-import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 
 /**
  * Picks the top N jobs that match a user's primary resume, subject to any
@@ -9,14 +9,19 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
  *
  * Shared by both workers: Weekly-Curated uses it once a week per user;
  * Auto-Apply hits it hourly with a tighter `since` window and min-fit floor.
+ *
+ * POJO orchestrator — wired via the module's `useFactory`. Takes a
+ * `LoggerPort` instead of Nest's built-in `Logger` so the testing
+ * harness can swap in `stubLogger` without bringing in Nest.
  */
-@Injectable()
-export class CuratedSelectorService {
-  private readonly logger = new Logger(CuratedSelectorService.name);
 
+const CTX = 'CuratedSelectorService';
+
+export class CuratedSelectorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly analytics: ResumeAnalyticsFacade,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -100,6 +105,7 @@ export class CuratedSelectorService {
         scoringFailures++;
         this.logger.warn(
           `Scoring failed for user=${userId} job=${job.id}: ${(err as Error).message}`,
+          CTX,
         );
       }
     }
@@ -110,6 +116,8 @@ export class CuratedSelectorService {
     if (scoringFailures > jobs.length / 2) {
       this.logger.error(
         `Curated selector: ${scoringFailures}/${jobs.length} scoring calls failed for user=${userId} — investigate`,
+        undefined,
+        CTX,
       );
     }
 
