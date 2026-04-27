@@ -39,12 +39,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CancelImportUseCase } from '../../application/use-cases/cancel-import/cancel-import.use-case';
-import { CreateImportJobUseCase } from '../../application/use-cases/create-import-job/create-import-job.use-case';
-import { GetImportStatusUseCase } from '../../application/use-cases/get-import-status/get-import-status.use-case';
-import { ListImportHistoryUseCase } from '../../application/use-cases/list-import-history/list-import-history.use-case';
-import { ProcessImportUseCase } from '../../application/use-cases/process-import/process-import.use-case';
-import { RetryImportUseCase } from '../../application/use-cases/retry-import/retry-import.use-case';
+import { ImportUseCases } from '../../application/ports/import.port';
 import {
   JsonResumeBasicsMissingException,
   JsonResumeNameMissingException,
@@ -78,12 +73,7 @@ export class ResumeImportController {
   private readonly parser = new JsonResumeParser();
 
   constructor(
-    private readonly createImportJob: CreateImportJobUseCase,
-    private readonly processImport: ProcessImportUseCase,
-    private readonly getImportStatus: GetImportStatusUseCase,
-    private readonly listImportHistory: ListImportHistoryUseCase,
-    private readonly cancelImport: CancelImportUseCase,
-    private readonly retryImport: RetryImportUseCase,
+    private readonly bc: ImportUseCases,
     private readonly pdfImport: PdfImportService,
     private readonly githubImport: GithubImportService,
   ) {}
@@ -173,13 +163,13 @@ export class ResumeImportController {
   ): Promise<DataResponse<ImportResultDto>> {
     this.validateJsonResume(dto.data);
 
-    const importJob = await this.createImportJob.execute({
+    const importJob = await this.bc.createImportJob.execute({
       userId: user.userId,
       source: 'JSON',
       rawData: dto.data,
     });
 
-    const result = await this.processImport.execute(importJob.id);
+    const result = await this.bc.processImport.execute(importJob.id);
     return {
       success: true,
       data: toImportResultDto({
@@ -214,7 +204,7 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<DataResponse<ImportJobDto>> {
-    const importJob = await this.getImportStatus.execute(importId);
+    const importJob = await this.bc.getImportStatus.execute(importId);
     return { success: true, data: toImportJobDto(importJob) };
   }
 
@@ -225,7 +215,7 @@ export class ResumeImportController {
   })
   @ApiDataResponse(ImportJobDto, { description: 'List of import jobs' })
   async getHistory(@CurrentUser() user: UserPayload): Promise<DataResponse<ImportJobDto[]>> {
-    const jobs = await this.listImportHistory.execute(user.userId);
+    const jobs = await this.bc.listImportHistory.execute(user.userId);
     return { success: true, data: toImportJobDtoList(jobs) };
   }
 
@@ -241,7 +231,7 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<void> {
-    await this.cancelImport.execute(importId);
+    await this.bc.cancelImport.execute(importId);
   }
 
   @Post(':importId/retry')
@@ -256,7 +246,7 @@ export class ResumeImportController {
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
   ): Promise<DataResponse<ImportResultDto>> {
-    const result = await this.retryImport.execute(importId);
+    const result = await this.bc.retryImport.execute(importId);
     return {
       success: true,
       data: toImportResultDto({

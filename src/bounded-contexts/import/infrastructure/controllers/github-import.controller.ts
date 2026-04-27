@@ -4,7 +4,7 @@ import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infr
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ImportGithubUseCase } from '../../application/use-cases/import-github/import-github.use-case';
+import { ImportUseCases } from '../../application/ports/import.port';
 
 interface GithubImportBody {
   token: string;
@@ -17,7 +17,7 @@ interface GithubImportBody {
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/import/github')
 export class GithubImportController {
-  constructor(private readonly useCase: ImportGithubUseCase) {}
+  constructor(private readonly bc: ImportUseCases) {}
 
   @Post('parse')
   @RequirePermission(Permission.RESUME_UPDATE)
@@ -30,7 +30,7 @@ export class GithubImportController {
     @CurrentUser() _user: UserPayload,
     @Body() body: GithubImportBody,
   ): Promise<{ success: true; data: unknown }> {
-    const parsed = await this.useCase.execute({
+    const parsed = await this.bc.importGithub.execute({
       token: body.token,
       username: body.username,
       repoLimit: body.repoLimit,
