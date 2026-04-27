@@ -1,15 +1,36 @@
 /**
  * Route descriptors for the resume-analytics submodule. Replaces
- * `ResumeAnalyticsController`. The SSE controller stays as a legacy
- * Nest controller because the synthesizer doesn't model SSE yet.
+ * `ResumeAnalyticsController` and the legacy `AnalyticsSseController`
+ * — the SSE streams are now declared as `kind: 'sse'` Route descriptors
+ * and wired through a dedicated `AnalyticsSseBundle`.
  *
- * Bundle token is the existing `ResumeAnalyticsFacade`.
+ * Bundle token for the JSON routes is `ResumeAnalyticsFacade`.
  */
 
+import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
+
+export interface AnalyticsUpdateEvent {
+  readonly type: 'view' | 'ats_score';
+  readonly resumeId: string;
+  readonly data: { views?: number; atsScore?: number; timestamp: Date };
+}
+
+export interface AnalyticsSseEvent {
+  readonly data: AnalyticsUpdateEvent;
+  readonly id: string;
+  readonly type: string;
+  readonly retry: number;
+}
+
+export abstract class AnalyticsSseBundle {
+  abstract subscribeToResumeAnalytics(resumeId: string): Observable<AnalyticsSseEvent>;
+  abstract subscribeToViews(resumeId: string): Observable<AnalyticsSseEvent>;
+  abstract subscribeToAtsScore(resumeId: string): Observable<AnalyticsSseEvent>;
+}
 
 const ResumeIdParam = z.object({ resumeId: z.string() });
 
@@ -271,6 +292,73 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const progression = await facade.getScoreProgression(resumeId, ctx.user!.userId);
       return { success: true, data: progression };
+    },
+  },
+];
+
+/**
+ * SSE routes for the resume-analytics submodule. Live in a separate
+ * group because the `Route<TBundle>` shape pins the bundle type per
+ * group — these subscribers consume `AnalyticsSseBundle`, not
+ * `ResumeAnalyticsFacade`. Paths preserve the legacy
+ * `/v1/analytics/...` prefix from `AnalyticsSseController`.
+ */
+export const resumeAnalyticsSseRoutes: ReadonlyArray<Route<AnalyticsSseBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/analytics/:resumeId/live',
+    auth: { kind: 'jwt' },
+    permission: Permission.ANALYTICS_READ_OWN,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    params: ResumeIdParam,
+    openapi: {
+      summary: 'Subscribe to live analytics stream',
+      tags: ['resume-analytics'],
+      description: 'Streams view and ATS score updates for a resume in real time.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      return bundle.subscribeToResumeAnalytics(resumeId);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/analytics/:resumeId/views',
+    auth: { kind: 'jwt' },
+    permission: Permission.ANALYTICS_READ_OWN,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    params: ResumeIdParam,
+    openapi: {
+      summary: 'Subscribe to live views stream',
+      tags: ['resume-analytics'],
+      description: 'Streams only view-count updates for a resume.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      return bundle.subscribeToViews(resumeId);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/analytics/:resumeId/ats-score',
+    auth: { kind: 'jwt' },
+    permission: Permission.ANALYTICS_READ_OWN,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    params: ResumeIdParam,
+    openapi: {
+      summary: 'Subscribe to live ATS stream',
+      tags: ['resume-analytics'],
+      description: 'Streams only ATS-score updates for a resume.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      return bundle.subscribeToAtsScore(resumeId);
     },
   },
 ];

@@ -4,9 +4,14 @@
  * Architecture: Clean Architecture / Hexagonal.
  * Services depend on ports defined in `application/ports/`.
  * Adapters under `infrastructure/adapters/persistence/` bind ports to Prisma.
+ *
+ * The SSE streams are synthesized from `kind: 'sse'` Route descriptors
+ * (`resumeAnalyticsSseRoutes`) wired through `AnalyticsSseBundle`.
  */
 
 import { Module } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { fromEvent, map, merge } from 'rxjs';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
@@ -36,14 +41,18 @@ import {
   SnapshotRepositoryPort,
   ViewTrackingRepositoryPort,
 } from './application/ports/resume-analytics.port';
-import { AnalyticsSseController } from './controllers/analytics-sse.controller';
 import { PrismaAtsScoreCatalogRepository } from './infrastructure/adapters/persistence/ats-score-catalog.repository';
 import { PrismaBenchmarkRepository } from './infrastructure/adapters/persistence/benchmark.repository';
 import { EventEmitterAnalyticsEventBusAdapter } from './infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
 import { PrismaSnapshotRepository } from './infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from './infrastructure/adapters/persistence/view-tracking.repository';
 import { SnapshotPort, ViewTrackingPort } from './ports/dashboard.ports';
-import { resumeAnalyticsRoutes } from './resume-analytics.routes';
+import {
+  AnalyticsSseBundle,
+  type AnalyticsUpdateEvent,
+  resumeAnalyticsRoutes,
+  resumeAnalyticsSseRoutes,
+} from './resume-analytics.routes';
 import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
 import { DashboardService } from './services/dashboard.service';
@@ -53,11 +62,49 @@ import { SnapshotService } from './services/snapshot.service';
 import { ViewTrackingService } from './services/view-tracking.service';
 import { ViewsProjectionWorker } from './workers/views-projection.worker';
 
+function makeAnalyticsSseBundle(emitter: EventEmitter2): AnalyticsSseBundle {
+  return {
+    subscribeToResumeAnalytics: (resumeId) => {
+      const viewEvents = fromEvent<AnalyticsUpdateEvent>(emitter, `analytics:${resumeId}:view`);
+      const atsScoreEvents = fromEvent<AnalyticsUpdateEvent>(
+        emitter,
+        `analytics:${resumeId}:ats_score`,
+      );
+      return merge(viewEvents, atsScoreEvents).pipe(
+        map((event) => ({
+          data: event,
+          id: `${resumeId}-${Date.now()}`,
+          type: event.type,
+          retry: 10000,
+        })),
+      );
+    },
+    subscribeToViews: (resumeId) =>
+      fromEvent<AnalyticsUpdateEvent>(emitter, `analytics:${resumeId}:view`).pipe(
+        map((event) => ({
+          data: event,
+          id: `${resumeId}-view-${Date.now()}`,
+          type: 'view',
+          retry: 10000,
+        })),
+      ),
+    subscribeToAtsScore: (resumeId) =>
+      fromEvent<AnalyticsUpdateEvent>(emitter, `analytics:${resumeId}:ats_score`).pipe(
+        map((event) => ({
+          data: event,
+          id: `${resumeId}-ats-${Date.now()}`,
+          type: 'ats_score',
+          retry: 10000,
+        })),
+      ),
+  };
+}
+
 @Module({
   imports: [PrismaModule],
   controllers: [
     ...synthesizeRouteControllers(ResumeAnalyticsFacade, resumeAnalyticsRoutes),
-    AnalyticsSseController,
+    ...synthesizeRouteControllers(AnalyticsSseBundle, resumeAnalyticsSseRoutes),
   ],
   providers: [
     // Domain Services
@@ -108,6 +155,12 @@ import { ViewsProjectionWorker } from './workers/views-projection.worker';
     { provide: ViewTrackingPort, useExisting: ViewTrackingService },
     { provide: SnapshotPort, useExisting: SnapshotService },
     { provide: AtsScoringPort, useExisting: ATSScoreService },
+    // SSE bundle
+    {
+      provide: AnalyticsSseBundle,
+      useFactory: (emitter: EventEmitter2) => makeAnalyticsSseBundle(emitter),
+      inject: [EventEmitter2],
+    },
   ],
   exports: [ResumeAnalyticsFacade],
 })

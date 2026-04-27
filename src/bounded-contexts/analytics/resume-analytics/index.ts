@@ -1,6 +1,5 @@
 // Export DTOs from local bounded-context
 
-export * from './controllers';
 export * from './dto/analytics.dto';
 export type {
   AnalyticsDashboard,
