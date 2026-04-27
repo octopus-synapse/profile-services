@@ -13,6 +13,7 @@ import type { EmailService } from '@/bounded-contexts/platform/common/email/emai
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { FitScoreBatchService } from './application/services/fit-score-batch.service';
 import { JobEnrichmentService } from './application/services/job-enrichment.service';
@@ -45,6 +46,7 @@ import { ResumeAnalyticsJobMatcherAdapter } from './infrastructure/adapters/exte
 import { PrismaAntiGhostingRepository } from './infrastructure/adapters/persistence/prisma-anti-ghosting.repository';
 import { PrismaApplicationTrackerRepository } from './infrastructure/adapters/persistence/prisma-application-tracker.repository';
 import { PrismaJobsRepository } from './infrastructure/adapters/persistence/prisma-jobs.repository';
+import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
 
 export { JobsUseCases };
 
@@ -108,4 +110,20 @@ export function buildJobsUseCases(
       logger,
     ),
   };
+}
+
+/**
+ * Registers the daily anti-ghosting cron sweep against the shared
+ * `CronPort`. Called once at app boot from the Nest module via a
+ * side-effect provider.
+ *
+ * Schedule: every day at 09:00 (`EVERY_DAY_AT_9AM` → '0 9 * * *').
+ */
+export function registerJobsJobs(
+  cron: CronPort,
+  bundle: JobsUseCases,
+  logger: LoggerPort,
+): void {
+  const antiGhosting = new AntiGhostingWorker(bundle, logger);
+  cron.register({ pattern: '0 9 * * *' }, antiGhosting.run.bind(antiGhosting));
 }

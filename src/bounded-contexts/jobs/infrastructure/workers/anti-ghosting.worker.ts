@@ -4,23 +4,23 @@
  * actual silence-detection logic lives in
  * `RunAntiGhostingSweepUseCase` so it can be unit-tested without
  * Nest's scheduler.
+ *
+ * Framework-free POJO. Wired via `registerJobsJobs` against the
+ * shared `CronPort` (Nest cron adapter lives in
+ * `infrastructure/nest-adapter/nest-cron.adapter.ts`).
  */
 
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { LoggerPort } from '@/shared-kernel';
-import { JobsUseCases } from '../../application/ports/jobs.port';
+import type { LoggerPort } from '@/shared-kernel';
+import type { JobsUseCases } from '../../application/ports/jobs.port';
 
 const CTX = 'AntiGhostingWorker';
 
-@Injectable()
 export class AntiGhostingWorker {
   constructor(
     private readonly bc: JobsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async run(): Promise<void> {
     try {
       const result = await this.bc.runAntiGhostingSweep.execute();

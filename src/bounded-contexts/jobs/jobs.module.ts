@@ -23,9 +23,9 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobsUseCases } from './application/ports/jobs.port';
-import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
-import { buildJobsUseCases } from './jobs.composition';
+import { buildJobsUseCases, registerJobsJobs } from './jobs.composition';
 import { jobsRoutes, RATE_LIMIT_KEY } from './jobs.routes';
 
 @Module({
@@ -55,7 +55,16 @@ import { jobsRoutes, RATE_LIMIT_KEY } from './jobs.routes';
         ResumeAnalyticsFacade,
       ],
     },
-    AntiGhostingWorker,
+    // Side-effect provider: registers the anti-ghosting cron sweep
+    // against the global CronPort at module-init time.
+    {
+      provide: 'JOBS_JOBS_REGISTERED',
+      useFactory: (cron: CronPort, bundle: JobsUseCases, logger: LoggerPort) => {
+        registerJobsJobs(cron, bundle, logger);
+        return true;
+      },
+      inject: [CronPort, JobsUseCases, LoggerPort],
+    },
   ],
   exports: [JobsUseCases],
 })
