@@ -16,17 +16,18 @@ import { EmailService } from '@/bounded-contexts/platform/common/email/email.ser
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { JobsUseCases } from './application/ports/jobs.port';
-import { ApplicationTrackerController } from './infrastructure/controllers/application-tracker.controller';
 import { JobController } from './infrastructure/controllers/job.controller';
 import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
 import { buildJobsUseCases } from './jobs.composition';
+import { jobsRoutes } from './jobs.routes';
 
 @Module({
   imports: [PrismaModule, ResumeAnalyticsModule, EmailModule, AiModule, RateLimitModule],
-  controllers: [JobController, ApplicationTrackerController],
+  controllers: [...synthesizeRouteControllers(JobsUseCases, jobsRoutes), JobController],
   providers: [
     {
       provide: JobsUseCases,

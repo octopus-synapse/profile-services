@@ -1,21 +1,14 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import type { EnglishLevel, JobType } from '@prisma/client';
-import { z } from 'zod';
-import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+/**
+ * Job Controller (legacy rate-limited shell)
+ *
+ * The bulk of /v1/jobs endpoints have moved to `jobs.routes.ts`. The
+ * `import-from-url` action stays here because it relies on the Nest
+ * `RateLimitGuard` decorator stack, which the Route synthesizer
+ * does not yet model.
+ */
+
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   RateLimit,
@@ -24,40 +17,7 @@ import {
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { JobsUseCases } from '../../application/ports/jobs.port';
-import {
-  ApplyToJobDto,
-  ApplyToJobSchema,
-  CreateJobDto,
-  CreateJobSchema,
-  ImportJobFromUrlDto,
-  ImportJobFromUrlSchema,
-  JobApplicationsByJobDto,
-  JobResponseDto,
-  PaginatedJobsDto,
-  UpdateJobDto,
-  UpdateJobSchema,
-} from '../../dto/job.dto';
-import {
-  parsePaymentCurrencies,
-  parseRemotePolicies,
-  parseSkillsCsv,
-} from '../../presenters/job.presenter';
-
-const JobListQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  search: z.string().max(500).optional(),
-  jobType: z.string().optional(),
-  skills: z.string().max(500).optional(),
-  paymentCurrency: z.string().max(100).optional(),
-  remotePolicy: z.string().max(100).optional(),
-  minEnglishLevel: z.string().optional(),
-});
-
-const PageOnlyQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-});
+import { ImportJobFromUrlDto, ImportJobFromUrlSchema } from '../../dto/job.dto';
 
 @SdkExport({ tag: 'jobs', description: 'Jobs API' })
 @ApiTags('jobs')
@@ -65,212 +25,6 @@ const PageOnlyQuerySchema = z.object({
 @Controller('v1/jobs')
 export class JobController {
   constructor(private readonly bc: JobsUseCases) {}
-
-  @Get()
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiQuery({ name: 'jobType', required: false, type: String })
-  @ApiQuery({ name: 'skills', required: false, description: 'CSV of skill names' })
-  @ApiQuery({ name: 'paymentCurrency', required: false, description: 'CSV of BRL|USD|EUR|GBP' })
-  @ApiQuery({ name: 'remotePolicy', required: false, description: 'CSV of REMOTE|HYBRID|ONSITE' })
-  @ApiQuery({
-    name: 'minEnglishLevel',
-    required: false,
-    description:
-      'Max level the viewer accepts. Returns jobs whose required level is ≤ this (or null).',
-  })
-  async findAll(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
-  ) {
-    return this.bc.listJobs.execute(
-      {
-        page: q.page,
-        limit: q.limit,
-        search: q.search,
-        jobType: q.jobType as JobType | undefined,
-        skills: parseSkillsCsv(q.skills),
-        paymentCurrency: parsePaymentCurrencies(q.paymentCurrency),
-        remotePolicy: parseRemotePolicies(q.remotePolicy),
-        minEnglishLevel: q.minEnglishLevel as EnglishLevel | undefined,
-      },
-      req.user.userId,
-    );
-  }
-
-  @Get('with-fit-score')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary:
-      'Same as GET /jobs but each item is enriched with a 0-100 structured fit score for the current user.',
-  })
-  async findAllWithFitScore(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
-  ) {
-    return this.bc.listJobsWithFitScore.execute(
-      {
-        page: q.page,
-        limit: q.limit,
-        search: q.search,
-        jobType: q.jobType as JobType | undefined,
-        skills: parseSkillsCsv(q.skills),
-        paymentCurrency: parsePaymentCurrencies(q.paymentCurrency),
-        remotePolicy: parseRemotePolicies(q.remotePolicy),
-        minEnglishLevel: q.minEnglishLevel as EnglishLevel | undefined,
-      },
-      req.user.userId,
-    );
-  }
-
-  @Get('mine')
-  @RequirePermission(Permission.JOB_CREATE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List jobs the current user (recruiter) authored' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiDataResponse(PaginatedJobsDto, { description: 'Paginated jobs owned by the recruiter' })
-  async getMyJobs(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
-  ) {
-    return this.bc.listMyJobs.execute(req.user.userId, q.page, q.limit);
-  }
-
-  @Get('bookmarks')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List jobs bookmarked by the current user' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getBookmarkedJobs(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
-  ) {
-    return this.bc.listBookmarkedJobs.execute(req.user.userId, q.page, q.limit);
-  }
-
-  @Get('recommended')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List jobs recommended for the current user based on resume skills' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getRecommendedJobs(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
-  ) {
-    return this.bc.listRecommendedJobs.execute(req.user.userId, q.page, q.limit);
-  }
-
-  @Get('applications')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List active applications submitted by the current user' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getMyApplications(
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
-  ) {
-    return this.bc.listMyApplications.execute(req.user.userId, q.page, q.limit);
-  }
-
-  @Get(':id/applications')
-  @RequirePermission(Permission.JOB_CREATE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'List applications received for a job (job owner only)' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiDataResponse(JobApplicationsByJobDto, {
-    description: 'Paginated applications received for the job',
-  })
-  async getApplicationsForJob(
-    @Param('id') id: string,
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
-  ) {
-    return this.bc.listJobApplications.execute(id, req.user.userId, q.page, q.limit);
-  }
-
-  @Get(':id/similar')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Jobs similar to the given one (by skill overlap)' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max 10, default 5' })
-  async findSimilar(
-    @Param('id') id: string,
-    @Req() req: { user: { userId: string } },
-    @Query(createZodPipe(z.object({ limit: z.coerce.number().int().min(1).max(10).default(5) })))
-    q: { limit: number },
-  ) {
-    return this.bc.findSimilarJobs.execute(id, req.user.userId, q.limit);
-  }
-
-  @Get(':id')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Fetch a single job by id' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(JobResponseDto, { description: 'Job details' })
-  async findById(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.getJob.execute(id, req.user.userId);
-  }
-
-  @Get(':id/fit')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Fit score breakdown for this job against the viewer's primary resume" })
-  @ApiParam({ name: 'id', type: 'string' })
-  async getFit(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.getJobFit.execute(id, req.user.userId);
-  }
-
-  @Post(':id/bookmark')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Bookmark a job' })
-  @ApiParam({ name: 'id', type: 'string' })
-  async bookmark(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.bookmarkJob.execute(id, req.user.userId);
-  }
-
-  @Delete(':id/bookmark')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Remove a job bookmark' })
-  @ApiParam({ name: 'id', type: 'string' })
-  async unbookmark(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.unbookmarkJob.execute(id, req.user.userId);
-  }
-
-  @Post(':id/apply')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Submit a quick application to a job' })
-  @ApiParam({ name: 'id', type: 'string' })
-  async apply(
-    @Param('id') id: string,
-    @Req() req: { user: { userId: string } },
-    @Body(createZodPipe(ApplyToJobSchema)) body: ApplyToJobDto,
-  ) {
-    return this.bc.applyToJob.execute(id, req.user.userId, body ?? {});
-  }
-
-  @Delete(':id/apply')
-  @RequirePermission(Permission.FEED_USE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Withdraw the current user application to a job' })
-  @ApiParam({ name: 'id', type: 'string' })
-  async withdrawApplication(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.withdrawApplication.execute(id, req.user.userId);
-  }
 
   @Post('import-from-url')
   @RequirePermission(Permission.JOB_CREATE)
@@ -282,40 +36,5 @@ export class JobController {
   })
   async importFromUrl(@Body(createZodPipe(ImportJobFromUrlSchema)) body: ImportJobFromUrlDto) {
     return this.bc.importJobFromUrl.execute(body.url);
-  }
-
-  @Post()
-  @RequirePermission(Permission.JOB_CREATE)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new job posting' })
-  @ApiDataResponse(JobResponseDto, { description: 'Job created', status: HttpStatus.CREATED })
-  async create(
-    @Req() req: { user: { userId: string } },
-    @Body(createZodPipe(CreateJobSchema)) body: CreateJobDto,
-  ) {
-    return this.bc.createJob.execute(req.user.userId, body);
-  }
-
-  @Patch(':id')
-  @RequirePermission(Permission.JOB_CREATE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update a job posting' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(JobResponseDto, { description: 'Job updated' })
-  async update(
-    @Param('id') id: string,
-    @Req() req: { user: { userId: string } },
-    @Body(createZodPipe(UpdateJobSchema)) body: UpdateJobDto,
-  ) {
-    return this.bc.updateJob.execute(id, req.user.userId, body);
-  }
-
-  @Delete(':id')
-  @RequirePermission(Permission.JOB_CREATE)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a job posting' })
-  @ApiParam({ name: 'id', type: 'string' })
-  async delete(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bc.deleteJob.execute(id, req.user.userId);
   }
 }
