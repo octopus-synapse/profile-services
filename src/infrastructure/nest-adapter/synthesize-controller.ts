@@ -51,6 +51,7 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { RequirePermission } from '@/shared-kernel/authorization';
 import type { HttpCtx } from '@/shared-kernel/http/context';
+import { COOKIE_JAR_KEY, type PendingCookieJar } from '@/shared-kernel/http/cookie-jar';
 import type { GuardSpec, HttpMethod, Route } from '@/shared-kernel/http/route';
 import { isResponseWithHeaders } from '@/shared-kernel/http/route';
 
@@ -81,9 +82,40 @@ export type GuardEntry = {
    * to `SetMetadata`. Defaults to `metadata => metadata`.
    */
   readonly mapMetadata?: (metadata: Record<string, unknown> | undefined) => unknown;
+  /**
+   * Escape hatch for guards that read multiple metadata keys
+   * (`RequireMinQualityGuard` reads both `requireMinQuality` and
+   * `requireMinQualityResumeParam`). Receives the raw `metadata`
+   * payload from the `Route.guards[*]` entry plus the synthesized
+   * handler function — call `Reflect.defineMetadata(key, value, target)`
+   * for each key the guard expects. When set, `metadataKey` /
+   * `mapMetadata` are ignored.
+   */
+  readonly applyMetadata?: (
+    metadata: Record<string, unknown> | undefined,
+    target: object,
+  ) => void;
 };
 
 export type GuardRegistry = Readonly<Record<string, GuardEntry>>;
+
+function flushCookieJar(ctx: HttpCtx, res: Response): void {
+  const jar = (ctx.state as Record<string, unknown>)[COOKIE_JAR_KEY] as
+    | PendingCookieJar
+    | undefined;
+  if (!jar) return;
+  for (const { name, value, options } of jar.sets) {
+    const opts = options ?? {};
+    const expires = opts.maxAge !== undefined ? new Date(Date.now() + opts.maxAge) : undefined;
+    res.cookie(name, value, {
+      ...opts,
+      ...(expires ? { expires } : {}),
+    });
+  }
+  for (const { name, options } of jar.clears) {
+    res.clearCookie(name, options ?? {});
+  }
+}
 
 function buildCtx<TBundle>(route: Route<TBundle>, req: Request): HttpCtx {
   const body = route.body ? route.body.parse(req.body) : req.body;
@@ -92,7 +124,7 @@ function buildCtx<TBundle>(route: Route<TBundle>, req: Request): HttpCtx {
 
   const xff = req.headers['x-forwarded-for'];
   const xffFirst = Array.isArray(xff) ? xff[0] : xff;
-  const ip = (xffFirst?.split(',')[0]?.trim()) || req.ip || req.socket?.remoteAddress;
+  const ip = xffFirst?.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress;
 
   const ua = req.headers['user-agent'];
   const userAgent = Array.isArray(ua) ? ua[0] : ua;
@@ -140,6 +172,7 @@ export function synthesizeController<TBundle>(
         (ctx as { body: unknown }).body = { ...body, file: uploadedFile };
       }
       const result = await route.handler(ctx, this.bundle);
+      flushCookieJar(ctx, res);
       if (isResponseWithHeaders(result)) {
         for (const [key, value] of Object.entries(result.headers)) {
           res.setHeader(key, value);
@@ -263,10 +296,10 @@ function applyGuardSpec(
       `synthesizeController: guard id "${spec.id}" not found in registry. Register it in the BC's module via synthesizeRouteControllers(token, routes, { guards: { [id]: ... } }).`,
     );
   }
-  if (entry.metadataKey) {
-    const value = entry.mapMetadata
-      ? entry.mapMetadata(spec.metadata)
-      : (spec.metadata ?? true);
+  if (entry.applyMetadata) {
+    entry.applyMetadata(spec.metadata, methodDescriptor.value as object);
+  } else if (entry.metadataKey) {
+    const value = entry.mapMetadata ? entry.mapMetadata(spec.metadata) : (spec.metadata ?? true);
     // Use Reflect-based metadata setter to avoid pulling Nest's
     // `SetMetadata` decorator factory through a fragile invocation path.
     Reflect.defineMetadata(entry.metadataKey, value, methodDescriptor.value);

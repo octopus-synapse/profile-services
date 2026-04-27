@@ -2,20 +2,23 @@
  * Resume Versions Module
  *
  * Thin Nest shell over `buildResumeVersionsUseCases`. All wiring lives
- * in `resume-versions.composition.ts`. Most version + tailor endpoints
+ * in `resume-versions.composition.ts`. All version + tailor endpoints
  * are described in `resume-versions.routes.ts` and synthesized at
- * module load. The `ResumeTailorController` survives only for
- * `POST :resumeId/tailor`, which depends on custom guards
- * (`RequireFitProfileGuard` + `RequireMinQualityGuard`) the synthesizer
- * cannot model yet.
+ * module load. The custom guards `RequireFitProfileGuard` +
+ * `RequireMinQualityGuard` are wired through the synthesizer guard
+ * registry under ids `fit-profile` and `min-quality`. The
+ * min-quality guard reads two metadata keys (threshold + resume
+ * param), so its registry entry uses `applyMetadata` to set both.
  */
 
 import { Module } from '@nestjs/common';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
 import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
+import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { RequireMinQualityGuard } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
@@ -25,15 +28,33 @@ import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { ResumeTailorService } from './application/services/resume-tailor.service';
 import { ResumeVersionService } from './application/services/resume-version.service';
-import { ResumeTailorController } from './infrastructure/controllers/resume-tailor.controller';
 import { buildResumeVersionsUseCases } from './resume-versions.composition';
 import { resumeVersionsRoutes } from './resume-versions.routes';
 
 @Module({
   imports: [PrismaModule, AiModule, FitProfileModule, ResumeQualityModule],
   controllers: [
-    ...synthesizeRouteControllers(ResumeVersionsUseCases, resumeVersionsRoutes),
-    ResumeTailorController,
+    ...synthesizeRouteControllers(ResumeVersionsUseCases, resumeVersionsRoutes, {
+      guards: {
+        'fit-profile': { guard: RequireFitProfileGuard },
+        'min-quality': {
+          guard: RequireMinQualityGuard,
+          // The guard reads two reflector keys: the numeric threshold
+          // (`requireMinQuality`) and the optional route-param name
+          // (`requireMinQualityResumeParam`). When `metadata` is
+          // omitted the guard's own defaults (min=50, no resume
+          // param) take over.
+          applyMetadata: (metadata, target) => {
+            const min =
+              typeof metadata?.min === 'number' ? metadata.min : 50;
+            const resumeParam =
+              typeof metadata?.resumeParam === 'string' ? metadata.resumeParam : null;
+            Reflect.defineMetadata('requireMinQuality', min, target);
+            Reflect.defineMetadata('requireMinQualityResumeParam', resumeParam, target);
+          },
+        },
+      },
+    }),
   ],
   providers: [
     {

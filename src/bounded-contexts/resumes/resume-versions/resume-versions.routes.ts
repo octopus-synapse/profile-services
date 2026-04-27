@@ -1,10 +1,12 @@
 /**
  * Route descriptors for the resume-versions BC. Replaces the read-only
- * version endpoints in `ResumeVersionController` and the two GET
- * endpoints in `ResumeTailorController`. The `POST .../tailor` route
- * stays in `ResumeTailorController` because it relies on the custom
- * `RequireFitProfileGuard` + `RequireMinQualityGuard` chain that the
- * synthesizer cannot model yet.
+ * version endpoints in `ResumeVersionController` and the entire
+ * `ResumeTailorController` — including `POST .../tailor`. The
+ * `RequireFitProfileGuard` + `RequireMinQualityGuard` chain is wired
+ * via the synthesizer guard registry under ids `fit-profile` and
+ * `min-quality`. The min-quality metadata (threshold + resume-param
+ * name) is forwarded as `route.guards[*].metadata` and mapped to the
+ * Reflector keys the guard reads.
  */
 
 import { z } from 'zod';
@@ -19,6 +21,13 @@ const ResumeIdAndVersionIdParam = z.object({
 });
 
 const VersionIdQuery = z.object({ versionId: z.string() });
+
+const TailorResumeBody = z.object({
+  jobId: z.string().min(1).optional(),
+  jobDescription: z.string().min(10).optional(),
+  jobTitle: z.string().max(200).optional(),
+  jobCompany: z.string().max(200).optional(),
+});
 
 export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> = [
   // ─── Resume versions (nested + flat routes) ───────────────────────
@@ -156,6 +165,37 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       const { versionId } = ctx.query as { versionId: string };
       const diff = await bc.getTailoredVersionDiff.execute(resumeId, versionId, ctx.user!.userId);
       return { success: true, data: diff };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/resumes/:resumeId/tailor',
+    auth: { kind: 'jwt' },
+    params: ResumeIdParam,
+    body: TailorResumeBody,
+    statusCode: 200,
+    guards: [
+      { id: 'fit-profile' },
+      { id: 'min-quality', metadata: { min: 50, resumeParam: 'resumeId' } },
+    ],
+    openapi: {
+      summary: 'Rewrite this resume for a specific job using the AI pipeline.',
+      tags: ['resume-tailor'],
+      description: 'Resume AI tailoring API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      const body = ctx.body as z.infer<typeof TailorResumeBody>;
+      const data = await bc.tailorResumeForJob.execute({
+        resumeId,
+        userId: ctx.user!.userId,
+        jobId: body?.jobId,
+        jobDescription: body?.jobDescription,
+        jobTitle: body?.jobTitle,
+        jobCompany: body?.jobCompany,
+      });
+      return { success: true, data };
     },
   },
 ];
