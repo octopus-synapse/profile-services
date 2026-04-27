@@ -45,8 +45,10 @@ import {
   PrismaPasswordResetTokenService,
   SessionInvalidationAdapter,
 } from './infrastructure/adapters';
-// Infrastructure Controllers
-import { ForgotPasswordController } from './infrastructure/controllers';
+import {
+  ROUTE_THROTTLE_KEY,
+  RouteThrottlerGuard,
+} from './infrastructure/route-throttler.guard';
 import { passwordManagementRoutes } from './password-management.routes';
 
 const providers = [
@@ -179,16 +181,16 @@ const providers = [
     ): PasswordManagementUseCases => ({ changePassword, forgotPassword, resetPassword }),
     inject: [ChangePasswordPort, ForgotPasswordPort, ResetPasswordPort],
   },
+  RouteThrottlerGuard,
 ];
 
 @Module({
   imports: [PrismaModule, ConfigModule, EmailModule, CacheModule],
-  controllers: [
-    // Legacy: relies on @Throttle() (per-route throttler config from
-    // @nestjs/throttler) which the synthesizer does not yet model.
-    ForgotPasswordController,
-    ...synthesizeRouteControllers(PasswordManagementUseCases, passwordManagementRoutes),
-  ],
+  controllers: synthesizeRouteControllers(PasswordManagementUseCases, passwordManagementRoutes, {
+    guards: {
+      throttle: { guard: RouteThrottlerGuard, metadataKey: ROUTE_THROTTLE_KEY },
+    },
+  }),
   providers,
   exports: [ForgotPasswordPort, ResetPasswordPort, ChangePasswordPort],
 })

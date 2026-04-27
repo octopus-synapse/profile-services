@@ -1,19 +1,46 @@
 /**
  * Route descriptors for the password-management BC. Replaces
- * `ChangePasswordController` and `ResetPasswordController`.
+ * `ChangePasswordController`, `ResetPasswordController`, and
+ * `ForgotPasswordController`.
  *
- * `ForgotPasswordController` stays Nest-decorated because it relies on
- * `@Throttle({ default: { limit: 5, ttl: 60000 } })` from
- * `@nestjs/throttler` — per-route throttler config the synthesizer does
- * not yet model.
+ * The forgot-password endpoint declares its per-route throttler limit
+ * via `Route.guards: [{ id: 'throttle', metadata: { default: { … } } }]`
+ * — the BC's module wires `RouteThrottlerGuard` (a thin adapter over
+ * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
  */
 
+import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ChangePasswordSchema } from './infrastructure/controllers/change-password.dto';
 import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.dto';
 
+const ForgotPasswordSchema = z.object({ email: z.string().email() });
+
 export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUseCases>> = [
+  {
+    method: 'POST',
+    path: '/auth/forgot-password',
+    auth: { kind: 'public' },
+    body: ForgotPasswordSchema,
+    statusCode: 200,
+    guards: [{ id: 'throttle', metadata: { default: { limit: 5, ttl: 60000 } } }],
+    openapi: {
+      summary: 'Request password reset',
+      tags: ['Password Management'],
+      description:
+        'Sends a password reset email if the account exists. Always returns success to prevent email enumeration.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const body = ctx.body as { email: string };
+      await bc.forgotPassword.execute({ email: body.email });
+      return {
+        success: true,
+        data: { message: 'If this email exists, a reset link has been sent.' },
+      };
+    },
+  },
   {
     method: 'POST',
     path: '/password/change',
