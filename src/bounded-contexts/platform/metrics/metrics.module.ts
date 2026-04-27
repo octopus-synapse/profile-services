@@ -12,7 +12,6 @@ import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { MetricsUseCases } from './application/ports/metrics.port';
 import { MetricsReaderPort } from './domain/ports/metrics-reader.port';
 import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
-import { MetricsController } from './infrastructure/controllers/metrics.controller';
 import { buildMetricsUseCases } from './metrics.composition';
 import { MetricsGuard } from './metrics.guard';
 import { MetricsInterceptor } from './metrics.interceptor';
@@ -21,7 +20,11 @@ import { MetricsService } from './metrics.service';
 
 @Global()
 @Module({
-  controllers: [...synthesizeRouteControllers(MetricsUseCases, metricsRoutes), MetricsController],
+  controllers: [
+    ...synthesizeRouteControllers(MetricsUseCases, metricsRoutes, {
+      guards: { 'metrics-key': { guard: MetricsGuard } },
+    }),
+  ],
   providers: [
     MetricsService,
     { provide: MetricsReaderPort, useExisting: MetricsService },
