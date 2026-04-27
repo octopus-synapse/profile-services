@@ -1,9 +1,9 @@
 /**
  * Route descriptors for the mec-sync BC. Replaces
- * `MecCourseController`, `MecInstitutionController`, and
- * `MecMetadataController`. The admin/internal controller
- * (`MecSyncInternalController`) stays as legacy because it relies on
- * the custom `InternalAuthGuard`.
+ * `MecCourseController`, `MecInstitutionController`,
+ * `MecMetadataController`, and `MecSyncInternalController`. The
+ * internal/admin endpoints are gated by `InternalAuthGuard`, registered
+ * via the synthesizer guard registry under id `internal-auth`.
  *
  * BUG-035 (NaN limit handling) is preserved — the helpers below
  * mirror the original parseInt validation semantics.
@@ -201,6 +201,80 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (_ctx, bc) => {
       const stats = await bc.getMecStatistics.execute();
       return { success: true, data: { stats } };
+    },
+  },
+
+  // ──────────────────────────────────────── Internal / admin
+  // Protected by `InternalAuthGuard` (X-Internal-Token header), wired
+  // through the synthesizer guard registry under id `internal-auth`.
+  {
+    method: 'POST',
+    path: '/v1/mec/internal/sync',
+    auth: { kind: 'public' },
+    guards: [{ id: 'internal-auth' }],
+    statusCode: 200,
+    openapi: {
+      summary: 'Trigger MEC data synchronization',
+      tags: ['mec-internal'],
+      description: 'Mec Internal API',
+    },
+    sdk: { exported: true },
+    handler: async (_ctx, bc) => {
+      const result = await bc.triggerMecSync.execute('api');
+      return {
+        success: true,
+        message: 'Sync completed successfully',
+        data: {
+          institutionsInserted: result.institutionsInserted,
+          coursesInserted: result.coursesInserted,
+          totalRowsProcessed: result.totalRowsProcessed,
+          errorsCount: result.errors.length,
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/mec/internal/sync/status',
+    auth: { kind: 'public' },
+    guards: [{ id: 'internal-auth' }],
+    openapi: {
+      summary: 'Get sync status',
+      tags: ['mec-internal'],
+      description: 'Mec Internal API',
+    },
+    sdk: { exported: true },
+    handler: async (_ctx, bc) => {
+      const status = await bc.getSyncStatus.execute();
+      return {
+        success: true,
+        data: {
+          isRunning: status.isRunning,
+          metadata: status.metadata,
+          lastSync: status.lastSync,
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/mec/internal/sync/history',
+    auth: { kind: 'public' },
+    guards: [{ id: 'internal-auth' }],
+    query: z.object({ limit: z.string().optional() }),
+    openapi: {
+      summary: 'Get sync history',
+      tags: ['mec-internal'],
+      description: 'Mec Internal API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { limit } = ctx.query as { limit?: string };
+      const parsedLimit = limit
+        ? parseInt(limit, 10)
+        : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
+      const history = await bc.getSyncHistory.execute(parsedLimit);
+      return { success: true, data: { history } };
     },
   },
 ];

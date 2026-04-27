@@ -1,11 +1,11 @@
 /**
  * MEC Sync Module
  *
- * Thin Nest shell over `buildMecSyncUseCases`. Routes for the public
- * read-only API are described in `mec-sync.routes.ts` and synthesized
- * into Nest controllers at module load. The internal/admin sync
- * controller stays as a legacy class because it relies on the custom
- * `InternalAuthGuard`.
+ * Thin Nest shell over `buildMecSyncUseCases`. All routes are described
+ * in `mec-sync.routes.ts` and synthesized into Nest controllers at
+ * module load. The internal/admin sync routes are gated by
+ * `InternalAuthGuard` via the synthesizer guard registry under id
+ * `internal-auth`.
  */
 
 import { Module } from '@nestjs/common';
@@ -17,17 +17,19 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
-import { MecSyncInternalController } from './infrastructure/controllers/mec-sync-internal.controller';
+import { InternalAuthGuard } from './infrastructure/guards/internal-auth.guard';
 import { buildMecSyncUseCases } from './mec-sync.composition';
 import { mecSyncRoutes } from './mec-sync.routes';
 
 @Module({
   imports: [PrismaModule, CacheModule, LoggerModule],
   controllers: [
-    MecSyncInternalController,
-    ...synthesizeRouteControllers(MecSyncUseCases, mecSyncRoutes),
+    ...synthesizeRouteControllers(MecSyncUseCases, mecSyncRoutes, {
+      guards: { 'internal-auth': { guard: InternalAuthGuard } },
+    }),
   ],
   providers: [
+    InternalAuthGuard,
     {
       provide: MecSyncUseCases,
       useFactory: (prisma: PrismaService, cache: CacheService, logger: LoggerPort) =>
