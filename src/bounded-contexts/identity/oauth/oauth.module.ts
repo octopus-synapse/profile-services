@@ -1,16 +1,11 @@
 /**
  * OAuth Module
  *
- * ADR-001: passport strategies stay registered (they're framework
- * adapters); the controller goes through three POJO use cases:
- *   - `UpsertUserFromOAuthProfileUseCase` for the callback handoff
- *   - `CheckOAuthProviderAvailabilityUseCase` for `/available/:provider`
- *   - `GetOAuthAccessTokenUseCase` exposed for the import BC
- *
- * Persistence is behind `OAuthAccountsRepositoryPort` (Prisma adapter)
- * and provider config is behind `OAuthProviderConfigPort`
- * (`ConfigService` adapter), so the use cases never touch Nest config
- * or Prisma directly.
+ * Thin Nest shell. Use-cases compose via `useFactory`; routes are
+ * synthesized from `oauth.routes.ts` and mounted via the new guard
+ * registry that maps `'oauth-github'`/`'oauth-linkedin'` to the
+ * Passport-backed `AuthGuard('github'|'linkedin')` wrappers. Passport
+ * strategies stay registered (framework adapters).
  */
 
 import { Module } from '@nestjs/common';
@@ -18,22 +13,35 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 import { CheckOAuthProviderAvailabilityUseCase } from './application/use-cases/check-oauth-provider-availability/check-oauth-provider-availability.use-case';
 import { GetOAuthAccessTokenUseCase } from './application/use-cases/get-oauth-access-token/get-oauth-access-token.use-case';
 import { UpsertUserFromOAuthProfileUseCase } from './application/use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
 import { OAuthAccountsRepositoryPort } from './domain/ports/oauth-accounts.repository.port';
 import { OAuthProviderConfigPort } from './domain/ports/oauth-provider-config.port';
 import { ConfigServiceOAuthProviderConfig } from './infrastructure/adapters/external-services/config-service-oauth-provider.config';
+import {
+  GithubOAuthGuard,
+  LinkedinOAuthGuard,
+} from './infrastructure/guards/passport-oauth.guards';
 import { PrismaOAuthAccountsRepository } from './infrastructure/adapters/persistence/prisma-oauth-accounts.repository';
-import { OAuthController } from './infrastructure/controllers/oauth.controller';
+import { oauthRoutes } from './oauth.routes';
 import { GithubOAuthStrategy } from './strategies/github.strategy';
 import { LinkedinOAuthStrategy } from './strategies/linkedin.strategy';
 
 @Module({
   imports: [ConfigModule, PassportModule, PrismaModule],
-  controllers: [OAuthController],
+  controllers: synthesizeRouteControllers(OAuthHttpBundle, oauthRoutes, {
+    guards: {
+      'oauth-github': { guard: GithubOAuthGuard },
+      'oauth-linkedin': { guard: LinkedinOAuthGuard },
+    },
+  }),
   providers: [
+    GithubOAuthGuard,
+    LinkedinOAuthGuard,
     {
       provide: OAuthAccountsRepositoryPort,
       useFactory: (prisma: PrismaService, logger: LoggerPort) =>
@@ -72,6 +80,19 @@ import { LinkedinOAuthStrategy } from './strategies/linkedin.strategy';
       provide: LinkedinOAuthStrategy,
       useFactory: (cfg: ConfigService) => new LinkedinOAuthStrategy(cfg),
       inject: [ConfigService],
+    },
+    {
+      provide: OAuthHttpBundle,
+      useFactory: (
+        upsert: UpsertUserFromOAuthProfileUseCase,
+        availability: CheckOAuthProviderAvailabilityUseCase,
+        config: ConfigService,
+      ): OAuthHttpBundle => ({ upsert, availability, config }),
+      inject: [
+        UpsertUserFromOAuthProfileUseCase,
+        CheckOAuthProviderAvailabilityUseCase,
+        ConfigService,
+      ],
     },
   ],
   exports: [GetOAuthAccessTokenUseCase],
