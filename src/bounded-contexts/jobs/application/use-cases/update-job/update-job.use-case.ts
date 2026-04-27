@@ -5,8 +5,7 @@
  * `match:*:{ jobId }:*` cache entries.
  */
 
-import { LoggerPort } from '@/shared-kernel';
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { Job, UpdateJobInput } from '../../../domain/entities/job';
 import { JobUpdatedEvent } from '../../../domain/events';

@@ -5,6 +5,7 @@
  * CRUD surface.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
@@ -29,7 +30,10 @@ const AUTHOR_SELECT = {
 } as const;
 
 export class PrismaFeedRepository extends FeedRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

@@ -1,7 +1,7 @@
-import { LoggerPort } from '@/shared-kernel';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { NotifyFitProfileExpiredUseCase } from '../../application/use-cases/notify-fit-profile-expired/notify-fit-profile-expired.use-case';
 
 /**

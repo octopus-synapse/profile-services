@@ -48,14 +48,7 @@ export class PrismaAdminSpokenLanguagesRepository extends AdminSpokenLanguagesRe
   async update(code: string, input: Record<string, unknown>) {
     return this.prisma.spokenLanguage.update({
       where: { code },
-      data: patchData(input, [
-        'nameEn',
-        'namePtBr',
-        'nameEs',
-        'nativeName',
-        'order',
-        'isActive',
-      ]),
+      data: patchData(input, ['nameEn', 'namePtBr', 'nameEs', 'nativeName', 'order', 'isActive']),
     });
   }
 

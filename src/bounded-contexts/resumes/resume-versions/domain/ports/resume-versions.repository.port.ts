@@ -14,11 +14,7 @@ import type {
   ResumeVersionListItem,
   ResumeVersionRecord,
 } from '../entities/resume-version';
-import type {
-  JobForTailor,
-  ResumeForTailor,
-  TailoredVersionSummary,
-} from '../entities/tailor';
+import type { JobForTailor, ResumeForTailor, TailoredVersionSummary } from '../entities/tailor';
 
 export abstract class ResumeVersionsRepositoryPort {
   // -------- Versioning --------

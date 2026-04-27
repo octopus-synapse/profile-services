@@ -34,10 +34,7 @@ export abstract class AntiGhostingRepositoryPort {
 
   abstract findUser(userId: string): Promise<AntiGhostingUser | null>;
 
-  abstract recordReminderLog(
-    applicationId: string,
-    threshold: ReminderThreshold,
-  ): Promise<void>;
+  abstract recordReminderLog(applicationId: string, threshold: ReminderThreshold): Promise<void>;
 
   abstract createStaleNotification(input: AntiGhostingNotificationInput): Promise<void>;
 }

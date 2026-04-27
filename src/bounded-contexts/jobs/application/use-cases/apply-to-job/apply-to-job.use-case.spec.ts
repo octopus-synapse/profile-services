@@ -1,6 +1,6 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { CannotApplyToOwnJobException } from '../../../domain/exceptions/jobs.exceptions';
 import { ApplicationTrackerPort } from '../../../domain/ports/application-tracker.port';
 import { InMemoryJobsRepository } from '../../../testing';
@@ -33,7 +33,11 @@ describe('ApplyToJobUseCase', () => {
     const repo = new InMemoryJobsRepository();
     const tracker = new CountingTracker();
     const job = repo.seedJob({ authorId: 'r', title: 'A' });
-    const out = (await new ApplyToJobUseCase(repo, tracker, stubLogger).execute(job.id, 'me', {})) as {
+    const out = (await new ApplyToJobUseCase(repo, tracker, stubLogger).execute(
+      job.id,
+      'me',
+      {},
+    )) as {
       alreadyApplied: boolean;
     };
     expect(out.alreadyApplied).toBe(false);

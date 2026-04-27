@@ -62,10 +62,7 @@ export class InMemoryAntiGhostingRepository extends AntiGhostingRepositoryPort {
       }));
   }
 
-  async hasReminderBeenSent(
-    applicationId: string,
-    threshold: ReminderThreshold,
-  ): Promise<boolean> {
+  async hasReminderBeenSent(applicationId: string, threshold: ReminderThreshold): Promise<boolean> {
     return this.reminderLogs.has(this.logKey(applicationId, threshold));
   }
 

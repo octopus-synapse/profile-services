@@ -10,8 +10,8 @@
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { LoggerPort } from '@/shared-kernel';
 import {
-  type AntiGhostingEmailMessage,
   AntiGhostingEmailerPort,
+  type AntiGhostingEmailMessage,
 } from '../../../domain/ports/anti-ghosting-emailer.port';
 
 const CTX = 'EmailServiceAntiGhostingEmailerAdapter';

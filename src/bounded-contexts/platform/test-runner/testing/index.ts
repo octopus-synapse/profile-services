@@ -3,10 +3,7 @@
  * suite list and the result of each run; nothing touches Prisma.
  */
 
-import {
-  type TestResults,
-  TestSuiteRunnerPort,
-} from '../domain/ports/test-suite-runner.port';
+import { type TestResults, TestSuiteRunnerPort } from '../domain/ports/test-suite-runner.port';
 
 export class InMemoryTestSuiteRunner extends TestSuiteRunnerPort {
   private suites: string[] = [];

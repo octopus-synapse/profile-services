@@ -36,14 +36,18 @@ for (const rel of files) {
     const sk = /import\s+(?:type\s+)?\{\s*([^}]*?)\s*\}\s*from\s*(['"])@\/shared-kernel\2;?/;
     if (sk.test(src)) {
       src = src.replace(sk, (_m, inner: string, q: string) => {
-        const items = inner.split(',').map((s) => s.trim()).filter(Boolean);
+        const items = inner
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
         if (!items.includes('LoggerPort')) items.push('LoggerPort');
         items.sort();
         return `import { ${items.join(', ')} } from ${q}@/shared-kernel${q};`;
       });
     } else {
       const importStmtRe = /import[\s\S]*?from\s*['"][^'"]+['"];?/g;
-      let lastEnd = -1; let im: RegExpExecArray | null;
+      let lastEnd = -1;
+      let im: RegExpExecArray | null;
       while ((im = importStmtRe.exec(src))) lastEnd = im.index + im[0].length;
       const line = `import { LoggerPort } from '@/shared-kernel';`;
       if (lastEnd >= 0) src = `${src.slice(0, lastEnd)}\n${line}${src.slice(lastEnd)}`;
@@ -63,9 +67,11 @@ for (const rel of files) {
     let newInner: string;
     if (innerRaw.trim() === '') newInner = `logger: LoggerPort`;
     else if (isMulti) {
-      const lead = (innerRaw.match(/\n([ \t]+)/)?.[1]) ?? '  ';
-      const tail = innerRaw.trimEnd().endsWith(',') ? innerRaw.replace(/\s*$/, '') : `${innerRaw.replace(/\s*$/, '')},`;
-      newInner = `${tail}\n${lead}logger: LoggerPort,\n${(innerRaw.match(/\n([ \t]*)$/)?.[1]) ?? ''}`;
+      const lead = innerRaw.match(/\n([ \t]+)/)?.[1] ?? '  ';
+      const tail = innerRaw.trimEnd().endsWith(',')
+        ? innerRaw.replace(/\s*$/, '')
+        : `${innerRaw.replace(/\s*$/, '')},`;
+      newInner = `${tail}\n${lead}logger: LoggerPort,\n${innerRaw.match(/\n([ \t]*)$/)?.[1] ?? ''}`;
     } else newInner = `${innerRaw}, logger: LoggerPort`;
     src = src.replace(fnRe, (full) => full.replace(m[2], newInner));
   }
@@ -88,22 +94,46 @@ function transformBody(src: string): string {
   let i = 0;
   while (i < src.length) {
     const fnIdx = src.slice(i).search(/export\s+function\s+\w+\s*\([^)]*\)\s*:/);
-    if (fnIdx === -1) { out += src.slice(i); break; }
+    if (fnIdx === -1) {
+      out += src.slice(i);
+      break;
+    }
     const absFn = i + fnIdx;
     const openBraceIdx = src.indexOf('{', absFn);
-    if (openBraceIdx === -1) { out += src.slice(i); break; }
+    if (openBraceIdx === -1) {
+      out += src.slice(i);
+      break;
+    }
     out += src.slice(i, openBraceIdx + 1);
     // Walk to matching closing brace.
-    let depth = 1; let j = openBraceIdx + 1;
-    let inStr: string | null = null; let inTpl = false;
+    let depth = 1;
+    let j = openBraceIdx + 1;
+    let inStr: string | null = null;
+    let inTpl = false;
     for (; j < src.length; j++) {
-      const ch = src[j], prev = src[j - 1];
-      if (inTpl) { if (ch === '`' && prev !== '\\') inTpl = false; continue; }
-      if (inStr) { if (ch === inStr && prev !== '\\') inStr = null; continue; }
-      if (ch === '"' || ch === "'") { inStr = ch; continue; }
-      if (ch === '`') { inTpl = true; continue; }
+      const ch = src[j],
+        prev = src[j - 1];
+      if (inTpl) {
+        if (ch === '`' && prev !== '\\') inTpl = false;
+        continue;
+      }
+      if (inStr) {
+        if (ch === inStr && prev !== '\\') inStr = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        inStr = ch;
+        continue;
+      }
+      if (ch === '`') {
+        inTpl = true;
+        continue;
+      }
       if (ch === '{') depth++;
-      else if (ch === '}') { depth--; if (depth === 0) break; }
+      else if (ch === '}') {
+        depth--;
+        if (depth === 0) break;
+      }
     }
     const body = src.slice(openBraceIdx + 1, j);
     const rewritten = appendLoggerToCalls(body);
@@ -117,14 +147,19 @@ function appendLoggerToCalls(body: string): string {
   // Append `, logger` to the LAST argument list of every `new ClassName(...)`
   // call where `ClassName` matches a known suffix. We do a balanced-paren
   // walk so nested calls are tolerated.
-  const constructorPattern = /\bnew\s+([A-Z][A-Za-z0-9_]*?(?:UseCase|Adapter|Repository|Service|Worker|Handler|Filter|Guard|Gateway|Processor|Helper))\s*\(/g;
-  let out = ''; let i = 0;
+  const constructorPattern =
+    /\bnew\s+([A-Z][A-Za-z0-9_]*?(?:UseCase|Adapter|Repository|Service|Worker|Handler|Filter|Guard|Gateway|Processor|Helper))\s*\(/g;
+  let out = '';
+  let i = 0;
   let m: RegExpExecArray | null;
   while ((m = constructorPattern.exec(body)) !== null) {
     out += body.slice(i, m.index + m[0].length);
     const open = m.index + m[0].length - 1;
     const close = matchingParen(body, open);
-    if (close === -1) { i = m.index + m[0].length; continue; }
+    if (close === -1) {
+      i = m.index + m[0].length;
+      continue;
+    }
     const args = body.slice(open + 1, close);
     // Skip if `logger` already appears at the end.
     const lastBit = args.trimEnd().slice(-32);
@@ -143,15 +178,33 @@ function appendLoggerToCalls(body: string): string {
 }
 
 function matchingParen(src: string, openIdx: number): number {
-  let depth = 0; let inStr: string | null = null; let inTpl = false;
+  let depth = 0;
+  let inStr: string | null = null;
+  let inTpl = false;
   for (let i = openIdx; i < src.length; i++) {
-    const ch = src[i], prev = src[i - 1];
-    if (inTpl) { if (ch === '`' && prev !== '\\') inTpl = false; continue; }
-    if (inStr) { if (ch === inStr && prev !== '\\') inStr = null; continue; }
-    if (ch === '"' || ch === "'") { inStr = ch; continue; }
-    if (ch === '`') { inTpl = true; continue; }
+    const ch = src[i],
+      prev = src[i - 1];
+    if (inTpl) {
+      if (ch === '`' && prev !== '\\') inTpl = false;
+      continue;
+    }
+    if (inStr) {
+      if (ch === inStr && prev !== '\\') inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      inStr = ch;
+      continue;
+    }
+    if (ch === '`') {
+      inTpl = true;
+      continue;
+    }
     if (ch === '(') depth++;
-    else if (ch === ')') { depth--; if (depth === 0) return i; }
+    else if (ch === ')') {
+      depth--;
+      if (depth === 0) return i;
+    }
   }
   return -1;
 }

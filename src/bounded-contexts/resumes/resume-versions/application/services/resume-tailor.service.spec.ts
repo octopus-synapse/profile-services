@@ -1,5 +1,5 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeVersionsRepository, StubResumeTailorLlm } from '../../testing';
 import { GetTailoredVersionDiffUseCase } from '../use-cases/get-tailored-version-diff/get-tailored-version-diff.use-case';
 import { GetTailoredVersionsUseCase } from '../use-cases/get-tailored-versions/get-tailored-versions.use-case';

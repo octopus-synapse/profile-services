@@ -4,6 +4,7 @@
  * original author. Prevents duplicate reposts by the same user.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
   PostAlreadyRepostedException,
   PostNotFoundException,
@@ -17,6 +18,7 @@ export class RepostPostUseCase {
     private readonly repository: EngagementRepositoryPort,
     private readonly notifier: EngagementNotifierPort,
     private readonly hashtags: HashtagParserService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(postId: string, userId: string, commentary?: string) {

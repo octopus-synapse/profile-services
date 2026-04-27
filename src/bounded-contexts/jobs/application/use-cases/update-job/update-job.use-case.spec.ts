@@ -1,8 +1,8 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import type { DomainEvent } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { JobUpdatedEvent } from '../../../domain/events';
 import { CannotModifyOthersJobException } from '../../../domain/exceptions/jobs.exceptions';
 import { InMemoryJobsRepository } from '../../../testing';
@@ -22,7 +22,9 @@ describe('UpdateJobUseCase', () => {
   it('throws when the job is missing', async () => {
     const repo = new InMemoryJobsRepository();
     await expect(
-      new UpdateJobUseCase(repo, new CapturingPublisher(), stubLogger).execute('x', 'me', { title: 'a' }),
+      new UpdateJobUseCase(repo, new CapturingPublisher(), stubLogger).execute('x', 'me', {
+        title: 'a',
+      }),
     ).rejects.toBeInstanceOf(EntityNotFoundException);
   });
 

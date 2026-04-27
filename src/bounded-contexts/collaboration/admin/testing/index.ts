@@ -14,13 +14,16 @@ import {
   type ListConversationsQuery,
 } from '../domain/ports/admin-chat.repository.port';
 import {
+  AdminCollaborationsRepositoryPort,
   type AdminCollaborationsStats,
   type AdminCollaborationView,
-  AdminCollaborationsRepositoryPort,
   type ListCollaborationsQuery,
 } from '../domain/ports/admin-collaborations.repository.port';
 
-function paginateInMemory<T>(items: T[], query: { page?: number; pageSize?: number }): PaginatedResult<T> {
+function paginateInMemory<T>(
+  items: T[],
+  query: { page?: number; pageSize?: number },
+): PaginatedResult<T> {
   const page = query.page ?? 1;
   const pageSize = query.pageSize ?? 20;
   const start = (page - 1) * pageSize;

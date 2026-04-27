@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryRageApplyRepository } from '../../../testing/in-memory-rage-apply.repository';
 import { CuratedSelectorService } from '../../services/curated-selector.service';
 import { RunRageApplyUseCase } from './run-rage-apply.use-case';
@@ -15,10 +15,12 @@ function buildSelector(picks: Pick[]): CuratedSelectorService {
 }
 
 function buildTailor(
-  impl: (input: { jobId?: string }) => {
-    versionId: string;
-    summary: string | null;
-  } | Error,
+  impl: (input: { jobId?: string }) =>
+    | {
+        versionId: string;
+        summary: string | null;
+      }
+    | Error,
 ): ResumeTailorService {
   return {
     tailorForJob: async (input: { jobId?: string }) => {
@@ -134,9 +136,7 @@ describe('RunRageApplyUseCase', () => {
         { jobId: 'j-bad', matchScore: 91 },
       ]),
       buildTailor(({ jobId }) =>
-        jobId === 'j-bad'
-          ? new Error('tailor timeout')
-          : { versionId: 'v-good', summary: null },
+        jobId === 'j-bad' ? new Error('tailor timeout') : { versionId: 'v-good', summary: null },
       ),
       stubLogger,
     );

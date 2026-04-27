@@ -11,6 +11,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { LoggerPort } from '@/shared-kernel';
 import {
   type ActiveUsersStats,
+  type AdminAnalyticsPeriod,
   AdminAnalyticsRepositoryPort,
   type AtsScoreBucket,
   type ContentStats,
@@ -20,7 +21,6 @@ import {
   type SocialStats,
   type SourceCount,
   type UserGrowthBucket,
-  type AdminAnalyticsPeriod,
 } from '../../../domain/ports/admin-analytics.repository.port';
 
 export class PrismaAdminAnalyticsRepository extends AdminAnalyticsRepositoryPort {

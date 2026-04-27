@@ -18,7 +18,9 @@ export interface ListChatConversationsInput {
 export class ListChatConversationsUseCase {
   constructor(private readonly repository: AdminChatRepositoryPort) {}
 
-  async execute(query: ListChatConversationsInput): Promise<PaginatedResult<AdminChatConversationView>> {
+  async execute(
+    query: ListChatConversationsInput,
+  ): Promise<PaginatedResult<AdminChatConversationView>> {
     return this.repository.listConversations(query);
   }
 }

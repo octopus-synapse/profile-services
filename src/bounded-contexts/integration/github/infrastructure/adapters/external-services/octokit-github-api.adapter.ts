@@ -86,11 +86,7 @@ export class OctokitGitHubApiAdapter extends GitHubApiPort {
       throw this.httpException(HttpStatus.NOT_FOUND, 'GitHub resource not found', 'Not Found');
     }
     if (response.status === 403) {
-      throw this.httpException(
-        HttpStatus.FORBIDDEN,
-        'GitHub API rate limit exceeded',
-        'Forbidden',
-      );
+      throw this.httpException(HttpStatus.FORBIDDEN, 'GitHub API rate limit exceeded', 'Forbidden');
     }
     throw this.httpException(
       HttpStatus.BAD_GATEWAY,

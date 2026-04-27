@@ -79,8 +79,9 @@ import { UserEngagementController } from './infrastructure/controllers/user-enga
     // ───────── ports → adapters ─────────
     {
       provide: FeedRepositoryPort,
-      useFactory: (prisma: PrismaService) => new PrismaFeedRepository(prisma),
-      inject: [PrismaService],
+      useFactory: (prisma: PrismaService, logger: LoggerPort) =>
+        new PrismaFeedRepository(prisma, logger),
+      inject: [PrismaService, LoggerPort],
     },
     {
       provide: CommentRepositoryPort,
@@ -136,14 +137,18 @@ import { UserEngagementController } from './infrastructure/controllers/user-enga
         repo: FeedRepositoryPort,
         link: LinkPreviewFetcherPort,
         hashtags: HashtagParserService,
-      ) => new CreatePostUseCase(repo, link, hashtags),
-      inject: [FeedRepositoryPort, LinkPreviewFetcherPort, HashtagParserService],
+        logger: LoggerPort,
+      ) => new CreatePostUseCase(repo, link, hashtags, logger),
+      inject: [FeedRepositoryPort, LinkPreviewFetcherPort, HashtagParserService, LoggerPort],
     },
     {
       provide: GetPostUseCase,
-      useFactory: (repo: FeedRepositoryPort, mask: AnonymousMaskService) =>
-        new GetPostUseCase(repo, mask),
-      inject: [FeedRepositoryPort, AnonymousMaskService],
+      useFactory: (
+        repo: FeedRepositoryPort,
+        mask: AnonymousMaskService,
+        logger: LoggerPort,
+      ) => new GetPostUseCase(repo, mask, logger),
+      inject: [FeedRepositoryPort, AnonymousMaskService, LoggerPort],
     },
     {
       provide: DeletePostUseCase,
@@ -203,9 +208,12 @@ import { UserEngagementController } from './infrastructure/controllers/user-enga
     // ───────── engagement use cases ─────────
     {
       provide: LikePostUseCase,
-      useFactory: (repo: EngagementRepositoryPort, notifier: EngagementNotifierPort) =>
-        new LikePostUseCase(repo, notifier),
-      inject: [EngagementRepositoryPort, EngagementNotifierPort],
+      useFactory: (
+        repo: EngagementRepositoryPort,
+        notifier: EngagementNotifierPort,
+        logger: LoggerPort,
+      ) => new LikePostUseCase(repo, notifier, logger),
+      inject: [EngagementRepositoryPort, EngagementNotifierPort, LoggerPort],
     },
     {
       provide: UnlikePostUseCase,
@@ -228,8 +236,9 @@ import { UserEngagementController } from './infrastructure/controllers/user-enga
         repo: EngagementRepositoryPort,
         notifier: EngagementNotifierPort,
         hashtags: HashtagParserService,
-      ) => new RepostPostUseCase(repo, notifier, hashtags),
-      inject: [EngagementRepositoryPort, EngagementNotifierPort, HashtagParserService],
+        logger: LoggerPort,
+      ) => new RepostPostUseCase(repo, notifier, hashtags, logger),
+      inject: [EngagementRepositoryPort, EngagementNotifierPort, HashtagParserService, LoggerPort],
     },
     {
       provide: ListUserReactionsUseCase,

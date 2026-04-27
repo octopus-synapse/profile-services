@@ -6,12 +6,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
+import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
 import { LoggerPort } from '@/shared-kernel';
-import type {
-  UpdateFullPreferences,
-  UpdatePreferences,
-  UpdateProfile,
-} from '@/shared-kernel';
 import { UserMutationRepository } from './user-mutation.repository';
 import { UserQueryRepository } from './user-query.repository';
 

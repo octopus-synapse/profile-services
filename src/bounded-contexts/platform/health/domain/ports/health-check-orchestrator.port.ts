@@ -9,13 +9,7 @@
  * the conversion from `HealthCheckResult`.
  */
 
-export type HealthCheckSystem =
-  | 'database'
-  | 'redis'
-  | 'storage'
-  | 'translate'
-  | 'smtp'
-  | 'openai';
+export type HealthCheckSystem = 'database' | 'redis' | 'storage' | 'translate' | 'smtp' | 'openai';
 
 export interface HealthCheckEntry {
   readonly status: string;

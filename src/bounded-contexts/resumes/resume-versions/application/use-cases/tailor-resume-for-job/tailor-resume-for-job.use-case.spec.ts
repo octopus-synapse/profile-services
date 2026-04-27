@@ -1,4 +1,3 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ResumeNotFoundException,
@@ -6,6 +5,7 @@ import {
   ResumeTailorInputRequiredException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeVersionsRepository, StubResumeTailorLlm } from '../../../testing';
 import { TailorResumeForJobUseCase } from './tailor-resume-for-job.use-case';
 
@@ -63,9 +63,9 @@ describe('TailorResumeForJobUseCase', () => {
     await expect(useCase.execute({ resumeId, userId })).rejects.toThrow(
       ResumeTailorInputRequiredException,
     );
-    await expect(
-      useCase.execute({ resumeId, userId, jobDescription: 'short' }),
-    ).rejects.toThrow(ResumeTailorInputRequiredException);
+    await expect(useCase.execute({ resumeId, userId, jobDescription: 'short' })).rejects.toThrow(
+      ResumeTailorInputRequiredException,
+    );
   });
 
   it('throws EntityNotFoundException when the supplied jobId does not exist', async () => {

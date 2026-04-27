@@ -89,11 +89,8 @@ import {
     },
     {
       provide: RegenerateBackupCodesUseCase,
-      useFactory: (
-        repo: TwoFactorRepositoryPort,
-        hash: HashServicePort,
-        logger: LoggerPort,
-      ) => new RegenerateBackupCodesUseCase(repo, hash, logger),
+      useFactory: (repo: TwoFactorRepositoryPort, hash: HashServicePort, logger: LoggerPort) =>
+        new RegenerateBackupCodesUseCase(repo, hash, logger),
       inject: [TwoFactorRepositoryPort, HashServicePort, LoggerPort],
     },
     {
@@ -105,13 +102,7 @@ import {
         cache: CacheService,
         logger: LoggerPort,
       ) => new Validate2faUseCase(repo, totp, hash, cache, logger),
-      inject: [
-        TwoFactorRepositoryPort,
-        TotpServicePort,
-        HashServicePort,
-        CacheService,
-        LoggerPort,
-      ],
+      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, CacheService, LoggerPort],
     },
   ],
   exports: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, Validate2faInboundPort],

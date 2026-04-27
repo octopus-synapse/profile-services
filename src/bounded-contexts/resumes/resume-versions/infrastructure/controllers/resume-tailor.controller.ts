@@ -10,6 +10,11 @@ import {
   RequireMinQuality,
   RequireMinQualityGuard,
 } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
+import {
+  ResumeTailorService,
+  type TailoredVersionDiff,
+  type TailorResumeResult,
+} from '../../application/services/resume-tailor.service';
 import { TailorResumeRequestDto } from '../dto/tailor-resume-request.dto';
 import {
   TailoredVersionDiffDataDto,
@@ -17,11 +22,6 @@ import {
   TailorResumeDataDto,
 } from '../dto/tailor-resume-response.dto';
 import { toVersionIsoList } from '../presenters/resume-version.presenter';
-import {
-  ResumeTailorService,
-  type TailoredVersionDiff,
-  type TailorResumeResult,
-} from '../../application/services/resume-tailor.service';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };

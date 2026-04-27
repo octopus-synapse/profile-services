@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
+import { InMemoryGitHubApi, InMemoryGitHubResumeRepository } from '../../../testing';
+import type { GitHubRepo, GitHubUser } from '../../../types/github.types';
 import { GitHubAchievementService } from '../../services/github-achievement.service';
 import { GitHubContributionService } from '../../services/github-contribution.service';
 import { GitHubSyncService } from '../../services/github-sync.service';
-import { InMemoryGitHubApi, InMemoryGitHubResumeRepository } from '../../../testing';
-import type { GitHubRepo, GitHubUser } from '../../../types/github.types';
 import { SyncGitHubUseCase } from './sync-github.use-case';
 
 const profile = (overrides: Partial<GitHubUser> = {}): GitHubUser =>

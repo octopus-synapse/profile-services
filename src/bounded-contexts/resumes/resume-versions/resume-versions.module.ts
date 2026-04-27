@@ -126,7 +126,11 @@ import { ResumeVersionController } from './infrastructure/controllers/resume-ver
         list: GetTailoredVersionsUseCase,
         diff: GetTailoredVersionDiffUseCase,
       ) => new ResumeTailorService(tailor, list, diff),
-      inject: [TailorResumeForJobUseCase, GetTailoredVersionsUseCase, GetTailoredVersionDiffUseCase],
+      inject: [
+        TailorResumeForJobUseCase,
+        GetTailoredVersionsUseCase,
+        GetTailoredVersionDiffUseCase,
+      ],
     },
     { provide: ResumeVersionServicePort, useExisting: ResumeVersionService },
   ],

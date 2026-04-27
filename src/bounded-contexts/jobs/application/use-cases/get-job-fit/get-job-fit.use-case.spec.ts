@@ -1,6 +1,6 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { NoPrimaryResumeException } from '../../../domain/exceptions/jobs.exceptions';
 import {
   ResumeJobMatcherPort,

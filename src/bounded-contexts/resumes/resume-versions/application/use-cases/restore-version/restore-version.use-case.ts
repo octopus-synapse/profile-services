@@ -3,13 +3,13 @@
  * the current state first ("Before restore") so the user can undo.
  */
 
-import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
   ResumeVersionNotFoundException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+import { LoggerPort } from '@/shared-kernel';
 import type { VersionRestoreResult } from '../../../domain/entities/resume-version';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
 import { CreateSnapshotUseCase } from '../create-snapshot/create-snapshot.use-case';

@@ -63,9 +63,7 @@ const NEST_HTTP_EXCEPTIONS = [
   'ImATeapotException',
 ];
 
-const NEST_THROW_RE = new RegExp(
-  `throw\\s+new\\s+(${NEST_HTTP_EXCEPTIONS.join('|')})\\s*\\(`,
-);
+const NEST_THROW_RE = new RegExp(`throw\\s+new\\s+(${NEST_HTTP_EXCEPTIONS.join('|')})\\s*\\(`);
 
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -77,7 +75,8 @@ function* walk(dir: string): Generator<string> {
         entry === '__tests__' ||
         entry === 'testing' ||
         entry === '__mocks__'
-      ) continue;
+      )
+        continue;
       yield* walk(full);
     } else if (
       st.isFile() &&

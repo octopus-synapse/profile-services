@@ -50,17 +50,12 @@ export class PrismaAntiGhostingRepository extends AntiGhostingRepositoryPort {
         createdAt: row.createdAt,
         jobTitle: row.job.title,
         company: row.job.company ?? 'the company',
-        lastEvent: lastEvent
-          ? { type: lastEvent.type, occurredAt: lastEvent.occurredAt }
-          : null,
+        lastEvent: lastEvent ? { type: lastEvent.type, occurredAt: lastEvent.occurredAt } : null,
       };
     });
   }
 
-  async hasReminderBeenSent(
-    applicationId: string,
-    threshold: ReminderThreshold,
-  ): Promise<boolean> {
+  async hasReminderBeenSent(applicationId: string, threshold: ReminderThreshold): Promise<boolean> {
     const row = await this.prisma.jobApplicationReminderLog.findUnique({
       where: { applicationId_threshold: { applicationId, threshold } },
       select: { id: true },
@@ -77,10 +72,7 @@ export class PrismaAntiGhostingRepository extends AntiGhostingRepositoryPort {
     return { email: user.email, name: user.name };
   }
 
-  async recordReminderLog(
-    applicationId: string,
-    threshold: ReminderThreshold,
-  ): Promise<void> {
+  async recordReminderLog(applicationId: string, threshold: ReminderThreshold): Promise<void> {
     await this.prisma.jobApplicationReminderLog.create({
       data: { applicationId, threshold },
     });

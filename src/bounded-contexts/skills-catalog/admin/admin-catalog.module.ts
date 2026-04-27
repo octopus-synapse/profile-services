@@ -178,8 +178,7 @@ import { AdminTechSkillsController } from './infrastructure/controllers/admin-te
     // ----- Spoken languages use cases -----
     {
       provide: ListAdminSpokenLanguagesUseCase,
-      useFactory: (r: AdminSpokenLanguagesRepositoryPort) =>
-        new ListAdminSpokenLanguagesUseCase(r),
+      useFactory: (r: AdminSpokenLanguagesRepositoryPort) => new ListAdminSpokenLanguagesUseCase(r),
       inject: [AdminSpokenLanguagesRepositoryPort],
     },
     {

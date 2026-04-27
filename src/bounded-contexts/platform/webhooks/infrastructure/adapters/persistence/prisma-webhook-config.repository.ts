@@ -87,10 +87,7 @@ export class PrismaWebhookConfigRepository extends WebhookConfigRepositoryPort {
     return result.count > 0;
   }
 
-  async listDeliveries(
-    userId: string,
-    webhookId: string,
-  ): Promise<WebhookDeliveryView[] | null> {
+  async listDeliveries(userId: string, webhookId: string): Promise<WebhookDeliveryView[] | null> {
     if (!(await this.isOwnedBy(userId, webhookId))) return null;
     const rows = await this.prisma.webhookDelivery.findMany({
       where: { webhookId },

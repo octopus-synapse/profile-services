@@ -11,6 +11,11 @@ const stubEventPublisher: EventPublisher = {
   publishAsync: () => Promise.resolve(),
 } as unknown as EventPublisher;
 
+import {
+  JobMatchFitProfileRequiredException,
+  JobMatchJobNotFoundException,
+  JobMatchResumeNotFoundException,
+} from '../../domain/exceptions/job-match.exceptions';
 import { type JobForMatch, JobLoaderPort } from '../../domain/ports/job-loader.port';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import {
@@ -25,11 +30,6 @@ import {
 } from '../../domain/ports/semantic-matcher.port';
 import { type UserFitState, UserFitStatePort } from '../../domain/ports/user-fit-state.port';
 import type { MatchBreakdown } from '../../domain/types';
-import {
-  JobMatchFitProfileRequiredException,
-  JobMatchJobNotFoundException,
-  JobMatchResumeNotFoundException,
-} from '../../domain/exceptions/job-match.exceptions';
 import { ComputeMatchUseCase } from './compute-match.use-case';
 
 class FakeResumeExistence extends ResumeExistencePort {

@@ -3,10 +3,7 @@
  * resumeId) trio and we run the orchestrator.
  */
 
-import {
-  GitHubSyncService,
-  type GitHubSyncResult,
-} from '../../services/github-sync.service';
+import { type GitHubSyncResult, GitHubSyncService } from '../../services/github-sync.service';
 
 // Re-exported so callers (controller, tests) can name the return shape
 // without reaching into application/services/.

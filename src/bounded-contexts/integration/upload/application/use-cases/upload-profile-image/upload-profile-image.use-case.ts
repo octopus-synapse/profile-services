@@ -9,8 +9,15 @@
 import { randomUUID } from 'node:crypto';
 import type { LoggerPort } from '@/shared-kernel';
 import { UploadStorageUnavailableException } from '../../../../domain/exceptions/integration.exceptions';
-import { FileStoragePort, type UploadedFileLocation } from '../../../domain/ports/file-storage.port';
-import { type FileUpload, getFileExtension, validateFile } from '../../../domain/services/file-validator';
+import {
+  FileStoragePort,
+  type UploadedFileLocation,
+} from '../../../domain/ports/file-storage.port';
+import {
+  type FileUpload,
+  getFileExtension,
+  validateFile,
+} from '../../../domain/services/file-validator';
 
 const CTX = 'UploadProfileImageUseCase';
 

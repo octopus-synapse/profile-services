@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { HealthCheckSystem } from '../../domain/ports/health-check-orchestrator.port';
 import type { RunHealthCheckUseCase } from '../../application/use-cases/run-health-check/run-health-check.use-case';
+import type { HealthCheckSystem } from '../../domain/ports/health-check-orchestrator.port';
 import { HealthController } from './health.controller';
 
 const okSnapshot = {

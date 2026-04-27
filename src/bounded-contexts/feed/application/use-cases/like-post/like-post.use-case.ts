@@ -8,6 +8,7 @@
  *   - Otherwise → create the reaction, bump `likesCount`, fire notify.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { ReactionType } from '../../../domain/entities';
 import { PostNotFoundException } from '../../../domain/exceptions/feed.exceptions';
 import { EngagementRepositoryPort } from '../../../domain/ports/engagement.repository.port';
@@ -26,6 +27,7 @@ export class LikePostUseCase {
   constructor(
     private readonly repository: EngagementRepositoryPort,
     private readonly notifier: EngagementNotifierPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

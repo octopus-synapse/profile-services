@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SkillSectionTypeNotConfiguredException } from '@/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions';
 import { LoggerPort } from '@/shared-kernel';
-import type { SectionItem, SkillItemRecord, SkillSection } from '../../../domain/ports/skill-management.port';
+import type {
+  SectionItem,
+  SkillItemRecord,
+  SkillSection,
+} from '../../../domain/ports/skill-management.port';
 import { SkillManagementPort } from '../../../domain/ports/skill-management.port';
 import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 

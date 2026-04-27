@@ -5,11 +5,11 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ShareNotFoundException } from '../../domain/exceptions/presentation.exceptions';
 import {
   type AccessMode,
   AccessPublicResumeUseCase,
 } from '../application/use-cases/access-public-resume.use-case';
-import { ShareNotFoundException } from '../../domain/exceptions/presentation.exceptions';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { OgImageService } from '../services/og-image.service';
 import { ResumeShareService } from '../services/resume-share.service';

@@ -1,6 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { AdminTechNichesRepositoryPort } from '../../../domain/ports/admin-tech-niches.repository.port';
 import { TechNicheInUseException } from '../../../../domain/exceptions/skills-catalog.exceptions';
+import { AdminTechNichesRepositoryPort } from '../../../domain/ports/admin-tech-niches.repository.port';
 
 export class DeleteAdminTechNicheUseCase {
   constructor(private readonly repository: AdminTechNichesRepositoryPort) {}

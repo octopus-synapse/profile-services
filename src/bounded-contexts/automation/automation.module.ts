@@ -18,8 +18,8 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
-import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
+import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { LoggerPort } from '@/shared-kernel';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
 import { ApproveCuratedItemUseCase } from './application/use-cases/approve-curated-item/approve-curated-item.use-case';

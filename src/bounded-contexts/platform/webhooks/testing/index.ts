@@ -19,10 +19,7 @@ import {
   type UpdateWebhookInput,
   WebhookConfigRepositoryPort,
 } from '../domain/ports/webhook-config.repository.port';
-import {
-  type DeliveryRequest,
-  WebhookDeliveryPort,
-} from '../domain/ports/webhook-delivery.port';
+import { type DeliveryRequest, WebhookDeliveryPort } from '../domain/ports/webhook-delivery.port';
 
 interface ConfigRow {
   readonly id: string;
@@ -63,9 +60,7 @@ export class InMemoryWebhookConfigRepository extends WebhookConfigRepositoryPort
   }
 
   async listForUser(userId: string): Promise<WebhookView[]> {
-    return [...this.configs.values()]
-      .filter((c) => c.userId === userId)
-      .map(toView);
+    return [...this.configs.values()].filter((c) => c.userId === userId).map(toView);
   }
 
   async createForUser(
@@ -125,7 +120,9 @@ export class InMemoryWebhookConfigRepository extends WebhookConfigRepositoryPort
 
   async findDeliveryTargets(userId: string, eventType: string): Promise<DeliveryTarget[]> {
     return [...this.configs.values()]
-      .filter((c) => c.userId === userId && c.enabled && c.events.includes(eventType as WebhookEvent))
+      .filter(
+        (c) => c.userId === userId && c.enabled && c.events.includes(eventType as WebhookEvent),
+      )
       .map((c) => ({ id: c.id, url: c.url, secret: c.secret }));
   }
 

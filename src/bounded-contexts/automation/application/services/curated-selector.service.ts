@@ -1,7 +1,7 @@
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
+import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
-import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 
 /**
  * Picks the top N jobs that match a user's primary resume, subject to any

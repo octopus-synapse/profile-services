@@ -3,6 +3,7 @@
  * Applies blind-mode masking before returning.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { PostWithRelations } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
@@ -12,6 +13,7 @@ export class GetPostUseCase {
   constructor(
     private readonly repository: FeedRepositoryPort,
     private readonly mask: AnonymousMaskService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(id: string): Promise<PostWithRelations> {

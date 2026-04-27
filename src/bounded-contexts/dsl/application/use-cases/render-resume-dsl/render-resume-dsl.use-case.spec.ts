@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ResumeNoActiveStyleException } from '../../../domain/exceptions/dsl.exceptions';
-import type { DslCompilerService } from '../../services/dsl-compiler.service';
-import type { DslValidatorService } from '../../services/dsl-validator.service';
 import {
   InMemoryDslCompiler,
   InMemoryDslValidator,
   InMemoryResumeDslRepository,
   mockAst,
 } from '../../../testing';
+import type { DslCompilerService } from '../../services/dsl-compiler.service';
+import type { DslValidatorService } from '../../services/dsl-validator.service';
 import { RenderResumeDslUseCase } from './render-resume-dsl.use-case';
 
 describe('RenderResumeDslUseCase', () => {

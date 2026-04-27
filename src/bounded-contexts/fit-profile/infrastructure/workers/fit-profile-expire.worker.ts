@@ -84,6 +84,10 @@ export class FitProfileExpireWorker extends WorkerHost implements OnModuleInit {
   @OnWorkerEvent('failed')
   onFailed(job: Job<FitProfileExpireJobData>, err: Error): void {
     const userId = job?.data?.kind === 'expire-user' ? job.data.userId : '(schedule)';
-    this.logger.error(`fit-profile-expire failed user=${userId} err=${err.message}`, err.stack, CTX);
+    this.logger.error(
+      `fit-profile-expire failed user=${userId} err=${err.message}`,
+      err.stack,
+      CTX,
+    );
   }
 }

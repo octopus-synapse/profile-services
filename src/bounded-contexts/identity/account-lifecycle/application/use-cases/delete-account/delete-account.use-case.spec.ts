@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { DELETION_CONFIRMATION_PHRASE } from '../../../application/ports';
 import { AccountDeletedEvent } from '../../../domain/events';

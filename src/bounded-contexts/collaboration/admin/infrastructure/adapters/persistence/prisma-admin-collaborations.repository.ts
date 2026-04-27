@@ -6,9 +6,9 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate } from '@/shared-kernel/database';
 import {
+  AdminCollaborationsRepositoryPort,
   type AdminCollaborationsStats,
   type AdminCollaborationView,
-  AdminCollaborationsRepositoryPort,
   type ListCollaborationsQuery,
 } from '../../../domain/ports/admin-collaborations.repository.port';
 

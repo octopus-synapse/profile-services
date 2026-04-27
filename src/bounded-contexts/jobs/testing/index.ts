@@ -5,7 +5,7 @@
  * layout.
  */
 
-export { InMemoryApplicationTrackerRepository } from './in-memory-application-tracker.repository';
 export { InMemoryAntiGhostingRepository } from './in-memory-anti-ghosting.repository';
 export { InMemoryAntiGhostingEmailer } from './in-memory-anti-ghosting-emailer';
+export { InMemoryApplicationTrackerRepository } from './in-memory-application-tracker.repository';
 export { InMemoryJobsRepository } from './in-memory-jobs.repository';

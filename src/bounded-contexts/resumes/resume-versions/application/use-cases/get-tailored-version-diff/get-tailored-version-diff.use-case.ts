@@ -29,11 +29,7 @@ type SnapshotEnvelope = {
 export class GetTailoredVersionDiffUseCase {
   constructor(private readonly repository: ResumeVersionsRepositoryPort) {}
 
-  async execute(
-    resumeId: string,
-    versionId: string,
-    userId: string,
-  ): Promise<TailoredVersionDiff> {
+  async execute(resumeId: string, versionId: string, userId: string): Promise<TailoredVersionDiff> {
     const owner = await this.repository.findResumeOwner(resumeId);
     if (!owner) throw new ResumeNotFoundException();
     if (owner.userId !== userId) throw new ResumeNotOwnedException();

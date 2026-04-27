@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { LoggerPort } from '@/shared-kernel';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { LoggerPort } from '@/shared-kernel';
 import {
   AiEmptyResponseException,
   AiInvalidOutputException,

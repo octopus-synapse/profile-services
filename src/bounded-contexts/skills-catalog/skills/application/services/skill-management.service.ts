@@ -6,11 +6,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { CreateSkillData, Skill, UpdateSkillData } from '../../domain/ports/skill-management.port';
+import type {
+  CreateSkillData,
+  Skill,
+  UpdateSkillData,
+} from '../../domain/ports/skill-management.port';
 import { AddSkillUseCase } from '../use-cases/add-skill/add-skill.use-case';
 import { DeleteSkillUseCase } from '../use-cases/delete-skill/delete-skill.use-case';
-import { ListSkillsForResumeUseCase } from '../use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { ListSkillsUseCase } from '../use-cases/list-skills/list-skills.use-case';
+import { ListSkillsForResumeUseCase } from '../use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { UpdateSkillUseCase } from '../use-cases/update-skill/update-skill.use-case';
 
 @Injectable()

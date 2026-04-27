@@ -30,8 +30,8 @@ import {
   ANTI_GHOSTING_SILENCING_EVENTS,
   ANTI_GHOSTING_THRESHOLD_DAYS,
 } from '../../../domain/entities/anti-ghosting';
-import { AntiGhostingEmailerPort } from '../../../domain/ports/anti-ghosting-emailer.port';
 import { AntiGhostingRepositoryPort } from '../../../domain/ports/anti-ghosting.repository.port';
+import { AntiGhostingEmailerPort } from '../../../domain/ports/anti-ghosting-emailer.port';
 import { buildAntiGhostingEmail } from '../../services/build-anti-ghosting-email';
 
 const CTX = 'RunAntiGhostingSweepUseCase';
@@ -50,10 +50,7 @@ export class RunAntiGhostingSweepUseCase {
 
     let reminded = 0;
     for (const candidate of candidates) {
-      if (
-        candidate.lastEvent &&
-        ANTI_GHOSTING_SILENCING_EVENTS.has(candidate.lastEvent.type)
-      ) {
+      if (candidate.lastEvent && ANTI_GHOSTING_SILENCING_EVENTS.has(candidate.lastEvent.type)) {
         continue;
       }
 

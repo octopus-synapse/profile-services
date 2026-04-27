@@ -69,7 +69,8 @@ function* walk(dir: string): Generator<string> {
         entry === '__tests__' ||
         entry === 'testing' ||
         entry === '__mocks__'
-      ) continue;
+      )
+        continue;
       yield* walk(full);
     } else if (
       st.isFile() &&
@@ -100,7 +101,8 @@ function audit(): Offender[] {
     if (
       !/from\s+['"]class-validator['"]/.test(src) &&
       !/from\s+['"]class-transformer['"]/.test(src)
-    ) continue;
+    )
+      continue;
 
     const found = new Set<string>();
     for (const dec of FORBIDDEN_DECORATORS) {

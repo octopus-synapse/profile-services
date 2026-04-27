@@ -4,10 +4,7 @@
  * `GitHubUsernameMissingException` when the resume has no link.
  */
 
-import {
-  GitHubSyncService,
-  type GitHubSyncResult,
-} from '../../services/github-sync.service';
+import { type GitHubSyncResult, GitHubSyncService } from '../../services/github-sync.service';
 
 export class AutoSyncGitHubFromResumeUseCase {
   constructor(private readonly sync: GitHubSyncService) {}

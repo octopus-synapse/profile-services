@@ -187,12 +187,7 @@ import {
       ) => {
         return new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage, logger);
       },
-      inject: [
-        AuthenticationRepositoryPort,
-        TokenGeneratorPort,
-        SessionStoragePort,
-        LoggerPort,
-      ],
+      inject: [AuthenticationRepositoryPort, TokenGeneratorPort, SessionStoragePort, LoggerPort],
     },
     {
       provide: TerminateSessionPort,

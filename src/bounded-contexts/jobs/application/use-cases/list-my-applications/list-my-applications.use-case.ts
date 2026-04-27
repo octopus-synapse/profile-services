@@ -19,11 +19,7 @@ export class ListMyApplicationsUseCase {
   async execute(userId: string, page = 1, limit = 20): Promise<ListMyApplicationsResult> {
     const safeLimit = Math.min(limit, 100);
     const safePage = Math.max(1, page);
-    const { items, total } = await this.repository.listMyApplications(
-      userId,
-      safePage,
-      safeLimit,
-    );
+    const { items, total } = await this.repository.listMyApplications(userId, safePage, safeLimit);
     return {
       data: items,
       total,

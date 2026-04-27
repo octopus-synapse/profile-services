@@ -34,7 +34,8 @@ const ALLOWED = new Set<string>([
 ]);
 
 // Captura `import { ..., Logger, ... } from '@nestjs/common'`, multi-linha.
-const NEST_LOGGER_IMPORT = /import\s*(?:type\s*)?\{[^}]*\bLogger\b[^}]*\}\s*from\s*['"]@nestjs\/common['"]/m;
+const NEST_LOGGER_IMPORT =
+  /import\s*(?:type\s*)?\{[^}]*\bLogger\b[^}]*\}\s*from\s*['"]@nestjs\/common['"]/m;
 const NEW_LOGGER = /new\s+Logger\s*\(/g;
 const CONSOLE_CALL = /\bconsole\.(log|warn|error|debug|info)\s*\(/g;
 

@@ -33,7 +33,8 @@ function* walk(dir: string): Generator<string> {
       e.name === '__tests__' ||
       e.name === 'testing' ||
       e.name === '__mocks__'
-    ) continue;
+    )
+      continue;
     const f = join(dir, e.name);
     if (e.isDirectory()) yield* walk(f);
     else if (e.isFile()) yield f;
@@ -80,11 +81,7 @@ function audit(): Offender[] {
       if (useCaseRe.test(rel) && !f.endsWith('.spec.ts') && !f.endsWith('.test.ts')) {
         hasUseCases = true;
       }
-      if (
-        f.endsWith('.controller.ts') &&
-        !f.endsWith('.spec.ts') &&
-        !f.endsWith('.test.ts')
-      ) {
+      if (f.endsWith('.controller.ts') && !f.endsWith('.spec.ts') && !f.endsWith('.test.ts')) {
         controllers++;
       }
     }

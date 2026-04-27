@@ -1,7 +1,11 @@
 /**
  * Password Management Domain Exceptions
  */
-import { DomainException, UnauthorizedException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  DomainException,
+  UnauthorizedException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 /**
  * Weak Password Exception

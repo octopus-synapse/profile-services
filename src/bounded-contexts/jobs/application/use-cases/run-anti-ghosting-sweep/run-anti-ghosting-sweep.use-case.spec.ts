@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import {
-  InMemoryAntiGhostingEmailer,
-  InMemoryAntiGhostingRepository,
-} from '../../../testing';
+import { InMemoryAntiGhostingEmailer, InMemoryAntiGhostingRepository } from '../../../testing';
 import { RunAntiGhostingSweepUseCase } from './run-anti-ghosting-sweep.use-case';
 
 const DAY = 24 * 60 * 60 * 1000;

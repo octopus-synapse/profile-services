@@ -5,6 +5,7 @@
  * when this is a REPOST.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { CreatePostInput, PostWithAuthor } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
 import { LinkPreviewFetcherPort } from '../../../domain/ports/link-preview-fetcher.port';
@@ -15,6 +16,7 @@ export class CreatePostUseCase {
     private readonly repository: FeedRepositoryPort,
     private readonly linkPreview: LinkPreviewFetcherPort,
     private readonly hashtags: HashtagParserService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(authorId: string, input: CreatePostInput): Promise<PostWithAuthor> {

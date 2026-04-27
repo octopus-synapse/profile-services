@@ -5,8 +5,8 @@
 
 import type { PaginatedResult } from '@/shared-kernel/database';
 import {
-  type AdminCollaborationView,
   AdminCollaborationsRepositoryPort,
+  type AdminCollaborationView,
 } from '../../../domain/ports/admin-collaborations.repository.port';
 
 export interface ListCollaborationsInput {

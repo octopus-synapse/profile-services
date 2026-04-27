@@ -10,10 +10,10 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
-import type { TrackEventsBodyDto } from '../../../dto/track-event.dto';
 import type { PlatformEvent } from '../../../domain/entities/platform-event';
 import { PlatformEventsRepositoryPort } from '../../../domain/ports/platform-events.repository.port';
 import { ProductAnalyticsForwarderPort } from '../../../domain/ports/product-analytics-forwarder.port';
+import type { TrackEventsBodyDto } from '../../../dto/track-event.dto';
 
 const CTX = 'TrackPlatformEventsUseCase';
 
@@ -24,10 +24,7 @@ export class TrackPlatformEventsUseCase {
     private readonly logger: LoggerPort,
   ) {}
 
-  async execute(
-    userId: string | null,
-    body: TrackEventsBodyDto,
-  ): Promise<{ accepted: number }> {
+  async execute(userId: string | null, body: TrackEventsBodyDto): Promise<{ accepted: number }> {
     const events: PlatformEvent[] = body.events.map((e) => ({
       userId,
       event: e.event,

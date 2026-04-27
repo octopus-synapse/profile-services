@@ -83,8 +83,7 @@ import { GitHubController } from './infrastructure/controllers/github.controller
     },
     {
       provide: GetGitHubSyncStatusUseCase,
-      useFactory: (resumes: GitHubResumeRepositoryPort) =>
-        new GetGitHubSyncStatusUseCase(resumes),
+      useFactory: (resumes: GitHubResumeRepositoryPort) => new GetGitHubSyncStatusUseCase(resumes),
       inject: [GitHubResumeRepositoryPort],
     },
   ],

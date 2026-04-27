@@ -5,8 +5,8 @@
  * Definition-driven - field extraction done generically from section item content.
  */
 
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   GenericSectionContent,
   GenericSectionWithMeta,

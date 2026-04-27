@@ -6,8 +6,8 @@
 
 import {
   type ActiveUsersStats,
-  AdminAnalyticsRepositoryPort,
   type AdminAnalyticsPeriod,
+  AdminAnalyticsRepositoryPort,
   type AtsScoreBucket,
   type ContentStats,
   type JobStats,

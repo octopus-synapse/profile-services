@@ -18,10 +18,7 @@ interface FakeUserRow {
   preferences: { applyCriteria: unknown } | null;
 }
 
-function buildPrismaMock(opts: {
-  user: FakeUserRow | null;
-  jobs: JobRow[];
-}): PrismaService {
+function buildPrismaMock(opts: { user: FakeUserRow | null; jobs: JobRow[] }): PrismaService {
   return {
     user: {
       findUnique: async () => opts.user,

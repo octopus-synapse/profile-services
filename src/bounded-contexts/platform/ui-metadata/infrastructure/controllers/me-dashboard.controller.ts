@@ -10,8 +10,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { MeDashboardPayload } from '../../domain/entities/me-dashboard';
 import { LoadMeDashboardUseCase } from '../../application/use-cases/load-me-dashboard/load-me-dashboard.use-case';
+import type { MeDashboardPayload } from '../../domain/entities/me-dashboard';
 
 @SdkExport({ tag: 'pages', description: 'Composite page payloads' })
 @ApiTags('pages')

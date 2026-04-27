@@ -4,8 +4,8 @@
  */
 
 import {
-  type AdminCollaborationsStats,
   AdminCollaborationsRepositoryPort,
+  type AdminCollaborationsStats,
 } from '../../../domain/ports/admin-collaborations.repository.port';
 
 export class GetCollaborationStatsUseCase {

@@ -58,7 +58,13 @@ function* walk(dir: string): Generator<string> {
     const full = join(dir, entry);
     const st = statSync(full);
     if (st.isDirectory()) {
-      if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing' || entry === '__mocks__') continue;
+      if (
+        entry === 'node_modules' ||
+        entry === '__tests__' ||
+        entry === 'testing' ||
+        entry === '__mocks__'
+      )
+        continue;
       yield* walk(full);
     } else if (
       st.isFile() &&
@@ -85,7 +91,9 @@ function audit(): Offender[] {
     // adapters, filters) is allowed to depend on Nest.
     if (!rel.match(/\/(application|domain)\//)) continue;
     const src = readFileSync(path, 'utf8');
-    const importMatches = src.matchAll(/import\s*(?:type\s*)?\{([^}]+)\}\s*from\s*['"]@nestjs\/common['"]/g);
+    const importMatches = src.matchAll(
+      /import\s*(?:type\s*)?\{([^}]+)\}\s*from\s*['"]@nestjs\/common['"]/g,
+    );
     const offending = new Set<string>();
     for (const m of importMatches) {
       for (const raw of m[1].split(',')) {

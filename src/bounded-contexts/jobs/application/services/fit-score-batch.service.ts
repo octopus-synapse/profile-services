@@ -8,17 +8,14 @@
  * we leave them null and let the scorer fall back to neutral factors.
  */
 
-import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
 import type { JobFitInputRow } from '../../domain/entities/job';
+import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
 import { computeFitScore, type FitScore } from './compute-fit-score';
 
 export class FitScoreBatchService {
   constructor(private readonly repository: JobsRepositoryPort) {}
 
-  async scoreJobsForUser(
-    userId: string,
-    jobs: JobFitInputRow[],
-  ): Promise<Map<string, FitScore>> {
+  async scoreJobsForUser(userId: string, jobs: JobFitInputRow[]): Promise<Map<string, FitScore>> {
     const resumeSkills = await this.repository.collectUserSkills(userId);
 
     const out = new Map<string, FitScore>();

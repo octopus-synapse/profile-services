@@ -6,8 +6,8 @@
  */
 
 import {
-  type AntiGhostingEmailMessage,
   AntiGhostingEmailerPort,
+  type AntiGhostingEmailMessage,
 } from '../domain/ports/anti-ghosting-emailer.port';
 
 export class InMemoryAntiGhostingEmailer extends AntiGhostingEmailerPort {

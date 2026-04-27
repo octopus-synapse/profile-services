@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { InMemorySkillManagementRepository } from '../../testing';
 import { AddSkillUseCase } from '../use-cases/add-skill/add-skill.use-case';
 import { DeleteSkillUseCase } from '../use-cases/delete-skill/delete-skill.use-case';
-import { ListSkillsForResumeUseCase } from '../use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { ListSkillsUseCase } from '../use-cases/list-skills/list-skills.use-case';
+import { ListSkillsForResumeUseCase } from '../use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { UpdateSkillUseCase } from '../use-cases/update-skill/update-skill.use-case';
 import { SkillManagementService } from './skill-management.service';
 

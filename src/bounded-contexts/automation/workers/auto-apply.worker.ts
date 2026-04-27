@@ -3,10 +3,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { type Job, type Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
-import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { LoggerPort } from '@/shared-kernel';
-import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
+import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { CuratedSelectorService } from '../application/services/curated-selector.service';
+import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
 
@@ -156,10 +156,7 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
         );
       }
     }
-    this.logger.log(
-      `Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`,
-      CTX,
-    );
+    this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`, CTX);
     if (failures.length === picks.length && picks.length > 0) {
       throw new AutoApplyAllPicksFailedException(userId, picks.length, failures[0].reason);
     }

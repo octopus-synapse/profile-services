@@ -91,7 +91,10 @@ function readConstructor(src: string): ConstructorShape | null {
       if (ch === inStr && prev !== '\\') inStr = null;
       continue;
     }
-    if (ch === '"' || ch === "'" || ch === '`') { inStr = ch; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      inStr = ch;
+      continue;
+    }
     if (ch === '(' || ch === '[' || ch === '{' || ch === '<') depth++;
     if (ch === ')' || ch === ']' || ch === '}' || ch === '>') depth--;
     if (ch === ',' && depth === 0) count++;
@@ -258,7 +261,9 @@ describe('Logger coverage audit', () => {
 
   it(`infra adapters/services missing LoggerPort = ${findings.infraAdapterGaps.length}`, () => {
     if (findings.infraAdapterGaps.length > 0) {
-      console.warn(`\nInfra adapter gaps:\n${findings.infraAdapterGaps.map((f) => `  - ${f}`).join('\n')}\n`);
+      console.warn(
+        `\nInfra adapter gaps:\n${findings.infraAdapterGaps.map((f) => `  - ${f}`).join('\n')}\n`,
+      );
     }
     const ceiling = ratchet('infraAdapterGaps', findings.infraAdapterGaps.length);
     expect(findings.infraAdapterGaps.length).toBeLessThanOrEqual(ceiling);
@@ -282,7 +287,9 @@ describe('Logger coverage audit', () => {
 
   it(`silent catch blocks (no log, no rethrow) = ${findings.silentCatches.length}`, () => {
     if (findings.silentCatches.length > 0) {
-      console.warn(`\nSilent catch files:\n${findings.silentCatches.map((f) => `  - ${f}`).join('\n')}\n`);
+      console.warn(
+        `\nSilent catch files:\n${findings.silentCatches.map((f) => `  - ${f}`).join('\n')}\n`,
+      );
     }
     const ceiling = ratchet('silentCatches', findings.silentCatches.length);
     expect(findings.silentCatches.length).toBeLessThanOrEqual(ceiling);

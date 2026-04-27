@@ -24,13 +24,9 @@ import { ApplicationTrackerRepositoryPort } from '../../../domain/ports/applicat
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const RESPONSE_EVENT_TYPES: ReadonlySet<JobApplicationEventType> = new Set<JobApplicationEventType>([
-  'VIEWED',
-  'INTERVIEW_SCHEDULED',
-  'INTERVIEW_COMPLETED',
-  'OFFER_RECEIVED',
-  'REJECTED',
-]);
+const RESPONSE_EVENT_TYPES: ReadonlySet<JobApplicationEventType> = new Set<JobApplicationEventType>(
+  ['VIEWED', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED', 'OFFER_RECEIVED', 'REJECTED'],
+);
 
 export const DEFAULT_SILENT_THRESHOLD_DAYS = 10;
 
@@ -65,13 +61,10 @@ export class ListApplicationTimelineUseCase {
       // Silence is "no response ever" + more than N days since submission, OR
       // last response is older than threshold — minus when the user already
       // sent a follow-up (don't nag twice).
-      const lastFollowUp = [...app.events]
-        .reverse()
-        .find((e) => e.type === 'FOLLOW_UP_SENT');
+      const lastFollowUp = [...app.events].reverse().find((e) => e.type === 'FOLLOW_UP_SENT');
       const blockedByRecentFollowUp =
         lastFollowUp != null &&
-        Math.floor((nowMs - lastFollowUp.occurredAt.getTime()) / MS_PER_DAY) <
-          silentThresholdDays;
+        Math.floor((nowMs - lastFollowUp.occurredAt.getTime()) / MS_PER_DAY) < silentThresholdDays;
 
       const inTerminalState = app.events.some(
         (e) => e.type === 'OFFER_RECEIVED' || e.type === 'REJECTED',

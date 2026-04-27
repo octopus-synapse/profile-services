@@ -6,12 +6,12 @@
  * later changes.
  */
 
-import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   JobForTailor,

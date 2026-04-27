@@ -10,7 +10,11 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { GenericResume, GenericResumeSection, SemanticKind } from '@/shared-kernel/schemas/sections';
+import type {
+  GenericResume,
+  GenericResumeSection,
+  SemanticKind,
+} from '@/shared-kernel/schemas/sections';
 import {
   resolveTranslation,
   type SupportedLocale,

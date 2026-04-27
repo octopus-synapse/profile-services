@@ -20,11 +20,7 @@ export class ListBookmarkedJobsUseCase {
   async execute(userId: string, page = 1, limit = 20): Promise<ListBookmarkedJobsResult> {
     const safeLimit = Math.min(limit, 100);
     const safePage = Math.max(1, page);
-    const { items, total } = await this.repository.listBookmarkedJobs(
-      userId,
-      safePage,
-      safeLimit,
-    );
+    const { items, total } = await this.repository.listBookmarkedJobs(userId, safePage, safeLimit);
 
     return {
       data: items.map((b) => ({ ...b.job, bookmarkedAt: b.createdAt })),

@@ -6,11 +6,8 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RequirePermission } from '@/shared-kernel/authorization';
 import { SkillManagementService } from '../../application/services/skill-management.service';
+import type { CreateSkillData, UpdateSkillData } from '../../domain/ports/skill-management.port';
 import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../../dto/controller-response.dto';
-import type {
-  CreateSkillData,
-  UpdateSkillData,
-} from '../../domain/ports/skill-management.port';
 
 @SdkExport({ tag: 'resume-skills', description: 'Resume skill management' })
 @ApiTags('Resume Skills')

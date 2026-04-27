@@ -92,11 +92,7 @@ export class InMemoryGitHubResumeRepository extends GitHubResumeRepositoryPort {
     return full;
   }
 
-  async verifyResumeOwnership(
-    userId: string,
-    resumeId: string,
-    _include?: Prisma.ResumeInclude,
-  ) {
+  async verifyResumeOwnership(userId: string, resumeId: string, _include?: Prisma.ResumeInclude) {
     const row = this.resumes.get(resumeId);
     if (!row) throw new Error(`Resume ${resumeId} not found`);
     if (row.userId !== userId) throw new Error('Resume access denied');

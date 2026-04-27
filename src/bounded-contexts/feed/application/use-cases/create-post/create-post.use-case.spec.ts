@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import type { PostType } from '@prisma/client';
 import { InMemoryFeedRepository, InMemoryLinkPreviewFetcher } from '../../../testing';
@@ -10,7 +11,7 @@ const REPOST = 'REPOST' as PostType;
 function make() {
   const repo = new InMemoryFeedRepository();
   const link = new InMemoryLinkPreviewFetcher();
-  const useCase = new CreatePostUseCase(repo, link, new HashtagParserService());
+  const useCase = new CreatePostUseCase(repo, link, new HashtagParserService(), stubLogger);
   return { repo, link, useCase };
 }
 

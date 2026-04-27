@@ -45,8 +45,7 @@ import { HealthController } from './infrastructure/controllers/health.controller
         translate: TranslateHealthIndicator,
         smtp: SmtpHealthIndicator,
         openai: OpenAIHealthIndicator,
-      ) =>
-        new TerminusHealthCheckOrchestrator(health, db, redis, storage, translate, smtp, openai),
+      ) => new TerminusHealthCheckOrchestrator(health, db, redis, storage, translate, smtp, openai),
       inject: [
         HealthCheckService,
         DatabaseHealthIndicator,

@@ -7,9 +7,9 @@ import { WithdrawApplicationUseCase } from './withdraw-application.use-case';
 describe('WithdrawApplicationUseCase', () => {
   it('throws when the application does not exist', async () => {
     const repo = new InMemoryJobsRepository();
-    await expect(
-      new WithdrawApplicationUseCase(repo).execute('jx', 'me'),
-    ).rejects.toBeInstanceOf(EntityNotFoundException);
+    await expect(new WithdrawApplicationUseCase(repo).execute('jx', 'me')).rejects.toBeInstanceOf(
+      EntityNotFoundException,
+    );
   });
 
   it('flips the application status to WITHDRAWN', async () => {

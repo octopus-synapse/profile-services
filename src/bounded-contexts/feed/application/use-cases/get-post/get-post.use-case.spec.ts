@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryFeedRepository } from '../../../testing';
@@ -6,7 +7,7 @@ import { GetPostUseCase } from './get-post.use-case';
 
 function make() {
   const repo = new InMemoryFeedRepository();
-  const useCase = new GetPostUseCase(repo, new AnonymousMaskService());
+  const useCase = new GetPostUseCase(repo, new AnonymousMaskService(), stubLogger);
   return { repo, useCase };
 }
 

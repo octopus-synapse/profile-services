@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import {
   PostAlreadyRepostedException,
@@ -13,7 +14,7 @@ function make() {
   return {
     repo,
     notifier,
-    useCase: new RepostPostUseCase(repo, notifier, new HashtagParserService()),
+    useCase: new RepostPostUseCase(repo, notifier, new HashtagParserService(), stubLogger),
   };
 }
 

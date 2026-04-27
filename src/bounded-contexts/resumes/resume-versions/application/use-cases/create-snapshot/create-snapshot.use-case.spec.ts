@@ -1,6 +1,6 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ResumeNotFoundException } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionsRepository } from '../../../testing';
 import { CreateSnapshotUseCase } from './create-snapshot.use-case';
 

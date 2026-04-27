@@ -32,14 +32,10 @@ export class ExportPipelineService {
    */
   async run<T>(format: ExportFormat, userId: string, task: () => Promise<T>): Promise<T> {
     const exportId = randomUUID();
-    this.events.publish(
-      new ExportRequestedEvent(exportId, { resumeId: userId, userId, format }),
-    );
+    this.events.publish(new ExportRequestedEvent(exportId, { resumeId: userId, userId, format }));
     try {
       const result = await task();
-      this.events.publish(
-        new ExportCompletedEvent(exportId, { resumeId: userId, fileUrl: '' }),
-      );
+      this.events.publish(new ExportCompletedEvent(exportId, { resumeId: userId, fileUrl: '' }));
       return result;
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);

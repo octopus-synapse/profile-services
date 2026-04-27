@@ -21,12 +21,12 @@ import type {
   ResumeForTailor,
   TailoredVersionSummary,
 } from '../domain/entities/tailor';
-import { ResumeVersionsRepositoryPort } from '../domain/ports/resume-versions.repository.port';
 import {
   ResumeTailorLlmPort,
   type TailorLlmInput,
   type TailorLlmOutput,
 } from '../domain/ports/resume-tailor-llm.port';
+import { ResumeVersionsRepositoryPort } from '../domain/ports/resume-versions.repository.port';
 
 // ---------------------------------------------------------------------------
 // Repository
@@ -35,7 +35,10 @@ import {
 export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPort {
   private snapshotResumes = new Map<string, ResumeForSnapshot & { id: string }>();
   private tailorResumes = new Map<string, ResumeForTailor>();
-  private versions = new Map<string, ResumeVersionRecord & { isTailored: boolean; tailoredJobId: string | null }>();
+  private versions = new Map<
+    string,
+    ResumeVersionRecord & { isTailored: boolean; tailoredJobId: string | null }
+  >();
   private versionsByResumeId = new Map<string, string[]>();
   private jobs = new Map<string, JobForTailor>();
 
@@ -124,7 +127,10 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     };
   }
 
-  async updateResumeFromSnapshot(_resumeId: string, _snapshot: Record<string, unknown>): Promise<void> {
+  async updateResumeFromSnapshot(
+    _resumeId: string,
+    _snapshot: Record<string, unknown>,
+  ): Promise<void> {
     // no-op for tests
   }
 
@@ -163,7 +169,9 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     const ids = this.versionsByResumeId.get(resumeId) ?? [];
     return ids
       .map((id) => this.versions.get(id))
-      .filter((v): v is NonNullable<typeof v> => Boolean(v) && (v as { isTailored: boolean }).isTailored)
+      .filter(
+        (v): v is NonNullable<typeof v> => Boolean(v) && (v as { isTailored: boolean }).isTailored,
+      )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .map((v) => ({
         id: v.id,
@@ -198,7 +206,9 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     this.jobs.set(jobId, job);
   }
 
-  seedVersion(version: ResumeVersionRecord & { isTailored?: boolean; tailoredJobId?: string | null }): void {
+  seedVersion(
+    version: ResumeVersionRecord & { isTailored?: boolean; tailoredJobId?: string | null },
+  ): void {
     this.versions.set(version.id, {
       ...version,
       isTailored: version.isTailored ?? false,

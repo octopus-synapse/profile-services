@@ -5,8 +5,8 @@
  */
 
 import {
-  type HealthCheckSystem,
   HealthCheckOrchestratorPort,
+  type HealthCheckSystem,
   type HealthSnapshot,
 } from '../domain/ports/health-check-orchestrator.port';
 

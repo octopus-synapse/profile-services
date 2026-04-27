@@ -6,11 +6,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
+import type { CompiledThemeAst, ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
 import { ThemeCompiler } from '../compilers/theme-compiler';
 import { TokenEvaluator } from '../compilers/token-evaluator';
 import { ThemeParseError, ThemeParser } from '../parsers/theme-parser';
-import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
-import type { CompiledThemeAst, ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
 
 /**
  * Error thrown during theme compilation.

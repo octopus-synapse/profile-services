@@ -77,7 +77,12 @@ function makeConsentStubs() {
     getPrivacyPolicyVersion: () => PRIVACY_VERSION,
     getMarketingConsentVersion: () => '1.0.0',
   };
-  const acceptConsent = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger, stubLogger);
+  const acceptConsent = new AcceptConsentUseCase(
+    consentRepository,
+    versionConfig,
+    auditLogger,
+    stubLogger,
+  );
   return { acceptConsent, versionConfig, consents };
 }
 

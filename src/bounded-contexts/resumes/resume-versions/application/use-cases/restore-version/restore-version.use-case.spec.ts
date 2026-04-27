@@ -1,10 +1,10 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
   ResumeVersionNotFoundException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionsRepository } from '../../../testing';
 import { CreateSnapshotUseCase } from '../create-snapshot/create-snapshot.use-case';
 import { RestoreVersionUseCase } from './restore-version.use-case';
@@ -23,7 +23,12 @@ describe('RestoreVersionUseCase', () => {
     repository = new InMemoryResumeVersionsRepository();
     eventPublisher = new InMemoryResumeEventPublisher();
     createSnapshotUseCase = new CreateSnapshotUseCase(repository, eventPublisher, stubLogger);
-    useCase = new RestoreVersionUseCase(repository, createSnapshotUseCase, eventPublisher, stubLogger);
+    useCase = new RestoreVersionUseCase(
+      repository,
+      createSnapshotUseCase,
+      eventPublisher,
+      stubLogger,
+    );
   });
 
   it('throws ResumeNotFoundException when resume not found', async () => {

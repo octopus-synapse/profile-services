@@ -22,10 +22,17 @@ const SRC = join(REPO, 'src');
 const WRITE = process.argv.includes('--write');
 
 const INFRA_HINTS = [
-  /\bfetch\s*\(/, /from\s+['"]@prisma\/client['"]/, /\bnew\s+PrismaClient\b/,
-  /from\s+['"]openai['"]/, /from\s+['"]puppeteer['"]/, /from\s+['"]bullmq['"]/,
-  /from\s+['"]@nestjs\/bullmq['"]/, /from\s+['"]ioredis['"]/, /from\s+['"]nodemailer['"]/,
-  /from\s+['"]minio['"]/, /from\s+['"]aws-sdk['"]/,
+  /\bfetch\s*\(/,
+  /from\s+['"]@prisma\/client['"]/,
+  /\bnew\s+PrismaClient\b/,
+  /from\s+['"]openai['"]/,
+  /from\s+['"]puppeteer['"]/,
+  /from\s+['"]bullmq['"]/,
+  /from\s+['"]@nestjs\/bullmq['"]/,
+  /from\s+['"]ioredis['"]/,
+  /from\s+['"]nodemailer['"]/,
+  /from\s+['"]minio['"]/,
+  /from\s+['"]aws-sdk['"]/,
 ];
 
 function* walk(dir: string): Generator<string> {
@@ -50,39 +57,58 @@ function* walk(dir: string): Generator<string> {
 function isCandidate(rel: string, src: string): { kind: string; ok: boolean } | null {
   const stripped = src
     .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+    .split('\n')
+    .map((l) => l.replace(/\/\/.*$/, ''))
+    .join('\n');
 
   if (/application\/use-cases\//.test(rel) && rel.endsWith('.use-case.ts')) {
     const shape = readConstructor(stripped);
-    if (shape && shape.paramCount >= 2 && !shape.injectsLogger) return { kind: 'use-case', ok: true };
+    if (shape && shape.paramCount >= 2 && !shape.injectsLogger)
+      return { kind: 'use-case', ok: true };
   }
   if (
     /infrastructure\/(adapters|services|repositories|workers)\//.test(rel) ||
-    rel.endsWith('.adapter.ts') || rel.endsWith('.repository.ts')
+    rel.endsWith('.adapter.ts') ||
+    rel.endsWith('.repository.ts')
   ) {
     const touch = INFRA_HINTS.some((re) => re.test(stripped));
     const shape = readConstructor(stripped);
     if (touch && shape && !shape.injectsLogger) return { kind: 'infra', ok: true };
   }
-  if ((/application\/handlers\//.test(rel) || rel.endsWith('.handler.ts')) && !rel.endsWith('.use-case.ts')) {
+  if (
+    (/application\/handlers\//.test(rel) || rel.endsWith('.handler.ts')) &&
+    !rel.endsWith('.use-case.ts')
+  ) {
     const shape = readConstructor(stripped);
     if (shape && !shape.injectsLogger) return { kind: 'handler', ok: true };
   }
   return null;
 }
 
-interface Shape { paramCount: number; injectsLogger: boolean; }
+interface Shape {
+  paramCount: number;
+  injectsLogger: boolean;
+}
 
 function readConstructor(src: string): Shape | null {
   const ctor = /constructor\s*\(([\s\S]*?)\)\s*\{/.exec(src);
   if (!ctor) return null;
   const inner = ctor[1];
   if (inner.trim().length === 0) return { paramCount: 0, injectsLogger: false };
-  let depth = 0, inStr: string | null = null, count = 1;
+  let depth = 0,
+    inStr: string | null = null,
+    count = 1;
   for (let i = 0; i < inner.length; i++) {
-    const ch = inner[i], prev = inner[i - 1];
-    if (inStr) { if (ch === inStr && prev !== '\\') inStr = null; continue; }
-    if (ch === '"' || ch === "'" || ch === '`') { inStr = ch; continue; }
+    const ch = inner[i],
+      prev = inner[i - 1];
+    if (inStr) {
+      if (ch === inStr && prev !== '\\') inStr = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      inStr = ch;
+      continue;
+    }
     if (ch === '(' || ch === '[' || ch === '{' || ch === '<') depth++;
     if (ch === ')' || ch === ']' || ch === '}' || ch === '>') depth--;
     if (ch === ',' && depth === 0) count++;
@@ -103,7 +129,10 @@ for (const path of walk(SRC)) {
   // so we can splice without losing comments around the ctor.
   const ctorRe = /constructor\s*\(([\s\S]*?)\)\s*\{/;
   const m = ctorRe.exec(original);
-  if (!m) { skips.push({ rel, reason: 'no constructor (needs manual injection)' }); continue; }
+  if (!m) {
+    skips.push({ rel, reason: 'no constructor (needs manual injection)' });
+    continue;
+  }
   const innerRaw = m[1];
   const innerTrim = innerRaw.trim();
 
@@ -116,10 +145,11 @@ for (const path of walk(SRC)) {
     // Match the leading whitespace of the FIRST param to keep the block aligned.
     const leadMatch = innerRaw.match(/\n([ \t]+)/);
     const lead = leadMatch ? leadMatch[1] : '    ';
-    const tail = innerRaw.endsWith(',') || innerRaw.trimEnd().endsWith(',')
-      ? innerRaw.replace(/\s*$/, '')
-      : `${innerRaw.replace(/\s*$/, '')},`;
-    newInner = `${tail}\n${lead}private readonly logger: LoggerPort,\n${(innerRaw.match(/\n([ \t]*)$/)?.[1]) ?? ''}`;
+    const tail =
+      innerRaw.endsWith(',') || innerRaw.trimEnd().endsWith(',')
+        ? innerRaw.replace(/\s*$/, '')
+        : `${innerRaw.replace(/\s*$/, '')},`;
+    newInner = `${tail}\n${lead}private readonly logger: LoggerPort,\n${innerRaw.match(/\n([ \t]*)$/)?.[1] ?? ''}`;
   } else {
     newInner = `${innerTrim}, private readonly logger: LoggerPort`;
   }
@@ -132,7 +162,10 @@ for (const path of walk(SRC)) {
     const sharedKernelImport = /import\s*\{\s*([^}]*?)\s*\}\s*from\s*(['"])@\/shared-kernel\2;?/;
     if (sharedKernelImport.test(mutated)) {
       mutated = mutated.replace(sharedKernelImport, (_m, inner: string, q: string) => {
-        const items = inner.split(',').map((s) => s.trim()).filter(Boolean);
+        const items = inner
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
         if (!items.includes('LoggerPort')) items.push('LoggerPort');
         items.sort();
         return `import { ${items.join(', ')} } from ${q}@/shared-kernel${q};`;
@@ -140,7 +173,8 @@ for (const path of walk(SRC)) {
     } else {
       // Place after the LAST import statement.
       const importStmtRe = /import[\s\S]*?from\s*['"][^'"]+['"];?/g;
-      let lastEnd = -1; let im: RegExpExecArray | null;
+      let lastEnd = -1;
+      let im: RegExpExecArray | null;
       while ((im = importStmtRe.exec(mutated))) lastEnd = im.index + im[0].length;
       const line = `import { LoggerPort } from '@/shared-kernel';`;
       if (lastEnd >= 0) {

@@ -4,11 +4,11 @@ import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infr
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { EnumDescriptor } from '../../application/services/enum-catalog';
+import type { MenuNode } from '../../application/services/menu-builder';
 import { GetEnumDescriptorUseCase } from '../../application/use-cases/get-enum-descriptor/get-enum-descriptor.use-case';
 import { GetUserMenuUseCase } from '../../application/use-cases/get-user-menu/get-user-menu.use-case';
 import { ListEnumKeysUseCase } from '../../application/use-cases/list-enum-keys/list-enum-keys.use-case';
-import type { EnumDescriptor } from '../../application/services/enum-catalog';
-import type { MenuNode } from '../../application/services/menu-builder';
 
 @SdkExport({ tag: 'ui-metadata', description: 'Server-driven UI metadata' })
 @ApiTags('ui-metadata')

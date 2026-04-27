@@ -6,7 +6,10 @@
  */
 
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { FileStoragePort, type UploadedFileLocation } from '../../../domain/ports/file-storage.port';
+import {
+  FileStoragePort,
+  type UploadedFileLocation,
+} from '../../../domain/ports/file-storage.port';
 
 export class S3FileStorageAdapter extends FileStoragePort {
   constructor(private readonly s3: S3UploadService) {

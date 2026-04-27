@@ -9,7 +9,7 @@
 import type { EnglishLevel, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
-import { paginate, type PaginatedResult, searchWhere } from '@/shared-kernel/database';
+import { type PaginatedResult, paginate, searchWhere } from '@/shared-kernel/database';
 import type {
   ApplicationCandidate,
   CreateJobInput,

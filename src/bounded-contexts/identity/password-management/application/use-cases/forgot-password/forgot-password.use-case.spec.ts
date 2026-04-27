@@ -31,7 +31,13 @@ describe('ForgotPasswordUseCase', () => {
 
     passwordRepository.seedUser(DEFAULT_USER);
 
-    useCase = new ForgotPasswordUseCase(passwordRepository, tokenService, emailSender, eventBus, stubLogger);
+    useCase = new ForgotPasswordUseCase(
+      passwordRepository,
+      tokenService,
+      emailSender,
+      eventBus,
+      stubLogger,
+    );
   });
 
   // ───────────────────────────────────────────────────────────────

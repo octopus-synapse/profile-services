@@ -98,8 +98,9 @@ export class InMemoryOAuthAccountsRepository extends OAuthAccountsRepositoryPort
   }
 
   async findAccessToken(userId: string, provider: OAuthProvider): Promise<string | null> {
-    return this.accounts.find((a) => a.userId === userId && a.provider === provider)?.accessToken ??
-      null;
+    return (
+      this.accounts.find((a) => a.userId === userId && a.provider === provider)?.accessToken ?? null
+    );
   }
 }
 

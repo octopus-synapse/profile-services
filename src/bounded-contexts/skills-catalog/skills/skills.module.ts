@@ -17,8 +17,8 @@ import { LoggerPort } from '@/shared-kernel';
 import { SkillManagementService } from './application/services/skill-management.service';
 import { AddSkillUseCase } from './application/use-cases/add-skill/add-skill.use-case';
 import { DeleteSkillUseCase } from './application/use-cases/delete-skill/delete-skill.use-case';
-import { ListSkillsForResumeUseCase } from './application/use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { ListSkillsUseCase } from './application/use-cases/list-skills/list-skills.use-case';
+import { ListSkillsForResumeUseCase } from './application/use-cases/list-skills-for-resume/list-skills-for-resume.use-case';
 import { UpdateSkillUseCase } from './application/use-cases/update-skill/update-skill.use-case';
 import { SkillManagementPort } from './domain/ports/skill-management.port';
 import { SkillManagementRepositoryPort } from './domain/ports/skill-management.repository.port';
@@ -71,7 +71,13 @@ import { SkillManagementController } from './infrastructure/controllers/skill-ma
         updateSkill: UpdateSkillUseCase,
         deleteSkill: DeleteSkillUseCase,
       ) =>
-        new SkillManagementService(listSkills, listSkillsForResume, addSkill, updateSkill, deleteSkill),
+        new SkillManagementService(
+          listSkills,
+          listSkillsForResume,
+          addSkill,
+          updateSkill,
+          deleteSkill,
+        ),
       inject: [
         ListSkillsUseCase,
         ListSkillsForResumeUseCase,

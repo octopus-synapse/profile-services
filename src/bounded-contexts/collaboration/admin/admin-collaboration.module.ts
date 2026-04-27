@@ -43,8 +43,7 @@ import { AdminCollaborationController } from './infrastructure/controllers/admin
     },
     {
       provide: ListCollaborationsUseCase,
-      useFactory: (repo: AdminCollaborationsRepositoryPort) =>
-        new ListCollaborationsUseCase(repo),
+      useFactory: (repo: AdminCollaborationsRepositoryPort) => new ListCollaborationsUseCase(repo),
       inject: [AdminCollaborationsRepositoryPort],
     },
     {

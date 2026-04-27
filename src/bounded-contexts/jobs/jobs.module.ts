@@ -14,8 +14,8 @@
  */
 
 import { Module } from '@nestjs/common';
-import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { AiModule } from '@/bounded-contexts/ai/ai.module';
+import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
@@ -51,8 +51,8 @@ import { RunAntiGhostingSweepUseCase } from './application/use-cases/run-anti-gh
 import { UnbookmarkJobUseCase } from './application/use-cases/unbookmark-job/unbookmark-job.use-case';
 import { UpdateJobUseCase } from './application/use-cases/update-job/update-job.use-case';
 import { WithdrawApplicationUseCase } from './application/use-cases/withdraw-application/withdraw-application.use-case';
-import { AntiGhostingEmailerPort } from './domain/ports/anti-ghosting-emailer.port';
 import { AntiGhostingRepositoryPort } from './domain/ports/anti-ghosting.repository.port';
+import { AntiGhostingEmailerPort } from './domain/ports/anti-ghosting-emailer.port';
 import { ApplicationTrackerPort } from './domain/ports/application-tracker.port';
 import { ApplicationTrackerRepositoryPort } from './domain/ports/application-tracker.repository.port';
 import { JobsRepositoryPort } from './domain/ports/jobs.repository.port';
@@ -170,11 +170,8 @@ import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worke
     },
     {
       provide: ListJobsWithFitScoreUseCase,
-      useFactory: (
-        listJobs: ListJobsUseCase,
-        batch: FitScoreBatchService,
-        logger: LoggerPort,
-      ) => new ListJobsWithFitScoreUseCase(listJobs, batch, logger),
+      useFactory: (listJobs: ListJobsUseCase, batch: FitScoreBatchService, logger: LoggerPort) =>
+        new ListJobsWithFitScoreUseCase(listJobs, batch, logger),
       inject: [ListJobsUseCase, FitScoreBatchService, LoggerPort],
     },
     {
@@ -226,11 +223,8 @@ import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worke
     },
     {
       provide: GetJobFitUseCase,
-      useFactory: (
-        repo: JobsRepositoryPort,
-        matcher: ResumeJobMatcherPort,
-        logger: LoggerPort,
-      ) => new GetJobFitUseCase(repo, matcher, logger),
+      useFactory: (repo: JobsRepositoryPort, matcher: ResumeJobMatcherPort, logger: LoggerPort) =>
+        new GetJobFitUseCase(repo, matcher, logger),
       inject: [JobsRepositoryPort, ResumeJobMatcherPort, LoggerPort],
     },
     {
@@ -245,11 +239,8 @@ import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worke
     },
     {
       provide: ApplyToJobUseCase,
-      useFactory: (
-        repo: JobsRepositoryPort,
-        tracker: ApplicationTrackerPort,
-        logger: LoggerPort,
-      ) => new ApplyToJobUseCase(repo, tracker, logger),
+      useFactory: (repo: JobsRepositoryPort, tracker: ApplicationTrackerPort, logger: LoggerPort) =>
+        new ApplyToJobUseCase(repo, tracker, logger),
       inject: [JobsRepositoryPort, ApplicationTrackerPort, LoggerPort],
     },
     {
@@ -269,11 +260,8 @@ import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worke
     },
     {
       provide: UpdateJobUseCase,
-      useFactory: (
-        repo: JobsRepositoryPort,
-        events: EventPublisherPort,
-        logger: LoggerPort,
-      ) => new UpdateJobUseCase(repo, events, logger),
+      useFactory: (repo: JobsRepositoryPort, events: EventPublisherPort, logger: LoggerPort) =>
+        new UpdateJobUseCase(repo, events, logger),
       inject: [JobsRepositoryPort, EventPublisherPort, LoggerPort],
     },
     {

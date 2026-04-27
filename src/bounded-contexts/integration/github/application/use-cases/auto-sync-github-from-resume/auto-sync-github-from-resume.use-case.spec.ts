@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import { GitHubUsernameMissingException } from '../../../../domain/exceptions/integration.exceptions';
+import { InMemoryGitHubApi, InMemoryGitHubResumeRepository } from '../../../testing';
 import { GitHubAchievementService } from '../../services/github-achievement.service';
 import { GitHubContributionService } from '../../services/github-contribution.service';
 import { GitHubSyncService } from '../../services/github-sync.service';
-import { InMemoryGitHubApi, InMemoryGitHubResumeRepository } from '../../../testing';
 import { AutoSyncGitHubFromResumeUseCase } from './auto-sync-github-from-resume.use-case';
 
 describe('AutoSyncGitHubFromResumeUseCase', () => {

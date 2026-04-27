@@ -4,7 +4,10 @@
  * implementations.
  */
 
-import { type TestResults, TestSuiteRunnerPort } from '../../../domain/ports/test-suite-runner.port';
+import {
+  type TestResults,
+  TestSuiteRunnerPort,
+} from '../../../domain/ports/test-suite-runner.port';
 
 export class RunTestSuiteUseCase {
   constructor(private readonly runner: TestSuiteRunnerPort) {}

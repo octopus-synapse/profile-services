@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain';
-import {
-  type EventPublisher,
-  EventPublisherPort,
-} from '@/shared-kernel/event-bus/event-publisher';
+import { type EventPublisher, EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { ExportPipelineService } from './export-pipeline.service';
 

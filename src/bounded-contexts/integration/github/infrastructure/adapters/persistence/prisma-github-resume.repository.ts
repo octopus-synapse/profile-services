@@ -6,8 +6,8 @@
  */
 
 import { Prisma } from '@prisma/client';
-import { ResumeAccessDeniedException } from '@/bounded-contexts/presentation/domain/exceptions/presentation.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ResumeAccessDeniedException } from '@/bounded-contexts/presentation/domain/exceptions/presentation.exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { GitHubAchievementContent } from '../../../domain/entities/github-achievement';
@@ -29,11 +29,7 @@ export class PrismaGitHubResumeRepository extends GitHubResumeRepositoryPort {
     super();
   }
 
-  async verifyResumeOwnership(
-    userId: string,
-    resumeId: string,
-    include?: Prisma.ResumeInclude,
-  ) {
+  async verifyResumeOwnership(userId: string, resumeId: string, include?: Prisma.ResumeInclude) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include,

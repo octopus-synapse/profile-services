@@ -16,9 +16,9 @@ describe('DeleteWebhookUseCase', () => {
     const repo = new InMemoryWebhookConfigRepository();
     const seeded = repo.seedConfig({ userId: 'u-2', events: ['resume.created'] });
 
-    await expect(
-      new DeleteWebhookUseCase(repo).execute('u-1', seeded.id),
-    ).rejects.toBeInstanceOf(WebhookNotFoundException);
+    await expect(new DeleteWebhookUseCase(repo).execute('u-1', seeded.id)).rejects.toBeInstanceOf(
+      WebhookNotFoundException,
+    );
     expect(repo.configs.has(seeded.id)).toBe(true);
   });
 });

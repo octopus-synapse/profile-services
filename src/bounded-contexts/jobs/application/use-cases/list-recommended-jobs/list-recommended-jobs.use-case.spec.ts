@@ -1,5 +1,5 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryJobsRepository } from '../../../testing';
 import { JobEnrichmentService } from '../../services/job-enrichment.service';
 import { ListRecommendedJobsUseCase } from './list-recommended-jobs.use-case';

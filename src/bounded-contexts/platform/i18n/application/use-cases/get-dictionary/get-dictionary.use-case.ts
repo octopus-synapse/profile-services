@@ -8,11 +8,11 @@
  * payload type is a discriminated union on `kind`.
  */
 
+import type { SupportedLocale } from '../../../domain/translation.port';
 import {
   DictionaryProjectorService,
   type ProjectedNotification,
 } from '../../dictionary-projector.service';
-import type { SupportedLocale } from '../../../domain/translation.port';
 
 export type DictionaryKind = 'errors' | 'enums' | 'notifications';
 

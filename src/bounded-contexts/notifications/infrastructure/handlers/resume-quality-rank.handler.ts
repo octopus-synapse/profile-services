@@ -1,7 +1,7 @@
-import { LoggerPort } from '@/shared-kernel';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { NotifyResumeQualityRankChangeUseCase } from '../../application/use-cases/notify-resume-quality-rank-change/notify-resume-quality-rank-change.use-case';
 
 /**

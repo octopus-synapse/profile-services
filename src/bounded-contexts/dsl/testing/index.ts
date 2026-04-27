@@ -103,7 +103,7 @@ export class InMemoryResumeDslRepository extends ResumeDslRepositoryPort {
       linkedin: resume.linkedin ?? null,
       github: resume.github ?? null,
       website: resume.website ?? null,
-      style: 'style' in resume ? resume.style ?? null : defaultStyle,
+      style: 'style' in resume ? (resume.style ?? null) : defaultStyle,
       customTheme: 'customTheme' in resume ? resume.customTheme : {},
       sections: resume.sections ?? [],
       createdAt: resume.createdAt ?? new Date(),

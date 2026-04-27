@@ -4,10 +4,7 @@
  * one-liner and the orchestration is testable in isolation.
  */
 
-import {
-  type JobImportResult,
-  JobImportService,
-} from '../../services/job-import.service';
+import { type JobImportResult, JobImportService } from '../../services/job-import.service';
 
 export type { JobImportResult };
 

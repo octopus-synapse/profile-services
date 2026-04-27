@@ -19,8 +19,7 @@ export class UpdateSuccessStoryUseCase {
     const existing = await this.repository.findById(id);
     if (!existing) throw new EntityNotFoundException('SuccessStory', id);
 
-    const stampPublishedAt =
-      input.status === 'PUBLISHED' && existing.status !== 'PUBLISHED';
+    const stampPublishedAt = input.status === 'PUBLISHED' && existing.status !== 'PUBLISHED';
 
     return this.repository.update(id, input, { stampPublishedAt });
   }

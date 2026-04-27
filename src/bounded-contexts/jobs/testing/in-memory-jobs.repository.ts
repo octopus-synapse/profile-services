@@ -38,7 +38,9 @@ interface UserRow extends ApplicationCandidate {
 }
 
 function clone<T>(value: T): T {
-  return value === null || typeof value !== 'object' ? value : (JSON.parse(JSON.stringify(value)) as T);
+  return value === null || typeof value !== 'object'
+    ? value
+    : (JSON.parse(JSON.stringify(value)) as T);
 }
 
 function defaultJob(partial: Partial<Job> & { authorId: string; title: string }): Job {
@@ -204,9 +206,7 @@ export class InMemoryJobsRepository extends JobsRepositoryPort {
       const idx = ENGLISH_ORDER.indexOf(filters.minEnglishLevel);
       if (idx >= 0) {
         const accepted = new Set(ENGLISH_ORDER.slice(0, idx + 1));
-        rows = rows.filter(
-          (j) => j.minEnglishLevel === null || accepted.has(j.minEnglishLevel),
-        );
+        rows = rows.filter((j) => j.minEnglishLevel === null || accepted.has(j.minEnglishLevel));
       }
     }
 

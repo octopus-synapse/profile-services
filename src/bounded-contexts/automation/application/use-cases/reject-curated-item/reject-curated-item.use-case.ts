@@ -5,8 +5,8 @@
  * `AutomationItemNotOwnedException`.
  */
 
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { AutomationItemNotOwnedException } from '../../../domain/exceptions/automation.exceptions';
 import { ApplyModeRepositoryPort } from '../../../domain/ports/apply-mode.repository.port';
 

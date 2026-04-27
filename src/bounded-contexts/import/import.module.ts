@@ -56,11 +56,8 @@ import { ResumeImportController } from './infrastructure/controllers/resume-impo
     },
     {
       provide: ProcessImportUseCase,
-      useFactory: (
-        repo: ImportJobRepositoryPort,
-        creator: ResumeCreatorPort,
-        logger: LoggerPort,
-      ) => new ProcessImportUseCase(repo, creator, logger),
+      useFactory: (repo: ImportJobRepositoryPort, creator: ResumeCreatorPort, logger: LoggerPort) =>
+        new ProcessImportUseCase(repo, creator, logger),
       inject: [ImportJobRepositoryPort, ResumeCreatorPort, LoggerPort],
     },
     {
@@ -80,11 +77,8 @@ import { ResumeImportController } from './infrastructure/controllers/resume-impo
     },
     {
       provide: RetryImportUseCase,
-      useFactory: (
-        repo: ImportJobRepositoryPort,
-        creator: ResumeCreatorPort,
-        logger: LoggerPort,
-      ) => new RetryImportUseCase(repo, creator, logger),
+      useFactory: (repo: ImportJobRepositoryPort, creator: ResumeCreatorPort, logger: LoggerPort) =>
+        new RetryImportUseCase(repo, creator, logger),
       inject: [ImportJobRepositoryPort, ResumeCreatorPort, LoggerPort],
     },
   ],

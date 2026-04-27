@@ -9,7 +9,8 @@ import type { Job, JobFilters } from '../../../domain/entities/job';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 import type { JobEnrichmentService } from '../../services/job-enrichment.service';
 
-export interface ListJobsResult extends PaginatedResult<Job & { isBookmarked: boolean; hasApplied: boolean }> {}
+export interface ListJobsResult
+  extends PaginatedResult<Job & { isBookmarked: boolean; hasApplied: boolean }> {}
 
 export class ListJobsUseCase {
   constructor(

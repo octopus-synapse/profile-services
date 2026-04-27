@@ -205,11 +205,8 @@ import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worke
     },
     {
       provide: EnqueueExpiryRemindersUseCase,
-      useFactory: (
-        read: FitProfileExpiryReadPort,
-        state: ReminderStatePort,
-        logger: LoggerPort,
-      ) => new EnqueueExpiryRemindersUseCase(read, state, logger),
+      useFactory: (read: FitProfileExpiryReadPort, state: ReminderStatePort, logger: LoggerPort) =>
+        new EnqueueExpiryRemindersUseCase(read, state, logger),
       inject: [FitProfileExpiryReadPort, ReminderStatePort, LoggerPort],
     },
     {

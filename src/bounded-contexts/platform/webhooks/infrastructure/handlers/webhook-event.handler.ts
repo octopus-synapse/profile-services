@@ -68,10 +68,7 @@ export class WebhookEventHandler {
       // Sub-threshold change — skip to avoid noisy webhook spam.
       return;
     }
-    this.logger.log(
-      `ATS score updated for user ${payload.userId}: ${payload.score}`,
-      CTX,
-    );
+    this.logger.log(`ATS score updated for user ${payload.userId}: ${payload.score}`, CTX);
     await this.deliverWebhooks.execute({
       userId: payload.userId,
       eventType: 'ats.score.updated',

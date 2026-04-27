@@ -17,8 +17,6 @@ describe('ImportJobFromUrlUseCase', () => {
 
   it('rejects malformed URLs', async () => {
     const useCase = new ImportJobFromUrlUseCase(new JobImportService(fakeLlm));
-    await expect(useCase.execute('not a url')).rejects.toBeInstanceOf(
-      JobImportInvalidUrlException,
-    );
+    await expect(useCase.execute('not a url')).rejects.toBeInstanceOf(JobImportInvalidUrlException);
   });
 });

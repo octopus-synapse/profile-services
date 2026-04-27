@@ -11,15 +11,15 @@
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { CuratedSelectorService } from '../../services/curated-selector.service';
 import type {
   RageApplyFailure,
   RageApplyInput,
   RageApplyResult,
 } from '../../../domain/entities/rage-apply';
 import { RageApplyRepositoryPort } from '../../../domain/ports/rage-apply.repository.port';
+import { CuratedSelectorService } from '../../services/curated-selector.service';
 
-export type { RageApplyInput, RageApplyResult, RageApplyFailure };
+export type { RageApplyFailure, RageApplyInput, RageApplyResult };
 
 const DEFAULT_MIN_FIT = 80;
 const DEFAULT_MAX_APPLICATIONS = 20;
@@ -51,8 +51,7 @@ export class RunRageApplyUseCase {
       input.maxApplications ?? DEFAULT_MAX_APPLICATIONS,
       MAX_APPLICATIONS_CAP,
     );
-    const since =
-      input.since ?? new Date(Date.now() - DEFAULT_SINCE_DAYS * 24 * 60 * 60 * 1000);
+    const since = input.since ?? new Date(Date.now() - DEFAULT_SINCE_DAYS * 24 * 60 * 60 * 1000);
 
     const picks = await this.selector.selectForUser({
       userId: input.userId,

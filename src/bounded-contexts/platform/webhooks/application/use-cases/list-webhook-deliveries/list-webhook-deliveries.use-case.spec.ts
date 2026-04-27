@@ -7,12 +7,17 @@ describe('ListWebhookDeliveriesUseCase', () => {
   it('returns the recorded deliveries for an owned webhook', async () => {
     const repo = new InMemoryWebhookConfigRepository();
     const wh = repo.seedConfig({ userId: 'u-1', events: ['resume.created'] });
-    await repo.recordDelivery(wh.id, 'resume.created', { ok: true }, {
-      attempt: 1,
-      success: true,
-      statusCode: 200,
-      errorMessage: null,
-    });
+    await repo.recordDelivery(
+      wh.id,
+      'resume.created',
+      { ok: true },
+      {
+        attempt: 1,
+        success: true,
+        statusCode: 200,
+        errorMessage: null,
+      },
+    );
 
     const deliveries = await new ListWebhookDeliveriesUseCase(repo).execute('u-1', wh.id);
     expect(deliveries).toHaveLength(1);
