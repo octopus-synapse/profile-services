@@ -4,15 +4,14 @@
  * Wires use cases with their dependencies following Clean Architecture.
  */
 
-import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { PrismaAtsScoreCatalogRepository } from '../../infrastructure/adapters/persistence/ats-score-catalog.repository';
 import { PrismaBenchmarkRepository } from '../../infrastructure/adapters/persistence/benchmark.repository';
-import { EventEmitterAnalyticsEventBusAdapter } from '../../infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
 import { PrismaResumeOwnershipRepository } from '../../infrastructure/adapters/persistence/resume-ownership.repository';
 import { PrismaSnapshotRepository } from '../../infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from '../../infrastructure/adapters/persistence/view-tracking.repository';
+import type { AnalyticsEventBusPort } from '../ports/analytics-event-bus.port';
 import { ResumeAnalyticsUseCases } from '../ports/resume-analytics.port';
 import { AnalyzeKeywordsUseCase } from '../use-cases/analyze-keywords/analyze-keywords.use-case';
 import { BuildAnalyticsDashboardUseCase } from '../use-cases/build-analytics-dashboard/build-analytics-dashboard.use-case';
@@ -28,7 +27,7 @@ export { ResumeAnalyticsUseCases };
 
 export function buildResumeAnalyticsUseCases(
   prisma: PrismaService,
-  eventEmitter: EventEmitter2,
+  analyticsEventBus: AnalyticsEventBusPort,
   eventPublisher: EventPublisher,
   logger: LoggerPort,
 ): ResumeAnalyticsUseCases {
@@ -38,7 +37,6 @@ export function buildResumeAnalyticsUseCases(
   const snapshotRepo = new PrismaSnapshotRepository(prisma);
   const viewTrackingRepo = new PrismaViewTrackingRepository(prisma);
   const ownershipRepo = new PrismaResumeOwnershipRepository(prisma);
-  const analyticsEventBus = new EventEmitterAnalyticsEventBusAdapter(eventEmitter);
 
   // Use cases
   const calculateAtsScoreUseCase = new CalculateAtsScoreUseCase(
