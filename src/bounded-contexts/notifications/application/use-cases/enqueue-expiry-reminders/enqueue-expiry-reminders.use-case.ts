@@ -34,6 +34,7 @@ export class EnqueueExpiryRemindersUseCase {
   constructor(
     private readonly expiryRead: FitProfileExpiryReadPort,
     private readonly reminderState: ReminderStatePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(now: Date = new Date()): Promise<ExpiryReminderJob[]> {

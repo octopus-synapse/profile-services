@@ -12,7 +12,10 @@ import { NotifyResumeQualityRankChangeUseCase } from '../../application/use-case
  */
 @Injectable()
 export class ResumeQualityRankNotificationHandler {
-  constructor(private readonly notifyRank: NotifyResumeQualityRankChangeUseCase) {}
+  constructor(
+    private readonly notifyRank: NotifyResumeQualityRankChangeUseCase,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent(ResumeQualityComputedEvent.TYPE)
   async handle(event: ResumeQualityComputedEvent): Promise<void> {

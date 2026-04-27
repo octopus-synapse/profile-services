@@ -10841,7 +10841,7 @@
     },
     "/api/v1/notifications/unread-count": {
       "get": {
-        "operationId": "notifications_getUnreadCount",
+        "operationId": "notifications_getUnreadCountEndpoint",
         "parameters": [],
         "responses": {
           "200": {
@@ -10892,7 +10892,7 @@
     },
     "/api/v1/notifications/mark-read": {
       "post": {
-        "operationId": "notifications_markRead",
+        "operationId": "notifications_markReadEndpoint",
         "parameters": [],
         "responses": {
           "200": {
@@ -10943,7 +10943,7 @@
     },
     "/api/v1/notifications/preferences": {
       "get": {
-        "operationId": "notifications_getPreferences",
+        "operationId": "notifications_getPreferencesEndpoint",
         "parameters": [],
         "responses": {
           "200": {
@@ -10972,7 +10972,7 @@
     },
     "/api/v1/notifications/preferences/{type}": {
       "put": {
-        "operationId": "notifications_setPreference",
+        "operationId": "notifications_setPreferenceEndpoint",
         "parameters": [
           {
             "name": "type",

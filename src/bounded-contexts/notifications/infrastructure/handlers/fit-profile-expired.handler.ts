@@ -16,7 +16,10 @@ import { NotifyFitProfileExpiredUseCase } from '../../application/use-cases/noti
  */
 @Injectable()
 export class FitProfileExpiredNotificationHandler {
-  constructor(private readonly notifyExpired: NotifyFitProfileExpiredUseCase) {}
+  constructor(
+    private readonly notifyExpired: NotifyFitProfileExpiredUseCase,
+    private readonly logger: LoggerPort,
+  ) {}
 
   @OnEvent(UserFitProfileUpdatedEvent.TYPE)
   async handle(event: UserFitProfileUpdatedEvent): Promise<void> {

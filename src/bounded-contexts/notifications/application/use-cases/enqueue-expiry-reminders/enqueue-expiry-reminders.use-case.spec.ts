@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryFitProfileExpiryRead, InMemoryReminderState } from '../../../testing';
 import { EnqueueExpiryRemindersUseCase } from './enqueue-expiry-reminders.use-case';
 
@@ -11,7 +12,7 @@ describe('EnqueueExpiryRemindersUseCase', () => {
   beforeEach(() => {
     read = new InMemoryFitProfileExpiryRead();
     state = new InMemoryReminderState();
-    useCase = new EnqueueExpiryRemindersUseCase(read, state);
+    useCase = new EnqueueExpiryRemindersUseCase(read, state, stubLogger);
   });
 
   it('returns one job per (user, window) when due and standard', async () => {
