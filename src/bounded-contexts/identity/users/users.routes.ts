@@ -13,14 +13,17 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
-import { UpdateFullPreferencesSchema, UpdatePreferencesSchema } from '@/shared-kernel/schemas/user/user-profile.schema';
 import { UpdateUserSchema } from '@/shared-kernel/schemas/user/user.schema';
-import { UpdateUsernameSchema } from '@/shared-kernel/schemas/user/user-profile.schema';
+import {
+  UpdateFullPreferencesSchema,
+  UpdatePreferencesSchema,
+  UpdateUsernameSchema,
+} from '@/shared-kernel/schemas/user/user-profile.schema';
+import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
   PublicProfileDataSchema,
   UserFullPreferencesDataSchema,
 } from './dto/controller-response.dto';
-import { UsersHttpBundle } from './application/ports/users-http.bundle';
 
 const UsernameParam = z.object({ username: z.string() });
 const CheckUsernameQuery = z.object({ username: z.string() });

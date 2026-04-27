@@ -7,10 +7,10 @@
  */
 
 import { z } from 'zod';
-import { SkillsUseCases } from './application/ports/skills.port';
-import type { CreateSkillData, UpdateSkillData } from './domain/ports/skill-management.port';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
+import { SkillsUseCases } from './application/ports/skills.port';
+import type { CreateSkillData, UpdateSkillData } from './domain/ports/skill-management.port';
 
 const ResumeIdParams = z.object({ resumeId: z.string() });
 const SkillRefParams = z.object({ resumeId: z.string(), skillId: z.string() });

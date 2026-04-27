@@ -80,10 +80,18 @@ export function buildAdminCatalogUseCases(
     updateAdminSpokenLanguage: new UpdateAdminSpokenLanguageUseCase(spokenLanguagesRepo),
     deleteAdminSpokenLanguage: new DeleteAdminSpokenLanguageUseCase(spokenLanguagesRepo),
 
-    listAdminProgrammingLanguages: new ListAdminProgrammingLanguagesUseCase(programmingLanguagesRepo),
+    listAdminProgrammingLanguages: new ListAdminProgrammingLanguagesUseCase(
+      programmingLanguagesRepo,
+    ),
     getAdminProgrammingLanguage: new GetAdminProgrammingLanguageUseCase(programmingLanguagesRepo),
-    createAdminProgrammingLanguage: new CreateAdminProgrammingLanguageUseCase(programmingLanguagesRepo),
-    updateAdminProgrammingLanguage: new UpdateAdminProgrammingLanguageUseCase(programmingLanguagesRepo),
-    deleteAdminProgrammingLanguage: new DeleteAdminProgrammingLanguageUseCase(programmingLanguagesRepo),
+    createAdminProgrammingLanguage: new CreateAdminProgrammingLanguageUseCase(
+      programmingLanguagesRepo,
+    ),
+    updateAdminProgrammingLanguage: new UpdateAdminProgrammingLanguageUseCase(
+      programmingLanguagesRepo,
+    ),
+    deleteAdminProgrammingLanguage: new DeleteAdminProgrammingLanguageUseCase(
+      programmingLanguagesRepo,
+    ),
   };
 }

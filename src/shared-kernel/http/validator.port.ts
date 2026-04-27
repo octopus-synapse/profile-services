@@ -9,7 +9,7 @@
  */
 
 import type { ZodSchema } from 'zod';
-import { validate, type ValidationError, type ValidationResult } from '../validation';
+import { type ValidationError, type ValidationResult, validate } from '../validation';
 
 export abstract class ValidatorPort {
   abstract validate<T>(schema: ZodSchema<T>, raw: unknown): ValidationResult<T>;

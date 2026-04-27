@@ -20,6 +20,7 @@ import {
 } from './application/use-cases';
 // Domain Layer
 import { EmailVerificationRepositoryPort, VerificationEmailSenderPort } from './domain/ports';
+import { emailVerificationRoutes } from './email-verification.routes';
 // Infrastructure Layer
 import {
   EmailServicePort,
@@ -27,7 +28,6 @@ import {
   PrismaEmailVerificationRepository,
 } from './infrastructure/adapters';
 import { SendVerificationController } from './infrastructure/controllers';
-import { emailVerificationRoutes } from './email-verification.routes';
 
 @Module({
   imports: [PrismaModule, ConfigModule, EmailModule],

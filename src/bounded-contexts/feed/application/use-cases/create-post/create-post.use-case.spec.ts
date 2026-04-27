@@ -1,6 +1,6 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
 import type { PostType } from '@prisma/client';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryFeedRepository, InMemoryLinkPreviewFetcher } from '../../../testing';
 import { HashtagParserService } from '../../services/hashtag-parser.service';
 import { CreatePostUseCase } from './create-post.use-case';

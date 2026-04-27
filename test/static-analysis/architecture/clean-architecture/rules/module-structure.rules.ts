@@ -94,7 +94,9 @@ export function checkInfrastructureControllersDirectory(): RuleResult {
             .readdirSync(moduleDir)
             .some((f: string) => f.endsWith('.routes.ts'));
         if (!hasControllers && !hasRoutesFile) {
-          violations.push(`${modulePath}: MISSING infrastructure/controllers/ directory or *.routes.ts file`);
+          violations.push(
+            `${modulePath}: MISSING infrastructure/controllers/ directory or *.routes.ts file`,
+          );
         }
       }
       return violations;

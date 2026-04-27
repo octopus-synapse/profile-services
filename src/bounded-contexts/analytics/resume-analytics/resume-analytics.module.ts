@@ -43,11 +43,11 @@ import { EventEmitterAnalyticsEventBusAdapter } from './infrastructure/adapters/
 import { PrismaSnapshotRepository } from './infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from './infrastructure/adapters/persistence/view-tracking.repository';
 import { SnapshotPort, ViewTrackingPort } from './ports/dashboard.ports';
+import { resumeAnalyticsRoutes } from './resume-analytics.routes';
 import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
 import { DashboardService } from './services/dashboard.service';
 import { KeywordAnalysisService } from './services/keyword-analysis.service';
-import { resumeAnalyticsRoutes } from './resume-analytics.routes';
 import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
 import { SnapshotService } from './services/snapshot.service';
 import { ViewTrackingService } from './services/view-tracking.service';

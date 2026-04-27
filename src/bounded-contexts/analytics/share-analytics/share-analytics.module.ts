@@ -7,8 +7,8 @@ import { PrismaShareAnalyticsRepository } from './infrastructure';
 import { NullGeoLookupAdapter } from './infrastructure/adapters/null-geo-lookup.adapter';
 import { ShareAnalyticsRepositoryPort } from './ports';
 import { GeoLookupPort } from './ports/geo-lookup.port';
-import { shareAnalyticsRoutes } from './share-analytics.routes';
 import { ShareAnalyticsService } from './services/share-analytics.service';
+import { shareAnalyticsRoutes } from './share-analytics.routes';
 
 @Module({
   imports: [PrismaModule],

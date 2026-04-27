@@ -5,11 +5,11 @@
  * @Injectable use-case providers.
  */
 
+import type { FeatureFlagService } from '../services/feature-flag.service';
 import type { BroadcastRefreshUseCase } from '../use-cases/broadcast-refresh.use-case';
 import type { ImpactAnalysisUseCase } from '../use-cases/impact-analysis.use-case';
 import type { ListFlagsUseCase } from '../use-cases/list-flags.use-case';
 import type { ToggleFlagUseCase } from '../use-cases/toggle-flag.use-case';
-import type { FeatureFlagService } from '../services/feature-flag.service';
 
 export abstract class FeatureFlagsUseCases {
   abstract readonly listFlags: ListFlagsUseCase;

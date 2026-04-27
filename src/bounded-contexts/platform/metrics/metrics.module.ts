@@ -13,18 +13,15 @@ import { MetricsUseCases } from './application/ports/metrics.port';
 import { MetricsReaderPort } from './domain/ports/metrics-reader.port';
 import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
 import { MetricsController } from './infrastructure/controllers/metrics.controller';
+import { buildMetricsUseCases } from './metrics.composition';
 import { MetricsGuard } from './metrics.guard';
 import { MetricsInterceptor } from './metrics.interceptor';
 import { metricsRoutes } from './metrics.routes';
 import { MetricsService } from './metrics.service';
-import { buildMetricsUseCases } from './metrics.composition';
 
 @Global()
 @Module({
-  controllers: [
-    ...synthesizeRouteControllers(MetricsUseCases, metricsRoutes),
-    MetricsController,
-  ],
+  controllers: [...synthesizeRouteControllers(MetricsUseCases, metricsRoutes), MetricsController],
   providers: [
     MetricsService,
     { provide: MetricsReaderPort, useExisting: MetricsService },

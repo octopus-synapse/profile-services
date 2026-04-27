@@ -18,12 +18,12 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
+import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import {
   toPaginatedResumesData,
   toResumeFullResponseDto,
   toResumeResponseDto,
 } from './presenters/resumes.presenter';
-import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import { GenericResumeSectionsUseCases } from './services/generic-resume-sections/ports/generic-resume-sections-repository.port';
 import { ResumeManagementUseCases } from './services/resume-management/ports/resume-management.port';
 
@@ -396,12 +396,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         sectionTypeKey: string;
         itemId: string;
       };
-      await bc.deleteSectionItemUseCase.execute(
-        resumeId,
-        sectionTypeKey,
-        itemId,
-        ctx.user!.userId,
-      );
+      await bc.deleteSectionItemUseCase.execute(resumeId, sectionTypeKey, itemId, ctx.user!.userId);
       return { success: true, data: { deleted: true }, message: 'Section item deleted' };
     },
   },

@@ -1,5 +1,5 @@
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { PostNotFoundException } from '../../../domain/exceptions/feed.exceptions';
 import { InMemoryEngagementNotifier, InMemoryEngagementRepository } from '../../../testing';
 import { LikePostUseCase } from './like-post.use-case';

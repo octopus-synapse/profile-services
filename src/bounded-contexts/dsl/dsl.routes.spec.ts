@@ -180,10 +180,7 @@ describe('dslRoutes', () => {
 
     it('should support PDF target for public rendering', async () => {
       const route = findRoute('GET', '/v1/dsl/render/public/:slug');
-      await route.handler(
-        makeCtx({ params: { slug: mockSlug }, query: { target: 'pdf' } }),
-        bc,
-      );
+      await route.handler(makeCtx({ params: { slug: mockSlug }, query: { target: 'pdf' } }), bc);
       expect(renderPublic).toHaveBeenCalledWith({ slug: mockSlug, target: 'pdf', locale: 'en' });
     });
 

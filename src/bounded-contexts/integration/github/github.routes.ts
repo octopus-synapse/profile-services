@@ -5,11 +5,11 @@
  */
 
 import { z } from 'zod';
+import type { Route } from '@/shared-kernel/http/route';
 import { GitHubIntegrationUseCases } from './application/ports/github-integration.port';
 import type { GitHubSummaryResult } from './application/use-cases/get-github-summary/get-github-summary.use-case';
 import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';
 import { toPinnedRepos } from './infrastructure/presenters/github.presenter';
-import type { Route } from '@/shared-kernel/http/route';
 
 const SummaryParams = z.object({ username: z.string() });
 const ResumeIdParams = z.object({ resumeId: z.string() });
@@ -75,7 +75,11 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const body = ctx.body as { githubUsername: string; resumeId: string };
-      const result = await bc.syncGitHub.execute(ctx.user!.userId, body.githubUsername, body.resumeId);
+      const result = await bc.syncGitHub.execute(
+        ctx.user!.userId,
+        body.githubUsername,
+        body.resumeId,
+      );
       return { success: true, data: toGitHubSyncResponseDto(result) };
     },
   },

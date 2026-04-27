@@ -8,7 +8,10 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { FitProfileUseCases } from './application/ports/fit-profile.port';
-import { FitQuestionNotFoundException, JobFitProfileNotSetException } from './domain/exceptions/fit-profile.exceptions';
+import {
+  FitQuestionNotFoundException,
+  JobFitProfileNotSetException,
+} from './domain/exceptions/fit-profile.exceptions';
 import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from './domain/types';
 import {
   presentFitProfileMe,

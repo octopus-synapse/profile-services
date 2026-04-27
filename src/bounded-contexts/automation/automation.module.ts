@@ -19,6 +19,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
@@ -30,7 +31,6 @@ import { ApplyModeController } from './infrastructure/controllers/apply-mode.con
 import { RageApplyController } from './infrastructure/controllers/rage-apply.controller';
 import { AUTO_APPLY_QUEUE, AutoApplyWorker } from './workers/auto-apply.worker';
 import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-curated.worker';
-import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 
 @Module({
   imports: [

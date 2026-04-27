@@ -41,8 +41,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     openapi: {
       summary: 'Verify token and enable 2FA',
       tags: ['Two-Factor Auth'],
-      description:
-        'Verifies TOTP token and enables 2FA. Returns backup codes (shown only once).',
+      description: 'Verifies TOTP token and enables 2FA. Returns backup codes (shown only once).',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {

@@ -6,7 +6,7 @@
  */
 
 export * from '@/shared-kernel';
-export { MecSyncModule } from './mec-sync.module';
 export { CourseQueryService } from './application/services/course-query.service';
 export { InstitutionQueryService } from './application/services/institution-query.service';
 export { MecStatsService } from './application/services/mec-stats.service';
+export { MecSyncModule } from './mec-sync.module';

@@ -7,10 +7,10 @@
  * the runner port.
  */
 
-import type { TestSuiteRunnerPort } from './domain/ports/test-suite-runner.port';
 import { TestRunnerUseCases } from './application/ports/test-runner.port';
 import { ListTestSuitesUseCase } from './application/use-cases/list-test-suites/list-test-suites.use-case';
 import { RunTestSuiteUseCase } from './application/use-cases/run-test-suite/run-test-suite.use-case';
+import type { TestSuiteRunnerPort } from './domain/ports/test-suite-runner.port';
 
 export { TestRunnerUseCases };
 

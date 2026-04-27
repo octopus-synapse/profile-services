@@ -14,10 +14,7 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
-import {
-  presentDetail,
-  presentList,
-} from './infrastructure/presenters/resume-style.presenter';
+import { presentDetail, presentList } from './infrastructure/presenters/resume-style.presenter';
 
 const IdParams = z.object({ id: z.string() });
 const ResumeIdParams = z.object({ resumeId: z.string() });

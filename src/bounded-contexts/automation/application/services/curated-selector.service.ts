@@ -93,11 +93,7 @@ export class CuratedSelectorService {
         .join('\n\n');
 
       try {
-        const match = await this.matcher.matchJobDescription(
-          user.primaryResumeId,
-          userId,
-          jobText,
-        );
+        const match = await this.matcher.matchJobDescription(user.primaryResumeId, userId, jobText);
         if (match.matchScore >= minFit) {
           scored.push({ jobId: job.id, matchScore: match.matchScore });
         }

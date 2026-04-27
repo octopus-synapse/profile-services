@@ -15,9 +15,7 @@ import { PrismaAdminCollaborationsRepository } from './infrastructure/adapters/p
 
 export { AdminCollaborationUseCases };
 
-export function buildAdminCollaborationUseCases(
-  prisma: PrismaService,
-): AdminCollaborationUseCases {
+export function buildAdminCollaborationUseCases(prisma: PrismaService): AdminCollaborationUseCases {
   const chatRepo = new PrismaAdminChatRepository(prisma);
   const collabRepo = new PrismaAdminCollaborationsRepository(prisma);
 

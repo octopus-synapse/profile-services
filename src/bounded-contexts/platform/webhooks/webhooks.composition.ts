@@ -21,10 +21,7 @@ import { PrismaWebhookConfigRepository } from './infrastructure/adapters/persist
 
 export { WebhooksUseCases };
 
-export function buildWebhooksUseCases(
-  prisma: PrismaService,
-  logger: LoggerPort,
-): WebhooksUseCases {
+export function buildWebhooksUseCases(prisma: PrismaService, logger: LoggerPort): WebhooksUseCases {
   // Repos / external adapters
   const configRepo = new PrismaWebhookConfigRepository(prisma, logger);
   const delivery = new HttpWebhookDeliveryAdapter(logger);

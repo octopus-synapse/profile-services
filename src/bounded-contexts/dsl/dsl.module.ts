@@ -7,9 +7,9 @@
  */
 
 import { Module } from '@nestjs/common';
-import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { DslMigrationService, DslV1ToV2Migrator } from './application/migrators';
 import { DslUseCases } from './application/ports/dsl.port';

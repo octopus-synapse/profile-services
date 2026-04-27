@@ -89,8 +89,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
-    handler: async (ctx, bc) =>
-      bc.createAdminTechArea.execute(ctx.body as Record<string, unknown>),
+    handler: async (ctx, bc) => bc.createAdminTechArea.execute(ctx.body as Record<string, unknown>),
   },
   {
     method: 'PATCH',
@@ -398,9 +397,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) =>
-      bc.listAdminProgrammingLanguages.execute(
-        toListInput(ctx.query as z.infer<typeof ListQuery>),
-      ),
+      bc.listAdminProgrammingLanguages.execute(toListInput(ctx.query as z.infer<typeof ListQuery>)),
   },
   {
     method: 'GET',

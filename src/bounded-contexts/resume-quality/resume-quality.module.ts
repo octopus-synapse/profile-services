@@ -47,8 +47,7 @@ import { resumeQualityRoutes } from './resume-quality.routes';
         repository: QualityScoreRepositoryPort,
         events: EventPublisher,
         logger: LoggerPort,
-      ) =>
-        buildResumeQualityUseCases(resumeLoader, contentQuality, repository, events, logger),
+      ) => buildResumeQualityUseCases(resumeLoader, contentQuality, repository, events, logger),
       inject: [
         ResumeLoaderPort,
         ContentQualityPort,

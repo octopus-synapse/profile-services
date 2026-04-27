@@ -7,21 +7,9 @@
  * import surface is described by `import.routes.ts`.
  */
 
-import {
-  Controller,
-  HttpStatus,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -29,9 +17,9 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { MissingPdfUploadException } from '../../domain/exceptions/import.exceptions';
-import { ImportResultDto } from '../dto';
 import { GithubImportService } from '../adapters/github-import.service';
 import { PdfImportService } from '../adapters/pdf-import.service';
+import { ImportResultDto } from '../dto';
 
 @SdkExport({ tag: 'resume-import', description: 'Resume import from JSON Resume format' })
 @ApiTags('Resume Import')

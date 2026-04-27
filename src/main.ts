@@ -10,7 +10,7 @@
  * `@Module`-driven controller registration, that argument goes away.
  */
 
-import { nestBootstrap } from './infrastructure/nest-adapter/nest-bootstrap';
 import { AppModule } from './app.module';
+import { nestBootstrap } from './infrastructure/nest-adapter/nest-bootstrap';
 
 void nestBootstrap(AppModule);

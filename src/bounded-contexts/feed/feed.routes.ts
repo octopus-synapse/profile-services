@@ -29,9 +29,7 @@ const TimelineQuery = PaginationQuery.extend({
 });
 
 const LikeBodySchema = z.object({
-  reactionType: z
-    .enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const)
-    .optional(),
+  reactionType: z.enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const).optional(),
 });
 
 const RepostBodySchema = z.object({ commentary: z.string().optional() });

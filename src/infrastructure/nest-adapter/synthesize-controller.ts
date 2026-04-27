@@ -79,7 +79,9 @@ function buildCtx<TBundle>(route: Route<TBundle>, req: Request): HttpCtx {
 export function synthesizeController<TBundle>(
   route: Route<TBundle>,
   bundleToken: abstract new (...args: never[]) => TBundle,
-): new (...args: never[]) => unknown {
+): new (
+  ...args: never[]
+) => unknown {
   class GeneratedController {
     constructor(public readonly bundle: TBundle) {}
 

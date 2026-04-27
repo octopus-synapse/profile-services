@@ -9,8 +9,8 @@
  * resume-versions BC that the workers also consume directly.
  */
 
-import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';

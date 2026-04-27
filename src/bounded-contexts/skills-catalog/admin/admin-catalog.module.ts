@@ -12,9 +12,9 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
-import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
 import { buildAdminCatalogUseCases } from './admin-catalog.composition';
 import { adminCatalogRoutes } from './admin-catalog.routes';
+import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
 
 @Module({
   imports: [PrismaModule],

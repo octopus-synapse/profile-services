@@ -11,12 +11,8 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { JobsUseCases } from './application/ports/jobs.port';
-import {
-  ApplyToJobSchema,
-  CreateJobSchema,
-  UpdateJobSchema,
-} from './dto/job.dto';
 import { RecordApplicationEventSchema } from './dto/application-event.dto';
+import { ApplyToJobSchema, CreateJobSchema, UpdateJobSchema } from './dto/job.dto';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,

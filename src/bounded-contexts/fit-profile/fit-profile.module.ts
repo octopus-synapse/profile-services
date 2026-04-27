@@ -23,6 +23,7 @@ import { FitRemapHistoryRepositoryPort } from './domain/ports/fit-remap-history.
 import { JobFitProfileRepositoryPort } from './domain/ports/job-fit-profile.repository.port';
 import { SimilarityPort } from './domain/ports/similarity.port';
 import { UserFitProfileRepositoryPort } from './domain/ports/user-fit-profile.repository.port';
+import { fitProfileRoutes } from './fit-profile.routes';
 import { PrismaFitAnswerRepository } from './infrastructure/adapters/persistence/prisma-fit-answer.repository';
 import { PrismaFitQuestionRepository } from './infrastructure/adapters/persistence/prisma-fit-question.repository';
 import { PrismaFitQuestionSetRepository } from './infrastructure/adapters/persistence/prisma-fit-question-set.repository';
@@ -31,7 +32,6 @@ import { PrismaJobFitProfileRepository } from './infrastructure/adapters/persist
 import { PrismaUserFitProfileRepository } from './infrastructure/adapters/persistence/prisma-user-fit-profile.repository';
 import { WeightedCosineSimilarityAdapter } from './infrastructure/adapters/weighted-cosine-similarity.adapter';
 import { RequireFitProfileGuard } from './infrastructure/guards/require-fit-profile.guard';
-import { fitProfileRoutes } from './fit-profile.routes';
 import {
   FIT_PROFILE_EXPIRE_QUEUE,
   FitProfileExpireWorker,

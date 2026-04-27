@@ -5,9 +5,9 @@
  * CRUD surface.
  */
 
-import { LoggerPort } from '@/shared-kernel';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import type {
   BookmarkedFeedItem,
   PersistPostInput,

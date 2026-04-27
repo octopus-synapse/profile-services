@@ -13,10 +13,7 @@ import type { Route } from '@/shared-kernel/http/route';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { OnboardingCompletionInProgressException } from './domain/exceptions/onboarding-extra.exceptions';
-import {
-  type OnboardingData,
-  OnboardingDataSchema,
-} from './domain/schemas/onboarding-data.schema';
+import { type OnboardingData, OnboardingDataSchema } from './domain/schemas/onboarding-data.schema';
 import {
   type OnboardingProgress,
   OnboardingProgressSchema,
