@@ -5,12 +5,12 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RequirePermission } from '@/shared-kernel/authorization';
-import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../dto/controller-response.dto';
+import { SkillManagementService } from '../../application/services/skill-management.service';
+import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../../dto/controller-response.dto';
 import type {
   CreateSkillData,
   UpdateSkillData,
-} from '../services/skill-management/ports/skill-management.port';
-import { SkillManagementService } from '../services/skill-management.service';
+} from '../../domain/ports/skill-management.port';
 
 @SdkExport({ tag: 'resume-skills', description: 'Resume skill management' })
 @ApiTags('Resume Skills')

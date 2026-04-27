@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 import { AddSkillUseCase } from './add-skill.use-case';
 
 describe('AddSkillUseCase', () => {

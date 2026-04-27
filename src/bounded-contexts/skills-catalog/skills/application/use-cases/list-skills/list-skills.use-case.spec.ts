@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { SkillManagementPort } from '../ports/skill-management.port';
+import { SkillManagementPort } from '../../../domain/ports/skill-management.port';
 import { ListSkillsUseCase } from './list-skills.use-case';
 
 class StubSkillManagementPort extends SkillManagementPort {

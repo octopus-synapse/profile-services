@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { SkillManagementService } from '../services/skill-management.service';
+import { SkillManagementService } from '../../application/services/skill-management.service';
 import { SkillManagementController } from './skill-management.controller';
 
 const createSkillManagementService = () => ({

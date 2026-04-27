@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { SectionItem } from '../ports/skill-management.port';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
+import type { SectionItem } from '../../../domain/ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 import { DeleteSkillUseCase } from './delete-skill.use-case';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';

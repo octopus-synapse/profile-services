@@ -1,6 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { CreateSkillData, Skill } from '../ports/skill-management.port';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
+import type { CreateSkillData, Skill } from '../../../domain/ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 
 export class AddSkillUseCase {
   constructor(private readonly repository: SkillManagementRepositoryPort) {}

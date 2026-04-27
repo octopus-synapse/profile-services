@@ -1,8 +1,8 @@
-import type { Skill, SkillSection } from '../ports/skill-management.port';
-import type { ISkillManagementItemPort } from '../ports/skill-management-item.port';
+import type { Skill, SkillSection } from '../../../domain/ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 
 export class ListSkillsForResumeUseCase {
-  constructor(private readonly repository: ISkillManagementItemPort) {}
+  constructor(private readonly repository: SkillManagementRepositoryPort) {}
 
   async execute(resumeId: string): Promise<Skill[]> {
     const section: SkillSection | null = await this.repository.findSkillSectionWithItems(resumeId);

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ISkillManagementItemPort } from '../ports/skill-management-item.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 import { ListSkillsForResumeUseCase } from './list-skills-for-resume.use-case';
 
 describe('ListSkillsForResumeUseCase', () => {
   let useCase: ListSkillsForResumeUseCase;
-  let mockRepository: ISkillManagementItemPort;
+  let mockRepository: SkillManagementRepositoryPort;
 
   beforeEach(() => {
     mockRepository = {
@@ -12,6 +12,10 @@ describe('ListSkillsForResumeUseCase', () => {
       findSkillById: async () => null,
       updateSkillContent: async () => ({ id: 'item-1', order: 0, content: {} }),
       deleteSkill: async () => {},
+      resumeExists: async () => true,
+      ensureSkillSection: async () => ({ id: 'sec-1' }),
+      getNextOrderValue: async () => 0,
+      createSkillItem: async () => ({ id: 'item-1', order: 0, content: {} }),
     };
     useCase = new ListSkillsForResumeUseCase(mockRepository);
   });

@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SkillSectionTypeNotConfiguredException } from '@/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions';
-import type { SectionItem, SkillItemRecord, SkillSection } from '../ports/skill-management.port';
-import { SkillManagementPort } from '../ports/skill-management.port';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
+import { LoggerPort } from '@/shared-kernel';
+import type { SectionItem, SkillItemRecord, SkillSection } from '../../../domain/ports/skill-management.port';
+import { SkillManagementPort } from '../../../domain/ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 
 @Injectable()
-export class SkillManagementRepository
+export class PrismaSkillManagementRepository
   extends SkillManagementPort
   implements SkillManagementRepositoryPort
 {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 

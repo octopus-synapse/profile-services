@@ -1,4 +1,4 @@
-import { SkillManagementPort } from '../ports/skill-management.port';
+import { SkillManagementPort } from '../../../domain/ports/skill-management.port';
 
 export class ListSkillsUseCase {
   constructor(private readonly skillManagementPort: SkillManagementPort) {}
