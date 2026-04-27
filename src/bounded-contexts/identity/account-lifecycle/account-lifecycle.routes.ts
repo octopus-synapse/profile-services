@@ -1,6 +1,6 @@
 /**
- * Route descriptors for the account-lifecycle BC. Replaces
- * `DeactivateAccountController` and `DeleteAccountController`.
+ * Route descriptors for the account-lifecycle BC. Replaces the
+ * deactivate-account and delete-account controllers.
  *
  * The remaining controllers stay Nest-decorated:
  * - `CreateAccountController`: cookie-set + IP/user-agent capture for

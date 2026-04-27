@@ -173,6 +173,36 @@ import {
       },
       inject: [ConsentRepositoryPort],
     },
+
+    // Aggregated bundle for the route synthesizer. Each use-case stays
+    // independently provided above; the bundle just collects them so
+    // `synthesizeRouteControllers` has a single DI token to inject.
+    {
+      provide: AccountLifecycleUseCases,
+      useFactory: (
+        createAccount: CreateAccountPort,
+        deactivateAccount: DeactivateAccountPort,
+        deleteAccount: DeleteAccountPort,
+        acceptConsent: AcceptConsentUseCasePort,
+        getConsentStatus: GetConsentStatusUseCasePort,
+        getConsentHistory: GetConsentHistoryUseCasePort,
+      ): AccountLifecycleUseCases => ({
+        createAccount,
+        deactivateAccount,
+        deleteAccount,
+        acceptConsent,
+        getConsentStatus,
+        getConsentHistory,
+      }),
+      inject: [
+        CreateAccountPort,
+        DeactivateAccountPort,
+        DeleteAccountPort,
+        AcceptConsentUseCasePort,
+        GetConsentStatusUseCasePort,
+        GetConsentHistoryUseCasePort,
+      ],
+    },
   ],
   exports: [
     CreateAccountPort,
