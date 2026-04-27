@@ -10,11 +10,13 @@
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { filter, fromEvent, map } from 'rxjs';
+import { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import {
   ActivityRoutesBundle,
@@ -22,13 +24,7 @@ import {
   activityRoutes,
   activitySseRoutes,
 } from './activity.routes';
-import {
-  CleanupSocialOnUserDeleteHandler,
-  CreateWelcomeActivityOnUserRegisteredHandler,
-  MutualFollowOnConnectionAcceptedHandler,
-  ResumeCreatedActivityHandler,
-  ResumePublishedActivityHandler,
-} from './application/handlers';
+import { registerSocialHandlers } from './application/handlers/register-handlers';
 import {
   ActivityRepositoryPort,
   type ActivityType,
@@ -109,11 +105,41 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
     SkillDecayService,
     SkillDecayWorker,
     ConnectionRecsService,
-    ResumeCreatedActivityHandler,
-    ResumePublishedActivityHandler,
-    CreateWelcomeActivityOnUserRegisteredHandler,
-    CleanupSocialOnUserDeleteHandler,
-    MutualFollowOnConnectionAcceptedHandler,
+    // Side-effect provider: register framework-free `@OnEvent` replacements
+    // via `EventBusPort.on(...)`. The provided value is a sentinel; the
+    // useful work is the registration in the factory.
+    {
+      provide: 'SOCIAL_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        activityService: ActivityService,
+        activityCreator: ActivityCreatorPort,
+        followRepo: FollowRepositoryPort,
+        idempotency: IdempotencyService,
+        prisma: PrismaService,
+        logger: LoggerPort,
+      ): boolean => {
+        registerSocialHandlers({
+          eventBus,
+          activityService,
+          activityCreator,
+          followRepo,
+          idempotency,
+          prisma,
+          logger,
+        });
+        return true;
+      },
+      inject: [
+        EventBusPort,
+        ActivityService,
+        ActivityCreatorPort,
+        FollowRepositoryPort,
+        IdempotencyService,
+        PrismaService,
+        LoggerPort,
+      ],
+    },
     // Repository port bindings
     {
       provide: FollowRepositoryPort,

@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { LoggerPort } from '@/shared-kernel';
-import { NotificationsUseCases } from '../../application/ports/notifications.port';
+import type { LoggerPort } from '@/shared-kernel';
+import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 const CTX = 'WeeklyDigestWorker';
 
@@ -14,15 +12,16 @@ const CTX = 'WeeklyDigestWorker';
  * followers, endorsements.
  *
  * Idempotent via `UserWeeklyDigestLog`.
+ *
+ * Framework-free POJO. Wired by `registerNotificationsJobs` via
+ * `CronPort`.
  */
-@Injectable()
 export class WeeklyDigestWorker {
   constructor(
     private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
-  @Cron('0 13 * * 1')
   async run(): Promise<void> {
     try {
       const result = await this.bc.sendWeeklyDigests.execute();

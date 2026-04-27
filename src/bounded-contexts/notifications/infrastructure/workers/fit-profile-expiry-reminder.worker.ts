@@ -1,8 +1,6 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import type { Job, Queue } from 'bullmq';
-import { LoggerPort } from '@/shared-kernel';
-import { NotificationsUseCases } from '../../application/ports/notifications.port';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { LoggerPort } from '@/shared-kernel';
+import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 import type { ExpiryReminderJob } from '../../application/use-cases/enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
 
 export const FIT_PROFILE_EXPIRY_REMINDER_QUEUE = 'fit-profile-expiry-reminder';
@@ -27,57 +25,48 @@ const CTX = 'FitProfileExpiryReminderWorker';
  *
  * Scheduled at 09:00 America/Sao_Paulo so reminders land mid-morning
  * (highest open rates), staggered far from the other crons.
+ *
+ * Framework-free POJO. Wired by `registerNotificationsJobs` via
+ * `JobQueuePort`.
  */
-@Injectable()
-@Processor(FIT_PROFILE_EXPIRY_REMINDER_QUEUE, { concurrency: 4 })
-export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModuleInit {
+export class FitProfileExpiryReminderWorker {
   constructor(
     private readonly bc: NotificationsUseCases,
-    @InjectQueue(FIT_PROFILE_EXPIRY_REMINDER_QUEUE)
-    private readonly queue: Queue<FitProfileExpiryReminderJobData>,
+    private readonly queue: JobQueuePort,
     private readonly logger: LoggerPort,
-  ) {
-    super();
-  }
+  ) {}
 
-  async onModuleInit(): Promise<void> {
-    await this.queue.add(
-      'fit-profile-expiry-reminder-schedule',
-      { kind: 'schedule' },
-      {
-        repeat: { pattern: '0 9 * * *', tz: 'America/Sao_Paulo' },
-        jobId: 'fit-profile-expiry-reminder-schedule-cron',
-      },
-    );
-  }
-
-  async process(job: Job<FitProfileExpiryReminderJobData>): Promise<void> {
-    if (job.data.kind === 'schedule') {
-      await this.fanOut();
-      return;
-    }
-    if (job.data.kind === 'remind-user') {
-      await this.bc.sendExpiryReminder.execute({
-        userId: job.data.userId,
-        daysLeft: job.data.daysLeft,
-        expiresAt: job.data.expiresAt,
-      });
+  async process(job: { data: FitProfileExpiryReminderJobData; id?: string }): Promise<void> {
+    try {
+      if (job.data.kind === 'schedule') {
+        await this.fanOut();
+        return;
+      }
+      if (job.data.kind === 'remind-user') {
+        await this.bc.sendExpiryReminder.execute({
+          userId: job.data.userId,
+          daysLeft: job.data.daysLeft,
+          expiresAt: job.data.expiresAt,
+        });
+      }
+    } catch (err) {
+      const kind = job?.data?.kind;
+      this.logger.error(
+        `expiry-reminder failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
+      throw err;
     }
   }
 
   private async fanOut(): Promise<void> {
     const jobs = await this.bc.enqueueExpiryReminders.execute();
     for (const j of jobs) {
-      await this.queue.add('remind-user', { kind: 'remind-user', ...j });
+      await this.queue.enqueue<FitProfileExpiryReminderJobData>(
+        FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+        { kind: 'remind-user', ...j },
+      );
     }
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<FitProfileExpiryReminderJobData>, err: Error): void {
-    this.logger.error(
-      `expiry-reminder failed kind=${job?.data?.kind} err=${err.message}`,
-      err.stack,
-      CTX,
-    );
   }
 }

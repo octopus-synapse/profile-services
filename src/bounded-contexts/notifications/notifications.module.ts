@@ -2,9 +2,10 @@
  * Notifications Module
  *
  * Thin Nest shell over `buildNotificationsUseCases`. Wiring lives in
- * `notifications.composition.ts`. Workers and `@OnEvent` handlers stay
- * Nest-decorated here — they consume the bundle as a constructor
- * dependency.
+ * `notifications.composition.ts`. Workers + cron schedulers are
+ * registered via `registerNotificationsJobs` against the global
+ * `JobQueuePort` / `CronPort` (no `@Processor`/`@Cron` decorators
+ * here).
  *
  * The SSE stream subscribes to Nest's `EventEmitter2` via a synthesized
  * Route descriptor (`notificationsSseRoutes`). The bundle
@@ -12,7 +13,6 @@
  * by handing the emitter to `makeNotificationsSseBundle`.
  */
 
-import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { filter, fromEvent, map } from 'rxjs';
@@ -24,6 +24,8 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { CronPort } from '@/shared-kernel/jobs/cron.port';
+import { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { NotificationsUseCases } from './application/ports/notifications.port';
 import type { NotificationStreamEvent } from './domain/entities/notification';
 import { NotificationStreamPort } from './domain/ports/notification-stream.port';
@@ -31,12 +33,9 @@ import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters
 import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
 import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
 import {
-  FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-  FitProfileExpiryReminderWorker,
-} from './infrastructure/workers/fit-profile-expiry-reminder.worker';
-import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
-import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
-import { buildNotificationsUseCases } from './notifications.composition';
+  buildNotificationsUseCases,
+  registerNotificationsJobs,
+} from './notifications.composition';
 import {
   NotificationsSseBundle,
   notificationsRoutes,
@@ -54,13 +53,7 @@ function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBun
 }
 
 @Module({
-  imports: [
-    PrismaModule,
-    EventEmitterModule,
-    EmailModule,
-    CacheModule,
-    BullModule.registerQueue({ name: FIT_PROFILE_EXPIRY_REMINDER_QUEUE }),
-  ],
+  imports: [PrismaModule, EventEmitterModule, EmailModule, CacheModule],
   controllers: [
     ...synthesizeRouteControllers(NotificationsUseCases, notificationsRoutes),
     ...synthesizeRouteControllers(NotificationsSseBundle, notificationsSseRoutes),
@@ -88,12 +81,25 @@ function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBun
       inject: [EventEmitter2],
     },
 
-    // Nest-decorated handlers + workers (consume the bundle).
+    // Side-effect provider: registers cron schedulers + BullMQ workers
+    // against the shared ports at module-init time.
+    {
+      provide: 'NOTIFICATIONS_JOBS_REGISTERED',
+      useFactory: (
+        queue: JobQueuePort,
+        cron: CronPort,
+        bundle: NotificationsUseCases,
+        logger: LoggerPort,
+      ) => {
+        registerNotificationsJobs(queue, cron, bundle, logger);
+        return true;
+      },
+      inject: [JobQueuePort, CronPort, NotificationsUseCases, LoggerPort],
+    },
+
+    // Nest-decorated handlers (consume the bundle).
     FitProfileExpiredNotificationHandler,
     ResumeQualityRankNotificationHandler,
-    NotificationDigestWorker,
-    WeeklyDigestWorker,
-    FitProfileExpiryReminderWorker,
   ],
   exports: [NotificationsUseCases],
 })

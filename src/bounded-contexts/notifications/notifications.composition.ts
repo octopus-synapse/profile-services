@@ -17,6 +17,8 @@ import type { CacheService } from '@/bounded-contexts/platform/common/cache/cach
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { CronPort } from '@/shared-kernel/jobs/cron.port';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { NotificationsUseCases } from './application/ports/notifications.port';
 import { CreateNotificationUseCase } from './application/use-cases/create-notification/create-notification.use-case';
 import { DeleteOldNotificationsUseCase } from './application/use-cases/delete-old-notifications/delete-old-notifications.use-case';
@@ -39,6 +41,13 @@ import { PrismaNotificationsRepository } from './infrastructure/adapters/persist
 import { PrismaResumeQualitySnapshotAdapter } from './infrastructure/adapters/persistence/prisma-resume-quality-snapshot.adapter';
 import { PrismaWeeklyDigestLogAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-log.adapter';
 import { PrismaWeeklyDigestStatsAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-stats.adapter';
+import {
+  FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+  FitProfileExpiryReminderWorker,
+  type FitProfileExpiryReminderJobData,
+} from './infrastructure/workers/fit-profile-expiry-reminder.worker';
+import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
+import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
 
 export { NotificationsUseCases };
 
@@ -93,4 +102,49 @@ export function buildNotificationsUseCases(
     ),
     sendExpiryReminder: new SendExpiryReminderUseCase(reminderState, createNotification, logger),
   };
+}
+
+/**
+ * Registers all notifications BC background jobs (cron + queue) with
+ * the shared `JobQueuePort` / `CronPort`. Called once at app boot from
+ * the Nest module via a side-effect provider.
+ *
+ * Cron schedules:
+ *  - Daily digest: 08:00 UTC (`EVERY_DAY_AT_8AM` → '0 8 * * *')
+ *  - Weekly digest: Mondays 13:00 UTC ('0 13 * * 1')
+ *
+ * Queues:
+ *  - `fit-profile-expiry-reminder` — fan-out worker; the schedule tick
+ *    enqueues itself via `queue.schedule(...)` with a daily 09:00
+ *    America/Sao_Paulo repeat so the same Redis-backed BullMQ
+ *    repeatable-job semantics survive the migration.
+ */
+export function registerNotificationsJobs(
+  queue: JobQueuePort,
+  cron: CronPort,
+  bundle: NotificationsUseCases,
+  logger: LoggerPort,
+): void {
+  const dailyDigest = new NotificationDigestWorker(bundle, logger);
+  cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
+
+  const weeklyDigest = new WeeklyDigestWorker(bundle, logger);
+  cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
+
+  const expiryReminder = new FitProfileExpiryReminderWorker(bundle, queue, logger);
+  queue.register<FitProfileExpiryReminderJobData>(
+    FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+    expiryReminder.process.bind(expiryReminder),
+  );
+  // Daily 09:00 America/Sao_Paulo schedule fan-out tick — enqueued
+  // through the queue's repeat semantics so we don't double-tick when
+  // multiple instances boot.
+  void queue.schedule<FitProfileExpiryReminderJobData>(
+    FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+    { kind: 'schedule' },
+    {
+      repeat: { pattern: '0 9 * * *', tz: 'America/Sao_Paulo' },
+      jobId: 'fit-profile-expiry-reminder-schedule-cron',
+    },
+  );
 }

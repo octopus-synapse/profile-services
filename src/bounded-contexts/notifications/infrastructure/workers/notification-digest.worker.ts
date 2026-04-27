@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { LoggerPort } from '@/shared-kernel';
-import { NotificationsUseCases } from '../../application/ports/notifications.port';
+import type { LoggerPort } from '@/shared-kernel';
+import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 const CTX = 'NotificationDigestWorker';
 
@@ -14,15 +12,17 @@ const CTX = 'NotificationDigestWorker';
  * `emailDelivery = 'DAILY'`.
  *
  * Idempotent via `Notification.emailDigestSentAt`.
+ *
+ * Framework-free POJO. Wired by `registerNotificationsJobs` via
+ * `CronPort` (Nest cron adapter lives in
+ * `infrastructure/nest-adapter/nest-cron.adapter.ts`).
  */
-@Injectable()
 export class NotificationDigestWorker {
   constructor(
     private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async run(): Promise<void> {
     try {
       const result = await this.bc.sendDailyDigests.execute();
