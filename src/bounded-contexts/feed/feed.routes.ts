@@ -3,9 +3,9 @@
  * controllers (post, feed, comment, engagement, user-engagement) with
  * pure data the Nest adapter synthesizes at boot.
  *
- * Image upload (`POST /v1/posts/upload-image`) stays as a legacy
- * controller because it relies on a multipart `FileInterceptor`; see
- * `feed.module.ts` for the wiring.
+ * Image upload (`POST /v1/posts/upload-image`) is now expressed as a
+ * `kind: 'multipart'` route — the synthesizer wires the
+ * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
 import { PostType, type ReactionType } from '@prisma/client';
@@ -390,6 +390,36 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
       return bc.listUserReactions.execute(userId, q.cursor, q.limit ? Number(q.limit) : undefined);
+    },
+  },
+
+  // ─── Multipart: post image upload ─────────────────────────────────
+  {
+    method: 'POST',
+    path: '/v1/posts/upload-image',
+    auth: { kind: 'jwt' },
+    permission: Permission.FEED_USE,
+    kind: 'multipart',
+    statusCode: 200,
+    openapi: {
+      summary: 'Upload post image',
+      tags: ['posts'],
+      description: 'Posts API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const file = (ctx.body as { file?: Express.Multer.File }).file;
+      return bc.uploadPostImage.execute(
+        file
+          ? {
+              userId: ctx.user!.userId,
+              buffer: file.buffer,
+              originalName: file.originalname,
+              mimetype: file.mimetype,
+              size: file.size,
+            }
+          : null,
+      );
     },
   },
 ];

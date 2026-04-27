@@ -6,9 +6,10 @@
  * Nest provider here so DI can construct it once and pass it into
  * the composition.
  *
- * Most endpoints are synthesized from `feed.routes.ts`. The
- * `PostController` is kept as a legacy controller for the multipart
- * image-upload route, which the Route synthesizer doesn't model yet.
+ * Every endpoint is now synthesized from `feed.routes.ts` — including
+ * the multipart `POST /v1/posts/upload-image` route which uses
+ * `kind: 'multipart'` to opt into the synthesizer's `FileInterceptor`
+ * wiring.
  */
 
 import { Module } from '@nestjs/common';
@@ -22,11 +23,10 @@ import { LoggerPort } from '@/shared-kernel';
 import { FeedUseCases } from './application/ports/feed.port';
 import { buildFeedUseCases } from './feed.composition';
 import { feedRoutes } from './feed.routes';
-import { PostController } from './infrastructure/controllers/post.controller';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
-  controllers: [...synthesizeRouteControllers(FeedUseCases, feedRoutes), PostController],
+  controllers: [...synthesizeRouteControllers(FeedUseCases, feedRoutes)],
   providers: [
     S3UploadService,
     {
