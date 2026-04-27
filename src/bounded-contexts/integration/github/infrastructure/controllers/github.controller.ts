@@ -14,16 +14,9 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { AutoSyncGitHubFromResumeUseCase } from '../../application/use-cases/auto-sync-github-from-resume/auto-sync-github-from-resume.use-case';
-import {
-  GetGitHubSummaryUseCase,
-  type GitHubSummaryResult,
-} from '../../application/use-cases/get-github-summary/get-github-summary.use-case';
-import { GetGitHubSyncStatusUseCase } from '../../application/use-cases/get-github-sync-status/get-github-sync-status.use-case';
-import {
-  type GitHubSyncResult,
-  SyncGitHubUseCase,
-} from '../../application/use-cases/sync-github/sync-github.use-case';
+import { GitHubIntegrationUseCases } from '../../application/ports/github-integration.port';
+import type { GitHubSummaryResult } from '../../application/use-cases/get-github-summary/get-github-summary.use-case';
+import type { GitHubSyncResult } from '../../application/use-cases/sync-github/sync-github.use-case';
 import { toPinnedRepos } from '../presenters/github.presenter';
 
 /** DTO for GitHub profile summary */
@@ -84,12 +77,7 @@ export class GitHubSyncStatusResponseDto {
 @ApiTags('github')
 @Controller('v1/integrations/github')
 export class GitHubController {
-  constructor(
-    private readonly getSummaryUseCase: GetGitHubSummaryUseCase,
-    private readonly syncUseCase: SyncGitHubUseCase,
-    private readonly autoSyncUseCase: AutoSyncGitHubFromResumeUseCase,
-    private readonly statusUseCase: GetGitHubSyncStatusUseCase,
-  ) {}
+  constructor(private readonly bc: GitHubIntegrationUseCases) {}
 
   @Public()
   @Get('summary/:username')
@@ -101,7 +89,7 @@ export class GitHubController {
   async getGitHubSummary(
     @Param('username') username: string,
   ): Promise<DataResponse<GitHubSummaryDto>> {
-    const result = await this.getSummaryUseCase.execute(username);
+    const result = await this.bc.getGitHubSummary.execute(username);
     return { success: true, data: this.toGitHubSummaryDto(result) };
   }
 
@@ -128,7 +116,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Body() body: { githubUsername: string; resumeId: string },
   ): Promise<DataResponse<GitHubSyncResponseDto>> {
-    const result = await this.syncUseCase.execute(user.userId, body.githubUsername, body.resumeId);
+    const result = await this.bc.syncGitHub.execute(user.userId, body.githubUsername, body.resumeId);
     return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
@@ -143,7 +131,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<GitHubSyncResponseDto>> {
-    const result = await this.autoSyncUseCase.execute(user.userId, resumeId);
+    const result = await this.bc.autoSyncGitHubFromResume.execute(user.userId, resumeId);
     return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
@@ -157,7 +145,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<GitHubSyncStatusResponseDto>> {
-    const result = await this.statusUseCase.execute(user.userId, resumeId);
+    const result = await this.bc.getGitHubSyncStatus.execute(user.userId, resumeId);
     return {
       success: true,
       data: {

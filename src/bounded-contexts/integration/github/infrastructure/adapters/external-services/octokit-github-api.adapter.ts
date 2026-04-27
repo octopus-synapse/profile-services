@@ -9,7 +9,6 @@
  */
 
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from '@/shared-kernel';
 import { GitHubApiPort } from '../../../domain/ports/github-api.port';
 import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/github.types';
@@ -17,11 +16,17 @@ import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/
 const CTX = 'OctokitGitHubApiAdapter';
 const API_URL = 'https://api.github.com';
 
+/** Structural shape of the bits we need from `ConfigService` — keeps
+ * the adapter framework-free at the type level. */
+interface ConfigReader {
+  get<T = string>(key: string): T | undefined;
+}
+
 export class OctokitGitHubApiAdapter extends GitHubApiPort {
   private readonly githubToken: string;
 
   constructor(
-    config: ConfigService,
+    config: ConfigReader,
     private readonly logger: LoggerPort,
   ) {
     super();
