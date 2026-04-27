@@ -2,7 +2,7 @@ import { Controller, Get, Header, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { GetPrometheusMetricsUseCase } from '../../application/use-cases/get-prometheus-metrics/get-prometheus-metrics.use-case';
+import { MetricsUseCases } from '../../application/ports/metrics.port';
 import { MetricsGuard } from '../../metrics.guard';
 
 @SdkExport({ tag: 'metrics', description: 'Prometheus Metrics API', requiresAuth: false })
@@ -10,7 +10,7 @@ import { MetricsGuard } from '../../metrics.guard';
 @Controller('metrics')
 @UseGuards(MetricsGuard)
 export class MetricsController {
-  constructor(private readonly getPrometheusMetrics: GetPrometheusMetricsUseCase) {}
+  constructor(private readonly bc: MetricsUseCases) {}
 
   @Get()
   @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
@@ -20,6 +20,6 @@ export class MetricsController {
   })
   @ApiStreamResponse({ mimeType: 'text/plain', description: 'Prometheus metrics in text format' })
   async getMetrics(): Promise<string> {
-    return this.getPrometheusMetrics.execute();
+    return this.bc.getPrometheusMetrics.execute();
   }
 }

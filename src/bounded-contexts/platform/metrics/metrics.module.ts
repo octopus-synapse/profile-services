@@ -1,17 +1,14 @@
 /**
  * Metrics Module
  *
- * ADR-001: the two HTTP surfaces go through POJO use cases that
- * read from `MetricsReaderPort`. The `MetricsService` extends the
- * port and is exported as-is for the rest of the platform — the
- * recording API (incrementResumeCreated, observeApiLatency, …) is
- * still infrastructure shared globally.
+ * Thin Nest shell. The `MetricsService` (recording API + reader) and
+ * the global interceptor stay Nest-decorated; the read use cases are
+ * routed through `metrics.composition.ts`.
  */
 
 import { Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { GetMetricsOverviewUseCase } from './application/use-cases/get-metrics-overview/get-metrics-overview.use-case';
-import { GetPrometheusMetricsUseCase } from './application/use-cases/get-prometheus-metrics/get-prometheus-metrics.use-case';
+import { MetricsUseCases } from './application/ports/metrics.port';
 import { MetricsReaderPort } from './domain/ports/metrics-reader.port';
 import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
 import { AdminMetricsController } from './infrastructure/controllers/admin-metrics.controller';
@@ -19,6 +16,7 @@ import { MetricsController } from './infrastructure/controllers/metrics.controll
 import { MetricsGuard } from './metrics.guard';
 import { MetricsInterceptor } from './metrics.interceptor';
 import { MetricsService } from './metrics.service';
+import { buildMetricsUseCases } from './metrics.composition';
 
 @Global()
 @Module({
@@ -27,13 +25,8 @@ import { MetricsService } from './metrics.service';
     MetricsService,
     { provide: MetricsReaderPort, useExisting: MetricsService },
     {
-      provide: GetPrometheusMetricsUseCase,
-      useFactory: (reader: MetricsReaderPort) => new GetPrometheusMetricsUseCase(reader),
-      inject: [MetricsReaderPort],
-    },
-    {
-      provide: GetMetricsOverviewUseCase,
-      useFactory: (reader: MetricsReaderPort) => new GetMetricsOverviewUseCase(reader),
+      provide: MetricsUseCases,
+      useFactory: (reader: MetricsReaderPort) => buildMetricsUseCases(reader),
       inject: [MetricsReaderPort],
     },
     MetricsGuard,

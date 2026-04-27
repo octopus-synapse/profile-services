@@ -11,9 +11,9 @@ function mockRes(): { res: Response; setHeader: ReturnType<typeof mock> } {
 }
 
 describe('I18nDictionaryController', () => {
-  const controller = new I18nDictionaryController(
-    new GetDictionaryUseCase(new DictionaryProjectorService()),
-  );
+  const controller = new I18nDictionaryController({
+    getDictionary: new GetDictionaryUseCase(new DictionaryProjectorService()),
+  });
 
   it('getErrors returns pt-BR messages when Accept-Language is pt-BR', () => {
     const { res, setHeader } = mockRes();

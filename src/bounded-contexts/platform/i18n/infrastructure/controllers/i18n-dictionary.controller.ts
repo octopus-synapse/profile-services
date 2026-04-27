@@ -21,7 +21,7 @@ import type { Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { negotiateLocale } from '../../application/locale-negotiator';
-import { GetDictionaryUseCase } from '../../application/use-cases/get-dictionary/get-dictionary.use-case';
+import { I18nUseCases } from '../../application/ports/i18n.port';
 import {
   EnumsDictionaryDto,
   ErrorsDictionaryDto,
@@ -34,7 +34,7 @@ import {
 @ApiExtraModels(NotificationTemplateDto)
 @Controller('v1/i18n/dictionary')
 export class I18nDictionaryController {
-  constructor(private readonly getDictionary: GetDictionaryUseCase) {}
+  constructor(private readonly bc: I18nUseCases) {}
 
   @Public()
   @Get('errors')
@@ -53,7 +53,7 @@ export class I18nDictionaryController {
   ): ErrorsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    const payload = this.getDictionary.execute('errors', locale);
+    const payload = this.bc.getDictionary.execute('errors', locale);
     return { locale, entries: payload.entries as Record<string, string> };
   }
 
@@ -74,7 +74,7 @@ export class I18nDictionaryController {
   ): EnumsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    const payload = this.getDictionary.execute('enums', locale);
+    const payload = this.bc.getDictionary.execute('enums', locale);
     return { locale, entries: payload.entries as Record<string, Record<string, string>> };
   }
 
@@ -96,7 +96,7 @@ export class I18nDictionaryController {
   ): NotificationsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    const payload = this.getDictionary.execute('notifications', locale);
+    const payload = this.bc.getDictionary.execute('notifications', locale);
     return {
       locale,
       entries: payload.entries as NotificationsDictionaryDto['entries'],
