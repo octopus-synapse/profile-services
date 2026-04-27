@@ -1,27 +1,34 @@
 /**
- * GitHub Sync Service
- * Single Responsibility: Orchestrate GitHub sync operations
+ * Orchestrator for a full GitHub sync. Verifies ownership, fetches
+ * profile + repos, computes total stars, persists the stats, and
+ * delegates to the contribution + achievement services to build the
+ * section payload before reconciling the DB. HTTP / domain failures
+ * propagate; everything else is normalized to
+ * `GitHubSyncFailedException` so the controller layer can show a
+ * coherent error.
  */
 
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
 import { DomainException } from '@/shared-kernel/exceptions';
 import {
   GitHubSyncFailedException,
   GitHubUsernameMissingException,
-} from '../../domain/exceptions/integration.exceptions';
-import { extractGitHubUsername } from '../github.utils';
+} from '../../../domain/exceptions/integration.exceptions';
+import { GitHubApiPort } from '../../domain/ports/github-api.port';
+import { GitHubResumeRepositoryPort } from '../../domain/ports/github-resume.repository.port';
+import { extractGitHubUsername } from '../../domain/value-objects/github-username';
 import { GitHubAchievementService } from './github-achievement.service';
-import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
-import { GitHubDatabaseService } from './github-database.service';
 
-/**
- * Result of a GitHub sync operation
- */
 export interface GitHubSyncResult {
-  profile: { username: string; name: string | null; bio: string | null; publicRepos: number };
-  stats: {
+  readonly profile: {
+    username: string;
+    name: string | null;
+    bio: string | null;
+    publicRepos: number;
+  };
+  readonly stats: {
     totalStars: number;
     publicRepos: number;
     contributionsAdded: number;
@@ -29,49 +36,43 @@ export interface GitHubSyncResult {
   };
 }
 
-@Injectable()
 export class GitHubSyncService {
   constructor(
-    private readonly apiService: GitHubApiService,
-    private readonly contributionService: GitHubContributionService,
-    private readonly achievementService: GitHubAchievementService,
-    private readonly databaseService: GitHubDatabaseService,
+    private readonly api: GitHubApiPort,
+    private readonly resumes: GitHubResumeRepositoryPort,
+    private readonly contributions: GitHubContributionService,
+    private readonly achievements: GitHubAchievementService,
   ) {}
 
-  /**
-   * Sync GitHub data for a user
-   * @returns GitHubSyncResult (domain data, not envelope)
-   */
   async syncUserGitHub(
     userId: string,
     githubUsername: string,
     resumeId: string,
   ): Promise<GitHubSyncResult> {
-    await this.databaseService.verifyResumeOwnership(userId, resumeId);
+    await this.resumes.verifyResumeOwnership(userId, resumeId);
 
     try {
-      const profile = await this.apiService.getUserProfile(githubUsername);
-      const repos = await this.apiService.getUserRepos(githubUsername, {
+      const profile = await this.api.getUserProfile(githubUsername);
+      const repos = await this.api.getUserRepos(githubUsername, {
         sort: 'updated',
         per_page: 100,
       });
-      const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+      const totalStars = repos.reduce((sum, r) => sum + r.stargazers_count, 0);
 
-      await this.databaseService.updateResumeGitHubStats(resumeId, githubUsername, totalStars);
+      await this.resumes.updateResumeGitHubStats(resumeId, githubUsername, totalStars);
 
-      const contributions = await this.contributionService.processContributions(
+      const contributions = await this.contributions.processContributions(
         resumeId,
         githubUsername,
         repos.slice(0, API_LIMITS.MAX_REPOS_TO_PROCESS),
       );
-
-      const achievements = this.achievementService.generateAchievements(
+      const achievements = this.achievements.generateAchievements(
         githubUsername,
         profile,
         totalStars,
       );
 
-      await this.databaseService.reconcileDbEntries(
+      await this.resumes.reconcileSyncedSections(
         resumeId,
         githubUsername,
         contributions,
@@ -99,17 +100,9 @@ export class GitHubSyncService {
     }
   }
 
-  /**
-   * Auto-sync GitHub data using username from resume
-   * @returns GitHubSyncResult (domain data, not envelope)
-   */
   async autoSyncGitHubFromResume(userId: string, resumeId: string): Promise<GitHubSyncResult> {
-    const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId);
-
-    if (!resume.github) {
-      throw new GitHubUsernameMissingException();
-    }
-
+    const resume = await this.resumes.verifyResumeOwnership(userId, resumeId);
+    if (!resume.github) throw new GitHubUsernameMissingException();
     const githubUsername = extractGitHubUsername(resume.github);
     return this.syncUserGitHub(userId, githubUsername, resumeId);
   }

@@ -1,47 +1,35 @@
 /**
- * GitHub Contribution Service
- * Single Responsibility: Process and format contribution data
+ * Builds per-repo `GitHubContribution` rows from the raw repo list.
+ * Calls the API port for commit/PR counts so the role classifier
+ * (`maintainer` / `core_contributor` / `contributor`) has actual
+ * activity numbers.
+ *
+ * `isCurrent` is true when the repo was pushed within the last 90
+ * days — gives the resume a sense of which projects are still
+ * active for the candidate.
  */
 
-import { Injectable } from '@nestjs/common';
 import { TIME_MS } from '@/shared-kernel';
-import type { GitHubRepo } from '../types/github.types';
-import { GitHubApiService } from './github-api.service';
-
-export interface GitHubContributionInput {
-  resumeId: string;
-  projectName: string;
-  projectUrl: string;
-  role: 'maintainer' | 'core_contributor' | 'contributor';
-  description?: string;
-  technologies: string[];
-  commits?: number;
-  prsCreated?: number;
-  stars?: number;
-  startDate: Date;
-  isCurrent: boolean;
-}
+import type { GitHubContribution } from '../../domain/entities/github-contribution';
+import { GitHubApiPort } from '../../domain/ports/github-api.port';
+import type { GitHubRepo } from '../../types/github.types';
 
 const ACTIVITY_THRESHOLD_DAYS = 90;
 
-@Injectable()
 export class GitHubContributionService {
-  constructor(private readonly apiService: GitHubApiService) {}
+  constructor(private readonly api: GitHubApiPort) {}
 
   async processContributions(
     resumeId: string,
     githubUsername: string,
     repos: GitHubRepo[],
-  ): Promise<GitHubContributionInput[]> {
-    const contributions: GitHubContributionInput[] = [];
-
+  ): Promise<GitHubContribution[]> {
+    const contributions: GitHubContribution[] = [];
     for (const repo of repos) {
       if (this.shouldIncludeRepo(repo, githubUsername)) {
-        const contribution = await this.buildContribution(resumeId, githubUsername, repo);
-        contributions.push(contribution);
+        contributions.push(await this.buildContribution(resumeId, githubUsername, repo));
       }
     }
-
     return contributions;
   }
 
@@ -53,18 +41,13 @@ export class GitHubContributionService {
     resumeId: string,
     githubUsername: string,
     repo: GitHubRepo,
-  ): Promise<GitHubContributionInput> {
-    const commits = await this.apiService.getRepoCommitCount(
+  ): Promise<GitHubContribution> {
+    const commits = await this.api.getRepoCommitCount(repo.owner.login, repo.name, githubUsername);
+    const pullRequests = await this.api.getRepoPullRequests(
       repo.owner.login,
       repo.name,
       githubUsername,
     );
-    const pullRequests = await this.apiService.getRepoPullRequests(
-      repo.owner.login,
-      repo.name,
-      githubUsername,
-    );
-
     const role = this.determineRole(repo, githubUsername, commits, pullRequests);
     const isCurrent = this.isRecentlyActive(repo.pushed_at);
 
@@ -88,7 +71,7 @@ export class GitHubContributionService {
     username: string,
     commits: number,
     pullRequests: number,
-  ): 'maintainer' | 'core_contributor' | 'contributor' {
+  ): GitHubContribution['role'] {
     if (repo.owner.login === username) return 'maintainer';
     if (commits > 10 || pullRequests > 5) return 'core_contributor';
     return 'contributor';

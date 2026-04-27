@@ -14,9 +14,17 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { toPinnedRepos } from './github.presenter';
-import { GitHubService } from './github.service';
-import type { GitHubSyncResult } from './services/github-sync.service';
+import { AutoSyncGitHubFromResumeUseCase } from '../../application/use-cases/auto-sync-github-from-resume/auto-sync-github-from-resume.use-case';
+import {
+  GetGitHubSummaryUseCase,
+  type GitHubSummaryResult,
+} from '../../application/use-cases/get-github-summary/get-github-summary.use-case';
+import { GetGitHubSyncStatusUseCase } from '../../application/use-cases/get-github-sync-status/get-github-sync-status.use-case';
+import {
+  type GitHubSyncResult,
+  SyncGitHubUseCase,
+} from '../../application/use-cases/sync-github/sync-github.use-case';
+import { toPinnedRepos } from '../presenters/github.presenter';
 
 /** DTO for GitHub profile summary */
 export class GitHubSummaryDto {
@@ -76,7 +84,12 @@ export class GitHubSyncStatusResponseDto {
 @ApiTags('github')
 @Controller('v1/integrations/github')
 export class GitHubController {
-  constructor(private readonly githubService: GitHubService) {}
+  constructor(
+    private readonly getSummaryUseCase: GetGitHubSummaryUseCase,
+    private readonly syncUseCase: SyncGitHubUseCase,
+    private readonly autoSyncUseCase: AutoSyncGitHubFromResumeUseCase,
+    private readonly statusUseCase: GetGitHubSyncStatusUseCase,
+  ) {}
 
   @Public()
   @Get('summary/:username')
@@ -88,7 +101,7 @@ export class GitHubController {
   async getGitHubSummary(
     @Param('username') username: string,
   ): Promise<DataResponse<GitHubSummaryDto>> {
-    const result = await this.githubService.getGitHubSummary(username);
+    const result = await this.getSummaryUseCase.execute(username);
     return { success: true, data: this.toGitHubSummaryDto(result) };
   }
 
@@ -115,11 +128,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Body() body: { githubUsername: string; resumeId: string },
   ): Promise<DataResponse<GitHubSyncResponseDto>> {
-    const result = await this.githubService.syncUserGitHub(
-      user.userId,
-      body.githubUsername,
-      body.resumeId,
-    );
+    const result = await this.syncUseCase.execute(user.userId, body.githubUsername, body.resumeId);
     return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
@@ -134,7 +143,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<GitHubSyncResponseDto>> {
-    const result = await this.githubService.autoSyncGitHubFromResume(user.userId, resumeId);
+    const result = await this.autoSyncUseCase.execute(user.userId, resumeId);
     return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
@@ -148,7 +157,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<GitHubSyncStatusResponseDto>> {
-    const result = await this.githubService.getSyncStatus(user.userId, resumeId);
+    const result = await this.statusUseCase.execute(user.userId, resumeId);
     return {
       success: true,
       data: {
@@ -160,13 +169,7 @@ export class GitHubController {
     };
   }
 
-  private toGitHubSummaryDto(result: {
-    username: string;
-    name?: string | null;
-    bio?: string | null;
-    publicRepos: number;
-    topRepos?: Array<{ name: string; description?: string | null; url: string }>;
-  }): GitHubSummaryDto {
+  private toGitHubSummaryDto(result: GitHubSummaryResult): GitHubSummaryDto {
     return {
       username: result.username,
       name: result.name ?? undefined,
@@ -175,7 +178,9 @@ export class GitHubController {
       followers: 0,
       following: 0,
       topLanguages: [],
-      pinnedRepos: toPinnedRepos(result.topRepos ?? []),
+      pinnedRepos: toPinnedRepos(
+        result.topRepos.map((r) => ({ name: r.name, description: r.description, url: r.url })),
+      ),
     };
   }
 

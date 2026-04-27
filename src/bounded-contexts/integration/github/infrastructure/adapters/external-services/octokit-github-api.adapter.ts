@@ -1,53 +1,41 @@
 /**
- * GitHub API Service
- * Single Responsibility: Raw API calls to GitHub's REST API
+ * REST-API implementation of `GitHubApiPort`. Authenticates with the
+ * `GITHUB_TOKEN` env var when available; falls back to anonymous calls
+ * (subject to the lower rate-limit budget). Maps 404/403/other to
+ * `HttpException`s the controller layer can serialize.
+ *
+ * Per-repo `count*` calls degrade to 0 + a warn log on failure so a
+ * private repo or rate limit doesn't take down the whole sync.
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from '@/shared-kernel';
-import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../types/github.types';
+import { GitHubApiPort } from '../../../domain/ports/github-api.port';
+import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/github.types';
 
-const CTX = 'GitHubApiService';
+const CTX = 'OctokitGitHubApiAdapter';
+const API_URL = 'https://api.github.com';
 
-@Injectable()
-export class GitHubApiService {
-  private readonly apiUrl = 'https://api.github.com';
+export class OctokitGitHubApiAdapter extends GitHubApiPort {
   private readonly githubToken: string;
 
   constructor(
-    private readonly configService: ConfigService,
+    config: ConfigService,
     private readonly logger: LoggerPort,
   ) {
-    this.githubToken = this.configService.get<string>('GITHUB_TOKEN') ?? '';
-  }
-
-  async fetchGitHub<T>(endpoint: string): Promise<T> {
-    const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
-
-    if (this.githubToken) {
-      headers.Authorization = `Bearer ${this.githubToken}`;
-    }
-
-    const response = await fetch(`${this.apiUrl}${endpoint}`, { headers });
-
-    if (!response.ok) {
-      this.handleApiError(response);
-    }
-
-    return response.json() as Promise<T>;
+    super();
+    this.githubToken = config.get<string>('GITHUB_TOKEN') ?? '';
   }
 
   async getUserProfile(username: string): Promise<GitHubUser> {
-    return this.fetchGitHub<GitHubUser>(`/users/${username}`);
+    return this.fetch<GitHubUser>(`/users/${username}`);
   }
 
   async getUserRepos(username: string, options: GitHubFetchOptions = {}): Promise<GitHubRepo[]> {
     const sort = options.sort ?? 'updated';
     const perPage = options.per_page ?? 100;
-    return this.fetchGitHub<GitHubRepo[]>(
-      `/users/${username}/repos?sort=${sort}&per_page=${perPage}`,
-    );
+    return this.fetch<GitHubRepo[]>(`/users/${username}/repos?sort=${sort}&per_page=${perPage}`);
   }
 
   async getRepoCommitCount(owner: string, repo: string, username: string): Promise<number> {
@@ -71,12 +59,18 @@ export class GitHubApiService {
     );
   }
 
-  /** Per-repo activity counts are best-effort enrichment — a private repo
-   *  or rate-limit must not break the whole import. We degrade to 0 but
-   *  emit a warn so the failure isn't invisible to ops. */
+  private async fetch<T>(endpoint: string): Promise<T> {
+    const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
+    if (this.githubToken) headers.Authorization = `Bearer ${this.githubToken}`;
+
+    const response = await fetch(`${API_URL}${endpoint}`, { headers });
+    if (!response.ok) this.handleApiError(response);
+    return response.json() as Promise<T>;
+  }
+
   private async countOptional(endpoint: string, kind: string): Promise<number> {
     try {
-      const items = await this.fetchGitHub<unknown[]>(endpoint);
+      const items = await this.fetch<unknown[]>(endpoint);
       return Array.isArray(items) ? items.length : 0;
     } catch (err) {
       this.logger.warn(
@@ -89,37 +83,31 @@ export class GitHubApiService {
 
   private handleApiError(response: Response): never {
     if (response.status === 404) {
-      throw this.createHttpException(
-        HttpStatus.NOT_FOUND,
-        'GitHub resource not found',
-        'Not Found',
-      );
+      throw this.httpException(HttpStatus.NOT_FOUND, 'GitHub resource not found', 'Not Found');
     }
     if (response.status === 403) {
-      throw this.createHttpException(
+      throw this.httpException(
         HttpStatus.FORBIDDEN,
         'GitHub API rate limit exceeded',
         'Forbidden',
       );
     }
-    throw this.createHttpException(
+    throw this.httpException(
       HttpStatus.BAD_GATEWAY,
       `Failed to fetch from GitHub: ${response.statusText}`,
       'Bad Gateway',
     );
   }
 
-  private createHttpException(status: HttpStatus, message: string, error: string): HttpException {
-    const exceptionResponse = { statusCode: status, message, error };
-    const exception = new HttpException(exceptionResponse, status);
-
-    Object.defineProperty(exception, 'response', {
-      value: exceptionResponse,
+  private httpException(status: HttpStatus, message: string, error: string): HttpException {
+    const payload = { statusCode: status, message, error };
+    const ex = new HttpException(payload, status);
+    Object.defineProperty(ex, 'response', {
+      value: payload,
       enumerable: true,
       configurable: true,
       writable: false,
     });
-
-    return exception;
+    return ex;
   }
 }
