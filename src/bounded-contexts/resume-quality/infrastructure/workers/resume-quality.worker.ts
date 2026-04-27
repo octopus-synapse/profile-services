@@ -1,10 +1,5 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import type { Job, Queue } from 'bullmq';
-import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
-import { LoggerPort } from '@/shared-kernel';
-import { ComputeQualityUseCase } from '../../application/use-cases/compute-quality.use-case';
+import type { LoggerPort } from '@/shared-kernel';
+import type { ComputeQualityUseCase } from '../../application/use-cases/compute-quality.use-case';
 
 export const RESUME_QUALITY_QUEUE = 'resume-quality';
 
@@ -21,49 +16,37 @@ export type ResumeQualityJobData = {
  * Stage 1 (listener): when a `ResumeUpdatedEvent` is emitted anywhere
  * in the app, enqueue a single job keyed by `resumeId`. BullMQ's
  * `jobId` de-dupes: a burst of saves collapses into one recompute
- * rather than N parallel Content Quality AI calls.
+ * rather than N parallel Content Quality AI calls. The listener lives
+ * in a sibling handler file
+ * (`infrastructure/handlers/resume-quality-on-resume-updated.handler.ts`).
  *
  * Stage 2 (processor): pick the job up, run `ComputeQualityUseCase`
  * against the current resume state. Failure inside the use-case surfaces
  * through BullMQ's default retry (3 attempts, exponential backoff,
  * configured in AppModule).
+ *
+ * Framework-free POJO. Wired by the resume-quality module via
+ * `JobQueuePort`.
  */
 const CTX = 'ResumeQualityWorker';
 
-@Injectable()
-@Processor(RESUME_QUALITY_QUEUE, { concurrency: 4 })
-export class ResumeQualityWorker extends WorkerHost {
+export class ResumeQualityWorker {
   constructor(
-    @InjectQueue(RESUME_QUALITY_QUEUE)
-    private readonly queue: Queue<ResumeQualityJobData>,
     private readonly compute: ComputeQualityUseCase,
     private readonly logger: LoggerPort,
-  ) {
-    super();
-  }
+  ) {}
 
-  @OnEvent(ResumeUpdatedEvent.TYPE)
-  async onResumeUpdated(event: ResumeUpdatedEvent): Promise<void> {
-    // `jobId` + default `removeOnComplete` de-dupes bursts of saves
-    // from a single editing session into a single recompute.
-    await this.queue.add(
-      'recompute',
-      { kind: 'recompute', resumeId: event.aggregateId, sourceEventId: event.eventId },
-      { jobId: `resume-quality:${event.aggregateId}` },
-    );
-  }
-
-  async process(job: Job<ResumeQualityJobData>): Promise<void> {
+  async process(job: { data: ResumeQualityJobData; id?: string }): Promise<void> {
     if (job.data.kind !== 'recompute') return;
-    await this.compute.execute(job.data.resumeId);
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<ResumeQualityJobData>, err: Error): void {
-    this.logger.error(
-      `resume-quality recompute failed resumeId=${job?.data?.resumeId} err=${err.message}`,
-      err.stack,
-      CTX,
-    );
+    try {
+      await this.compute.execute(job.data.resumeId);
+    } catch (err) {
+      this.logger.error(
+        `resume-quality recompute failed resumeId=${job.data.resumeId} err=${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
+      throw err;
+    }
   }
 }
