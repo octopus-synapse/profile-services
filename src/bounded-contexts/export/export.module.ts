@@ -18,10 +18,12 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { LoggerPort } from '@/shared-kernel';
+import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 
 // Application Compositions (Clean Architecture)
 import { buildExportUseCases } from './application/compositions/export.composition';
 import { ExportUseCases } from './application/ports/export.port';
+import { ExportPipelineService } from './application/services/export-pipeline.service';
 import { UserDataPort } from './domain/ports/user-data.port';
 // Infrastructure Adapters (external services)
 import { BannerCaptureService } from './infrastructure/adapters/external-services/banner-capture.service';
@@ -69,6 +71,11 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
         LoggerPort,
         SectionTypeRepository,
       ],
+    },
+    {
+      provide: ExportPipelineService,
+      useFactory: (events: EventPublisher) => new ExportPipelineService(events),
+      inject: [EventPublisher],
     },
     // Infrastructure - Typst (server-side PDF)
     TypstPdfGeneratorService,

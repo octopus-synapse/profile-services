@@ -1,15 +1,16 @@
 /**
  * Export Banner Controller
- * Handles LinkedIn banner export
+ * Handles LinkedIn banner export. Banner runs anonymously (no userId), so
+ * `pipeline.runBanner` only translates capture failures into the domain
+ * exception — no event lifecycle.
  */
 
 import { Controller, Get, Header, Query, StreamableFile } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
+import { ExportPipelineService } from '../../application/services/export-pipeline.service';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -19,10 +20,8 @@ import { BannerCaptureService } from '../adapters/external-services/banner-captu
 export class ExportBannerController {
   constructor(
     private readonly bannerCaptureService: BannerCaptureService,
-    private readonly logger: AppLoggerService,
-  ) {
-    this.logger.setContext(ExportBannerController.name);
-  }
+    private readonly pipeline: ExportPipelineService,
+  ) {}
 
   @RequirePermission(Permission.RESUME_EXPORT)
   @Get('banner')
@@ -37,17 +36,9 @@ export class ExportBannerController {
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,
   ): Promise<StreamableFile> {
-    try {
-      const buffer = await this.bannerCaptureService.capture(palette, logoUrl);
-      return new StreamableFile(buffer);
-    } catch (error) {
-      this.logger.errorWithMeta('Failed to generate banner', {
-        palette,
-        logoUrl,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('banner');
-    }
+    const buffer = await this.pipeline.runBanner(() =>
+      this.bannerCaptureService.capture(palette, logoUrl),
+    );
+    return new StreamableFile(buffer);
   }
 }

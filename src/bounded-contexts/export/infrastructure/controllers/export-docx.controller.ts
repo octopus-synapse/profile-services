@@ -1,21 +1,18 @@
 /**
  * Export DOCX Controller
- * Handles DOCX resume export
+ * Handles DOCX resume export. Lifecycle (Requested/Completed/Failed events
+ * + 500 translation) lives in `ExportPipelineService`; the handler is a wire.
  */
 
-import { randomUUID } from 'node:crypto';
 import { Controller, Get, Header, StreamableFile } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
-import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
+import { ExportPipelineService } from '../../application/services/export-pipeline.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -24,11 +21,8 @@ import { ExportPipelineFailedException } from '../../domain/exceptions/export.ex
 export class ExportDocxController {
   constructor(
     private readonly useCases: ExportUseCases,
-    private readonly logger: AppLoggerService,
-    private readonly eventEmitter: EventEmitter2,
-  ) {
-    this.logger.setContext(ExportDocxController.name);
-  }
+    private readonly pipeline: ExportPipelineService,
+  ) {}
 
   @RequirePermission(Permission.RESUME_EXPORT)
   @Get('resume/docx')
@@ -41,47 +35,9 @@ export class ExportDocxController {
   })
   @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   async exportResumeDOCX(@CurrentUser() user: UserPayload): Promise<StreamableFile> {
-    const exportId = randomUUID();
-
-    // Emit export requested event before processing
-    this.eventEmitter.emit(
-      ExportRequestedEvent.TYPE,
-      new ExportRequestedEvent(exportId, {
-        resumeId: user.userId, // Using userId as resumeId (1:1 relationship)
-        userId: user.userId,
-        format: 'docx',
-      }),
+    const buffer = await this.pipeline.run('docx', user.userId, () =>
+      this.useCases.exportDocxUseCase.execute({ userId: user.userId }),
     );
-
-    try {
-      const buffer = await this.useCases.exportDocxUseCase.execute({ userId: user.userId });
-
-      // Emit export completed event
-      this.eventEmitter.emit(
-        ExportCompletedEvent.TYPE,
-        new ExportCompletedEvent(exportId, {
-          resumeId: user.userId,
-          fileUrl: '', // No URL - direct download
-        }),
-      );
-
-      return new StreamableFile(buffer);
-    } catch (error) {
-      // Emit export failed event
-      this.eventEmitter.emit(
-        ExportFailedEvent.TYPE,
-        new ExportFailedEvent(exportId, {
-          resumeId: user.userId,
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      this.logger.errorWithMeta('Failed to generate DOCX', {
-        userId: user.userId,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('docx');
-    }
+    return new StreamableFile(buffer);
   }
 }

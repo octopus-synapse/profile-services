@@ -1,11 +1,11 @@
 /**
  * Export PDF Controller
- * Handles PDF resume export
+ * Handles PDF resume export. Lifecycle (Requested/Completed/Failed events
+ * + 500 translation) is in `ExportPipelineService`; cache lookup wraps the
+ * use-case call inside the pipeline task so cache hits still emit events.
  */
 
-import { randomUUID } from 'node:crypto';
 import { Controller, Get, Header, Param, Query, StreamableFile } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
@@ -15,12 +15,10 @@ import {
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { FeatureFlag } from '@/bounded-contexts/platform/feature-flags/infrastructure/guards/feature-flag.guard';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
-import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
+import { ExportPipelineService } from '../../application/services/export-pipeline.service';
 import { sanitizeQueryParam } from '../helpers';
 import { PdfCacheService } from '../services/pdf-cache.service';
 
@@ -31,12 +29,9 @@ import { PdfCacheService } from '../services/pdf-cache.service';
 export class ExportPdfController {
   constructor(
     private readonly useCases: ExportUseCases,
-    private readonly logger: AppLoggerService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly pipeline: ExportPipelineService,
     private readonly pdfCache: PdfCacheService,
-  ) {
-    this.logger.setContext(ExportPdfController.name);
-  }
+  ) {}
 
   @RequirePermission(Permission.RESUME_EXPORT)
   @FeatureFlag('resumes.export.pdf')
@@ -45,31 +40,16 @@ export class ExportPdfController {
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')
   @ApiOperation({ summary: 'Export resume as PDF document' })
   @ApiProduces('application/pdf')
-  @ApiQuery({
-    name: 'palette',
-    required: false,
-    description: 'Color palette name for styling',
-  })
-  @ApiQuery({
-    name: 'lang',
-    required: false,
-    description: 'Language code (e.g., en, pt)',
-  })
-  @ApiQuery({
-    name: 'bannerColor',
-    required: false,
-    description: 'Custom banner color (hex)',
-  })
+  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name for styling' })
+  @ApiQuery({ name: 'lang', required: false, description: 'Language code (e.g., en, pt)' })
+  @ApiQuery({ name: 'bannerColor', required: false, description: 'Custom banner color (hex)' })
   @ApiQuery({
     name: 'template',
     required: false,
     description: 'Template variant: "default" or "ats" (ATS-optimized for perfect score)',
     enum: ['default', 'ats'],
   })
-  @ApiStreamResponse({
-    mimeType: 'application/pdf',
-    description: 'PDF document file',
-  })
+  @ApiStreamResponse({ mimeType: 'application/pdf', description: 'PDF document file' })
   async exportResumePDF(
     @CurrentUser() user: UserPayload,
     @Query('palette') palette?: string,
@@ -77,26 +57,14 @@ export class ExportPdfController {
     @Query('bannerColor') bannerColor?: string,
     @Query('template') template?: 'default' | 'ats',
   ): Promise<StreamableFile> {
-    const exportId = randomUUID();
-
     // Sanitize query parameters to prevent path traversal and injection attacks
     const safePalette = sanitizeQueryParam(palette);
     const safeLang = sanitizeQueryParam(lang);
     const safeBannerColor = sanitizeQueryParam(bannerColor);
     const safeTemplate = template === 'ats' ? ('ats' as const) : ('default' as const);
 
-    // Emit export requested event before processing
-    this.eventEmitter.emit(
-      ExportRequestedEvent.TYPE,
-      new ExportRequestedEvent(exportId, {
-        resumeId: user.userId, // Using userId as resumeId (1:1 relationship)
-        userId: user.userId,
-        format: 'pdf',
-      }),
-    );
-
-    try {
-      const buffer = await this.pdfCache.serve(
+    const buffer = await this.pipeline.run('pdf', user.userId, () =>
+      this.pdfCache.serve(
         {
           userId: user.userId,
           renderArgs: {
@@ -114,39 +82,9 @@ export class ExportPdfController {
             userId: user.userId,
             template: safeTemplate,
           }),
-      );
-
-      // Emit export completed event
-      this.eventEmitter.emit(
-        ExportCompletedEvent.TYPE,
-        new ExportCompletedEvent(exportId, {
-          resumeId: user.userId,
-          fileUrl: '', // No URL - direct download
-        }),
-      );
-
-      return new StreamableFile(buffer);
-    } catch (error) {
-      // Emit export failed event
-      this.eventEmitter.emit(
-        ExportFailedEvent.TYPE,
-        new ExportFailedEvent(exportId, {
-          resumeId: user.userId,
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      this.logger.errorWithMeta('Failed to generate PDF', {
-        userId: user.userId,
-        palette: safePalette,
-        lang: safeLang,
-        bannerColor: safeBannerColor,
-        template: safeTemplate,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('pdf');
-    }
+      ),
+    );
+    return new StreamableFile(buffer);
   }
 
   @Get('user/:userId/resume/pdf')
@@ -156,25 +94,14 @@ export class ExportPdfController {
     @CurrentUser() _user: UserPayload,
     @Param('userId') targetUserId: string,
   ): Promise<DataResponse<{ pdf: string; filename: string }>> {
-    try {
-      const buffer = await this.pdfCache.serve({ userId: targetUserId, renderArgs: {} }, () =>
-        this.useCases.exportPdfUseCase.execute({
-          userId: targetUserId,
-        }),
-      );
-      return {
-        success: true,
-        data: {
-          pdf: buffer.toString('base64'),
-          filename: 'resume.pdf',
-        },
-      };
-    } catch (error) {
-      this.logger.errorWithMeta('Failed to generate PDF for user', {
-        targetUserId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw new ExportPipelineFailedException('pdf');
-    }
+    const buffer = await this.pipeline.run('pdf', targetUserId, () =>
+      this.pdfCache.serve({ userId: targetUserId, renderArgs: {} }, () =>
+        this.useCases.exportPdfUseCase.execute({ userId: targetUserId }),
+      ),
+    );
+    return {
+      success: true,
+      data: { pdf: buffer.toString('base64'), filename: 'resume.pdf' },
+    };
   }
 }

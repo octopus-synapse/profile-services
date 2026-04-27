@@ -1,5 +1,23 @@
-import { randomUUID } from 'node:crypto';
+/**
+ * Export Controller
+ *
+ * Aggregated export endpoints (banner / pdf / docx / bundle). Each handler
+ * is a wire: it sanitizes inputs, hands the task to `ExportPipelineService`
+ * (which owns the Requested/Completed/Failed event lifecycle and the
+ * 500 translation), and returns the resulting buffer.
+ */
+
 import { Controller, Get, Header, Query, StreamableFile } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ExportUseCases } from '../../application/ports/export.port';
+import { ExportPipelineService } from '../../application/services/export-pipeline.service';
+import { parseBundleFormats } from '../../application/utils/parse-bundle-formats';
+import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 
 /**
  * Sanitizes query parameters to prevent path traversal attacks.
@@ -30,20 +48,6 @@ function sanitizeQueryParam(input: string | undefined): string | undefined {
   return sanitized || undefined;
 }
 
-import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
-import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { EventPublisher } from '@/shared-kernel';
-import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ExportUseCases } from '../../application/ports/export.port';
-import { parseBundleFormats } from '../../application/utils/parse-bundle-formats';
-import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
-import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
-
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
@@ -52,11 +56,8 @@ export class ExportController {
   constructor(
     private readonly bannerCaptureService: BannerCaptureService,
     private readonly useCases: ExportUseCases,
-    private readonly logger: AppLoggerService,
-    private readonly eventPublisher: EventPublisher,
-  ) {
-    this.logger.setContext(ExportController.name);
-  }
+    private readonly pipeline: ExportPipelineService,
+  ) {}
 
   @RequirePermission(Permission.RESUME_EXPORT)
   @Get('banner')
@@ -71,23 +72,13 @@ export class ExportController {
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,
   ): Promise<StreamableFile> {
-    // Sanitize query parameters to prevent path traversal and injection attacks
     const safePalette = sanitizeQueryParam(palette);
     // logoUrl is more permissive but still needs basic sanitization
     const safeLogoUrl = logoUrl && !logoUrl.includes('..') ? logoUrl : undefined;
-
-    try {
-      const buffer = await this.bannerCaptureService.capture(safePalette, safeLogoUrl);
-      return new StreamableFile(buffer);
-    } catch (error) {
-      this.logger.errorWithMeta('Failed to generate banner', {
-        palette: safePalette,
-        logoUrl: safeLogoUrl,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('banner');
-    }
+    const buffer = await this.pipeline.runBanner(() =>
+      this.bannerCaptureService.capture(safePalette, safeLogoUrl),
+    );
+    return new StreamableFile(buffer);
   }
 
   @RequirePermission(Permission.RESUME_EXPORT)
@@ -106,51 +97,18 @@ export class ExportController {
     @Query('lang') lang?: string,
     @Query('bannerColor') bannerColor?: string,
   ): Promise<StreamableFile> {
-    const exportId = randomUUID();
-
-    // Sanitize query parameters to prevent path traversal and injection attacks
     const safePalette = sanitizeQueryParam(palette);
     const safeLang = sanitizeQueryParam(lang);
     const safeBannerColor = sanitizeQueryParam(bannerColor);
-
-    this.eventPublisher.publish(
-      new ExportRequestedEvent(exportId, {
-        resumeId: 'user-default',
+    const buffer = await this.pipeline.run('pdf', user.userId, () =>
+      this.useCases.exportPdfUseCase.execute({
+        palette: safePalette,
+        lang: safeLang,
+        bannerColor: safeBannerColor,
         userId: user.userId,
-        format: 'pdf',
       }),
     );
-
-    try {
-      const buffer = await this.useCases.exportPdfUseCase.execute({
-        palette: safePalette,
-        lang: safeLang,
-        bannerColor: safeBannerColor,
-        userId: user.userId,
-      });
-
-      this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
-      );
-
-      return new StreamableFile(buffer);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-
-      this.eventPublisher.publish(
-        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
-      );
-
-      this.logger.errorWithMeta('Failed to generate PDF', {
-        userId: user.userId,
-        palette: safePalette,
-        lang: safeLang,
-        bannerColor: safeBannerColor,
-        error: reason,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('pdf');
-    }
+    return new StreamableFile(buffer);
   }
 
   @RequirePermission(Permission.RESUME_EXPORT)
@@ -164,38 +122,10 @@ export class ExportController {
   })
   @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   async exportResumeDOCX(@CurrentUser() user: UserPayload): Promise<StreamableFile> {
-    const exportId = randomUUID();
-
-    this.eventPublisher.publish(
-      new ExportRequestedEvent(exportId, {
-        resumeId: 'user-default',
-        userId: user.userId,
-        format: 'docx',
-      }),
+    const buffer = await this.pipeline.run('docx', user.userId, () =>
+      this.useCases.exportDocxUseCase.execute({ userId: user.userId }),
     );
-
-    try {
-      const buffer = await this.useCases.exportDocxUseCase.execute({ userId: user.userId });
-
-      this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
-      );
-
-      return new StreamableFile(buffer);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-
-      this.eventPublisher.publish(
-        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
-      );
-
-      this.logger.errorWithMeta('Failed to generate DOCX', {
-        userId: user.userId,
-        error: reason,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('docx');
-    }
+    return new StreamableFile(buffer);
   }
 
   @RequirePermission(Permission.RESUME_EXPORT)
@@ -216,40 +146,14 @@ export class ExportController {
     @CurrentUser() user: UserPayload,
     @Query('formats') formats?: string,
   ): Promise<StreamableFile> {
-    const exportId = randomUUID();
     const parsed = parseBundleFormats(formats);
-
-    this.eventPublisher.publish(
-      new ExportRequestedEvent(exportId, {
-        resumeId: 'user-default',
-        userId: user.userId,
-        format: 'bundle',
-      }),
-    );
-
-    try {
-      const buffer = await this.useCases.exportBundleUseCase.execute({
+    const buffer = await this.pipeline.run('bundle', user.userId, () =>
+      this.useCases.exportBundleUseCase.execute({
         userId: user.userId,
         resumeId: user.userId,
         formats: parsed,
-      });
-
-      this.eventPublisher.publish(
-        new ExportCompletedEvent(exportId, { resumeId: 'user-default', fileUrl: 'inline' }),
-      );
-
-      return new StreamableFile(buffer);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      this.eventPublisher.publish(
-        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
-      );
-      this.logger.errorWithMeta('Failed to generate export bundle', {
-        userId: user.userId,
-        error: reason,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      throw new ExportPipelineFailedException('bundle');
-    }
+      }),
+    );
+    return new StreamableFile(buffer);
   }
 }

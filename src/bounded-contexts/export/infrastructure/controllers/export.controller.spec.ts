@@ -13,6 +13,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
 import { ExportUseCases } from '../../application/ports/export.port';
+import { ExportPipelineService } from '../../application/services/export-pipeline.service';
 import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
 import { InMemoryBannerCapture, NullEventPublisher, NullLogger } from '../../testing';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
@@ -46,6 +47,11 @@ describe('ExportController', () => {
         { provide: ExportUseCases, useValue: mockExportUseCases },
         { provide: AppLoggerService, useValue: new NullLogger() },
         { provide: EventPublisher, useValue: new NullEventPublisher() },
+        {
+          provide: ExportPipelineService,
+          useFactory: (events: EventPublisher) => new ExportPipelineService(events),
+          inject: [EventPublisher],
+        },
       ],
     }).compile();
 
