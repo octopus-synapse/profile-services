@@ -1,19 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { LoggerPort } from '@/shared-kernel';
 import { ResumeUpdatedEvent } from '../../domain/events';
 
 const CTX = 'InvalidateCacheOnResumeUpdate';
 
-@Injectable()
 export class InvalidateCacheOnResumeUpdate {
   constructor(
     private readonly cacheInvalidation: CacheInvalidationService,
     private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(ResumeUpdatedEvent.TYPE)
   async handle(event: ResumeUpdatedEvent): Promise<void> {
     this.logger.log(`Invalidating cache for resume: ${event.aggregateId}`, CTX);
 

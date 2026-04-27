@@ -8,22 +8,18 @@
  * - This handler only cleans up resumes when a user is deleted.
  */
 
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { UserDeletedEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 
 const CTX = 'CleanupResumesOnUserDeleteHandler';
 
-@Injectable()
 export class CleanupResumesOnUserDeleteHandler {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(UserDeletedEvent.TYPE)
   async handle(event: UserDeletedEvent): Promise<void> {
     const userId = event.aggregateId;
 

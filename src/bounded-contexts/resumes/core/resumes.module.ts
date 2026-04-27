@@ -1,16 +1,13 @@
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-version.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
-import { EventPublisher, LoggerPort } from '@/shared-kernel';
-import {
-  CleanupResumesOnUserDeleteHandler,
-  InvalidateCacheOnResumeDelete,
-  InvalidateCacheOnResumeUpdate,
-} from '../application/handlers';
+import { EventBusPort, EventPublisher, LoggerPort } from '@/shared-kernel';
+import { registerResumesHandlers } from '../application/handlers/register-handlers';
 import { ResumeEventPublisher } from '../domain/ports/resume-event-publisher.port';
 import { ResumeEventPublisherAdapter } from '../infrastructure/adapters';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
@@ -91,10 +88,20 @@ import { ResumeManagementService } from './services/resume-management.service';
       useFactory: buildResumeManagementUseCases,
       inject: [PrismaService, ResumeEventPublisher],
     },
-    // Event Handlers
-    InvalidateCacheOnResumeUpdate,
-    InvalidateCacheOnResumeDelete,
-    CleanupResumesOnUserDeleteHandler,
+    // Event Handlers — registered via EventBusPort by side-effect provider.
+    {
+      provide: 'RESUMES_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        cacheInvalidation: CacheInvalidationService,
+        prisma: PrismaService,
+        logger: LoggerPort,
+      ): boolean => {
+        registerResumesHandlers({ eventBus, cacheInvalidation, prisma, logger });
+        return true;
+      },
+      inject: [EventBusPort, CacheInvalidationService, PrismaService, LoggerPort],
+    },
     // Port Adapters
     {
       provide: ResumeEventPublisher,
