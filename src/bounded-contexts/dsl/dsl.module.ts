@@ -7,6 +7,7 @@
  */
 
 import { Module } from '@nestjs/common';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -17,11 +18,11 @@ import { DslValidatorService } from './application/services/dsl-validator.servic
 import { ThemeDslService } from './application/services/theme-dsl.service';
 import { TokenResolverService } from './application/services/token-resolver.service';
 import { buildDslUseCases } from './dsl.composition';
-import { DslController } from './infrastructure/controllers/dsl.controller';
+import { dslRoutes } from './dsl.routes';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [DslController],
+  controllers: synthesizeRouteControllers(DslUseCases, dslRoutes),
   providers: [
     // Application services (compiler, validator, theme, token resolver, migrators)
     DslCompilerService,
