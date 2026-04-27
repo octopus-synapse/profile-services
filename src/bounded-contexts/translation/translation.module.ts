@@ -3,11 +3,13 @@
  *
  * The translation services are framework-free POJOs. This module is the
  * single Nest-aware seam: it reads config, constructs each service, and
- * wires them together via `useFactory`.
+ * wires them together via `useFactory`. Controllers are synthesized
+ * from `translation.routes.ts`.
  */
 
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeTranslationService,
@@ -15,11 +17,11 @@ import {
   TranslationCoreService,
   TranslationService,
 } from './application/services';
-import { TranslationController } from './infrastructure/controllers';
+import { translationRoutes } from './translation.routes';
 
 @Module({
   imports: [ConfigModule],
-  controllers: [TranslationController],
+  controllers: synthesizeRouteControllers(TranslationService, translationRoutes),
   providers: [
     {
       provide: TranslationCoreService,
