@@ -17,7 +17,7 @@ import {
   type TranslationsJson,
 } from '@/shared-kernel/utils/locale-resolver';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
-import { RESUME_RELATIONS_INCLUDE } from './resume-query';
+import { RESUME_RELATIONS_INCLUDE } from '../../queries/resume-query';
 
 type PrismaResumeData = {
   id: string;

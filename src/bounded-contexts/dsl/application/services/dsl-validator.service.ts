@@ -95,7 +95,7 @@ const SUPPORTED_VERSIONS: string[] = ['1.0.0'];
 
 /**
  * One-step forward migrators. Each function takes a DSL at version `K` and
- * returns the same DSL upgraded to version `K+1`. When adding v1.1.0, append
+ * returns the same DSL bumped to version `K+1`. When adding v1.1.0, append
  * it to `SUPPORTED_VERSIONS` and register the `'1.0.0'` migrator here.
  */
 const MIGRATIONS: Record<string, (dsl: ResumeDsl) => ResumeDsl> = {
