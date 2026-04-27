@@ -6,6 +6,11 @@
  *
  * PDF generation is server-side via Typst — no frontend dependency.
  * Banner capture still uses Puppeteer (BrowserManagerService).
+ *
+ * HTTP surface comes from `export.routes.ts` — synthesized at boot.
+ * Stream content-types are declared via `route.headers`; handlers
+ * return `StreamableFile` which passes through the synthesizer's
+ * `Res({ passthrough: true })` mode unchanged.
  */
 
 import { Module } from '@nestjs/common';
@@ -13,18 +18,25 @@ import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { FeatureFlagsModule } from '@/bounded-contexts/platform/feature-flags/feature-flags.module';
+import {
+  FEATURE_FLAG_KEY,
+  FeatureFlagGuard,
+} from '@/bounded-contexts/platform/feature-flags/infrastructure/guards/feature-flag.guard';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 
 // Application Compositions (Clean Architecture)
 import { buildExportUseCases } from './application/compositions/export.composition';
 import { ExportUseCases } from './application/ports/export.port';
+import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import { ExportPipelineService } from './application/services/export-pipeline.service';
 import { UserDataPort } from './domain/ports/user-data.port';
+import { exportRoutes } from './export.routes';
 // Infrastructure Adapters (external services)
 import { BannerCaptureService } from './infrastructure/adapters/external-services/banner-capture.service';
 import { BrowserManagerService } from './infrastructure/adapters/external-services/browser-manager.service';
@@ -35,23 +47,22 @@ import { TypstCompilerService } from './infrastructure/adapters/external-service
 import { TypstDataSerializerService } from './infrastructure/adapters/external-services/typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './infrastructure/adapters/external-services/typst-pdf-generator.service';
 import { UserDataAdapter } from './infrastructure/adapters/persistence/user-data.adapter';
-// Infrastructure (builders, controllers)
+// Infrastructure (builders, services)
 import { GenericDocxSectionBuilder } from './infrastructure/builders/generic-docx-section.builder';
-import {
-  ExportBannerController,
-  ExportDocxController,
-  ExportMultiFormatController,
-  ExportPdfController,
-} from './infrastructure/controllers';
 import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
 
 @Module({
   imports: [ResumesCoreModule, LoggerModule, PrismaModule, DslModule, FeatureFlagsModule],
   controllers: [
-    ExportBannerController,
-    ExportPdfController,
-    ExportDocxController,
-    ExportMultiFormatController,
+    ...synthesizeRouteControllers(ExportHttpBundle, exportRoutes, {
+      guards: {
+        'feature-flag': {
+          guard: FeatureFlagGuard,
+          metadataKey: FEATURE_FLAG_KEY,
+          mapMetadata: (metadata) => (metadata as { key?: string } | undefined)?.key ?? metadata,
+        },
+      },
+    }),
   ],
   providers: [
     // Use Cases (Clean Architecture)
@@ -97,6 +108,17 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
     // the Typst compile path entirely.
     S3UploadService,
     PdfCacheService,
+    // HTTP-facing bundle the synthesized route controllers depend on.
+    {
+      provide: ExportHttpBundle,
+      useFactory: (
+        useCases: ExportUseCases,
+        pipeline: ExportPipelineService,
+        bannerCapture: BannerCaptureService,
+        pdfCache: PdfCacheService,
+      ): ExportHttpBundle => ({ useCases, pipeline, bannerCapture, pdfCache }),
+      inject: [ExportUseCases, ExportPipelineService, BannerCaptureService, PdfCacheService],
+    },
   ],
   exports: [
     ExportUseCases,
