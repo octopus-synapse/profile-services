@@ -15006,7 +15006,8 @@
     },
     "/api/v1/badges/me": {
       "get": {
-        "operationId": "badges_listMine",
+        "description": "User achievement badges",
+        "operationId": "route_GET__v1_badges_me_handle",
         "parameters": [],
         "responses": {
           "200": {
@@ -15026,17 +15027,9 @@
     },
     "/api/v1/badges/user/{userId}": {
       "get": {
-        "operationId": "badges_listForUser",
-        "parameters": [
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "description": "User achievement badges",
+        "operationId": "route_GET__v1_badges_user_userId_handle",
+        "parameters": [],
         "responses": {
           "200": {
             "description": ""

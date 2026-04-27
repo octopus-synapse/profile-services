@@ -20,10 +20,13 @@ export type PipelineStage = {
 };
 
 /**
- * Empty default — stages are added in Phase 1.3 (`requestLogging`,
- * `cors`, `rateLimit`, `errorMapper`, `responseWrapper`) and Phase 2
- * (`authExtractor`, `consentGuard`, `emailVerifiedGuard`,
- * `humanRelativeDates`). Until then, the adapter applies its existing
- * Nest pipes/filters/interceptors, and `Route.skip` is a no-op.
+ * Default pipeline. Phase 1.3 ships the response-wrapper stage (pure
+ * counterpart to `ApiResponseInterceptor`). Phase 2 grows this list
+ * as ports for error mapping, request logging, cors, rate-limit, and
+ * auth come online. Until then, the Nest adapter still runs Nest's
+ * own interceptor/filter chain — `Route.skip` is parsed but its only
+ * effect today is on the response wrapper.
  */
-export const defaultPipeline: readonly PipelineStage[] = [];
+import { responseWrapperStage } from './stages';
+
+export const defaultPipeline: readonly PipelineStage[] = [responseWrapperStage];
