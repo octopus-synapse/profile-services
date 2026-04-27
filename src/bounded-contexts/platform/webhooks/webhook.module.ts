@@ -11,9 +11,9 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
-import { LoggerPort } from '@/shared-kernel';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { WebhooksUseCases } from './application/ports/webhooks.port';
-import { WebhookEventHandler } from './infrastructure/handlers/webhook-event.handler';
+import { registerWebhooksHandlers } from './infrastructure/handlers/register-handlers';
 import { buildWebhooksUseCases } from './webhooks.composition';
 import { webhooksRoutes } from './webhooks.routes';
 
@@ -27,7 +27,18 @@ import { webhooksRoutes } from './webhooks.routes';
         buildWebhooksUseCases(prisma, logger),
       inject: [PrismaService, LoggerPort],
     },
-    WebhookEventHandler,
+    {
+      provide: 'WEBHOOKS_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        bc: WebhooksUseCases,
+        logger: LoggerPort,
+      ): boolean => {
+        registerWebhooksHandlers({ eventBus, bc, logger });
+        return true;
+      },
+      inject: [EventBusPort, WebhooksUseCases, LoggerPort],
+    },
   ],
   exports: [WebhooksUseCases],
 })

@@ -5,8 +5,6 @@
  * pure JS condition — the use case stays event-agnostic.
  */
 
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { LoggerPort } from '@/shared-kernel';
 import { WebhooksUseCases } from '../../application/ports/webhooks.port';
 
@@ -32,14 +30,12 @@ interface AtsScoreUpdatedPayload {
   previousScore?: number;
 }
 
-@Injectable()
 export class WebhookEventHandler {
   constructor(
     private readonly bc: WebhooksUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent('resume.created', { async: true })
   async handleResumeCreated(payload: ResumeCreatedPayload): Promise<void> {
     this.logger.log(`Resume created event for user ${payload.userId}`, CTX);
     await this.bc.deliverEventWebhooks.execute({
@@ -49,7 +45,6 @@ export class WebhookEventHandler {
     });
   }
 
-  @OnEvent('resume.published', { async: true })
   async handleResumePublished(payload: ResumePublishedPayload): Promise<void> {
     this.logger.log(`Resume published event for user ${payload.userId}`, CTX);
     await this.bc.deliverEventWebhooks.execute({
@@ -59,7 +54,6 @@ export class WebhookEventHandler {
     });
   }
 
-  @OnEvent('ats.score.updated', { async: true })
   async handleATSScoreUpdated(payload: AtsScoreUpdatedPayload): Promise<void> {
     if (
       payload.previousScore !== undefined &&
