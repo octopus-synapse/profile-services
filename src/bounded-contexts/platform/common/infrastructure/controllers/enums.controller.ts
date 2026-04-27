@@ -22,13 +22,19 @@ import {
   UserRoleResponseDto,
   UserRolesDataDto,
 } from '@/bounded-contexts/platform/common/dto/enums.dto';
-import { SectionTypesService } from '@/bounded-contexts/platform/common/services/section-types.service';
+import { ListExportFormatsUseCase } from '../../application/use-cases/list-export-formats/list-export-formats.use-case';
+import { ListSectionTypesUseCase } from '../../application/use-cases/list-section-types/list-section-types.use-case';
+import { ListUserRolesUseCase } from '../../application/use-cases/list-user-roles/list-user-roles.use-case';
 
 @SdkExport({ tag: 'enums', description: 'Domain Enums API' })
 @ApiTags('enums')
 @Controller('v1/enums')
 export class EnumsController {
-  constructor(private readonly sectionTypesService: SectionTypesService) {}
+  constructor(
+    private readonly listExportFormats: ListExportFormatsUseCase,
+    private readonly listUserRoles: ListUserRolesUseCase,
+    private readonly listSectionTypes: ListSectionTypesUseCase,
+  ) {}
 
   @Public()
   @Get('export-formats')
@@ -37,12 +43,10 @@ export class EnumsController {
     description: 'Returns all available export formats for resume export',
   })
   @ApiDataResponse(ExportFormatsDataDto, { description: 'List of export formats' })
-  getExportFormats(): DataResponse<ExportFormatsDataDto> {
-    const formats: ExportFormatResponseDto[] = [
-      { format: 'PDF' },
-      { format: 'DOCX' },
-      { format: 'JSON' },
-    ];
+  async getExportFormats(): Promise<DataResponse<ExportFormatsDataDto>> {
+    const formats: ExportFormatResponseDto[] = (await this.listExportFormats.execute()).map(
+      (format) => ({ format }),
+    );
     return {
       success: true,
       data: { formats },
@@ -56,8 +60,10 @@ export class EnumsController {
     description: 'Returns all available user roles in the system',
   })
   @ApiDataResponse(UserRolesDataDto, { description: 'List of user roles' })
-  getUserRoles(): DataResponse<UserRolesDataDto> {
-    const roles: UserRoleResponseDto[] = [{ role: 'USER' }, { role: 'ADMIN' }];
+  async getUserRoles(): Promise<DataResponse<UserRolesDataDto>> {
+    const roles: UserRoleResponseDto[] = (await this.listUserRoles.execute()).map((role) => ({
+      role,
+    }));
     return {
       success: true,
       data: { roles },
@@ -71,8 +77,8 @@ export class EnumsController {
     description: 'Returns all available resume section types from definitions',
   })
   @ApiDataResponse(SectionTypesDataDto, { description: 'List of section types' })
-  getSectionTypes(): DataResponse<SectionTypesDataDto> {
-    const types: SectionTypeResponseDto[] = this.sectionTypesService.getAllAsDto();
+  async getSectionTypes(): Promise<DataResponse<SectionTypesDataDto>> {
+    const types: SectionTypeResponseDto[] = await this.listSectionTypes.execute();
     return {
       success: true,
       data: { types },

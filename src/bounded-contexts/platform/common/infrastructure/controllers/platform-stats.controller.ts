@@ -14,7 +14,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RequirePermission } from '@/shared-kernel/authorization';
-import { PlatformStatsService } from '../services/platform-stats.service';
+import { GetPlatformStatsUseCase } from '../../application/use-cases/get-platform-stats/get-platform-stats.use-case';
 
 /** Platform statistics response DTO */
 export class PlatformStatsResponseDto {
@@ -43,14 +43,14 @@ export class PlatformStatsResponseDto {
 @Controller('v1/platform')
 @UseGuards(JwtAuthGuard)
 export class PlatformStatsController {
-  constructor(private readonly statsService: PlatformStatsService) {}
+  constructor(private readonly getPlatformStats: GetPlatformStatsUseCase) {}
 
   @Get('stats')
   @RequirePermission('stats', 'read')
   @ApiOperation({ summary: 'Get platform statistics' })
   @ApiDataResponse(PlatformStatsResponseDto, { description: 'Statistics retrieved successfully' })
   async getStatistics(): Promise<DataResponse<PlatformStatsResponseDto>> {
-    const stats = await this.statsService.getStatistics();
+    const stats = await this.getPlatformStats.execute();
     return {
       success: true,
       data: {
