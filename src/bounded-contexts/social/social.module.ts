@@ -18,6 +18,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import {
   ActivityRoutesBundle,
   ActivitySseBundle,
@@ -103,8 +104,19 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
     SkillEndorsementService,
     SkillProficiencyService,
     SkillDecayService,
-    SkillDecayWorker,
     ConnectionRecsService,
+    // Side-effect provider: registers the weekly skill-decay cron sweep
+    // against the global CronPort at module-init time.
+    {
+      provide: 'SOCIAL_JOBS_REGISTERED',
+      useFactory: (cron: CronPort, service: SkillDecayService, logger: LoggerPort) => {
+        const worker = new SkillDecayWorker(service, logger);
+        // Every Sunday 02:00 UTC — off-peak, cheap query.
+        cron.register({ pattern: '0 2 * * 0' }, worker.run.bind(worker));
+        return true;
+      },
+      inject: [CronPort, SkillDecayService, LoggerPort],
+    },
     // Side-effect provider: register framework-free `@OnEvent` replacements
     // via `EventBusPort.on(...)`. The provided value is a sentinel; the
     // useful work is the registration in the factory.
