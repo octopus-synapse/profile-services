@@ -1,21 +1,16 @@
 /**
- * Post Controller
+ * Post Controller (legacy multipart-only shell)
  *
- * Endpoints:
- * - POST   /v1/posts              - Create a post
- * - GET    /v1/posts/:id          - Get a post by ID
- * - DELETE /v1/posts/:id          - Soft delete a post
- * - POST   /v1/posts/upload-image - Upload post image
+ * Most post endpoints have moved to `feed.routes.ts`. The image upload
+ * endpoint stays here because it relies on Nest's `FileInterceptor`
+ * for multipart parsing, which the Route descriptor synthesizer does
+ * not yet support.
  */
 
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -26,7 +21,6 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
-  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -35,13 +29,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { FeedUseCases } from '../../application/ports/feed.port';
-import { CreatePostDto } from '../../dto/create-post-request.dto';
-import {
-  PostByIdDataDto,
-  PostCreatedDataDto,
-  PostDeletedDataDto,
-  PostImageUploadDataDto,
-} from '../../dto/feed-response.dto';
+import { PostImageUploadDataDto } from '../../dto/feed-response.dto';
 
 @SdkExport({ tag: 'posts', description: 'Posts API', requiresAuth: true })
 @ApiTags('posts')
@@ -50,34 +38,6 @@ import {
 @Controller('v1/posts')
 export class PostController {
   constructor(private readonly bc: FeedUseCases) {}
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new post' })
-  @ApiBody({ type: CreatePostDto })
-  @ApiDataResponse(PostCreatedDataDto, { status: 201, description: 'Post created successfully' })
-  async create(@CurrentUser() user: UserPayload, @Body() body: CreatePostDto) {
-    return this.bc.createPost.execute(user.userId, body);
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get a post by ID' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(PostByIdDataDto, { description: 'Post details' })
-  async findById(@Param('id') id: string) {
-    return this.bc.getPost.execute(id);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a post' })
-  @ApiParam({ name: 'id', type: 'string' })
-  @ApiDataResponse(PostDeletedDataDto, { description: 'Post deleted' })
-  async delete(@CurrentUser() user: UserPayload, @Param('id') id: string) {
-    await this.bc.deletePost.execute(id, user.userId);
-    return { deleted: true };
-  }
 
   @Post('upload-image')
   @HttpCode(HttpStatus.OK)

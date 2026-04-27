@@ -5,6 +5,10 @@
  * `feed.composition.ts`. The S3 stateful service is exposed as a
  * Nest provider here so DI can construct it once and pass it into
  * the composition.
+ *
+ * Most endpoints are synthesized from `feed.routes.ts`. The
+ * `PostController` is kept as a legacy controller for the multipart
+ * image-upload route, which the Route synthesizer doesn't model yet.
  */
 
 import { Module } from '@nestjs/common';
@@ -13,24 +17,16 @@ import { NotificationsModule } from '@/bounded-contexts/notifications/notificati
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { FeedUseCases } from './application/ports/feed.port';
 import { buildFeedUseCases } from './feed.composition';
-import { CommentController } from './infrastructure/controllers/comment.controller';
-import { EngagementController } from './infrastructure/controllers/engagement.controller';
-import { FeedController } from './infrastructure/controllers/feed.controller';
+import { feedRoutes } from './feed.routes';
 import { PostController } from './infrastructure/controllers/post.controller';
-import { UserEngagementController } from './infrastructure/controllers/user-engagement.controller';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
-  controllers: [
-    PostController,
-    FeedController,
-    CommentController,
-    EngagementController,
-    UserEngagementController,
-  ],
+  controllers: [...synthesizeRouteControllers(FeedUseCases, feedRoutes), PostController],
   providers: [
     S3UploadService,
     {
