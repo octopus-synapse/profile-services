@@ -1,11 +1,10 @@
 /**
  * Infrastructure Controllers
  *
- * HTTP endpoints for the two-factor-auth bounded context.
+ * HTTP endpoints for the two-factor-auth bounded context. Most routes
+ * are now described as `Route` descriptors in `two-factor-auth.routes.ts`
+ * and synthesized at module load — only `Disable2faController` remains
+ * a hand-rolled Nest controller (it returns 204).
  */
 
 export * from './disable-2fa.controller';
-export * from './get-2fa-status.controller';
-export * from './regenerate-backup-codes.controller';
-export * from './setup-2fa.controller';
-export * from './verify-and-enable-2fa.controller';
