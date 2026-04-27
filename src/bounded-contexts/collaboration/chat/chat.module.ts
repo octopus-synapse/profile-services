@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { buildBlockUseCases } from './application/block.composition';
 import { buildChatUseCases } from './application/chat.composition';
 import { BlockUseCases } from './application/ports/block.port';
 import { ChatUseCases } from './application/ports/chat.port';
-import { BlockController, ChatController } from './controllers';
-import { ChatPreferenceController } from './controllers/chat-preference.controller';
+import { ChatHttpBundle, chatRoutes } from './chat.routes';
 import { ChatGateway } from './gateways';
 import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
 import { ChatCacheService } from './services';
@@ -25,7 +25,7 @@ import { ChatUserSearchService } from './services/user-search.service';
       }),
     }),
   ],
-  controllers: [ChatController, BlockController, ChatPreferenceController],
+  controllers: synthesizeRouteControllers(ChatHttpBundle, chatRoutes),
   providers: [
     // Infrastructure
     ChatCacheService,
@@ -49,6 +49,18 @@ import { ChatUserSearchService } from './services/user-search.service';
       ],
     },
     { provide: BlockUseCases, useFactory: buildBlockUseCases, inject: [BlockedUserRepository] },
+
+    // Aggregated HTTP bundle consumed by synthesized route controllers.
+    {
+      provide: ChatHttpBundle,
+      useFactory: (
+        chat: ChatUseCases,
+        block: BlockUseCases,
+        preferences: ChatPreferenceService,
+        search: ChatUserSearchService,
+      ): ChatHttpBundle => ({ chat, block, preferences, search }),
+      inject: [ChatUseCases, BlockUseCases, ChatPreferenceService, ChatUserSearchService],
+    },
 
     // Gateway
     ChatGateway,
