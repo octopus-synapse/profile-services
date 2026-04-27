@@ -1,21 +1,32 @@
-import { Injectable } from '@nestjs/common';
+/**
+ * Prisma adapter for `AdminChatRepositoryPort`. The stats query fans
+ * out to four parallel reads; the list query goes through the shared
+ * `paginate` helper so pagination stays consistent across the admin
+ * surfaces.
+ */
+
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate } from '@/shared-kernel/database';
+import {
+  type AdminChatConversationView,
+  AdminChatRepositoryPort,
+  type AdminChatStats,
+  type ListConversationsQuery,
+} from '../../../domain/ports/admin-chat.repository.port';
 
-@Injectable()
-export class AdminChatService {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaAdminChatRepository extends AdminChatRepositoryPort {
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
-  async getStats() {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
+  async getStats(activeSince: Date): Promise<AdminChatStats> {
     const [totalConversations, totalMessages, activeConversations, activeChatUsersRaw] =
       await Promise.all([
         this.prisma.conversation.count(),
         this.prisma.message.count({ where: { isDeleted: false } }),
-        this.prisma.conversation.count({ where: { lastMessageAt: { gte: thirtyDaysAgo } } }),
+        this.prisma.conversation.count({ where: { lastMessageAt: { gte: activeSince } } }),
         this.prisma.message.findMany({
-          where: { createdAt: { gte: thirtyDaysAgo } },
+          where: { createdAt: { gte: activeSince } },
           select: { senderId: true },
           distinct: ['senderId'],
         }),
@@ -29,8 +40,8 @@ export class AdminChatService {
     };
   }
 
-  async getConversations(query: { page?: number; pageSize?: number }) {
-    return paginate(this.prisma.conversation, {
+  async listConversations(query: ListConversationsQuery) {
+    return paginate<AdminChatConversationView>(this.prisma.conversation, {
       page: query.page,
       pageSize: query.pageSize,
       orderBy: { lastMessageAt: 'desc' },

@@ -2,8 +2,8 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/commo
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { TrackEventsBodyDto, TrackEventsDataDto } from './dto/track-event.dto';
-import { PlatformEventsService } from './platform-events.service';
+import { TrackPlatformEventsUseCase } from '../../application/use-cases/track-platform-events/track-platform-events.use-case';
+import { TrackEventsBodyDto, TrackEventsDataDto } from '../../dto/track-event.dto';
 
 @SdkExport({
   tag: 'platform-events',
@@ -14,7 +14,7 @@ import { PlatformEventsService } from './platform-events.service';
 @ApiBearerAuth()
 @Controller('v1/events')
 export class PlatformEventsController {
-  constructor(private readonly service: PlatformEventsService) {}
+  constructor(private readonly trackEvents: TrackPlatformEventsUseCase) {}
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
@@ -28,6 +28,6 @@ export class PlatformEventsController {
     @Req() req: { user?: { userId: string } },
     @Body() body: TrackEventsBodyDto,
   ): Promise<{ accepted: number }> {
-    return this.service.ingest(req.user?.userId ?? null, body);
+    return this.trackEvents.execute(req.user?.userId ?? null, body);
   }
 }
