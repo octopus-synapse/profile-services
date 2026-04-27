@@ -1,17 +1,35 @@
 /**
  * Route descriptors for the social BC's activity feed endpoints.
- * Replaces `ActivityController` (the SSE controller stays as a legacy
- * Nest controller).
+ * Replaces `ActivityController` and the legacy
+ * `ActivityFeedSseController` — the SSE stream is now declared as a
+ * `kind: 'sse'` Route descriptor and wired through a dedicated
+ * `ActivitySseBundle`.
  */
 
+import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
-import type { ActivityType } from './application/ports/activity.port';
+import type { ActivityType, ActivityWithUser } from './application/ports/activity.port';
 import type { ActivityReaderPort } from './application/ports/facade.ports';
 
 export abstract class ActivityRoutesBundle {
   abstract readonly activityService: ActivityReaderPort;
+}
+
+export interface ActivityFeedSseEvent {
+  readonly data: ActivityWithUser;
+  readonly id: string;
+  readonly type: string;
+  readonly retry: number;
+}
+
+export abstract class ActivitySseBundle {
+  abstract subscribeToFeed(userId: string): Observable<ActivityFeedSseEvent>;
+  abstract subscribeToFeedByType(
+    userId: string,
+    type: ActivityType,
+  ): Observable<ActivityFeedSseEvent>;
 }
 
 const UserIdParam = z.object({ userId: z.string() });
@@ -89,6 +107,50 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
         pagination,
       );
       return { success: true, data: { activities: result } };
+    },
+  },
+];
+
+const TypeOnlyParam = z.object({ type: z.string() });
+
+/**
+ * SSE routes for the activity feed. Live in a separate group because
+ * the `Route<TBundle>` shape pins the bundle type per group — the SSE
+ * subscriber consumes `ActivitySseBundle`, not `ActivityRoutesBundle`.
+ */
+export const activitySseRoutes: ReadonlyArray<Route<ActivitySseBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/feed/subscribe',
+    auth: { kind: 'jwt' },
+    permission: Permission.SOCIAL_USE,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    openapi: {
+      summary: 'Subscribe to activity feed stream',
+      tags: ['social-feed'],
+      description: 'Streams real-time feed updates for the authenticated user.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => bundle.subscribeToFeed(ctx.user!.userId),
+  },
+  {
+    method: 'GET',
+    path: '/v1/feed/subscribe/:type',
+    auth: { kind: 'jwt' },
+    permission: Permission.SOCIAL_USE,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    params: TypeOnlyParam,
+    openapi: {
+      summary: 'Subscribe to activity type stream',
+      tags: ['social-feed'],
+      description: 'Streams real-time feed updates filtered by activity type.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => {
+      const { type } = ctx.params as { type: string };
+      return bundle.subscribeToFeedByType(ctx.user!.userId, type as ActivityType);
     },
   },
 ];

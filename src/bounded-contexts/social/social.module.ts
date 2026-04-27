@@ -3,21 +3,25 @@
  *
  * Social features: follow/unfollow, activity feeds, SSE.
  *
- * Most controllers have been migrated to framework-free Route
- * descriptors (see `*.routes.ts`). The SSE controller stays as a
- * legacy Nest controller because the Route synthesizer doesn't model
- * SSE yet.
+ * All controllers (including the activity-feed SSE stream) are
+ * synthesized from framework-free Route descriptors in `*.routes.ts`.
  */
 
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { filter, fromEvent, map } from 'rxjs';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
-import { ActivityRoutesBundle, activityRoutes } from './activity.routes';
+import {
+  ActivityRoutesBundle,
+  ActivitySseBundle,
+  activityRoutes,
+  activitySseRoutes,
+} from './activity.routes';
 import {
   CleanupSocialOnUserDeleteHandler,
   CreateWelcomeActivityOnUserRegisteredHandler,
@@ -25,7 +29,11 @@ import {
   ResumeCreatedActivityHandler,
   ResumePublishedActivityHandler,
 } from './application/handlers';
-import { ActivityRepositoryPort } from './application/ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  type ActivityType,
+  type ActivityWithUser,
+} from './application/ports/activity.port';
 import { ConnectionRepositoryPort } from './application/ports/connection.port';
 import {
   ActivityCreatorPort,
@@ -38,7 +46,6 @@ import { FollowRepositoryPort } from './application/ports/follow.port';
 import { SocialEventBusPort } from './application/ports/social-event-bus.port';
 import { ConnectionRoutesBundle, connectionRoutes } from './connection.routes';
 import { ConnectionRecsRoutesBundle, connectionRecsRoutes } from './connection-recs.routes';
-import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
 import { FollowRoutesBundle, followRoutes } from './follow.routes';
 import { EventEmitterSocialEventBusAdapter } from './infrastructure/adapters/event-emitter-social-event-bus.adapter';
 import { ActivityRepository } from './infrastructure/adapters/persistence/activity.repository';
@@ -55,6 +62,33 @@ import { SkillProficiencyService } from './services/skill-proficiency.service';
 import { SkillEndorsementRoutesBundle, skillEndorsementRoutes } from './skill-endorsement.routes';
 import { SkillProficiencyRoutesBundle, skillProficiencyRoutes } from './skill-proficiency.routes';
 
+function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
+  return {
+    subscribeToFeed: (userId) =>
+      fromEvent<ActivityWithUser>(emitter, `feed:user:${userId}`).pipe(
+        filter((activity): activity is ActivityWithUser => Boolean(activity)),
+        map((activity) => ({
+          data: activity,
+          id: activity.id,
+          type: 'activity',
+          retry: 10000,
+        })),
+      ),
+    subscribeToFeedByType: (userId, type: ActivityType) =>
+      fromEvent<ActivityWithUser>(emitter, `feed:user:${userId}`).pipe(
+        filter(
+          (activity): activity is ActivityWithUser => Boolean(activity) && activity.type === type,
+        ),
+        map((activity) => ({
+          data: activity,
+          id: activity.id,
+          type: 'activity',
+          retry: 10000,
+        })),
+      ),
+  };
+}
+
 @Module({
   imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule, CacheModule],
   controllers: [
@@ -62,9 +96,9 @@ import { SkillProficiencyRoutesBundle, skillProficiencyRoutes } from './skill-pr
     ...synthesizeRouteControllers(ConnectionRoutesBundle, connectionRoutes),
     ...synthesizeRouteControllers(ConnectionRecsRoutesBundle, connectionRecsRoutes),
     ...synthesizeRouteControllers(ActivityRoutesBundle, activityRoutes),
+    ...synthesizeRouteControllers(ActivitySseBundle, activitySseRoutes),
     ...synthesizeRouteControllers(SkillEndorsementRoutesBundle, skillEndorsementRoutes),
     ...synthesizeRouteControllers(SkillProficiencyRoutesBundle, skillProficiencyRoutes),
-    ActivityFeedSseController,
   ],
   providers: [
     FollowService,
@@ -145,6 +179,11 @@ import { SkillProficiencyRoutesBundle, skillProficiencyRoutes } from './skill-pr
         activityService: activity,
       }),
       inject: [ActivityReaderPort],
+    },
+    {
+      provide: ActivitySseBundle,
+      useFactory: (emitter: EventEmitter2) => makeActivitySseBundle(emitter),
+      inject: [EventEmitter2],
     },
     {
       provide: SkillEndorsementRoutesBundle,
