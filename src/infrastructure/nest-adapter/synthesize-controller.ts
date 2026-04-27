@@ -53,7 +53,7 @@ import { RequirePermission } from '@/shared-kernel/authorization';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import { COOKIE_JAR_KEY, type PendingCookieJar } from '@/shared-kernel/http/cookie-jar';
 import type { GuardSpec, HttpMethod, Route } from '@/shared-kernel/http/route';
-import { isResponseWithHeaders } from '@/shared-kernel/http/route';
+import { isRedirect, isResponseWithHeaders } from '@/shared-kernel/http/route';
 
 const METHOD_DECORATORS: Record<HttpMethod, (path?: string) => MethodDecorator> = {
   GET: Get,
@@ -173,6 +173,10 @@ export function synthesizeController<TBundle>(
       }
       const result = await route.handler(ctx, this.bundle);
       flushCookieJar(ctx, res);
+      if (isRedirect(result)) {
+        res.redirect(result.status, result.url);
+        return undefined;
+      }
       if (isResponseWithHeaders(result)) {
         for (const [key, value] of Object.entries(result.headers)) {
           res.setHeader(key, value);

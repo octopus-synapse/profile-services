@@ -192,6 +192,29 @@ export function isResponseWithHeaders(
 }
 
 /**
+ * Sentinel a handler can return to issue an HTTP redirect. The adapter
+ * detects it and calls `res.redirect(status, url)` instead of
+ * serializing a body. Status defaults to 302.
+ */
+export interface HandlerRedirect {
+  readonly __redirect: true;
+  readonly url: string;
+  readonly status: number;
+}
+
+export function withRedirect(url: string, status = 302): HandlerRedirect {
+  return { __redirect: true, url, status };
+}
+
+export function isRedirect(value: unknown): value is HandlerRedirect {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { __redirect?: unknown }).__redirect === true
+  );
+}
+
+/**
  * A `RouteGroup` ties a bundle of routes to the DI token that resolves
  * their dependency. The Nest adapter uses the token to inject the
  * bundle into each synthesized controller. Future framework adapters
