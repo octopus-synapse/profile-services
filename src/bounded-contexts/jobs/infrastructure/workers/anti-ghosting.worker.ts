@@ -9,21 +9,21 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerPort } from '@/shared-kernel';
-import { RunAntiGhostingSweepUseCase } from '../../application/use-cases/run-anti-ghosting-sweep/run-anti-ghosting-sweep.use-case';
+import { JobsUseCases } from '../../application/ports/jobs.port';
 
 const CTX = 'AntiGhostingWorker';
 
 @Injectable()
 export class AntiGhostingWorker {
   constructor(
-    private readonly sweep: RunAntiGhostingSweepUseCase,
+    private readonly bc: JobsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async run(): Promise<void> {
     try {
-      const result = await this.sweep.execute();
+      const result = await this.bc.runAntiGhostingSweep.execute();
       this.logger.log(
         `Anti-ghosting scan: ${result.scanned} apps checked, ${result.reminded} reminders sent`,
         CTX,

@@ -23,24 +23,7 @@ import {
 } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ApplyToJobUseCase } from '../../application/use-cases/apply-to-job/apply-to-job.use-case';
-import { BookmarkJobUseCase } from '../../application/use-cases/bookmark-job/bookmark-job.use-case';
-import { CreateJobUseCase } from '../../application/use-cases/create-job/create-job.use-case';
-import { DeleteJobUseCase } from '../../application/use-cases/delete-job/delete-job.use-case';
-import { FindSimilarJobsUseCase } from '../../application/use-cases/find-similar-jobs/find-similar-jobs.use-case';
-import { GetJobUseCase } from '../../application/use-cases/get-job/get-job.use-case';
-import { GetJobFitUseCase } from '../../application/use-cases/get-job-fit/get-job-fit.use-case';
-import { ImportJobFromUrlUseCase } from '../../application/use-cases/import-job-from-url/import-job-from-url.use-case';
-import { ListBookmarkedJobsUseCase } from '../../application/use-cases/list-bookmarked-jobs/list-bookmarked-jobs.use-case';
-import { ListJobApplicationsUseCase } from '../../application/use-cases/list-job-applications/list-job-applications.use-case';
-import { ListJobsUseCase } from '../../application/use-cases/list-jobs/list-jobs.use-case';
-import { ListJobsWithFitScoreUseCase } from '../../application/use-cases/list-jobs-with-fit-score/list-jobs-with-fit-score.use-case';
-import { ListMyApplicationsUseCase } from '../../application/use-cases/list-my-applications/list-my-applications.use-case';
-import { ListMyJobsUseCase } from '../../application/use-cases/list-my-jobs/list-my-jobs.use-case';
-import { ListRecommendedJobsUseCase } from '../../application/use-cases/list-recommended-jobs/list-recommended-jobs.use-case';
-import { UnbookmarkJobUseCase } from '../../application/use-cases/unbookmark-job/unbookmark-job.use-case';
-import { UpdateJobUseCase } from '../../application/use-cases/update-job/update-job.use-case';
-import { WithdrawApplicationUseCase } from '../../application/use-cases/withdraw-application/withdraw-application.use-case';
+import { JobsUseCases } from '../../application/ports/jobs.port';
 import {
   ApplyToJobDto,
   ApplyToJobSchema,
@@ -81,26 +64,7 @@ const PageOnlyQuerySchema = z.object({
 @ApiBearerAuth()
 @Controller('v1/jobs')
 export class JobController {
-  constructor(
-    private readonly listJobsUseCase: ListJobsUseCase,
-    private readonly listJobsWithFitScoreUseCase: ListJobsWithFitScoreUseCase,
-    private readonly listMyJobsUseCase: ListMyJobsUseCase,
-    private readonly listBookmarkedJobsUseCase: ListBookmarkedJobsUseCase,
-    private readonly listRecommendedJobsUseCase: ListRecommendedJobsUseCase,
-    private readonly listMyApplicationsUseCase: ListMyApplicationsUseCase,
-    private readonly listJobApplicationsUseCase: ListJobApplicationsUseCase,
-    private readonly findSimilarJobsUseCase: FindSimilarJobsUseCase,
-    private readonly getJobUseCase: GetJobUseCase,
-    private readonly getJobFitUseCase: GetJobFitUseCase,
-    private readonly bookmarkJobUseCase: BookmarkJobUseCase,
-    private readonly unbookmarkJobUseCase: UnbookmarkJobUseCase,
-    private readonly applyToJobUseCase: ApplyToJobUseCase,
-    private readonly withdrawApplicationUseCase: WithdrawApplicationUseCase,
-    private readonly importJobFromUrlUseCase: ImportJobFromUrlUseCase,
-    private readonly createJobUseCase: CreateJobUseCase,
-    private readonly updateJobUseCase: UpdateJobUseCase,
-    private readonly deleteJobUseCase: DeleteJobUseCase,
-  ) {}
+  constructor(private readonly bc: JobsUseCases) {}
 
   @Get()
   @RequirePermission(Permission.FEED_USE)
@@ -122,7 +86,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
   ) {
-    return this.listJobsUseCase.execute(
+    return this.bc.listJobs.execute(
       {
         page: q.page,
         limit: q.limit,
@@ -148,7 +112,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
   ) {
-    return this.listJobsWithFitScoreUseCase.execute(
+    return this.bc.listJobsWithFitScore.execute(
       {
         page: q.page,
         limit: q.limit,
@@ -174,7 +138,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.listMyJobsUseCase.execute(req.user.userId, q.page, q.limit);
+    return this.bc.listMyJobs.execute(req.user.userId, q.page, q.limit);
   }
 
   @Get('bookmarks')
@@ -187,7 +151,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.listBookmarkedJobsUseCase.execute(req.user.userId, q.page, q.limit);
+    return this.bc.listBookmarkedJobs.execute(req.user.userId, q.page, q.limit);
   }
 
   @Get('recommended')
@@ -200,7 +164,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.listRecommendedJobsUseCase.execute(req.user.userId, q.page, q.limit);
+    return this.bc.listRecommendedJobs.execute(req.user.userId, q.page, q.limit);
   }
 
   @Get('applications')
@@ -213,7 +177,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.listMyApplicationsUseCase.execute(req.user.userId, q.page, q.limit);
+    return this.bc.listMyApplications.execute(req.user.userId, q.page, q.limit);
   }
 
   @Get(':id/applications')
@@ -231,7 +195,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.listJobApplicationsUseCase.execute(id, req.user.userId, q.page, q.limit);
+    return this.bc.listJobApplications.execute(id, req.user.userId, q.page, q.limit);
   }
 
   @Get(':id/similar')
@@ -246,7 +210,7 @@ export class JobController {
     @Query(createZodPipe(z.object({ limit: z.coerce.number().int().min(1).max(10).default(5) })))
     q: { limit: number },
   ) {
-    return this.findSimilarJobsUseCase.execute(id, req.user.userId, q.limit);
+    return this.bc.findSimilarJobs.execute(id, req.user.userId, q.limit);
   }
 
   @Get(':id')
@@ -256,7 +220,7 @@ export class JobController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(JobResponseDto, { description: 'Job details' })
   async findById(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.getJobUseCase.execute(id, req.user.userId);
+    return this.bc.getJob.execute(id, req.user.userId);
   }
 
   @Get(':id/fit')
@@ -265,7 +229,7 @@ export class JobController {
   @ApiOperation({ summary: "Fit score breakdown for this job against the viewer's primary resume" })
   @ApiParam({ name: 'id', type: 'string' })
   async getFit(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.getJobFitUseCase.execute(id, req.user.userId);
+    return this.bc.getJobFit.execute(id, req.user.userId);
   }
 
   @Post(':id/bookmark')
@@ -274,7 +238,7 @@ export class JobController {
   @ApiOperation({ summary: 'Bookmark a job' })
   @ApiParam({ name: 'id', type: 'string' })
   async bookmark(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.bookmarkJobUseCase.execute(id, req.user.userId);
+    return this.bc.bookmarkJob.execute(id, req.user.userId);
   }
 
   @Delete(':id/bookmark')
@@ -283,7 +247,7 @@ export class JobController {
   @ApiOperation({ summary: 'Remove a job bookmark' })
   @ApiParam({ name: 'id', type: 'string' })
   async unbookmark(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.unbookmarkJobUseCase.execute(id, req.user.userId);
+    return this.bc.unbookmarkJob.execute(id, req.user.userId);
   }
 
   @Post(':id/apply')
@@ -296,7 +260,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Body(createZodPipe(ApplyToJobSchema)) body: ApplyToJobDto,
   ) {
-    return this.applyToJobUseCase.execute(id, req.user.userId, body ?? {});
+    return this.bc.applyToJob.execute(id, req.user.userId, body ?? {});
   }
 
   @Delete(':id/apply')
@@ -305,7 +269,7 @@ export class JobController {
   @ApiOperation({ summary: 'Withdraw the current user application to a job' })
   @ApiParam({ name: 'id', type: 'string' })
   async withdrawApplication(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.withdrawApplicationUseCase.execute(id, req.user.userId);
+    return this.bc.withdrawApplication.execute(id, req.user.userId);
   }
 
   @Post('import-from-url')
@@ -317,7 +281,7 @@ export class JobController {
     summary: 'Fetch a careers page and return an LLM-extracted job preview (not persisted)',
   })
   async importFromUrl(@Body(createZodPipe(ImportJobFromUrlSchema)) body: ImportJobFromUrlDto) {
-    return this.importJobFromUrlUseCase.execute(body.url);
+    return this.bc.importJobFromUrl.execute(body.url);
   }
 
   @Post()
@@ -329,7 +293,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Body(createZodPipe(CreateJobSchema)) body: CreateJobDto,
   ) {
-    return this.createJobUseCase.execute(req.user.userId, body);
+    return this.bc.createJob.execute(req.user.userId, body);
   }
 
   @Patch(':id')
@@ -343,7 +307,7 @@ export class JobController {
     @Req() req: { user: { userId: string } },
     @Body(createZodPipe(UpdateJobSchema)) body: UpdateJobDto,
   ) {
-    return this.updateJobUseCase.execute(id, req.user.userId, body);
+    return this.bc.updateJob.execute(id, req.user.userId, body);
   }
 
   @Delete(':id')
@@ -352,6 +316,6 @@ export class JobController {
   @ApiOperation({ summary: 'Delete a job posting' })
   @ApiParam({ name: 'id', type: 'string' })
   async delete(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
-    return this.deleteJobUseCase.execute(id, req.user.userId);
+    return this.bc.deleteJob.execute(id, req.user.userId);
   }
 }

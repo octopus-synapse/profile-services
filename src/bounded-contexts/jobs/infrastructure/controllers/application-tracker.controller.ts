@@ -14,15 +14,9 @@ import type { Request } from 'express';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import {
-  type CompanyResponseStats,
-  GetCompanyResponseStatsUseCase,
-} from '../../application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
-import {
-  ListApplicationTimelineUseCase,
-  type TrackedApplication,
-} from '../../application/use-cases/list-application-timeline/list-application-timeline.use-case';
-import { RecordApplicationEventUseCase } from '../../application/use-cases/record-application-event/record-application-event.use-case';
+import { JobsUseCases } from '../../application/ports/jobs.port';
+import type { CompanyResponseStats } from '../../application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
+import type { TrackedApplication } from '../../application/use-cases/list-application-timeline/list-application-timeline.use-case';
 import { RecordApplicationEventDto } from '../../dto/application-event.dto';
 
 interface RequestWithUser extends Request {
@@ -37,11 +31,7 @@ interface RequestWithUser extends Request {
 @ApiBearerAuth()
 @Controller('v1/jobs/applications')
 export class ApplicationTrackerController {
-  constructor(
-    private readonly listTimeline: ListApplicationTimelineUseCase,
-    private readonly recordEventUseCase: RecordApplicationEventUseCase,
-    private readonly companyStats: GetCompanyResponseStatsUseCase,
-  ) {}
+  constructor(private readonly bc: JobsUseCases) {}
 
   @Get('tracker')
   @RequirePermission(Permission.FEED_USE)
@@ -61,7 +51,7 @@ export class ApplicationTrackerController {
     @Query('silentDays') silentDays?: number,
   ): Promise<DataResponse<{ applications: TrackedApplication[] }>> {
     const threshold = silentDays ? Math.max(1, Number(silentDays)) : 10;
-    const applications = await this.listTimeline.execute(req.user.userId, threshold);
+    const applications = await this.bc.listApplicationTimeline.execute(req.user.userId, threshold);
     return { success: true, data: { applications } };
   }
 
@@ -79,7 +69,7 @@ export class ApplicationTrackerController {
     @Body() body: RecordApplicationEventDto,
     @Req() req: RequestWithUser,
   ): Promise<DataResponse<{ id: string; type: string; note: string | null; occurredAt: string }>> {
-    const event = await this.recordEventUseCase.execute({
+    const event = await this.bc.recordApplicationEvent.execute({
       applicationId,
       userId: req.user.userId,
       type: body.type,
@@ -97,7 +87,7 @@ export class ApplicationTrackerController {
   async companyResponseStats(
     @Param('company') company: string,
   ): Promise<DataResponse<CompanyResponseStats>> {
-    const data = await this.companyStats.execute(company);
+    const data = await this.bc.getCompanyResponseStats.execute(company);
     return { success: true, data };
   }
 }
