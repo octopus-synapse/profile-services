@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
@@ -19,6 +20,7 @@ import { InvalidateSessionsOnCredentialChangeHandler } from './application/handl
 
 // Application Ports
 
+import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import { CreateSessionPort } from './application/ports/create-session.port';
 import { LoginPort } from './application/ports/login.port';
 import { LogoutPort } from './application/ports/logout.port';
@@ -34,6 +36,7 @@ import {
   TerminateSessionUseCase,
   ValidateSessionUseCase,
 } from './application/use-cases';
+import { authenticationRoutes } from './authentication.routes';
 // Domain Ports
 import {
   AuthenticationRepositoryPort,
@@ -52,12 +55,7 @@ import {
 import { PrismaLoginAttemptsAdapter } from './infrastructure/adapters/prisma-login-attempts.adapter';
 import { SessionDeviceService } from './infrastructure/adapters/session-device.service';
 // Infrastructure Controllers
-import {
-  LoginController,
-  LogoutController,
-  RefreshTokenController,
-  SessionController,
-} from './infrastructure/controllers';
+import { LoginController, LogoutController, SessionController } from './infrastructure/controllers';
 
 @Module({
   imports: [
@@ -79,7 +77,16 @@ import {
       inject: [ConfigService],
     }),
   ],
-  controllers: [LoginController, LogoutController, RefreshTokenController, SessionController],
+  controllers: [
+    // Legacy controllers (see authentication.routes.ts header for why):
+    // - LoginController: cookies + 2FA rate-limit guard.
+    // - LogoutController: cookies + AllowUnverifiedEmail decorator.
+    // - SessionController: cookie reads + Nest-side SessionDeviceService.
+    LoginController,
+    LogoutController,
+    SessionController,
+    ...synthesizeRouteControllers(AuthenticationHttpBundle, authenticationRoutes),
+  ],
   providers: [
     // JWT Strategy for passport auth
     JwtStrategy,
@@ -204,6 +211,13 @@ import {
 
     // Event Handlers
     InvalidateSessionsOnCredentialChangeHandler,
+
+    // Aggregated bundle for the route synthesizer.
+    {
+      provide: AuthenticationHttpBundle,
+      useFactory: (refreshToken: RefreshTokenPort): AuthenticationHttpBundle => ({ refreshToken }),
+      inject: [RefreshTokenPort],
+    },
   ],
   exports: [
     LoginPort,
