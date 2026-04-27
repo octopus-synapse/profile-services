@@ -5,7 +5,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RateLimit, RateLimitGuard } from '@/bounded-contexts/platform/common/rate-limit';
-import { type ViewCareerGraphOutput, ViewCareerGraphPort } from '../../application';
+import { CareerGraphUseCases, type ViewCareerGraphOutput } from '../../application';
 import { ViewCareerGraphDataDto, ViewCareerGraphRequestDto } from './view-career-graph.dto';
 
 /**
@@ -19,7 +19,7 @@ import { ViewCareerGraphDataDto, ViewCareerGraphRequestDto } from './view-career
 @Controller('v1/career-graph')
 @UseGuards(JwtAuthGuard)
 export class ViewCareerGraphController {
-  constructor(private readonly useCase: ViewCareerGraphPort) {}
+  constructor(private readonly bc: CareerGraphUseCases) {}
 
   @Post('view')
   @UseGuards(RateLimitGuard)
@@ -38,7 +38,7 @@ export class ViewCareerGraphController {
     @Body() body: ViewCareerGraphRequestDto,
     @Req() req: { user: { userId: string } },
   ): Promise<DataResponse<ViewCareerGraphOutput>> {
-    const data = await this.useCase.execute({
+    const data = await this.bc.viewCareerGraph.execute({
       requesterId: req.user.userId,
       stack: body.stack,
       maxBuckets: body.maxBuckets,

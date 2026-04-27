@@ -1,1 +1,1 @@
-export { ViewCareerGraphPort } from './view-career-graph.inbound-port';
+export { CareerGraphUseCases } from './career-graph.port';
