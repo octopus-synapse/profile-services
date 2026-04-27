@@ -8,7 +8,7 @@
  * auto-apply worker so success metrics remain apples-to-apples.
  */
 
-import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
+import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { CuratedSelectorService } from '../../services/curated-selector.service';

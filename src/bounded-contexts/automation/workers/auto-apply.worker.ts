@@ -2,7 +2,7 @@ import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullm
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { type Job, type Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
+import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { LoggerPort } from '@/shared-kernel';
 import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';

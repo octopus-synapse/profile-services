@@ -3,7 +3,7 @@ import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.modu
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
-import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
+import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-version.service';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import {
   CleanupResumesOnUserDeleteHandler,

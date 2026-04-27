@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
+import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryRageApplyRepository } from '../../../testing/in-memory-rage-apply.repository';
