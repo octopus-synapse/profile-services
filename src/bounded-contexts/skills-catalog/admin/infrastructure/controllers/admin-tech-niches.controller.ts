@@ -17,11 +17,7 @@ import {
 } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreateAdminTechNicheUseCase } from '../../application/use-cases/create-admin-tech-niche/create-admin-tech-niche.use-case';
-import { DeleteAdminTechNicheUseCase } from '../../application/use-cases/delete-admin-tech-niche/delete-admin-tech-niche.use-case';
-import { GetAdminTechNicheUseCase } from '../../application/use-cases/get-admin-tech-niche/get-admin-tech-niche.use-case';
-import { ListAdminTechNichesUseCase } from '../../application/use-cases/list-admin-tech-niches/list-admin-tech-niches.use-case';
-import { UpdateAdminTechNicheUseCase } from '../../application/use-cases/update-admin-tech-niche/update-admin-tech-niche.use-case';
+import { AdminCatalogUseCases } from '../../application/ports/admin-catalog.port';
 import { TechNicheDataDto, TechNicheListDataDto } from '../../dto/admin-tech-niches-response.dto';
 
 @SdkExport({ tag: 'admin-tech-niches', description: 'Admin Tech Niches API', requiresAuth: true })
@@ -30,13 +26,7 @@ import { TechNicheDataDto, TechNicheListDataDto } from '../../dto/admin-tech-nic
 @RequirePermission(Permission.SKILL_MANAGE)
 @Controller('v1/admin/tech-niches')
 export class AdminTechNichesController {
-  constructor(
-    private readonly listUseCase: ListAdminTechNichesUseCase,
-    private readonly getUseCase: GetAdminTechNicheUseCase,
-    private readonly createUseCase: CreateAdminTechNicheUseCase,
-    private readonly updateUseCase: UpdateAdminTechNicheUseCase,
-    private readonly deleteUseCase: DeleteAdminTechNicheUseCase,
-  ) {}
+  constructor(private readonly bc: AdminCatalogUseCases) {}
 
   @Get()
   @ApiOperation({ summary: 'List all tech niches' })
@@ -53,7 +43,7 @@ export class AdminTechNichesController {
     @Query('areaId') areaId?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    return this.listUseCase.execute({
+    return this.bc.listAdminTechNiches.execute({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
@@ -66,21 +56,21 @@ export class AdminTechNichesController {
   @ApiOperation({ summary: 'Get tech niche by ID' })
   @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche details' })
   async findOne(@Param('id') id: string) {
-    return this.getUseCase.execute(id);
+    return this.bc.getAdminTechNiche.execute(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tech niche' })
   @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
-    return this.createUseCase.execute(dto);
+    return this.bc.createAdminTechNiche.execute(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tech niche' })
   @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche updated' })
   async update(@Param('id') id: string, @Body() dto: Record<string, unknown>) {
-    return this.updateUseCase.execute(id, dto);
+    return this.bc.updateAdminTechNiche.execute(id, dto);
   }
 
   @Delete(':id')
@@ -88,6 +78,6 @@ export class AdminTechNichesController {
   @ApiOperation({ summary: 'Delete tech niche' })
   @ApiEmptyDataResponse({ description: 'Tech niche deleted', status: 204 })
   async remove(@Param('id') id: string) {
-    await this.deleteUseCase.execute(id);
+    await this.bc.deleteAdminTechNiche.execute(id);
   }
 }

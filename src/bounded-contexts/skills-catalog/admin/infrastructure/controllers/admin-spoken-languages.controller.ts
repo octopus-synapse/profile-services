@@ -17,11 +17,7 @@ import {
 } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreateAdminSpokenLanguageUseCase } from '../../application/use-cases/create-admin-spoken-language/create-admin-spoken-language.use-case';
-import { DeleteAdminSpokenLanguageUseCase } from '../../application/use-cases/delete-admin-spoken-language/delete-admin-spoken-language.use-case';
-import { GetAdminSpokenLanguageUseCase } from '../../application/use-cases/get-admin-spoken-language/get-admin-spoken-language.use-case';
-import { ListAdminSpokenLanguagesUseCase } from '../../application/use-cases/list-admin-spoken-languages/list-admin-spoken-languages.use-case';
-import { UpdateAdminSpokenLanguageUseCase } from '../../application/use-cases/update-admin-spoken-language/update-admin-spoken-language.use-case';
+import { AdminCatalogUseCases } from '../../application/ports/admin-catalog.port';
 import {
   SpokenLanguageDataDto,
   SpokenLanguageListDataDto,
@@ -37,13 +33,7 @@ import {
 @RequirePermission(Permission.SKILL_MANAGE)
 @Controller('v1/admin/spoken-languages')
 export class AdminSpokenLanguagesController {
-  constructor(
-    private readonly listUseCase: ListAdminSpokenLanguagesUseCase,
-    private readonly getUseCase: GetAdminSpokenLanguageUseCase,
-    private readonly createUseCase: CreateAdminSpokenLanguageUseCase,
-    private readonly updateUseCase: UpdateAdminSpokenLanguageUseCase,
-    private readonly deleteUseCase: DeleteAdminSpokenLanguageUseCase,
-  ) {}
+  constructor(private readonly bc: AdminCatalogUseCases) {}
 
   @Get()
   @ApiOperation({ summary: 'List all spoken languages' })
@@ -58,7 +48,7 @@ export class AdminSpokenLanguagesController {
     @Query('search') search?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    return this.listUseCase.execute({
+    return this.bc.listAdminSpokenLanguages.execute({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
@@ -70,21 +60,21 @@ export class AdminSpokenLanguagesController {
   @ApiOperation({ summary: 'Get spoken language by code' })
   @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language details' })
   async findOne(@Param('code') code: string) {
-    return this.getUseCase.execute(code);
+    return this.bc.getAdminSpokenLanguage.execute(code);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create spoken language' })
   @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
-    return this.createUseCase.execute(dto);
+    return this.bc.createAdminSpokenLanguage.execute(dto);
   }
 
   @Patch(':code')
   @ApiOperation({ summary: 'Update spoken language' })
   @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language updated' })
   async update(@Param('code') code: string, @Body() dto: Record<string, unknown>) {
-    return this.updateUseCase.execute(code, dto);
+    return this.bc.updateAdminSpokenLanguage.execute(code, dto);
   }
 
   @Delete(':code')
@@ -92,6 +82,6 @@ export class AdminSpokenLanguagesController {
   @ApiOperation({ summary: 'Delete spoken language' })
   @ApiEmptyDataResponse({ description: 'Spoken language deleted', status: 204 })
   async remove(@Param('code') code: string) {
-    await this.deleteUseCase.execute(code);
+    await this.bc.deleteAdminSpokenLanguage.execute(code);
   }
 }
