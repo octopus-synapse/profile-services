@@ -2,22 +2,19 @@ import { Module } from '@nestjs/common';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
+import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
-import { CreateStyleUseCase } from './application/use-cases/admin/create-style.use-case';
-import { DeleteStyleUseCase } from './application/use-cases/admin/delete-style.use-case';
-import { UpdateStyleUseCase } from './application/use-cases/admin/update-style.use-case';
-import { ApplyStyleToResumeUseCase } from './application/use-cases/apply-style-to-resume.use-case';
-import { GetStyleUseCase } from './application/use-cases/get-style.use-case';
-import { ListStylesUseCase } from './application/use-cases/list-styles.use-case';
-import { PreviewStyleUseCase } from './application/use-cases/preview-style.use-case';
+import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
 import { ResumeStyleRepositoryPort } from './domain/ports/resume-style.repository.port';
 import { StylePreviewPort } from './domain/ports/style-preview.port';
 import { StyleScorerPort } from './domain/ports/style-scorer.port';
 import { PrismaResumeStyleRepository } from './infrastructure/adapters/persistence/prisma-resume-style.repository';
 import { StylePreviewAdapter } from './infrastructure/adapters/style-preview.adapter';
 import { StyleScorerAdapter } from './infrastructure/adapters/style-scorer.adapter';
-import { AdminResumeStylesController } from './infrastructure/controllers/admin-resume-styles.controller';
-import { ResumeStylesController } from './infrastructure/controllers/resume-styles.controller';
+import { ResumeStylePreviewController } from './infrastructure/controllers/resume-style-preview.controller';
+import { buildResumeStylesUseCases } from './resume-styles.composition';
+import { resumeStylesRoutes } from './resume-styles.routes';
 
 /**
  * resume-styles/ — owner of the `ResumeStyle` aggregate.
@@ -29,18 +26,31 @@ import { ResumeStylesController } from './infrastructure/controllers/resume-styl
  */
 @Module({
   imports: [PrismaModule, EventBusModule, AuthorizationModule, ExportModule],
-  controllers: [ResumeStylesController, AdminResumeStylesController],
+  controllers: [
+    ...synthesizeRouteControllers(ResumeStylesUseCases, resumeStylesRoutes),
+    ResumeStylePreviewController,
+  ],
   providers: [
     StyleScorerAdapter,
     StylePreviewAdapter,
     PrismaResumeStyleRepository,
-    ListStylesUseCase,
-    GetStyleUseCase,
-    PreviewStyleUseCase,
-    ApplyStyleToResumeUseCase,
-    CreateStyleUseCase,
-    UpdateStyleUseCase,
-    DeleteStyleUseCase,
+    {
+      provide: ResumeStylesUseCases,
+      useFactory: (
+        repo: ResumeStyleRepositoryPort,
+        scorer: StyleScorerPort,
+        preview: StylePreviewPort,
+        events: EventPublisher,
+        logger: LoggerPort,
+      ) => buildResumeStylesUseCases(repo, scorer, preview, events, logger),
+      inject: [
+        ResumeStyleRepositoryPort,
+        StyleScorerPort,
+        StylePreviewPort,
+        EventPublisher,
+        LoggerPort,
+      ],
+    },
     { provide: StyleScorerPort, useExisting: StyleScorerAdapter },
     { provide: StylePreviewPort, useExisting: StylePreviewAdapter },
     { provide: ResumeStyleRepositoryPort, useExisting: PrismaResumeStyleRepository },
