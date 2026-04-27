@@ -15,7 +15,11 @@ import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { type OAuthProfile, OAuthService } from '../services/oauth.service';
+import { CheckOAuthProviderAvailabilityUseCase } from '../../application/use-cases/check-oauth-provider-availability/check-oauth-provider-availability.use-case';
+import {
+  type OAuthProfile,
+  UpsertUserFromOAuthProfileUseCase,
+} from '../../application/use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
 
 type Provider = 'github' | 'linkedin';
 
@@ -24,7 +28,8 @@ type Provider = 'github' | 'linkedin';
 @Controller('v1/auth/oauth')
 export class OAuthController {
   constructor(
-    private readonly oauth: OAuthService,
+    private readonly upsertUseCase: UpsertUserFromOAuthProfileUseCase,
+    private readonly availabilityUseCase: CheckOAuthProviderAvailabilityUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -73,7 +78,7 @@ export class OAuthController {
   @ApiOperation({ summary: 'Whether a given OAuth provider is configured.' })
   @ApiParam({ name: 'provider', enum: ['github', 'linkedin'] })
   available(@Param('provider') provider: Provider): { available: boolean } {
-    return { available: this.oauth.hasProvider(provider) };
+    return this.availabilityUseCase.execute(provider);
   }
 
   // ---- internal ----
@@ -83,14 +88,14 @@ export class OAuthController {
     req: Request & { user?: OAuthProfile },
     res: Response,
   ): Promise<void> {
-    if (!this.oauth.hasProvider(provider)) {
+    if (!this.availabilityUseCase.execute(provider).available) {
       throw new ServiceUnavailableException(`${provider} OAuth is not configured`);
     }
     if (!req.user) {
       throw new ServiceUnavailableException('OAuth did not return a profile');
     }
 
-    const { userId, created } = await this.oauth.upsertFromProfile(req.user);
+    const { userId, created } = await this.upsertUseCase.execute(req.user);
 
     // Handoff to the UI. The frontend `/auth/oauth-complete` route picks up
     // the userId + marker and calls our create-session endpoint (which sets

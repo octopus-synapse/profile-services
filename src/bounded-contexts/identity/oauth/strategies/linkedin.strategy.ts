@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 // passport-linkedin-oauth2 ships its own types but they're looser than
 // passport-github2 — we read conservatively from the `Profile` shape.
 import { type Profile, Strategy } from 'passport-linkedin-oauth2';
-import type { OAuthProfile } from '../services/oauth.service';
+import type { OAuthProfile } from '../domain/entities/oauth-profile';
 
 @Injectable()
 export class LinkedinOAuthStrategy extends PassportStrategy(Strategy, 'linkedin') {

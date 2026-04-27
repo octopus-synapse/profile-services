@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { type Profile, Strategy } from 'passport-github2';
-import type { OAuthProfile } from '../services/oauth.service';
+import type { OAuthProfile } from '../domain/entities/oauth-profile';
 
 /**
  * GitHub OAuth 2.0 strategy. Scope `read:user user:email` is enough for
