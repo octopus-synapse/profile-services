@@ -11,9 +11,14 @@ import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-l
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { CreateSessionPort } from '../authentication/application/ports/create-session.port';
 import { AuthenticationModule } from '../authentication/authentication.module';
 import { TokenGeneratorPort } from '../authentication/domain/ports';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
+import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
+import { SKIP_TOS_CHECK_KEY } from '../shared-kernel/infrastructure/decorators/skip-tos-check.decorator';
+import { ConsentGuard } from '../shared-kernel/infrastructure/guards/consent.guard';
+import { EmailVerifiedGuard } from '../shared-kernel/infrastructure/guards/email-verified.guard';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { accountLifecycleRoutes } from './account-lifecycle.routes';
 
@@ -32,6 +37,7 @@ import {
   GetConsentHistoryUseCase,
   GetConsentStatusUseCase,
 } from './application/use-cases';
+import { ExportDataUseCase } from './application/use-cases/export-data/export-data.use-case';
 import {
   AcceptConsentUseCasePort,
   GetConsentHistoryUseCasePort,
@@ -55,29 +61,27 @@ import {
   PrismaAccountLifecycleRepository,
   PrismaConsentRepository,
 } from './infrastructure/adapters';
-// Infrastructure Controllers
-import {
-  AcceptConsentController,
-  CreateAccountController,
-  ExportDataController,
-  GetConsentHistoryController,
-  GetConsentStatusController,
-} from './infrastructure/controllers';
 
 @Module({
   imports: [PrismaModule, AuditLogModule, ConfigModule, AuthenticationModule],
   controllers: [
-    // Legacy controllers (see account-lifecycle.routes.ts header for why):
-    // - CreateAccount: cookie + IP/user-agent capture.
-    // - ExportData: needs req.ip for the audit log.
-    // - AcceptConsent / GetConsentStatus / GetConsentHistory: rely on
-    //   @SkipTosCheck()/@AllowUnverifiedEmail() to bypass global guards.
-    CreateAccountController,
-    ExportDataController,
-    AcceptConsentController,
-    GetConsentStatusController,
-    GetConsentHistoryController,
-    ...synthesizeRouteControllers(AccountLifecycleUseCases, accountLifecycleRoutes),
+    ...synthesizeRouteControllers(AccountLifecycleUseCases, accountLifecycleRoutes, {
+      guards: {
+        // Sets `allowUnverifiedEmail` metadata on the synthesized handler
+        // so the global EmailVerifiedGuard short-circuits, mirroring the
+        // legacy `@AllowUnverifiedEmail()` decorator.
+        'allow-unverified-email': {
+          guard: EmailVerifiedGuard,
+          metadataKey: ALLOW_UNVERIFIED_EMAIL_KEY,
+        },
+        // Sets `skipTosCheck` so ConsentGuard short-circuits — same
+        // semantic as the legacy `@SkipTosCheck()` decorator.
+        'skip-tos-check': {
+          guard: ConsentGuard,
+          metadataKey: SKIP_TOS_CHECK_KEY,
+        },
+      },
+    }),
   ],
   providers: [
     // Outbound Adapters
@@ -173,34 +177,52 @@ import {
       },
       inject: [ConsentRepositoryPort],
     },
+    {
+      provide: ExportDataUseCase,
+      useFactory: (
+        repository: DataExportRepositoryPort,
+        auditLogger: AuditLoggerPort,
+        logger: LoggerPort,
+      ) => new ExportDataUseCase(repository, auditLogger, logger),
+      inject: [DataExportRepositoryPort, AuditLoggerPort, LoggerPort],
+    },
 
     // Aggregated bundle for the route synthesizer. Each use-case stays
     // independently provided above; the bundle just collects them so
     // `synthesizeRouteControllers` has a single DI token to inject.
+    // `createSession` is sourced from the AuthenticationModule import so
+    // signup can immediately establish a cookie session — same wiring
+    // the legacy controller had via constructor injection.
     {
       provide: AccountLifecycleUseCases,
       useFactory: (
         createAccount: CreateAccountPort,
+        createSession: CreateSessionPort,
         deactivateAccount: DeactivateAccountPort,
         deleteAccount: DeleteAccountPort,
         acceptConsent: AcceptConsentUseCasePort,
         getConsentStatus: GetConsentStatusUseCasePort,
         getConsentHistory: GetConsentHistoryUseCasePort,
+        exportData: ExportDataUseCase,
       ): AccountLifecycleUseCases => ({
         createAccount,
+        createSession,
         deactivateAccount,
         deleteAccount,
         acceptConsent,
         getConsentStatus,
         getConsentHistory,
+        exportData,
       }),
       inject: [
         CreateAccountPort,
+        CreateSessionPort,
         DeactivateAccountPort,
         DeleteAccountPort,
         AcceptConsentUseCasePort,
         GetConsentStatusUseCasePort,
         GetConsentHistoryUseCasePort,
+        ExportDataUseCase,
       ],
     },
   ],
