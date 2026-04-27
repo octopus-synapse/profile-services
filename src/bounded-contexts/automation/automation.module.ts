@@ -6,6 +6,11 @@
  * shared `CuratedSelectorService` plus `ResumeTailorService` directly —
  * those are also handed into the composition so use cases and workers
  * share the same instances.
+ *
+ * The HTTP boundary lives in `automation.routes.ts`; the synthesizer
+ * turns those `Route` descriptors into Nest controllers at boot. Custom
+ * business gates (`RequireFitProfileGuard`, `RequireMinQualityGuard`)
+ * are wired via the synthesizer's guard registry.
  */
 
 import { BullModule } from '@nestjs/bullmq';
@@ -13,9 +18,11 @@ import { Module } from '@nestjs/common';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
+import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { RequireMinQualityGuard } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-quality.module';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
@@ -27,8 +34,6 @@ import { buildAutomationUseCases } from './automation.composition';
 import { automationRoutes } from './automation.routes';
 import { ResumeJobMatcherPort } from './domain/ports/resume-job-matcher.port';
 import { ResumeAnalyticsJobMatcherAdapter } from './infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
-import { ApplyModeController } from './infrastructure/controllers/apply-mode.controller';
-import { RageApplyController } from './infrastructure/controllers/rage-apply.controller';
 import { AUTO_APPLY_QUEUE, AutoApplyWorker } from './workers/auto-apply.worker';
 import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-curated.worker';
 
@@ -42,11 +47,17 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     ResumeQualityModule,
     BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
-  controllers: [
-    ...synthesizeRouteControllers(AutomationUseCases, automationRoutes),
-    ApplyModeController,
-    RageApplyController,
-  ],
+  controllers: synthesizeRouteControllers(AutomationUseCases, automationRoutes, {
+    guards: {
+      // Both `RequireFitProfileGuard` and `RequireMinQualityGuard` have
+      // built-in metadata fallbacks (standard-role check / default min
+      // 50) so the registry entries don't need to set any metadata key
+      // — the legacy `@RequireMinQuality()` call site used those same
+      // defaults.
+      'fit-profile': { guard: RequireFitProfileGuard },
+      'min-quality': { guard: RequireMinQualityGuard },
+    },
+  }),
   providers: [
     {
       provide: ResumeJobMatcherPort,
