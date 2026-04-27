@@ -4,14 +4,12 @@
  * Implementation of TotpServicePort using speakeasy library.
  */
 
-import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import type { TotpSecret } from '../../../domain/ports/totp-service.port';
 import { TotpServicePort } from '../../../domain/ports/totp-service.port';
 
 const DEFAULT_WINDOW = 1; // Allow 1 time step before/after (90s total - industry standard)
 
-@Injectable()
 export class SpeakeasyTotpAdapter implements TotpServicePort {
   generateSecret(label: string, issuer: string): TotpSecret {
     const secret = speakeasy.generateSecret({ name: label, issuer, length: 32 });
