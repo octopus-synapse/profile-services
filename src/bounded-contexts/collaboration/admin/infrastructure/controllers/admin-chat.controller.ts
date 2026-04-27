@@ -3,8 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { GetChatStatsUseCase } from '../../application/use-cases/get-chat-stats/get-chat-stats.use-case';
-import { ListChatConversationsUseCase } from '../../application/use-cases/list-chat-conversations/list-chat-conversations.use-case';
+import { AdminCollaborationUseCases } from '../../application/ports/admin-collaboration.port';
 import {
   AdminChatConversationsDataDto,
   AdminChatStatsDataDto,
@@ -16,16 +15,13 @@ import {
 @RequirePermission(Permission.PLATFORM_MANAGE)
 @Controller('v1/admin/chat')
 export class AdminChatController {
-  constructor(
-    private readonly getStatsUseCase: GetChatStatsUseCase,
-    private readonly listUseCase: ListChatConversationsUseCase,
-  ) {}
+  constructor(private readonly bc: AdminCollaborationUseCases) {}
 
   @Get('stats')
   @ApiOperation({ summary: 'Get chat statistics' })
   @ApiDataResponse(AdminChatStatsDataDto, { description: 'Chat statistics' })
   async getStats() {
-    return this.getStatsUseCase.execute();
+    return this.bc.getChatStats.execute();
   }
 
   @Get('conversations')
@@ -34,7 +30,7 @@ export class AdminChatController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   @ApiDataResponse(AdminChatConversationsDataDto, { description: 'List of conversations' })
   async getConversations(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
-    return this.listUseCase.execute({
+    return this.bc.listChatConversations.execute({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
     });
