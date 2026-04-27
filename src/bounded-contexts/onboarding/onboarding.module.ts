@@ -6,17 +6,21 @@
  */
 
 import { forwardRef, Module } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { CacheLockService } from '@/bounded-contexts/platform/common/cache/cache-lock.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingUseCases } from './application/compositions/onboarding.composition';
 import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
+import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { OnboardingUseCases } from './domain/ports/onboarding.port';
 import { OnboardingConfigPort } from './domain/ports/onboarding-config.port';
 import { OnboardingProgressUseCases } from './domain/ports/onboarding-progress.port';
@@ -27,14 +31,18 @@ import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-co
 import { OnboardingPreviewAdapter } from './infrastructure/adapters/onboarding-preview.adapter';
 import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
 import { SystemThemesAdapter } from './infrastructure/adapters/system-themes.adapter';
-import { AdminOnboardingController } from './infrastructure/controllers/admin-onboarding.controller';
-import { OnboardingController } from './infrastructure/controllers/onboarding.controller';
 import { OnboardingPreviewController } from './infrastructure/controllers/onboarding-preview.controller';
 import { AdminOnboardingService } from './infrastructure/services/admin-onboarding.service';
+import { onboardingRoutes } from './onboarding.routes';
 
 @Module({
   imports: [PrismaModule, DslModule, forwardRef(() => ExportModule)],
-  controllers: [OnboardingController, AdminOnboardingController, OnboardingPreviewController],
+  controllers: [
+    // Legacy: streams binary preview content (StreamableFile) the
+    // synthesizer does not yet model.
+    OnboardingPreviewController,
+    ...synthesizeRouteControllers(OnboardingHttpBundle, onboardingRoutes),
+  ],
   providers: [
     SystemThemesAdapter,
     OnboardingConfigAdapter,
@@ -68,6 +76,40 @@ import { AdminOnboardingService } from './infrastructure/services/admin-onboardi
       useFactory: (prisma: PrismaService, logger: LoggerPort, auditLog: AuditLogService) =>
         buildOnboardingUseCases(prisma, logger, auditLog),
       inject: [PrismaService, LoggerPort, AuditLogService],
+    },
+    // Bundle: aggregates the HTTP-facing dependencies into a single
+    // DI token consumed by the synthesized route controllers.
+    {
+      provide: OnboardingHttpBundle,
+      useFactory: (
+        useCases: OnboardingUseCases,
+        progress: OnboardingProgressUseCases,
+        systemThemes: SystemThemesPort,
+        config: OnboardingConfigPort,
+        sectionTypes: SectionTypeDefinitionPort,
+        cacheLock: CacheLockService,
+        events: EventEmitter2,
+        admin: AdminOnboardingService,
+      ): OnboardingHttpBundle => ({
+        useCases,
+        progress,
+        systemThemes,
+        config,
+        sectionTypes,
+        cacheLock,
+        events,
+        admin,
+      }),
+      inject: [
+        OnboardingUseCases,
+        OnboardingProgressUseCases,
+        SystemThemesPort,
+        OnboardingConfigPort,
+        SectionTypeDefinitionPort,
+        CacheLockService,
+        EventEmitter2,
+        AdminOnboardingService,
+      ],
     },
   ],
   exports: [OnboardingUseCases],
