@@ -6,8 +6,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
+import { LoggerPort } from '@/shared-kernel';
 import type {
-  LoggerPort,
   UpdateFullPreferences,
   UpdatePreferences,
   UpdateProfile,

@@ -18323,11 +18323,9 @@
         "type": "object",
         "properties": {
           "enabled": {
-            "type": "boolean",
-            "description": "New enabled state. Omit to leave unchanged."
+            "type": "boolean"
           },
           "enabledForRoles": {
-            "description": "Roles allowed when enabled. Empty array = no restriction.",
             "type": "array",
             "items": {
               "type": "string"
