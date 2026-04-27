@@ -4,7 +4,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AdminDashboardMetricsDataDto } from '@/bounded-contexts/platform/common/dto/admin-dashboard-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { GetAdminDashboardMetricsUseCase } from '../../application/use-cases/get-admin-dashboard-metrics/get-admin-dashboard-metrics.use-case';
+import { PlatformUseCases } from '../../application/ports/platform.port';
 
 @SdkExport({ tag: 'admin-dashboard', description: 'Admin Dashboard API', requiresAuth: true })
 @ApiTags('Admin - Dashboard')
@@ -12,12 +12,12 @@ import { GetAdminDashboardMetricsUseCase } from '../../application/use-cases/get
 @RequirePermission(Permission.PLATFORM_STATS_READ)
 @Controller('v1/admin/dashboard')
 export class AdminDashboardController {
-  constructor(private readonly getMetricsUseCase: GetAdminDashboardMetricsUseCase) {}
+  constructor(private readonly bc: PlatformUseCases) {}
 
   @Get('metrics')
   @ApiOperation({ summary: 'Get platform metrics for admin dashboard' })
   @ApiDataResponse(AdminDashboardMetricsDataDto, { description: 'Platform dashboard metrics' })
   async getMetrics() {
-    return this.getMetricsUseCase.execute();
+    return this.bc.getAdminDashboardMetrics.execute();
   }
 }

@@ -22,19 +22,13 @@ import {
   UserRoleResponseDto,
   UserRolesDataDto,
 } from '@/bounded-contexts/platform/common/dto/enums.dto';
-import { ListExportFormatsUseCase } from '../../application/use-cases/list-export-formats/list-export-formats.use-case';
-import { ListSectionTypesUseCase } from '../../application/use-cases/list-section-types/list-section-types.use-case';
-import { ListUserRolesUseCase } from '../../application/use-cases/list-user-roles/list-user-roles.use-case';
+import { PlatformUseCases } from '../../application/ports/platform.port';
 
 @SdkExport({ tag: 'enums', description: 'Domain Enums API' })
 @ApiTags('enums')
 @Controller('v1/enums')
 export class EnumsController {
-  constructor(
-    private readonly listExportFormats: ListExportFormatsUseCase,
-    private readonly listUserRoles: ListUserRolesUseCase,
-    private readonly listSectionTypes: ListSectionTypesUseCase,
-  ) {}
+  constructor(private readonly bc: PlatformUseCases) {}
 
   @Public()
   @Get('export-formats')
@@ -44,7 +38,7 @@ export class EnumsController {
   })
   @ApiDataResponse(ExportFormatsDataDto, { description: 'List of export formats' })
   async getExportFormats(): Promise<DataResponse<ExportFormatsDataDto>> {
-    const formats: ExportFormatResponseDto[] = (await this.listExportFormats.execute()).map(
+    const formats: ExportFormatResponseDto[] = (await this.bc.listExportFormats.execute()).map(
       (format) => ({ format }),
     );
     return {
@@ -61,7 +55,7 @@ export class EnumsController {
   })
   @ApiDataResponse(UserRolesDataDto, { description: 'List of user roles' })
   async getUserRoles(): Promise<DataResponse<UserRolesDataDto>> {
-    const roles: UserRoleResponseDto[] = (await this.listUserRoles.execute()).map((role) => ({
+    const roles: UserRoleResponseDto[] = (await this.bc.listUserRoles.execute()).map((role) => ({
       role,
     }));
     return {
@@ -78,7 +72,7 @@ export class EnumsController {
   })
   @ApiDataResponse(SectionTypesDataDto, { description: 'List of section types' })
   async getSectionTypes(): Promise<DataResponse<SectionTypesDataDto>> {
-    const types: SectionTypeResponseDto[] = await this.listSectionTypes.execute();
+    const types: SectionTypeResponseDto[] = await this.bc.listSectionTypes.execute();
     return {
       success: true,
       data: { types },
