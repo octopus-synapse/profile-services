@@ -16,6 +16,7 @@ import type { CacheLockService } from '@/bounded-contexts/platform/common/cache/
 import type { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import type { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
 import type { OnboardingProgressUseCases } from '../../domain/ports/onboarding-progress.port';
+import type { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 import type { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
 import type { SystemThemesPort } from '../../domain/ports/system-themes.port';
 import type { AdminOnboardingService } from '../../infrastructure/services/admin-onboarding.service';
@@ -29,4 +30,5 @@ export abstract class OnboardingHttpBundle {
   abstract readonly cacheLock: CacheLockService;
   abstract readonly events: EventEmitter2;
   abstract readonly admin: AdminOnboardingService;
+  abstract readonly previewRenderer: PreviewRendererPort;
 }

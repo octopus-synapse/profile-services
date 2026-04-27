@@ -1,12 +1,10 @@
 /**
  * Route descriptors for the onboarding BC. Replaces
- * `OnboardingController` and `AdminOnboardingController`.
- *
- * `OnboardingPreviewController` stays Nest-decorated because it
- * streams binary preview content (`StreamableFile`) the synthesizer
- * does not yet model.
+ * `OnboardingController`, `AdminOnboardingController`, and the
+ * `OnboardingPreviewController` SSE stream.
  */
 
+import { debounceTime, filter, from, map, Subject, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
@@ -490,6 +488,46 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const body = ctx.body as Record<string, unknown>;
       const config = await bundle.admin.updateConfig(body);
       return { config };
+    },
+  },
+
+  // ===== Live preview SSE stream =====
+  {
+    method: 'GET',
+    path: '/v1/onboarding/preview/stream',
+    auth: { kind: 'jwt' },
+    kind: 'sse',
+    openapi: {
+      summary: 'Subscribe to live resume preview updates',
+      tags: ['Onboarding Preview'],
+      description: 'Streams PNG preview as base64 when onboarding data changes.',
+    },
+    handler: async (ctx, bundle) => {
+      const userId = ctx.user!.userId;
+      let version = 0;
+
+      const trigger$ = new Subject<void>();
+      const listener = (data: { userId: string }) => {
+        if (data.userId === userId) trigger$.next();
+      };
+      bundle.events.on('onboarding.data.changed', listener);
+
+      return trigger$.pipe(
+        debounceTime(500),
+        switchMap(() => {
+          version++;
+          const currentVersion = version;
+          return from(bundle.previewRenderer.renderPreview(userId)).pipe(
+            filter((buffer): buffer is Buffer => buffer !== null),
+            map((buffer) => ({
+              data: { type: 'preview', version: currentVersion, image: buffer.toString('base64') },
+              id: `preview-${currentVersion}`,
+              type: 'preview',
+              retry: 15000,
+            })),
+          );
+        }),
+      );
     },
   },
 ];

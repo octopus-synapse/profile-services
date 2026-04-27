@@ -3,6 +3,9 @@
  *
  * ADR-001: Flat Hexagonal Architecture.
  * Session/Commands API for backend-driven onboarding flow.
+ *
+ * Every endpoint — including the live preview SSE stream — is now
+ * synthesized from `onboarding.routes.ts`.
  */
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -31,18 +34,12 @@ import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-co
 import { OnboardingPreviewAdapter } from './infrastructure/adapters/onboarding-preview.adapter';
 import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
 import { SystemThemesAdapter } from './infrastructure/adapters/system-themes.adapter';
-import { OnboardingPreviewController } from './infrastructure/controllers/onboarding-preview.controller';
 import { AdminOnboardingService } from './infrastructure/services/admin-onboarding.service';
 import { onboardingRoutes } from './onboarding.routes';
 
 @Module({
   imports: [PrismaModule, DslModule, forwardRef(() => ExportModule)],
-  controllers: [
-    // Legacy: streams binary preview content (StreamableFile) the
-    // synthesizer does not yet model.
-    OnboardingPreviewController,
-    ...synthesizeRouteControllers(OnboardingHttpBundle, onboardingRoutes),
-  ],
+  controllers: [...synthesizeRouteControllers(OnboardingHttpBundle, onboardingRoutes)],
   providers: [
     SystemThemesAdapter,
     OnboardingConfigAdapter,
@@ -90,6 +87,7 @@ import { onboardingRoutes } from './onboarding.routes';
         cacheLock: CacheLockService,
         events: EventEmitter2,
         admin: AdminOnboardingService,
+        previewRenderer: PreviewRendererPort,
       ): OnboardingHttpBundle => ({
         useCases,
         progress,
@@ -99,6 +97,7 @@ import { onboardingRoutes } from './onboarding.routes';
         cacheLock,
         events,
         admin,
+        previewRenderer,
       }),
       inject: [
         OnboardingUseCases,
@@ -109,6 +108,7 @@ import { onboardingRoutes } from './onboarding.routes';
         CacheLockService,
         EventEmitter2,
         AdminOnboardingService,
+        PreviewRendererPort,
       ],
     },
   ],
