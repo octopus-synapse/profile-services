@@ -1,3 +1,7 @@
 export { nestBootstrap } from './nest-bootstrap';
 export { synthesizeRouteControllers } from './routes.module';
-export { synthesizeController } from './synthesize-controller';
+export {
+  type GuardEntry,
+  type GuardRegistry,
+  synthesizeController,
+} from './synthesize-controller';

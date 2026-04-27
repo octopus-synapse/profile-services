@@ -12,6 +12,39 @@ import type { ZodSchema } from 'zod';
 import type { Permission } from '../authorization';
 import type { HandlerResult, HttpCtx } from './context';
 
+/**
+ * Permission requirement on a route. Either a `Permission` enum entry
+ * (the static form: `Permission.RESUME_READ`) or a dynamic
+ * `{ resource, action }` pair (the form `RequirePermission('user', 'role_assign')`
+ * uses today). The Nest synthesizer maps both to the existing
+ * `RequirePermission(...)` decorator overload.
+ */
+export type PermissionRequirement = Permission | { resource: string; action: string };
+
+/**
+ * Custom guard spec — escape hatch for guards that aren't
+ * Jwt/Permission/Public. The adapter looks up the guard by `id` from a
+ * registry the bootstrap provides; metadata is forwarded as
+ * `@SetMetadata(metadataKey, metadataValue)` calls before
+ * `@UseGuards(...)`. This keeps the Route descriptor framework-free
+ * while letting Nest-side guards (RateLimitGuard, InternalAuthGuard,
+ * AllowUnverifiedEmail bypass, etc.) participate. Future Elysia/
+ * Fastify adapters supply their own registry implementations.
+ */
+export interface GuardSpec {
+  /** Stable id used by the adapter's guard registry (e.g. `'rate-limit'`,
+   *  `'internal-auth'`, `'fit-profile'`, `'min-quality'`). */
+  readonly id: string;
+  /** Optional metadata payloads attached to the route via SetMetadata-
+   *  like primitives. The adapter chooses which metadata key applies. */
+  readonly metadata?: Record<string, unknown>;
+}
+
+/** HTTP status code override. By default the synthesizer picks 201 for
+ *  POST and 200 for everything else. Routes that need a specific code
+ *  (204 No Content, 202 Accepted, …) declare it here. */
+export type StatusOverride = number;
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 /** How the adapter parses the incoming body and shapes the outgoing
@@ -87,7 +120,21 @@ export interface Route<
   readonly path: string;
 
   readonly auth: AuthSpec;
-  readonly permission?: Permission;
+  readonly permission?: PermissionRequirement;
+
+  /** Custom guards beyond auth/permission (rate-limit, throttling,
+   *  bespoke business gates). Adapter resolves each `id` against its
+   *  guard registry. */
+  readonly guards?: readonly GuardSpec[];
+
+  /** Override the HTTP success status code. */
+  readonly statusCode?: StatusOverride;
+
+  /** Static response headers. Adapter sets each header on the response.
+   *  For dynamic per-request headers (e.g. `Content-Language` derived
+   *  from `Accept-Language`), the handler returns
+   *  `{ __headers: {...}, body: ... }` and the adapter unpacks. */
+  readonly headers?: Readonly<Record<string, string>>;
 
   /** Body / query / params validation. Adapter runs Zod parse and
    *  populates `ctx.body | ctx.query | ctx.params` with the parsed
@@ -112,6 +159,36 @@ export interface Route<
   readonly middleware?: readonly RouteMiddleware[];
 
   readonly handler: RouteHandler<TBundle, TBody, TQuery, TParams>;
+}
+
+/**
+ * Sentinel a handler can return when it needs to override response
+ * headers per-request (e.g. content-language derived from
+ * `Accept-Language`). The adapter unpacks `{ headers, body }` and
+ * applies headers + serializes `body` as the response. When the handler
+ * returns anything else, the adapter treats the value as the body.
+ */
+export interface HandlerResponseWithHeaders<T = unknown> {
+  readonly __dynamicHeaders: true;
+  readonly headers: Record<string, string>;
+  readonly body: T;
+}
+
+export function withHeaders<T>(
+  headers: Record<string, string>,
+  body: T,
+): HandlerResponseWithHeaders<T> {
+  return { __dynamicHeaders: true, headers, body };
+}
+
+export function isResponseWithHeaders(
+  value: unknown,
+): value is HandlerResponseWithHeaders<unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { __dynamicHeaders?: unknown }).__dynamicHeaders === true
+  );
 }
 
 /**
