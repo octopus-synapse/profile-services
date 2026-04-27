@@ -17,11 +17,15 @@ import {
 } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { AdminProgrammingLanguagesService } from './admin-programming-languages.service';
+import { CreateAdminProgrammingLanguageUseCase } from '../../application/use-cases/create-admin-programming-language/create-admin-programming-language.use-case';
+import { DeleteAdminProgrammingLanguageUseCase } from '../../application/use-cases/delete-admin-programming-language/delete-admin-programming-language.use-case';
+import { GetAdminProgrammingLanguageUseCase } from '../../application/use-cases/get-admin-programming-language/get-admin-programming-language.use-case';
+import { ListAdminProgrammingLanguagesUseCase } from '../../application/use-cases/list-admin-programming-languages/list-admin-programming-languages.use-case';
+import { UpdateAdminProgrammingLanguageUseCase } from '../../application/use-cases/update-admin-programming-language/update-admin-programming-language.use-case';
 import {
   ProgrammingLanguageDataDto,
   ProgrammingLanguageListDataDto,
-} from './dto/admin-programming-languages-response.dto';
+} from '../../dto/admin-programming-languages-response.dto';
 
 @SdkExport({
   tag: 'admin-programming-languages',
@@ -33,7 +37,13 @@ import {
 @RequirePermission(Permission.SKILL_MANAGE)
 @Controller('v1/admin/programming-languages')
 export class AdminProgrammingLanguagesController {
-  constructor(private readonly service: AdminProgrammingLanguagesService) {}
+  constructor(
+    private readonly listUseCase: ListAdminProgrammingLanguagesUseCase,
+    private readonly getUseCase: GetAdminProgrammingLanguageUseCase,
+    private readonly createUseCase: CreateAdminProgrammingLanguageUseCase,
+    private readonly updateUseCase: UpdateAdminProgrammingLanguageUseCase,
+    private readonly deleteUseCase: DeleteAdminProgrammingLanguageUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List all programming languages' })
@@ -48,7 +58,7 @@ export class AdminProgrammingLanguagesController {
     @Query('search') search?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    return this.service.findAll({
+    return this.listUseCase.execute({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
@@ -60,7 +70,7 @@ export class AdminProgrammingLanguagesController {
   @ApiOperation({ summary: 'Get programming language by slug' })
   @ApiDataResponse(ProgrammingLanguageDataDto, { description: 'Programming language details' })
   async findOne(@Param('slug') slug: string) {
-    return this.service.findOne(slug);
+    return this.getUseCase.execute(slug);
   }
 
   @Post()
@@ -70,14 +80,14 @@ export class AdminProgrammingLanguagesController {
     status: 201,
   })
   async create(@Body() dto: Record<string, unknown>) {
-    return this.service.create(dto);
+    return this.createUseCase.execute(dto);
   }
 
   @Patch(':slug')
   @ApiOperation({ summary: 'Update programming language' })
   @ApiDataResponse(ProgrammingLanguageDataDto, { description: 'Programming language updated' })
   async update(@Param('slug') slug: string, @Body() dto: Record<string, unknown>) {
-    return this.service.update(slug, dto);
+    return this.updateUseCase.execute(slug, dto);
   }
 
   @Delete(':slug')
@@ -85,6 +95,6 @@ export class AdminProgrammingLanguagesController {
   @ApiOperation({ summary: 'Delete programming language' })
   @ApiEmptyDataResponse({ description: 'Programming language deleted', status: 204 })
   async remove(@Param('slug') slug: string) {
-    await this.service.remove(slug);
+    await this.deleteUseCase.execute(slug);
   }
 }

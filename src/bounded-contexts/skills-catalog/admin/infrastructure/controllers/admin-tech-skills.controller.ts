@@ -17,8 +17,12 @@ import {
 } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { AdminTechSkillsService } from './admin-tech-skills.service';
-import { TechSkillDataDto, TechSkillListDataDto } from './dto/admin-tech-skills-response.dto';
+import { CreateAdminTechSkillUseCase } from '../../application/use-cases/create-admin-tech-skill/create-admin-tech-skill.use-case';
+import { DeleteAdminTechSkillUseCase } from '../../application/use-cases/delete-admin-tech-skill/delete-admin-tech-skill.use-case';
+import { GetAdminTechSkillUseCase } from '../../application/use-cases/get-admin-tech-skill/get-admin-tech-skill.use-case';
+import { ListAdminTechSkillsUseCase } from '../../application/use-cases/list-admin-tech-skills/list-admin-tech-skills.use-case';
+import { UpdateAdminTechSkillUseCase } from '../../application/use-cases/update-admin-tech-skill/update-admin-tech-skill.use-case';
+import { TechSkillDataDto, TechSkillListDataDto } from '../../dto/admin-tech-skills-response.dto';
 
 @SdkExport({ tag: 'admin-tech-skills', description: 'Admin Tech Skills API', requiresAuth: true })
 @ApiTags('Admin - Tech Skills')
@@ -26,7 +30,13 @@ import { TechSkillDataDto, TechSkillListDataDto } from './dto/admin-tech-skills-
 @RequirePermission(Permission.SKILL_MANAGE)
 @Controller('v1/admin/tech-skills')
 export class AdminTechSkillsController {
-  constructor(private readonly service: AdminTechSkillsService) {}
+  constructor(
+    private readonly listUseCase: ListAdminTechSkillsUseCase,
+    private readonly getUseCase: GetAdminTechSkillUseCase,
+    private readonly createUseCase: CreateAdminTechSkillUseCase,
+    private readonly updateUseCase: UpdateAdminTechSkillUseCase,
+    private readonly deleteUseCase: DeleteAdminTechSkillUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List all tech skills' })
@@ -45,7 +55,7 @@ export class AdminTechSkillsController {
     @Query('type') type?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    return this.service.findAll({
+    return this.listUseCase.execute({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
@@ -59,21 +69,21 @@ export class AdminTechSkillsController {
   @ApiOperation({ summary: 'Get tech skill by ID' })
   @ApiDataResponse(TechSkillDataDto, { description: 'Tech skill details' })
   async findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+    return this.getUseCase.execute(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tech skill' })
   @ApiDataResponse(TechSkillDataDto, { description: 'Tech skill created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
-    return this.service.create(dto);
+    return this.createUseCase.execute(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tech skill' })
   @ApiDataResponse(TechSkillDataDto, { description: 'Tech skill updated' })
   async update(@Param('id') id: string, @Body() dto: Record<string, unknown>) {
-    return this.service.update(id, dto);
+    return this.updateUseCase.execute(id, dto);
   }
 
   @Delete(':id')
@@ -81,6 +91,6 @@ export class AdminTechSkillsController {
   @ApiOperation({ summary: 'Delete tech skill' })
   @ApiEmptyDataResponse({ description: 'Tech skill deleted', status: 204 })
   async remove(@Param('id') id: string) {
-    await this.service.remove(id);
+    await this.deleteUseCase.execute(id);
   }
 }
