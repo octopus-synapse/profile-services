@@ -1,37 +1,21 @@
 /**
  * Two-Factor Auth Module
  *
- * Bounded Context for TOTP-based two-factor authentication.
- * Follows Hexagonal Architecture with ports and adapters.
+ * Thin Nest shell over `buildTwoFactorAuthUseCases`. All wiring lives in
+ * `two-factor-auth.composition.ts`. The `Validate2faInboundPort` is
+ * re-exposed as a separate provider bound to `bundle.validate2fa` so
+ * cross-BC consumers (authentication) can keep depending on the
+ * inbound port without learning about the bundle.
  */
 
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 import { Validate2faInboundPort } from './application/ports/validate-2fa.inbound-port';
-// Application Use Cases
-import { Disable2faUseCase } from './application/use-cases/disable-2fa';
-import { Get2faStatusUseCase } from './application/use-cases/get-2fa-status';
-import { RegenerateBackupCodesUseCase } from './application/use-cases/regenerate-backup-codes';
-import { Setup2faUseCase } from './application/use-cases/setup-2fa';
-import { Validate2faUseCase } from './application/use-cases/validate-2fa';
-import { VerifyAndEnable2faUseCase } from './application/use-cases/verify-and-enable-2fa';
-// Domain Ports
-import {
-  HashServicePort,
-  QrCodeServicePort,
-  TotpServicePort,
-  TwoFactorRepositoryPort,
-} from './domain/ports';
-// Infrastructure Adapters
-import {
-  BcryptHashAdapter,
-  QrCodeAdapter,
-  SpeakeasyTotpAdapter,
-  TwoFactorRepository,
-} from './infrastructure/adapters';
-// Infrastructure Controllers
 import {
   Disable2faController,
   Get2faStatusController,
@@ -39,9 +23,10 @@ import {
   Setup2faController,
   VerifyAndEnable2faController,
 } from './infrastructure/controllers';
+import { buildTwoFactorAuthUseCases } from './two-factor-auth.composition';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CacheModule],
   controllers: [
     Setup2faController,
     VerifyAndEnable2faController,
@@ -50,61 +35,18 @@ import {
     RegenerateBackupCodesController,
   ],
   providers: [
-    // Outbound Adapters
-    { provide: TwoFactorRepositoryPort, useClass: TwoFactorRepository },
-    { provide: TotpServicePort, useClass: SpeakeasyTotpAdapter },
-    { provide: QrCodeServicePort, useClass: QrCodeAdapter },
-    { provide: HashServicePort, useClass: BcryptHashAdapter },
-
-    // Inbound Ports (use-cases) — wired by class as DI token (no Symbol indirection)
     {
-      provide: Setup2faUseCase,
-      useFactory: (
-        repo: TwoFactorRepositoryPort,
-        totp: TotpServicePort,
-        qr: QrCodeServicePort,
-        logger: LoggerPort,
-      ) => new Setup2faUseCase(repo, totp, qr, logger),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, QrCodeServicePort, LoggerPort],
-    },
-    {
-      provide: VerifyAndEnable2faUseCase,
-      useFactory: (
-        repo: TwoFactorRepositoryPort,
-        totp: TotpServicePort,
-        hash: HashServicePort,
-        logger: LoggerPort,
-      ) => new VerifyAndEnable2faUseCase(repo, totp, hash, logger),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, LoggerPort],
-    },
-    {
-      provide: Disable2faUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort) => new Disable2faUseCase(repo),
-      inject: [TwoFactorRepositoryPort],
-    },
-    {
-      provide: Get2faStatusUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort) => new Get2faStatusUseCase(repo),
-      inject: [TwoFactorRepositoryPort],
-    },
-    {
-      provide: RegenerateBackupCodesUseCase,
-      useFactory: (repo: TwoFactorRepositoryPort, hash: HashServicePort, logger: LoggerPort) =>
-        new RegenerateBackupCodesUseCase(repo, hash, logger),
-      inject: [TwoFactorRepositoryPort, HashServicePort, LoggerPort],
+      provide: TwoFactorAuthUseCases,
+      useFactory: (prisma: PrismaService, cache: CacheService, logger: LoggerPort) =>
+        buildTwoFactorAuthUseCases(prisma, cache, logger),
+      inject: [PrismaService, CacheService, LoggerPort],
     },
     {
       provide: Validate2faInboundPort,
-      useFactory: (
-        repo: TwoFactorRepositoryPort,
-        totp: TotpServicePort,
-        hash: HashServicePort,
-        cache: CacheService,
-        logger: LoggerPort,
-      ) => new Validate2faUseCase(repo, totp, hash, cache, logger),
-      inject: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, CacheService, LoggerPort],
+      useFactory: (bc: TwoFactorAuthUseCases) => bc.validate2fa,
+      inject: [TwoFactorAuthUseCases],
     },
   ],
-  exports: [TwoFactorRepositoryPort, TotpServicePort, HashServicePort, Validate2faInboundPort],
+  exports: [TwoFactorAuthUseCases, Validate2faInboundPort],
 })
 export class TwoFactorAuthModule {}

@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiEmptyDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { Disable2faUseCase } from '../../application/use-cases/disable-2fa/disable-2fa.use-case';
+import { TwoFactorAuthUseCases } from '../../application/ports/two-factor-auth.port';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -14,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Disable2faController {
-  constructor(private readonly useCase: Disable2faUseCase) {}
+  constructor(private readonly bc: TwoFactorAuthUseCases) {}
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -24,6 +24,6 @@ export class Disable2faController {
   })
   @ApiEmptyDataResponse({ status: HttpStatus.NO_CONTENT, description: '2FA disabled successfully' })
   async disable(@Req() req: AuthenticatedRequest): Promise<void> {
-    await this.useCase.execute(req.user.id);
+    await this.bc.disable2fa.execute(req.user.id);
   }
 }

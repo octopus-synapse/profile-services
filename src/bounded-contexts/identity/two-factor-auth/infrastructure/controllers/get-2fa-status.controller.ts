@@ -4,8 +4,8 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { TwoFactorAuthUseCases } from '../../application/ports/two-factor-auth.port';
 import { Get2faStatusResponseDto } from '../../application/use-cases/get-2fa-status/get-2fa-status.dto';
-import { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -20,7 +20,7 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Get2faStatusController {
-  constructor(private readonly useCase: Get2faStatusUseCase) {}
+  constructor(private readonly bc: TwoFactorAuthUseCases) {}
 
   @Get('status')
   @ApiOperation({
@@ -31,7 +31,7 @@ export class Get2faStatusController {
   async getStatus(
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<Get2faStatusResponseDto>> {
-    const result = await this.useCase.execute(req.user.id);
+    const result = await this.bc.get2faStatus.execute(req.user.id);
     return {
       success: true,
       data: { ...result, lastUsedAt: result.lastUsedAt?.toISOString() ?? null },
