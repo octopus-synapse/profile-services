@@ -1,6 +1,6 @@
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
-import type { ResolvedTokens } from '../../token-resolver.service';
+import type { ResolvedTokens } from '../services/token-resolver.service';
 
 const PAPER_SIZES = {
   a4: { width: 210, height: 297 },

@@ -14,7 +14,7 @@ import { ValidationException } from '@/shared-kernel/exceptions/domain.exception
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
-import { DslMigrationService } from './migrators';
+import { DslMigrationService } from '../migrators';
 import { TokenResolverService } from './token-resolver.service';
 
 function extractSectionItems(section: { data: unknown } | undefined): unknown[] {

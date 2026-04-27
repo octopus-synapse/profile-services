@@ -8,7 +8,7 @@
  */
 
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
+import { RenderResumeDslUseCase } from '@/bounded-contexts/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
@@ -31,8 +31,8 @@ export class TypstPdfGeneratorService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => DslRepository))
-    private readonly dslRepository: DslRepository,
+    @Inject(forwardRef(() => RenderResumeDslUseCase))
+    private readonly renderResumeDsl: RenderResumeDslUseCase,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
   ) {}
@@ -54,14 +54,15 @@ export class TypstPdfGeneratorService {
     // 1. Find resume: use explicit resumeId or fall back to user's primary
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
 
-    // 2. Use DslRepository to load resume + theme + compile AST
-    const { ast } = await this.dslRepository.render(
+    // 2. Render the resume DSL to AST via the use case (loads resume +
+    //    theme, validates, compiles)
+    const { ast } = await this.renderResumeDsl.execute({
       resumeId,
       userId,
-      'pdf',
+      target: 'pdf',
       locale,
-      options.themeStyleConfig,
-    );
+      themeStyleConfig: options.themeStyleConfig,
+    });
 
     // 3. Serialize AST to JSON for Typst templates
     const jsonData = this.serializer.serialize(ast);

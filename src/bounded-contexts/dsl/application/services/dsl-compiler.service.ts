@@ -22,9 +22,9 @@ import {
   getPlaceholderData,
   type ItemOverride,
   mapColumnToId,
-} from './application/compilers';
+} from '../compilers';
+import { DslMigrationService } from '../migrators';
 import { DslValidatorService } from './dsl-validator.service';
-import { DslMigrationService } from './migrators';
 import { type ResolvedTokens, TokenResolverService } from './token-resolver.service';
 
 const CURRENT_DSL_VERSION = '1.0.0';

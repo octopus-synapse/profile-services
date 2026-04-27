@@ -13,7 +13,7 @@ import {
   DslNormalizedMissingException,
   DslUnsupportedVersionException,
   DslValidationFailedException,
-} from './domain/exceptions/dsl.exceptions';
+} from '../../domain/exceptions/dsl.exceptions';
 
 export interface ValidationResult {
   valid: boolean;

@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { RenderContext } from './domain/schemas/dsl/context.schema';
+import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import { ThemeCompilationError, ThemeDslService } from './theme-dsl.service';
 
 describe('ThemeDslService', () => {

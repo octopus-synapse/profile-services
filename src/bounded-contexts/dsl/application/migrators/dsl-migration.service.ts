@@ -9,7 +9,7 @@ import {
   DslMigrationLoopException,
   DslMigrationPathNotFoundException,
   DslMigrationResultVersionMismatchException,
-} from '../domain/exceptions/dsl.exceptions';
+} from '../../domain/exceptions/dsl.exceptions';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()

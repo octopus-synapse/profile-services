@@ -7,8 +7,8 @@ import {
   FONT_SIZES,
   SHADOWS,
   SPACING_SIZES,
-} from './domain/value-objects/design-token-config';
-import { resolveHeadingStyle } from './domain/value-objects/heading-style';
+} from '../../domain/value-objects/design-token-config';
+import { resolveHeadingStyle } from '../../domain/value-objects/heading-style';
 
 export interface ResolvedTokens {
   typography: {
