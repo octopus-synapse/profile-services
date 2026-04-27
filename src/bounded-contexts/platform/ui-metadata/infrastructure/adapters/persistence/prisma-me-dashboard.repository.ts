@@ -1,32 +1,29 @@
-import { Injectable } from '@nestjs/common';
+/**
+ * Prisma adapter for `MeDashboardRepositoryPort`.
+ *
+ * Owns the parallel fan-out across the half-dozen counts + lookups
+ * the dashboard page needs. The use case sees a single typed
+ * `MeDashboardPayload`; this is the only place that knows about
+ * `Prisma`/`PrismaService`.
+ */
+
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+import type { MeDashboardPayload } from '../../../domain/entities/me-dashboard';
+import type { PermissionGrant } from '../../../domain/entities/permission-grant';
+import { MeDashboardRepositoryPort } from '../../../domain/ports/me-dashboard.repository.port';
 
-export interface MeDashboardPayload {
-  viewer: { id: string; name: string | null; email: string | null };
-  counts: {
-    resumes: number;
-    applications: number;
-    unreadNotifications: number;
-    followers: number;
-    following: number;
-  };
-  recentNotifications: Array<{
-    id: string;
-    type: string;
-    message: string;
-    messageKey: string | null;
-    messageParams: unknown;
-    read: boolean;
-    createdAt: Date;
-  }>;
-  pendingFollowUps: number;
-}
+const CTX = 'PrismaMeDashboardRepository';
 
-@Injectable()
-export class MeDashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaMeDashboardRepository extends MeDashboardRepositoryPort {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
+    super();
+  }
 
-  async load(userId: string): Promise<MeDashboardPayload> {
+  async loadDashboard(userId: string): Promise<MeDashboardPayload> {
     const [
       viewer,
       resumesCount,
@@ -67,6 +64,10 @@ export class MeDashboardService {
       }),
     ]);
 
+    if (!viewer) {
+      this.logger.warn(`Dashboard requested for unknown user ${userId}`, CTX);
+    }
+
     return {
       viewer: viewer ?? { id: userId, name: null, email: null },
       counts: {
@@ -79,5 +80,22 @@ export class MeDashboardService {
       recentNotifications,
       pendingFollowUps,
     };
+  }
+
+  async listActivePermissionGrants(userId: string): Promise<PermissionGrant[]> {
+    const grants = await this.prisma.userPermission.findMany({
+      where: {
+        userId,
+        granted: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      select: { permission: { select: { resource: true, action: true } } },
+    });
+
+    const out: PermissionGrant[] = [];
+    for (const g of grants) {
+      if (g.permission) out.push(`${g.permission.resource}:${g.permission.action}`);
+    }
+    return out;
   }
 }

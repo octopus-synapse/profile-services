@@ -10,14 +10,15 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { type MeDashboardPayload, MeDashboardService } from '../services/me-dashboard.service';
+import type { MeDashboardPayload } from '../../domain/entities/me-dashboard';
+import { LoadMeDashboardUseCase } from '../../application/use-cases/load-me-dashboard/load-me-dashboard.use-case';
 
 @SdkExport({ tag: 'pages', description: 'Composite page payloads' })
 @ApiTags('pages')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/pages/me-dashboard')
 export class MeDashboardController {
-  constructor(private readonly service: MeDashboardService) {}
+  constructor(private readonly loadMeDashboard: LoadMeDashboardUseCase) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -28,7 +29,7 @@ export class MeDashboardController {
   async load(
     @CurrentUser() user: UserPayload,
   ): Promise<{ success: true; data: MeDashboardPayload }> {
-    const data = await this.service.load(user.userId);
+    const data = await this.loadMeDashboard.execute(user.userId);
     return { success: true, data };
   }
 }
