@@ -32,7 +32,6 @@ const SRC_ROOT = 'src';
 const BASELINE_FILE = join(__dirname, 'composition-convention.baseline.json');
 
 interface Baseline {
-  readonly directlyWiredModules: number;
   readonly nestInComposition: number;
 }
 
@@ -94,24 +93,18 @@ function writeBaseline(next: Baseline): void {
 }
 
 describe('Composition convention', () => {
-  it('modules wiring use cases inline (instead of via build*UseCases) only shrink', () => {
+  it('no module may wire use cases inline — all wiring routes through build*UseCases', () => {
     const offenders = findDirectlyWiredModules();
-    const stored = readBaseline();
-    const current = offenders.length;
 
-    if (current > 0) {
+    if (offenders.length > 0) {
       console.warn(
-        `\n${current} module(s) still wire use cases inline:\n${offenders
+        `\n${offenders.length} module(s) wire use cases inline:\n${offenders
           .map((o) => `  - ${o.path}\n      ${o.samples.join('\n      ')}`)
           .join('\n')}\n`,
       );
     }
 
-    if (current < stored.directlyWiredModules) {
-      writeBaseline({ ...stored, directlyWiredModules: current });
-    }
-
-    expect(current).toBeLessThanOrEqual(stored.directlyWiredModules);
+    expect(offenders).toEqual([]);
   });
 
   it('*.composition.ts files importing from @nestjs/* only shrink', () => {
