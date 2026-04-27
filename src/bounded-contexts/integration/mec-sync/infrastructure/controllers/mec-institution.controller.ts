@@ -9,10 +9,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { APP_CONFIG } from '@/shared-kernel';
-import { GetInstitutionByCodeUseCase } from '../../application/use-cases/get-institution-by-code/get-institution-by-code.use-case';
-import { ListCoursesByInstitutionUseCase } from '../../application/use-cases/list-courses-by-institution/list-courses-by-institution.use-case';
-import { ListInstitutionsUseCase } from '../../application/use-cases/list-institutions/list-institutions.use-case';
-import { SearchInstitutionsUseCase } from '../../application/use-cases/search-institutions/search-institutions.use-case';
+import { MecSyncUseCases } from '../../application/ports/mec-sync.port';
 import {
   MecInstitutionCoursesDataDto,
   MecInstitutionDataDto,
@@ -23,12 +20,7 @@ import {
 @ApiTags('mec-institutions')
 @Controller('v1/mec/institutions')
 export class MecInstitutionController {
-  constructor(
-    private readonly listInstitutionsUseCase: ListInstitutionsUseCase,
-    private readonly searchInstitutionsUseCase: SearchInstitutionsUseCase,
-    private readonly getInstitutionByCodeUseCase: GetInstitutionByCodeUseCase,
-    private readonly listCoursesByInstitutionUseCase: ListCoursesByInstitutionUseCase,
-  ) {}
+  constructor(private readonly bc: MecSyncUseCases) {}
 
   @Get()
   @Public()
@@ -38,7 +30,7 @@ export class MecInstitutionController {
   async listInstitutions(
     @Query('uf') stateCode?: string,
   ): Promise<DataResponse<MecInstitutionListDataDto>> {
-    const institutions = await this.listInstitutionsUseCase.execute(stateCode);
+    const institutions = await this.bc.listInstitutions.execute(stateCode);
 
     return { success: true, data: { institutions } };
   }
@@ -56,7 +48,7 @@ export class MecInstitutionController {
     @Query('limit') limit?: string,
   ): Promise<DataResponse<MecInstitutionListDataDto>> {
     const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.DEFAULT_PAGE_SIZE;
-    const institutions = await this.searchInstitutionsUseCase.execute(searchQuery, parsedLimit);
+    const institutions = await this.bc.searchInstitutions.execute(searchQuery, parsedLimit);
 
     return { success: true, data: { institutions } };
   }
@@ -69,7 +61,7 @@ export class MecInstitutionController {
   async getInstitutionByCodeWithCourses(
     @Param('codigoIes', ParseIntPipe) codigoIes: number,
   ): Promise<DataResponse<MecInstitutionDataDto>> {
-    const institution = await this.getInstitutionByCodeUseCase.execute(codigoIes);
+    const institution = await this.bc.getInstitutionByCode.execute(codigoIes);
 
     return { success: true, data: { institution } };
   }
@@ -84,7 +76,7 @@ export class MecInstitutionController {
   async listCoursesByInstitutionCode(
     @Param('codigoIes', ParseIntPipe) codigoIes: number,
   ): Promise<DataResponse<MecInstitutionCoursesDataDto>> {
-    const courses = await this.listCoursesByInstitutionUseCase.execute(codigoIes);
+    const courses = await this.bc.listCoursesByInstitution.execute(codigoIes);
 
     return { success: true, data: { courses } };
   }

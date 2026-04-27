@@ -10,18 +10,14 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { APP_CONFIG } from '@/shared-kernel';
-import { GetCourseByCodeUseCase } from '../../application/use-cases/get-course-by-code/get-course-by-code.use-case';
-import { SearchCoursesUseCase } from '../../application/use-cases/search-courses/search-courses.use-case';
+import { MecSyncUseCases } from '../../application/ports/mec-sync.port';
 import { MecCourseDataDto, MecCourseListDataDto } from '../../dto/controller-response.dto';
 
 @SdkExport({ tag: 'mec-courses', description: 'Mec Courses API', requiresAuth: false })
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')
 export class MecCourseController {
-  constructor(
-    private readonly searchCoursesUseCase: SearchCoursesUseCase,
-    private readonly getCourseByCodeUseCase: GetCourseByCodeUseCase,
-  ) {}
+  constructor(private readonly bc: MecSyncUseCases) {}
 
   @Get('search')
   @Public()
@@ -40,7 +36,7 @@ export class MecCourseController {
         throw new BadRequestException('Invalid limit parameter. Must be a positive number.');
       }
     }
-    const courses = await this.searchCoursesUseCase.execute(searchQuery, parsedLimit);
+    const courses = await this.bc.searchCourses.execute(searchQuery, parsedLimit);
 
     return { success: true, data: { courses } };
   }
@@ -53,7 +49,7 @@ export class MecCourseController {
   async getCourseByCode(
     @Param('codigoCurso', ParseIntPipe) codigoCurso: number,
   ): Promise<DataResponse<MecCourseDataDto>> {
-    const course = await this.getCourseByCodeUseCase.execute(codigoCurso);
+    const course = await this.bc.getCourseByCode.execute(codigoCurso);
 
     return { success: true, data: { course } };
   }

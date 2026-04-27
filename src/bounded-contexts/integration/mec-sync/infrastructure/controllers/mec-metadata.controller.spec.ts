@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetMecStatisticsUseCase } from '../../application/use-cases/get-mec-statistics/get-mec-statistics.use-case';
-import { ListKnowledgeAreasUseCase } from '../../application/use-cases/list-knowledge-areas/list-knowledge-areas.use-case';
-import { ListStateCodesUseCase } from '../../application/use-cases/list-state-codes/list-state-codes.use-case';
+import { MecSyncUseCases } from '../../application/ports/mec-sync.port';
 import { MecMetadataController } from './mec-metadata.controller';
 
 describe('MecMetadataController - Contract', () => {
@@ -13,24 +11,22 @@ describe('MecMetadataController - Contract', () => {
       controllers: [MecMetadataController],
       providers: [
         {
-          provide: ListStateCodesUseCase,
-          useValue: { execute: mock(() => Promise.resolve(['SP', 'RJ'])) },
-        },
-        {
-          provide: ListKnowledgeAreasUseCase,
-          useValue: { execute: mock(() => Promise.resolve(['Engenharias', 'Saúde'])) },
-        },
-        {
-          provide: GetMecStatisticsUseCase,
+          provide: MecSyncUseCases,
           useValue: {
-            execute: mock(() =>
-              Promise.resolve({
-                totalInstitutions: 10,
-                totalCourses: 20,
-                coursesByGrau: [],
-                institutionsByUf: [],
-              }),
-            ),
+            listStateCodes: { execute: mock(() => Promise.resolve(['SP', 'RJ'])) },
+            listKnowledgeAreas: {
+              execute: mock(() => Promise.resolve(['Engenharias', 'Saúde'])),
+            },
+            getMecStatistics: {
+              execute: mock(() =>
+                Promise.resolve({
+                  totalInstitutions: 10,
+                  totalCourses: 20,
+                  coursesByGrau: [],
+                  institutionsByUf: [],
+                }),
+              ),
+            },
           },
         },
       ],

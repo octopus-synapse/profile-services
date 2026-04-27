@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetCourseByCodeUseCase } from '../../application/use-cases/get-course-by-code/get-course-by-code.use-case';
-import { SearchCoursesUseCase } from '../../application/use-cases/search-courses/search-courses.use-case';
+import { MecSyncUseCases } from '../../application/ports/mec-sync.port';
 import { MecCourseController } from './mec-course.controller';
 
 describe('MecCourseController - Contract', () => {
@@ -12,15 +11,14 @@ describe('MecCourseController - Contract', () => {
       controllers: [MecCourseController],
       providers: [
         {
-          provide: SearchCoursesUseCase,
-          useValue: { execute: mock(() => Promise.resolve([{ codigoCurso: 123 }])) },
-        },
-        {
-          provide: GetCourseByCodeUseCase,
+          provide: MecSyncUseCases,
           useValue: {
-            execute: mock(() =>
-              Promise.resolve({ codigoCurso: 123, nome: 'Engenharia de Software' }),
-            ),
+            searchCourses: { execute: mock(() => Promise.resolve([{ codigoCurso: 123 }])) },
+            getCourseByCode: {
+              execute: mock(() =>
+                Promise.resolve({ codigoCurso: 123, nome: 'Engenharia de Software' }),
+              ),
+            },
           },
         },
       ],
