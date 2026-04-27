@@ -1,10 +1,5 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import type { Job, Queue } from 'bullmq';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
-import { LoggerPort } from '@/shared-kernel';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { LoggerPort } from '@/shared-kernel';
 
 export const JOB_MATCH_RECOMPUTE_QUEUE = 'job-match-recompute';
 
@@ -25,32 +20,22 @@ export type JobMatchRecomputeJobData =
  *
  * Event subscriptions are intentionally narrow — only `ResumeUpdated`
  * in this MVP. Job-level and fit-profile events flow in later when
- * their owning contexts grow proper domain events.
+ * their owning contexts grow proper domain events. The `@OnEvent`
+ * listener that fans out events into this queue lives in
+ * `infrastructure/handlers/job-match-recompute-on-resume-updated.handler.ts`.
+ *
+ * Framework-free POJO. Wired by `registerJobMatchJobs` via
+ * `JobQueuePort`.
  */
 const CTX = 'JobMatchRecomputeWorker';
 
-@Injectable()
-@Processor(JOB_MATCH_RECOMPUTE_QUEUE, { concurrency: 4 })
-export class JobMatchRecomputeWorker extends WorkerHost {
+export class JobMatchRecomputeWorker {
   constructor(
-    @InjectQueue(JOB_MATCH_RECOMPUTE_QUEUE)
-    private readonly queue: Queue<JobMatchRecomputeJobData>,
     private readonly cache: CacheService,
     private readonly logger: LoggerPort,
-  ) {
-    super();
-  }
+  ) {}
 
-  @OnEvent(ResumeUpdatedEvent.TYPE)
-  async onResumeUpdated(event: ResumeUpdatedEvent): Promise<void> {
-    await this.queue.add(
-      'invalidate-resume',
-      { kind: 'invalidate-resume', resumeId: event.aggregateId },
-      { jobId: `match-invalidate:resume:${event.aggregateId}` },
-    );
-  }
-
-  async process(job: Job<JobMatchRecomputeJobData>): Promise<void> {
+  async process(job: { data: JobMatchRecomputeJobData; id?: string }): Promise<void> {
     const pattern = this.patternFor(job.data);
     if (!pattern) return;
     try {
@@ -80,14 +65,5 @@ export class JobMatchRecomputeWorker extends WorkerHost {
       default:
         return null;
     }
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<JobMatchRecomputeJobData>, err: Error): void {
-    this.logger.error(
-      `job-match-recompute failed kind=${job?.data?.kind} err=${err.message}`,
-      err.stack,
-      CTX,
-    );
   }
 }

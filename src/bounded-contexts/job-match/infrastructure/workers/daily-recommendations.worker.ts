@@ -1,11 +1,9 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import type { Job, Queue } from 'bullmq';
-import { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
-import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
-import { ComputeMatchUseCase } from '../../application/use-cases/compute-match.use-case';
+import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
+import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { ComputeMatchUseCase } from '../../application/use-cases/compute-match.use-case';
 
 export const DAILY_RECOMMENDATIONS_QUEUE = 'daily-recommendations';
 
@@ -40,45 +38,39 @@ const JOB_RECENCY_DAYS = 7;
  *
  * The `scoring.match.daily-recommendations` feature flag gates the
  * whole pipeline — when OFF the schedule job no-ops without enqueueing.
+ *
+ * Framework-free POJO. Wired by `registerJobMatchJobs` via
+ * `JobQueuePort`.
  */
 const CTX = 'DailyRecommendationsWorker';
 
-@Injectable()
-@Processor(DAILY_RECOMMENDATIONS_QUEUE, { concurrency: 2 })
-export class DailyRecommendationsWorker extends WorkerHost implements OnModuleInit {
+export class DailyRecommendationsWorker {
   constructor(
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
     private readonly computeMatch: ComputeMatchUseCase,
     private readonly notifications: NotificationsUseCases,
-    @InjectQueue(DAILY_RECOMMENDATIONS_QUEUE)
-    private readonly queue: Queue<DailyRecommendationsJobData>,
+    private readonly queue: JobQueuePort,
     private readonly logger: LoggerPort,
-  ) {
-    super();
-  }
+  ) {}
 
-  async onModuleInit(): Promise<void> {
-    // Every 3 days at 04:00 America/Sao_Paulo. Offset from the
-    // fit-profile-expire cron (03:00) so the two workers don't compete
-    // for the same DB window.
-    await this.queue.add(
-      'daily-recommendations-schedule',
-      { kind: 'schedule' },
-      {
-        repeat: { pattern: '0 4 */3 * *', tz: 'America/Sao_Paulo' },
-        jobId: 'daily-recommendations-schedule-cron',
-      },
-    );
-  }
-
-  async process(job: Job<DailyRecommendationsJobData>): Promise<void> {
-    if (job.data.kind === 'schedule') {
-      await this.fanOutActiveUsers();
-      return;
-    }
-    if (job.data.kind === 'compute-for-user') {
-      await this.computeForUser(job.data.userId);
+  async process(job: { data: DailyRecommendationsJobData; id?: string }): Promise<void> {
+    try {
+      if (job.data.kind === 'schedule') {
+        await this.fanOutActiveUsers();
+        return;
+      }
+      if (job.data.kind === 'compute-for-user') {
+        await this.computeForUser(job.data.userId);
+      }
+    } catch (err) {
+      const kind = job?.data?.kind;
+      this.logger.error(
+        `daily-recommendations failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
+      throw err;
     }
   }
 
@@ -106,7 +98,10 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
       CTX,
     );
     for (const u of candidates) {
-      await this.queue.add('compute-for-user', { kind: 'compute-for-user', userId: u.id });
+      await this.queue.enqueue<DailyRecommendationsJobData>(DAILY_RECOMMENDATIONS_QUEUE, {
+        kind: 'compute-for-user',
+        userId: u.id,
+      });
     }
   }
 
@@ -179,14 +174,5 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
         CTX,
       );
     }
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<DailyRecommendationsJobData>, err: Error): void {
-    this.logger.error(
-      `daily-recommendations failed kind=${job?.data?.kind} err=${err.message}`,
-      err.stack,
-      CTX,
-    );
   }
 }
