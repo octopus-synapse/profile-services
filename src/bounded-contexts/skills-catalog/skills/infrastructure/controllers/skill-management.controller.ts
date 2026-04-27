@@ -5,7 +5,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RequirePermission } from '@/shared-kernel/authorization';
-import { SkillManagementService } from '../../application/services/skill-management.service';
+import { SkillsUseCases } from '../../application/ports/skills.port';
 import type { CreateSkillData, UpdateSkillData } from '../../domain/ports/skill-management.port';
 import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../../dto/controller-response.dto';
 
@@ -15,7 +15,7 @@ import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../../dto/contr
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SkillManagementController {
-  constructor(private readonly skillManagementService: SkillManagementService) {}
+  constructor(private readonly bc: SkillsUseCases) {}
 
   @Post()
   @RequirePermission('resume', 'update')
@@ -25,7 +25,7 @@ export class SkillManagementController {
     @Param('resumeId') resumeId: string,
     @Body() input: CreateSkillData,
   ): Promise<DataResponse<SkillDataDto>> {
-    const skill = await this.skillManagementService.addSkillToResume(resumeId, input);
+    const skill = await this.bc.addSkill.execute(resumeId, input);
 
     return { success: true, data: { skill } };
   }
@@ -37,7 +37,7 @@ export class SkillManagementController {
   async listSkillsForResume(
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<SkillsDataDto>> {
-    const skills = await this.skillManagementService.listSkillsForResume(resumeId);
+    const skills = await this.bc.listSkillsForResume.execute(resumeId);
 
     return { success: true, data: { skills } };
   }
@@ -51,7 +51,7 @@ export class SkillManagementController {
     @Param('skillId') skillId: string,
     @Body() input: UpdateSkillData,
   ): Promise<DataResponse<SkillDataDto>> {
-    const skill = await this.skillManagementService.updateSkill(skillId, input);
+    const skill = await this.bc.updateSkill.execute(skillId, input);
 
     return { success: true, data: { skill } };
   }
@@ -64,7 +64,7 @@ export class SkillManagementController {
     @Param('resumeId') _resumeId: string,
     @Param('skillId') skillId: string,
   ): Promise<DataResponse<DeleteSkillDataDto>> {
-    await this.skillManagementService.deleteSkill(skillId);
+    await this.bc.deleteSkill.execute(skillId);
 
     return { success: true, data: { result: { deleted: true } } };
   }
