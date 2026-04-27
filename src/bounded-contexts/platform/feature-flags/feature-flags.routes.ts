@@ -1,14 +1,26 @@
 /**
  * Route descriptors for the feature-flags BC. Replaces
- * `AdminFeatureFlagsController` and the `evaluate` endpoint of
- * `FeatureFlagsController`. The `subscribe` SSE endpoint stays as a
- * legacy controller because the synthesizer does not yet model SSE.
+ * `AdminFeatureFlagsController` and the entire `FeatureFlagsController`
+ * (including the SSE `subscribe` endpoint, now declared as a
+ * `kind: 'sse'` Route descriptor and wired through a dedicated
+ * `FeatureFlagsSseBundle`).
  */
 
+import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { FeatureFlagsUseCases } from './application/ports/feature-flags.port';
+import type { FlagStreamMessage } from './infrastructure/sse/sse-flag-stream.service';
+
+/**
+ * Bundle for the feature-flags SSE route. Holds the local hub that
+ * fans out flag-invalidate broadcasts to connected clients (wired in
+ * `feature-flags.module.ts`).
+ */
+export abstract class FeatureFlagsSseBundle {
+  abstract readonly flagStream: { observe(): Observable<FlagStreamMessage> };
+}
 
 const KeyParam = z.object({ key: z.string() });
 
@@ -112,5 +124,28 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
       await bc.broadcastRefresh.execute();
       return { success: true };
     },
+  },
+];
+
+/**
+ * SSE routes for the feature-flags BC. Live in a separate group because
+ * the `Route<TBundle>` shape pins the bundle type per group — the SSE
+ * subscriber consumes `FeatureFlagsSseBundle`, not `FeatureFlagsUseCases`.
+ */
+export const featureFlagsSseRoutes: ReadonlyArray<Route<FeatureFlagsSseBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/feature-flags/stream',
+    auth: { kind: 'jwt' },
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    openapi: {
+      summary: 'Subscribe to flag invalidation broadcasts',
+      tags: ['feature-flags'],
+      description:
+        'Server-Sent Events channel emitting `invalidate` messages when admin toggles a flag or triggers a broadcast refresh. Clients should re-fetch /evaluate on each message.',
+    },
+    sdk: { exported: false },
+    handler: async (_ctx, bundle) => bundle.flagStream.observe(),
   },
 ];
