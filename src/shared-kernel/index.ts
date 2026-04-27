@@ -36,6 +36,10 @@ export { DomainEvent, EventBusModule, EventPublisher, EventPublisherPort } from 
 // ============================================================================
 export * from './exceptions';
 // ============================================================================
+// HTTP (Framework-Agnostic Route Descriptors + Pipeline + Adapter)
+// ============================================================================
+export * from './http';
+// ============================================================================
 // Logger (Framework-Agnostic Logging Port)
 // ============================================================================
 export * from './logger';
