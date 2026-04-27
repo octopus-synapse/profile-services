@@ -24,9 +24,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreateCommentUseCase } from '../../application/use-cases/create-comment/create-comment.use-case';
-import { DeleteCommentUseCase } from '../../application/use-cases/delete-comment/delete-comment.use-case';
-import { ListPostCommentsUseCase } from '../../application/use-cases/list-post-comments/list-post-comments.use-case';
+import { FeedUseCases } from '../../application/ports/feed.port';
 import {
   CommentCreatedDataDto,
   CommentDeletedDataDto,
@@ -39,11 +37,7 @@ import {
 @RequirePermission(Permission.FEED_USE)
 @Controller('v1/posts')
 export class CommentController {
-  constructor(
-    private readonly listPostCommentsUseCase: ListPostCommentsUseCase,
-    private readonly createCommentUseCase: CreateCommentUseCase,
-    private readonly deleteCommentUseCase: DeleteCommentUseCase,
-  ) {}
+  constructor(private readonly bc: FeedUseCases) {}
 
   @Get(':id/comments')
   @HttpCode(HttpStatus.OK)
@@ -57,7 +51,7 @@ export class CommentController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listPostCommentsUseCase.execute(
+    return this.bc.listPostComments.execute(
       postId,
       cursor,
       limit ? Math.min(Number(limit), 50) : 20,
@@ -74,7 +68,7 @@ export class CommentController {
     @Param('id') postId: string,
     @Body() body: { content: string; parentId?: string },
   ) {
-    return this.createCommentUseCase.execute(postId, user.userId, body.content, body.parentId);
+    return this.bc.createComment.execute(postId, user.userId, body.content, body.parentId);
   }
 
   @Delete('comments/:id')
@@ -83,7 +77,7 @@ export class CommentController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(CommentDeletedDataDto, { description: 'Comment deleted' })
   async delete(@CurrentUser() user: UserPayload, @Param('id') id: string) {
-    await this.deleteCommentUseCase.execute(id, user.userId);
+    await this.bc.deleteComment.execute(id, user.userId);
     return { deleted: true };
   }
 }

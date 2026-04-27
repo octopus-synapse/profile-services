@@ -15,9 +15,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ListFeedBookmarksUseCase } from '../../application/use-cases/list-feed-bookmarks/list-feed-bookmarks.use-case';
-import { ListFeedTimelineUseCase } from '../../application/use-cases/list-feed-timeline/list-feed-timeline.use-case';
-import { ListUserPostsUseCase } from '../../application/use-cases/list-user-posts/list-user-posts.use-case';
+import { FeedUseCases } from '../../application/ports/feed.port';
 import {
   FeedBookmarksDataDto,
   FeedTimelineDataDto,
@@ -30,11 +28,7 @@ import {
 @RequirePermission(Permission.FEED_USE)
 @Controller('v1/feed')
 export class FeedController {
-  constructor(
-    private readonly listFeedTimelineUseCase: ListFeedTimelineUseCase,
-    private readonly listFeedBookmarksUseCase: ListFeedBookmarksUseCase,
-    private readonly listUserPostsUseCase: ListUserPostsUseCase,
-  ) {}
+  constructor(private readonly bc: FeedUseCases) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -56,7 +50,7 @@ export class FeedController {
     @Query('type') type?: PostType,
     @Query('followingOnly') followingOnly?: string,
   ) {
-    return this.listFeedTimelineUseCase.execute({
+    return this.bc.listFeedTimeline.execute({
       userId: user.userId,
       cursor,
       limit: limit ? Math.min(Number(limit), 50) : 20,
@@ -76,7 +70,7 @@ export class FeedController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listFeedBookmarksUseCase.execute(
+    return this.bc.listFeedBookmarks.execute(
       user.userId,
       cursor,
       limit ? Math.min(Number(limit), 50) : 20,
@@ -95,7 +89,7 @@ export class FeedController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listUserPostsUseCase.execute(
+    return this.bc.listUserPosts.execute(
       userId,
       cursor,
       limit ? Math.min(Number(limit), 50) : 20,

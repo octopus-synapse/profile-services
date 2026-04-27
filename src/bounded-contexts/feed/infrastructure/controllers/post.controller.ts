@@ -1,8 +1,6 @@
 /**
  * Post Controller
  *
- * Handles HTTP endpoints for post CRUD operations and image upload.
- *
  * Endpoints:
  * - POST   /v1/posts              - Create a post
  * - GET    /v1/posts/:id          - Get a post by ID
@@ -36,10 +34,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreatePostUseCase } from '../../application/use-cases/create-post/create-post.use-case';
-import { DeletePostUseCase } from '../../application/use-cases/delete-post/delete-post.use-case';
-import { GetPostUseCase } from '../../application/use-cases/get-post/get-post.use-case';
-import { UploadPostImageUseCase } from '../../application/use-cases/upload-post-image/upload-post-image.use-case';
+import { FeedUseCases } from '../../application/ports/feed.port';
 import { CreatePostDto } from '../../dto/create-post-request.dto';
 import {
   PostByIdDataDto,
@@ -54,12 +49,7 @@ import {
 @RequirePermission(Permission.FEED_USE)
 @Controller('v1/posts')
 export class PostController {
-  constructor(
-    private readonly createPostUseCase: CreatePostUseCase,
-    private readonly getPostUseCase: GetPostUseCase,
-    private readonly deletePostUseCase: DeletePostUseCase,
-    private readonly uploadPostImageUseCase: UploadPostImageUseCase,
-  ) {}
+  constructor(private readonly bc: FeedUseCases) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -67,7 +57,7 @@ export class PostController {
   @ApiBody({ type: CreatePostDto })
   @ApiDataResponse(PostCreatedDataDto, { status: 201, description: 'Post created successfully' })
   async create(@CurrentUser() user: UserPayload, @Body() body: CreatePostDto) {
-    return this.createPostUseCase.execute(user.userId, body);
+    return this.bc.createPost.execute(user.userId, body);
   }
 
   @Get(':id')
@@ -76,7 +66,7 @@ export class PostController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(PostByIdDataDto, { description: 'Post details' })
   async findById(@Param('id') id: string) {
-    return this.getPostUseCase.execute(id);
+    return this.bc.getPost.execute(id);
   }
 
   @Delete(':id')
@@ -85,7 +75,7 @@ export class PostController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(PostDeletedDataDto, { description: 'Post deleted' })
   async delete(@CurrentUser() user: UserPayload, @Param('id') id: string) {
-    await this.deletePostUseCase.execute(id, user.userId);
+    await this.bc.deletePost.execute(id, user.userId);
     return { deleted: true };
   }
 
@@ -104,7 +94,7 @@ export class PostController {
   })
   @ApiDataResponse(PostImageUploadDataDto, { description: 'Image uploaded successfully' })
   async uploadImage(@CurrentUser() user: UserPayload, @UploadedFile() file: Express.Multer.File) {
-    return this.uploadPostImageUseCase.execute(
+    return this.bc.uploadPostImage.execute(
       file
         ? {
             userId: user.userId,

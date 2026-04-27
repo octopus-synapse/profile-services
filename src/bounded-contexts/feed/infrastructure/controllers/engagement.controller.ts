@@ -19,13 +19,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { BookmarkPostUseCase } from '../../application/use-cases/bookmark-post/bookmark-post.use-case';
-import { LikePostUseCase } from '../../application/use-cases/like-post/like-post.use-case';
-import { ReportPostUseCase } from '../../application/use-cases/report-post/report-post.use-case';
-import { RepostPostUseCase } from '../../application/use-cases/repost-post/repost-post.use-case';
-import { UnbookmarkPostUseCase } from '../../application/use-cases/unbookmark-post/unbookmark-post.use-case';
-import { UnlikePostUseCase } from '../../application/use-cases/unlike-post/unlike-post.use-case';
-import { VoteOnPollUseCase } from '../../application/use-cases/vote-on-poll/vote-on-poll.use-case';
+import { FeedUseCases } from '../../application/ports/feed.port';
 import {
   BookmarkDataDto,
   LikeDataDto,
@@ -42,15 +36,7 @@ import {
 @RequirePermission(Permission.FEED_USE)
 @Controller('v1/posts')
 export class EngagementController {
-  constructor(
-    private readonly likePostUseCase: LikePostUseCase,
-    private readonly unlikePostUseCase: UnlikePostUseCase,
-    private readonly bookmarkPostUseCase: BookmarkPostUseCase,
-    private readonly unbookmarkPostUseCase: UnbookmarkPostUseCase,
-    private readonly repostPostUseCase: RepostPostUseCase,
-    private readonly reportPostUseCase: ReportPostUseCase,
-    private readonly voteOnPollUseCase: VoteOnPollUseCase,
-  ) {}
+  constructor(private readonly bc: FeedUseCases) {}
 
   @Post(':id/like')
   @HttpCode(HttpStatus.OK)
@@ -62,7 +48,7 @@ export class EngagementController {
     @Param('id') postId: string,
     @Body() body: { reactionType?: ReactionType },
   ) {
-    return this.likePostUseCase.execute(postId, user.userId, body.reactionType);
+    return this.bc.likePost.execute(postId, user.userId, body.reactionType);
   }
 
   @Delete(':id/like')
@@ -71,7 +57,7 @@ export class EngagementController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(UnlikeDataDto, { description: 'Post unliked' })
   async unlike(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
-    return this.unlikePostUseCase.execute(postId, user.userId);
+    return this.bc.unlikePost.execute(postId, user.userId);
   }
 
   @Post(':id/bookmark')
@@ -80,7 +66,7 @@ export class EngagementController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(BookmarkDataDto, { description: 'Post bookmarked' })
   async bookmark(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
-    return this.bookmarkPostUseCase.execute(postId, user.userId);
+    return this.bc.bookmarkPost.execute(postId, user.userId);
   }
 
   @Delete(':id/bookmark')
@@ -89,7 +75,7 @@ export class EngagementController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(UnbookmarkDataDto, { description: 'Bookmark removed' })
   async unbookmark(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
-    return this.unbookmarkPostUseCase.execute(postId, user.userId);
+    return this.bc.unbookmarkPost.execute(postId, user.userId);
   }
 
   @Post(':id/repost')
@@ -102,7 +88,7 @@ export class EngagementController {
     @Param('id') postId: string,
     @Body() body: { commentary?: string },
   ) {
-    return this.repostPostUseCase.execute(postId, user.userId, body.commentary);
+    return this.bc.repostPost.execute(postId, user.userId, body.commentary);
   }
 
   @Post(':id/report')
@@ -115,7 +101,7 @@ export class EngagementController {
     @Param('id') postId: string,
     @Body() body: { reason: string },
   ) {
-    return this.reportPostUseCase.execute(postId, user.userId, body.reason);
+    return this.bc.reportPost.execute(postId, user.userId, body.reason);
   }
 
   @Post(':id/poll/vote')
@@ -128,6 +114,6 @@ export class EngagementController {
     @Param('id') postId: string,
     @Body() body: { optionIndex: number },
   ) {
-    return this.voteOnPollUseCase.execute(postId, user.userId, body.optionIndex);
+    return this.bc.voteOnPoll.execute(postId, user.userId, body.optionIndex);
   }
 }

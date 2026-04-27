@@ -10,8 +10,7 @@ import { Controller, Get, HttpCode, HttpStatus, Param, Query } from '@nestjs/com
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { ListUserCommentsUseCase } from '../../application/use-cases/list-user-comments/list-user-comments.use-case';
-import { ListUserReactionsUseCase } from '../../application/use-cases/list-user-reactions/list-user-reactions.use-case';
+import { FeedUseCases } from '../../application/ports/feed.port';
 
 @SdkExport({
   tag: 'user-engagement',
@@ -23,10 +22,7 @@ import { ListUserReactionsUseCase } from '../../application/use-cases/list-user-
 @RequirePermission(Permission.FEED_USE)
 @Controller('v1/users')
 export class UserEngagementController {
-  constructor(
-    private readonly listUserCommentsUseCase: ListUserCommentsUseCase,
-    private readonly listUserReactionsUseCase: ListUserReactionsUseCase,
-  ) {}
+  constructor(private readonly bc: FeedUseCases) {}
 
   @Get(':userId/comments')
   @HttpCode(HttpStatus.OK)
@@ -39,7 +35,7 @@ export class UserEngagementController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listUserCommentsUseCase.execute(userId, cursor, limit ? Number(limit) : undefined);
+    return this.bc.listUserComments.execute(userId, cursor, limit ? Number(limit) : undefined);
   }
 
   @Get(':userId/reactions')
@@ -53,6 +49,6 @@ export class UserEngagementController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listUserReactionsUseCase.execute(userId, cursor, limit ? Number(limit) : undefined);
+    return this.bc.listUserReactions.execute(userId, cursor, limit ? Number(limit) : undefined);
   }
 }
