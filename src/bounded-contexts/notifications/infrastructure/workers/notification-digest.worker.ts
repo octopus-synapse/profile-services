@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerPort } from '@/shared-kernel';
-import { SendDailyDigestsUseCase } from '../../application/use-cases/send-daily-digests/send-daily-digests.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 const CTX = 'NotificationDigestWorker';
 
@@ -18,14 +18,14 @@ const CTX = 'NotificationDigestWorker';
 @Injectable()
 export class NotificationDigestWorker {
   constructor(
-    private readonly sendDailyDigests: SendDailyDigestsUseCase,
+    private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_8AM)
   async run(): Promise<void> {
     try {
-      const result = await this.sendDailyDigests.execute();
+      const result = await this.bc.sendDailyDigests.execute();
       this.logger.log(
         `Daily digest sent to ${result.usersEmailed} users (${result.notificationsBatched} notifications)`,
         CTX,

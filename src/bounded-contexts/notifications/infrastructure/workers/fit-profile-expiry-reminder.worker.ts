@@ -2,11 +2,8 @@ import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullm
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
 import { LoggerPort } from '@/shared-kernel';
-import {
-  EnqueueExpiryRemindersUseCase,
-  type ExpiryReminderJob,
-} from '../../application/use-cases/enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
-import { SendExpiryReminderUseCase } from '../../application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
+import type { ExpiryReminderJob } from '../../application/use-cases/enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
 
 export const FIT_PROFILE_EXPIRY_REMINDER_QUEUE = 'fit-profile-expiry-reminder';
 
@@ -35,8 +32,7 @@ const CTX = 'FitProfileExpiryReminderWorker';
 @Processor(FIT_PROFILE_EXPIRY_REMINDER_QUEUE, { concurrency: 4 })
 export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModuleInit {
   constructor(
-    private readonly enqueueReminders: EnqueueExpiryRemindersUseCase,
-    private readonly sendReminder: SendExpiryReminderUseCase,
+    private readonly bc: NotificationsUseCases,
     @InjectQueue(FIT_PROFILE_EXPIRY_REMINDER_QUEUE)
     private readonly queue: Queue<FitProfileExpiryReminderJobData>,
     private readonly logger: LoggerPort,
@@ -61,7 +57,7 @@ export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModu
       return;
     }
     if (job.data.kind === 'remind-user') {
-      await this.sendReminder.execute({
+      await this.bc.sendExpiryReminder.execute({
         userId: job.data.userId,
         daysLeft: job.data.daysLeft,
         expiresAt: job.data.expiresAt,
@@ -70,7 +66,7 @@ export class FitProfileExpiryReminderWorker extends WorkerHost implements OnModu
   }
 
   private async fanOut(): Promise<void> {
-    const jobs = await this.enqueueReminders.execute();
+    const jobs = await this.bc.enqueueExpiryReminders.execute();
     for (const j of jobs) {
       await this.queue.add('remind-user', { kind: 'remind-user', ...j });
     }

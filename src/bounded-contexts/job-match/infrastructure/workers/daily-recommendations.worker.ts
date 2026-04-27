@@ -1,7 +1,7 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
-import { CreateNotificationUseCase } from '@/bounded-contexts/notifications/application/use-cases/create-notification/create-notification.use-case';
+import { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -50,7 +50,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
     private readonly computeMatch: ComputeMatchUseCase,
-    private readonly createNotification: CreateNotificationUseCase,
+    private readonly notifications: NotificationsUseCases,
     @InjectQueue(DAILY_RECOMMENDATIONS_QUEUE)
     private readonly queue: Queue<DailyRecommendationsJobData>,
     private readonly logger: LoggerPort,
@@ -165,7 +165,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     if (top.length === 0) return;
 
     try {
-      await this.createNotification.execute({
+      await this.notifications.createNotification.execute({
         userId,
         type: 'MATCH_RECOMMENDATIONS_READY',
         actorId: 'system',

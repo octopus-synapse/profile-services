@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
 import { LoggerPort } from '@/shared-kernel';
-import { NotifyResumeQualityRankChangeUseCase } from '../../application/use-cases/notify-resume-quality-rank-change/notify-resume-quality-rank-change.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 /**
  * Subscribes to `ResumeQualityComputedEvent` and delegates to
@@ -13,13 +13,13 @@ import { NotifyResumeQualityRankChangeUseCase } from '../../application/use-case
 @Injectable()
 export class ResumeQualityRankNotificationHandler {
   constructor(
-    private readonly notifyRank: NotifyResumeQualityRankChangeUseCase,
+    private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
   @OnEvent(ResumeQualityComputedEvent.TYPE)
   async handle(event: ResumeQualityComputedEvent): Promise<void> {
-    await this.notifyRank.execute({
+    await this.bc.notifyResumeQualityRankChange.execute({
       resumeId: event.payload.resumeId,
       overallScore: event.payload.overallScore,
     });

@@ -15,11 +15,7 @@ import type { NotificationType } from '@prisma/client';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { GetPreferencesUseCase } from '../../application/use-cases/get-preferences/get-preferences.use-case';
-import { GetUnreadCountUseCase } from '../../application/use-cases/get-unread-count/get-unread-count.use-case';
-import { ListNotificationsUseCase } from '../../application/use-cases/list-notifications/list-notifications.use-case';
-import { MarkNotificationsReadUseCase } from '../../application/use-cases/mark-notifications-read/mark-notifications-read.use-case';
-import { SetPreferenceUseCase } from '../../application/use-cases/set-preference/set-preference.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
 import {
   MarkReadDataDto,
   NotificationsListDataDto,
@@ -32,13 +28,7 @@ import {
 @RequirePermission(Permission.NOTIFICATION_READ)
 @Controller('v1/notifications')
 export class NotificationController {
-  constructor(
-    private readonly listNotifications: ListNotificationsUseCase,
-    private readonly getUnreadCount: GetUnreadCountUseCase,
-    private readonly markRead: MarkNotificationsReadUseCase,
-    private readonly getPreferences: GetPreferencesUseCase,
-    private readonly setPreference: SetPreferenceUseCase,
-  ) {}
+  constructor(private readonly bc: NotificationsUseCases) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -51,7 +41,7 @@ export class NotificationController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    return this.listNotifications.execute(
+    return this.bc.listNotifications.execute(
       req.user.userId,
       cursor,
       limit ? Number(limit) : undefined,
@@ -63,7 +53,7 @@ export class NotificationController {
   @ApiOperation({ summary: 'Get unread notification count' })
   @ApiDataResponse(UnreadCountDataDto, { description: 'Unread notification count' })
   async getUnreadCountEndpoint(@Req() req: { user: { userId: string } }) {
-    const count = await this.getUnreadCount.execute(req.user.userId);
+    const count = await this.bc.getUnreadCount.execute(req.user.userId);
     return { count };
   }
 
@@ -75,14 +65,14 @@ export class NotificationController {
     @Req() req: { user: { userId: string } },
     @Body() body: { notificationId?: string },
   ) {
-    return this.markRead.execute(req.user.userId, body.notificationId);
+    return this.bc.markNotificationsRead.execute(req.user.userId, body.notificationId);
   }
 
   @Get('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get notification preferences for the current user' })
   async getPreferencesEndpoint(@Req() req: { user: { userId: string } }) {
-    const preferences = await this.getPreferences.execute(req.user.userId);
+    const preferences = await this.bc.getPreferences.execute(req.user.userId);
     return { preferences };
   }
 
@@ -103,6 +93,6 @@ export class NotificationController {
       emailDelivery?: 'INSTANT' | 'DAILY' | 'WEEKLY' | 'OFF';
     },
   ) {
-    return this.setPreference.execute(req.user.userId, type, body);
+    return this.bc.setPreference.execute(req.user.userId, type, body);
   }
 }

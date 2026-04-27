@@ -12,7 +12,7 @@
  */
 
 import { Module } from '@nestjs/common';
-import { CreateNotificationUseCase } from '@/bounded-contexts/notifications/application/use-cases/create-notification/create-notification.use-case';
+import { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import { NotificationsModule } from '@/bounded-contexts/notifications/notifications.module';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -115,9 +115,9 @@ import { UserEngagementController } from './infrastructure/controllers/user-enga
     },
     {
       provide: EngagementNotifierPort,
-      useFactory: (create: CreateNotificationUseCase) =>
-        new NotificationsEngagementNotifierAdapter(create),
-      inject: [CreateNotificationUseCase],
+      useFactory: (notifications: NotificationsUseCases) =>
+        new NotificationsEngagementNotifierAdapter(notifications.createNotification),
+      inject: [NotificationsUseCases],
     },
 
     // ───────── application services ─────────

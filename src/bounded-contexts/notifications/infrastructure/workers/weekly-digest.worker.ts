@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { LoggerPort } from '@/shared-kernel';
-import { SendWeeklyDigestsUseCase } from '../../application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 const CTX = 'WeeklyDigestWorker';
 
@@ -18,14 +18,14 @@ const CTX = 'WeeklyDigestWorker';
 @Injectable()
 export class WeeklyDigestWorker {
   constructor(
-    private readonly sendWeeklyDigests: SendWeeklyDigestsUseCase,
+    private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
   @Cron('0 13 * * 1')
   async run(): Promise<void> {
     try {
-      const result = await this.sendWeeklyDigests.execute();
+      const result = await this.bc.sendWeeklyDigests.execute();
       this.logger.log(
         `Weekly digest sent to ${result.usersEmailed} users (${result.usersSkipped} skipped)`,
         CTX,

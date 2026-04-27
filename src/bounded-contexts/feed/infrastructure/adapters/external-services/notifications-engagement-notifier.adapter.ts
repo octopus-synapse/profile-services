@@ -4,14 +4,14 @@
  * free of cross-BC imports.
  */
 
-import { CreateNotificationUseCase } from '@/bounded-contexts/notifications/application/use-cases/create-notification/create-notification.use-case';
+import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import {
   type EngagementNotificationInput,
   EngagementNotifierPort,
 } from '../../../domain/ports/engagement-notifier.port';
 
 export class NotificationsEngagementNotifierAdapter extends EngagementNotifierPort {
-  constructor(private readonly create: CreateNotificationUseCase) {
+  constructor(private readonly create: NotificationsUseCases['createNotification']) {
     super();
   }
 

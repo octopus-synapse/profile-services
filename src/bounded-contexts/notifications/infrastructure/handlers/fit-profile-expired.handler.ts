@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domain/events';
 import { LoggerPort } from '@/shared-kernel';
-import { NotifyFitProfileExpiredUseCase } from '../../application/use-cases/notify-fit-profile-expired/notify-fit-profile-expired.use-case';
+import { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 /**
  * Notifications bridge for the fit-profile lockout flow.
@@ -17,13 +17,13 @@ import { NotifyFitProfileExpiredUseCase } from '../../application/use-cases/noti
 @Injectable()
 export class FitProfileExpiredNotificationHandler {
   constructor(
-    private readonly notifyExpired: NotifyFitProfileExpiredUseCase,
+    private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
   ) {}
 
   @OnEvent(UserFitProfileUpdatedEvent.TYPE)
   async handle(event: UserFitProfileUpdatedEvent): Promise<void> {
     if (event.payload.cause !== 'expired') return;
-    await this.notifyExpired.execute({ userId: event.aggregateId });
+    await this.bc.notifyFitProfileExpired.execute({ userId: event.aggregateId });
   }
 }
