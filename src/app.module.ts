@@ -137,8 +137,6 @@ import { AppController } from './app.controller';
         },
       }),
     }),
-    BullModule.registerQueue({ name: 'dead-letter' }),
-
     // Infrastructure & Core
     EventBusModule,
     LoggerModule,
