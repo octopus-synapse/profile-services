@@ -8,18 +8,19 @@
 
 import { Global, Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { DictionaryProjectorService } from './application/dictionary-projector.service';
 import { I18nService } from './application/i18n.service';
 import { I18nUseCases } from './application/ports/i18n.port';
 import { MessageCodeRegistry } from './domain/message-code.registry';
 import { TranslationPort } from './domain/translation.port';
 import { buildI18nUseCases } from './i18n.composition';
-import { I18nDictionaryController } from './infrastructure/controllers/i18n-dictionary.controller';
 import { DomainErrorFilter } from './infrastructure/domain-error.filter';
+import { i18nRoutes } from './i18n.routes';
 
 @Global()
 @Module({
-  controllers: [I18nDictionaryController],
+  controllers: [...synthesizeRouteControllers(I18nUseCases, i18nRoutes)],
   providers: [
     MessageCodeRegistry,
     I18nService,
