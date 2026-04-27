@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { HealthIndicator, HealthIndicatorResult } from '@nestjs/terminus';
 
 @Injectable()
 export class OpenAIHealthIndicator extends HealthIndicator {
-  constructor(private readonly config: ConfigService) {
+  constructor(private readonly config: ConfigPort) {
     super();
   }
 

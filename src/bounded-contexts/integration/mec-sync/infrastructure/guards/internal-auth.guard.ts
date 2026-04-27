@@ -5,7 +5,7 @@
  */
 
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import {
   InternalAuthNotConfiguredException,
   InternalTokenInvalidException,
@@ -18,7 +18,7 @@ const INTERNAL_TOKEN_HEADER = 'x-internal-token';
 export class InternalAuthGuard implements CanActivate {
   private readonly internalToken: string | undefined;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly configService: ConfigPort) {
     this.internalToken = this.configService.get<string>('INTERNAL_API_TOKEN');
   }
 

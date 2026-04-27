@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
@@ -19,7 +19,7 @@ export interface ResumePDFOptions {
 export class PdfPageSetup {
   private readonly logger = new Logger(PdfPageSetup.name);
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigPort) {}
 
   async setupPage(page: Page): Promise<void> {
     await page.setViewport({

@@ -5,12 +5,12 @@
  * registry); the rest is plain DI.
  */
 
-import type { ConfigService } from '@nestjs/config';
+import type { ConfigPort } from '@/shared-kernel/config';
 import type { CheckOAuthProviderAvailabilityUseCase } from '../use-cases/check-oauth-provider-availability/check-oauth-provider-availability.use-case';
 import type { UpsertUserFromOAuthProfileUseCase } from '../use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
 
 export abstract class OAuthHttpBundle {
   abstract readonly upsert: UpsertUserFromOAuthProfileUseCase;
   abstract readonly availability: CheckOAuthProviderAvailabilityUseCase;
-  abstract readonly config: ConfigService;
+  abstract readonly config: ConfigPort;
 }

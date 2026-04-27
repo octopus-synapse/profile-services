@@ -4,12 +4,12 @@
  * iff both env vars are set.
  */
 
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import type { OAuthProvider } from '../../../domain/entities/oauth-profile';
 import { OAuthProviderConfigPort } from '../../../domain/ports/oauth-provider-config.port';
 
 export class ConfigServiceOAuthProviderConfig extends OAuthProviderConfigPort {
-  constructor(private readonly config: ConfigService) {
+  constructor(private readonly config: ConfigPort) {
     super();
   }
 

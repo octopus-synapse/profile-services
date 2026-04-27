@@ -10,6 +10,7 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -50,8 +51,8 @@ import { LinkedinOAuthStrategy } from './strategies/linkedin.strategy';
     },
     {
       provide: OAuthProviderConfigPort,
-      useFactory: (config: ConfigService) => new ConfigServiceOAuthProviderConfig(config),
-      inject: [ConfigService],
+      useFactory: (config: ConfigPort) => new ConfigServiceOAuthProviderConfig(config),
+      inject: [ConfigPort],
     },
     {
       provide: UpsertUserFromOAuthProfileUseCase,
@@ -86,12 +87,12 @@ import { LinkedinOAuthStrategy } from './strategies/linkedin.strategy';
       useFactory: (
         upsert: UpsertUserFromOAuthProfileUseCase,
         availability: CheckOAuthProviderAvailabilityUseCase,
-        config: ConfigService,
+        config: ConfigPort,
       ): OAuthHttpBundle => ({ upsert, availability, config }),
       inject: [
         UpsertUserFromOAuthProfileUseCase,
         CheckOAuthProviderAvailabilityUseCase,
-        ConfigService,
+        ConfigPort,
       ],
     },
   ],

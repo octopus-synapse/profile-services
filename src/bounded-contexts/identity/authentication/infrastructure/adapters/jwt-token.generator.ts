@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtPort } from '@/shared-kernel/auth';
+import { ConfigPort } from '@/shared-kernel/config';
 import type { SessionPayload } from '../../domain/entities/session.entity';
 import type { TokenGeneratorPort, TokenPair, TokenPayload } from '../../domain/ports';
 
@@ -10,14 +10,14 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
   private readonly sessionExpiryDays: number;
 
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly jwtService: JwtPort,
+    private readonly configService: ConfigPort,
   ) {
-    this.accessTokenExpiresIn = this.configService.get<number>(
+    this.accessTokenExpiresIn = this.configService.getOrDefault<number>(
       'JWT_ACCESS_TOKEN_EXPIRES_IN',
       3600, // 1 hour default
     );
-    this.sessionExpiryDays = this.configService.get<number>(
+    this.sessionExpiryDays = this.configService.getOrDefault<number>(
       'SESSION_EXPIRY_DAYS',
       7, // 7 days default
     );
@@ -65,7 +65,7 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
-    const decoded = await this.jwtService.verifyAsync(token);
+    const decoded = await this.jwtService.verifyAsync<{ sub: string; email: string }>(token);
     return {
       userId: decoded.sub,
       email: decoded.email,
@@ -73,7 +73,13 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
   }
 
   async verifySessionToken(token: string): Promise<SessionPayload> {
-    const decoded = await this.jwtService.verifyAsync(token);
+    const decoded = await this.jwtService.verifyAsync<{
+      sub: string;
+      email: string;
+      sessionId: string;
+      iat: number;
+      exp: number;
+    }>(token);
     return {
       sub: decoded.sub,
       email: decoded.email,

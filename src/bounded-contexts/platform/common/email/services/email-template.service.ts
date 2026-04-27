@@ -4,7 +4,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { getPasswordChangedTemplate } from '../templates/password-changed.template';
 import { getPasswordResetTemplate } from '../templates/password-reset.template';
 import { getVerificationEmailTemplate } from '../templates/verification.template';
@@ -15,7 +15,7 @@ import { EmailSenderService } from './email-sender.service';
 export class EmailTemplateService {
   constructor(
     private readonly senderService: EmailSenderService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
   ) {}
 
   /**

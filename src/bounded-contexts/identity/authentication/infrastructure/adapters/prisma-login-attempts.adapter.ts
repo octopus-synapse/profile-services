@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoginAttemptRecord, LoginLockStatus } from '../../domain/ports/login-attempts.port';
 import { LoginAttemptsPort } from '../../domain/ports/login-attempts.port';
@@ -11,7 +11,7 @@ export class PrismaLoginAttemptsAdapter implements LoginAttemptsPort {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService,
+    private readonly config: ConfigPort,
   ) {
     this.maxFailedAttempts = Number(this.config.get<number>('LOGIN_MAX_FAILED_ATTEMPTS') ?? 5);
     const lockMinutes = Number(this.config.get<number>('LOGIN_LOCK_DURATION_MINUTES') ?? 15);

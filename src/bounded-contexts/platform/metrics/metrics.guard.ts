@@ -7,7 +7,7 @@
  */
 
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import type { Request } from 'express';
 import {
   InvalidMetricsApiKeyException,
@@ -19,7 +19,7 @@ export class MetricsGuard implements CanActivate {
   private readonly logger = new Logger(MetricsGuard.name);
   private readonly metricsApiKey: string | undefined;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly configService: ConfigPort) {
     this.metricsApiKey = this.configService.get<string>('METRICS_API_KEY');
     if (!this.metricsApiKey) {
       this.logger.warn(

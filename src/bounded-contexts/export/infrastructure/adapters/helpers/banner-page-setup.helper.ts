@@ -3,7 +3,7 @@
  * Handles page configuration and navigation for banner capture
  */
 
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
 import type { LoggerPort } from '@/shared-kernel';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../../constants/ui.constants';
@@ -12,7 +12,7 @@ const CTX = 'BannerPageSetup';
 
 export class BannerPageSetup {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
     private readonly logger: LoggerPort,
   ) {}
 

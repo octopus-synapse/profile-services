@@ -1,5 +1,5 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { Reflector } from '@nestjs/core';
 import { GetConsentStatusUseCasePort } from '@/bounded-contexts/identity/account-lifecycle/application/use-cases/tokens';
 // Import from a leaf token file (NOT a controller, NOT a use-case) to avoid
@@ -36,7 +36,7 @@ export class ConsentGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    config: ConfigService,
+    config: ConfigPort,
     private readonly getConsentStatus: GetConsentStatusUseCasePort,
   ) {
     this.skipTosCheck = config.get<string>('SKIP_TOS_CHECK') === 'true';

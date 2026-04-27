@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { LoggerPort } from '@/shared-kernel';
 import {
@@ -26,7 +26,7 @@ export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
   private readonly model: string;
 
   constructor(
-    private readonly config: ConfigService,
+    private readonly config: ConfigPort,
     private readonly logger: LoggerPort,
   ) {
     super();

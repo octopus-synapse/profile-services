@@ -4,7 +4,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
 import { BannerElementNotFoundException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
 import { LoggerPort } from '@/shared-kernel';
@@ -21,7 +21,7 @@ export class BannerCaptureService {
 
   constructor(
     private readonly browserManager: BrowserManagerService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
     private readonly logger: LoggerPort,
   ) {
     this.pageSetup = new BannerPageSetup(configService, logger);

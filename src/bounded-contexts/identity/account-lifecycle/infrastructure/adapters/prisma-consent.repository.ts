@@ -5,7 +5,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import type { ConsentDocumentType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -52,17 +52,17 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
 
 @Injectable()
 export class ConfigVersionAdapter implements VersionConfigPort {
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigPort) {}
 
   getTosVersion(): string {
-    return this.config.get<string>('TOS_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('TOS_VERSION', '1.0.0');
   }
 
   getPrivacyPolicyVersion(): string {
-    return this.config.get<string>('PRIVACY_POLICY_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('PRIVACY_POLICY_VERSION', '1.0.0');
   }
 
   getMarketingConsentVersion(): string {
-    return this.config.get<string>('MARKETING_CONSENT_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('MARKETING_CONSENT_VERSION', '1.0.0');
   }
 }

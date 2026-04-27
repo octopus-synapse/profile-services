@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { Reflector } from '@nestjs/core';
 import { EmailNotVerifiedException } from '@/bounded-contexts/identity/email-verification/domain/exceptions';
 import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
@@ -24,7 +24,7 @@ export class EmailVerifiedGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    private configService: ConfigService,
+    private configService: ConfigPort,
   ) {
     this.skipEmailVerification =
       this.configService.get<string>('SKIP_EMAIL_VERIFICATION') === 'true';

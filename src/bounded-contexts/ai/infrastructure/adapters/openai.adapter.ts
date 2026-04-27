@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { LoggerPort } from '@/shared-kernel';
@@ -95,7 +95,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
   private maxTokens!: number;
 
   constructor(
-    private readonly config: ConfigService,
+    private readonly config: ConfigPort,
     private readonly logger: LoggerPort,
   ) {
     super();

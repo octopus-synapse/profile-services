@@ -7,7 +7,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { createTransport, type Transporter } from 'nodemailer';
 import { AppLoggerService } from '../../logger/logger.service';
 
@@ -25,7 +25,7 @@ export class EmailSenderService {
   private readonly transporter: Transporter | null = null;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
     private readonly logger: AppLoggerService,
   ) {
     this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@patchcareers.com';
