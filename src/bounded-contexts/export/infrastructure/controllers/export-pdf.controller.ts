@@ -20,6 +20,7 @@ import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportUseCases } from '../../application/ports/export.port';
 import { ExportPipelineService } from '../../application/services/export-pipeline.service';
 import { sanitizeQueryParam } from '../helpers';
+import { presentPdfAsBase64 } from '../presenters/pdf-base64.presenter';
 import { PdfCacheService } from '../services/pdf-cache.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -99,9 +100,6 @@ export class ExportPdfController {
         this.useCases.exportPdfUseCase.execute({ userId: targetUserId }),
       ),
     );
-    return {
-      success: true,
-      data: { pdf: buffer.toString('base64'), filename: 'resume.pdf' },
-    };
+    return { success: true, data: presentPdfAsBase64(buffer) };
   }
 }
