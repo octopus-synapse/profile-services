@@ -18,6 +18,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusPort, LoggerPort } from '@/shared-kernel';
+import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { registerResumeAnalyticsHandlers } from '../application/handlers/register-handlers';
 import { AnalyticsRecorder } from '../application/handlers/resume-created.handler';
 import { ViewTracker } from '../application/handlers/resume-updated.handler';
@@ -139,8 +140,17 @@ function makeAnalyticsSseBundle(emitter: EventEmitter2): AnalyticsSseBundle {
         LoggerPort,
       ],
     },
-    // Workers
-    ViewsProjectionWorker,
+    // Workers — registered as side-effect against the global CronPort.
+    {
+      provide: 'RESUME_ANALYTICS_JOBS_REGISTERED',
+      useFactory: (cron: CronPort, prisma: PrismaService, logger: LoggerPort) => {
+        const worker = new ViewsProjectionWorker(prisma, logger);
+        // Daily 00:30 UTC — rolls up yesterday's view events.
+        cron.register({ pattern: '30 0 * * *' }, worker.run.bind(worker));
+        return true;
+      },
+      inject: [CronPort, PrismaService, LoggerPort],
+    },
     // Port Adapters (infrastructure)
     { provide: AnalyticsProjectionPort, useClass: AnalyticsProjectionAdapter },
     { provide: AnalyticsRecorder, useClass: AnalyticsRecorderAdapter },

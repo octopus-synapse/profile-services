@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
 const CTX = 'ViewsProjectionWorker';
 
@@ -14,15 +12,17 @@ const CTX = 'ViewsProjectionWorker';
  * GROUP BYs at request time.
  *
  * Runs at 00:30 UTC every day.
+ *
+ * Framework-free POJO. Wired by the resume-analytics module via
+ * `CronPort`. Public `refreshDay(...)` is exposed so admin tooling /
+ * backfill scripts can request a specific day.
  */
-@Injectable()
 export class ViewsProjectionWorker {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
   ) {}
 
-  @Cron('30 0 * * *')
   async run(): Promise<void> {
     const now = new Date();
     // Target day = yesterday (00:00 UTC to 00:00 UTC today).
