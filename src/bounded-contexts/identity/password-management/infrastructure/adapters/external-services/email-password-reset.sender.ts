@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import { PasswordResetEmailPort } from '../../../domain/ports';
 
 /** Abstract port for the platform email service (so adapters bind to it via DI). */
@@ -18,10 +18,10 @@ export class EmailPasswordResetSender extends PasswordResetEmailPort {
 
   constructor(
     private readonly emailService: EmailServicePort,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
   ) {
     super();
-    this.appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
+    this.appUrl = this.configService.getOrDefault<string>('APP_URL', 'http://localhost:3000');
   }
 
   async sendResetEmail(email: string, userName: string | null, resetToken: string): Promise<void> {
