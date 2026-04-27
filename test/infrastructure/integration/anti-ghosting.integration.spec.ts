@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { AntiGhostingService } from '@/bounded-contexts/jobs/tracker/anti-ghosting.service';
+import { RunAntiGhostingSweepUseCase } from '@/bounded-contexts/jobs/application/use-cases/run-anti-ghosting-sweep/run-anti-ghosting-sweep.use-case';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { closeApp, createTestUserAndLogin, getApp, getPrisma, uniqueTestEmail } from './setup';
 
@@ -50,7 +50,7 @@ describe('Anti-ghosting Integration', () => {
     await prisma.jobApplicationEvent.deleteMany({ where: { applicationId } });
     await prisma.jobApplication.delete({ where: { id: applicationId } });
     await prisma.job.delete({ where: { id: jobId } });
-    // Anti-ghosting service creates Notification rows as part of scanAndNotify;
+    // The anti-ghosting sweep creates Notification rows as part of its run;
     // they FK to User and must be cleared before the user delete.
     await prisma.notification.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
@@ -59,19 +59,19 @@ describe('Anti-ghosting Integration', () => {
 
   it('sends a reminder for an application idle for 10 days', async () => {
     const app = await getApp();
-    const service = app.get(AntiGhostingService);
+    const sweep = app.get(RunAntiGhostingSweepUseCase);
 
-    const result = await service.scanAndNotify();
+    const result = await sweep.execute();
     expect(result.reminded).toBeGreaterThanOrEqual(1);
     expect(sent.some((e) => e.subject.includes('Acme'))).toBe(true);
   });
 
   it('is idempotent within the same threshold', async () => {
     const app = await getApp();
-    const service = app.get(AntiGhostingService);
+    const sweep = app.get(RunAntiGhostingSweepUseCase);
 
     const before = sent.length;
-    await service.scanAndNotify();
+    await sweep.execute();
     expect(sent.length).toBe(before);
   });
 
@@ -106,9 +106,9 @@ describe('Anti-ghosting Integration', () => {
     });
 
     const app = await getApp();
-    const service = app.get(AntiGhostingService);
+    const sweep = app.get(RunAntiGhostingSweepUseCase);
     const before = sent.length;
-    await service.scanAndNotify();
+    await sweep.execute();
     // No new email for the VIEWED application.
     expect(sent.length).toBe(before);
 

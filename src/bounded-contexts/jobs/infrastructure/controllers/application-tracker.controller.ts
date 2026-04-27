@@ -14,12 +14,14 @@ import type { Request } from 'express';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { RecordApplicationEventDto } from '../dto/application-event.dto';
-import {
-  ApplicationTrackerService,
-  type CompanyResponseStats,
-  type TrackedApplication,
-} from './application-tracker.service';
+import { GetCompanyResponseStatsUseCase } from '../../application/use-cases/get-company-response-stats/get-company-response-stats.use-case';
+import { ListApplicationTimelineUseCase } from '../../application/use-cases/list-application-timeline/list-application-timeline.use-case';
+import { RecordApplicationEventUseCase } from '../../application/use-cases/record-application-event/record-application-event.use-case';
+import type {
+  CompanyResponseStats,
+  TrackedApplication,
+} from '../../domain/entities/application-tracker';
+import { RecordApplicationEventDto } from '../../dto/application-event.dto';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -33,7 +35,11 @@ interface RequestWithUser extends Request {
 @ApiBearerAuth()
 @Controller('v1/jobs/applications')
 export class ApplicationTrackerController {
-  constructor(private readonly tracker: ApplicationTrackerService) {}
+  constructor(
+    private readonly listTimeline: ListApplicationTimelineUseCase,
+    private readonly recordEventUseCase: RecordApplicationEventUseCase,
+    private readonly companyStats: GetCompanyResponseStatsUseCase,
+  ) {}
 
   @Get('tracker')
   @RequirePermission(Permission.FEED_USE)
@@ -53,7 +59,7 @@ export class ApplicationTrackerController {
     @Query('silentDays') silentDays?: number,
   ): Promise<DataResponse<{ applications: TrackedApplication[] }>> {
     const threshold = silentDays ? Math.max(1, Number(silentDays)) : 10;
-    const applications = await this.tracker.listTimeline(req.user.userId, threshold);
+    const applications = await this.listTimeline.execute(req.user.userId, threshold);
     return { success: true, data: { applications } };
   }
 
@@ -71,13 +77,13 @@ export class ApplicationTrackerController {
     @Body() body: RecordApplicationEventDto,
     @Req() req: RequestWithUser,
   ): Promise<DataResponse<{ id: string; type: string; note: string | null; occurredAt: string }>> {
-    const event = await this.tracker.recordEvent(
+    const event = await this.recordEventUseCase.execute({
       applicationId,
-      req.user.userId,
-      body.type,
-      body.occurredAt ? new Date(body.occurredAt) : undefined,
-      body.note,
-    );
+      userId: req.user.userId,
+      type: body.type,
+      occurredAt: body.occurredAt ? new Date(body.occurredAt) : undefined,
+      note: body.note,
+    });
     return { success: true, data: event };
   }
 
@@ -89,7 +95,7 @@ export class ApplicationTrackerController {
   async companyResponseStats(
     @Param('company') company: string,
   ): Promise<DataResponse<CompanyResponseStats>> {
-    const data = await this.tracker.companyResponseStats(company);
+    const data = await this.companyStats.execute(company);
     return { success: true, data };
   }
 }
