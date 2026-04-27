@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CohortRequest } from '../../../domain';
 import {
@@ -26,7 +25,6 @@ import {
 const CANDIDATE_POOL_CAP = 500;
 const TITLES_PER_BUCKET = 3;
 
-@Injectable()
 export class PrismaCareerCohortRepository implements CareerCohortRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

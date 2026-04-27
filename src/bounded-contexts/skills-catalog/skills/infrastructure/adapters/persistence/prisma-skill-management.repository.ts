@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SkillSectionTypeNotConfiguredException } from '@/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions';
 import { LoggerPort } from '@/shared-kernel';
@@ -12,7 +11,6 @@ import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 
-@Injectable()
 export class PrismaSkillManagementRepository
   extends SkillManagementPort
   implements SkillManagementRepositoryPort

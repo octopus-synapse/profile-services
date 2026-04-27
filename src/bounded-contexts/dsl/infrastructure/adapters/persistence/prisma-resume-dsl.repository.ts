@@ -8,7 +8,7 @@
  * use case's job.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   GenericResume,
@@ -58,7 +58,6 @@ type PrismaResumeData = {
   }>;
 };
 
-@Injectable()
 export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
   private readonly logger = new Logger(PrismaResumeDslRepository.name);
 
