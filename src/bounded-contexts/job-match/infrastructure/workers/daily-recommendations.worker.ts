@@ -1,7 +1,7 @@
 import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import type { Job, Queue } from 'bullmq';
-import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
+import { CreateNotificationUseCase } from '@/bounded-contexts/notifications/application/use-cases/create-notification/create-notification.use-case';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -50,7 +50,7 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
     private readonly computeMatch: ComputeMatchUseCase,
-    private readonly notifications: NotificationService,
+    private readonly createNotification: CreateNotificationUseCase,
     @InjectQueue(DAILY_RECOMMENDATIONS_QUEUE)
     private readonly queue: Queue<DailyRecommendationsJobData>,
     private readonly logger: LoggerPort,
@@ -165,14 +165,14 @@ export class DailyRecommendationsWorker extends WorkerHost implements OnModuleIn
     if (top.length === 0) return;
 
     try {
-      await this.notifications.create(
+      await this.createNotification.execute({
         userId,
-        'MATCH_RECOMMENDATIONS_READY',
-        'system',
-        `Encontramos ${top.length} novas vagas para você. Top match: "${top[0]?.title ?? ''}".`,
-        'User',
-        userId,
-      );
+        type: 'MATCH_RECOMMENDATIONS_READY',
+        actorId: 'system',
+        message: `Encontramos ${top.length} novas vagas para você. Top match: "${top[0]?.title ?? ''}".`,
+        entityType: 'User',
+        entityId: userId,
+      });
     } catch (err) {
       this.logger.warn(
         `daily-recommendations: notification failed user=${userId}: ${err instanceof Error ? err.message : 'unknown'}`,

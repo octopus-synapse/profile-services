@@ -7,7 +7,7 @@
 
 import { Injectable } from '@nestjs/common';
 import type { ReactionType } from '@prisma/client';
-import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
+import { CreateNotificationUseCase } from '@/bounded-contexts/notifications/application/use-cases/create-notification/create-notification.use-case';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   PostAlreadyRepostedException,
@@ -22,7 +22,7 @@ const AUTHOR_SELECT = { id: true, name: true, username: true, photoURL: true } a
 export class EngagementService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notificationService: NotificationService,
+    private readonly createNotification: CreateNotificationUseCase,
   ) {}
 
   /**
@@ -75,14 +75,14 @@ export class EngagementService {
       }),
     ]);
 
-    await this.notificationService.create(
-      post.authorId,
-      'POST_LIKED',
-      userId,
-      `reacted to your post`,
-      'post',
-      postId,
-    );
+    await this.createNotification.execute({
+      userId: post.authorId,
+      type: 'POST_LIKED',
+      actorId: userId,
+      message: `reacted to your post`,
+      entityType: 'post',
+      entityId: postId,
+    });
 
     return { postId, userId, reactionType, postAuthorId: post.authorId, alreadyLiked: false };
   }
@@ -217,14 +217,14 @@ export class EngagementService {
         data: { repostsCount: { increment: 1 } },
       });
 
-      await this.notificationService.create(
-        post.authorId,
-        'POST_REPOSTED',
-        userId,
-        `reposted your post`,
-        'post',
-        postId,
-      );
+      await this.createNotification.execute({
+        userId: post.authorId,
+        type: 'POST_REPOSTED',
+        actorId: userId,
+        message: `reposted your post`,
+        entityType: 'post',
+        entityId: postId,
+      });
 
       return repost;
     }
@@ -235,14 +235,14 @@ export class EngagementService {
       data: { repostsCount: { increment: 1 } },
     });
 
-    await this.notificationService.create(
-      post.authorId,
-      'POST_REPOSTED',
-      userId,
-      `reposted your post`,
-      'post',
-      postId,
-    );
+    await this.createNotification.execute({
+      userId: post.authorId,
+      type: 'POST_REPOSTED',
+      actorId: userId,
+      message: `reposted your post`,
+      entityType: 'post',
+      entityId: postId,
+    });
 
     return { postId, userId, reposted: true };
   }

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { WeeklyDigestService } from '@/bounded-contexts/notifications/services/weekly-digest.service';
+import { SendWeeklyDigestsUseCase } from '@/bounded-contexts/notifications/application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { closeApp, createTestUserAndLogin, getApp, getPrisma, uniqueTestEmail } from './setup';
 
@@ -77,9 +77,9 @@ describe('Weekly Digest Integration', () => {
     });
 
     const app = await getApp();
-    const service = app.get(WeeklyDigestService);
+    const service = app.get(SendWeeklyDigestsUseCase);
 
-    const result = await service.sendWeeklyDigests();
+    const result = await service.execute();
     expect(result.usersEmailed).toBeGreaterThanOrEqual(1);
 
     const mine = sentEmails.find((e) => e.text.includes('resume view'));
@@ -89,10 +89,10 @@ describe('Weekly Digest Integration', () => {
 
   it('is idempotent within the same ISO week', async () => {
     const app = await getApp();
-    const service = app.get(WeeklyDigestService);
+    const service = app.get(SendWeeklyDigestsUseCase);
 
     const before = sentEmails.length;
-    const result = await service.sendWeeklyDigests();
+    const result = await service.execute();
     const after = sentEmails.length;
 
     // No new email should have been sent — user was already logged for this week.

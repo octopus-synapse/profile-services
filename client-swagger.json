@@ -2575,7 +2575,7 @@
     },
     "/api/v1/upload/profile-image": {
       "post": {
-        "operationId": "upload_uploadProfileImage",
+        "operationId": "upload_postProfileImage",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -2615,7 +2615,7 @@
     },
     "/api/v1/upload/company-logo/{resumeId}": {
       "post": {
-        "operationId": "upload_uploadCompanyLogo",
+        "operationId": "upload_postCompanyLogo",
         "parameters": [
           {
             "name": "resumeId",
@@ -2665,7 +2665,7 @@
     },
     "/api/v1/upload/file/{key}": {
       "delete": {
-        "operationId": "upload_deleteFile",
+        "operationId": "upload_deleteByKey",
         "parameters": [
           {
             "name": "key",
