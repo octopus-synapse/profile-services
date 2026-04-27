@@ -18,7 +18,6 @@ import { buildResumesUseCases } from './application/resumes.composition';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 import { ResumesServicePort } from './ports/resumes-service.port';
-import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
 import {
   genericResumeSectionsRoutes,
@@ -39,7 +38,6 @@ import { ResumeManagementService } from './services/resume-management.service';
     ...synthesizeRouteControllers(ResumesUseCases, resumesRoutes),
     ...synthesizeRouteControllers(ResumeManagementUseCases, resumeManagementRoutes),
     ...synthesizeRouteControllers(GenericResumeSectionsUseCases, genericResumeSectionsRoutes),
-    ResumesController,
   ],
   providers: [
     {
