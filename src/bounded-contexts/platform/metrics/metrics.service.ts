@@ -1,5 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
+import {
+  type MetricsOverviewSnapshot,
+  MetricsReaderPort,
+} from './domain/ports/metrics-reader.port';
 
 type CounterLabels = Record<string, string>;
 
@@ -39,7 +43,7 @@ interface ScoreComputedLabels {
 }
 
 @Injectable()
-export class MetricsService implements OnModuleInit {
+export class MetricsService extends MetricsReaderPort implements OnModuleInit {
   private readonly registry: Registry;
 
   // Counters
@@ -58,6 +62,7 @@ export class MetricsService implements OnModuleInit {
   private readonly pendingExportsGauge: Gauge<string>;
 
   constructor() {
+    super();
     this.registry = new Registry();
 
     // Counters
@@ -214,6 +219,12 @@ export class MetricsService implements OnModuleInit {
     return this.registry.metrics();
   }
 
+  /** MetricsReaderPort surface — alias of `getMetrics` so the use case
+   *  layer doesn't import the historical name. */
+  getPrometheusText(): Promise<string> {
+    return this.getMetrics();
+  }
+
   getContentType(): string {
     return this.registry.contentType;
   }
@@ -316,17 +327,7 @@ export class MetricsService implements OnModuleInit {
    * Aggregated overview used by the admin dashboard. Computing it here keeps
    * the controller free of prometheus-shape parsing and metric arithmetic.
    */
-  async getOverviewSnapshot(): Promise<{
-    counters: { resumeCreated: number; userSignups: number; exportCompleted: number };
-    gauges: { activeUsers: number; pendingExports: number };
-    process: {
-      uptimeSeconds: number;
-      heapUsedMb: number;
-      heapTotalMb: number;
-      eventLoopLagMs: number;
-    };
-    latency: Record<string, unknown>[];
-  }> {
+  async getOverviewSnapshot(): Promise<MetricsOverviewSnapshot> {
     const [metricsJson, latencySummary] = await Promise.all([
       this.getMetricsJson(),
       this.getLatencySummary(),
