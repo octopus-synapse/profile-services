@@ -2,9 +2,8 @@
  * Webhook Module
  *
  * Thin Nest shell over `buildWebhooksUseCases`. All wiring lives in
- * `webhooks.composition.ts`. The `WebhookEventHandler` (Nest-decorated
- * `@OnEvent` listener) stays in the module providers and depends on
- * the bundle.
+ * `webhooks.composition.ts`. The framework-free `WebhookEventHandler`
+ * is registered against `EventBusPort` via a side-effect provider.
  */
 
 import { Module } from '@nestjs/common';

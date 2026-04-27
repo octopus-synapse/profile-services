@@ -23,15 +23,14 @@ import { EmailService } from '@/bounded-contexts/platform/common/email/email.ser
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
-import { LoggerPort } from '@/shared-kernel';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { NotificationsUseCases } from './application/ports/notifications.port';
 import type { NotificationStreamEvent } from './domain/entities/notification';
 import { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';
-import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
-import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
+import { registerNotificationsHandlers } from './infrastructure/handlers/register-handlers';
 import {
   buildNotificationsUseCases,
   registerNotificationsJobs,
@@ -97,9 +96,20 @@ function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBun
       inject: [JobQueuePort, CronPort, NotificationsUseCases, LoggerPort],
     },
 
-    // Nest-decorated handlers (consume the bundle).
-    FitProfileExpiredNotificationHandler,
-    ResumeQualityRankNotificationHandler,
+    // Side-effect provider: register framework-free `@OnEvent`
+    // replacements via `EventBusPort.on(...)`.
+    {
+      provide: 'NOTIFICATIONS_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        bc: NotificationsUseCases,
+        logger: LoggerPort,
+      ): boolean => {
+        registerNotificationsHandlers({ eventBus, bc, logger });
+        return true;
+      },
+      inject: [EventBusPort, NotificationsUseCases, LoggerPort],
+    },
   ],
   exports: [NotificationsUseCases],
 })
