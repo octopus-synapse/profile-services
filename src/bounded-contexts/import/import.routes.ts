@@ -3,20 +3,24 @@
  * `ResumeImportController` plus `GithubImportController`. Pure data +
  * handler closures over `ImportUseCases`.
  *
- * Edge case (left as Nest legacy): the PDF upload endpoint
- * `POST /resume-import/pdf` uses a multipart `FileInterceptor` and the
- * stateful `PdfImportService` / `GithubImportService` adapters; see
- * `infrastructure/controllers/resume-import-files.controller.ts`.
+ * The PDF upload + GitHub session-import endpoints (which previously
+ * lived in the legacy `ResumeImportFilesController`) are now expressed
+ * as routes too: PDF as `kind: 'multipart'`, GitHub as a plain JSON
+ * route. They run against a separate `ImportFilesBundle` because they
+ * depend on stateful Nest adapters (`PdfImportService` /
+ * `GithubImportService`) rather than the pure `ImportUseCases` bag.
  */
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { ImportUseCases } from './application/ports/import.port';
+import { ImportFilesBundle } from './application/ports/import-files.bundle';
 import {
   JsonResumeBasicsMissingException,
   JsonResumeNameMissingException,
   LinkedinImportNotImplementedException,
+  MissingPdfUploadException,
 } from './domain/exceptions/import.exceptions';
 import { JsonResumeParser } from './domain/services/json-resume-parser';
 import type { JsonResumeSchema } from './domain/types/import.types';
@@ -218,6 +222,60 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
         repoLimit: body.repoLimit,
       });
       return { success: true, data: parsed };
+    },
+  },
+];
+
+// ─── File-driven endpoints (multipart PDF + OAuth-backed GitHub) ─────
+// Live on a separate bundle because they depend on stateful Nest
+// adapters rather than the pure `ImportUseCases` bag.
+export const importFilesRoutes: ReadonlyArray<Route<ImportFilesBundle>> = [
+  {
+    method: 'POST',
+    path: '/resume-import/pdf',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_IMPORT,
+    kind: 'multipart',
+    statusCode: 201,
+    openapi: {
+      summary: 'Import resume from a PDF file',
+      tags: ['Resume Import'],
+      description:
+        'Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const file = (ctx.body as { file?: Express.Multer.File }).file;
+      if (!file) throw new MissingPdfUploadException();
+      const result = await bundle.pdfImport.import(ctx.user!.userId, {
+        buffer: file.buffer,
+        originalname: file.originalname,
+      });
+      return { success: true, data: { resumeId: result.resumeId } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/resume-import/github',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_IMPORT,
+    openapi: {
+      summary: 'Import profile data from GitHub',
+      tags: ['Resume Import'],
+      description:
+        "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const result = await bundle.githubImport.import(ctx.user!.userId);
+      return {
+        success: true,
+        data: {
+          primaryStack: result.primaryStack,
+          buildPostsCreated: result.buildPostsCreated,
+          profileUpdated: result.profileUpdated,
+        },
+      };
     },
   },
 ];
