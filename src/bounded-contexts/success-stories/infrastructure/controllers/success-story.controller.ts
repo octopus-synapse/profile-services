@@ -17,10 +17,7 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreateSuccessStoryUseCase } from '../../application/use-cases/create-success-story/create-success-story.use-case';
-import { DeleteSuccessStoryUseCase } from '../../application/use-cases/delete-success-story/delete-success-story.use-case';
-import { ListPublishedSuccessStoriesUseCase } from '../../application/use-cases/list-published-success-stories/list-published-success-stories.use-case';
-import { UpdateSuccessStoryUseCase } from '../../application/use-cases/update-success-story/update-success-story.use-case';
+import { SuccessStoriesUseCases } from '../../application/ports/success-stories.port';
 import { CreateSuccessStoryDto, UpdateSuccessStoryDto } from '../../dto/success-story-request.dto';
 
 /** Response shape the public carousel renders — kept at the HTTP boundary
@@ -44,12 +41,7 @@ type PublicSuccessStoryResponse = {
 @ApiTags('success-stories')
 @Controller('v1/success-stories')
 export class SuccessStoryController {
-  constructor(
-    private readonly listPublishedUseCase: ListPublishedSuccessStoriesUseCase,
-    private readonly createUseCase: CreateSuccessStoryUseCase,
-    private readonly updateUseCase: UpdateSuccessStoryUseCase,
-    private readonly deleteUseCase: DeleteSuccessStoryUseCase,
-  ) {}
+  constructor(private readonly bc: SuccessStoriesUseCases) {}
 
   /**
    * Public carousel feed. Returns published stories only. No auth required
@@ -63,7 +55,7 @@ export class SuccessStoryController {
   async listPublic(
     @Query('limit') limit?: number,
   ): Promise<DataResponse<{ stories: PublicSuccessStoryResponse[] }>> {
-    const stories = await this.listPublishedUseCase.execute(limit ? Number(limit) : undefined);
+    const stories = await this.bc.listPublished.execute(limit ? Number(limit) : undefined);
     return { success: true, data: { stories } };
   }
 
@@ -77,7 +69,7 @@ export class SuccessStoryController {
   @ApiOperation({ summary: 'Create a success story (admin).' })
   @ApiBody({ type: CreateSuccessStoryDto })
   async create(@Body() body: CreateSuccessStoryDto): Promise<DataResponse<{ id: string }>> {
-    const created = await this.createUseCase.execute(body);
+    const created = await this.bc.create.execute(body);
     return { success: true, data: { id: created.id } };
   }
 
@@ -93,7 +85,7 @@ export class SuccessStoryController {
     @Param('id') id: string,
     @Body() body: UpdateSuccessStoryDto,
   ): Promise<DataResponse<{ id: string }>> {
-    const updated = await this.updateUseCase.execute(id, body);
+    const updated = await this.bc.update.execute(id, body);
     return { success: true, data: { id: updated.id } };
   }
 
@@ -105,7 +97,7 @@ export class SuccessStoryController {
   @ApiOperation({ summary: 'Delete a success story (admin).' })
   @ApiParam({ name: 'id', type: 'string' })
   async delete(@Param('id') id: string): Promise<DataResponse<{ id: string }>> {
-    await this.deleteUseCase.execute(id);
+    await this.bc.delete.execute(id);
     return { success: true, data: { id } };
   }
 }
