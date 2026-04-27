@@ -23,6 +23,7 @@ describe('ConnectionService', () => {
     eventPublisher = {
       publish: mock(<T>(_event: DomainEvent<T>) => {}),
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
+      on: mock(() => {}),
     };
     service = new ConnectionService(connectionRepo, eventPublisher, new InMemorySocialLogger());
   });

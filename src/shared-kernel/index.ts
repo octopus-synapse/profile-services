@@ -30,7 +30,14 @@ export * from './enums';
 // ============================================================================
 // Event Bus (Domain Events)
 // ============================================================================
-export { DomainEvent, EventBusModule, EventPublisher, EventPublisherPort } from './event-bus';
+export {
+  DomainEvent,
+  EventBusModule,
+  EventBusPort,
+  type EventHandler,
+  EventPublisher,
+  EventPublisherPort,
+} from './event-bus';
 // ============================================================================
 // Exceptions (Base Exceptions)
 // ============================================================================

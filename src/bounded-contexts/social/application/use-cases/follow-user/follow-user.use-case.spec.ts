@@ -70,6 +70,7 @@ class StubFollowRepository implements FollowRepositoryPort {
 const stubEventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
+  on: () => {},
 };
 
 describe('FollowUserUseCase', () => {

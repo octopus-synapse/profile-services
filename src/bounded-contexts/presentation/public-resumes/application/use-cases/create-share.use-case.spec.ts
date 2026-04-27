@@ -62,7 +62,11 @@ describe('CreateShareUseCase', () => {
   let useCase: CreateShareUseCase;
   let shareRepo: StubShareRepository;
   let resumeRepo: StubResumeReadRepository;
-  let eventPublisher: { publish: ReturnType<typeof mock>; publishAsync: ReturnType<typeof mock> };
+  let eventPublisher: {
+    publish: ReturnType<typeof mock>;
+    publishAsync: ReturnType<typeof mock>;
+    on: ReturnType<typeof mock>;
+  };
 
   const userId = 'user-123';
   const resumeId = 'resume-456';
@@ -73,6 +77,7 @@ describe('CreateShareUseCase', () => {
     eventPublisher = {
       publish: mock(() => {}),
       publishAsync: mock(async () => {}),
+      on: mock(() => {}),
     };
 
     useCase = new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher, stubLogger);

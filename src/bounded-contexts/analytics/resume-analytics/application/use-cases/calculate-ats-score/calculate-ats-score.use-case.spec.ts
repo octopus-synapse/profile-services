@@ -80,6 +80,7 @@ describe('CalculateAtsScoreUseCase', () => {
     const eventPublisher: EventPublisherPort = {
       publish: mock(<T>(_event: DomainEvent<T>) => {}),
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
+      on: mock(() => {}),
     };
 
     useCase = new CalculateAtsScoreUseCase(

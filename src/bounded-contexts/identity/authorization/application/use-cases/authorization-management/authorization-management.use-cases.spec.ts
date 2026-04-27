@@ -29,6 +29,10 @@ class InMemoryEventBus implements EventPublisherPort {
     this.events.push(event);
   }
 
+  on(): void {
+    /* no-op for tests */
+  }
+
   getEventsByType<T extends DomainEvent<unknown>>(ctor: abstract new (...args: never[]) => T): T[] {
     return this.events.filter((e): e is T => e instanceof ctor);
   }

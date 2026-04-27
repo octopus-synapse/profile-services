@@ -16,6 +16,7 @@ const stubCommentService = {} as CollabCommentService;
 const noopEventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
+  on: () => {},
 };
 
 describe('CollaborationController', () => {

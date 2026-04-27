@@ -16,6 +16,9 @@ class CapturingPublisher extends EventPublisherPort {
   async publishAsync<T>(event: DomainEvent<T>): Promise<void> {
     this.publish(event);
   }
+  on(): void {
+    /* no-op for tests */
+  }
 }
 
 describe('UpdateJobUseCase', () => {

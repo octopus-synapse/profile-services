@@ -23,6 +23,9 @@ class RecordingEventPublisher extends EventPublisherPort {
   async publishAsync<T>(event: DomainEvent<T>): Promise<void> {
     this.published.push(event);
   }
+  on(): void {
+    /* no-op for tests */
+  }
 }
 
 class StubShareLoader implements PublicResumeShareLoader {

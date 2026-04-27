@@ -37,6 +37,7 @@ describe('FollowService', () => {
       publishAsync: mock(async <T>(event: DomainEvent<T>) => {
         publishedEvents.push(event);
       }),
+      on: mock(() => {}),
     };
     service = new FollowService(
       followRepo,
