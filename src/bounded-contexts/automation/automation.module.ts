@@ -2,10 +2,9 @@
  * Automation Module
  *
  * Thin Nest shell over `buildAutomationUseCases`. The two BullMQ workers
- * stay Nest-decorated (`@Processor`, `@InjectQueue`) and consume the
- * shared `CuratedSelectorService` plus `ResumeTailorService` directly —
- * those are also handed into the composition so use cases and workers
- * share the same instances.
+ * (`AutoApplyWorker`, `WeeklyCuratedWorker`) are framework-free POJOs
+ * registered through `registerAutomationJobs` against the global
+ * `JobQueuePort`.
  *
  * The HTTP boundary lives in `automation.routes.ts`; the synthesizer
  * turns those `Route` descriptors into Nest controllers at boot. Custom
@@ -13,13 +12,13 @@
  * are wired via the synthesizer's guard registry.
  */
 
-import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { FitProfileModule } from '@/bounded-contexts/fit-profile/fit-profile.module';
 import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
+import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { RequireMinQualityGuard } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
@@ -28,14 +27,13 @@ import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
-import { buildAutomationUseCases } from './automation.composition';
+import { buildAutomationUseCases, registerAutomationJobs } from './automation.composition';
 import { automationRoutes } from './automation.routes';
 import { ResumeJobMatcherPort } from './domain/ports/resume-job-matcher.port';
 import { ResumeAnalyticsJobMatcherAdapter } from './infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
-import { AUTO_APPLY_QUEUE, AutoApplyWorker } from './workers/auto-apply.worker';
-import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-curated.worker';
 
 @Module({
   imports: [
@@ -45,7 +43,6 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     ResumeVersionsModule,
     FitProfileModule,
     ResumeQualityModule,
-    BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
   controllers: synthesizeRouteControllers(AutomationUseCases, automationRoutes, {
     guards: {
@@ -80,8 +77,30 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
       ) => buildAutomationUseCases(prisma, logger, selector, tailor),
       inject: [PrismaService, LoggerPort, CuratedSelectorService, ResumeTailorService],
     },
-    WeeklyCuratedWorker,
-    AutoApplyWorker,
+    // Side-effect provider: registers the BullMQ workers + their
+    // schedule ticks at module-init time.
+    {
+      provide: 'AUTOMATION_JOBS_REGISTERED',
+      useFactory: (
+        queue: JobQueuePort,
+        prisma: PrismaService,
+        selector: CuratedSelectorService,
+        tailor: ResumeTailorService,
+        email: EmailService,
+        logger: LoggerPort,
+      ) => {
+        registerAutomationJobs(queue, prisma, selector, tailor, email, logger);
+        return true;
+      },
+      inject: [
+        JobQueuePort,
+        PrismaService,
+        CuratedSelectorService,
+        ResumeTailorService,
+        EmailService,
+        LoggerPort,
+      ],
+    },
   ],
   exports: [AutomationUseCases, CuratedSelectorService],
 })

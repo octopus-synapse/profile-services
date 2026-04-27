@@ -9,9 +9,11 @@
  * resume-versions BC that the workers also consume directly.
  */
 
+import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
 import { ApproveCuratedItemUseCase } from './application/use-cases/approve-curated-item/approve-curated-item.use-case';
@@ -20,6 +22,16 @@ import { RejectCuratedItemUseCase } from './application/use-cases/reject-curated
 import { RunRageApplyUseCase } from './application/use-cases/run-rage-apply/run-rage-apply.use-case';
 import { PrismaApplyModeRepository } from './infrastructure/adapters/persistence/prisma-apply-mode.repository';
 import { PrismaRageApplyRepository } from './infrastructure/adapters/persistence/prisma-rage-apply.repository';
+import {
+  AUTO_APPLY_QUEUE,
+  AutoApplyWorker,
+  type AutoApplyJobData,
+} from './workers/auto-apply.worker';
+import {
+  WEEKLY_CURATED_QUEUE,
+  WeeklyCuratedWorker,
+  type WeeklyCuratedJobData,
+} from './workers/weekly-curated.worker';
 
 export { AutomationUseCases };
 
@@ -39,4 +51,49 @@ export function buildAutomationUseCases(
     rejectCuratedItem: new RejectCuratedItemUseCase(applyModeRepo, logger),
     runRageApply: new RunRageApplyUseCase(rageApplyRepo, selector, tailor, logger),
   };
+}
+
+/**
+ * Registers the automation BC's BullMQ workers + their cron-driven
+ * `schedule` ticks against the shared `JobQueuePort`. Called once at
+ * app boot from the Nest module via a side-effect provider.
+ *
+ * Schedules:
+ *  - Auto-apply: hourly at minute 15 (`15 * * * *`, America/Sao_Paulo) —
+ *    staggered away from the weekly-curated tick so the two workers
+ *    don't fight for DB connections.
+ *  - Weekly-curated: Monday 09:00 America/Sao_Paulo (`0 9 * * 1`).
+ */
+export function registerAutomationJobs(
+  queue: JobQueuePort,
+  prisma: PrismaService,
+  selector: CuratedSelectorService,
+  tailor: ResumeTailorService,
+  email: EmailService,
+  logger: LoggerPort,
+): void {
+  const autoApply = new AutoApplyWorker(prisma, selector, tailor, queue, logger);
+  queue.register<AutoApplyJobData>(AUTO_APPLY_QUEUE, autoApply.process.bind(autoApply));
+  void queue.schedule<AutoApplyJobData>(
+    AUTO_APPLY_QUEUE,
+    { kind: 'schedule' },
+    {
+      repeat: { pattern: '15 * * * *', tz: 'America/Sao_Paulo' },
+      jobId: 'auto-apply-schedule-cron',
+    },
+  );
+
+  const weeklyCurated = new WeeklyCuratedWorker(prisma, selector, email, queue, logger);
+  queue.register<WeeklyCuratedJobData>(
+    WEEKLY_CURATED_QUEUE,
+    weeklyCurated.process.bind(weeklyCurated),
+  );
+  void queue.schedule<WeeklyCuratedJobData>(
+    WEEKLY_CURATED_QUEUE,
+    { kind: 'schedule' },
+    {
+      repeat: { pattern: '0 9 * * 1', tz: 'America/Sao_Paulo' },
+      jobId: 'weekly-curated-schedule-cron',
+    },
+  );
 }

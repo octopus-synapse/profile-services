@@ -1,14 +1,12 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { type Job, type Queue } from 'bullmq';
-import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
-import { CuratedSelectorService } from '../application/services/curated-selector.service';
+import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { CuratedSelectorService } from '../application/services/curated-selector.service';
 
 const CTX = 'WeeklyCuratedWorker';
 
-/** Queue name exposed so the module can register it with BullMQ. */
+/** Queue name exposed so composition can register the queue worker. */
 export const WEEKLY_CURATED_QUEUE = 'weekly-curated';
 
 /**
@@ -18,45 +16,36 @@ export const WEEKLY_CURATED_QUEUE = 'weekly-curated';
  */
 export type WeeklyCuratedJobData = { kind: 'schedule' } | { kind: 'run-for-user'; userId: string };
 
-@Injectable()
-@Processor(WEEKLY_CURATED_QUEUE, { concurrency: 4 })
-export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
+/**
+ * Framework-free POJO. Wired by `registerAutomationJobs` via
+ * `JobQueuePort`.
+ */
+export class WeeklyCuratedWorker {
   constructor(
     private readonly prisma: PrismaService,
     private readonly selector: CuratedSelectorService,
     private readonly email: EmailService,
-    @InjectQueue(WEEKLY_CURATED_QUEUE) private readonly queue: Queue<WeeklyCuratedJobData>,
+    private readonly queue: JobQueuePort,
     private readonly logger: LoggerPort,
-  ) {
-    super();
-  }
+  ) {}
 
-  /**
-   * Register a repeating job on boot. BullMQ dedupes by jobId+pattern so it's
-   * safe to call on every instance — only one run fires per schedule.
-   *
-   * `0 9 * * 1` = Monday at 09:00 in the worker's timezone. We set TZ on the
-   * repeat so BRT is honored regardless of the container's system clock.
-   */
-  async onModuleInit(): Promise<void> {
-    await this.queue.add(
-      'weekly-curated-schedule',
-      { kind: 'schedule' },
-      {
-        repeat: { pattern: '0 9 * * 1', tz: 'America/Sao_Paulo' },
-        jobId: 'weekly-curated-schedule-cron',
-      },
-    );
-  }
-
-  async process(job: Job<WeeklyCuratedJobData>): Promise<void> {
-    if (job.data.kind === 'schedule') {
-      await this.enqueuePerUser();
-      return;
-    }
-    if (job.data.kind === 'run-for-user') {
-      await this.runForUser(job.data.userId);
-      return;
+  async process(job: { data: WeeklyCuratedJobData; id?: string }): Promise<void> {
+    try {
+      if (job.data.kind === 'schedule') {
+        await this.enqueuePerUser();
+        return;
+      }
+      if (job.data.kind === 'run-for-user') {
+        await this.runForUser(job.data.userId);
+        return;
+      }
+    } catch (err) {
+      this.logger.error(
+        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
+      throw err;
     }
   }
 
@@ -70,7 +59,10 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
     });
     this.logger.log(`Enqueueing weekly-curated for ${users.length} users`, CTX);
     for (const u of users) {
-      await this.queue.add('weekly-curated-run', { kind: 'run-for-user', userId: u.id });
+      await this.queue.enqueue<WeeklyCuratedJobData>(WEEKLY_CURATED_QUEUE, {
+        kind: 'run-for-user',
+        userId: u.id,
+      });
     }
   }
 
@@ -196,11 +188,6 @@ export class WeeklyCuratedWorker extends WorkerHost implements OnModuleInit {
     const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     monday.setUTCDate(monday.getUTCDate() - daysSinceMonday);
     return monday;
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<WeeklyCuratedJobData>, err: Error): void {
-    this.logger.error(`Job ${job.id} failed: ${err.message}`, err.stack, CTX);
   }
 }
 
