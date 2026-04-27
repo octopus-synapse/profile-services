@@ -1,9 +1,12 @@
 /**
  * Route descriptors for the email-verification BC. Replaces
- * `VerifyEmailController`. The `SendVerificationController` stays
- * Nest-decorated because it relies on `@AllowUnverifiedEmail()` to
- * bypass the global `EmailVerifiedGuard`, which the synthesizer does
- * not yet model.
+ * `VerifyEmailController` and `SendVerificationController`.
+ *
+ * The send/resend-status endpoints rely on the global
+ * `EmailVerifiedGuard` short-circuiting when the
+ * `allowUnverifiedEmail` metadata is present — declared via
+ * `route.guards: [{ id: 'allow-unverified-email' }]`. The matching
+ * registry lives in `email-verification.module.ts`.
  */
 
 import type { Route } from '@/shared-kernel/http/route';
@@ -29,6 +32,43 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
         success: true,
         data: { email: result.email, message: 'Email has been verified successfully.' },
       };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/email-verification/send',
+    auth: { kind: 'jwt' },
+    statusCode: 200,
+    guards: [{ id: 'allow-unverified-email' }],
+    openapi: {
+      summary: 'Send verification email',
+      tags: ['Email Verification'],
+      description: 'Sends a verification email to the authenticated user. No body required.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const cooldown = await bc.sendVerificationEmail.execute({ userId: ctx.user!.userId });
+      return {
+        success: true,
+        data: { message: 'Verification email has been sent.', cooldown },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/email-verification/resend-status',
+    auth: { kind: 'jwt' },
+    guards: [{ id: 'allow-unverified-email' }],
+    openapi: {
+      summary: 'Get verification email resend cooldown',
+      tags: ['Email Verification'],
+      description:
+        'Returns how many seconds the authenticated user must wait before requesting another verification email. The UI uses this so the countdown survives page reloads.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const cooldown = await bc.getResendCooldown.execute({ userId: ctx.user!.userId });
+      return { success: true, data: cooldown };
     },
   },
 ];

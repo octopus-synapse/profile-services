@@ -7,6 +7,8 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
+import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
+import { EmailVerifiedGuard } from '../shared-kernel/infrastructure/guards/email-verified.guard';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
 import { GetResendCooldownPort } from './application/ports/get-resend-cooldown.port';
@@ -27,14 +29,23 @@ import {
   EmailVerificationSender,
   PrismaEmailVerificationRepository,
 } from './infrastructure/adapters';
-import { SendVerificationController } from './infrastructure/controllers';
 
 @Module({
   imports: [PrismaModule, ConfigModule, EmailModule],
   controllers: [
-    // Legacy: relies on @AllowUnverifiedEmail() to bypass EmailVerifiedGuard.
-    SendVerificationController,
-    ...synthesizeRouteControllers(EmailVerificationUseCases, emailVerificationRoutes),
+    ...synthesizeRouteControllers(EmailVerificationUseCases, emailVerificationRoutes, {
+      guards: {
+        // Sets `allowUnverifiedEmail` metadata on the synthesized handler
+        // so the global EmailVerifiedGuard short-circuits, mirroring the
+        // legacy `@AllowUnverifiedEmail()` decorator. The local
+        // EmailVerifiedGuard re-runs but is idempotent — it short-circuits
+        // on the same metadata read.
+        'allow-unverified-email': {
+          guard: EmailVerifiedGuard,
+          metadataKey: ALLOW_UNVERIFIED_EMAIL_KEY,
+        },
+      },
+    }),
   ],
   providers: [
     // Outbound Adapters
