@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { BadgeService } from '../services/badge.service';
+import { ListUserBadgesUseCase } from '../../application/use-cases/list-user-badges/list-user-badges.use-case';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -17,7 +17,7 @@ type BadgeEntry = { kind: string; awardedAt: string };
 @ApiTags('badges')
 @Controller('v1/badges')
 export class BadgeController {
-  constructor(private readonly badges: BadgeService) {}
+  constructor(private readonly listUserBadges: ListUserBadgesUseCase) {}
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -25,7 +25,7 @@ export class BadgeController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Badges awarded to the viewer.' })
   async listMine(@Req() req: RequestWithUser): Promise<DataResponse<{ badges: BadgeEntry[] }>> {
-    const badges = await this.badges.listForUserAsDto(req.user.userId);
+    const badges = await this.listUserBadges.execute(req.user.userId);
     return { success: true, data: { badges } };
   }
 
@@ -37,7 +37,7 @@ export class BadgeController {
   async listForUser(
     @Param('userId') userId: string,
   ): Promise<DataResponse<{ badges: BadgeEntry[] }>> {
-    const badges = await this.badges.listForUserAsDto(userId);
+    const badges = await this.listUserBadges.execute(userId);
     return { success: true, data: { badges } };
   }
 }
