@@ -6,14 +6,16 @@
  * Nest-decorated here — they consume the bundle as a constructor
  * dependency.
  *
- * The SSE stream is a small Nest-shaped adapter (`EventEmitter2`) built
- * inline because composition.ts must stay framework-free; once we
- * have an `EventBusPort` this disappears.
+ * The SSE stream subscribes to Nest's `EventEmitter2` via a synthesized
+ * Route descriptor (`notificationsSseRoutes`). The bundle
+ * (`NotificationsSseBundle`) is framework-free; this module wires it
+ * by handing the emitter to `makeNotificationsSseBundle`.
  */
 
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { filter, fromEvent, map } from 'rxjs';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
@@ -23,9 +25,9 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NotificationsUseCases } from './application/ports/notifications.port';
+import type { NotificationStreamEvent } from './domain/entities/notification';
 import { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';
-import { NotificationsSseController } from './infrastructure/controllers/notifications-sse.controller';
 import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
 import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
 import {
@@ -35,7 +37,21 @@ import {
 import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
 import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
 import { buildNotificationsUseCases } from './notifications.composition';
-import { notificationsRoutes } from './notifications.routes';
+import {
+  NotificationsSseBundle,
+  notificationsRoutes,
+  notificationsSseRoutes,
+} from './notifications.routes';
+
+function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBundle {
+  return {
+    subscribeToUserStream: (userId: string) =>
+      fromEvent<NotificationStreamEvent>(emitter, `notif:user:${userId}`).pipe(
+        filter((n): n is NotificationStreamEvent => Boolean(n)),
+        map((n) => ({ data: n, id: n.id, type: 'notification', retry: 10000 })),
+      ),
+  };
+}
 
 @Module({
   imports: [
@@ -47,7 +63,7 @@ import { notificationsRoutes } from './notifications.routes';
   ],
   controllers: [
     ...synthesizeRouteControllers(NotificationsUseCases, notificationsRoutes),
-    NotificationsSseController,
+    ...synthesizeRouteControllers(NotificationsSseBundle, notificationsSseRoutes),
   ],
   providers: [
     {
@@ -65,6 +81,11 @@ import { notificationsRoutes } from './notifications.routes';
         logger: LoggerPort,
       ) => buildNotificationsUseCases(prisma, email, cache, stream, logger),
       inject: [PrismaService, EmailService, CacheService, NotificationStreamPort, LoggerPort],
+    },
+    {
+      provide: NotificationsSseBundle,
+      useFactory: (emitter: EventEmitter2) => makeNotificationsSseBundle(emitter),
+      inject: [EventEmitter2],
     },
 
     // Nest-decorated handlers + workers (consume the bundle).

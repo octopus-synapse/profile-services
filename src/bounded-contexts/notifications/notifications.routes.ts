@@ -1,15 +1,33 @@
 /**
  * Route descriptors for the notifications BC. Replaces
- * `NotificationController`. The SSE stream
- * (`NotificationsSseController`) stays as a legacy controller because
- * the Route synthesizer does not yet model SSE.
+ * `NotificationController` and the legacy `NotificationsSseController`
+ * — the SSE stream is now declared as a `kind: 'sse'` Route descriptor
+ * and wired through a dedicated `NotificationsSseBundle`.
  */
 
 import type { NotificationType } from '@prisma/client';
+import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { NotificationsUseCases } from './application/ports/notifications.port';
+import type { NotificationStreamEvent } from './domain/entities/notification';
+
+/**
+ * Bundle for the notifications SSE route. Holds an Observable-returning
+ * subscribe method backed by Nest's `EventEmitter2` (wired in
+ * `notifications.module.ts`).
+ */
+export interface NotificationsSseEvent {
+  readonly data: NotificationStreamEvent;
+  readonly id: string;
+  readonly type: string;
+  readonly retry: number;
+}
+
+export abstract class NotificationsSseBundle {
+  abstract subscribeToUserStream(userId: string): Observable<NotificationsSseEvent>;
+}
 
 const PaginationQuery = z.object({
   cursor: z.string().optional(),
@@ -118,5 +136,28 @@ export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = 
       const body = ctx.body as z.infer<typeof SetPreferenceBody>;
       return bc.setPreference.execute(ctx.user!.userId, type as NotificationType, body);
     },
+  },
+];
+
+/**
+ * SSE routes for the notifications BC. Live in a separate group because
+ * the `Route<TBundle>` shape pins the bundle type per group — the SSE
+ * subscriber consumes `NotificationsSseBundle`, not `NotificationsUseCases`.
+ */
+export const notificationsSseRoutes: ReadonlyArray<Route<NotificationsSseBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/notifications/subscribe',
+    auth: { kind: 'jwt' },
+    permission: Permission.NOTIFICATION_READ,
+    kind: 'sse',
+    skip: ['responseWrapper'],
+    openapi: {
+      summary: 'Subscribe to notification stream',
+      tags: ['notifications'],
+      description: 'Pushes new notifications as they are created for the authenticated user.',
+    },
+    sdk: { exported: false },
+    handler: async (ctx, bundle) => bundle.subscribeToUserStream(ctx.user!.userId),
   },
 ];
