@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { ShadowGithubApiAdapter } from './github-api.adapter';
 import { ShadowGithubApi } from './ports/github-api.port';
-import { ShadowProfileController } from './shadow-profile.controller';
+import { shadowProfileRoutes } from './shadow-profile.routes';
 import { ShadowProfileService } from './shadow-profile.service';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [ShadowProfileController],
+  controllers: synthesizeRouteControllers(ShadowProfileService, shadowProfileRoutes),
   providers: [
     ShadowProfileService,
     ShadowGithubApiAdapter,

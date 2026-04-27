@@ -1,1 +1,1 @@
-export * from './resume-analytics.controller';
+export * from './analytics-sse.controller';

@@ -18,22 +18,15 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { PlatformUseCases } from './application/ports/platform.port';
-import { AdminAlertsController } from './infrastructure/controllers/admin-alerts.controller';
-import { AdminDashboardController } from './infrastructure/controllers/admin-dashboard.controller';
-import { EnumsController } from './infrastructure/controllers/enums.controller';
-import { PlatformStatsController } from './infrastructure/controllers/platform-stats.controller';
 import { buildPlatformUseCases } from './platform.composition';
+import { platformRoutes } from './platform.routes';
 
 @Module({
   imports: [PrismaModule, AuthorizationModule, ResumesCoreModule],
-  controllers: [
-    PlatformStatsController,
-    EnumsController,
-    AdminDashboardController,
-    AdminAlertsController,
-  ],
+  controllers: synthesizeRouteControllers(PlatformUseCases, platformRoutes),
   providers: [
     SectionTypeRepository,
     {

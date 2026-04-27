@@ -11,17 +11,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { TrackPlatformEventsUseCase } from './application/use-cases/track-platform-events/track-platform-events.use-case';
 import { PlatformEventsRepositoryPort } from './domain/ports/platform-events.repository.port';
 import { ProductAnalyticsForwarderPort } from './domain/ports/product-analytics-forwarder.port';
 import { PostHogProductAnalyticsForwarder } from './infrastructure/adapters/external-services/posthog-product-analytics.forwarder';
 import { PrismaPlatformEventsRepository } from './infrastructure/adapters/persistence/prisma-platform-events.repository';
-import { PlatformEventsController } from './infrastructure/controllers/platform-events.controller';
+import { platformEventsRoutes } from './platform-events.routes';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
-  controllers: [PlatformEventsController],
+  controllers: synthesizeRouteControllers(TrackPlatformEventsUseCase, platformEventsRoutes),
   providers: [
     {
       provide: PlatformEventsRepositoryPort,

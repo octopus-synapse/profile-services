@@ -11,6 +11,7 @@ import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.modu
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
@@ -19,6 +20,7 @@ import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 
 import { ChangePasswordPort } from './application/ports/change-password.port';
 import { ForgotPasswordPort } from './application/ports/forgot-password.port';
+import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ResetPasswordPort } from './application/ports/reset-password.port';
 // Application Use Cases
 import {
@@ -44,11 +46,8 @@ import {
   SessionInvalidationAdapter,
 } from './infrastructure/adapters';
 // Infrastructure Controllers
-import {
-  ChangePasswordController,
-  ForgotPasswordController,
-  ResetPasswordController,
-} from './infrastructure/controllers';
+import { ForgotPasswordController } from './infrastructure/controllers';
+import { passwordManagementRoutes } from './password-management.routes';
 
 const providers = [
   // Outbound Adapters (Infrastructure)
@@ -168,11 +167,28 @@ const providers = [
       LoggerPort,
     ],
   },
+  // Bundle: aggregates the inbound ports into a single token consumed
+  // by the synthesized route controllers. Keeps the per-port provider
+  // graph intact for legacy controllers and cross-BC consumers.
+  {
+    provide: PasswordManagementUseCases,
+    useFactory: (
+      changePassword: ChangePasswordPort,
+      forgotPassword: ForgotPasswordPort,
+      resetPassword: ResetPasswordPort,
+    ): PasswordManagementUseCases => ({ changePassword, forgotPassword, resetPassword }),
+    inject: [ChangePasswordPort, ForgotPasswordPort, ResetPasswordPort],
+  },
 ];
 
 @Module({
   imports: [PrismaModule, ConfigModule, EmailModule, CacheModule],
-  controllers: [ForgotPasswordController, ResetPasswordController, ChangePasswordController],
+  controllers: [
+    // Legacy: relies on @Throttle() (per-route throttler config from
+    // @nestjs/throttler) which the synthesizer does not yet model.
+    ForgotPasswordController,
+    ...synthesizeRouteControllers(PasswordManagementUseCases, passwordManagementRoutes),
+  ],
   providers,
   exports: [ForgotPasswordPort, ResetPasswordPort, ChangePasswordPort],
 })

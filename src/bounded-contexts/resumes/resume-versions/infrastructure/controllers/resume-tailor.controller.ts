@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { RequireFitProfileGuard } from '@/bounded-contexts/fit-profile/infrastructure/guards/require-fit-profile.guard';
@@ -12,21 +12,21 @@ import {
 } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import {
   ResumeTailorService,
-  type TailoredVersionDiff,
   type TailorResumeResult,
 } from '../../application/services/resume-tailor.service';
 import { TailorResumeRequestDto } from '../dto/tailor-resume-request.dto';
-import {
-  TailoredVersionDiffDataDto,
-  TailoredVersionsListDataDto,
-  TailorResumeDataDto,
-} from '../dto/tailor-resume-response.dto';
-import { toVersionIsoList } from '../presenters/resume-version.presenter';
+import { TailorResumeDataDto } from '../dto/tailor-resume-response.dto';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
+/**
+ * Legacy Nest controller carrying just the `POST :resumeId/tailor`
+ * endpoint — its `RequireFitProfileGuard` + `RequireMinQualityGuard`
+ * chain is not yet expressible via Route descriptors. The two read-only
+ * tailor endpoints live in `resume-versions.routes.ts`.
+ */
 @SdkExport({ tag: 'resumes', description: 'Resume AI tailoring API' })
 @ApiTags('resume-tailor')
 @ApiBearerAuth('JWT-auth')
@@ -58,47 +58,5 @@ export class ResumeTailorController {
       jobCompany: body?.jobCompany,
     });
     return { success: true, data };
-  }
-
-  @Get(':resumeId/tailored-versions')
-  @ApiOperation({ summary: 'List tailored resume variants produced by the AI.' })
-  @ApiParam({ name: 'resumeId', type: 'string' })
-  @ApiDataResponse(TailoredVersionsListDataDto, {
-    description: 'All tailored variants the user has generated so far.',
-  })
-  async listTailored(
-    @Param('resumeId') resumeId: string,
-    @Req() req: RequestWithUser,
-  ): Promise<
-    DataResponse<{
-      versions: Array<{
-        id: string;
-        versionNumber: number;
-        label: string | null;
-        createdAt: string;
-        tailoredJobId: string | null;
-      }>;
-    }>
-  > {
-    const versions = await this.tailor.getTailoredVersions(resumeId, req.user.userId);
-    return {
-      success: true,
-      data: { versions: toVersionIsoList(versions) },
-    };
-  }
-
-  @Get(':resumeId/diff')
-  @ApiOperation({ summary: 'Structured diff between the master resume and a tailored version.' })
-  @ApiParam({ name: 'resumeId', type: 'string' })
-  @ApiDataResponse(TailoredVersionDiffDataDto, {
-    description: 'Summary / jobTitle / bullets before → after shape.',
-  })
-  async getDiff(
-    @Param('resumeId') resumeId: string,
-    @Query('versionId') versionId: string,
-    @Req() req: RequestWithUser,
-  ): Promise<DataResponse<TailoredVersionDiff>> {
-    const diff = await this.tailor.getDiff(resumeId, versionId, req.user.userId);
-    return { success: true, data: diff };
   }
 }

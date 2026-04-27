@@ -8,19 +8,23 @@
 
 import { Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { MetricsUseCases } from './application/ports/metrics.port';
 import { MetricsReaderPort } from './domain/ports/metrics-reader.port';
 import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
-import { AdminMetricsController } from './infrastructure/controllers/admin-metrics.controller';
 import { MetricsController } from './infrastructure/controllers/metrics.controller';
 import { MetricsGuard } from './metrics.guard';
 import { MetricsInterceptor } from './metrics.interceptor';
+import { metricsRoutes } from './metrics.routes';
 import { MetricsService } from './metrics.service';
 import { buildMetricsUseCases } from './metrics.composition';
 
 @Global()
 @Module({
-  controllers: [MetricsController, AdminMetricsController],
+  controllers: [
+    ...synthesizeRouteControllers(MetricsUseCases, metricsRoutes),
+    MetricsController,
+  ],
   providers: [
     MetricsService,
     { provide: MetricsReaderPort, useExisting: MetricsService },

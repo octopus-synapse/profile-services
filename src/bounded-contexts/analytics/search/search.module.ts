@@ -6,13 +6,14 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { SearchServicePort } from './ports/search.port';
 import { ResumeSearchService } from './resume-search.service';
-import { SearchController } from './search.controller';
+import { searchRoutes } from './search.routes';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [SearchController],
+  controllers: synthesizeRouteControllers(SearchServicePort, searchRoutes),
   providers: [
     ResumeSearchService,
     { provide: SearchServicePort, useExisting: ResumeSearchService },

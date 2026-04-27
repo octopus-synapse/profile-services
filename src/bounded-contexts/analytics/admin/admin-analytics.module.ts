@@ -10,15 +10,16 @@ import { Module } from '@nestjs/common';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { adminAnalyticsRoutes } from './admin-analytics.routes';
 import { GetAdminAnalyticsOverviewUseCase } from './application/use-cases/get-admin-analytics-overview/get-admin-analytics-overview.use-case';
 import { AdminAnalyticsRepositoryPort } from './domain/ports/admin-analytics.repository.port';
 import { PrismaAdminAnalyticsRepository } from './infrastructure/adapters/persistence/prisma-admin-analytics.repository';
-import { AdminAnalyticsController } from './infrastructure/controllers/admin-analytics.controller';
 
 @Module({
   imports: [PrismaModule, AuthorizationModule],
-  controllers: [AdminAnalyticsController],
+  controllers: synthesizeRouteControllers(GetAdminAnalyticsOverviewUseCase, adminAnalyticsRoutes),
   providers: [
     {
       provide: AdminAnalyticsRepositoryPort,

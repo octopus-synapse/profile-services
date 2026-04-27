@@ -5921,6 +5921,220 @@
         ]
       }
     },
+    "/api/resume-import/linkedin": {
+      "post": {
+        "description": "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
+        "operationId": "route_POST__resume_import_linkedin_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import profile data from LinkedIn (scaffold)",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/json": {
+      "post": {
+        "description": "Creates import job and processes JSON Resume data (jsonresume.org standard)",
+        "operationId": "route_POST__resume_import_json_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Import resume from JSON Resume format",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/parse": {
+      "post": {
+        "description": "Validates and transforms JSON Resume to internal format without saving",
+        "operationId": "route_POST__resume_import_parse_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Parse JSON Resume without importing",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/{importId}": {
+      "get": {
+        "description": "Returns current status, errors, and result of import job",
+        "operationId": "route_GET__resume_import_importId_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get import job status",
+        "tags": [
+          "Resume Import"
+        ]
+      },
+      "delete": {
+        "description": "Cancels pending or processing import. Cannot cancel completed imports.",
+        "operationId": "route_DELETE__resume_import_importId_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel import job",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import": {
+      "get": {
+        "description": "Returns all import jobs for authenticated user, ordered by creation date",
+        "operationId": "route_GET__resume_import_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get import history",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/{importId}/retry": {
+      "post": {
+        "description": "Retries processing of failed import job with same data",
+        "operationId": "route_POST__resume_import_importId_retry_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retry failed import",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/v1/import/github/parse": {
+      "post": {
+        "description": "GitHub import API",
+        "operationId": "import_handle",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.",
+        "tags": [
+          "import"
+        ]
+      }
+    },
     "/api/resume-import/pdf": {
       "post": {
         "description": "Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.",
@@ -6001,293 +6215,6 @@
         "summary": "Import profile data from GitHub",
         "tags": [
           "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import/linkedin": {
-      "post": {
-        "description": "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
-        "operationId": "resumeImport_importLinkedin",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Import profile data from LinkedIn (scaffold)",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import/json": {
-      "post": {
-        "description": "Creates import job and processes JSON Resume data (jsonresume.org standard)",
-        "operationId": "resumeImport_importJson",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ImportJsonDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Import created and processing started",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportResultDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Import resume from JSON Resume format",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import/parse": {
-      "post": {
-        "description": "Validates and transforms JSON Resume to internal format without saving",
-        "operationId": "resumeImport_parseJson",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ImportJsonDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Resume parsed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParsedResumeDataDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Parse JSON Resume without importing",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import/{importId}": {
-      "get": {
-        "description": "Returns current status, errors, and result of import job",
-        "operationId": "resumeImport_getStatus",
-        "parameters": [
-          {
-            "name": "importId",
-            "required": true,
-            "in": "path",
-            "description": "UUID of import job",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Import job details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportJobDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Get import job status",
-        "tags": [
-          "Resume Import"
-        ]
-      },
-      "delete": {
-        "description": "Cancels pending or processing import. Cannot cancel completed imports.",
-        "operationId": "resumeImport_cancel",
-        "parameters": [
-          {
-            "name": "importId",
-            "required": true,
-            "in": "path",
-            "description": "UUID of import job",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Import cancelled"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Cancel import job",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import": {
-      "get": {
-        "description": "Returns all import jobs for authenticated user, ordered by creation date",
-        "operationId": "resumeImport_getHistory",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "List of import jobs",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportJobDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Get import history",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/resume-import/{importId}/retry": {
-      "post": {
-        "description": "Retries processing of failed import job with same data",
-        "operationId": "resumeImport_retry",
-        "parameters": [
-          {
-            "name": "importId",
-            "required": true,
-            "in": "path",
-            "description": "UUID of failed import job",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RetryImportRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Import retry initiated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportResultDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Retry failed import",
-        "tags": [
-          "Resume Import"
-        ]
-      }
-    },
-    "/api/v1/import/github/parse": {
-      "post": {
-        "operationId": "import_parse",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: resume:update"
-          }
-        },
-        "security": [
-          {
-            "JWT-auth": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.",
-        "tags": [
-          "import"
         ]
       }
     },
@@ -20075,410 +20002,6 @@
           "importId",
           "status"
         ]
-      },
-      "ImportJsonDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "object",
-            "properties": {
-              "basics": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "label": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "phone": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "summary": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "object",
-                    "properties": {
-                      "city": {
-                        "type": "string"
-                      },
-                      "countryCode": {
-                        "type": "string"
-                      },
-                      "region": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "profiles": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "network": {
-                          "type": "string"
-                        },
-                        "url": {
-                          "type": "string",
-                          "format": "uri"
-                        },
-                        "username": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "name"
-                ]
-              },
-              "work": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "position": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "startDate": {
-                      "type": "string"
-                    },
-                    "endDate": {
-                      "type": "string"
-                    },
-                    "summary": {
-                      "type": "string"
-                    },
-                    "highlights": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              },
-              "education": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "institution": {
-                      "type": "string"
-                    },
-                    "area": {
-                      "type": "string"
-                    },
-                    "studyType": {
-                      "type": "string"
-                    },
-                    "startDate": {
-                      "type": "string"
-                    },
-                    "endDate": {
-                      "type": "string"
-                    },
-                    "score": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "skills": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "level": {
-                      "type": "string"
-                    },
-                    "keywords": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              },
-              "languages": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "language": {
-                      "type": "string"
-                    },
-                    "fluency": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "certificates": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "date": {
-                      "type": "string"
-                    },
-                    "issuer": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string",
-                      "format": "uri"
-                    }
-                  }
-                }
-              },
-              "projects": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "keywords": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "required": [
-              "basics"
-            ]
-          }
-        },
-        "required": [
-          "data"
-        ]
-      },
-      "ParsedResumeDataDto": {
-        "type": "object",
-        "properties": {
-          "personalInfo": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "email": {
-                "type": "string"
-              },
-              "phone": {
-                "type": "string"
-              },
-              "location": {
-                "type": "string"
-              },
-              "website": {
-                "type": "string"
-              },
-              "linkedin": {
-                "type": "string"
-              },
-              "github": {
-                "type": "string"
-              }
-            }
-          },
-          "summary": {
-            "type": "string"
-          },
-          "sections": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "sectionTypeKey": {
-                  "type": "string"
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "additionalProperties": {}
-                  }
-                }
-              },
-              "required": [
-                "sectionTypeKey",
-                "items"
-              ]
-            }
-          }
-        },
-        "required": [
-          "personalInfo",
-          "sections"
-        ]
-      },
-      "ImportJobDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "source": {
-            "type": "string",
-            "enum": [
-              "LINKEDIN",
-              "PDF",
-              "DOCX",
-              "JSON",
-              "GITHUB"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "PROCESSING",
-              "MAPPING",
-              "VALIDATING",
-              "IMPORTING",
-              "COMPLETED",
-              "FAILED",
-              "PARTIAL"
-            ]
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": {}
-          },
-          "parsedData": {
-            "type": "object",
-            "properties": {
-              "personalInfo": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "phone": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "string"
-                  },
-                  "website": {
-                    "type": "string"
-                  },
-                  "linkedin": {
-                    "type": "string"
-                  },
-                  "github": {
-                    "type": "string"
-                  }
-                }
-              },
-              "summary": {
-                "type": "string"
-              },
-              "sections": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "sectionTypeKey": {
-                      "type": "string"
-                    },
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "additionalProperties": {}
-                      }
-                    }
-                  },
-                  "required": [
-                    "sectionTypeKey",
-                    "items"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "personalInfo",
-              "sections"
-            ]
-          },
-          "resumeId": {
-            "type": "string"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "userId",
-          "source",
-          "status",
-          "createdAt"
-        ]
-      },
-      "RetryImportRequestDto": {
-        "type": "object",
-        "properties": {
-          "force": {
-            "type": "boolean",
-            "default": false
-          }
-        }
       },
       "MecSyncExecutionDataDto": {
         "type": "object",

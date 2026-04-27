@@ -2,11 +2,12 @@
  * Resume Versions Module
  *
  * Thin Nest shell over `buildResumeVersionsUseCases`. All wiring lives
- * in `resume-versions.composition.ts`. The two facades
- * (`ResumeTailorService`, `ResumeVersionService`) stay as Nest-
- * decorated providers so cross-BC consumers (`automation/`,
- * `resumes/core`) keep their stable surface — they delegate to the
- * use-case bundle.
+ * in `resume-versions.composition.ts`. Most version + tailor endpoints
+ * are described in `resume-versions.routes.ts` and synthesized at
+ * module load. The `ResumeTailorController` survives only for
+ * `POST :resumeId/tailor`, which depends on custom guards
+ * (`RequireFitProfileGuard` + `RequireMinQualityGuard`) the synthesizer
+ * cannot model yet.
  */
 
 import { Module } from '@nestjs/common';
@@ -19,17 +20,21 @@ import { ResumeQualityModule } from '@/bounded-contexts/resume-quality/resume-qu
 import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { ResumeTailorService } from './application/services/resume-tailor.service';
 import { ResumeVersionService } from './application/services/resume-version.service';
 import { ResumeTailorController } from './infrastructure/controllers/resume-tailor.controller';
-import { ResumeVersionController } from './infrastructure/controllers/resume-version.controller';
 import { buildResumeVersionsUseCases } from './resume-versions.composition';
+import { resumeVersionsRoutes } from './resume-versions.routes';
 
 @Module({
   imports: [PrismaModule, AiModule, FitProfileModule, ResumeQualityModule],
-  controllers: [ResumeVersionController, ResumeTailorController],
+  controllers: [
+    ...synthesizeRouteControllers(ResumeVersionsUseCases, resumeVersionsRoutes),
+    ResumeTailorController,
+  ],
   providers: [
     {
       provide: ResumeEventPublisher,

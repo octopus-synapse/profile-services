@@ -4,7 +4,9 @@ import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-l
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { FeatureFlagsUseCases } from './application/ports/feature-flags.port';
 import { FeatureFlagService } from './application/services/feature-flag.service';
 import { FlagStateService } from './application/services/flag-state.service';
 import { BootstrapFlagsUseCase } from './application/use-cases/bootstrap-flags.use-case';
@@ -13,9 +15,9 @@ import { EvaluateFlagsUseCase } from './application/use-cases/evaluate-flags.use
 import { ImpactAnalysisUseCase } from './application/use-cases/impact-analysis.use-case';
 import { ListFlagsUseCase } from './application/use-cases/list-flags.use-case';
 import { ToggleFlagUseCase } from './application/use-cases/toggle-flag.use-case';
-import { AdminFeatureFlagsController } from './controllers/admin-feature-flags.controller';
 import { FeatureFlagsController } from './controllers/feature-flags.controller';
 import { FeatureFlagRepositoryPort } from './domain/ports/feature-flag.repository.port';
+import { featureFlagsRoutes } from './feature-flags.routes';
 import { RedisFlagCache } from './infrastructure/cache/redis-flag-cache.service';
 import { FeatureFlagGuard } from './infrastructure/guards/feature-flag.guard';
 import { PrismaFeatureFlagRepository } from './infrastructure/repositories/prisma-feature-flag.repository';
@@ -30,7 +32,10 @@ import { SseFlagStream } from './infrastructure/sse/sse-flag-stream.service';
     AuthorizationModule,
     EventBusModule,
   ],
-  controllers: [FeatureFlagsController, AdminFeatureFlagsController],
+  controllers: [
+    ...synthesizeRouteControllers(FeatureFlagsUseCases, featureFlagsRoutes),
+    FeatureFlagsController,
+  ],
   providers: [
     { provide: FeatureFlagRepositoryPort, useClass: PrismaFeatureFlagRepository },
     RedisFlagCache,
@@ -44,6 +49,29 @@ import { SseFlagStream } from './infrastructure/sse/sse-flag-stream.service';
     BroadcastRefreshUseCase,
     FeatureFlagService,
     FeatureFlagGuard,
+    {
+      provide: FeatureFlagsUseCases,
+      useFactory: (
+        listFlags: ListFlagsUseCase,
+        toggleFlag: ToggleFlagUseCase,
+        impactAnalysis: ImpactAnalysisUseCase,
+        broadcastRefresh: BroadcastRefreshUseCase,
+        featureFlagService: FeatureFlagService,
+      ): FeatureFlagsUseCases => ({
+        listFlags,
+        toggleFlag,
+        impactAnalysis,
+        broadcastRefresh,
+        featureFlagService,
+      }),
+      inject: [
+        ListFlagsUseCase,
+        ToggleFlagUseCase,
+        ImpactAnalysisUseCase,
+        BroadcastRefreshUseCase,
+        FeatureFlagService,
+      ],
+    },
   ],
   exports: [FeatureFlagService, FeatureFlagGuard],
 })

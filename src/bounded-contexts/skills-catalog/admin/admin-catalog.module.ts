@@ -1,33 +1,24 @@
 /**
  * Admin Catalog Module
  *
- * Thin Nest shell over `buildAdminCatalogUseCases`. All wiring lives
- * in `admin-catalog.composition.ts`. The 5 controllers (tech-areas,
- * tech-niches, tech-skills, spoken-languages, programming-languages)
- * each consume the bundle and delegate to the relevant use cases.
+ * Thin Nest shell over `buildAdminCatalogUseCases`. Routes are
+ * described in `admin-catalog.routes.ts` and synthesized into Nest
+ * controllers at module load. The bundle (`AdminCatalogUseCases`) is
+ * injected from this module's DI scope.
  */
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
 import { buildAdminCatalogUseCases } from './admin-catalog.composition';
-import { AdminProgrammingLanguagesController } from './infrastructure/controllers/admin-programming-languages.controller';
-import { AdminSpokenLanguagesController } from './infrastructure/controllers/admin-spoken-languages.controller';
-import { AdminTechAreasController } from './infrastructure/controllers/admin-tech-areas.controller';
-import { AdminTechNichesController } from './infrastructure/controllers/admin-tech-niches.controller';
-import { AdminTechSkillsController } from './infrastructure/controllers/admin-tech-skills.controller';
+import { adminCatalogRoutes } from './admin-catalog.routes';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [
-    AdminTechAreasController,
-    AdminTechNichesController,
-    AdminTechSkillsController,
-    AdminSpokenLanguagesController,
-    AdminProgrammingLanguagesController,
-  ],
+  controllers: synthesizeRouteControllers(AdminCatalogUseCases, adminCatalogRoutes),
   providers: [
     {
       provide: AdminCatalogUseCases,

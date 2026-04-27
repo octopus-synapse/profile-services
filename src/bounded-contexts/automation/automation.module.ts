@@ -23,12 +23,14 @@ import { LoggerPort } from '@/shared-kernel';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
 import { buildAutomationUseCases } from './automation.composition';
+import { automationRoutes } from './automation.routes';
 import { ResumeJobMatcherPort } from './domain/ports/resume-job-matcher.port';
 import { ResumeAnalyticsJobMatcherAdapter } from './infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
 import { ApplyModeController } from './infrastructure/controllers/apply-mode.controller';
 import { RageApplyController } from './infrastructure/controllers/rage-apply.controller';
 import { AUTO_APPLY_QUEUE, AutoApplyWorker } from './workers/auto-apply.worker';
 import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-curated.worker';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 
 @Module({
   imports: [
@@ -40,7 +42,11 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     ResumeQualityModule,
     BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
-  controllers: [ApplyModeController, RageApplyController],
+  controllers: [
+    ...synthesizeRouteControllers(AutomationUseCases, automationRoutes),
+    ApplyModeController,
+    RageApplyController,
+  ],
   providers: [
     {
       provide: ResumeJobMatcherPort,
