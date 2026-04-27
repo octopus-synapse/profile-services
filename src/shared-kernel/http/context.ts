@@ -25,6 +25,12 @@ export interface HttpCtx<
   readonly method: string;
   readonly path: string;
   readonly headers: Record<string, string | string[] | undefined>;
+  readonly cookies: Record<string, string | undefined>;
+  /** Client IP address — derived from `X-Forwarded-For` if present, else
+   *  the socket remote address. */
+  readonly ip: string | undefined;
+  /** Convenience accessor for `headers['user-agent']`. */
+  readonly userAgent: string | undefined;
   readonly body: TBody;
   readonly query: TQuery;
   readonly params: TParams;

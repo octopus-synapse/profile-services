@@ -36,11 +36,17 @@ import {
   Put,
   Req,
   Res,
+  Sse,
+  StreamableFile,
   type Type,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { from, type Observable } from 'rxjs';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { RequirePermission } from '@/shared-kernel/authorization';
@@ -84,10 +90,22 @@ function buildCtx<TBundle>(route: Route<TBundle>, req: Request): HttpCtx {
   const query = route.query ? route.query.parse(req.query) : req.query;
   const params = route.params ? route.params.parse(req.params) : req.params;
 
+  const xff = req.headers['x-forwarded-for'];
+  const xffFirst = Array.isArray(xff) ? xff[0] : xff;
+  const ip = (xffFirst?.split(',')[0]?.trim()) || req.ip || req.socket?.remoteAddress;
+
+  const ua = req.headers['user-agent'];
+  const userAgent = Array.isArray(ua) ? ua[0] : ua;
+
+  const cookies = (req as Request & { cookies?: Record<string, string> }).cookies ?? {};
+
   return {
     method: req.method,
     path: req.path,
     headers: req.headers,
+    cookies,
+    ip,
+    userAgent,
     body,
     query: query as HttpCtx['query'],
     params: params as HttpCtx['params'],
@@ -103,17 +121,35 @@ export function synthesizeController<TBundle>(
 ): new (
   ...args: never[]
 ) => unknown {
+  const isSse = route.kind === 'sse';
+  const isMultipart = route.kind === 'multipart';
+
   class GeneratedController {
     constructor(public readonly bundle: TBundle) {}
 
-    async handle(req: Request, res: Response): Promise<unknown> {
+    async handle(
+      req: Request,
+      res: Response,
+      uploadedFile?: Express.Multer.File,
+    ): Promise<unknown> {
       const ctx = buildCtx(route, req);
+      if (isMultipart && uploadedFile) {
+        // Inject the uploaded file into ctx.body so handlers can read it
+        // alongside any existing form fields.
+        const body = (ctx.body ?? {}) as Record<string, unknown>;
+        (ctx as { body: unknown }).body = { ...body, file: uploadedFile };
+      }
       const result = await route.handler(ctx, this.bundle);
       if (isResponseWithHeaders(result)) {
         for (const [key, value] of Object.entries(result.headers)) {
           res.setHeader(key, value);
         }
         return result.body;
+      }
+      if (isSse) {
+        // The handler returned an Observable / async-iterable; pass it
+        // through unchanged. Nest's `@Sse` decorator handles the rest.
+        return result as Observable<unknown>;
       }
       return result;
     }
@@ -141,11 +177,15 @@ export function synthesizeController<TBundle>(
 
   const proto = GeneratedController.prototype;
   const methodDescriptor = Object.getOwnPropertyDescriptor(proto, 'handle')!;
-  const verb = METHOD_DECORATORS[route.method];
-  verb()(proto, 'handle', methodDescriptor);
-
-  const status = route.statusCode ?? defaultStatusFor(route.method);
-  HttpCode(status)(proto, 'handle', methodDescriptor);
+  if (isSse) {
+    // SSE routes use Nest's `@Sse('path')` instead of the verb decorators.
+    Sse()(proto, 'handle', methodDescriptor);
+  } else {
+    const verb = METHOD_DECORATORS[route.method];
+    verb()(proto, 'handle', methodDescriptor);
+    const status = route.statusCode ?? defaultStatusFor(route.method);
+    HttpCode(status)(proto, 'handle', methodDescriptor);
+  }
 
   ApiOperation({
     summary: route.openapi.summary,
@@ -182,13 +222,33 @@ export function synthesizeController<TBundle>(
     }
   }
 
-  // The handler signature is `(req, res)`; both are decorated with
-  // `@Req()` and `@Res({ passthrough: true })` so the response wrapping
-  // interceptor still runs.
+  // The handler signature is `(req, res, uploadedFile?)`. `@Res()` runs
+  // in passthrough mode so the response interceptor stays active.
   Req()(proto, 'handle', 0);
   Res({ passthrough: true })(proto, 'handle', 1);
 
+  if (isMultipart) {
+    // Multipart: wire FileInterceptor and `@UploadedFile()` on the
+    // third parameter. OpenAPI gets the standard binary-file body.
+    UseInterceptors(FileInterceptor('file'))(proto, 'handle', methodDescriptor);
+    UploadedFile()(proto, 'handle', 2);
+    ApiConsumes('multipart/form-data')(proto, 'handle', methodDescriptor);
+    ApiBody({
+      schema: {
+        type: 'object',
+        properties: { file: { type: 'string', format: 'binary' } },
+      },
+    })(proto, 'handle', methodDescriptor);
+  }
+
   return GeneratedController;
+}
+
+/** Marker used by the SSE plumbing — accepting any iterable from the
+ *  route handler and converting it to an `Observable` so Nest's `@Sse`
+ *  decorator is happy. */
+export function asSseObservable<T>(source: AsyncIterable<T>): Observable<T> {
+  return from(source);
 }
 
 function applyGuardSpec(
