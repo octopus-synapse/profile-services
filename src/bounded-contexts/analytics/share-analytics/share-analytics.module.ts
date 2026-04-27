@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { ShareAnalyticsReaderPort } from './application/ports/share-analytics-reader.port';
-import { ShareEventHandler } from './handlers/share-event.handler';
+import { registerShareAnalyticsHandlers } from './handlers/register-handlers';
 import { PrismaShareAnalyticsRepository } from './infrastructure';
 import { NullGeoLookupAdapter } from './infrastructure/adapters/null-geo-lookup.adapter';
 import { ShareAnalyticsRepositoryPort } from './ports';
@@ -18,7 +19,18 @@ import { shareAnalyticsRoutes } from './share-analytics.routes';
     { provide: GeoLookupPort, useClass: NullGeoLookupAdapter },
     ShareAnalyticsService,
     { provide: ShareAnalyticsReaderPort, useExisting: ShareAnalyticsService },
-    ShareEventHandler,
+    {
+      provide: 'SHARE_ANALYTICS_HANDLERS_REGISTERED',
+      useFactory: (
+        eventBus: EventBusPort,
+        analyticsService: ShareAnalyticsService,
+        logger: LoggerPort,
+      ): boolean => {
+        registerShareAnalyticsHandlers({ eventBus, analyticsService, logger });
+        return true;
+      },
+      inject: [EventBusPort, ShareAnalyticsService, LoggerPort],
+    },
   ],
   exports: [ShareAnalyticsService],
 })
