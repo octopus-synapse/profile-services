@@ -62,6 +62,7 @@ const BenchmarkOptionsQuery = z.object({
 const HistoryQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(10),
 });
+type HistoryQueryT = z.infer<typeof HistoryQuery>;
 
 export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> = [
   {
@@ -240,7 +241,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
-    query: HistoryQuery,
+    query: HistoryQuery as unknown as Route<ResumeAnalyticsFacade>['query'],
     openapi: {
       summary: 'Get analytics history',
       tags: ['resume-analytics'],
@@ -249,7 +250,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     sdk: { exported: true },
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const q = ctx.query as z.infer<typeof HistoryQuery>;
+      const q = ctx.query as unknown as HistoryQueryT;
       const history = await facade.getHistory(resumeId, ctx.user!.userId, q);
       return { success: true, data: history };
     },

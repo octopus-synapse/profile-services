@@ -45,7 +45,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/search',
     auth: { kind: 'public' },
-    query: SearchQuerySchema as unknown as z.ZodType<SearchQuery>,
+    query: SearchQuerySchema as unknown as Route<SearchServicePort>['query'],
     openapi: {
       summary: 'Search public resumes',
       tags: ['search'],
@@ -71,7 +71,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/search/suggestions',
     auth: { kind: 'public' },
-    query: SuggestionsQuerySchema as unknown as z.ZodType<SuggestionsQuery>,
+    query: SuggestionsQuerySchema as unknown as Route<SearchServicePort>['query'],
     openapi: {
       summary: 'Get search autocomplete suggestions',
       tags: ['search'],
@@ -89,7 +89,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/search/similar/:id',
     auth: { kind: 'public' },
     params: IdParam,
-    query: SimilarQuerySchema,
+    query: SimilarQuerySchema as unknown as Route<SearchServicePort>['query'],
     openapi: {
       summary: 'Find similar resumes by resume id',
       tags: ['search'],
@@ -98,7 +98,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     sdk: { exported: true },
     handler: async (ctx, service) => {
       const { id } = ctx.params as { id: string };
-      const q = ctx.query as z.infer<typeof SimilarQuerySchema>;
+      const q = ctx.query as unknown as SimilarQuery;
       const resumes = await service.findSimilar(id, q.limit);
       return { success: true, data: { resumes } };
     },

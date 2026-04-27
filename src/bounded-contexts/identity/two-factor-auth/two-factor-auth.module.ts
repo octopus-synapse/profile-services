@@ -8,11 +8,6 @@
  * re-exposed as a separate provider bound to `bundle.validate2fa` so
  * cross-BC consumers (authentication) can keep depending on the
  * inbound port without learning about the bundle.
- *
- * TODO(phase4): `Disable2faController` (`DELETE /auth/2fa`) was kept as
- * a Nest controller because it returns `HTTP 204` and the current
- * synthesizer can only emit 200/201. Convert once `Route.statusCode`
- * (or equivalent) lands.
  */
 
 import { Module } from '@nestjs/common';
@@ -24,16 +19,12 @@ import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 import { Validate2faInboundPort } from './application/ports/validate-2fa.inbound-port';
-import { Disable2faController } from './infrastructure/controllers/disable-2fa.controller';
 import { buildTwoFactorAuthUseCases } from './two-factor-auth.composition';
 import { twoFactorAuthRoutes } from './two-factor-auth.routes';
 
 @Module({
   imports: [PrismaModule, CacheModule],
-  controllers: [
-    Disable2faController,
-    ...synthesizeRouteControllers(TwoFactorAuthUseCases, twoFactorAuthRoutes),
-  ],
+  controllers: synthesizeRouteControllers(TwoFactorAuthUseCases, twoFactorAuthRoutes),
   providers: [
     {
       provide: TwoFactorAuthUseCases,

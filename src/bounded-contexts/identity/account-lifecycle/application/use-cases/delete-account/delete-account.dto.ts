@@ -2,7 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 // Request Schema
-const DeleteAccountSchema = z.object({ confirmationPhrase: z.string().min(1) });
+export const DeleteAccountSchema = z.object({ confirmationPhrase: z.string().min(1) });
 
 // Response Schema
 const DeleteAccountResponseSchema = z.object({ message: z.string() });

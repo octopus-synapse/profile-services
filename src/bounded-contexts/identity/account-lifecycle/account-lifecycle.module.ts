@@ -9,14 +9,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
 import { AuthenticationModule } from '../authentication/authentication.module';
 import { TokenGeneratorPort } from '../authentication/domain/ports';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import { accountLifecycleRoutes } from './account-lifecycle.routes';
 
 // Application Ports
 
+import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
 import { CreateAccountPort } from './application/ports/create-account.port';
 import { DeactivateAccountPort } from './application/ports/deactivate-account.port';
 import { DeleteAccountPort } from './application/ports/delete-account.port';
@@ -56,8 +59,6 @@ import {
 import {
   AcceptConsentController,
   CreateAccountController,
-  DeactivateAccountController,
-  DeleteAccountController,
   ExportDataController,
   GetConsentHistoryController,
   GetConsentStatusController,
@@ -66,13 +67,17 @@ import {
 @Module({
   imports: [PrismaModule, AuditLogModule, ConfigModule, AuthenticationModule],
   controllers: [
+    // Legacy controllers (see account-lifecycle.routes.ts header for why):
+    // - CreateAccount: cookie + IP/user-agent capture.
+    // - ExportData: needs req.ip for the audit log.
+    // - AcceptConsent / GetConsentStatus / GetConsentHistory: rely on
+    //   @SkipTosCheck()/@AllowUnverifiedEmail() to bypass global guards.
     CreateAccountController,
-    DeactivateAccountController,
-    DeleteAccountController,
     ExportDataController,
     AcceptConsentController,
     GetConsentStatusController,
     GetConsentHistoryController,
+    ...synthesizeRouteControllers(AccountLifecycleUseCases, accountLifecycleRoutes),
   ],
   providers: [
     // Outbound Adapters

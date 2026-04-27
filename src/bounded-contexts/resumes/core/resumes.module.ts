@@ -4,6 +4,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-version.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
 import {
   CleanupResumesOnUserDeleteHandler,
@@ -12,13 +13,18 @@ import {
 } from '../application/handlers';
 import { ResumeEventPublisher } from '../domain/ports/resume-event-publisher.port';
 import { ResumeEventPublisherAdapter } from '../infrastructure/adapters';
-import { GenericResumeSectionsController } from './controllers';
-import { ResumeManagementController } from './controllers/resume-management.controller';
+import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
+import { buildResumesUseCases } from './application/resumes.composition';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 import { ResumesServicePort } from './ports/resumes-service.port';
 import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
+import {
+  genericResumeSectionsRoutes,
+  resumeManagementRoutes,
+  resumesRoutes,
+} from './resumes.routes';
 import { ResumesService } from './resumes.service';
 import { GenericResumeSectionsService, SectionDefinitionZodFactory } from './services';
 import { buildGenericResumeSectionsUseCases } from './services/generic-resume-sections/generic-resume-sections.composition';
@@ -29,7 +35,12 @@ import { ResumeManagementService } from './services/resume-management.service';
 
 @Module({
   imports: [PrismaModule, ResumeVersionsModule, CacheModule],
-  controllers: [ResumesController, ResumeManagementController, GenericResumeSectionsController],
+  controllers: [
+    ...synthesizeRouteControllers(ResumesUseCases, resumesRoutes),
+    ...synthesizeRouteControllers(ResumeManagementUseCases, resumeManagementRoutes),
+    ...synthesizeRouteControllers(GenericResumeSectionsUseCases, genericResumeSectionsRoutes),
+    ResumesController,
+  ],
   providers: [
     {
       provide: ResumesService,
@@ -50,6 +61,16 @@ import { ResumeManagementService } from './services/resume-management.service';
     { provide: ResumesServicePort, useExisting: ResumesService },
     { provide: ResumesRepositoryPort, useExisting: ResumesRepository },
     { provide: ResumeVersionServicePort, useExisting: ResumeVersionService },
+    {
+      provide: ResumesUseCases,
+      useFactory: (
+        repository: ResumesRepositoryPort,
+        versionService: ResumeVersionServicePort,
+        eventPublisher: ResumeEventPublisher,
+        logger: LoggerPort,
+      ) => buildResumesUseCases(repository, versionService, eventPublisher, logger),
+      inject: [ResumesRepositoryPort, ResumeVersionServicePort, ResumeEventPublisher, LoggerPort],
+    },
     {
       provide: ResumeManagementService,
       useFactory: (useCases: ResumeManagementUseCases) => new ResumeManagementService(useCases),

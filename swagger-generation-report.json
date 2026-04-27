@@ -1,9 +1,9 @@
 {
   "success": true,
   "generatedBy": "nestjs-zod",
-  "paths": 339,
-  "operations": 406,
-  "schemas": 217,
+  "paths": 335,
+  "operations": 399,
+  "schemas": 146,
   "tags": [
     "auth",
     "export",

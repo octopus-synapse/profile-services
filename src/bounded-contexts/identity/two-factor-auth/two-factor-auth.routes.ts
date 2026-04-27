@@ -5,9 +5,10 @@
  * `infrastructure/controllers/`. The handlers are pure async functions
  * that receive the framework-free `HttpCtx` plus the use-case bundle.
  *
- * Edge case (left as Nest): `Disable2faController` returns
- * `HttpStatus.NO_CONTENT` (204), which the current synthesizer cannot
- * express — see `two-factor-auth.module.ts` TODO.
+ * Note: the disable endpoint historically returned HTTP 204; the
+ * synthesizer normalizes everything to 200, so we now return
+ * `{ success: true, data: null }` on delete. Once `Route.statusCode`
+ * lands the descriptor can opt back into 204.
  */
 
 import { z } from 'zod';
@@ -81,6 +82,21 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     handler: async (ctx, bc) => {
       const result = await bc.regenerateBackupCodes.execute(ctx.user!.userId);
       return { success: true, data: result };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/auth/2fa',
+    auth: { kind: 'jwt' },
+    openapi: {
+      summary: 'Disable 2FA',
+      tags: ['Two-Factor Auth'],
+      description: 'Disables 2FA and removes all backup codes.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      await bc.disable2fa.execute(ctx.user!.userId);
+      return { success: true, data: null };
     },
   },
 ];

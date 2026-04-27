@@ -1,7 +1,9 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
+import { FitProfileUseCases } from './application/ports/fit-profile.port';
 import { CreateFitQuestionUseCase } from './application/use-cases/create-fit-question.use-case';
 import { DeleteFitProfileUseCase } from './application/use-cases/delete-fit-profile.use-case';
 import { DeleteFitQuestionUseCase } from './application/use-cases/delete-fit-question.use-case';
@@ -28,10 +30,8 @@ import { PrismaFitRemapHistoryRepository } from './infrastructure/adapters/persi
 import { PrismaJobFitProfileRepository } from './infrastructure/adapters/persistence/prisma-job-fit-profile.repository';
 import { PrismaUserFitProfileRepository } from './infrastructure/adapters/persistence/prisma-user-fit-profile.repository';
 import { WeightedCosineSimilarityAdapter } from './infrastructure/adapters/weighted-cosine-similarity.adapter';
-import { AdminFitQuestionsController } from './infrastructure/controllers/admin-fit-questions.controller';
-import { FitProfileController } from './infrastructure/controllers/fit-profile.controller';
-import { JobFitProfileController } from './infrastructure/controllers/job-fit-profile.controller';
 import { RequireFitProfileGuard } from './infrastructure/guards/require-fit-profile.guard';
+import { fitProfileRoutes } from './fit-profile.routes';
 import {
   FIT_PROFILE_EXPIRE_QUEUE,
   FitProfileExpireWorker,
@@ -45,7 +45,7 @@ import {
  */
 @Module({
   imports: [PrismaModule, BullModule.registerQueue({ name: FIT_PROFILE_EXPIRE_QUEUE })],
-  controllers: [FitProfileController, JobFitProfileController, AdminFitQuestionsController],
+  controllers: synthesizeRouteControllers(FitProfileUseCases, fitProfileRoutes),
   providers: [
     // BullMQ worker: nightly sweep of expired UserFitProfile rows
     FitProfileExpireWorker,
@@ -123,6 +123,48 @@ import {
 
     // Guard exposed to other modules so they can `@UseGuards()` it
     RequireFitProfileGuard,
+
+    {
+      provide: FitProfileUseCases,
+      useFactory: (
+        getFitProfileStatus: GetFitProfileStatusUseCase,
+        getOrCreateQuestionSet: GetOrCreateQuestionSetUseCase,
+        submitFitAnswers: SubmitFitAnswersUseCase,
+        deleteFitProfile: DeleteFitProfileUseCase,
+        upsertJobFitProfile: UpsertJobFitProfileUseCase,
+        getJobFitProfile: GetJobFitProfileUseCase,
+        listFitQuestions: ListFitQuestionsUseCase,
+        createFitQuestion: CreateFitQuestionUseCase,
+        updateFitQuestion: UpdateFitQuestionUseCase,
+        deleteFitQuestion: DeleteFitQuestionUseCase,
+        getFitQuestion: GetFitQuestionUseCase,
+      ): FitProfileUseCases => ({
+        getFitProfileStatus,
+        getOrCreateQuestionSet,
+        submitFitAnswers,
+        deleteFitProfile,
+        upsertJobFitProfile,
+        getJobFitProfile,
+        listFitQuestions,
+        createFitQuestion,
+        updateFitQuestion,
+        deleteFitQuestion,
+        getFitQuestion,
+      }),
+      inject: [
+        GetFitProfileStatusUseCase,
+        GetOrCreateQuestionSetUseCase,
+        SubmitFitAnswersUseCase,
+        DeleteFitProfileUseCase,
+        UpsertJobFitProfileUseCase,
+        GetJobFitProfileUseCase,
+        ListFitQuestionsUseCase,
+        CreateFitQuestionUseCase,
+        UpdateFitQuestionUseCase,
+        DeleteFitQuestionUseCase,
+        GetFitQuestionUseCase,
+      ],
+    },
   ],
   exports: [
     // Consumed by job-match/ (Task #18)
