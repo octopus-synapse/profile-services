@@ -1,3 +1,4 @@
+export { DslUseCases } from './application/ports/dsl.port';
 export { DslCompilerService } from './application/services/dsl-compiler.service';
 export { DslValidatorService } from './application/services/dsl-validator.service';
 export { ThemeDslService } from './application/services/theme-dsl.service';

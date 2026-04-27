@@ -7,7 +7,7 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RenderResumeDslUseCase } from '@/bounded-contexts/dsl';
+import { DslUseCases } from '@/bounded-contexts/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { TypstCompilerService } from './typst-compiler.service';
@@ -70,7 +70,7 @@ describe('TypstPdfGeneratorService', () => {
       providers: [
         TypstPdfGeneratorService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: RenderResumeDslUseCase, useValue: mockRenderResumeDslUseCase },
+        { provide: DslUseCases, useValue: { renderResumeDsl: mockRenderResumeDslUseCase } },
         { provide: TypstDataSerializerService, useValue: mockSerializer },
         { provide: TypstCompilerService, useValue: mockCompiler },
       ],

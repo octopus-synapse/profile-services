@@ -8,7 +8,7 @@
  */
 
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { RenderResumeDslUseCase } from '@/bounded-contexts/dsl';
+import { DslUseCases } from '@/bounded-contexts/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
@@ -31,8 +31,8 @@ export class TypstPdfGeneratorService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => RenderResumeDslUseCase))
-    private readonly renderResumeDsl: RenderResumeDslUseCase,
+    @Inject(forwardRef(() => DslUseCases))
+    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
   ) {}
@@ -56,7 +56,7 @@ export class TypstPdfGeneratorService {
 
     // 2. Render the resume DSL to AST via the use case (loads resume +
     //    theme, validates, compiles)
-    const { ast } = await this.renderResumeDsl.execute({
+    const { ast } = await this.dsl.renderResumeDsl.execute({
       resumeId,
       userId,
       target: 'pdf',

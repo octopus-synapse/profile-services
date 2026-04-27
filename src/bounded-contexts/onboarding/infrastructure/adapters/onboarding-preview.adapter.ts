@@ -11,7 +11,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { RenderResumeDslUseCase } from '@/bounded-contexts/dsl';
+import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -24,7 +24,7 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly renderResumeDsl: RenderResumeDslUseCase,
+    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
   ) {
@@ -67,7 +67,7 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
     if (!resume) return null;
 
     try {
-      const { ast } = await this.renderResumeDsl.execute({
+      const { ast } = await this.dsl.renderResumeDsl.execute({
         resumeId: resume.id,
         userId: resume.userId,
         target: 'pdf',

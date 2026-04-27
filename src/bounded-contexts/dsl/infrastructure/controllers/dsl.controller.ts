@@ -20,10 +20,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel/schemas/resume-ast';
 import { parseLocale, SUPPORTED_LOCALES } from '@/shared-kernel/utils/locale-resolver';
-import { PreviewDslUseCase } from '../../application/use-cases/preview-dsl/preview-dsl.use-case';
-import { RenderPublicResumeDslUseCase } from '../../application/use-cases/render-public-resume-dsl/render-public-resume-dsl.use-case';
-import { RenderResumeDslUseCase } from '../../application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
-import { ValidateDslUseCase } from '../../application/use-cases/validate-dsl/validate-dsl.use-case';
+import { DslUseCases } from '../../application/ports/dsl.port';
 
 /** DTO for DSL validation error */
 export class DslValidationErrorDto {
@@ -55,12 +52,7 @@ type RenderTarget = 'html' | 'pdf';
 @ApiTags('dsl')
 @Controller('v1/dsl')
 export class DslController {
-  constructor(
-    private readonly validateDsl: ValidateDslUseCase,
-    private readonly previewDsl: PreviewDslUseCase,
-    private readonly renderResumeDsl: RenderResumeDslUseCase,
-    private readonly renderPublicResumeDsl: RenderPublicResumeDslUseCase,
-  ) {}
+  constructor(private readonly bc: DslUseCases) {}
 
   /**
    * Validate DSL without compiling
@@ -72,7 +64,7 @@ export class DslController {
   @ApiBody({ description: 'DSL object to validate' })
   @ApiDataResponse(DslValidationResultDto, { description: 'DSL validation result' })
   validate(@Body() body: Record<string, unknown>): DataResponse<DslValidationResultDto> {
-    const result = this.validateDsl.execute(body);
+    const result = this.bc.validateDsl.execute(body);
     return { success: true, data: result as DslValidationResultDto };
   }
 
@@ -91,7 +83,7 @@ export class DslController {
     @Body() body: Record<string, unknown>,
     @Query('target') target: RenderTarget = 'html',
   ): DataResponse<DslPreviewResultDto> {
-    const ast = this.previewDsl.execute(body, target);
+    const ast = this.bc.previewDsl.execute(body, target);
     return { success: true, data: { ast } };
   }
 
@@ -116,7 +108,7 @@ export class DslController {
     @Query('target') target: RenderTarget = 'html',
     @Query('locale') localeParam?: string,
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.renderResumeDsl.execute({
+    const result = await this.bc.renderResumeDsl.execute({
       resumeId,
       userId: user.userId,
       target,
@@ -144,7 +136,7 @@ export class DslController {
     @Query('target') target: RenderTarget = 'html',
     @Query('locale') localeParam?: string,
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.renderPublicResumeDsl.execute({
+    const result = await this.bc.renderPublicResumeDsl.execute({
       slug,
       target,
       locale: parseLocale(localeParam),

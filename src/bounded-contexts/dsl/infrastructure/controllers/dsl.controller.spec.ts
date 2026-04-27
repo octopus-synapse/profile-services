@@ -7,10 +7,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { PreviewDslUseCase } from '../../application/use-cases/preview-dsl/preview-dsl.use-case';
-import { RenderPublicResumeDslUseCase } from '../../application/use-cases/render-public-resume-dsl/render-public-resume-dsl.use-case';
-import { RenderResumeDslUseCase } from '../../application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
-import { ValidateDslUseCase } from '../../application/use-cases/validate-dsl/validate-dsl.use-case';
+import type { DslUseCases } from '../../application/ports/dsl.port';
 import { DslController } from './dsl.controller';
 
 describe('DslController', () => {
@@ -56,12 +53,12 @@ describe('DslController', () => {
     render = mock(() => Promise.resolve({ ast: mockAst, resumeId: mockResumeId }));
     renderPublic = mock(() => Promise.resolve({ ast: mockAst, slug: mockSlug }));
 
-    controller = new DslController(
-      { execute: validate } as unknown as ValidateDslUseCase,
-      { execute: preview } as unknown as PreviewDslUseCase,
-      { execute: render } as unknown as RenderResumeDslUseCase,
-      { execute: renderPublic } as unknown as RenderPublicResumeDslUseCase,
-    );
+    controller = new DslController({
+      validateDsl: { execute: validate },
+      previewDsl: { execute: preview },
+      renderResumeDsl: { execute: render },
+      renderPublicResumeDsl: { execute: renderPublic },
+    } as unknown as DslUseCases);
   });
 
   describe('validate', () => {
