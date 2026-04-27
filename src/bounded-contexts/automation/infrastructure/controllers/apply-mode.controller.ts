@@ -12,12 +12,8 @@ import {
   RequireMinQuality,
   RequireMinQualityGuard,
 } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
-import { ApproveCuratedItemUseCase } from '../../application/use-cases/approve-curated-item/approve-curated-item.use-case';
-import {
-  GetCurrentBatchUseCase,
-  type WeeklyCuratedBatchView,
-} from '../../application/use-cases/get-current-batch/get-current-batch.use-case';
-import { RejectCuratedItemUseCase } from '../../application/use-cases/reject-curated-item/reject-curated-item.use-case';
+import { AutomationUseCases } from '../../application/ports/automation.port';
+import type { WeeklyCuratedBatchView } from '../../application/use-cases/get-current-batch/get-current-batch.use-case';
 
 class CurrentBatchDataDto {
   @ApiProperty({ nullable: true, description: "This week's batch or null if none active" })
@@ -43,18 +39,14 @@ class RejectResultDto {
 @Controller('v1/apply-mode')
 @UseGuards(JwtAuthGuard)
 export class ApplyModeController {
-  constructor(
-    private readonly getCurrentBatchUseCase: GetCurrentBatchUseCase,
-    private readonly approveCuratedItemUseCase: ApproveCuratedItemUseCase,
-    private readonly rejectCuratedItemUseCase: RejectCuratedItemUseCase,
-  ) {}
+  constructor(private readonly bc: AutomationUseCases) {}
 
   @Get('weekly-curated/current')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "This week's curated batch for the viewer." })
   @ApiDataResponse(CurrentBatchDataDto, { description: "This week's curated batch" })
   async current(@Req() req: AuthenticatedRequest): Promise<DataResponse<CurrentBatchDataDto>> {
-    const batch = await this.getCurrentBatchUseCase.execute(req.user.userId);
+    const batch = await this.bc.getCurrentBatch.execute(req.user.userId);
     return { success: true, data: { batch } };
   }
 
@@ -71,7 +63,7 @@ export class ApplyModeController {
     @Param('itemId') itemId: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<ApproveResultDto>> {
-    const result = await this.approveCuratedItemUseCase.execute(req.user.userId, itemId);
+    const result = await this.bc.approveCuratedItem.execute(req.user.userId, itemId);
     return { success: true, data: result };
   }
 
@@ -84,7 +76,7 @@ export class ApplyModeController {
     @Param('itemId') itemId: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<RejectResultDto>> {
-    await this.rejectCuratedItemUseCase.execute(req.user.userId, itemId);
+    await this.bc.rejectCuratedItem.execute(req.user.userId, itemId);
     return { success: true, data: { itemId } };
   }
 }

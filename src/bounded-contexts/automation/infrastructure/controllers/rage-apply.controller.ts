@@ -13,7 +13,7 @@ import {
   RequireMinQualityGuard,
 } from '@/bounded-contexts/resume-quality/infrastructure/guards/require-min-quality.guard';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { RunRageApplyUseCase } from '../../application/use-cases/run-rage-apply/run-rage-apply.use-case';
+import { AutomationUseCases } from '../../application/ports/automation.port';
 
 const RageApplyBodySchema = z.object({
   minFit: z.coerce.number().int().min(0).max(100).optional(),
@@ -48,7 +48,7 @@ class RageApplyResultDto {
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/automation/rage-apply')
 export class RageApplyController {
-  constructor(private readonly runRageApply: RunRageApplyUseCase) {}
+  constructor(private readonly bc: AutomationUseCases) {}
 
   @Post()
   @RequirePermission(Permission.RAGE_APPLY)
@@ -69,7 +69,7 @@ export class RageApplyController {
         ? new Date(Date.now() - body.sinceDays * 24 * 60 * 60 * 1000)
         : undefined;
 
-    const result = await this.runRageApply.execute({
+    const result = await this.bc.runRageApply.execute({
       userId: user.userId,
       minFit: body.minFit,
       maxApplications: body.maxApplications,
