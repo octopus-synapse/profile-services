@@ -1,5 +1,3 @@
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { MatchComputedEvent } from '@/bounded-contexts/job-match/domain/events';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
 import { LoggerPort } from '@/shared-kernel';
@@ -20,14 +18,12 @@ const CTX = 'ScoreMetricsHandler';
  *     here — the use case throws before publishing. A future workers-
  *     level handler can emit `failed` from BullMQ job-failed events.
  */
-@Injectable()
 export class ScoreMetricsHandler {
   constructor(
     private readonly metrics: MetricsService,
     private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(ResumeQualityComputedEvent.TYPE)
   onResumeQualityComputed(event: ResumeQualityComputedEvent): void {
     const outcome = event.payload.contentQualityScore === null ? 'partial' : 'success';
     this.metrics.incrementScoreComputed({ type: 'resume_quality', outcome });
@@ -53,7 +49,6 @@ export class ScoreMetricsHandler {
     );
   }
 
-  @OnEvent(MatchComputedEvent.TYPE)
   onMatchComputed(event: MatchComputedEvent): void {
     const sub = event.payload.subScores;
     const anyNull =

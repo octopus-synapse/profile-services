@@ -9,9 +9,10 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { MetricsUseCases } from './application/ports/metrics.port';
 import { MetricsReaderPort } from './domain/ports/metrics-reader.port';
-import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
+import { registerMetricsHandlers } from './handlers/register-handlers';
 import { buildMetricsUseCases } from './metrics.composition';
 import { MetricsGuard } from './metrics.guard';
 import { MetricsInterceptor } from './metrics.interceptor';
@@ -34,7 +35,14 @@ import { MetricsService } from './metrics.service';
       inject: [MetricsReaderPort],
     },
     MetricsGuard,
-    ScoreMetricsHandler,
+    {
+      provide: 'METRICS_HANDLERS_REGISTERED',
+      useFactory: (eventBus: EventBusPort, metrics: MetricsService, logger: LoggerPort): boolean => {
+        registerMetricsHandlers({ eventBus, metrics, logger });
+        return true;
+      },
+      inject: [EventBusPort, MetricsService, LoggerPort],
+    },
     { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },
   ],
   exports: [MetricsService],
