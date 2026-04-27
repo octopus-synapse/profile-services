@@ -3,7 +3,7 @@
   "generatedBy": "nestjs-zod",
   "paths": 339,
   "operations": 406,
-  "schemas": 299,
+  "schemas": 221,
   "tags": [
     "auth",
     "export",

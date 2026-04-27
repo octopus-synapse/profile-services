@@ -1,6 +1,11 @@
 /**
  * Tech Skills Module
  * Handles tech skills, programming languages, areas, and niches
+ *
+ * Routes are described in `tech-skills.routes.ts` and synthesized into
+ * Nest controllers at module load. Two route groups: query routes use
+ * `TechSkillsQueryService` as their bundle, sync routes use
+ * `TechSkillsSyncService`.
  */
 
 import { Module } from '@nestjs/common';
@@ -9,6 +14,7 @@ import { InternalAuthGuard } from '@/bounded-contexts/integration/mec-sync/infra
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import {
   LanguageQueryPort,
   SkillQueryPort,
@@ -17,13 +23,6 @@ import {
   TechNicheQueryPort,
 } from './application/ports/query-facade.ports';
 import { CachePort, TechSkillRepositoryPort } from './application/ports/tech-skills.port';
-import {
-  TechAreaController,
-  TechNicheController,
-  TechSkillController,
-  TechSkillsQueryController,
-  TechSkillsSyncController,
-} from './controllers';
 import { CacheAdapter } from './infrastructure/adapters/persistence/cache.adapter';
 import { TechSkillRepository } from './infrastructure/adapters/persistence/tech-skill.repository';
 import { TechAreaQueryService } from './services/area-query.service';
@@ -39,15 +38,13 @@ import { TechAreasSyncService } from './services/tech-areas-sync.service';
 import { TechNichesSyncService } from './services/tech-niches-sync.service';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
+import { techSkillsQueryRoutes, techSkillsSyncRoutes } from './tech-skills.routes';
 
 @Module({
   imports: [ConfigModule, PrismaModule],
   controllers: [
-    TechSkillsSyncController,
-    TechSkillsQueryController,
-    TechAreaController,
-    TechNicheController,
-    TechSkillController,
+    ...synthesizeRouteControllers(TechSkillsSyncService, techSkillsSyncRoutes),
+    ...synthesizeRouteControllers(TechSkillsQueryService, techSkillsQueryRoutes),
   ],
   providers: [
     // Sync services
