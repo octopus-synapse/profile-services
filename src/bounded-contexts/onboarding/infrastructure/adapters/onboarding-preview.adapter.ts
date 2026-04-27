@@ -10,14 +10,13 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 
-@Injectable()
 export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnModuleInit {
   private readonly logger = new Logger(OnboardingPreviewAdapter.name);
   private workDir: string | null = null;
