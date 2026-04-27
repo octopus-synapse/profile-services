@@ -20,8 +20,8 @@ import { ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/sw
 import type { Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { DictionaryProjectorService } from '../application/dictionary-projector.service';
-import { negotiateLocale } from '../application/locale-negotiator';
+import { negotiateLocale } from '../../application/locale-negotiator';
+import { GetDictionaryUseCase } from '../../application/use-cases/get-dictionary/get-dictionary.use-case';
 import {
   EnumsDictionaryDto,
   ErrorsDictionaryDto,
@@ -34,7 +34,7 @@ import {
 @ApiExtraModels(NotificationTemplateDto)
 @Controller('v1/i18n/dictionary')
 export class I18nDictionaryController {
-  constructor(private readonly projector: DictionaryProjectorService) {}
+  constructor(private readonly getDictionary: GetDictionaryUseCase) {}
 
   @Public()
   @Get('errors')
@@ -53,7 +53,8 @@ export class I18nDictionaryController {
   ): ErrorsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    return { locale, entries: this.projector.projectErrors(locale) };
+    const payload = this.getDictionary.execute('errors', locale);
+    return { locale, entries: payload.entries as Record<string, string> };
   }
 
   @Public()
@@ -73,7 +74,8 @@ export class I18nDictionaryController {
   ): EnumsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    return { locale, entries: this.projector.projectEnums(locale) };
+    const payload = this.getDictionary.execute('enums', locale);
+    return { locale, entries: payload.entries as Record<string, Record<string, string>> };
   }
 
   @Public()
@@ -94,6 +96,10 @@ export class I18nDictionaryController {
   ): NotificationsDictionaryDto {
     const { locale } = negotiateLocale(acceptLanguage);
     res.setHeader('Content-Language', locale);
-    return { locale, entries: this.projector.projectNotifications(locale) };
+    const payload = this.getDictionary.execute('notifications', locale);
+    return {
+      locale,
+      entries: payload.entries as NotificationsDictionaryDto['entries'],
+    };
   }
 }

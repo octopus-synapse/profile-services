@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import type { Response } from 'express';
-import { DictionaryProjectorService } from '../application/dictionary-projector.service';
+import { DictionaryProjectorService } from '../../application/dictionary-projector.service';
+import { GetDictionaryUseCase } from '../../application/use-cases/get-dictionary/get-dictionary.use-case';
 import { I18nDictionaryController } from './i18n-dictionary.controller';
 
 function mockRes(): { res: Response; setHeader: ReturnType<typeof mock> } {
@@ -10,7 +11,9 @@ function mockRes(): { res: Response; setHeader: ReturnType<typeof mock> } {
 }
 
 describe('I18nDictionaryController', () => {
-  const controller = new I18nDictionaryController(new DictionaryProjectorService());
+  const controller = new I18nDictionaryController(
+    new GetDictionaryUseCase(new DictionaryProjectorService()),
+  );
 
   it('getErrors returns pt-BR messages when Accept-Language is pt-BR', () => {
     const { res, setHeader } = mockRes();
