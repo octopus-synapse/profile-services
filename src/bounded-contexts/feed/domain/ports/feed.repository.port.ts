@@ -1,0 +1,63 @@
+/**
+ * Outbound port for feed/post persistence.
+ *
+ * Aggregates every Prisma read/write the feed slice needs: post CRUD,
+ * timeline / bookmark queries, viewer-relative decoration helpers, and
+ * thread/poll context lookups.
+ */
+
+import type {
+  BookmarkedFeedItem,
+  PersistPostInput,
+  Post,
+  PostType,
+  PostWithAuthor,
+  PostWithRelations,
+  ReactionType,
+  UserPostsResult,
+} from '../entities';
+
+export abstract class FeedRepositoryPort {
+  // -------- Post CRUD --------
+  abstract createPost(authorId: string, input: PersistPostInput): Promise<PostWithAuthor>;
+  abstract findPostById(id: string): Promise<Post | null>;
+  abstract findPostByIdWithRelations(id: string): Promise<PostWithRelations | null>;
+  abstract markPostDeleted(id: string): Promise<Post>;
+  abstract incrementRepostCount(originalPostId: string, by: number): Promise<void>;
+
+  // -------- Timeline / listings --------
+  abstract listFollowedAndConnectionIds(
+    userId: string,
+  ): Promise<{ followingIds: string[]; connectionIds: string[] }>;
+  abstract listFeedPosts(params: {
+    cursor?: string;
+    take: number;
+    type?: PostType;
+    followingOnly: boolean;
+    followingIds: string[];
+    userId: string;
+  }): Promise<PostWithRelations[]>;
+  abstract listUserPosts(
+    userId: string,
+    cursor: string | undefined,
+    limit: number,
+  ): Promise<UserPostsResult>;
+  abstract listBookmarks(
+    userId: string,
+    cursor: string | undefined,
+    limit: number,
+  ): Promise<{ posts: BookmarkedFeedItem[]; nextCursor: string | null }>;
+
+  // -------- Viewer-relative decoration --------
+  abstract findViewerEngagement(
+    postIds: string[],
+    userId: string,
+  ): Promise<{
+    likedPostMap: Map<string, ReactionType>;
+    bookmarkedPostIds: Set<string>;
+    repostedPostIds: Set<string>;
+    voteByPostId: Map<string, number>;
+  }>;
+  abstract findThreadPosts(threadIds: string[]): Promise<Map<string, PostWithRelations[]>>;
+  abstract findLikedPostIds(postIds: string[], userId: string): Promise<Set<string>>;
+}
