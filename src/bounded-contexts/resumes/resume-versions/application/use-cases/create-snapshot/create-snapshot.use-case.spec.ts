@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ResumeNotFoundException } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionsRepository } from '../../../testing';
@@ -13,7 +14,7 @@ describe('CreateSnapshotUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryResumeVersionsRepository();
     eventPublisher = new InMemoryResumeEventPublisher();
-    useCase = new CreateSnapshotUseCase(repository, eventPublisher);
+    useCase = new CreateSnapshotUseCase(repository, eventPublisher, stubLogger);
   });
 
   it('throws ResumeNotFoundException when resume not found', async () => {

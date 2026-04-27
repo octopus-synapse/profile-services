@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryResumeVersionsRepository, StubResumeTailorLlm } from '../../testing';
 import { GetTailoredVersionDiffUseCase } from '../use-cases/get-tailored-version-diff/get-tailored-version-diff.use-case';
@@ -22,7 +23,7 @@ describe('ResumeTailorService (facade)', () => {
     }));
 
     service = new ResumeTailorService(
-      new TailorResumeForJobUseCase(repository, llm),
+      new TailorResumeForJobUseCase(repository, llm, stubLogger),
       new GetTailoredVersionsUseCase(repository),
       new GetTailoredVersionDiffUseCase(repository),
     );

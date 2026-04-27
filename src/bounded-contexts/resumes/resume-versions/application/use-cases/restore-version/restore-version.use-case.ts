@@ -3,6 +3,7 @@
  * the current state first ("Before restore") so the user can undo.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
@@ -57,6 +58,7 @@ export class RestoreVersionUseCase {
     private readonly repository: ResumeVersionsRepositoryPort,
     private readonly createSnapshotUseCase: CreateSnapshotUseCase,
     private readonly eventPublisher: ResumeEventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

@@ -64,9 +64,12 @@ import { ResumeVersionController } from './infrastructure/controllers/resume-ver
     },
     {
       provide: CreateSnapshotUseCase,
-      useFactory: (repo: ResumeVersionsRepositoryPort, events: ResumeEventPublisher) =>
-        new CreateSnapshotUseCase(repo, events),
-      inject: [ResumeVersionsRepositoryPort, ResumeEventPublisher],
+      useFactory: (
+        repo: ResumeVersionsRepositoryPort,
+        events: ResumeEventPublisher,
+        logger: LoggerPort,
+      ) => new CreateSnapshotUseCase(repo, events, logger),
+      inject: [ResumeVersionsRepositoryPort, ResumeEventPublisher, LoggerPort],
     },
     {
       provide: GetVersionsUseCase,
@@ -79,14 +82,23 @@ import { ResumeVersionController } from './infrastructure/controllers/resume-ver
         repo: ResumeVersionsRepositoryPort,
         snapshot: CreateSnapshotUseCase,
         events: ResumeEventPublisher,
-      ) => new RestoreVersionUseCase(repo, snapshot, events),
-      inject: [ResumeVersionsRepositoryPort, CreateSnapshotUseCase, ResumeEventPublisher],
+        logger: LoggerPort,
+      ) => new RestoreVersionUseCase(repo, snapshot, events, logger),
+      inject: [
+        ResumeVersionsRepositoryPort,
+        CreateSnapshotUseCase,
+        ResumeEventPublisher,
+        LoggerPort,
+      ],
     },
     {
       provide: TailorResumeForJobUseCase,
-      useFactory: (repo: ResumeVersionsRepositoryPort, llm: ResumeTailorLlmPort) =>
-        new TailorResumeForJobUseCase(repo, llm),
-      inject: [ResumeVersionsRepositoryPort, ResumeTailorLlmPort],
+      useFactory: (
+        repo: ResumeVersionsRepositoryPort,
+        llm: ResumeTailorLlmPort,
+        logger: LoggerPort,
+      ) => new TailorResumeForJobUseCase(repo, llm, logger),
+      inject: [ResumeVersionsRepositoryPort, ResumeTailorLlmPort, LoggerPort],
     },
     {
       provide: GetTailoredVersionsUseCase,

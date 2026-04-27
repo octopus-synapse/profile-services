@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ResumeNotFoundException,
@@ -25,7 +26,7 @@ describe('TailorResumeForJobUseCase', () => {
         { id: 'item-1', original: 'shipped', tailored: 'shipped at scale', highlights: ['scale'] },
       ],
     }));
-    useCase = new TailorResumeForJobUseCase(repository, llm);
+    useCase = new TailorResumeForJobUseCase(repository, llm, stubLogger);
   });
 
   it('throws ResumeNotFoundException when the resume does not exist', async () => {

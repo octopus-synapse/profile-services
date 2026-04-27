@@ -6,6 +6,7 @@
  * later changes.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
@@ -25,6 +26,7 @@ export class TailorResumeForJobUseCase {
   constructor(
     private readonly repository: ResumeVersionsRepositoryPort,
     private readonly llm: ResumeTailorLlmPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: TailorJobInput): Promise<TailorResumeResult> {

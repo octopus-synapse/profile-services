@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionsRepository } from '../../testing';
 import { CreateSnapshotUseCase } from '../use-cases/create-snapshot/create-snapshot.use-case';
@@ -16,9 +17,9 @@ describe('ResumeVersionService (facade)', () => {
   beforeEach(() => {
     repository = new InMemoryResumeVersionsRepository();
     eventPublisher = new InMemoryResumeEventPublisher();
-    const createSnapshot = new CreateSnapshotUseCase(repository, eventPublisher);
+    const createSnapshot = new CreateSnapshotUseCase(repository, eventPublisher, stubLogger);
     const getVersions = new GetVersionsUseCase(repository);
-    const restoreVersion = new RestoreVersionUseCase(repository, createSnapshot, eventPublisher);
+    const restoreVersion = new RestoreVersionUseCase(repository, createSnapshot, eventPublisher, stubLogger);
     service = new ResumeVersionService(createSnapshot, getVersions, restoreVersion);
   });
 

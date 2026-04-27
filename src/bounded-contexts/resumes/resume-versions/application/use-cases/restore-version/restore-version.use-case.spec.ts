@@ -1,3 +1,4 @@
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ResumeAccessDeniedException,
@@ -21,8 +22,8 @@ describe('RestoreVersionUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryResumeVersionsRepository();
     eventPublisher = new InMemoryResumeEventPublisher();
-    createSnapshotUseCase = new CreateSnapshotUseCase(repository, eventPublisher);
-    useCase = new RestoreVersionUseCase(repository, createSnapshotUseCase, eventPublisher);
+    createSnapshotUseCase = new CreateSnapshotUseCase(repository, eventPublisher, stubLogger);
+    useCase = new RestoreVersionUseCase(repository, createSnapshotUseCase, eventPublisher, stubLogger);
   });
 
   it('throws ResumeNotFoundException when resume not found', async () => {

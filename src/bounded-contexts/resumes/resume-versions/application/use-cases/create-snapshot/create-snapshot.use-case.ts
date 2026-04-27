@@ -9,6 +9,7 @@ import {
   ResumeSnapshotNotSerializableException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
+import { LoggerPort } from '@/shared-kernel';
 import type {
   ResumeForSnapshot,
   ResumeVersionRecord,
@@ -21,6 +22,7 @@ export class CreateSnapshotUseCase {
   constructor(
     private readonly repository: ResumeVersionsRepositoryPort,
     private readonly eventPublisher: ResumeEventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string, label?: string): Promise<ResumeVersionRecord> {
