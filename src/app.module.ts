@@ -87,6 +87,7 @@ import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 // Shared Kernel
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { DomainExceptionFilter } from '@/shared-kernel/filters/domain-exception.filter';
+import { SharedPortsModule } from '@/infrastructure/nest-adapter/shared-ports.module';
 import { ApiResponseInterceptor } from '@/shared-kernel/interceptors/api-response.interceptor';
 import { HumanRelativeInterceptor } from '@/shared-kernel/interceptors/human-relative.interceptor';
 import { AppController } from './app.controller';
@@ -99,6 +100,8 @@ import { AppController } from './app.controller';
       envFilePath: '.env',
       validate,
     }),
+    // Framework-free port adapters (ConfigPort, …) registered globally
+    SharedPortsModule,
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
