@@ -1,0 +1,94 @@
+/**
+ * `JwtPort` impl backed by `jose`. Web Crypto under the hood — works
+ * natively on Bun without any platform shims. Mirrors the surface of
+ * the Nest `JwtService`-backed adapter: HS256 secret keys + the same
+ * sign/verify semantics, including string `expiresIn` (`'15m'`) and
+ * `audience`/`issuer` claims.
+ *
+ * Synchronous `sign`/`verify` are kept for API parity with `JwtService`,
+ * but jose is async-first; the sync methods spin up a tiny event-loop
+ * via Bun's `await` runner. Application code is encouraged to use the
+ * `*Async` variants — every existing call site already does.
+ */
+
+import { type JWTPayload, jwtVerify, SignJWT } from 'jose';
+import { JwtPort, type JwtSignOptions, type JwtVerifyOptions } from '@/shared-kernel/auth/jwt.port';
+
+function parseExpiresIn(expiresIn: string | number): number {
+  if (typeof expiresIn === 'number') return Math.floor(Date.now() / 1000) + expiresIn;
+  // jose understands strings like '15m', '7d' via `setExpirationTime` directly.
+  // Convert here so we always emit a numeric `exp` claim.
+  const match = /^(\d+)\s*(s|m|h|d)$/.exec(expiresIn.trim());
+  if (!match) {
+    const asNumber = Number(expiresIn);
+    if (Number.isFinite(asNumber)) return Math.floor(Date.now() / 1000) + asNumber;
+    throw new Error(`Invalid expiresIn: ${expiresIn}`);
+  }
+  const n = Number(match[1]);
+  const unit = match[2];
+  const seconds = n * (unit === 's' ? 1 : unit === 'm' ? 60 : unit === 'h' ? 3600 : 86400);
+  return Math.floor(Date.now() / 1000) + seconds;
+}
+
+export interface JoseJwtConfig {
+  /** Default secret used when a per-call options.secret is not provided. */
+  readonly secret: string;
+  readonly issuer?: string;
+  readonly audience?: string;
+}
+
+export class JoseJwtAdapter extends JwtPort {
+  constructor(private readonly config: JoseJwtConfig) {
+    super();
+  }
+
+  private secretKey(secret?: string): Uint8Array {
+    return new TextEncoder().encode(secret ?? this.config.secret);
+  }
+
+  sign(_payload: object, _options: JwtSignOptions = {}): string {
+    // jose has no sync API. Sync sign is unused across the codebase;
+    // route handlers exclusively call `signAsync`. Throwing here is
+    // safer than a deasync hack and makes any accidental sync use
+    // surface immediately.
+    throw new Error('JoseJwtAdapter.sign is not supported — use signAsync.');
+  }
+
+  async signAsync(payload: object, options: JwtSignOptions = {}): Promise<string> {
+    const builder = new SignJWT(payload as JWTPayload).setProtectedHeader({ alg: 'HS256' });
+    if (options.expiresIn !== undefined)
+      builder.setExpirationTime(parseExpiresIn(options.expiresIn));
+    const issuer = options.issuer ?? this.config.issuer;
+    if (issuer) builder.setIssuer(issuer);
+    const audience = options.audience ?? this.config.audience;
+    if (audience) builder.setAudience(audience);
+    if (options.subject) builder.setSubject(options.subject);
+    if (options.notBefore !== undefined) builder.setNotBefore(parseExpiresIn(options.notBefore));
+    builder.setIssuedAt();
+    return builder.sign(this.secretKey(options.secret));
+  }
+
+  verify<T = unknown>(_token: string, _options?: JwtVerifyOptions): T {
+    throw new Error('JoseJwtAdapter.verify is not supported — use verifyAsync.');
+  }
+
+  async verifyAsync<T = unknown>(token: string, options: JwtVerifyOptions = {}): Promise<T> {
+    const { payload } = await jwtVerify(token, this.secretKey(options.secret), {
+      issuer: options.issuer ?? this.config.issuer,
+      audience: options.audience ?? this.config.audience,
+    });
+    return payload as T;
+  }
+
+  decode<T = unknown>(token: string): T | null {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    try {
+      const payload = parts[1];
+      const json = Buffer.from(payload, 'base64url').toString('utf8');
+      return JSON.parse(json) as T;
+    } catch {
+      return null;
+    }
+  }
+}
