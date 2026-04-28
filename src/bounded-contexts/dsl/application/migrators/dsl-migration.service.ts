@@ -3,8 +3,9 @@
  * Handles version migrations for ResumeDSL schemas
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import { LoggerPort } from '@/shared-kernel';
 import {
   DslMigrationLoopException,
   DslMigrationPathNotFoundException,
@@ -14,15 +15,19 @@ import type { DslMigrator } from './base.migrator';
 
 @Injectable()
 export class DslMigrationService {
-  private readonly logger = new Logger(DslMigrationService.name);
   private readonly migrators = new Map<string, DslMigrator>();
+
+  constructor(private readonly logger: LoggerPort) {}
 
   /**
    * Register migrators during module initialization
    */
   registerMigrators(migrators: DslMigrator[]): void {
     for (const migrator of migrators) {
-      this.logger.log(`Registering migrator: ${migrator.fromVersion} → ${migrator.toVersion}`);
+      this.logger.log(
+        `Registering migrator: ${migrator.fromVersion} → ${migrator.toVersion}`,
+        'DslMigrationService',
+      );
       this.migrators.set(migrator.fromVersion, migrator);
     }
   }
@@ -32,7 +37,7 @@ export class DslMigrationService {
    * Applies migration chain if needed (e.g., 1.0.0 → 1.1.0 → 2.0.0)
    */
   migrate(dsl: ResumeDsl, targetVersion: string): ResumeDsl {
-    this.logger.log(`Migrating DSL from ${dsl.version} to ${targetVersion}`);
+    this.logger.log(`Migrating DSL from ${dsl.version} to ${targetVersion}`, 'DslMigrationService');
 
     let currentDsl = dsl;
     let currentVersion = dsl.version;
@@ -57,7 +62,10 @@ export class DslMigrationService {
       }
 
       // Apply migration
-      this.logger.log(`Applying migrator: ${migrator.fromVersion} → ${migrator.toVersion}`);
+      this.logger.log(
+        `Applying migrator: ${migrator.fromVersion} → ${migrator.toVersion}`,
+        'DslMigrationService',
+      );
       currentDsl = migrator.migrate(currentDsl);
       currentVersion = migrator.toVersion;
 
@@ -67,7 +75,10 @@ export class DslMigrationService {
       }
     }
 
-    this.logger.log(`Migration completed: ${dsl.version} → ${targetVersion}`);
+    this.logger.log(
+      `Migration completed: ${dsl.version} → ${targetVersion}`,
+      'DslMigrationService',
+    );
     return currentDsl;
   }
 

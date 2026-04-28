@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { DslMigrationService } from '../migrators';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
@@ -72,7 +73,7 @@ describe('DslCompilerService', () => {
   beforeEach(() => {
     const validator = new DslValidatorService();
     const tokenResolver = new TokenResolverService();
-    const migrationService = new DslMigrationService();
+    const migrationService = new DslMigrationService(stubLogger);
 
     service = new DslCompilerService(validator, tokenResolver, migrationService);
   });

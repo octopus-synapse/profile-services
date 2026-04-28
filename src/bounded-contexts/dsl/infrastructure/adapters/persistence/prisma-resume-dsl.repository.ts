@@ -8,7 +8,6 @@
  * use case's job.
  */
 
-import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   GenericResume,
@@ -59,8 +58,6 @@ type PrismaResumeData = {
 };
 
 export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
-  private readonly logger = new Logger(PrismaResumeDslRepository.name);
-
   constructor(private readonly prisma: PrismaService) {
     super();
   }

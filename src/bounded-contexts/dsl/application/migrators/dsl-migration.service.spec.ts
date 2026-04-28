@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { DslMigrator } from './base.migrator';
 import { DslMigrationService } from './dsl-migration.service';
 
@@ -58,7 +60,7 @@ describe('DslMigrationService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DslMigrationService],
+      providers: [DslMigrationService, { provide: LoggerPort, useValue: stubLogger }],
     }).compile();
 
     service = module.get<DslMigrationService>(DslMigrationService);
