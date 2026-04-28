@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
+import { LoggerPort } from '@/shared-kernel';
 import type {
   GithubRepoSummary,
   GithubUserSummary,
@@ -36,7 +37,7 @@ interface GithubRepoResponse {
 
 @Injectable()
 export class GithubApiAdapter implements GithubApiPort {
-  private readonly logger = new Logger(GithubApiAdapter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async getUser(token: string, username?: string): Promise<GithubUserSummary> {
     const path = username ? `/users/${encodeURIComponent(username)}` : '/user';
@@ -106,7 +107,10 @@ export class GithubApiAdapter implements GithubApiPort {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.warn(`GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`);
+      this.logger.warn(
+        `GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`,
+        'GithubApiAdapter',
+      );
       throw new GitHubApiRequestFailedException(path, res.status);
     }
     return (await res.json()) as T;

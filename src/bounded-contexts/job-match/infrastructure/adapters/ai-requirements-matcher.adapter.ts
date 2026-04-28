@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   type NormalizedRequirementsResult,
   ScoringLlmPort,
 } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   RequirementsMatcherPort,
   type RequirementsMatchInput,
@@ -32,11 +33,10 @@ const CEFR_ORDER: readonly string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
  */
 @Injectable()
 export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
-  private readonly logger = new Logger(AiRequirementsMatcherAdapter.name);
-
   constructor(
     private readonly scoringLlm: ScoringLlmPort,
     private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -59,7 +59,10 @@ export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
         targetSlots,
       });
     } catch (err) {
-      this.logger.warn(`Requirements normaliser failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Requirements normaliser failed: ${(err as Error).message}`,
+        'AiRequirementsMatcherAdapter',
+      );
       return { score: null };
     }
 

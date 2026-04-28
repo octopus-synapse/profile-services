@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   SemanticMatcherPort,
   type SemanticMatchInput,
@@ -27,13 +28,12 @@ const EMBEDDING_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
  */
 @Injectable()
 export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
-  private readonly logger = new Logger(AiSemanticMatcherAdapter.name);
-
   constructor(
     private readonly embeddings: EmbeddingsPort,
     private readonly cache: CacheService,
     private readonly prisma: PrismaService,
     private readonly flags: FeatureFlagService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -61,7 +61,10 @@ export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
       const score = Math.round(Math.max(0, Math.min(1, (similarity + 1) / 2)) * 100);
       return { score };
     } catch (err) {
-      this.logger.warn(`Semantic match failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Semantic match failed: ${(err as Error).message}`,
+        'AiSemanticMatcherAdapter',
+      );
       return { score: null };
     }
   }

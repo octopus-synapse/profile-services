@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { graphql } from '@octokit/graphql';
 import { GetOAuthAccessTokenUseCase } from '@/bounded-contexts/identity/oauth/application/use-cases/get-oauth-access-token/get-oauth-access-token.use-case';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { GithubNotConnectedException } from '../../domain/exceptions/import.exceptions';
 
 type GithubViewer = {
@@ -81,11 +82,10 @@ export type GithubImportResult = {
 
 @Injectable()
 export class GithubImportService {
-  private readonly logger = new Logger(GithubImportService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly getAccessToken: GetOAuthAccessTokenUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async import(userId: string): Promise<GithubImportResult> {
@@ -124,6 +124,7 @@ export class GithubImportService {
 
     this.logger.log(
       `GitHub import for ${userId}: ${primaryStack.length} langs, ${buildPostsCreated} builds`,
+      'GithubImportService',
     );
     return { userId, primaryStack, buildPostsCreated, profileUpdated };
   }

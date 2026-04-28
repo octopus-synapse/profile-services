@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import type { ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
 import { ShadowGithubApi } from './ports/github-api.port';
 import { ShadowGitHubApiRequestFailedException } from './shadow-profile.exceptions';
@@ -33,7 +34,7 @@ interface GhRepoResponse {
 
 @Injectable()
 export class ShadowGithubApiAdapter implements ShadowGithubApi {
-  private readonly logger = new Logger(ShadowGithubApiAdapter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async getUser(token: string, username?: string): Promise<ShadowGithubUser> {
     const path = username ? `/users/${encodeURIComponent(username)}` : '/user';
@@ -102,7 +103,10 @@ export class ShadowGithubApiAdapter implements ShadowGithubApi {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.warn(`GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`);
+      this.logger.warn(
+        `GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`,
+        'ShadowGithubApiAdapter',
+      );
       throw new ShadowGitHubApiRequestFailedException(path, res.status);
     }
     return (await res.json()) as T;

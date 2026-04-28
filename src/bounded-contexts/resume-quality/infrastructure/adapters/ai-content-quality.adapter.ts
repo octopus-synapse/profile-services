@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
 import {
   ANALYZE_CONTENT_QUALITY_PROMPT_ID,
@@ -6,6 +6,7 @@ import {
   ANALYZE_CONTENT_QUALITY_PROMPT_SHA,
 } from '@/bounded-contexts/ai/domain/prompts/analyze-content-quality.v1';
 import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   ContentQualityPort,
   type ContentQualityResult,
@@ -29,11 +30,10 @@ const CONTENT_QUALITY_FLAG = 'scoring.content-quality.enabled';
  */
 @Injectable()
 export class AiContentQualityAdapter extends ContentQualityPort {
-  private readonly logger = new Logger(AiContentQualityAdapter.name);
-
   constructor(
     private readonly scoringLlm: ScoringLlmPort,
     private readonly flags: FeatureFlagService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -65,7 +65,10 @@ export class AiContentQualityAdapter extends ContentQualityPort {
         costUsdMicros: 0n,
       };
     } catch (err) {
-      this.logger.warn(`Content Quality AI call failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Content Quality AI call failed: ${(err as Error).message}`,
+        'AiContentQualityAdapter',
+      );
       return this.empty();
     }
   }

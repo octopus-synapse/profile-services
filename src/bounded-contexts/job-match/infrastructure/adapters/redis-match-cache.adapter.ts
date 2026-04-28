@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { LoggerPort } from '@/shared-kernel';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import type { MatchBreakdown } from '../../domain/types';
 
@@ -18,9 +19,10 @@ const MATCH_CACHE_TTL_SECONDS = 24 * 60 * 60;
  */
 @Injectable()
 export class RedisMatchCacheAdapter extends MatchCachePort {
-  private readonly logger = new Logger(RedisMatchCacheAdapter.name);
-
-  constructor(private readonly cache: CacheService) {
+  constructor(
+    private readonly cache: CacheService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -29,7 +31,10 @@ export class RedisMatchCacheAdapter extends MatchCachePort {
       const hit = await this.cache.get<SerialisedBreakdown>(this.prefix(cacheKey));
       return hit ? deserialise(hit) : null;
     } catch (err) {
-      this.logger.warn(`Match cache get failed for ${cacheKey}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Match cache get failed for ${cacheKey}: ${(err as Error).message}`,
+        'RedisMatchCacheAdapter',
+      );
       return null;
     }
   }
@@ -38,7 +43,10 @@ export class RedisMatchCacheAdapter extends MatchCachePort {
     try {
       await this.cache.set(this.prefix(cacheKey), serialise(breakdown), MATCH_CACHE_TTL_SECONDS);
     } catch (err) {
-      this.logger.warn(`Match cache set failed for ${cacheKey}: ${(err as Error).message}`);
+      this.logger.warn(
+        `Match cache set failed for ${cacheKey}: ${(err as Error).message}`,
+        'RedisMatchCacheAdapter',
+      );
     }
   }
 

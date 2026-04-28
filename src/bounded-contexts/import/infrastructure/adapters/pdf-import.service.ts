@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 // pdf-parse v2 ships a class-based API (`PDFParse`), not a callable default.
 import { PDFParse } from 'pdf-parse';
 import { type ExtractedResume, LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   PdfBufferRequiredException,
   PdfNoTextException,
@@ -17,11 +18,10 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 @Injectable()
 export class PdfImportService {
-  private readonly logger = new Logger(PdfImportService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly llm: LlmPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async import(
@@ -48,7 +48,7 @@ export class PdfImportService {
 
     const resumeId = await this.persistResume(userId, extracted);
 
-    this.logger.log(`PDF import for ${userId} → resume ${resumeId}`);
+    this.logger.log(`PDF import for ${userId} → resume ${resumeId}`, 'PdfImportService');
     return { userId, resumeId, extracted };
   }
 
