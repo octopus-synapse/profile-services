@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { AnalyticsRecorder } from '../../application/handlers';
 
 /**
@@ -13,12 +14,16 @@ import { AnalyticsRecorder } from '../../application/handlers';
  */
 @Injectable()
 export class AnalyticsRecorderAdapter implements AnalyticsRecorder {
-  private readonly logger = new Logger(AnalyticsRecorderAdapter.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async recordResumeCreation(resumeId: string, userId: string): Promise<void> {
-    this.logger.debug(`Recording analytics for new resume: ${resumeId}, user: ${userId}`);
+    this.logger.debug(
+      `Recording analytics for new resume: ${resumeId}, user: ${userId}`,
+      'AnalyticsRecorderAdapter',
+    );
 
     // Score columns were moved out of ResumeAnalytics into the scoring/
     // subsystem (see docs/scoring/README.md). This row is kept as an
