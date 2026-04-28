@@ -1,34 +1,30 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { applyDecorators, HttpStatus } from '@nestjs/common';
-import { ApiExtraModels, ApiProperty, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import {
   ApiResponseDto,
   type DataResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+
+extendZodWithOpenApi(z);
 
 export interface ApiDataResponseOptions {
   description?: string;
   status?: number;
 }
 
-export class PaginatedMetaDto {
-  @ApiProperty({ example: 100 })
-  total!: number;
+const PaginatedMetaSchema = z.object({
+  total: z.number().openapi({ example: 100 }),
+  page: z.number().openapi({ example: 1 }),
+  limit: z.number().openapi({ example: 20 }),
+  totalPages: z.number().openapi({ example: 5 }),
+  hasNextPage: z.boolean().openapi({ example: false }),
+  hasPrevPage: z.boolean().openapi({ example: false }),
+});
 
-  @ApiProperty({ example: 1 })
-  page!: number;
-
-  @ApiProperty({ example: 20 })
-  limit!: number;
-
-  @ApiProperty({ example: 5 })
-  totalPages!: number;
-
-  @ApiProperty({ example: false })
-  hasNextPage!: boolean;
-
-  @ApiProperty({ example: false })
-  hasPrevPage!: boolean;
-}
+export class PaginatedMetaDto extends createZodDto(PaginatedMetaSchema) {}
 
 type ConstructorType = abstract new (...args: never[]) => object;
 

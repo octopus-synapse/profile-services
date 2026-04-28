@@ -1,8 +1,10 @@
 /**
- * Resume AST DTOs
+ * Resume AST DTOs — Zod-first.
  *
- * NestJS DTOs with Swagger decorators for the Resume Abstract Syntax Tree.
- * These DTOs expose the AST structure through the SDK.
+ * Zod schemas (with `zod-to-openapi` annotations) for the Resume Abstract
+ * Syntax Tree. Each shape exports both the schema and a `createZodDto`-
+ * derived class so legacy `@nestjs/swagger` discovery paths still work,
+ * while route descriptors can consume the schemas directly.
  *
  * ARCHITECTURE: The AST is fully generic. Section structure comes from
  * SectionType definitions and section item content, not from hardcoded DTOs.
@@ -11,20 +13,20 @@
  * @see ../ast/resume-ast.schema.ts for Zod validation schemas
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
+extendZodWithOpenApi(z);
 
 // ============================================================================
 // Generic Section Types
 // ============================================================================
 
-export class GenericSectionItemDto {
-  @ApiProperty({ example: 'item_123' })
-  id!: string;
-
-  @ApiPropertyOptional({ example: 0 })
-  order?: number;
-
-  @ApiProperty({
+export const GenericSectionItemSchema = z.object({
+  id: z.string().openapi({ example: 'item_123' }),
+  order: z.number().optional().openapi({ example: 0 }),
+  content: z.record(z.string(), z.unknown()).openapi({
     type: 'object',
     additionalProperties: true,
     example: {
@@ -32,179 +34,125 @@ export class GenericSectionItemDto {
       company: 'Tech Company Inc.',
       startDate: '2020-01',
     },
-  })
-  content!: Record<string, unknown>;
-}
+  }),
+});
 
-export class GenericSectionDataDto {
-  @ApiProperty({ example: 'section_type_v1' })
-  sectionTypeKey!: string;
+export class GenericSectionItemDto extends createZodDto(GenericSectionItemSchema) {}
 
-  @ApiPropertyOptional({ example: 'custom_section' })
-  semanticKind?: string;
+export const GenericSectionDataSchema = z.object({
+  sectionTypeKey: z.string().openapi({ example: 'section_type_v1' }),
+  semanticKind: z.string().optional().openapi({ example: 'custom_section' }),
+  title: z.string().optional().openapi({ example: 'Selected Highlights' }),
+  items: z.array(GenericSectionItemSchema).optional(),
+  content: z.string().optional().openapi({ example: 'Markdown or plain text content' }),
+  metadata: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .openapi({
+      type: 'object',
+      additionalProperties: true,
+      example: { variant: 'timeline' },
+    }),
+});
 
-  @ApiPropertyOptional({ example: 'Selected Highlights' })
-  title?: string;
-
-  @ApiPropertyOptional({ type: [GenericSectionItemDto] })
-  items?: GenericSectionItemDto[];
-
-  @ApiPropertyOptional({ example: 'Markdown or plain text content' })
-  content?: string;
-
-  @ApiPropertyOptional({
-    type: 'object',
-    additionalProperties: true,
-    example: { variant: 'timeline' },
-  })
-  metadata?: Record<string, unknown>;
-}
+export class GenericSectionDataDto extends createZodDto(GenericSectionDataSchema) {}
 
 // ============================================================================
 // Section Data Types
 // ============================================================================
 
-export class SectionDataDto extends GenericSectionDataDto {}
+export const SectionDataSchema = GenericSectionDataSchema;
+export class SectionDataDto extends createZodDto(SectionDataSchema) {}
 
 // ============================================================================
 // Style Types
 // ============================================================================
 
-export class ResolvedTypographyDto {
-  @ApiProperty({ example: 'Inter, sans-serif' })
-  fontFamily!: string;
+export const ResolvedTypographySchema = z.object({
+  fontFamily: z.string().openapi({ example: 'Inter, sans-serif' }),
+  fontSizePx: z.number().openapi({ example: 16 }),
+  lineHeight: z.number().openapi({ example: 1.5 }),
+  fontWeight: z.number().openapi({ example: 400 }),
+  textTransform: z
+    .enum(['none', 'uppercase', 'lowercase', 'capitalize'])
+    .openapi({ example: 'none' }),
+  textDecoration: z.enum(['none', 'underline', 'line-through']).openapi({ example: 'none' }),
+});
 
-  @ApiProperty({ example: 16 })
-  fontSizePx!: number;
+export class ResolvedTypographyDto extends createZodDto(ResolvedTypographySchema) {}
 
-  @ApiProperty({ example: 1.5 })
-  lineHeight!: number;
+export const ResolvedBoxStyleSchema = z.object({
+  backgroundColor: z.string().openapi({ example: '#ffffff' }),
+  borderColor: z.string().openapi({ example: '#e5e5e5' }),
+  borderWidthPx: z.number().openapi({ example: 0 }),
+  borderRadiusPx: z.number().openapi({ example: 8 }),
+  paddingPx: z.number().openapi({ example: 16 }),
+  marginBottomPx: z.number().openapi({ example: 24 }),
+  shadow: z.string().optional().openapi({ example: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+});
 
-  @ApiProperty({ example: 400 })
-  fontWeight!: number;
+export class ResolvedBoxStyleDto extends createZodDto(ResolvedBoxStyleSchema) {}
 
-  @ApiProperty({ enum: ['none', 'uppercase', 'lowercase', 'capitalize'], example: 'none' })
-  textTransform!: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+export const SectionStylesSchema = z.object({
+  container: ResolvedBoxStyleSchema,
+  title: ResolvedTypographySchema,
+  content: ResolvedTypographySchema,
+});
 
-  @ApiProperty({ enum: ['none', 'underline', 'line-through'], example: 'none' })
-  textDecoration!: 'none' | 'underline' | 'line-through';
-}
-
-export class ResolvedBoxStyleDto {
-  @ApiProperty({ example: '#ffffff' })
-  backgroundColor!: string;
-
-  @ApiProperty({ example: '#e5e5e5' })
-  borderColor!: string;
-
-  @ApiProperty({ example: 0 })
-  borderWidthPx!: number;
-
-  @ApiProperty({ example: 8 })
-  borderRadiusPx!: number;
-
-  @ApiProperty({ example: 16 })
-  paddingPx!: number;
-
-  @ApiProperty({ example: 24 })
-  marginBottomPx!: number;
-
-  @ApiPropertyOptional({ example: '0 2px 4px rgba(0, 0, 0, 0.1)' })
-  shadow?: string;
-}
-
-export class SectionStylesDto {
-  @ApiProperty({ type: ResolvedBoxStyleDto })
-  container!: ResolvedBoxStyleDto;
-
-  @ApiProperty({ type: ResolvedTypographyDto })
-  title!: ResolvedTypographyDto;
-
-  @ApiProperty({ type: ResolvedTypographyDto })
-  content!: ResolvedTypographyDto;
-}
+export class SectionStylesDto extends createZodDto(SectionStylesSchema) {}
 
 // ============================================================================
 // Layout Types
 // ============================================================================
 
-export class ColumnDefinitionDto {
-  @ApiProperty({ example: 'col_main' })
-  id!: string;
+export const ColumnDefinitionSchema = z.object({
+  id: z.string().openapi({ example: 'col_main' }),
+  widthPercentage: z.number().openapi({ example: 66.67 }),
+  order: z.number().openapi({ example: 0 }),
+});
 
-  @ApiProperty({ example: 66.67 })
-  widthPercentage!: number;
+export class ColumnDefinitionDto extends createZodDto(ColumnDefinitionSchema) {}
 
-  @ApiProperty({ example: 0 })
-  order!: number;
-}
+export const PageLayoutSchema = z.object({
+  widthMm: z.number().describe('Page width in mm (A4 = 210)').openapi({ example: 210 }),
+  heightMm: z.number().describe('Page height in mm (A4 = 297)').openapi({ example: 297 }),
+  marginTopMm: z.number().openapi({ example: 20 }),
+  marginBottomMm: z.number().openapi({ example: 20 }),
+  marginLeftMm: z.number().openapi({ example: 15 }),
+  marginRightMm: z.number().openapi({ example: 15 }),
+  columns: z.array(ColumnDefinitionSchema),
+  columnGapMm: z.number().openapi({ example: 10 }),
+});
 
-export class PageLayoutDto {
-  @ApiProperty({ example: 210, description: 'Page width in mm (A4 = 210)' })
-  widthMm!: number;
+export class PageLayoutDto extends createZodDto(PageLayoutSchema) {}
 
-  @ApiProperty({ example: 297, description: 'Page height in mm (A4 = 297)' })
-  heightMm!: number;
+export const GlobalStylesSchema = z.object({
+  background: z.string().openapi({ example: '#ffffff' }),
+  textPrimary: z.string().openapi({ example: '#1a1a1a' }),
+  textSecondary: z.string().openapi({ example: '#666666' }),
+  accent: z.string().openapi({ example: '#0066cc' }),
+});
 
-  @ApiProperty({ example: 20 })
-  marginTopMm!: number;
+export class GlobalStylesDto extends createZodDto(GlobalStylesSchema) {}
 
-  @ApiProperty({ example: 20 })
-  marginBottomMm!: number;
+export const AstMetaSchema = z.object({
+  version: z.string().openapi({ example: '1.0.0' }),
+  generatedAt: z.string().openapi({ example: '2026-02-15T12:00:00.000Z' }),
+});
 
-  @ApiProperty({ example: 15 })
-  marginLeftMm!: number;
-
-  @ApiProperty({ example: 15 })
-  marginRightMm!: number;
-
-  @ApiProperty({ type: [ColumnDefinitionDto] })
-  columns!: ColumnDefinitionDto[];
-
-  @ApiProperty({ example: 10 })
-  columnGapMm!: number;
-}
-
-export class GlobalStylesDto {
-  @ApiProperty({ example: '#ffffff' })
-  background!: string;
-
-  @ApiProperty({ example: '#1a1a1a' })
-  textPrimary!: string;
-
-  @ApiProperty({ example: '#666666' })
-  textSecondary!: string;
-
-  @ApiProperty({ example: '#0066cc' })
-  accent!: string;
-}
-
-export class AstMetaDto {
-  @ApiProperty({ example: '1.0.0' })
-  version!: string;
-
-  @ApiProperty({ example: '2026-02-15T12:00:00.000Z' })
-  generatedAt!: string;
-}
+export class AstMetaDto extends createZodDto(AstMetaSchema) {}
 
 // ============================================================================
 // Placed Section (combines data + styles + position)
 // ============================================================================
 
-export class PlacedSectionDto {
-  @ApiProperty({ example: 'sec_experience_1' })
-  sectionId!: string;
-
-  @ApiProperty({ example: 'col_main' })
-  columnId!: string;
-
-  @ApiProperty({ example: 0 })
-  order!: number;
-
-  @ApiProperty({
-    description:
-      'Generic section data. Structure is defined by sectionTypeKey and SectionType metadata.',
-    type: GenericSectionDataDto,
+export const PlacedSectionSchema = z.object({
+  sectionId: z.string().openapi({ example: 'sec_experience_1' }),
+  columnId: z.string().openapi({ example: 'col_main' }),
+  order: z.number().openapi({ example: 0 }),
+  data: GenericSectionDataSchema.describe(
+    'Generic section data. Structure is defined by sectionTypeKey and SectionType metadata.',
+  ).openapi({
     example: {
       sectionTypeKey: 'section_type_v1',
       semanticKind: 'custom_section',
@@ -224,42 +172,33 @@ export class PlacedSectionDto {
         },
       ],
     },
-  })
-  data!: GenericSectionDataDto;
+  }),
+  styles: SectionStylesSchema,
+});
 
-  @ApiProperty({ type: SectionStylesDto })
-  styles!: SectionStylesDto;
-}
+export class PlacedSectionDto extends createZodDto(PlacedSectionSchema) {}
 
 // ============================================================================
 // Resume AST (top-level structure)
 // ============================================================================
 
-export class ResumeAstDto {
-  @ApiProperty({ type: AstMetaDto })
-  meta!: AstMetaDto;
+export const ResumeAstSchema = z.object({
+  meta: AstMetaSchema,
+  page: PageLayoutSchema,
+  sections: z.array(PlacedSectionSchema),
+  globalStyles: GlobalStylesSchema,
+});
 
-  @ApiProperty({ type: PageLayoutDto })
-  page!: PageLayoutDto;
-
-  @ApiProperty({ type: [PlacedSectionDto] })
-  sections!: PlacedSectionDto[];
-
-  @ApiProperty({ type: GlobalStylesDto })
-  globalStyles!: GlobalStylesDto;
-}
+export class ResumeAstDto extends createZodDto(ResumeAstSchema) {}
 
 // ============================================================================
 // Response DTOs for endpoints
 // ============================================================================
 
-export class DslAstResponseDto {
-  @ApiProperty({ type: ResumeAstDto })
-  ast!: ResumeAstDto;
+export const DslAstResponseSchema = z.object({
+  ast: ResumeAstSchema,
+  resumeId: z.string().optional().openapi({ example: 'clxxx...' }),
+  slug: z.string().optional().openapi({ example: 'john-doe-resume' }),
+});
 
-  @ApiPropertyOptional({ example: 'clxxx...' })
-  resumeId?: string;
-
-  @ApiPropertyOptional({ example: 'john-doe-resume' })
-  slug?: string;
-}
+export class DslAstResponseDto extends createZodDto(DslAstResponseSchema) {}

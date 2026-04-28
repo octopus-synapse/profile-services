@@ -1,40 +1,57 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Feature flag DTOs — Zod-first.
+ *
+ * All shapes are exported as Zod schemas (for route-descriptor /
+ * `createZodDto` consumption) plus inferred type aliases. The legacy
+ * `Dto` class names are kept as `createZodDto` extensions for any
+ * remaining `@nestjs/swagger` discovery paths.
+ */
+
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-export class FeatureFlagEvaluationDto {
-  @ApiProperty({
-    description: 'Map of flag key to effective boolean state for the calling user.',
-    additionalProperties: { type: 'boolean' },
-    example: { 'resumes.export.pdf': true },
-  })
-  flags!: Record<string, boolean>;
-}
+// ---------------------------------------------------------------------------
+// Evaluate
+// ---------------------------------------------------------------------------
 
-export class FeatureFlagAdminRowDto {
-  @ApiProperty() key!: string;
-  @ApiProperty() name!: string;
-  @ApiProperty({ nullable: true, type: String }) description!: string | null;
-  @ApiProperty() enabled!: boolean;
-  @ApiProperty({ type: [String] }) enabledForRoles!: string[];
-  @ApiProperty() deprecated!: boolean;
-  @ApiProperty({ type: [String] }) dependsOn!: string[];
-  @ApiProperty({
-    type: [String],
-    description: 'Parents currently OFF blocking this from turning ON.',
-  })
-  blockedBy!: string[];
-  @ApiProperty({ description: 'Effective state ignoring roles (global view).' })
-  effectiveGlobal!: boolean;
-}
+export const FeatureFlagEvaluationSchema = z.object({
+  flags: z
+    .record(z.string(), z.boolean())
+    .describe('Map of flag key to effective boolean state for the calling user.'),
+});
 
-export class FeatureFlagAdminListDto {
-  @ApiProperty({ type: [FeatureFlagAdminRowDto] })
-  flags!: FeatureFlagAdminRowDto[];
-}
+export class FeatureFlagEvaluationDto extends createZodDto(FeatureFlagEvaluationSchema) {}
+
+// ---------------------------------------------------------------------------
+// Admin list
+// ---------------------------------------------------------------------------
+
+export const FeatureFlagAdminRowSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  enabled: z.boolean(),
+  enabledForRoles: z.array(z.string()),
+  deprecated: z.boolean(),
+  dependsOn: z.array(z.string()),
+  blockedBy: z.array(z.string()).describe('Parents currently OFF blocking this from turning ON.'),
+  effectiveGlobal: z.boolean().describe('Effective state ignoring roles (global view).'),
+});
+
+export class FeatureFlagAdminRowDto extends createZodDto(FeatureFlagAdminRowSchema) {}
+
+export const FeatureFlagAdminListSchema = z.object({
+  flags: z.array(FeatureFlagAdminRowSchema),
+});
+
+export class FeatureFlagAdminListDto extends createZodDto(FeatureFlagAdminListSchema) {}
+
+// ---------------------------------------------------------------------------
+// Toggle
+// ---------------------------------------------------------------------------
 
 /** New enabled state (omit to leave unchanged) + optional role allow-list. */
-const ToggleFeatureFlagSchema = z
+export const ToggleFeatureFlagSchema = z
   .object({
     enabled: z.boolean().optional(),
     enabledForRoles: z.array(z.string()).optional(),
@@ -43,13 +60,28 @@ const ToggleFeatureFlagSchema = z
 
 export class ToggleFeatureFlagDto extends createZodDto(ToggleFeatureFlagSchema) {}
 
-export class FeatureFlagImpactNodeDto {
-  @ApiProperty() key!: string;
-  @ApiProperty({ type: () => [FeatureFlagImpactNodeDto] })
-  children!: FeatureFlagImpactNodeDto[];
-}
+// ---------------------------------------------------------------------------
+// Impact analysis (recursive tree)
+// ---------------------------------------------------------------------------
 
-export class FeatureFlagImpactDto {
-  @ApiProperty({ type: FeatureFlagImpactNodeDto })
-  tree!: FeatureFlagImpactNodeDto;
-}
+export type FeatureFlagImpactNode = {
+  key: string;
+  children: FeatureFlagImpactNode[];
+};
+
+export const FeatureFlagImpactNodeSchema: z.ZodType<FeatureFlagImpactNode> = z.lazy(() =>
+  z.object({
+    key: z.string(),
+    children: z.array(FeatureFlagImpactNodeSchema),
+  }),
+);
+
+export class FeatureFlagImpactNodeDto extends createZodDto(
+  FeatureFlagImpactNodeSchema as unknown as z.ZodObject<z.ZodRawShape>,
+) {}
+
+export const FeatureFlagImpactSchema = z.object({
+  tree: FeatureFlagImpactNodeSchema,
+});
+
+export class FeatureFlagImpactDto extends createZodDto(FeatureFlagImpactSchema) {}
