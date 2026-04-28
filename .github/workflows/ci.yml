@@ -75,25 +75,11 @@ jobs:
       image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
     secrets: inherit
 
-  integration:
-    needs: [should-skip, detect-changes, verify-attestation]
-    if: |
-      always() &&
-      needs.should-skip.outputs.should_skip != 'true' &&
-      needs.verify-attestation.result == 'success' &&
-      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
-    uses: ./.github/workflows/ci.infrastructure.integration.yml
-    secrets: inherit
-
-  e2e:
-    needs: [should-skip, detect-changes, verify-attestation]
-    if: |
-      always() &&
-      needs.should-skip.outputs.should_skip != 'true' &&
-      needs.verify-attestation.result == 'success' &&
-      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
-    uses: ./.github/workflows/ci.infrastructure.e2e.yml
-    secrets: inherit
+  # Phase-2 cutover (Nest → Elysia + Bun): the integration + e2e jobs
+  # depended on `bun test --config=bunfig.{integration,e2e}.toml` which
+  # in turn booted `AppModule` via supertest. Both suites were
+  # framework-coupled and have been removed. Smoke + journey coverage
+  # against the Elysia runtime will be re-introduced in a follow-up.
 
   security:
     needs: [should-skip, detect-changes, verify-attestation]
@@ -106,7 +92,7 @@ jobs:
     secrets: inherit
 
   status:
-    needs: [verify-attestation, build, integration, e2e, security]
+    needs: [verify-attestation, build, security]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -114,6 +100,4 @@ jobs:
         with:
           attestation: ${{ needs.verify-attestation.result }}
           build: ${{ needs.build.result }}
-          integration: ${{ needs.integration.result }}
-          e2e: ${{ needs.e2e.result }}
           security: ${{ needs.security.result }}

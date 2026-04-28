@@ -6,6 +6,10 @@ WORKDIR /app
 COPY package.json bun.lock* bunfig.toml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+# Workspace packages — `@packages/*` resolves via the tsconfig path
+# alias to `packages/*/src` (see tsconfig.json). Must be present
+# before `bun build` so the bundler can see them.
+COPY packages ./packages
 
 RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
     --mount=type=cache,target=/root/.bun/install/cache \
@@ -27,6 +31,7 @@ WORKDIR /app
 COPY package.json bun.lock* bunfig.toml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+COPY packages ./packages
 
 RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
     --mount=type=cache,target=/root/.bun/install/cache \
@@ -97,4 +102,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 
 ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD ["bun", "run", "dist/src/main.js"]
+CMD ["bun", "--bun", "dist/main.js"]
