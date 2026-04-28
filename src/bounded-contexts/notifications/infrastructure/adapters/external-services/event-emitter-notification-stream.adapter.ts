@@ -4,10 +4,12 @@
  * SSE controller subscribes to the same channel.
  */
 
+import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { NotificationStreamEvent } from '../../../domain/entities/notification';
 import { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';
 
+@Injectable()
 export class EventEmitterNotificationStreamAdapter extends NotificationStreamPort {
   constructor(private readonly emitter: EventEmitter2) {
     super();

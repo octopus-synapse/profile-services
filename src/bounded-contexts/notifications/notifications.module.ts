@@ -7,15 +7,15 @@
  * `JobQueuePort` / `CronPort` (no `@Processor`/`@Cron` decorators
  * here).
  *
- * The SSE stream subscribes to Nest's `EventEmitter2` via a synthesized
- * Route descriptor (`notificationsSseRoutes`). The bundle
- * (`NotificationsSseBundle`) is framework-free; this module wires it
- * by handing the emitter to `makeNotificationsSseBundle`.
+ * The SSE stream consumes the global `SseStreamPort` (whose adapter
+ * sits inside `infrastructure/nest-adapter` and is the only place that
+ * knows about `EventEmitter2`). The bundle (`NotificationsSseBundle`)
+ * is framework-free; this module wires it by handing the port to
+ * `makeNotificationsSseBundle`.
  */
 
 import { Module } from '@nestjs/common';
-import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { filter, fromEvent, map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
@@ -24,6 +24,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusPort, LoggerPort } from '@/shared-kernel';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { NotificationsUseCases } from './application/ports/notifications.port';
@@ -41,28 +42,25 @@ import {
   notificationsSseRoutes,
 } from './notifications.routes';
 
-function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBundle {
+function makeNotificationsSseBundle(sseStream: SseStreamPort): NotificationsSseBundle {
   return {
     subscribeToUserStream: (userId: string) =>
-      fromEvent<NotificationStreamEvent>(emitter, `notif:user:${userId}`).pipe(
-        filter((n): n is NotificationStreamEvent => Boolean(n)),
-        map((n) => ({ data: n, id: n.id, type: 'notification', retry: 10000 })),
+      sseStream.subscribe<NotificationStreamEvent>(`notif:user:${userId}`).pipe(
+        filter((event): event is { data: NotificationStreamEvent } => Boolean(event.data)),
+        map(({ data: n }) => ({ data: n, id: n.id, type: 'notification', retry: 10000 })),
       ),
   };
 }
 
 @Module({
-  imports: [PrismaModule, EventEmitterModule, EmailModule, CacheModule],
+  imports: [PrismaModule, EmailModule, CacheModule],
   controllers: [
     ...synthesizeRouteControllers(NotificationsUseCases, notificationsRoutes),
     ...synthesizeRouteControllers(NotificationsSseBundle, notificationsSseRoutes),
   ],
   providers: [
-    {
-      provide: NotificationStreamPort,
-      useFactory: (emitter: EventEmitter2) => new EventEmitterNotificationStreamAdapter(emitter),
-      inject: [EventEmitter2],
-    },
+    EventEmitterNotificationStreamAdapter,
+    { provide: NotificationStreamPort, useExisting: EventEmitterNotificationStreamAdapter },
     {
       provide: NotificationsUseCases,
       useFactory: (
@@ -76,8 +74,8 @@ function makeNotificationsSseBundle(emitter: EventEmitter2): NotificationsSseBun
     },
     {
       provide: NotificationsSseBundle,
-      useFactory: (emitter: EventEmitter2) => makeNotificationsSseBundle(emitter),
-      inject: [EventEmitter2],
+      useFactory: (sseStream: SseStreamPort) => makeNotificationsSseBundle(sseStream),
+      inject: [SseStreamPort],
     },
 
     // Side-effect provider: registers cron schedulers + BullMQ workers
