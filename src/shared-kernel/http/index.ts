@@ -4,4 +4,5 @@ export * from './context';
 export * from './error-mapper';
 export * from './pipeline';
 export * from './route';
+export * from './sse-stream.port';
 export * from './validator.port';
