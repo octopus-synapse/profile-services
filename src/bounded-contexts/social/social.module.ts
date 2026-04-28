@@ -8,8 +8,7 @@
  */
 
 import { Module } from '@nestjs/common';
-import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { filter, fromEvent, map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
@@ -18,6 +17,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import {
   ActivityRoutesBundle,
@@ -59,12 +59,12 @@ import { SkillProficiencyService } from './services/skill-proficiency.service';
 import { SkillEndorsementRoutesBundle, skillEndorsementRoutes } from './skill-endorsement.routes';
 import { SkillProficiencyRoutesBundle, skillProficiencyRoutes } from './skill-proficiency.routes';
 
-function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
+function makeActivitySseBundle(sseStream: SseStreamPort): ActivitySseBundle {
   return {
     subscribeToFeed: (userId) =>
-      fromEvent<ActivityWithUser>(emitter, `feed:user:${userId}`).pipe(
-        filter((activity): activity is ActivityWithUser => Boolean(activity)),
-        map((activity) => ({
+      sseStream.subscribe<ActivityWithUser>(`feed:user:${userId}`).pipe(
+        filter((event): event is { data: ActivityWithUser } => Boolean(event.data)),
+        map(({ data: activity }) => ({
           data: activity,
           id: activity.id,
           type: 'activity',
@@ -72,11 +72,12 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
         })),
       ),
     subscribeToFeedByType: (userId, type: ActivityType) =>
-      fromEvent<ActivityWithUser>(emitter, `feed:user:${userId}`).pipe(
+      sseStream.subscribe<ActivityWithUser>(`feed:user:${userId}`).pipe(
         filter(
-          (activity): activity is ActivityWithUser => Boolean(activity) && activity.type === type,
+          (event): event is { data: ActivityWithUser } =>
+            Boolean(event.data) && event.data.type === type,
         ),
-        map((activity) => ({
+        map(({ data: activity }) => ({
           data: activity,
           id: activity.id,
           type: 'activity',
@@ -87,7 +88,7 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
 }
 
 @Module({
-  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule, CacheModule],
+  imports: [PrismaModule, LoggerModule, EventBusModule, CacheModule],
   controllers: [
     ...synthesizeRouteControllers(FollowRoutesBundle, followRoutes),
     ...synthesizeRouteControllers(ConnectionRoutesBundle, connectionRoutes),
@@ -169,11 +170,8 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
       inject: [PrismaService],
     },
     // Event bus port (LoggerPort is provided globally by LoggerModule)
-    {
-      provide: SocialEventBusPort,
-      useFactory: (emitter: EventEmitter2) => new EventEmitterSocialEventBusAdapter(emitter),
-      inject: [EventEmitter2],
-    },
+    EventEmitterSocialEventBusAdapter,
+    { provide: SocialEventBusPort, useExisting: EventEmitterSocialEventBusAdapter },
     // Facade ports (services extend/implement these)
     { provide: FollowReaderPort, useExisting: FollowService },
     { provide: ActivityReaderPort, useExisting: ActivityService },
@@ -220,8 +218,8 @@ function makeActivitySseBundle(emitter: EventEmitter2): ActivitySseBundle {
     },
     {
       provide: ActivitySseBundle,
-      useFactory: (emitter: EventEmitter2) => makeActivitySseBundle(emitter),
-      inject: [EventEmitter2],
+      useFactory: (sseStream: SseStreamPort) => makeActivitySseBundle(sseStream),
+      inject: [SseStreamPort],
     },
     {
       provide: SkillEndorsementRoutesBundle,
