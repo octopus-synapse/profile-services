@@ -1,21 +1,23 @@
 import { Global, Module } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JwtPort } from '@/shared-kernel/auth/jwt.port';
 import { ConfigPort } from '@/shared-kernel/config/config.port';
 import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import { WebSocketPort } from '@/shared-kernel/websocket/websocket.port';
 import {
   BullMQJobQueueAdapter,
-  redisConnectionProvider,
   REDIS_CONNECTION,
   type RedisConnection,
+  redisConnectionProvider,
 } from './bullmq-job-queue.adapter';
 import { NestConfigAdapter } from './nest-config.adapter';
 import { NestCronAdapter } from './nest-cron.adapter';
 import { NestJwtAdapter } from './nest-jwt.adapter';
 import { NestSseStreamAdapter } from './nest-sse-stream.adapter';
+import { NestSocketIOServerBinder, SocketIOWebSocketAdapter } from './socketio-websocket.adapter';
 
 /**
  * Globally registers framework-free ports backed by Nest adapters so every
@@ -27,6 +29,7 @@ import { NestSseStreamAdapter } from './nest-sse-stream.adapter';
  *  - `JobQueuePort` → `BullMQJobQueueAdapter` (`bullmq`)
  *  - `CronPort` → `NestCronAdapter` (`@nestjs/schedule`)
  *  - `SseStreamPort` → `NestSseStreamAdapter` (`@nestjs/event-emitter`)
+ *  - `WebSocketPort` → `SocketIOWebSocketAdapter` (`@nestjs/websockets` + `socket.io`)
  */
 @Global()
 @Module({
@@ -52,8 +55,15 @@ import { NestSseStreamAdapter } from './nest-sse-stream.adapter';
       useFactory: (jwt: JwtService) => new NestJwtAdapter(jwt),
       inject: [JwtService],
     },
+    // WebSocket — confines `@nestjs/websockets` + `socket.io` to the
+    // adapter. `NestSocketIOServerBinder` is the only `@WebSocketGateway`
+    // in the codebase; it just hands the io.Server to the adapter so
+    // BCs can register handlers via `WebSocketPort.namespace(...)`.
+    SocketIOWebSocketAdapter,
+    { provide: WebSocketPort, useExisting: SocketIOWebSocketAdapter },
+    NestSocketIOServerBinder,
   ],
-  exports: [ConfigPort, JobQueuePort, CronPort, JwtPort, SseStreamPort],
+  exports: [ConfigPort, JobQueuePort, CronPort, JwtPort, SseStreamPort, WebSocketPort],
 })
 export class SharedPortsModule {}
 

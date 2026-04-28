@@ -5,4 +5,3 @@
  */
 
 export * from './in-memory';
-export * from './mock-socket';

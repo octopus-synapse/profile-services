@@ -82,3 +82,7 @@ export * from './schemas';
 // Validation (Generic Utilities)
 // ============================================================================
 export * from './validation';
+// ============================================================================
+// WebSocket (Framework-Agnostic WebSocket Port)
+// ============================================================================
+export * from './websocket';
