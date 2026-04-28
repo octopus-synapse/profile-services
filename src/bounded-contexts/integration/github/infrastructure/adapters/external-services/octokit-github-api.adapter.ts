@@ -2,14 +2,19 @@
  * REST-API implementation of `GitHubApiPort`. Authenticates with the
  * `GITHUB_TOKEN` env var when available; falls back to anonymous calls
  * (subject to the lower rate-limit budget). Maps 404/403/other to
- * `HttpException`s the controller layer can serialize.
+ * domain exceptions (`EntityNotFoundException`, `ForbiddenException`,
+ * `GitHubApiRequestFailedException`) which the global filter serializes.
  *
  * Per-repo `count*` calls degrade to 0 + a warn log on failure so a
  * private repo or rate limit doesn't take down the whole sync.
  */
 
-import { HttpException, HttpStatus } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions';
+import { GitHubApiRequestFailedException } from '../../../../domain/exceptions/integration.exceptions';
 import { GitHubApiPort } from '../../../domain/ports/github-api.port';
 import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/github.types';
 
@@ -88,27 +93,11 @@ export class OctokitGitHubApiAdapter extends GitHubApiPort {
 
   private handleApiError(response: Response): never {
     if (response.status === 404) {
-      throw this.httpException(HttpStatus.NOT_FOUND, 'GitHub resource not found', 'Not Found');
+      throw new EntityNotFoundException('GitHub resource');
     }
     if (response.status === 403) {
-      throw this.httpException(HttpStatus.FORBIDDEN, 'GitHub API rate limit exceeded', 'Forbidden');
+      throw new ForbiddenException('GitHub API rate limit exceeded');
     }
-    throw this.httpException(
-      HttpStatus.BAD_GATEWAY,
-      `Failed to fetch from GitHub: ${response.statusText}`,
-      'Bad Gateway',
-    );
-  }
-
-  private httpException(status: HttpStatus, message: string, error: string): HttpException {
-    const payload = { statusCode: status, message, error };
-    const ex = new HttpException(payload, status);
-    Object.defineProperty(ex, 'response', {
-      value: payload,
-      enumerable: true,
-      configurable: true,
-      writable: false,
-    });
-    return ex;
+    throw new GitHubApiRequestFailedException(response.url, response.status);
   }
 }

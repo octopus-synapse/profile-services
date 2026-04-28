@@ -2,13 +2,12 @@
  * Orchestrator for a full GitHub sync. Verifies ownership, fetches
  * profile + repos, computes total stars, persists the stats, and
  * delegates to the contribution + achievement services to build the
- * section payload before reconciling the DB. HTTP / domain failures
- * propagate; everything else is normalized to
+ * section payload before reconciling the DB. Domain failures propagate
+ * untouched; everything else is normalized to
  * `GitHubSyncFailedException` so the controller layer can show a
  * coherent error.
  */
 
-import { HttpException } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
 import { DomainException } from '@/shared-kernel/exceptions';
 import {
@@ -94,7 +93,6 @@ export class GitHubSyncService {
         },
       };
     } catch (error) {
-      if (error instanceof HttpException) throw error;
       if (error instanceof DomainException) throw error;
       throw new GitHubSyncFailedException();
     }

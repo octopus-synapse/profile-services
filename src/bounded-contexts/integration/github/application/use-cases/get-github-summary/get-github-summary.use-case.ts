@@ -1,12 +1,11 @@
 /**
  * Public read used by the resume-builder UI: fetches the GitHub
  * profile + top repos for a username, with no DB write. Failures
- * outside the HTTP/domain envelope are normalized to
+ * outside the domain envelope are normalized to
  * `GitHubSummaryFetchFailedException` so the global filter renders
  * a stable error code.
  */
 
-import { HttpException } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
 import { DomainException } from '@/shared-kernel/exceptions';
 import { GitHubSummaryFetchFailedException } from '../../../../domain/exceptions/integration.exceptions';
@@ -58,7 +57,6 @@ export class GetGitHubSummaryUseCase {
         topRepos,
       };
     } catch (error) {
-      if (error instanceof HttpException) throw error;
       if (error instanceof DomainException) throw error;
       throw new GitHubSummaryFetchFailedException();
     }
