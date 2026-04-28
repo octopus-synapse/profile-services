@@ -3,9 +3,9 @@
  * Handles Puppeteer page configuration and navigation
  */
 
-import { Logger } from '@nestjs/common';
 import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
+import { LoggerPort } from '@/shared-kernel';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
 export interface ResumePDFOptions {
@@ -17,9 +17,10 @@ export interface ResumePDFOptions {
 }
 
 export class PdfPageSetup {
-  private readonly logger = new Logger(PdfPageSetup.name);
-
-  constructor(private readonly configService: ConfigPort) {}
+  constructor(
+    private readonly configService: ConfigPort,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async setupPage(page: Page): Promise<void> {
     await page.setViewport({
@@ -49,7 +50,11 @@ export class PdfPageSetup {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.RESUME_GOTO_ERROR });
-      this.logger.error('[ResumePDF] Error during page.goto:', err);
+      this.logger.error(
+        '[ResumePDF] Error during page.goto:',
+        err instanceof Error ? err.stack : String(err),
+        'PdfPageSetup',
+      );
       throw err;
     }
   }

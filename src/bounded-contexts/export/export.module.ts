@@ -97,6 +97,14 @@ import { PdfCacheService } from './infrastructure/services/pdf-cache.service';
     BrowserManagerService,
     // Infrastructure - DOCX
     SectionTypeRepository,
+    {
+      provide: 'SECTION_TYPE_REPOSITORY_INIT_EXPORT',
+      useFactory: async (svc: SectionTypeRepository) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [SectionTypeRepository],
+    },
     GenericDocxSectionBuilder,
     DocxBuilderService,
     DocxSectionsService,

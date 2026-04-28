@@ -1,4 +1,5 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import type { FlagRecord } from '../../domain/types';
 import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
@@ -12,7 +13,7 @@ import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.serv
  * hitting Postgres per request.
  */
 @Injectable()
-export class FlagStateService implements OnModuleInit {
+export class FlagStateService implements Lifecycle {
   private flags: FlagRecord[] = [];
   private loaded = false;
   private inflight: Promise<void> | null = null;
@@ -22,7 +23,7 @@ export class FlagStateService implements OnModuleInit {
     private readonly cache: RedisFlagCache,
   ) {}
 
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     this.cache.onInvalidate(() => {
       this.loaded = false;
     });

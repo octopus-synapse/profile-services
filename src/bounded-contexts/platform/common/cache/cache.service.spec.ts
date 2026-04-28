@@ -201,9 +201,9 @@ describe('CacheService (Adapter)', () => {
       });
     });
 
-    describe('onModuleDestroy', () => {
+    describe('dispose', () => {
       it('should complete cleanup without error', async () => {
-        await expect(service.onModuleDestroy()).resolves.toBeUndefined();
+        await expect(service.dispose()).resolves.toBeUndefined();
       });
     });
   });

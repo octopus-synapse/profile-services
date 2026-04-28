@@ -1,5 +1,6 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Subject } from 'rxjs';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { RedisFlagCache } from '../cache/redis-flag-cache.service';
 
 export interface FlagStreamMessage {
@@ -14,12 +15,12 @@ export interface FlagStreamMessage {
  * toggle on one instance reaches clients on every instance.
  */
 @Injectable()
-export class SseFlagStream implements OnModuleInit {
+export class SseFlagStream implements Lifecycle {
   private readonly subject = new Subject<FlagStreamMessage>();
 
   constructor(private readonly cache: RedisFlagCache) {}
 
-  onModuleInit(): void {
+  async init(): Promise<void> {
     this.cache.onInvalidate(() => {
       this.subject.next({
         data: { type: 'invalidate', at: new Date().toISOString() },

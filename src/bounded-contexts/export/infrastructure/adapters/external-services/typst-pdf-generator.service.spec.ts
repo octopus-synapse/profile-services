@@ -10,6 +10,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TypstCompilerService } from './typst-compiler.service';
 import { TypstDataSerializerService } from './typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './typst-pdf-generator.service';
@@ -73,6 +75,7 @@ describe('TypstPdfGeneratorService', () => {
         { provide: DslUseCases, useValue: { renderResumeDsl: mockRenderResumeDslUseCase } },
         { provide: TypstDataSerializerService, useValue: mockSerializer },
         { provide: TypstCompilerService, useValue: mockCompiler },
+        { provide: LoggerPort, useValue: stubLogger },
       ],
     }).compile();
 

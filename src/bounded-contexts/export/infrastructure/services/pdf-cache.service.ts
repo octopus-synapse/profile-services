@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
 export interface PdfCacheKeyInput {
   /** Either a userId (default lookup) or a resumeId. The cache lookup
@@ -39,11 +40,10 @@ export interface PdfCacheKeyInput {
  */
 @Injectable()
 export class PdfCacheService {
-  private readonly logger = new Logger(PdfCacheService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3: S3UploadService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async serve(input: PdfCacheKeyInput, render: () => Promise<Buffer>): Promise<Buffer> {
@@ -57,12 +57,13 @@ export class PdfCacheService {
       try {
         const cached = await this.s3.downloadFile(key);
         if (cached) {
-          this.logger.log(`pdf cache hit key=${key}`);
+          this.logger.log(`pdf cache hit key=${key}`, 'PdfCacheService');
           return cached;
         }
       } catch (err) {
         this.logger.warn(
           `pdf cache lookup failed key=${key}: ${err instanceof Error ? err.message : 'unknown'}`,
+          'PdfCacheService',
         );
       }
     }
@@ -75,6 +76,7 @@ export class PdfCacheService {
       } catch (err) {
         this.logger.warn(
           `pdf cache upload failed key=${key}: ${err instanceof Error ? err.message : 'unknown'}`,
+          'PdfCacheService',
         );
       }
     }

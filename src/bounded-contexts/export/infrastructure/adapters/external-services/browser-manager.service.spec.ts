@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import puppeteer, { Browser } from 'puppeteer';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { BrowserManagerService } from './browser-manager.service';
 
 describe('BrowserManagerService', () => {
@@ -16,7 +18,7 @@ describe('BrowserManagerService', () => {
     spyOn(puppeteer, 'launch').mockResolvedValue(mockBrowser);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BrowserManagerService],
+      providers: [BrowserManagerService, { provide: LoggerPort, useValue: stubLogger }],
     }).compile();
 
     service = module.get<BrowserManagerService>(BrowserManagerService);

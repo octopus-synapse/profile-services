@@ -10,14 +10,15 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Logger, OnModuleInit } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 
-export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnModuleInit {
+export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lifecycle {
   private readonly logger = new Logger(OnboardingPreviewAdapter.name);
   private workDir: string | null = null;
 
@@ -30,7 +31,7 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
     super();
   }
 
-  async onModuleInit() {
+  async init(): Promise<void> {
     try {
       this.workDir = join('/tmp', 'typst-onboarding-preview');
       await mkdir(this.workDir, { recursive: true });

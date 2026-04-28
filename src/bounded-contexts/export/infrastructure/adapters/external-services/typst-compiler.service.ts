@@ -13,7 +13,8 @@ import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import {
   TypstAtsTemplatesNotFoundException,
   TypstCompilationFailedException,
@@ -30,9 +31,10 @@ export interface TypstCompileOptions {
 
 @Injectable()
 export class TypstCompilerService {
-  private readonly logger = new Logger(TypstCompilerService.name);
   private templateDir: string | null = null;
   private atsTemplateDir: string | null = null;
+
+  constructor(private readonly logger: LoggerPort) {}
 
   /**
    * Compile a Typst document with injected JSON data into a PDF buffer.
@@ -68,14 +70,21 @@ export class TypstCompilerService {
       );
 
       if (result.exitCode !== 0) {
-        this.logger.error(`Typst compilation failed: ${result.stderr}`);
+        this.logger.error(
+          `Typst compilation failed: ${result.stderr}`,
+          undefined,
+          'TypstCompilerService',
+        );
         throw new TypstCompilationFailedException('pdf', this.parseTypstError(result.stderr));
       }
 
       return await readFile(outputPath);
     } finally {
       await rm(workDir, { recursive: true, force: true }).catch((err) => {
-        this.logger.warn(`Failed to cleanup temp dir ${workDir}: ${err.message}`);
+        this.logger.warn(
+          `Failed to cleanup temp dir ${workDir}: ${err.message}`,
+          'TypstCompilerService',
+        );
       });
     }
   }
@@ -107,7 +116,7 @@ export class TypstCompilerService {
       try {
         await access(candidate);
         this.templateDir = candidate;
-        this.logger.log(`Typst templates found at: ${candidate}`);
+        this.logger.log(`Typst templates found at: ${candidate}`, 'TypstCompilerService');
         return candidate;
       } catch {
         // not found, try next
@@ -130,7 +139,7 @@ export class TypstCompilerService {
     try {
       await access(atsPath);
       this.atsTemplateDir = atsPath;
-      this.logger.log(`ATS Typst templates found at: ${atsPath}`);
+      this.logger.log(`ATS Typst templates found at: ${atsPath}`, 'TypstCompilerService');
       return atsPath;
     } catch {
       throw new TypstAtsTemplatesNotFoundException(atsPath);
@@ -168,7 +177,7 @@ export class TypstCompilerService {
     timeout: number,
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
-      this.logger.debug(`Executing: ${TYPST_BINARY} ${args.join(' ')}`);
+      this.logger.debug(`Executing: ${TYPST_BINARY} ${args.join(' ')}`, 'TypstCompilerService');
 
       const child = execFile(
         TYPST_BINARY,

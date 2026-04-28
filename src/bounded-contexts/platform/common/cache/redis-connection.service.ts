@@ -3,8 +3,9 @@
  * Single Responsibility: Manage Redis client connection lifecycle
  */
 
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { AppLoggerService } from '../logger/logger.service';
 
 const REDIS_DEFAULT_PORT = 6379;
@@ -13,7 +14,7 @@ const RETRY_DELAY_MULTIPLIER = 50;
 const MAX_RETRIES_PER_REQUEST = 3;
 
 @Injectable()
-export class RedisConnectionService implements OnModuleDestroy {
+export class RedisConnectionService implements Lifecycle {
   private _client: Redis | null = null;
   private _isEnabled: boolean;
 
@@ -60,7 +61,11 @@ export class RedisConnectionService implements OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy(): Promise<void> {
+  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically
+  // post-Lifecycle migration. The Nest adapter's `nest-bootstrap.ts` should
+  // register a SIGTERM handler that walks all `Lifecycle` instances. Out of
+  // scope for the lifecycle sweep.
+  async dispose(): Promise<void> {
     // In test environment, don't destroy the connection as tests share the app instance
     // and destroying the connection breaks subsequent tests
     if (process.env.NODE_ENV === 'test') {

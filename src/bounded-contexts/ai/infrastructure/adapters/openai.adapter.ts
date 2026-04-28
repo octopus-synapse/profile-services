@@ -1,8 +1,9 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { LoggerPort } from '@/shared-kernel';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import {
   AiEmptyInputException,
   AiEmptyResponseException,
@@ -89,7 +90,7 @@ const ExtractedResumeSchema = z.object({
 const CTX = 'OpenAIAdapter';
 
 @Injectable()
-export class OpenAIAdapter extends LlmPort implements OnModuleInit {
+export class OpenAIAdapter extends LlmPort implements Lifecycle {
   private client!: OpenAI;
   private model!: string;
   private maxTokens!: number;
@@ -101,7 +102,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     super();
   }
 
-  onModuleInit(): void {
+  async init(): Promise<void> {
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
     if (!apiKey) {
       // We don't throw at boot — the module is loaded even in environments

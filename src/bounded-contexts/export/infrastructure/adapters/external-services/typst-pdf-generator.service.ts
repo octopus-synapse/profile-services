@@ -7,10 +7,11 @@
  * Pipeline: userId → load resume + DSL → compile ResumeAst → serialize JSON → Typst compile → PDF
  */
 
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
@@ -27,14 +28,13 @@ function resolveLocale(lang?: string): SupportedLocale {
 
 @Injectable()
 export class TypstPdfGeneratorService {
-  private readonly logger = new Logger(TypstPdfGeneratorService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => DslUseCases))
     private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -49,7 +49,10 @@ export class TypstPdfGeneratorService {
 
     const locale = resolveLocale(options.lang);
 
-    this.logger.log(`Generating Typst PDF for user ${userId} with locale ${locale}`);
+    this.logger.log(
+      `Generating Typst PDF for user ${userId} with locale ${locale}`,
+      'TypstPdfGeneratorService',
+    );
 
     // 1. Find resume: use explicit resumeId or fall back to user's primary
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
@@ -76,7 +79,10 @@ export class TypstPdfGeneratorService {
       timeout: options.timeout,
     });
 
-    this.logger.log(`Typst PDF generated successfully (${buffer.length} bytes)`);
+    this.logger.log(
+      `Typst PDF generated successfully (${buffer.length} bytes)`,
+      'TypstPdfGeneratorService',
+    );
     return buffer;
   }
 

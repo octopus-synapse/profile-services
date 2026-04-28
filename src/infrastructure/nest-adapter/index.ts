@@ -1,3 +1,4 @@
+export { withNestLifecycle } from './lifecycle-adapter';
 export { nestBootstrap } from './nest-bootstrap';
 export { NestSseStreamAdapter } from './nest-sse-stream.adapter';
 export { synthesizeRouteControllers } from './routes.module';

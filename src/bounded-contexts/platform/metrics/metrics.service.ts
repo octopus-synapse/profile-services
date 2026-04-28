@@ -1,5 +1,6 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import {
   type MetricsOverviewSnapshot,
   MetricsReaderPort,
@@ -43,7 +44,7 @@ interface ScoreComputedLabels {
 }
 
 @Injectable()
-export class MetricsService extends MetricsReaderPort implements OnModuleInit {
+export class MetricsService extends MetricsReaderPort implements Lifecycle {
   private readonly registry: Registry;
 
   // Counters
@@ -135,7 +136,7 @@ export class MetricsService extends MetricsReaderPort implements OnModuleInit {
     });
   }
 
-  onModuleInit(): void {
+  async init(): Promise<void> {
     collectDefaultMetrics({ register: this.registry });
   }
 

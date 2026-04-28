@@ -25,7 +25,7 @@ export class BannerCaptureService {
     private readonly logger: LoggerPort,
   ) {
     this.pageSetup = new BannerPageSetup(configService, logger);
-    this.readyWaiter = new BannerReadyWaiter();
+    this.readyWaiter = new BannerReadyWaiter(logger);
   }
 
   async capture(palette: string = DEFAULT.PALETTE, logoUrl: string = ''): Promise<Buffer> {

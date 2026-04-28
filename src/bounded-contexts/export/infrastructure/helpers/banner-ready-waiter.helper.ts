@@ -4,13 +4,12 @@
  * Waits for banner elements to render completely
  */
 
-import { Logger } from '@nestjs/common';
 import { Page } from 'puppeteer';
-import { API_LIMITS } from '@/shared-kernel';
+import { API_LIMITS, LoggerPort } from '@/shared-kernel';
 import { DEBUG_PATH, TIMEOUT } from '../constants/ui.constants';
 
 export class BannerReadyWaiter {
-  private readonly logger = new Logger(BannerReadyWaiter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async waitForBannerReady(page: Page, logoUrl: string): Promise<void> {
     await this.waitForBannerElement(page);
@@ -38,7 +37,7 @@ export class BannerReadyWaiter {
 
     const bannerMatch = html.match(/<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i);
     if (bannerMatch) {
-      this.logger.error('[BannerCapture] #banner HTML snippet found');
+      this.logger.error('[BannerCapture] #banner HTML snippet found', undefined, 'BannerReadyWaiter');
     } else {
       const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
       this.logger.error(
@@ -46,6 +45,7 @@ export class BannerReadyWaiter {
         bodyMatch
           ? bodyMatch[1].slice(0, API_LIMITS.MAX_DEBUG_CHARS)
           : html.slice(0, API_LIMITS.MAX_DEBUG_CHARS),
+        'BannerReadyWaiter',
       );
     }
   }

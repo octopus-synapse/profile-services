@@ -65,8 +65,8 @@ describe('RedisConnectionService', () => {
       );
     });
 
-    it('should handle onModuleDestroy gracefully when no client', async () => {
-      await service.onModuleDestroy();
+    it('should handle dispose gracefully when no client', async () => {
+      await service.dispose();
       // Should not throw
       expect(true).toBe(true);
     });
@@ -87,7 +87,7 @@ describe('RedisConnectionService', () => {
 
     afterEach(async () => {
       // Clean up - service tries to connect, need to destroy
-      await service.onModuleDestroy();
+      await service.dispose();
     });
 
     it('should be enabled initially', () => {
@@ -100,7 +100,7 @@ describe('RedisConnectionService', () => {
     });
   });
 
-  describe('onModuleDestroy', () => {
+  describe('dispose', () => {
     it('should set client to null after destroy', async () => {
       delete process.env.REDIS_HOST;
 
@@ -110,7 +110,7 @@ describe('RedisConnectionService', () => {
 
       service = module.get<RedisConnectionService>(RedisConnectionService);
 
-      await service.onModuleDestroy();
+      await service.dispose();
 
       expect(service.client).toBe(null);
     });

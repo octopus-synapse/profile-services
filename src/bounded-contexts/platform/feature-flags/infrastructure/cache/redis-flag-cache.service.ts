@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
 
 const SNAPSHOT_PREFIX = 'flags:snapshot:';
@@ -18,7 +19,7 @@ const RETRY_DELAY_MULTIPLIER = 50;
  * no-op when Redis isn't configured so the app still boots in dev.
  */
 @Injectable()
-export class RedisFlagCache implements OnModuleInit, OnModuleDestroy {
+export class RedisFlagCache implements Lifecycle {
   private subscriber: Redis | null = null;
   private readonly localListeners = new Set<() => void>();
 
@@ -27,7 +28,7 @@ export class RedisFlagCache implements OnModuleInit, OnModuleDestroy {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     if (!this.connection.isEnabled) return;
 
     const host = process.env.REDIS_HOST;
@@ -86,7 +87,10 @@ export class RedisFlagCache implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy(): Promise<void> {
+  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically.
+  // The Nest adapter's `nest-bootstrap.ts` should register a SIGTERM handler
+  // that walks all `Lifecycle` instances. Out of scope for the lifecycle sweep.
+  async dispose(): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
     if (this.subscriber) {
       try {

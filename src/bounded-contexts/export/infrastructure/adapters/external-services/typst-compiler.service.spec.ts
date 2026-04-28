@@ -8,6 +8,8 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import * as fs from 'node:fs/promises';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerPort } from '@/shared-kernel';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TypstCompilerService } from './typst-compiler.service';
 
 describe('TypstCompilerService', () => {
@@ -15,7 +17,7 @@ describe('TypstCompilerService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TypstCompilerService],
+      providers: [TypstCompilerService, { provide: LoggerPort, useValue: stubLogger }],
     }).compile();
 
     service = module.get<TypstCompilerService>(TypstCompilerService);
@@ -41,7 +43,7 @@ describe('TypstCompilerService', () => {
       const originalEnv = process.env.TYPST_BINARY_PATH;
       process.env.TYPST_BINARY_PATH = '/nonexistent/typst-binary';
 
-      const svc = new TypstCompilerService();
+      const svc = new TypstCompilerService(stubLogger);
 
       await expect(svc.compile('{}', '/tmp/fake-templates')).rejects.toThrow();
 
