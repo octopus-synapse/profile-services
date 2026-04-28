@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort } from '@/shared-kernel/logger';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()

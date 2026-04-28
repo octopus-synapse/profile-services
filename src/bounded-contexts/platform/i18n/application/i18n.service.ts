@@ -13,7 +13,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort } from '@/shared-kernel/logger';
 import {
   MissingTranslationError,
   type SupportedLocale,
