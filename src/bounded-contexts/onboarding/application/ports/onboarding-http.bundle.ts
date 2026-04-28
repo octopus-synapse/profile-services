@@ -3,15 +3,15 @@
  *
  * The route synthesizer (`synthesizeRouteControllers`) injects a single
  * DI token per BC. The onboarding HTTP surface needs the use-case
- * bundles plus a handful of platform services (cache lock, event
- * emitter) that the legacy `OnboardingController` previously injected
+ * bundles plus a handful of platform services (cache lock, SSE stream)
+ * that the legacy `OnboardingController` previously injected
  * directly. We aggregate them here so the route handlers stay pure
  * functions of `(ctx, bundle)`.
  *
  * The wiring lives in `onboarding.module.ts` (`useFactory`).
  */
 
-import type { EventEmitter2 } from '@nestjs/event-emitter';
+import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CacheLockService } from '@/bounded-contexts/platform/common/cache/cache-lock.service';
 import type { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import type { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
@@ -28,7 +28,7 @@ export abstract class OnboardingHttpBundle {
   abstract readonly config: OnboardingConfigPort;
   abstract readonly sectionTypes: SectionTypeDefinitionPort;
   abstract readonly cacheLock: CacheLockService;
-  abstract readonly events: EventEmitter2;
+  abstract readonly sseStream: SseStreamPort;
   abstract readonly admin: AdminOnboardingService;
   abstract readonly previewRenderer: PreviewRendererPort;
 }

@@ -9,7 +9,6 @@
  */
 
 import { forwardRef, Module } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { ExportModule } from '@/bounded-contexts/export/export.module';
@@ -21,6 +20,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { synthesizeRouteControllers } from '@/infrastructure/nest-adapter';
 import { LoggerPort } from '@/shared-kernel';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { buildOnboardingUseCases } from './application/compositions/onboarding.composition';
 import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
@@ -52,6 +52,14 @@ import { onboardingRoutes } from './onboarding.routes';
         compiler: TypstCompilerService,
       ) => new OnboardingPreviewAdapter(prisma, dsl, serializer, compiler),
       inject: [PrismaService, DslUseCases, TypstDataSerializerService, TypstCompilerService],
+    },
+    {
+      provide: 'ONBOARDING_PREVIEW_ADAPTER_INIT',
+      useFactory: async (svc: OnboardingPreviewAdapter) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [OnboardingPreviewAdapter],
     },
     AdminOnboardingService,
     { provide: SystemThemesPort, useExisting: SystemThemesAdapter },
@@ -85,7 +93,7 @@ import { onboardingRoutes } from './onboarding.routes';
         config: OnboardingConfigPort,
         sectionTypes: SectionTypeDefinitionPort,
         cacheLock: CacheLockService,
-        events: EventEmitter2,
+        sseStream: SseStreamPort,
         admin: AdminOnboardingService,
         previewRenderer: PreviewRendererPort,
       ): OnboardingHttpBundle => ({
@@ -95,7 +103,7 @@ import { onboardingRoutes } from './onboarding.routes';
         config,
         sectionTypes,
         cacheLock,
-        events,
+        sseStream,
         admin,
         previewRenderer,
       }),
@@ -106,7 +114,7 @@ import { onboardingRoutes } from './onboarding.routes';
         OnboardingConfigPort,
         SectionTypeDefinitionPort,
         CacheLockService,
-        EventEmitter2,
+        SseStreamPort,
         AdminOnboardingService,
         PreviewRendererPort,
       ],

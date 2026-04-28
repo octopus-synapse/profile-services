@@ -4,7 +4,7 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
-import { debounceTime, filter, from, map, Subject, switchMap } from 'rxjs';
+import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
@@ -183,7 +183,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      bundle.events.emit('onboarding.data.changed', { userId: user.userId });
+      bundle.sseStream.publish('onboarding.data.changed', { userId: user.userId });
       const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
@@ -216,7 +216,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         const result = await bundle.useCases.completeOnboardingFromProgressUseCase.execute(
           user.userId,
         );
-        bundle.events.emit('auth.session.invalidate', { userId: user.userId });
+        bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
         return {
           success: true,
           data: result,
@@ -245,7 +245,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const stepConfigs = await bundle.config.getActiveSteps();
       await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs);
       // Invalidate session cache so frontend picks up hasCompletedOnboarding = false
-      bundle.events.emit('auth.session.invalidate', { userId: user.userId });
+      bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
       // Reuse the GET /session payload shape for the response.
       const [data, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
@@ -344,7 +344,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       }
       try {
         const result = await bundle.useCases.completeOnboardingUseCase.execute(user.userId, data);
-        bundle.events.emit('auth.session.invalidate', { userId: user.userId });
+        bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
         return {
           success: true,
           data: result,
@@ -506,13 +506,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const userId = ctx.user!.userId;
       let version = 0;
 
-      const trigger$ = new Subject<void>();
-      const listener = (data: { userId: string }) => {
-        if (data.userId === userId) trigger$.next();
-      };
-      bundle.events.on('onboarding.data.changed', listener);
-
-      return trigger$.pipe(
+      return bundle.sseStream.subscribe<{ userId: string }>('onboarding.data.changed').pipe(
+        // Each consumer filters its own user — the channel is shared.
+        filter((event) => event.data.userId === userId),
+        // Coalesce bursts (e.g. autosave keystrokes) into a single render.
         debounceTime(500),
         switchMap(() => {
           version++;
