@@ -9,8 +9,8 @@
  * This handler exists for future user-level analytics (e.g., aggregated stats).
  */
 
-import type { LoggerPort } from '@/shared-kernel';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
+import type { LoggerPort } from '@/shared-kernel';
 
 export class InitializeAnalyticsOnUserRegisteredHandler {
   constructor(private readonly logger: LoggerPort) {}

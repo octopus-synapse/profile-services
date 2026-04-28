@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { JobFitProfileRepositoryPort } from '../../domain/ports/job-fit-profile.repository.port';
 import { SimilarityPort, type SimilarityResult } from '../../domain/ports/similarity.port';
 import { UserFitProfileRepositoryPort } from '../../domain/ports/user-fit-profile.repository.port';
@@ -15,7 +14,6 @@ import { FIT_RULES_VERSION } from '../../domain/types';
  *
  * Swap this adapter in the module when Mahalanobis lands.
  */
-@Injectable()
 export class WeightedCosineSimilarityAdapter extends SimilarityPort {
   constructor(
     private readonly userProfiles: UserFitProfileRepositoryPort,

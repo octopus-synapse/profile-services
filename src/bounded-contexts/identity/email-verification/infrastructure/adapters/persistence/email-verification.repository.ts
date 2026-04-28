@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   EmailVerificationRepositoryPort,
@@ -6,7 +5,6 @@ import type {
   VerificationTokenData,
 } from '../../../domain/ports';
 
-@Injectable()
 export class PrismaEmailVerificationRepository implements EmailVerificationRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

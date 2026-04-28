@@ -5,7 +5,6 @@
  * Main entry point for working with theme definitions.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import type { CompiledThemeAst, ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
 import { ThemeCompiler } from '../compilers/theme-compiler';
@@ -33,7 +32,6 @@ export interface ThemeValidationResult {
   errors?: Array<{ path: string; message: string }>;
 }
 
-@Injectable()
 export class ThemeDslService {
   private readonly compiler: ThemeCompiler;
   private readonly cache: Map<string, CompiledThemeAst>;

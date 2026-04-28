@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -14,7 +13,6 @@ import type { FitVector } from '../../../domain/types';
  * Prisma default — `JsonNull` is the idiomatic way to do it. */
 const ANONYMIZED_VECTOR: Prisma.InputJsonValue = { bigFive: {}, schwartz: {}, sdt: {} };
 
-@Injectable()
 export class PrismaUserFitProfileRepository extends UserFitProfileRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

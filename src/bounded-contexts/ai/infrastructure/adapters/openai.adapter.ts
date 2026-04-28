@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import {
   AiEmptyInputException,
@@ -89,7 +88,6 @@ const ExtractedResumeSchema = z.object({
 
 const CTX = 'OpenAIAdapter';
 
-@Injectable()
 export class OpenAIAdapter extends LlmPort implements Lifecycle {
   private client!: OpenAI;
   private model!: string;

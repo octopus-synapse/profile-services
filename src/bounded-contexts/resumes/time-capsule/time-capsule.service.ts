@@ -7,7 +7,6 @@
  * ResumeTimeCapsuleLog.
  */
 
-import { Injectable } from '@nestjs/common';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -17,7 +16,9 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const YEAR_MS = 365 * MS_PER_DAY;
 const WINDOW_DAYS = 30; // snapshot must exist within ±30 days of "a year ago"
 
-@Injectable()
+/**
+ * Framework-free POJO. Wired by `time-capsule.composition.ts`.
+ */
 export class TimeCapsuleService {
   constructor(
     private readonly prisma: PrismaService,

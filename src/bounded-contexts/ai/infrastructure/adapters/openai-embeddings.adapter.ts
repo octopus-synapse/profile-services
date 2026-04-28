@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
 import {
   AiEmptyInputException,
   AiNotConfiguredException,
@@ -20,7 +19,6 @@ const EMBEDDING_MODEL = 'text-embedding-3-small';
  * That keeps the embeddings surface pure and makes it trivial to swap
  * providers without rewriting cache logic.
  */
-@Injectable()
 export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
   private readonly client: OpenAI;
   private readonly model: string;

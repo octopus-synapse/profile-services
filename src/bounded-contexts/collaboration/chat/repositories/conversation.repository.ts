@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class ConversationRepository {
   constructor(
     private readonly prisma: PrismaService,

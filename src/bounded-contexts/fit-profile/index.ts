@@ -11,4 +11,11 @@ export type { SavedUserFitProfile } from './domain/ports/user-fit-profile.reposi
 export { UserFitProfileRepositoryPort } from './domain/ports/user-fit-profile.repository.port';
 export type { FitDimension, FitProfileStatus, FitScaleType, FitVector } from './domain/types';
 export { FIT_DIMENSIONS, FIT_RULES_VERSION, FIT_VECTOR_TTL_DAYS } from './domain/types';
-export * from './fit-profile.module';
+export {
+  buildFitProfileBundle,
+  buildFitProfileComposition,
+  buildFitProfileUseCases,
+  type FitProfileBuildResult,
+  type FitProfileExtras,
+  registerFitProfileJobs,
+} from './fit-profile.composition';

@@ -1,4 +1,3 @@
-import { Injectable, type OnApplicationBootstrap } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import { validateRegistry } from '../../domain/feature-flag-graph';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
@@ -11,15 +10,20 @@ const CTX = 'FeatureFlagsBootstrap';
  * any previously-seeded flag that's no longer in the registry as `deprecated`.
  * Throws if the registry has cycles, duplicates or missing deps — we want the
  * app to fail loud rather than serve broken flag resolution.
+ *
+ * Phase-1: this use case is invoked once at startup via the BC's
+ * `lifecycles[i].init()` (Elysia path) or via a Nest module-level
+ * useFactory side effect (Nest path). The previous
+ * `OnApplicationBootstrap` decorator is gone — the host adapter
+ * decides when to call `run()`.
  */
-@Injectable()
-export class BootstrapFlagsUseCase implements OnApplicationBootstrap {
+export class BootstrapFlagsUseCase {
   constructor(
     private readonly repo: FeatureFlagRepositoryPort,
     private readonly logger: LoggerPort,
   ) {}
 
-  async onApplicationBootstrap(): Promise<void> {
+  async run(): Promise<void> {
     validateRegistry(FEATURE_FLAGS_REGISTRY);
 
     await this.repo.upsertFromRegistry(

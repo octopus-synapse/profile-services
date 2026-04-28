@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { type StyleScoreBreakdown, StyleScorerPort } from '../../domain/ports/style-scorer.port';
 
 /**
@@ -8,8 +7,9 @@ import { type StyleScoreBreakdown, StyleScorerPort } from '../../domain/ports/st
  * updated style always passes the monotonic invariant. The full rubric
  * (layout / typography / file-level) lands in a follow-up — see
  * docs/scoring/README.md for the target fields and weights.
+ *
+ * Framework-free POJO. Wired by `resume-styles.composition.ts`.
  */
-@Injectable()
 export class StyleScorerAdapter extends StyleScorerPort {
   score(_styleConfig: Record<string, unknown>): StyleScoreBreakdown {
     return { layout: 85, typography: 85, fileLevel: 85 };

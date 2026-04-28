@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -9,7 +8,6 @@ import {
 } from '../../../domain/ports/job-fit-profile.repository.port';
 import type { FitVector } from '../../../domain/types';
 
-@Injectable()
 export class PrismaJobFitProfileRepository extends JobFitProfileRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

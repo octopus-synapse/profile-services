@@ -8,7 +8,6 @@
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { LoggerPort } from '@/shared-kernel';
 import { PasswordChangedEvent } from '../../../password-management/domain/events';
-import { JwtStrategy } from '../../../shared-kernel/infrastructure/strategies';
 import { AuthenticationRepositoryPort } from '../../domain/ports';
 
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
@@ -52,8 +51,11 @@ export class InvalidateSessionsOnCredentialChangeHandler {
 
       // Set token invalidation timestamp - any JWT issued before this time is invalid
       const now = Math.floor(Date.now() / 1000);
+      // Inlined from the deleted Nest `JwtStrategy.getTokenValidAfterKey(userId)`.
+      // The auth-extractor pipeline stage compares each JWT's `iat` against
+      // this timestamp and rejects tokens issued before it.
       await this.cacheService.set(
-        JwtStrategy.getTokenValidAfterKey(userId),
+        `auth:token-valid-after:${userId}`,
         now,
         TOKEN_INVALIDATION_TTL_SECONDS,
       );

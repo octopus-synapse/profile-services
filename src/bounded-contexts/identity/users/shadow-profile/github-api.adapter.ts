@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import type { ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
 import { ShadowGithubApi } from './ports/github-api.port';
@@ -32,7 +31,6 @@ interface GhRepoResponse {
   languages_url: string;
 }
 
-@Injectable()
 export class ShadowGithubApiAdapter implements ShadowGithubApi {
   constructor(private readonly logger: LoggerPort) {}
 

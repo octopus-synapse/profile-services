@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { type JobForMatch, JobLoaderPort } from '../../../domain/ports/job-loader.port';
 
 type JobStructuredRequirements = Readonly<Record<string, unknown>>;
@@ -13,7 +12,6 @@ type JobStructuredRequirements = Readonly<Record<string, unknown>>;
  * a culture profile was captured (for the Fit sub-score to decide whether
  * to consult `SimilarityPort.culture()`).
  */
-@Injectable()
 export class PrismaJobLoader extends JobLoaderPort {
   constructor(
     private readonly prisma: PrismaService,

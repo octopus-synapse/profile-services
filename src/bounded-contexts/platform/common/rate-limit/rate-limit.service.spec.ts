@@ -9,8 +9,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CacheService } from '../cache/cache.service';
+import type { CacheService } from '../cache/cache.service';
 import { RateLimitService } from './rate-limit.service';
 import type { RateLimitResult } from './rate-limit.types';
 
@@ -22,18 +21,14 @@ describe('RateLimitService', () => {
     increment: ReturnType<typeof mock>;
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockCacheService = {
       get: mock(() => Promise.resolve(null)),
       set: mock(() => Promise.resolve()),
       increment: mock(() => Promise.resolve(1)),
     };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [RateLimitService, { provide: CacheService, useValue: mockCacheService }],
-    }).compile();
-
-    service = module.get<RateLimitService>(RateLimitService);
+    service = new RateLimitService(mockCacheService as unknown as CacheService);
   });
 
   describe('generateKey', () => {

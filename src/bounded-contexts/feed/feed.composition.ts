@@ -10,6 +10,7 @@ import type { NotificationsUseCases } from '@/bounded-contexts/notifications/app
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
 import { AnonymousMaskService } from './application/services/anonymous-mask.service';
 import { FeedTimelineService } from './application/services/feed-timeline.service';
@@ -35,6 +36,7 @@ import { UnbookmarkPostUseCase } from './application/use-cases/unbookmark-post/u
 import { UnlikePostUseCase } from './application/use-cases/unlike-post/unlike-post.use-case';
 import { UploadPostImageUseCase } from './application/use-cases/upload-post-image/upload-post-image.use-case';
 import { VoteOnPollUseCase } from './application/use-cases/vote-on-poll/vote-on-poll.use-case';
+import { feedRoutes } from './feed.routes';
 import { FetchLinkPreviewAdapter } from './infrastructure/adapters/external-services/fetch-link-preview.adapter';
 import { NotificationsEngagementNotifierAdapter } from './infrastructure/adapters/external-services/notifications-engagement-notifier.adapter';
 import { S3PostImageStorageAdapter } from './infrastructure/adapters/external-services/s3-post-image-storage.adapter';
@@ -95,5 +97,19 @@ export function buildFeedUseCases(
     voteOnPoll: new VoteOnPollUseCase(pollRepo),
     getPollResults: new GetPollResultsUseCase(pollRepo),
     reportPost: new ReportPostUseCase(reportRepo),
+  };
+}
+
+export function buildFeedComposition(
+  prisma: PrismaService,
+  logger: LoggerPort,
+  s3: S3UploadService,
+  notifications: Pick<NotificationsUseCases, 'createNotification'>,
+): BoundedContextComposition<FeedUseCases> {
+  const useCases = buildFeedUseCases(prisma, logger, s3, notifications);
+
+  return {
+    useCases,
+    routes: feedRoutes,
   };
 }

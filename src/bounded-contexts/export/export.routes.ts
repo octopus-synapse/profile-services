@@ -8,10 +8,10 @@
  * `StreamableFile` flow through Nest's response interceptor unchanged.
  */
 
-import { StreamableFile } from '@nestjs/common';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
+import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import { sanitizeQueryParam } from './infrastructure/helpers';
 import { presentPdfAsBase64 } from './infrastructure/presenters/pdf-base64.presenter';

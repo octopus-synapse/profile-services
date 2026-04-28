@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Subject } from 'rxjs';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { RedisFlagCache } from '../cache/redis-flag-cache.service';
@@ -14,7 +13,7 @@ export interface FlagStreamMessage {
  * on startup we hook its invalidate listener and re-emit locally, so a
  * toggle on one instance reaches clients on every instance.
  */
-@Injectable()
+
 export class SseFlagStream implements Lifecycle {
   private readonly subject = new Subject<FlagStreamMessage>();
 

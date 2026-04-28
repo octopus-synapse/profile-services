@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 
 const MAX_NAME_CHARS = 60;
@@ -47,7 +46,6 @@ export function buildShareOgSvg(input: OgImageInput): string {
 </svg>`;
 }
 
-@Injectable()
 export class OgImageService {
   async generatePng(input: OgImageInput): Promise<Buffer> {
     const svg = buildShareOgSvg(input);

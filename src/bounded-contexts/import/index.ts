@@ -27,5 +27,5 @@ export type {
   JsonResumeSchema,
   ParsedResumeData,
 } from './domain/types/import.types';
-// NestJS Module
-export { ImportModule } from './import.module';
+// Composition
+export { buildImportComposition, buildImportUseCases } from './import.composition';

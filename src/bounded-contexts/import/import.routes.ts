@@ -6,16 +6,16 @@
  * The PDF upload + GitHub session-import endpoints (which previously
  * lived in the legacy `ResumeImportFilesController`) are now expressed
  * as routes too: PDF as `kind: 'multipart'`, GitHub as a plain JSON
- * route. They run against a separate `ImportFilesBundle` because they
- * depend on stateful Nest adapters (`PdfImportService` /
- * `GithubImportService`) rather than the pure `ImportUseCases` bag.
+ * route. Both run against the same `ImportUseCases` bundle, which now
+ * exposes the stateful `pdfImport` / `githubImport` POJO adapters
+ * alongside the pure use-cases.
  */
 
 import { z } from 'zod';
+import type { MultipartBody } from '@/infrastructure/elysia-adapter/multipart-bridge';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { ImportUseCases } from './application/ports/import.port';
-import { ImportFilesBundle } from './application/ports/import-files.bundle';
 import {
   JsonResumeBasicsMissingException,
   JsonResumeNameMissingException,
@@ -224,12 +224,10 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
       return { success: true, data: parsed };
     },
   },
-];
-
-// ─── File-driven endpoints (multipart PDF + OAuth-backed GitHub) ─────
-// Live on a separate bundle because they depend on stateful Nest
-// adapters rather than the pure `ImportUseCases` bag.
-export const importFilesRoutes: ReadonlyArray<Route<ImportFilesBundle>> = [
+  // ─── File-driven endpoints (multipart PDF + OAuth-backed GitHub) ─────
+  // Live on the same bundle as the JSON routes. The bundle exposes the
+  // stateful `pdfImport` / `githubImport` POJO adapters alongside the
+  // pure use-cases.
   {
     method: 'POST',
     path: '/resume-import/pdf',
@@ -244,12 +242,13 @@ export const importFilesRoutes: ReadonlyArray<Route<ImportFilesBundle>> = [
         'Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.',
     },
     sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const file = (ctx.body as { file?: Express.Multer.File }).file;
+    handler: async (ctx, bc) => {
+      const body = ctx.body as MultipartBody;
+      const file = body.files.find((f) => f.fieldName === 'file') ?? body.files[0];
       if (!file) throw new MissingPdfUploadException();
-      const result = await bundle.pdfImport.import(ctx.user!.userId, {
+      const result = await bc.pdfImport.import(ctx.user!.userId, {
         buffer: file.buffer,
-        originalname: file.originalname,
+        originalname: file.filename,
       });
       return { success: true, data: { resumeId: result.resumeId } };
     },
@@ -266,8 +265,8 @@ export const importFilesRoutes: ReadonlyArray<Route<ImportFilesBundle>> = [
         "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
     },
     sdk: { exported: true },
-    handler: async (ctx, bundle) => {
-      const result = await bundle.githubImport.import(ctx.user!.userId);
+    handler: async (ctx, bc) => {
+      const result = await bc.githubImport.import(ctx.user!.userId);
       return {
         success: true,
         data: {

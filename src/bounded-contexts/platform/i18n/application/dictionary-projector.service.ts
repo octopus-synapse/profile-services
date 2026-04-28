@@ -8,7 +8,6 @@
  * dependency-rules arch test keeps loops / .map / .reduce out of controllers.
  */
 
-import { Injectable } from '@nestjs/common';
 import { ENUM_DICTIONARY, ERROR_DICTIONARY, NOTIFICATION_DICTIONARY } from '@packages/i18n';
 import type { SupportedLocale } from '../domain/translation.port';
 
@@ -18,7 +17,6 @@ export interface ProjectedNotification {
   params: string[];
 }
 
-@Injectable()
 export class DictionaryProjectorService {
   projectErrors(locale: SupportedLocale): Record<string, string> {
     return Object.fromEntries(

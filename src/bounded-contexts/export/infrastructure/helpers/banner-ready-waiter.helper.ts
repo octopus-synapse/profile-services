@@ -37,7 +37,11 @@ export class BannerReadyWaiter {
 
     const bannerMatch = html.match(/<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i);
     if (bannerMatch) {
-      this.logger.error('[BannerCapture] #banner HTML snippet found', undefined, 'BannerReadyWaiter');
+      this.logger.error(
+        '[BannerCapture] #banner HTML snippet found',
+        undefined,
+        'BannerReadyWaiter',
+      );
     } else {
       const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
       this.logger.error(

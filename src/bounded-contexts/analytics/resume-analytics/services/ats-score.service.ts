@@ -5,7 +5,6 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import { Injectable } from '@nestjs/common';
 import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import {
   AtsScoreCatalogPort,
@@ -15,7 +14,6 @@ import { generateRecommendations } from '../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../interfaces';
 
-@Injectable()
 export class ATSScoreService {
   constructor(
     private readonly catalog: AtsScoreCatalogPort,

@@ -25,7 +25,10 @@ import {
 import { presentJobFitProfile } from './infrastructure/presenters/job-fit-profile.presenter';
 
 const IdParam = z.object({ id: z.string() });
-const JobIdParam = z.object({ jobId: z.string() });
+// Param name aligned with `jobs.routes.ts` (`:id`) so both BCs can
+// coexist on the same Elysia router (memoirist rejects parameter-name
+// divergence at a shared path prefix).
+const JobIdParam = z.object({ id: z.string() });
 
 const CreateFitQuestionSchema = z.object({
   key: z.string().min(1).max(120),
@@ -134,7 +137,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
   // ─── Job fit profile (recruiter sliders) ─────────────────────────
   {
     method: 'GET',
-    path: '/v1/jobs/:jobId/fit-profile',
+    path: '/v1/jobs/:id/fit-profile',
     auth: { kind: 'jwt' },
     permission: Permission.JOB_MANAGE,
     params: JobIdParam,
@@ -145,7 +148,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { jobId } = ctx.params as { jobId: string };
+      const { id: jobId } = ctx.params as { id: string };
       const profile = await bc.getJobFitProfile.execute(jobId);
       if (!profile) throw new JobFitProfileNotSetException(jobId);
       return { success: true, data: presentJobFitProfile(profile) };
@@ -153,7 +156,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
   },
   {
     method: 'POST',
-    path: '/v1/jobs/:jobId/fit-profile',
+    path: '/v1/jobs/:id/fit-profile',
     auth: { kind: 'jwt' },
     permission: Permission.JOB_MANAGE,
     params: JobIdParam,
@@ -165,7 +168,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { jobId } = ctx.params as { jobId: string };
+      const { id: jobId } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpsertJobFitProfileSchema>;
       const saved = await bc.upsertJobFitProfile.execute({
         jobId,

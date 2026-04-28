@@ -6,9 +6,9 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { AppLoggerService } from '../logger/logger.service';
+import type { ConfigPort } from '@/shared-kernel/config';
+import type { LoggerPort } from '@/shared-kernel/logger';
 
 const MinioConfigSchema = z.object({
   MINIO_ENDPOINT: z.string().url().optional(),
@@ -22,19 +22,34 @@ const MinioConfigSchema = z.object({
     .optional(),
 });
 
-@Injectable()
+/**
+ * Framework-free S3/MinIO upload service. POJO consumed by both the
+ * Nest `useFactory` shell and the Elysia bootstrap via
+ * `buildS3UploadService(config, logger)`.
+ *
+ * Reads MinIO env via the injected `ConfigPort` so it stays portable
+ * between Nest's `ConfigService` and the Bun `ProcessEnvConfigAdapter`.
+ * The `MINIO_PUBLIC_ENDPOINT` URL fallback is also routed through the
+ * port to avoid `process.env` reads inside the class body.
+ */
 export class S3UploadService {
   private client: S3Client | null = null;
   private bucket: string | null = null;
   private _isEnabled: boolean;
+  private readonly publicEndpoint: string | undefined;
 
-  constructor(private readonly logger: AppLoggerService) {
+  constructor(
+    private readonly config: ConfigPort,
+    private readonly logger: LoggerPort,
+  ) {
     const parsed = MinioConfigSchema.safeParse({
-      MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
-      MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
-      MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
-      MINIO_BUCKET: process.env.MINIO_BUCKET,
+      MINIO_ENDPOINT: this.config.get<string>('MINIO_ENDPOINT'),
+      MINIO_ACCESS_KEY: this.config.get<string>('MINIO_ACCESS_KEY'),
+      MINIO_SECRET_KEY: this.config.get<string>('MINIO_SECRET_KEY'),
+      MINIO_BUCKET: this.config.get<string>('MINIO_BUCKET'),
     });
+
+    this.publicEndpoint = this.config.get<string>('MINIO_PUBLIC_ENDPOINT');
 
     if (!parsed.success) {
       this.logger.error(
@@ -101,7 +116,7 @@ export class S3UploadService {
     await this.client.send(command);
 
     // Build MinIO URL — use public endpoint if available (for Docker networking)
-    const endpoint = process.env.MINIO_PUBLIC_ENDPOINT ?? process.env.MINIO_ENDPOINT;
+    const endpoint = this.publicEndpoint ?? this.config.get<string>('MINIO_ENDPOINT');
     const url = `${endpoint}/${this.bucket}/${key}`;
 
     this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', { key, contentType });

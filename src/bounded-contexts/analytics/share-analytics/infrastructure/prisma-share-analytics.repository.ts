@@ -5,8 +5,7 @@
  * Handles all database operations for share analytics.
  */
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   CountryResult,
   CreateShareAnalyticsData,
@@ -21,7 +20,6 @@ import type {
   UniqueViewResult,
 } from '../ports';
 
-@Injectable()
 export class PrismaShareAnalyticsRepository implements ShareAnalyticsRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

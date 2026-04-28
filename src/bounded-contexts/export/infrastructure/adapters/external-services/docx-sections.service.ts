@@ -8,10 +8,9 @@
  * Milestone 5 - Issue #39
  */
 
-import { Injectable } from '@nestjs/common';
 import type { ISectionOptions } from 'docx';
 import { Paragraph, SectionType } from 'docx';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 import { DocxHeaderBuilder } from '../builders';
 import type {
@@ -31,7 +30,6 @@ export interface GenericResumeSectionData {
   items: GenericSectionItemContent[];
 }
 
-@Injectable()
 export class DocxSectionsService {
   private readonly headerBuilder = new DocxHeaderBuilder();
   private readonly genericBuilder = new GenericDocxSectionBuilder();

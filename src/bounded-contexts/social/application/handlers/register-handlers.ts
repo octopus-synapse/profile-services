@@ -6,11 +6,14 @@
  * Called from the BC's Nest module via a side-effect provider.
  */
 
+import {
+  UserDeletedEvent,
+  UserRegisteredEvent,
+} from '@/bounded-contexts/identity/shared-kernel/domain/events';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
 import { ResumePublishedEvent } from '@/bounded-contexts/presentation';
-import { UserDeletedEvent, UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
+import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
 import type { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { ConnectionAcceptedEvent } from '../../domain/events';
 import type { ActivityService } from '../../services/activity.service';

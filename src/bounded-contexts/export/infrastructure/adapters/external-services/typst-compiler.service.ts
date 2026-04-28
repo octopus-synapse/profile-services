@@ -13,8 +13,7 @@ import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Injectable } from '@nestjs/common';
-import { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   TypstAtsTemplatesNotFoundException,
   TypstCompilationFailedException,
@@ -29,7 +28,6 @@ export interface TypstCompileOptions {
   timeout?: number;
 }
 
-@Injectable()
 export class TypstCompilerService {
   private templateDir: string | null = null;
   private atsTemplateDir: string | null = null;

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { ChatCacheService } from './chat-cache.service';
 
 describe('ChatCacheService', () => {
@@ -12,14 +11,9 @@ describe('ChatCacheService', () => {
     delete: ReturnType<typeof mock>;
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     cacheService = { getOrSet: mock(), get: mock(), set: mock(), delete: mock() };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ChatCacheService, { provide: CacheService, useValue: cacheService }],
-    }).compile();
-
-    service = module.get<ChatCacheService>(ChatCacheService);
+    service = new ChatCacheService(cacheService as unknown as CachePort);
   });
 
   describe('getUnreadCount', () => {

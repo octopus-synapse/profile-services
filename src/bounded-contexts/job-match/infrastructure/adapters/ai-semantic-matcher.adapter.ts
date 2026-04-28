@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { EmbeddingsPort } from '@/bounded-contexts/ai/domain/ports/embeddings.port';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   SemanticMatcherPort,
   type SemanticMatchInput,
@@ -26,7 +25,6 @@ const EMBEDDING_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
  * Kill-switch: `scoring.match.semantic.enabled`. Flag off → null score
  * → blender drops the sub-score and reallocates the weights.
  */
-@Injectable()
 export class AiSemanticMatcherAdapter extends SemanticMatcherPort {
   constructor(
     private readonly embeddings: EmbeddingsPort,

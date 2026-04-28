@@ -1,8 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { ResumePublishedEvent } from '../../domain/events';
 import {
@@ -23,14 +22,13 @@ interface CreateShare {
   expiresAt?: Date;
 }
 
-@Injectable()
 export class ResumeShareService {
   private readonly CACHE_TTL = 60; // 60 seconds
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cache: CacheCoreService,
-    private readonly eventPublisher: EventPublisher,
+    private readonly cache: CachePort,
+    private readonly eventPublisher: EventPublisherPort,
   ) {}
 
   async createShare(userId: string, dto: CreateShare) {

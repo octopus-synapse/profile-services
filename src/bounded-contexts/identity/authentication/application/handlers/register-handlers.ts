@@ -29,10 +29,20 @@ export function registerAuthenticationHandlers(deps: AuthenticationHandlersDeps)
     logger,
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('auth.session.invalidate', handler.handleSessionInvalidate.bind(handler) as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('email.verified', handler.handleEmailVerified.bind(handler) as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('password.changed', handler.handle.bind(handler) as any);
+  // The handler methods take typed event payloads but `EventBusPort.on`
+  // expects `EventHandler<T extends DomainEvent>`. The bus surface is
+  // intentionally generic — cast through `unknown` so each binding can
+  // declare its own payload type without leaking `any`.
+  eventBus.on(
+    'auth.session.invalidate',
+    handler.handleSessionInvalidate.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
+  );
+  eventBus.on(
+    'email.verified',
+    handler.handleEmailVerified.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
+  );
+  eventBus.on(
+    'password.changed',
+    handler.handle.bind(handler) as unknown as Parameters<typeof eventBus.on>[1],
+  );
 }

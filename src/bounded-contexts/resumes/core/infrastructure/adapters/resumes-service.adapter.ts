@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { ResumesUseCases } from '../../application/ports/resumes-use-cases.port';
 import {
@@ -11,8 +10,9 @@ import {
 /**
  * Adapter that implements ResumesServicePort by delegating to use cases.
  * Preserves the cross-BC port contract for export, onboarding, and social BCs.
+ *
+ * Framework-free POJO. Wired by `resumes/core/resumes.composition.ts`.
  */
-@Injectable()
 export class ResumesServiceAdapter extends ResumesServicePort {
   constructor(private readonly useCases: ResumesUseCases) {
     super();

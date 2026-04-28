@@ -6,12 +6,10 @@
  * this implementation depends on Prisma (detail).
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Permission, type PermissionId } from '../../domain/entities/permission.entity';
 import type { IPermissionRepository } from '../../domain/ports/authorization-repositories.port';
 
-@Injectable()
 export class PermissionRepository implements IPermissionRepository {
   constructor(private readonly prisma: PrismaService) {}
 

@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeKeywordSourcePort } from '../../domain/ports/resume-keyword-source.port';
 
 /**
@@ -8,7 +7,6 @@ import { ResumeKeywordSourcePort } from '../../domain/ports/resume-keyword-sourc
  * onboarding / import). When the skills catalog context ships a
  * normalised skills join, this adapter grows to include that source.
  */
-@Injectable()
 export class PrismaResumeKeywordSource extends ResumeKeywordSourcePort {
   constructor(private readonly prisma: PrismaService) {
     super();

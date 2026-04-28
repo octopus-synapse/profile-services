@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ExportUseCases } from '@/bounded-contexts/export/application/ports/export.port';
 import { type StylePreviewInput, StylePreviewPort } from '../../domain/ports/style-preview.port';
 
@@ -7,8 +6,9 @@ import { type StylePreviewInput, StylePreviewPort } from '../../domain/ports/sty
  * thin `StylePreviewPort` the resume-styles preview use case
  * consumes. No data leaves the bounded context — only the rendered
  * PDF buffer.
+ *
+ * Framework-free POJO. Wired by `resume-styles.composition.ts`.
  */
-@Injectable()
 export class StylePreviewAdapter extends StylePreviewPort {
   constructor(private readonly exports: ExportUseCases) {
     super();

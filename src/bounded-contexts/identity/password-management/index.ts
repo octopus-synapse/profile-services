@@ -14,7 +14,6 @@ export * from './domain';
 export * from './infrastructure';
 
 // Module
-export * from './password-management.module';
 
 // Testing (for use in tests)
 export * from './testing';

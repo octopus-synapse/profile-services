@@ -142,7 +142,7 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {
     let count = 0;
     for (let i = this.notifications.length - 1; i >= 0; i--) {
-      if (this.notifications[i]!.createdAt.getTime() < cutoff.getTime()) {
+      if (this.notifications[i]?.createdAt.getTime() < cutoff.getTime()) {
         this.notifications.splice(i, 1);
         count++;
       }

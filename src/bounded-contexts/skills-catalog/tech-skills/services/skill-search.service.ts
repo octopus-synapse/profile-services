@@ -4,14 +4,12 @@
  */
 
 import * as crypto from 'node:crypto';
-import { Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
 import { SkillSearchPort } from '../application/ports/query-facade.ports';
-import { CachePort, TechSkillRepositoryPort } from '../application/ports/tech-skills.port';
+import type { CachePort, TechSkillRepositoryPort } from '../application/ports/tech-skills.port';
 import type { TechSkill } from '../dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 
-@Injectable()
 export class SkillSearchService extends SkillSearchPort {
   constructor(
     private readonly repository: TechSkillRepositoryPort,

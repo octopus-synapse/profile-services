@@ -3,9 +3,9 @@
  * Handles page configuration and navigation for banner capture
  */
 
-import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
 import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
 export class BannerPageSetup {

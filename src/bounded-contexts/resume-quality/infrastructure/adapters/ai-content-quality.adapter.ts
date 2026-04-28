@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ScoringLlmPort } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
 import {
   ANALYZE_CONTENT_QUALITY_PROMPT_ID,
@@ -28,7 +27,6 @@ const CONTENT_QUALITY_FLAG = 'scoring.content-quality.enabled';
  * returns a `null` score; the use-case already blends that as
  * Completeness-only without surfacing an error to the user.
  */
-@Injectable()
 export class AiContentQualityAdapter extends ContentQualityPort {
   constructor(
     private readonly scoringLlm: ScoringLlmPort,

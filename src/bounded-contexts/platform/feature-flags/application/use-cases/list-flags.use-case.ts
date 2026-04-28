@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { evaluateFlags } from '../../domain/feature-flag-graph';
 import type { FlagRecord } from '../../domain/types';
 import { FlagStateService } from '../services/flag-state.service';
@@ -8,7 +7,6 @@ export interface FlagAdminRow extends FlagRecord {
   blockedBy: string[];
 }
 
-@Injectable()
 export class ListFlagsUseCase {
   constructor(private readonly state: FlagStateService) {}
 

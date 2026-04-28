@@ -23,10 +23,7 @@ export function registerNotificationsHandlers(deps: NotificationsHandlersDeps): 
   const { eventBus, bc, logger } = deps;
 
   const fitProfileExpired = new FitProfileExpiredNotificationHandler(bc, logger);
-  eventBus.on(
-    UserFitProfileUpdatedEvent.TYPE,
-    fitProfileExpired.handle.bind(fitProfileExpired),
-  );
+  eventBus.on(UserFitProfileUpdatedEvent.TYPE, fitProfileExpired.handle.bind(fitProfileExpired));
 
   const qualityRank = new ResumeQualityRankNotificationHandler(bc, logger);
   eventBus.on(ResumeQualityComputedEvent.TYPE, qualityRank.handle.bind(qualityRank));

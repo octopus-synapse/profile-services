@@ -1,18 +1,25 @@
 /**
- * Pure-TS wiring for the automation BC. Zero `@nestjs/*` imports.
+ * Pure-TS wiring for the automation BC. Zero `@nestjs/*` imports — Phase 1
+ * canonical shape: `buildAutomationComposition(...deps)` returns
+ * `{ useCases, routes }` as a `BoundedContextComposition`.
  *
  * Composes both slices (apply-mode + rage-apply) into one bundle. The
  * `CuratedSelectorService` POJO is shared between the rage-apply use
  * case and the two BullMQ workers (`AutoApplyWorker`, `WeeklyCuratedWorker`),
- * so the module owns its singleton lifecycle and hands it in here. Same
- * deal with `ResumeTailorService` — a Nest-decorated service from the
- * resume-versions BC that the workers also consume directly.
+ * so the bootstrap owns its singleton lifecycle and hands it in here. Same
+ * deal with `ResumeTailorService` — a service from the resume-versions BC
+ * that the workers also consume directly.
+ *
+ * `registerAutomationJobs` stays a separate export: the Elysia bootstrap
+ * invokes it once it has built the shared `JobQueuePort` adapter, so the
+ * BC never references BullMQ or the queue adapter directly.
  */
 
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { AutomationUseCases } from './application/ports/automation.port';
 import { CuratedSelectorService } from './application/services/curated-selector.service';
@@ -20,17 +27,18 @@ import { ApproveCuratedItemUseCase } from './application/use-cases/approve-curat
 import { GetCurrentBatchUseCase } from './application/use-cases/get-current-batch/get-current-batch.use-case';
 import { RejectCuratedItemUseCase } from './application/use-cases/reject-curated-item/reject-curated-item.use-case';
 import { RunRageApplyUseCase } from './application/use-cases/run-rage-apply/run-rage-apply.use-case';
+import { automationRoutes } from './automation.routes';
 import { PrismaApplyModeRepository } from './infrastructure/adapters/persistence/prisma-apply-mode.repository';
 import { PrismaRageApplyRepository } from './infrastructure/adapters/persistence/prisma-rage-apply.repository';
 import {
   AUTO_APPLY_QUEUE,
-  AutoApplyWorker,
   type AutoApplyJobData,
+  AutoApplyWorker,
 } from './workers/auto-apply.worker';
 import {
   WEEKLY_CURATED_QUEUE,
-  WeeklyCuratedWorker,
   type WeeklyCuratedJobData,
+  WeeklyCuratedWorker,
 } from './workers/weekly-curated.worker';
 
 export { AutomationUseCases };
@@ -53,10 +61,24 @@ export function buildAutomationUseCases(
   };
 }
 
+export function buildAutomationComposition(
+  prisma: PrismaService,
+  logger: LoggerPort,
+  selector: CuratedSelectorService,
+  tailor: ResumeTailorService,
+): BoundedContextComposition<AutomationUseCases> {
+  const useCases = buildAutomationUseCases(prisma, logger, selector, tailor);
+
+  return {
+    useCases,
+    routes: automationRoutes,
+  };
+}
+
 /**
  * Registers the automation BC's BullMQ workers + their cron-driven
  * `schedule` ticks against the shared `JobQueuePort`. Called once at
- * app boot from the Nest module via a side-effect provider.
+ * app boot from the Elysia bootstrap.
  *
  * Schedules:
  *  - Auto-apply: hourly at minute 15 (`15 * * * *`, America/Sao_Paulo) —

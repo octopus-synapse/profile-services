@@ -3,18 +3,16 @@
  * Parses programming languages from GitHub's Linguist repository
  */
 
-import { Injectable } from '@nestjs/common';
 import { ExternalDataParseFailedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { parse } from '@/shared-kernel/utils/yaml-parser';
 import { GITHUB_LINGUIST_URL, LANGUAGE_METADATA } from '../constants/language-metadata.const';
 import type { GithubLanguagesYml, ParsedLanguage } from '../interfaces';
 import { githubLanguagesYmlSchema } from '../schemas/github-linguist.schema';
 import { createLanguageSlug } from '../utils';
 
-@Injectable()
 export class GithubLinguistParserService {
-  constructor(private readonly logger: AppLoggerService) {}
+  constructor(private readonly logger: LoggerPort) {}
 
   /** Fetch and parse languages from GitHub Linguist */
   async fetchAndParse(): Promise<ParsedLanguage[]> {

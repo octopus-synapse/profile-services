@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import {
   type NormalizedRequirementsResult,
   ScoringLlmPort,
 } from '@/bounded-contexts/ai/domain/ports/scoring-llm.port';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   RequirementsMatcherPort,
   type RequirementsMatchInput,
@@ -31,7 +30,6 @@ const CEFR_ORDER: readonly string[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
  * number explainable (recruiters can see exactly which slots failed)
  * and bounds hallucination risk — the AI never invents a score.
  */
-@Injectable()
 export class AiRequirementsMatcherAdapter extends RequirementsMatcherPort {
   constructor(
     private readonly scoringLlm: ScoringLlmPort,

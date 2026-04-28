@@ -8,13 +8,10 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import {
   InMemoryUsersRepository,
   StubLogger,
 } from '@/bounded-contexts/identity/shared-kernel/testing';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { UsersRepository } from '../../infrastructure/adapters/persistence/users.repository';
 import { UsernameUseCases } from '../ports/username.port';
 import { UsernameService } from './username.service';
 
@@ -23,7 +20,7 @@ describe('UsernameService - Bug Detection', () => {
   let usersRepository: InMemoryUsersRepository;
   let logger: StubLogger;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const mockUseCases: UsernameUseCases = {
       updateUsernameUseCase: {
         execute: mock(async () => ({ username: 'newuser' })),
@@ -33,16 +30,12 @@ describe('UsernameService - Bug Detection', () => {
     usersRepository = new InMemoryUsersRepository();
     logger = new StubLogger();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsernameService,
-        { provide: UsernameUseCases, useValue: mockUseCases },
-        { provide: UsersRepository, useValue: usersRepository },
-        { provide: AppLoggerService, useValue: logger },
-      ],
-    }).compile();
-
-    service = module.get<UsernameService>(UsernameService);
+    // Direct instantiation — UsernameService is a framework-free POJO.
+    service = new UsernameService(
+      mockUseCases,
+      usersRepository as unknown as ConstructorParameters<typeof UsernameService>[1],
+      logger as unknown as ConstructorParameters<typeof UsernameService>[2],
+    );
   });
 
   /**

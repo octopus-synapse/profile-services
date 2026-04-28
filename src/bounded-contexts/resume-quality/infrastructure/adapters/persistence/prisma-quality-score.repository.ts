@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -13,8 +12,9 @@ import type { QualityBreakdown, QualityIssue } from '../../../domain/types';
  * history (rather than upserting a single "latest" row) lets the UI
  * plot progression and the Ops team diagnose regressions when rule
  * versions change.
+ *
+ * Framework-free POJO. Wired by `resume-quality.composition.ts`.
  */
-@Injectable()
 export class PrismaQualityScoreRepository extends QualityScoreRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

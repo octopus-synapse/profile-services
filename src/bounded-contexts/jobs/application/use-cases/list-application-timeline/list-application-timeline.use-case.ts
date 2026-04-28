@@ -55,7 +55,7 @@ export class ListApplicationTimelineUseCase {
 
       const responseEvents = app.events.filter((e) => RESPONSE_EVENT_TYPES.has(e.type));
       const lastResponseAt = responseEvents.length
-        ? responseEvents[responseEvents.length - 1]!.occurredAt
+        ? responseEvents[responseEvents.length - 1]?.occurredAt
         : null;
 
       const daysSinceLastResponse = lastResponseAt

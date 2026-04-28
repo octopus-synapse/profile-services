@@ -1,11 +1,9 @@
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
 import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import { ViewTrackingRepositoryPort } from '../application/ports/resume-analytics.port';
 import { TRAFFIC_SOURCES } from '../domain/value-objects/traffic-sources';
 import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
 
-@Injectable()
 export class ViewTrackingService {
   constructor(
     private readonly repository: ViewTrackingRepositoryPort,

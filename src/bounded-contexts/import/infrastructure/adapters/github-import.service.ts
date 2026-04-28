@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { graphql } from '@octokit/graphql';
 import { GetOAuthAccessTokenUseCase } from '@/bounded-contexts/identity/oauth/application/use-cases/get-oauth-access-token/get-oauth-access-token.use-case';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -80,7 +79,6 @@ export type GithubImportResult = {
   profileUpdated: boolean;
 };
 
-@Injectable()
 export class GithubImportService {
   constructor(
     private readonly prisma: PrismaService,

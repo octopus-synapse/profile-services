@@ -10,7 +10,6 @@
  * - sameSite: 'lax' (CSRF protection)
  */
 
-import { Injectable } from '@nestjs/common';
 import { ConfigPort } from '@/shared-kernel/config';
 import type {
   CookieReader,
@@ -19,7 +18,6 @@ import type {
 } from '../../domain/ports/session-storage.port';
 import { SessionStoragePort } from '../../domain/ports/session-storage.port';
 
-@Injectable()
 export class CookieSessionStorage implements SessionStoragePort {
   private readonly COOKIE_NAME = 'session';
   private readonly cookieOptions: SessionCookieOptions;

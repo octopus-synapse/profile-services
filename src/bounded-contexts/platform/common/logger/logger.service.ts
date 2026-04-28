@@ -1,11 +1,9 @@
-import { Injectable, LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
 import { z } from 'zod';
 
 const LogLevelSchema = z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']);
 
-@Injectable()
-export class AppLoggerService implements LoggerService {
+export class AppLoggerService {
   private logger: winston.Logger;
   private context?: string;
 

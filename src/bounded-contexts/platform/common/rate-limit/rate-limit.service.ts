@@ -8,8 +8,7 @@
  * Kent Beck: "Make it work, make it right, make it fast"
  */
 
-import { Injectable } from '@nestjs/common';
-import { CacheService } from '../cache/cache.service';
+import type { CacheService } from '../cache/cache.service';
 import {
   DEFAULT_RATE_LIMITS,
   type RateLimitConfig,
@@ -36,7 +35,6 @@ interface ContextParams {
   isExpensiveOperation?: boolean;
 }
 
-@Injectable()
 export class RateLimitService {
   private readonly RATE_LIMIT_PREFIX = 'ratelimit';
 

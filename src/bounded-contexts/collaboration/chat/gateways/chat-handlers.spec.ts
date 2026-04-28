@@ -287,7 +287,7 @@ describe('registerChatWebSocketHandlers', () => {
 
       const handler = wsCtl.state.messageHandlers.get('message:send');
       expect(handler).toBeDefined();
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1', content: 'Hello' },
@@ -302,7 +302,7 @@ describe('registerChatWebSocketHandlers', () => {
       sendMessage.mockRejectedValueOnce(new Error('Boom'));
       const handler = wsCtl.state.messageHandlers.get('message:send');
 
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1', content: 'Hello' },
@@ -317,7 +317,7 @@ describe('registerChatWebSocketHandlers', () => {
   describe('typing:start', () => {
     it('broadcasts typing event to conversation excluding sender', async () => {
       const handler = wsCtl.state.messageHandlers.get('typing:start');
-      await handler!({
+      await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -336,7 +336,7 @@ describe('registerChatWebSocketHandlers', () => {
 
     it('does not broadcast when user is not a participant', async () => {
       const handler = wsCtl.state.messageHandlers.get('typing:start');
-      await handler!({
+      await handler?.({
         userId: 'user-3',
         socketId: 'sock-3',
         payload: { conversationId: 'conv-1' },
@@ -351,7 +351,7 @@ describe('registerChatWebSocketHandlers', () => {
   describe('typing:stop', () => {
     it('broadcasts typing stop excluding sender', () => {
       const handler = wsCtl.state.messageHandlers.get('typing:stop');
-      handler!({
+      handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -371,7 +371,7 @@ describe('registerChatWebSocketHandlers', () => {
     it('marks read and broadcasts messages:read', async () => {
       markRead.mockResolvedValueOnce({ count: 3 });
       const handler = wsCtl.state.messageHandlers.get('message:read');
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -389,7 +389,7 @@ describe('registerChatWebSocketHandlers', () => {
     it('returns error when use case throws', async () => {
       markRead.mockRejectedValueOnce(new Error('Not authorized'));
       const handler = wsCtl.state.messageHandlers.get('message:read');
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -403,7 +403,7 @@ describe('registerChatWebSocketHandlers', () => {
   describe('conversation:join', () => {
     it('joins room when user is a participant', async () => {
       const handler = wsCtl.state.messageHandlers.get('conversation:join');
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -415,7 +415,7 @@ describe('registerChatWebSocketHandlers', () => {
 
     it('rejects non-participant', async () => {
       const handler = wsCtl.state.messageHandlers.get('conversation:join');
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-3',
         socketId: 'sock-3',
         payload: { conversationId: 'conv-1' },
@@ -430,7 +430,7 @@ describe('registerChatWebSocketHandlers', () => {
     it('removes the socket from the conversation room', async () => {
       // Pre-join.
       const join = wsCtl.state.messageHandlers.get('conversation:join');
-      await join!({
+      await join?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -438,7 +438,7 @@ describe('registerChatWebSocketHandlers', () => {
       expect(wsCtl.state.rooms.get('sock-1')?.has('conversation:conv-1')).toBe(true);
 
       const handler = wsCtl.state.messageHandlers.get('conversation:leave');
-      const result = await handler!({
+      const result = await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },

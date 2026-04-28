@@ -3,12 +3,10 @@
  * Example migrator showing how to handle breaking changes
  */
 
-import { Injectable } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { LoggerPort } from '@/shared-kernel/logger';
 import type { DslMigrator } from './base.migrator';
 
-@Injectable()
 export class DslV1ToV2Migrator implements DslMigrator {
   readonly fromVersion = '1.0.0';
   readonly toVersion = '2.0.0';

@@ -34,7 +34,7 @@ export const platformEventsRoutes: ReadonlyArray<Route<TrackPlatformEventsUseCas
     sdk: { exported: true },
     handler: async (ctx, useCase) => {
       const body = ctx.body as z.infer<typeof TrackEventsBodySchema>;
-      return useCase.execute(ctx.user?.userId ?? null, body);
+      return useCase.execute(ctx.user!.userId ?? null, body);
     },
   },
 ];

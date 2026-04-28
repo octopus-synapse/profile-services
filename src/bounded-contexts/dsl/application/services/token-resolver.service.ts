@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import type { DesignTokens } from '@/bounded-contexts/dsl/domain/schemas/dsl/tokens.schema';
 import {
   BORDER_RADII,
@@ -44,7 +43,6 @@ export interface ResolvedTokens {
   effects: { borderRadiusPx: number; boxShadow: string };
 }
 
-@Injectable()
 export class TokenResolverService {
   resolve(tokens: DesignTokens): ResolvedTokens {
     const { typography, colors, spacing } = tokens;

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import {
@@ -43,7 +42,6 @@ interface ScoreComputedLabels {
   [key: string]: string;
 }
 
-@Injectable()
 export class MetricsService extends MetricsReaderPort implements Lifecycle {
   private readonly registry: Registry;
 

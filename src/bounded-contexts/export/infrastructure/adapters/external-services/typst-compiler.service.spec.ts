@@ -7,20 +7,14 @@
 
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import * as fs from 'node:fs/promises';
-import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerPort } from '@/shared-kernel';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TypstCompilerService } from './typst-compiler.service';
 
 describe('TypstCompilerService', () => {
   let service: TypstCompilerService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [TypstCompilerService, { provide: LoggerPort, useValue: stubLogger }],
-    }).compile();
-
-    service = module.get<TypstCompilerService>(TypstCompilerService);
+  beforeEach(() => {
+    service = new TypstCompilerService(stubLogger);
   });
 
   describe('getTemplatesPath', () => {

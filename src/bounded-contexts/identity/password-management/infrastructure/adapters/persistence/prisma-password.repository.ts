@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { UserWithPassword } from '../../../domain/ports';
 import { PasswordRepositoryPort } from '../../../domain/ports';
 
-@Injectable()
 export class PrismaPasswordRepository implements PasswordRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

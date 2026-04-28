@@ -11,7 +11,6 @@
  * kept intact so the gap surfaces in staging, not silently in prod.
  */
 
-import { Injectable } from '@nestjs/common';
 import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
@@ -27,7 +26,6 @@ function isKnownCode(code: string): code is ErrorCode {
   return Object.hasOwn(ERROR_DICTIONARY, code);
 }
 
-@Injectable()
 export class I18nService extends TranslationPort {
   constructor(private readonly logger: LoggerPort) {
     super();

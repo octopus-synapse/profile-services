@@ -3,7 +3,6 @@
  * Single Responsibility: Manage Redis client connection lifecycle
  */
 
-import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { AppLoggerService } from '../logger/logger.service';
@@ -13,7 +12,6 @@ const RETRY_DELAY_MAX = 2000;
 const RETRY_DELAY_MULTIPLIER = 50;
 const MAX_RETRIES_PER_REQUEST = 3;
 
-@Injectable()
 export class RedisConnectionService implements Lifecycle {
   private _client: Redis | null = null;
   private _isEnabled: boolean;

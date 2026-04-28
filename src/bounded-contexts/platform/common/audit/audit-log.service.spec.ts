@@ -6,10 +6,9 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { AuditAction } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../logger/logger.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type { RequestMetadataSource } from './audit-log.service';
 import { AuditLogService } from './audit-log.service';
 
@@ -42,20 +41,14 @@ describe('AuditLogService', () => {
     },
   };
 
-  const stubLogger = { debug: mock(), error: mock(), log: mock() };
+  const stubLogger = { debug: mock(), error: mock(), log: mock(), warn: mock() };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     auditLogs.length = 0;
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuditLogService,
-        { provide: PrismaService, useValue: stubPrisma },
-        { provide: AppLoggerService, useValue: stubLogger },
-      ],
-    }).compile();
-
-    service = module.get<AuditLogService>(AuditLogService);
+    service = new AuditLogService(
+      stubPrisma as unknown as PrismaService,
+      stubLogger as unknown as LoggerPort,
+    );
   });
 
   describe('log', () => {

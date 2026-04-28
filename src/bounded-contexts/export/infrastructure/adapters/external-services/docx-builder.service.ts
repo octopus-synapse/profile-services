@@ -7,16 +7,14 @@
  * Milestone 5 - Issue #39
  */
 
-import { Injectable } from '@nestjs/common';
 import { Document, Packer } from 'docx';
-import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { UserDataPort } from '../../../domain/ports/user-data.port';
+import type { UserDataPort } from '../../../domain/ports/user-data.port';
 import type { DocxUserData } from './docx.types';
-import type { GenericResumeSectionData } from './docx-sections.service';
-import { DocxSectionsService } from './docx-sections.service';
-import { DocxStylesService } from './docx-styles.service';
+import type { DocxSectionsService, GenericResumeSectionData } from './docx-sections.service';
+import type { DocxStylesService } from './docx-styles.service';
 
 type ResumeSectionWithItems = {
   sectionType: { key: string; semanticKind: string; title: string };
@@ -25,7 +23,6 @@ type ResumeSectionWithItems = {
 
 type ResumeWithSections = { resumeSections: ResumeSectionWithItems[] };
 
-@Injectable()
 export class DocxBuilderService {
   constructor(
     private readonly resumesRepository: ResumesRepository,

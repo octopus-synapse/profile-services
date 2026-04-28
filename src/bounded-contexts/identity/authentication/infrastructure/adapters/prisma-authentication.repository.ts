@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { AuthUser, RefreshTokenData, SessionAuthUser } from '../../domain/ports';
@@ -8,7 +7,6 @@ import { AuthenticationRepositoryPort } from '../../domain/ports';
 const SESSION_CACHE_TTL = 600; // 10 minutes
 const USER_EMAIL_CACHE_TTL = 300; // 5 minutes
 
-@Injectable()
 export class PrismaAuthenticationRepository implements AuthenticationRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

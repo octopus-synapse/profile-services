@@ -9,9 +9,8 @@
  * - Similar: finds related resumes
  */
 
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
  * Search query parameters
@@ -55,7 +54,6 @@ export interface SearchResult {
   totalPages: number;
 }
 
-@Injectable()
 export class ResumeSearchService {
   constructor(private readonly prisma: PrismaService) {}
 

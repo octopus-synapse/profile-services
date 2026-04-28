@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import { ViewTracker } from '../../application/handlers';
 
@@ -12,7 +11,7 @@ import { ViewTracker } from '../../application/handlers';
  * The actual analytics tracking happens through ViewTrackingService
  * when external viewers access resumes.
  */
-@Injectable()
+
 export class ViewTrackerAdapter implements ViewTracker {
   constructor(private readonly logger: LoggerPort) {}
 

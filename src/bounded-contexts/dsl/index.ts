@@ -7,4 +7,4 @@ export { TokenResolverService } from './application/services/token-resolver.serv
 export { RenderPublicResumeDslUseCase } from './application/use-cases/render-public-resume-dsl/render-public-resume-dsl.use-case';
 export { RenderResumeDslUseCase } from './application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
 export { ResumeDslRepositoryPort } from './domain/ports/resume-dsl.repository.port';
-export * from './dsl.module';
+export { buildDslComposition, buildDslUseCases } from './dsl.composition';

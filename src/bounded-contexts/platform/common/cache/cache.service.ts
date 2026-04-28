@@ -4,13 +4,11 @@
  * Delegates to specialized services for implementation
  */
 
-import { Injectable } from '@nestjs/common';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { RedisConnectionService } from './redis-connection.service';
 import { CacheCoreService } from './services/cache-core.service';
 import { CachePatternsService } from './services/cache-patterns.service';
 
-@Injectable()
 export class CacheService implements Lifecycle {
   constructor(
     private readonly coreService: CacheCoreService,

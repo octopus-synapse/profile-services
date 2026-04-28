@@ -15,8 +15,8 @@ import type { NotificationStreamEvent } from './domain/entities/notification';
 
 /**
  * Bundle for the notifications SSE route. Holds an Observable-returning
- * subscribe method backed by Nest's `EventEmitter2` (wired in
- * `notifications.module.ts`).
+ * subscribe method backed by the shared `SseStreamPort` (wired in
+ * `buildNotificationsSseBundle` inside `notifications.composition.ts`).
  */
 export interface NotificationsSseEvent {
   readonly data: NotificationStreamEvent;

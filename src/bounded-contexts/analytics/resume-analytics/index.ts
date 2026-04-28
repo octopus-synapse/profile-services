@@ -17,5 +17,4 @@ export type {
   ViewStats,
   ViewStatsOptions,
 } from './interfaces';
-export * from './resume-analytics.module';
 export * from './services';

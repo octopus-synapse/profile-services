@@ -7,11 +7,11 @@
  * `Res({ passthrough: true })` wiring.
  */
 
-import { StreamableFile } from '@nestjs/common';
 import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
+import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
 import { presentDetail, presentList } from './infrastructure/presenters/resume-style.presenter';
 

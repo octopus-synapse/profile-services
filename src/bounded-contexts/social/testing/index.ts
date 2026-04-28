@@ -4,7 +4,7 @@
  * Port-level in-memory fakes for social features.
  */
 
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort } from '@/shared-kernel/logger';
 import {
   ActivityRepositoryPort,
   type ActivityType,

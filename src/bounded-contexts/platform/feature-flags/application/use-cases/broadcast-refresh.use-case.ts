@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
-import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
+import type { FlagCachePort } from '../ports/flag-cache.port';
 import { FlagStateService } from '../services/flag-state.service';
 
 /**
@@ -8,13 +7,14 @@ import { FlagStateService } from '../services/flag-state.service';
  * every instance and pushes an invalidate message to every connected SSE
  * client, so every browser drops its local flag snapshot and refetches.
  */
-@Injectable()
 export class BroadcastRefreshUseCase {
   constructor(
-    private readonly cache: RedisFlagCache,
+    private readonly cache: FlagCachePort,
     private readonly state: FlagStateService,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    void this.logger;
+  }
 
   async execute(): Promise<void> {
     this.state.markStale();

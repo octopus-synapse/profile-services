@@ -12,7 +12,6 @@
  */
 
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ShareAnalyticsNotAuthorizedException } from '../../domain/exceptions/analytics.exceptions';
@@ -33,7 +32,6 @@ interface TrackEvent {
   os?: string;
 }
 
-@Injectable()
 export class ShareAnalyticsService {
   constructor(
     private readonly repository: ShareAnalyticsRepositoryPort,

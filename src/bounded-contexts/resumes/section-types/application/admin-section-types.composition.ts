@@ -1,5 +1,7 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
+import { adminSectionTypesRoutes } from '../admin-section-types.routes';
 import { AdminSectionTypesRepository } from '../infrastructure/repositories/admin-section-types.repository';
 import { AdminSectionTypesUseCases } from './ports/admin-section-types.port';
 import { CreateSectionTypeUseCase } from './use-cases/create-section-type/create-section-type.use-case';
@@ -24,5 +26,20 @@ export function buildAdminSectionTypesUseCases(
     updateSectionTypeUseCase: new UpdateSectionTypeUseCase(repository),
     deleteSectionTypeUseCase: new DeleteSectionTypeUseCase(repository),
     getSemanticKindsUseCase: new GetSemanticKindsUseCase(repository),
+  };
+}
+
+/**
+ * Build the framework-free composition for the resumes/section-types
+ * BC. Exposes the canonical `{ useCases, routes }` shape consumed by
+ * both the Elysia bootstrap and the Nest module shell.
+ */
+export function buildAdminSectionTypesComposition(
+  prisma: PrismaService,
+  logger: LoggerPort,
+): BoundedContextComposition<AdminSectionTypesUseCases> {
+  return {
+    useCases: buildAdminSectionTypesUseCases(prisma, logger),
+    routes: adminSectionTypesRoutes,
   };
 }

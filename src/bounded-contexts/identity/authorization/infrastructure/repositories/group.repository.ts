@@ -4,7 +4,6 @@
  * Infrastructure layer implementation of IGroupRepository.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -13,7 +12,6 @@ import type { PermissionId } from '../../domain/entities/permission.entity';
 import type { RoleId } from '../../domain/entities/role.entity';
 import type { IGroupRepository } from '../../domain/ports/authorization-repositories.port';
 
-@Injectable()
 export class GroupRepository implements IGroupRepository {
   constructor(
     private readonly prisma: PrismaService,

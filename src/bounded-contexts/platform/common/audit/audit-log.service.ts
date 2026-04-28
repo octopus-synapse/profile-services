@@ -7,11 +7,10 @@
  *   await this.auditLog.log(userId, AuditAction.USERNAME_CHANGED, 'User', userId, { before, after }, request);
  */
 
-import { Injectable } from '@nestjs/common';
 import { AuditAction, Prisma } from '@prisma/client';
 import type { Request } from 'express';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../logger/logger.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
 export interface AuditMetadata {
   ipAddress?: string;
@@ -30,11 +29,10 @@ export interface RequestMetadataSource {
   socket?: { remoteAddress?: string };
 }
 
-@Injectable()
 export class AuditLogService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

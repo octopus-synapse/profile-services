@@ -4,8 +4,7 @@
  * Delegates to specialized services for each domain
  */
 
-import { Injectable } from '@nestjs/common';
-import {
+import type {
   LanguageQueryPort,
   SkillQueryPort,
   SkillSearchPort,
@@ -18,7 +17,6 @@ import type { SkillType, TechAreaType } from '../interfaces';
 // Re-export DTOs for centralized consumption
 export type { ProgrammingLanguage, TechArea, TechNiche, TechSkill } from '../dto';
 
-@Injectable()
 export class TechSkillsQueryService {
   constructor(
     private readonly areaQuery: TechAreaQueryPort,

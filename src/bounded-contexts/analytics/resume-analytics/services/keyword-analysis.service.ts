@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import type { ResumeForAnalytics } from '../domain/types';
 import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords';
 import type {
@@ -30,7 +29,6 @@ function extractStrings(content: Record<string, unknown>): string[] {
   return parts;
 }
 
-@Injectable()
 export class KeywordAnalysisService {
   getKeywordSuggestions(
     resume: ResumeForAnalytics,

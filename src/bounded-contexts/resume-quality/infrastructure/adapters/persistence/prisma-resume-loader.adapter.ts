@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeLoaderPort } from '../../../domain/ports/resume-loader.port';
 import type { ResumeForCompleteness } from '../../../domain/rules/completeness.rules';
@@ -7,8 +6,9 @@ import type { ResumeForCompleteness } from '../../../domain/rules/completeness.r
  * Prisma-backed ResumeLoader. Pulls just enough fields for the
  * completeness rules — the rich payload (sections, items, full bullets)
  * is the job of the future Content Quality AI call, not this path.
+ *
+ * Framework-free POJO. Wired by `resume-quality.composition.ts`.
  */
-@Injectable()
 export class PrismaResumeLoader extends ResumeLoaderPort {
   constructor(private readonly prisma: PrismaService) {
     super();

@@ -3,7 +3,6 @@
  * Single Responsibility: Write operations for user data
  */
 
-import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
@@ -15,7 +14,6 @@ import {
 
 const CTX = 'UserMutationRepository';
 
-@Injectable()
 export class UserMutationRepository {
   constructor(
     private readonly prisma: PrismaService,

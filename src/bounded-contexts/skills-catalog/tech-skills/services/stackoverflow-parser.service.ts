@@ -5,8 +5,7 @@
  * and parses them into structured skill data.
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   STACKOVERFLOW_CATEGORIES,
   STACKOVERFLOW_COLORS,
@@ -21,12 +20,11 @@ import {
   shouldIncludeStackOverflowTag,
 } from '../utils';
 
-@Injectable()
 export class StackOverflowParserService {
   private readonly SO_API_URL = 'https://api.stackexchange.com/2.3/tags';
   private readonly MAX_PAGES = 10;
 
-  constructor(private readonly logger: AppLoggerService) {}
+  constructor(private readonly logger: LoggerPort) {}
 
   /**
    * Fetch and parse skills from Stack Overflow tags

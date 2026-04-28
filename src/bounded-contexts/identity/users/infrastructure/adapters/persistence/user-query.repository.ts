@@ -3,12 +3,10 @@
  * Single Responsibility: Read operations for user data
  */
 
-import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class UserQueryRepository {
   constructor(
     private readonly prisma: PrismaService,

@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import type { FlagRecord } from '../../domain/types';
-import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
+import type { FlagCachePort } from '../ports/flag-cache.port';
 
 /**
  * In-process snapshot of all flag records, refreshed from the DB on demand
@@ -12,7 +11,6 @@ import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.serv
  * in memory lets evaluation and impact analysis walk the graph without
  * hitting Postgres per request.
  */
-@Injectable()
 export class FlagStateService implements Lifecycle {
   private flags: FlagRecord[] = [];
   private loaded = false;
@@ -20,7 +18,7 @@ export class FlagStateService implements Lifecycle {
 
   constructor(
     private readonly repo: FeatureFlagRepositoryPort,
-    private readonly cache: RedisFlagCache,
+    private readonly cache: FlagCachePort,
   ) {}
 
   async init(): Promise<void> {

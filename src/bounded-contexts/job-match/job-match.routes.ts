@@ -23,7 +23,7 @@ const ComputeMatchSchema = z.object({
 });
 
 function pickUserId(ctx: { user: { userId: string } | null }): string {
-  const id = ctx.user?.userId;
+  const id = ctx.user!.userId;
   if (!id) throw new JobMatchAuthenticatedUserMissingException();
   return id;
 }

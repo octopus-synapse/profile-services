@@ -11,7 +11,6 @@
  *   - Adding a new section type requires ZERO code changes here
  */
 
-import { Injectable } from '@nestjs/common';
 import type { SectionDataV2 } from '@/bounded-contexts/dsl/domain/schemas/ast/generic-section-data.schema';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
@@ -37,7 +36,6 @@ function isItemVisible(itemId: string, overrides: ItemOverride[]): boolean {
   return override?.visible !== false;
 }
 
-@Injectable()
 export class DslCompilerService {
   constructor(
     private validator: DslValidatorService,

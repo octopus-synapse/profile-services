@@ -6,18 +6,19 @@
  */
 
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
-import type { EventBusPort } from '@/shared-kernel';
+import type { EventBusPort, LoggerPort } from '@/shared-kernel';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import { JobMatchRecomputeOnResumeUpdatedHandler } from './job-match-recompute-on-resume-updated.handler';
 
 export interface JobMatchHandlersDeps {
   readonly eventBus: EventBusPort;
   readonly queue: JobQueuePort;
+  readonly logger: LoggerPort;
 }
 
 export function registerJobMatchHandlers(deps: JobMatchHandlersDeps): void {
-  const { eventBus, queue } = deps;
+  const { eventBus, queue, logger } = deps;
 
-  const handler = new JobMatchRecomputeOnResumeUpdatedHandler(queue);
+  const handler = new JobMatchRecomputeOnResumeUpdatedHandler(queue, logger);
   eventBus.on(ResumeUpdatedEvent.TYPE, handler.onResumeUpdated.bind(handler));
 }

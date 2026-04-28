@@ -5,7 +5,6 @@
  * to ActivityRepositoryPort and follower lookup to FollowRepositoryPort.
  */
 
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
@@ -25,7 +24,6 @@ import type { PaginatedResult, PaginationParams } from './follow.service';
 
 export type { ActivityWithUser };
 
-@Injectable()
 export class ActivityService
   extends ActivityCreatorPort
   implements ActivityReaderPort, ActivityLoggerPort

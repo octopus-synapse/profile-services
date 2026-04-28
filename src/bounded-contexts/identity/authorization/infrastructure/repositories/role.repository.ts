@@ -4,13 +4,11 @@
  * Infrastructure layer implementation of IRoleRepository.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { PermissionId } from '../../domain/entities/permission.entity';
 import { Role, type RoleId } from '../../domain/entities/role.entity';
 import type { IRoleRepository } from '../../domain/ports/authorization-repositories.port';
 
-@Injectable()
 export class RoleRepository implements IRoleRepository {
   constructor(private readonly prisma: PrismaService) {}
 

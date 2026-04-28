@@ -12,11 +12,8 @@
  * Phase 1 only ships the structure; the registration calls come later.
  */
 
-import { Injectable } from '@nestjs/common';
-
 export type MessageBucket = 'errors' | 'validation' | 'notifications';
 
-@Injectable()
 export class MessageCodeRegistry {
   private readonly errors = new Set<string>();
   private readonly validation = new Set<string>();

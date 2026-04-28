@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import { JwtPort } from '@/shared-kernel/auth';
 import { ConfigPort } from '@/shared-kernel/config';
 import type { SessionPayload } from '../../domain/entities/session.entity';
 import type { TokenGeneratorPort, TokenPair, TokenPayload } from '../../domain/ports';
 
-@Injectable()
 export class JwtTokenGenerator implements TokenGeneratorPort {
   private readonly accessTokenExpiresIn: number;
   private readonly sessionExpiryDays: number;

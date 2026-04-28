@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { MatchCachePort } from '../../domain/ports/match-cache.port';
 import type { MatchBreakdown } from '../../domain/types';
 
@@ -17,7 +16,6 @@ const MATCH_CACHE_TTL_SECONDS = 24 * 60 * 60;
  * already treats `null` as "recompute" and logs (but ignores) set
  * failures — so a Redis outage makes matches slower, not broken.
  */
-@Injectable()
 export class RedisMatchCacheAdapter extends MatchCachePort {
   constructor(
     private readonly cache: CacheService,

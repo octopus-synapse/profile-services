@@ -5,10 +5,9 @@
  * Delegates persistence to ConnectionRepositoryPort.
  */
 
-import { Injectable } from '@nestjs/common';
-import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel/logger';
 import {
   ConnectionRepositoryPort,
   type ConnectionUser,
@@ -41,7 +40,6 @@ export interface ConnectionSuggestion {
   commonSkills: string[];
 }
 
-@Injectable()
 export class ConnectionService {
   constructor(
     private readonly connectionRepo: ConnectionRepositoryPort,

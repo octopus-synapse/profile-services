@@ -22,6 +22,8 @@ describe('ListJobsWithFitScoreUseCase', () => {
       items: Array<{ title: string; fitScore: { score: number } | null }>;
     };
     const byTitle = new Map(out.items.map((i) => [i.title, i.fitScore]));
-    expect(byTitle.get('A')!.score).toBeGreaterThan(byTitle.get('B')!.score);
+    const aScore = byTitle.get('A')?.score ?? 0;
+    const bScore = byTitle.get('B')?.score ?? 0;
+    expect(aScore).toBeGreaterThan(bScore);
   });
 });

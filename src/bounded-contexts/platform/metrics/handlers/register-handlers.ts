@@ -22,9 +22,6 @@ export function registerMetricsHandlers(deps: MetricsHandlersDeps): void {
 
   const handler = new ScoreMetricsHandler(metrics, logger);
 
-  eventBus.on(
-    ResumeQualityComputedEvent.TYPE,
-    handler.onResumeQualityComputed.bind(handler),
-  );
+  eventBus.on(ResumeQualityComputedEvent.TYPE, handler.onResumeQualityComputed.bind(handler));
   eventBus.on(MatchComputedEvent.TYPE, handler.onMatchComputed.bind(handler));
 }

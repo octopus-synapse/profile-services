@@ -5,9 +5,8 @@
  * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type {
+  LoggerPort,
   UpdateUsername,
   UsernameValidationError,
   ValidateUsernameResponse,
@@ -22,12 +21,11 @@ import {
 
 const RESERVED_USERNAMES: ReadonlySet<string> = new Set(RESERVED_USERNAMES_LIST);
 
-@Injectable()
 export class UsernameService {
   constructor(
     private readonly useCases: UsernameUseCases,
     private readonly usersRepository: UsersRepository,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

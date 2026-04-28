@@ -5,7 +5,6 @@
  * IMPORTANT: No direct imports from 'zod' - all validation comes from contracts.
  */
 
-import { Injectable } from '@nestjs/common';
 import { type ResumeDsl, ResumeDslSchema } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import {
   DslMigrationLoopException,
@@ -21,7 +20,6 @@ export interface ValidationResult {
   normalized?: ResumeDsl;
 }
 
-@Injectable()
 export class DslValidatorService {
   /**
    * Validate a DSL object against the schema

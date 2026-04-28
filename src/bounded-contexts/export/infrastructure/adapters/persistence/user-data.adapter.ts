@@ -5,11 +5,9 @@
  * Keeps the export BC isolated from identity BC.
  */
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type ExportUserData, UserDataPort } from '../../../domain/ports/user-data.port';
 
-@Injectable()
 export class UserDataAdapter extends UserDataPort {
   constructor(private readonly prisma: PrismaService) {
     super();

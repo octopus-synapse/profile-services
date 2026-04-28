@@ -3,11 +3,11 @@
  * (Redis in prod, in-memory in tests).
  */
 
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { ReminderStatePort } from '../../../domain/ports/reminder-state.port';
 
 export class CacheReminderStateAdapter extends ReminderStatePort {
-  constructor(private readonly cache: CacheService) {
+  constructor(private readonly cache: CachePort) {
     super();
   }
 

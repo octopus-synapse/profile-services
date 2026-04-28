@@ -3,7 +3,6 @@
  * Handles basic cache operations (get, set, delete, flush)
  */
 
-import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../logger/logger.service';
 import { RedisConnectionService } from '../redis-connection.service';
 
@@ -43,7 +42,6 @@ export class CacheWriteError extends Error {
   }
 }
 
-@Injectable()
 export class CacheCoreService {
   constructor(
     private readonly redisConnection: RedisConnectionService,

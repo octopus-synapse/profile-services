@@ -14,7 +14,7 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
-import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
+import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ShareExpiredException,
   ShareNotFoundException,
@@ -57,13 +57,13 @@ export interface PublicResumeShareLoader {
 export class AccessPublicResumeUseCase {
   constructor(
     private readonly shares: PublicResumeShareLoader,
-    private readonly events: EventPublisher,
+    private readonly events: EventPublisherPort,
     private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: AccessPublicResumeInput): Promise<AccessPublicResumeOutput> {
     const share = await this.shares.getBySlug(input.slug);
-    if (!share || !share.isActive) throw new ShareNotFoundException();
+    if (!share?.isActive) throw new ShareNotFoundException();
     if (share.expiresAt && new Date() > share.expiresAt) throw new ShareExpiredException();
 
     if (share.password) {

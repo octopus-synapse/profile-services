@@ -4,7 +4,6 @@
  * Prisma-based implementation for exporting user data (GDPR compliance).
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   ExportedAuditLog,
@@ -16,7 +15,6 @@ import { DataExportRepositoryPort } from '../../domain/ports/data-export-reposit
 
 const DEFAULT_AUDIT_LOG_LIMIT = 1000;
 
-@Injectable()
 export class DataExportRepository implements DataExportRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

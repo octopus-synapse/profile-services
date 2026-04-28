@@ -11,11 +11,8 @@
  * which is timing-safe (constant-time comparison via the bcrypt C library).
  */
 
-import { Injectable } from '@nestjs/common';
-
 const BCRYPT_COST = 12;
 
-@Injectable()
 export class PasswordHashService {
   async hash(password: string): Promise<string> {
     return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });

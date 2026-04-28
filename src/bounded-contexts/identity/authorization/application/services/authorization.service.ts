@@ -12,7 +12,6 @@
  * - Provides simple API for guards and controllers
  */
 
-import { Inject, Injectable } from '@nestjs/common';
 import { UserAuthContext, type UserId } from '../../domain/entities/user-auth-context.entity';
 import type {
   IGroupRepository,
@@ -21,10 +20,6 @@ import type {
   IUserAuthorizationRepository,
 } from '../../domain/ports/authorization-repositories.port';
 import { PermissionResolverService } from '../../domain/services/permission-resolver.service';
-import { GroupRepository } from '../../infrastructure/repositories/group.repository';
-import { PermissionRepository } from '../../infrastructure/repositories/permission.repository';
-import { RoleRepository } from '../../infrastructure/repositories/role.repository';
-import { UserAuthorizationRepository } from '../../infrastructure/repositories/user-authorization.repository';
 
 // ============================================================================
 // Cache Configuration
@@ -44,19 +39,14 @@ interface CacheEntry {
 
 import { AuthorizationServicePort } from '../ports/authorization-service.port';
 
-@Injectable()
 export class AuthorizationService extends AuthorizationServicePort {
   private readonly cache = new Map<UserId, CacheEntry>();
   private readonly resolver: PermissionResolverService;
 
   constructor(
-    @Inject(PermissionRepository)
     private readonly permissionRepo: IPermissionRepository,
-    @Inject(RoleRepository)
     private readonly roleRepo: IRoleRepository,
-    @Inject(GroupRepository)
     private readonly groupRepo: IGroupRepository,
-    @Inject(UserAuthorizationRepository)
     private readonly userAuthRepo: IUserAuthorizationRepository,
   ) {
     super();

@@ -26,11 +26,20 @@ export function registerWebhooksHandlers(deps: WebhooksHandlersDeps): void {
 
   // The original `@OnEvent('resume.created', { async: true })` published
   // raw payloads, not DomainEvent envelopes. The bus contract preserves
-  // that — `on()` receives whatever `publish()` puts on the wire.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('resume.created', handler.handleResumeCreated.bind(handler) as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('resume.published', handler.handleResumePublished.bind(handler) as any);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventBus.on('ats.score.updated', handler.handleATSScoreUpdated.bind(handler) as any);
+  // that — `on()` receives whatever `publish()` puts on the wire. Cast
+  // each binding through `unknown` so TS doesn't try to enforce the
+  // `EventHandler<T extends DomainEvent>` constraint on raw payloads.
+  type AnyEventHandler = Parameters<typeof eventBus.on>[1];
+  eventBus.on(
+    'resume.created',
+    handler.handleResumeCreated.bind(handler) as unknown as AnyEventHandler,
+  );
+  eventBus.on(
+    'resume.published',
+    handler.handleResumePublished.bind(handler) as unknown as AnyEventHandler,
+  );
+  eventBus.on(
+    'ats.score.updated',
+    handler.handleATSScoreUpdated.bind(handler) as unknown as AnyEventHandler,
+  );
 }

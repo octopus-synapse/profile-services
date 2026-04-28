@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { SearchableCandidateRecord } from '../../../domain';
 import { CandidateDirectoryRepositoryPort } from '../../../domain';
@@ -13,7 +12,6 @@ import { CandidateDirectoryRepositoryPort } from '../../../domain';
  * use-case relies on.
  */
 
-@Injectable()
 export class PrismaCandidateDirectoryRepository implements CandidateDirectoryRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

@@ -10,7 +10,7 @@
 
 import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
 
-export interface EnrichedJob<T extends { id: string }> {
+export interface EnrichedJob<_T extends { id: string }> {
   isBookmarked: boolean;
   hasApplied: boolean;
 }

@@ -4,8 +4,7 @@
  * Loads onboarding flow configuration from the database.
  */
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   OnboardingConfigPort,
   type OnboardingStepConfig,
@@ -18,7 +17,6 @@ import {
   strengthLevelsSchema,
 } from './onboarding-config.schemas';
 
-@Injectable()
 export class OnboardingConfigAdapter extends OnboardingConfigPort {
   constructor(private readonly prisma: PrismaService) {
     super();

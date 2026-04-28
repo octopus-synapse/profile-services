@@ -1,9 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { AuditAction } from '@prisma/client';
-import type { Request } from 'express';
-import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
-import { LoggerPort } from '@/shared-kernel';
-import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
+import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { FeatureFlagToggledEvent } from '../../domain/events/feature-flag-toggled.event';
 import {
   FeatureFlagDeprecatedException,
@@ -12,7 +7,8 @@ import {
 } from '../../domain/exceptions/feature-flag.exceptions';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import type { FlagRecord } from '../../domain/types';
-import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
+import type { FlagAuditPort } from '../ports/flag-audit.port';
+import type { FlagCachePort } from '../ports/flag-cache.port';
 import { FlagStateService } from '../services/flag-state.service';
 
 export interface ToggleFlagInput {
@@ -20,19 +16,23 @@ export interface ToggleFlagInput {
   enabled?: boolean;
   enabledForRoles?: string[];
   actorId: string;
-  request?: Request;
+  /** Untyped on purpose — opaque request handle the audit adapter
+   *  uses to extract IP / UA / referer. The Nest adapter passes
+   *  Express's `Request`; the Elysia adapter passes the `HttpCtx`. */
+  request?: unknown;
 }
 
-@Injectable()
 export class ToggleFlagUseCase {
   constructor(
     private readonly repo: FeatureFlagRepositoryPort,
-    private readonly cache: RedisFlagCache,
+    private readonly cache: FlagCachePort,
     private readonly state: FlagStateService,
-    private readonly audit: AuditLogService,
-    private readonly events: EventPublisher,
+    private readonly audit: FlagAuditPort,
+    private readonly events: EventBusPort,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    void this.logger;
+  }
 
   async execute(input: ToggleFlagInput): Promise<FlagRecord> {
     const current = await this.repo.findByKey(input.key);
@@ -55,14 +55,12 @@ export class ToggleFlagUseCase {
     this.state.markStale();
     await this.cache.invalidateAll(input.key);
 
-    await this.audit.log(
-      input.actorId,
-      AuditAction.FEATURE_FLAG_TOGGLED,
-      'FeatureFlag',
-      input.key,
-      { before, after },
-      input.request,
-    );
+    await this.audit.logFlagToggle({
+      actorId: input.actorId,
+      flagKey: input.key,
+      changes: { before, after },
+      request: input.request,
+    });
 
     this.events.publish(
       new FeatureFlagToggledEvent({ key: input.key, before, after, actorId: input.actorId }),

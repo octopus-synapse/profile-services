@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type UserFitState, UserFitStatePort } from '../../../domain/ports/user-fit-state.port';
 
 /**
@@ -12,7 +11,6 @@ import { type UserFitState, UserFitStatePort } from '../../../domain/ports/user-
  * adapter without touching the port. `expiresAt` is the UserFitProfile
  * column committed in the scoring-refactor schema.
  */
-@Injectable()
 export class PrismaUserFitStateAdapter extends UserFitStatePort {
   constructor(private readonly prisma: PrismaService) {
     super();

@@ -5,7 +5,6 @@
  * Handles user-specific authorization data: roles, groups, and direct permissions.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { GroupId } from '../../domain/entities/group.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
@@ -18,7 +17,6 @@ import type {
   UserRoleAssignment,
 } from '../../domain/ports/authorization-repositories.port';
 
-@Injectable()
 export class UserAuthorizationRepository implements IUserAuthorizationRepository {
   constructor(private readonly prisma: PrismaService) {}
 

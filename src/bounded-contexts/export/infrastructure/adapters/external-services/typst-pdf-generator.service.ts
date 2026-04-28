@@ -7,16 +7,15 @@
  * Pipeline: userId → load resume + DSL → compile ResumeAst → serialize JSON → Typst compile → PDF
  */
 
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { DslUseCases } from '@/bounded-contexts/dsl';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { DslUseCases } from '@/bounded-contexts/dsl';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { LoggerPort } from '@/shared-kernel';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
-import { TypstCompilerService } from './typst-compiler.service';
-import { TypstDataSerializerService } from './typst-data-serializer.service';
+import type { TypstCompilerService } from './typst-compiler.service';
+import type { TypstDataSerializerService } from './typst-data-serializer.service';
 
 /** Map lang query param to SupportedLocale */
 function resolveLocale(lang?: string): SupportedLocale {
@@ -26,11 +25,9 @@ function resolveLocale(lang?: string): SupportedLocale {
   return 'pt-BR';
 }
 
-@Injectable()
 export class TypstPdfGeneratorService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => DslUseCases))
     private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,

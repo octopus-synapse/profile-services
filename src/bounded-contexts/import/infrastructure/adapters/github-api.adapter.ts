@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import type {
@@ -35,7 +34,6 @@ interface GithubRepoResponse {
   languages_url: string;
 }
 
-@Injectable()
 export class GithubApiAdapter implements GithubApiPort {
   constructor(private readonly logger: LoggerPort) {}
 

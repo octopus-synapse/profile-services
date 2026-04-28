@@ -7,9 +7,8 @@
  * Kent Beck: "Centralize knowledge to reduce duplication."
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '../../logger/logger.service';
-import { CacheService } from '../cache.service';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 // --- Types ---
 
@@ -21,11 +20,10 @@ export interface InvalidateResumeParams {
 
 // --- Service ---
 
-@Injectable()
 export class CacheInvalidationService {
   constructor(
-    private readonly cache: CacheService,
-    private readonly logger: AppLoggerService,
+    private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

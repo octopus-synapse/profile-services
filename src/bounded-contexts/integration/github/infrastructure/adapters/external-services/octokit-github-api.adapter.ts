@@ -10,10 +10,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions';
+import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
 import { GitHubApiRequestFailedException } from '../../../../domain/exceptions/integration.exceptions';
 import { GitHubApiPort } from '../../../domain/ports/github-api.port';
 import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/github.types';

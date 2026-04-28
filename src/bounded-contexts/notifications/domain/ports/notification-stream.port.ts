@@ -1,7 +1,8 @@
 /**
  * Outbound port for emitting in-process notification events to the SSE
- * channel. The adapter wraps NestJS's `EventEmitter2`; the SSE
- * controller listens on the same bus.
+ * channel. The adapter fans into the shared `SseStreamPort.publish`;
+ * the SSE route subscribes to the same channel via
+ * `SseStreamPort.subscribe`.
  */
 
 import type { NotificationStreamEvent } from '../entities/notification';

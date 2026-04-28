@@ -12,6 +12,7 @@ import type { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobsUseCases } from './application/ports/jobs.port';
@@ -47,6 +48,7 @@ import { PrismaAntiGhostingRepository } from './infrastructure/adapters/persiste
 import { PrismaApplicationTrackerRepository } from './infrastructure/adapters/persistence/prisma-application-tracker.repository';
 import { PrismaJobsRepository } from './infrastructure/adapters/persistence/prisma-jobs.repository';
 import { AntiGhostingWorker } from './infrastructure/workers/anti-ghosting.worker';
+import { jobsRoutes } from './jobs.routes';
 
 export { JobsUseCases };
 
@@ -112,6 +114,22 @@ export function buildJobsUseCases(
   };
 }
 
+export function buildJobsComposition(
+  prisma: PrismaService,
+  email: EmailService,
+  logger: LoggerPort,
+  events: EventPublisherPort,
+  llm: LlmPort,
+  resumeAnalytics: ResumeAnalyticsFacade,
+): BoundedContextComposition<JobsUseCases> {
+  const useCases = buildJobsUseCases(prisma, email, logger, events, llm, resumeAnalytics);
+
+  return {
+    useCases,
+    routes: jobsRoutes,
+  };
+}
+
 /**
  * Registers the daily anti-ghosting cron sweep against the shared
  * `CronPort`. Called once at app boot from the Nest module via a
@@ -119,11 +137,7 @@ export function buildJobsUseCases(
  *
  * Schedule: every day at 09:00 (`EVERY_DAY_AT_9AM` → '0 9 * * *').
  */
-export function registerJobsJobs(
-  cron: CronPort,
-  bundle: JobsUseCases,
-  logger: LoggerPort,
-): void {
+export function registerJobsJobs(cron: CronPort, bundle: JobsUseCases, logger: LoggerPort): void {
   const antiGhosting = new AntiGhostingWorker(bundle, logger);
   cron.register({ pattern: '0 9 * * *' }, antiGhosting.run.bind(antiGhosting));
 }

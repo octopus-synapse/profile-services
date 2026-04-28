@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import { InvalidTestSuiteException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
-import { FollowService } from '@/bounded-contexts/social/services/follow.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
+import type { FollowService } from '@/bounded-contexts/social/services/follow.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   type TestResult,
   type TestResults,
@@ -16,11 +15,10 @@ const AVAILABLE_SUITES = ['seed-check', 'auth-flow', 'social-crud', 'onboarding-
 
 // --- Service ---
 
-@Injectable()
 export class TestRunnerService extends TestSuiteRunnerPort {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
     private readonly connectionService: ConnectionService,
     private readonly followService: FollowService,
   ) {

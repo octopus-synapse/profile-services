@@ -1,5 +1,5 @@
-import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { LoggerPort } from '@/shared-kernel';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 import type { ExpiryReminderJob } from '../../application/use-cases/enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
 
@@ -63,10 +63,10 @@ export class FitProfileExpiryReminderWorker {
   private async fanOut(): Promise<void> {
     const jobs = await this.bc.enqueueExpiryReminders.execute();
     for (const j of jobs) {
-      await this.queue.enqueue<FitProfileExpiryReminderJobData>(
-        FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-        { kind: 'remind-user', ...j },
-      );
+      await this.queue.enqueue<FitProfileExpiryReminderJobData>(FIT_PROFILE_EXPIRY_REMINDER_QUEUE, {
+        kind: 'remind-user',
+        ...j,
+      });
     }
   }
 }

@@ -5,7 +5,6 @@
  * Delegates persistence to FollowRepositoryPort and ConnectionRepositoryPort.
  */
 
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -25,7 +24,6 @@ import {
 
 export type { FollowWithUser, PaginatedResult, PaginationParams };
 
-@Injectable()
 export class FollowService extends FollowReaderPort {
   constructor(
     private readonly followRepo: FollowRepositoryPort,

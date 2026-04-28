@@ -5,7 +5,6 @@
  * This preserves the cross-BC contract while the internals use Clean Architecture.
  */
 
-import { Injectable } from '@nestjs/common';
 import {
   AuthorizationServicePort,
   type UserId,
@@ -13,7 +12,6 @@ import {
 import { AuthorizationCheckUseCases } from '../../application/ports/authorization-use-cases.port';
 import type { UserAuthContext } from '../../domain/entities/user-auth-context.entity';
 
-@Injectable()
 export class AuthorizationServiceAdapter extends AuthorizationServicePort {
   constructor(private readonly useCases: AuthorizationCheckUseCases) {
     super();

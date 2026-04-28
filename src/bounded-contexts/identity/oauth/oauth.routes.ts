@@ -7,11 +7,11 @@
  */
 
 import { z } from 'zod';
-import type { OAuthProfile } from './application/use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
-import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import type { Route } from '@/shared-kernel/http/route';
 import { withRedirect } from '@/shared-kernel/http/route';
+import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
+import type { OAuthProfile } from './application/use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
 
 const ProviderParam = z.object({ provider: z.enum(['github', 'linkedin']) });
 

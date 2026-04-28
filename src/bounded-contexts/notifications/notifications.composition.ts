@@ -1,24 +1,42 @@
 /**
  * Pure-TS wiring for the notifications BC. Zero `@nestjs/*` imports.
  *
- * The composition takes the framework primitives that adapters need
- * — Prisma, the platform email service, the in-process cache, and
- * Nest's `EventEmitter2` (typed loosely as a `NotificationStreamPort`
- * shape on the calling side) — and returns the use-case bundle the
- * controllers, workers, and handlers all consume.
+ * Phase-1 canonical shape: `buildNotificationsComposition(...)` returns
+ * `{ useCases, routes, eventHandlers, workers, lifecycles }` as a
+ * `BoundedContextComposition`. The Elysia bootstrap concatenates this
+ * with every other BC's composition; the Nest shell (`*.module.ts`)
+ * adapts the same composition to Nest's DI graph.
  *
- * `EventEmitter2` is taken as a parameter rather than imported from
- * `@nestjs/event-emitter` so this file stays framework-free; the Nest
- * shell hands it in. When the SSE stream moves behind an
- * `EventBusPort` we'll drop this parameter entirely.
+ * SSE: the BC owns the `notif:user:{userId}` channel. Use-cases
+ * publish through a `NotificationStreamPort` shim that fans into the
+ * shared `SseStreamPort.publish(...)`. Routes that live on the SSE
+ * bundle (declared `kind: 'sse'`) read back via
+ * `SseStreamPort.subscribe(...)`. Both ends share the same in-process
+ * channel id.
+ *
+ * Background jobs:
+ *  - `fit-profile-expiry-reminder` BullMQ-shaped queue: surfaced as a
+ *    `BcWorkerBinding` (composition `workers`).
+ *  - The daily fan-out tick + the daily/weekly digest crons live in a
+ *    `lifecycle.init()` so we don't re-run them on hot-reload.
  */
 
-import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { filter, map } from 'rxjs';
+import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domain/events';
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import type { EventBusPort, LoggerPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import type {
+  BcEventBinding,
+  BcWorkerBinding,
+  BoundedContextComposition,
+} from '@/shared-kernel/composition';
+import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { NotificationsUseCases } from './application/ports/notifications.port';
 import { CreateNotificationUseCase } from './application/use-cases/create-notification/create-notification.use-case';
 import { DeleteOldNotificationsUseCase } from './application/use-cases/delete-old-notifications/delete-old-notifications.use-case';
@@ -33,31 +51,65 @@ import { SendDailyDigestsUseCase } from './application/use-cases/send-daily-dige
 import { SendExpiryReminderUseCase } from './application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
 import { SendWeeklyDigestsUseCase } from './application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
 import { SetPreferenceUseCase } from './application/use-cases/set-preference/set-preference.use-case';
+import type { NotificationStreamEvent } from './domain/entities/notification';
 import type { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { CacheReminderStateAdapter } from './infrastructure/adapters/external-services/cache-reminder-state.adapter';
+import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';
 import { PlatformEmailAdapter } from './infrastructure/adapters/external-services/platform-email.adapter';
 import { PrismaFitProfileExpiryAdapter } from './infrastructure/adapters/persistence/prisma-fit-profile-expiry.adapter';
 import { PrismaNotificationsRepository } from './infrastructure/adapters/persistence/prisma-notifications.repository';
 import { PrismaResumeQualitySnapshotAdapter } from './infrastructure/adapters/persistence/prisma-resume-quality-snapshot.adapter';
 import { PrismaWeeklyDigestLogAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-log.adapter';
 import { PrismaWeeklyDigestStatsAdapter } from './infrastructure/adapters/persistence/prisma-weekly-digest-stats.adapter';
+import { FitProfileExpiredNotificationHandler } from './infrastructure/handlers/fit-profile-expired.handler';
+import { ResumeQualityRankNotificationHandler } from './infrastructure/handlers/resume-quality-rank.handler';
 import {
   FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
-  FitProfileExpiryReminderWorker,
   type FitProfileExpiryReminderJobData,
+  FitProfileExpiryReminderWorker,
 } from './infrastructure/workers/fit-profile-expiry-reminder.worker';
 import { NotificationDigestWorker } from './infrastructure/workers/notification-digest.worker';
 import { WeeklyDigestWorker } from './infrastructure/workers/weekly-digest.worker';
+import {
+  NotificationsSseBundle,
+  notificationsRoutes,
+  notificationsSseRoutes,
+} from './notifications.routes';
 
 export { NotificationsUseCases };
 
+/**
+ * Builds the `NotificationsSseBundle` over a `SseStreamPort`. The
+ * bundle's only job is to translate the in-process
+ * `notif:user:{userId}` channel into the typed SSE event shape the
+ * route descriptor returns. Kept exported so the Nest shell can
+ * reuse it through `useFactory`.
+ */
+export function buildNotificationsSseBundle(sse: SseStreamPort): NotificationsSseBundle {
+  return {
+    subscribeToUserStream: (userId: string) =>
+      sse.subscribe<NotificationStreamEvent>(`notif:user:${userId}`).pipe(
+        filter((event): event is { data: NotificationStreamEvent } => Boolean(event.data)),
+        map(({ data: n }) => ({ data: n, id: n.id, type: 'notification', retry: 10000 })),
+      ),
+  };
+}
+
+/**
+ * Build the framework-free use-case bundle. Constructs the
+ * `NotificationStreamPort` shim internally from the shared
+ * `SseStreamPort`, so callers don't have to wire the adapter
+ * themselves.
+ */
 export function buildNotificationsUseCases(
   prisma: PrismaService,
   email: EmailService,
-  cache: CacheService,
-  stream: NotificationStreamPort,
+  cache: CachePort,
   logger: LoggerPort,
+  sse: SseStreamPort,
 ): NotificationsUseCases {
+  const stream: NotificationStreamPort = new EventEmitterNotificationStreamAdapter(sse);
+
   const repository = new PrismaNotificationsRepository(prisma);
   const stats = new PrismaWeeklyDigestStatsAdapter(prisma);
   const digestLog = new PrismaWeeklyDigestLogAdapter(prisma);
@@ -105,19 +157,10 @@ export function buildNotificationsUseCases(
 }
 
 /**
- * Registers all notifications BC background jobs (cron + queue) with
- * the shared `JobQueuePort` / `CronPort`. Called once at app boot from
- * the Nest module via a side-effect provider.
- *
- * Cron schedules:
- *  - Daily digest: 08:00 UTC (`EVERY_DAY_AT_8AM` → '0 8 * * *')
- *  - Weekly digest: Mondays 13:00 UTC ('0 13 * * 1')
- *
- * Queues:
- *  - `fit-profile-expiry-reminder` — fan-out worker; the schedule tick
- *    enqueues itself via `queue.schedule(...)` with a daily 09:00
- *    America/Sao_Paulo repeat so the same Redis-backed BullMQ
- *    repeatable-job semantics survive the migration.
+ * Registers cron-driven workers + fan-out tick against the shared
+ * `JobQueuePort` / `CronPort`. Kept exported for the Nest shell's
+ * side-effect provider; the Elysia path runs the same logic through
+ * `lifecycles[0].init()` from the composition.
  */
 export function registerNotificationsJobs(
   queue: JobQueuePort,
@@ -147,4 +190,105 @@ export function registerNotificationsJobs(
       jobId: 'fit-profile-expiry-reminder-schedule-cron',
     },
   );
+}
+
+/**
+ * Extra fields the notifications BC carries on top of the canonical
+ * `BoundedContextComposition<NotificationsUseCases>` — the SSE bundle
+ * + its `kind: 'sse'` routes. The bootstrap mounts them as a separate
+ * group because the SSE handler closes over `SseStreamPort` and is
+ * typed against `NotificationsSseBundle`, not `NotificationsUseCases`.
+ */
+export interface NotificationsCompositionExtras {
+  readonly sseBundle: NotificationsSseBundle;
+  readonly sseRoutes: typeof notificationsSseRoutes;
+}
+
+/**
+ * Build the framework-free composition for the notifications BC.
+ *
+ * The bootstrap is responsible for:
+ *  - mounting `routes` (HTTP) against `useCases`,
+ *  - mounting `sseRoutes` against `sseBundle`,
+ *  - calling `eventBus.on(b.eventType, b.handler)` for each
+ *    `eventHandlers` entry,
+ *  - calling `queue.register(b.queue, b.process)` for each `workers`
+ *    entry,
+ *  - awaiting `lifecycles[i].init()` in declaration order at boot
+ *    (cron registrations + the BullMQ `queue.schedule` repeat tick).
+ */
+export function buildNotificationsComposition(
+  prisma: PrismaService,
+  email: EmailService,
+  cache: CachePort,
+  logger: LoggerPort,
+  sse: SseStreamPort,
+  eventBus: EventBusPort,
+  queue: JobQueuePort,
+  cron: CronPort,
+): BoundedContextComposition<NotificationsUseCases> & NotificationsCompositionExtras {
+  const useCases = buildNotificationsUseCases(prisma, email, cache, logger, sse);
+  const sseBundle = buildNotificationsSseBundle(sse);
+
+  // --- Event handlers (POJO `@OnEvent` replacements) ---
+  const fitProfileExpired = new FitProfileExpiredNotificationHandler(useCases, logger);
+  const qualityRank = new ResumeQualityRankNotificationHandler(useCases, logger);
+
+  const eventHandlers: ReadonlyArray<BcEventBinding> = [
+    {
+      eventType: UserFitProfileUpdatedEvent.TYPE,
+      handler: fitProfileExpired.handle.bind(fitProfileExpired),
+    },
+    {
+      eventType: ResumeQualityComputedEvent.TYPE,
+      handler: qualityRank.handle.bind(qualityRank),
+    },
+  ];
+
+  // --- Workers (BullMQ-shaped queue processors) ---
+  const expiryReminder = new FitProfileExpiryReminderWorker(useCases, queue, logger);
+
+  const workers: ReadonlyArray<BcWorkerBinding> = [
+    {
+      queue: FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+      process: expiryReminder.process.bind(expiryReminder) as BcWorkerBinding['process'],
+    },
+  ];
+
+  // --- Cron + repeat-job lifecycle (digests + fan-out tick) ---
+  const dailyDigest = new NotificationDigestWorker(useCases, logger);
+  const weeklyDigest = new WeeklyDigestWorker(useCases, logger);
+
+  const lifecycles: ReadonlyArray<Lifecycle> = [
+    {
+      init: async (): Promise<void> => {
+        cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
+        cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
+        await queue.schedule<FitProfileExpiryReminderJobData>(
+          FIT_PROFILE_EXPIRY_REMINDER_QUEUE,
+          { kind: 'schedule' },
+          {
+            repeat: { pattern: '0 9 * * *', tz: 'America/Sao_Paulo' },
+            jobId: 'fit-profile-expiry-reminder-schedule-cron',
+          },
+        );
+      },
+    },
+  ];
+
+  // `eventBus` is part of the canonical signature but the bootstrap is
+  // the one that calls `eventBus.on(...)` from the returned
+  // `eventHandlers` bindings — keep the param so cross-BC composition
+  // call sites stay symmetric.
+  void eventBus;
+
+  return {
+    useCases,
+    routes: notificationsRoutes,
+    eventHandlers,
+    workers,
+    lifecycles,
+    sseBundle,
+    sseRoutes: notificationsSseRoutes,
+  };
 }

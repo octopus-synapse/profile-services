@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { RepositoryNotInitializedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { LoggerPort } from '@/shared-kernel';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import type {
   SectionTypeRecord,
   SectionTypeWithDefinition,
@@ -21,7 +20,7 @@ import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
  * - Provides lookups by key, kind, slug
  * - Validates definitions on load
  */
-@Injectable()
+
 export class SectionTypeRepository implements Lifecycle {
   // In-memory cache of active section types with parsed definitions
   private sectionTypesCache: Map<string, SectionTypeWithDefinition> = new Map();

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -26,7 +25,6 @@ import { KeywordAnalysisService } from './keyword-analysis.service';
 import { SnapshotService } from './snapshot.service';
 import { ViewTrackingService } from './view-tracking.service';
 
-@Injectable()
 export class ResumeAnalyticsFacade {
   constructor(
     private readonly prisma: PrismaService,

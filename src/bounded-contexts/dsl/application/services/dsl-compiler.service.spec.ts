@@ -11,8 +11,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import { DslMigrationService } from '../migrators';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';

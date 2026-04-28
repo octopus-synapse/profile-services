@@ -14,7 +14,9 @@ describe('FitScoreBatchService', () => {
     ]);
 
     expect(out.size).toBe(2);
-    expect(out.get('a')!.score).toBeGreaterThan(out.get('b')!.score);
+    const aScore = out.get('a')?.score ?? 0;
+    const bScore = out.get('b')?.score ?? 0;
+    expect(aScore).toBeGreaterThan(bScore);
   });
 
   it('returns an empty map when no jobs are passed in', async () => {

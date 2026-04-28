@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import type { FlagCachePort } from '../../application/ports/flag-cache.port';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
 
 const SNAPSHOT_PREFIX = 'flags:snapshot:';
@@ -18,8 +18,8 @@ const RETRY_DELAY_MULTIPLIER = 50;
  * subscriber connection for cross-instance invalidation. Falls back to a
  * no-op when Redis isn't configured so the app still boots in dev.
  */
-@Injectable()
-export class RedisFlagCache implements Lifecycle {
+
+export class RedisFlagCache implements Lifecycle, FlagCachePort {
   private subscriber: Redis | null = null;
   private readonly localListeners = new Set<() => void>();
 

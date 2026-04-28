@@ -5,7 +5,6 @@
  * Handles unit conversions (px → pt) and font family mapping.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import { FONT_FAMILIES } from '@/bounded-contexts/dsl/domain/value-objects/design-token-config';
 
@@ -23,7 +22,6 @@ const CSS_TO_TYPST_FONT: Record<string, string> = Object.fromEntries(
 /** 1 CSS px = 0.75 pt at 96 DPI */
 const PX_TO_PT = 0.75;
 
-@Injectable()
 export class TypstDataSerializerService {
   /**
    * Serialize ResumeAst to JSON string for Typst templates.

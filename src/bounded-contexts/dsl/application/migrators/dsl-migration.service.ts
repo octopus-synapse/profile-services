@@ -3,7 +3,6 @@
  * Handles version migrations for ResumeDSL schemas
  */
 
-import { Injectable } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
@@ -13,7 +12,6 @@ import {
 } from '../../domain/exceptions/dsl.exceptions';
 import type { DslMigrator } from './base.migrator';
 
-@Injectable()
 export class DslMigrationService {
   private readonly migrators = new Map<string, DslMigrator>();
 

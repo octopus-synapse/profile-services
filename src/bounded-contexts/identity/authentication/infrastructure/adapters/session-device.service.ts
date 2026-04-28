@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import {
   type SessionDevicePort,
   type SessionDeviceView,
@@ -16,7 +16,6 @@ export type { SessionDeviceView };
  * Implements `SessionDevicePort` so framework-free route descriptors can
  * depend on the abstract port via the BC's HTTP bundle.
  */
-@Injectable()
 export class SessionDeviceService implements SessionDevicePort {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -45,7 +44,7 @@ export class SessionDeviceService implements SessionDevicePort {
       data: { revokedAt: new Date() },
     });
     if (result.count === 0) {
-      throw new NotFoundException('Session not found or already revoked');
+      throw new EntityNotFoundException('Session', id);
     }
   }
 

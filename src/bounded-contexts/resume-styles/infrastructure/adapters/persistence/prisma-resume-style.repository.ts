@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { type LayoutKind, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -34,7 +33,9 @@ type StyleRow = {
   updatedAt: Date;
 };
 
-@Injectable()
+/**
+ * Framework-free POJO. Wired by `resume-styles.composition.ts`.
+ */
 export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

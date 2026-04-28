@@ -9,11 +9,9 @@
  * Uncle Bob: "A class should have only one reason to change"
  */
 
-import { Injectable } from '@nestjs/common';
 import puppeteer, { Browser } from 'puppeteer';
-import { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class BrowserManagerService {
   private browser: Browser | null = null;
 

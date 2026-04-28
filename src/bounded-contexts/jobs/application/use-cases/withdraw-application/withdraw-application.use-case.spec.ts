@@ -27,6 +27,6 @@ describe('WithdrawApplicationUseCase', () => {
       createdAt: new Date(),
     });
     await new WithdrawApplicationUseCase(repo).execute(job.id, 'me');
-    expect(repo.applications.find((a) => a.id === id)!.status).toBe('WITHDRAWN');
+    expect(repo.applications.find((a) => a.id === id)?.status).toBe('WITHDRAWN');
   });
 });

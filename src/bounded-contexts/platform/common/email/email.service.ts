@@ -1,13 +1,14 @@
 /**
  * Email Service (Facade)
- * Delegates to specialized services for email operations
+ * Delegates to specialized services for email operations.
+ *
+ * Framework-free POJO. Constructed via `buildEmailComposition` from
+ * either the Nest module shell or the Elysia bootstrap.
  */
 
-import { Injectable } from '@nestjs/common';
 import { EmailSenderService, type SendEmailOptions } from './services/email-sender.service';
 import { EmailTemplateService } from './services/email-template.service';
 
-@Injectable()
 export class EmailService {
   constructor(
     private readonly senderService: EmailSenderService,

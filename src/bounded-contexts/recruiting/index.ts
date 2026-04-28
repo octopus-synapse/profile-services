@@ -1,2 +1,5 @@
 export * from './application/ports';
-export { RecruitingModule } from './recruiting.module';
+export {
+  buildRecruitingComposition,
+  buildRecruitingUseCases,
+} from './recruiting.composition';

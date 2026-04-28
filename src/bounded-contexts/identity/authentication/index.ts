@@ -8,7 +8,6 @@
 export * from './application/ports';
 export * from './application/use-cases';
 // Module
-export * from './authentication.module';
 // Domain Layer
 export * from './domain';
 // Infrastructure Layer

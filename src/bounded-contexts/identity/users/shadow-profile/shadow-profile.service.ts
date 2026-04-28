@@ -10,7 +10,6 @@
  * resume and skip steps the user already has data for.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { buildShadowPayload, ShadowPayloadSchema } from './build-shadow-payload';
@@ -29,7 +28,6 @@ export interface ShadowProfileSnapshot {
   claimedByUserId: string | null;
 }
 
-@Injectable()
 export class ShadowProfileService {
   constructor(
     private readonly prisma: PrismaService,

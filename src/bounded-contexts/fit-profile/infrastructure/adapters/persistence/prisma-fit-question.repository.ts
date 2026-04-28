@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
@@ -16,7 +15,6 @@ import type { FitDimension, FitScaleType } from '../../../domain/types';
  * null-vs-undefined gymnastics. Convention: keys ending in `.r` flip. */
 const REVERSE_SCORED_SUFFIX = '.r';
 
-@Injectable()
 export class PrismaFitQuestionRepository extends FitQuestionRepositoryPort {
   constructor(
     private readonly prisma: PrismaService,

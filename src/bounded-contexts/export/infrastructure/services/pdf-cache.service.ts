@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { LoggerPort } from '@/shared-kernel';
+import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
 export interface PdfCacheKeyInput {
   /** Either a userId (default lookup) or a resumeId. The cache lookup
@@ -38,7 +37,6 @@ export interface PdfCacheKeyInput {
  * - Upload failure: log + return the buffer anyway (we shouldn't fail
  *   a user-facing PDF download because we couldn't cache it).
  */
-@Injectable()
 export class PdfCacheService {
   constructor(
     private readonly prisma: PrismaService,

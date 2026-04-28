@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
 import { LoggerPort } from '@/shared-kernel';
 import { evaluateFlags } from '../../domain/feature-flag-graph';
 import type { FlagEvaluationSnapshot } from '../../domain/types';
-import { RedisFlagCache } from '../../infrastructure/cache/redis-flag-cache.service';
+import type { FlagCachePort } from '../ports/flag-cache.port';
 import { FlagStateService } from '../services/flag-state.service';
 
-@Injectable()
 export class EvaluateFlagsUseCase {
   constructor(
     private readonly state: FlagStateService,
-    private readonly cache: RedisFlagCache,
+    private readonly cache: FlagCachePort,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    void this.logger;
+  }
 
   async execute(userRoles: readonly string[]): Promise<FlagEvaluationSnapshot> {
     const fingerprint = this.cache.fingerprintRoles(userRoles);

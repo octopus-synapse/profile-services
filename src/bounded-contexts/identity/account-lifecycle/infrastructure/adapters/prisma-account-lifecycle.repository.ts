@@ -1,8 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AccountData, AccountLifecycleRepositoryPort, CreateAccountData } from '../../domain/ports';
 
-@Injectable()
 export class PrismaAccountLifecycleRepository implements AccountLifecycleRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

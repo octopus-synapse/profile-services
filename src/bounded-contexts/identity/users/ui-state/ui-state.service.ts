@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
-@Injectable()
 export class UiStateService {
   constructor(private readonly prisma: PrismaService) {}
 

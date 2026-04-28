@@ -7,7 +7,6 @@
  * Kent Beck: "Optimize later. First make it work, then make it fast."
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '../../logger/logger.service';
 import { CacheService } from '../cache.service';
@@ -30,7 +29,6 @@ const CACHE_TTL = {
 
 // --- Service ---
 
-@Injectable()
 export class CacheWarmingService {
   private stats: WarmingStats = {
     lastWarmTime: null,

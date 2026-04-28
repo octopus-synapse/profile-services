@@ -48,7 +48,7 @@ export class ComputeQualityUseCase {
 
     const completeness = scoreCompleteness(resume);
 
-    let contentQuality;
+    let contentQuality: Awaited<ReturnType<typeof this.contentQuality.analyze>> | null = null;
     try {
       contentQuality = await this.contentQuality.analyze(resume);
     } catch (err) {

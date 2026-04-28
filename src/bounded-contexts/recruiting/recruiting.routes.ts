@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod';
-import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
+import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import type { MatchCandidatesForJobOutput } from './application';

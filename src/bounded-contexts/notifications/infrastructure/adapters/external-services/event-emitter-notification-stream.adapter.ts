@@ -1,21 +1,23 @@
 /**
- * Adapter for `NotificationStreamPort` that wraps NestJS's in-process
- * `EventEmitter2`. Emits on the `notif:user:{ userId }` channel — the
- * SSE controller subscribes to the same channel.
+ * Adapter for `NotificationStreamPort` that fans events out via the
+ * shared `SseStreamPort`. Emits on the `notif:user:{ userId }` channel
+ * — the SSE route subscribes to the same channel through
+ * `SseStreamPort.subscribe(...)`.
+ *
+ * Framework-free POJO. The Nest adapter for `SseStreamPort` is the
+ * only place that knows about `EventEmitter2`; this BC stays clean.
  */
 
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { NotificationStreamEvent } from '../../../domain/entities/notification';
 import { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';
 
-@Injectable()
 export class EventEmitterNotificationStreamAdapter extends NotificationStreamPort {
-  constructor(private readonly emitter: EventEmitter2) {
+  constructor(private readonly sse: SseStreamPort) {
     super();
   }
 
   emit(userId: string, event: NotificationStreamEvent): void {
-    this.emitter.emit(`notif:user:${userId}`, event);
+    this.sse.publish<NotificationStreamEvent>(`notif:user:${userId}`, event);
   }
 }

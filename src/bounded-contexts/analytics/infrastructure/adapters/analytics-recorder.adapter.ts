@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import { AnalyticsRecorder } from '../../application/handlers';
@@ -12,7 +11,7 @@ import { AnalyticsRecorder } from '../../application/handlers';
  * Trade-off: Initial scores are set to 0. Full score calculation happens
  * when user explicitly requests analytics via the controller.
  */
-@Injectable()
+
 export class AnalyticsRecorderAdapter implements AnalyticsRecorder {
   constructor(
     private readonly prisma: PrismaService,

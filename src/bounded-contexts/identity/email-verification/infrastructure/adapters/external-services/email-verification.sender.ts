@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ConfigPort } from '@/shared-kernel/config';
 import { VerificationEmailSenderPort } from '../../../domain/ports';
 
@@ -12,7 +11,6 @@ export abstract class EmailServicePort {
   }): Promise<void>;
 }
 
-@Injectable()
 export class EmailVerificationSender extends VerificationEmailSenderPort {
   private readonly appUrl: string;
 

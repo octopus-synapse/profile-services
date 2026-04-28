@@ -270,9 +270,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { limit } = ctx.query as { limit?: string };
-      const parsedLimit = limit
-        ? parseInt(limit, 10)
-        : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
+      const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
       const history = await bc.getSyncHistory.execute(parsedLimit);
       return { success: true, data: { history } };
     },

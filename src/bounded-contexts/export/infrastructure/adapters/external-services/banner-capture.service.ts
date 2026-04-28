@@ -3,18 +3,16 @@
  * Captures screenshots of banners in high quality
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
 import { Page } from 'puppeteer';
 import { BannerElementNotFoundException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
-import { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort } from '@/shared-kernel';
+import type { ConfigPort } from '@/shared-kernel/config';
 import { DEFAULT } from '../../constants/ui.constants';
 import { BannerPageSetup, BannerReadyWaiter } from '../helpers';
-import { BrowserManagerService } from './browser-manager.service';
+import type { BrowserManagerService } from './browser-manager.service';
 
 const CTX = 'BannerCaptureService';
 
-@Injectable()
 export class BannerCaptureService {
   private readonly pageSetup: BannerPageSetup;
   private readonly readyWaiter: BannerReadyWaiter;

@@ -3,11 +3,9 @@
  * Single Responsibility: Sync tech skills to database
  */
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ParsedSkill } from '../interfaces';
 
-@Injectable()
 export class SkillsDataSyncService {
   constructor(private readonly prisma: PrismaService) {}
 

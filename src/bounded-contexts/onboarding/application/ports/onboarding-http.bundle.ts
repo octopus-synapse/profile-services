@@ -11,8 +11,8 @@
  * The wiring lives in `onboarding.module.ts` (`useFactory`).
  */
 
-import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CacheLockService } from '@/bounded-contexts/platform/common/cache/cache-lock.service';
+import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import type { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
 import type { OnboardingProgressUseCases } from '../../domain/ports/onboarding-progress.port';

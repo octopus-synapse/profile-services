@@ -68,7 +68,7 @@ export class PrismaAntiGhostingRepository extends AntiGhostingRepositoryPort {
       where: { id: userId },
       select: { email: true, name: true },
     });
-    if (!user || !user.email) return null;
+    if (!user?.email) return null;
     return { email: user.email, name: user.name };
   }
 

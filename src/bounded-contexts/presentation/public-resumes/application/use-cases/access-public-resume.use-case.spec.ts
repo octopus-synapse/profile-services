@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain';
-import type { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
@@ -69,11 +68,7 @@ describe('AccessPublicResumeUseCase', () => {
   beforeEach(() => {
     loader = new StubShareLoader();
     events = new RecordingEventPublisher();
-    useCase = new AccessPublicResumeUseCase(
-      loader,
-      events as unknown as EventPublisher,
-      stubLogger,
-    );
+    useCase = new AccessPublicResumeUseCase(loader, events, stubLogger);
   });
 
   it('returns the resume and emits ShareViewedEvent on view mode', async () => {

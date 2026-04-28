@@ -8,7 +8,6 @@
  * (permission checking in AuthorizationService).
  */
 
-import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@/shared-kernel';
 import {
   GroupMembershipChangedEvent,
@@ -17,7 +16,7 @@ import {
   RoleAssignedEvent,
   RoleRevokedEvent,
 } from '../../domain/events';
-import { UserAuthorizationRepository } from '../../infrastructure/repositories/user-authorization.repository';
+import type { IUserAuthorizationRepository } from '../../domain/ports/authorization-repositories.port';
 
 export interface AssignRoleParams {
   userId: string;
@@ -55,10 +54,9 @@ export interface GroupMembershipParams {
   expiresAt?: Date;
 }
 
-@Injectable()
 export class AuthorizationManagementService {
   constructor(
-    private readonly userAuthRepo: UserAuthorizationRepository,
+    private readonly userAuthRepo: IUserAuthorizationRepository,
     private readonly eventPublisher: EventPublisher,
   ) {}
 

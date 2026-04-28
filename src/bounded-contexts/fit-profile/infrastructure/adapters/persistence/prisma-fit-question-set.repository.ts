@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   FitQuestionSetRepositoryPort,
@@ -6,7 +5,6 @@ import {
   type SavedFitQuestionSet,
 } from '../../../domain/ports/fit-question-set.repository.port';
 
-@Injectable()
 export class PrismaFitQuestionSetRepository extends FitQuestionSetRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
     super();

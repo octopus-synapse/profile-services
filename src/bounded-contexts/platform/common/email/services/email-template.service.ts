@@ -1,17 +1,17 @@
 /**
  * Email Template Service
- * Handles email template generation and sending
+ * Handles email template generation and sending.
+ *
+ * Framework-free POJO. Composed via `buildEmailComposition`.
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
+import type { ConfigPort } from '@/shared-kernel/config';
 import { getPasswordChangedTemplate } from '../templates/password-changed.template';
 import { getPasswordResetTemplate } from '../templates/password-reset.template';
 import { getVerificationEmailTemplate } from '../templates/verification.template';
 import { getWelcomeEmailTemplate } from '../templates/welcome.template';
 import { EmailSenderService } from './email-sender.service';
 
-@Injectable()
 export class EmailTemplateService {
   constructor(
     private readonly senderService: EmailSenderService,

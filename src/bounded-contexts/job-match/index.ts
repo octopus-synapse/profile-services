@@ -6,4 +6,3 @@ export {
   JobMatchResumeNotFoundException,
 } from './domain/exceptions/job-match.exceptions';
 export type { MatchBreakdown, SubScoreKey, SubScoreResult } from './domain/types';
-export * from './job-match.module';

@@ -6,7 +6,6 @@
  * can be cached at the edge and paginated cheaply.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface ConnectionRecommendation {
@@ -17,7 +16,6 @@ export interface ConnectionRecommendation {
   overlapScore: number;
 }
 
-@Injectable()
 export class ConnectionRecsService {
   constructor(private readonly prisma: PrismaService) {}
 

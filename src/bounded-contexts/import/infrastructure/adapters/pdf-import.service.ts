@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 // pdf-parse v2 ships a class-based API (`PDFParse`), not a callable default.
 import { PDFParse } from 'pdf-parse';
 import { type ExtractedResume, LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
@@ -16,7 +15,6 @@ export type PdfImportResult = { userId: string; resumeId: string; extracted: Ext
  * every text-based CV; visually heavy PDFs get rejected. */
 const MAX_BYTES = 5 * 1024 * 1024;
 
-@Injectable()
 export class PdfImportService {
   constructor(
     private readonly prisma: PrismaService,

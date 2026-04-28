@@ -4,12 +4,14 @@
  * Pure nodemailer SMTP. Configure via env vars:
  *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE
  *   EMAIL_FROM, EMAIL_FROM_NAME
+ *
+ * Framework-free POJO. Constructed via `buildEmailComposition` from
+ * either the Nest module shell (`useFactory`) or the Elysia bootstrap.
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
 import { createTransport, type Transporter } from 'nodemailer';
-import { AppLoggerService } from '../../logger/logger.service';
+import type { ConfigPort } from '@/shared-kernel/config';
+import type { LoggerPort } from '@/shared-kernel/logger';
 
 export interface SendEmailOptions {
   to: string;
@@ -18,7 +20,6 @@ export interface SendEmailOptions {
   text?: string;
 }
 
-@Injectable()
 export class EmailSenderService {
   private readonly fromEmail: string;
   private readonly fromName: string;
@@ -26,7 +27,7 @@ export class EmailSenderService {
 
   constructor(
     private readonly configService: ConfigPort,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {
     this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@patchcareers.com';
     this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'Patch Careers';

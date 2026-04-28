@@ -3,12 +3,11 @@
  * Query service for spoken language catalog. Delegates persistence to the port.
  */
 
-import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { APP_CONFIG } from '@/shared-kernel';
 import {
   type SpokenLanguage,
-  SpokenLanguagesRepositoryPort,
+  type SpokenLanguagesRepositoryPort,
 } from '../application/ports/spoken-languages.port';
 
 export type { SpokenLanguage };
@@ -17,7 +16,6 @@ const SPOKEN_LANGUAGES_ALL_KEY = 'spoken_languages:all_active';
 const SPOKEN_LANGUAGES_BY_CODE_PREFIX = 'spoken_languages:by_code:';
 const SPOKEN_LANGUAGES_TTL = 60 * 60; // 1h — catalog quasi-static
 
-@Injectable()
 export class SpokenLanguagesService {
   constructor(
     private readonly repository: SpokenLanguagesRepositoryPort,

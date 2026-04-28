@@ -7,7 +7,6 @@
  * SkillDecayLog — we don't want to nag the same skill every week.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 
@@ -21,7 +20,6 @@ interface DecayFinding {
   daysSinceTouched: number;
 }
 
-@Injectable()
 export class SkillDecayService {
   constructor(
     private readonly prisma: PrismaService,

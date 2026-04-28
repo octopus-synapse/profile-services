@@ -6,7 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ExportProcessor, type ExportJob } from './export.processor';
+import { type ExportJob, ExportProcessor } from './export.processor';
 
 // ============================================================================
 // In-Memory Service Implementations

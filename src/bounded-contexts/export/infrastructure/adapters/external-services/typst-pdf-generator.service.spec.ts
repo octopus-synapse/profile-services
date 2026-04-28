@@ -6,14 +6,12 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DslUseCases } from '@/bounded-contexts/dsl';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { DslUseCases } from '@/bounded-contexts/dsl';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { LoggerPort } from '@/shared-kernel';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { TypstCompilerService } from './typst-compiler.service';
-import { TypstDataSerializerService } from './typst-data-serializer.service';
+import type { TypstCompilerService } from './typst-compiler.service';
+import type { TypstDataSerializerService } from './typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './typst-pdf-generator.service';
 
 const MOCK_AST = {
@@ -68,18 +66,16 @@ describe('TypstPdfGeneratorService', () => {
     mockSerializer.serialize.mockReturnValue('{ "mock":"data" }');
     mockCompiler.compile.mockResolvedValue(MOCK_PDF_BUFFER);
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TypstPdfGeneratorService,
-        { provide: PrismaService, useValue: mockPrisma },
-        { provide: DslUseCases, useValue: { renderResumeDsl: mockRenderResumeDslUseCase } },
-        { provide: TypstDataSerializerService, useValue: mockSerializer },
-        { provide: TypstCompilerService, useValue: mockCompiler },
-        { provide: LoggerPort, useValue: stubLogger },
-      ],
-    }).compile();
-
-    service = module.get<TypstPdfGeneratorService>(TypstPdfGeneratorService);
+    service = new TypstPdfGeneratorService(
+      mockPrisma as unknown as PrismaService,
+      { renderResumeDsl: mockRenderResumeDslUseCase } as unknown as Pick<
+        DslUseCases,
+        'renderResumeDsl'
+      >,
+      mockSerializer as unknown as TypstDataSerializerService,
+      mockCompiler as unknown as TypstCompilerService,
+      stubLogger,
+    );
   });
 
   describe('generate', () => {

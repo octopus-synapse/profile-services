@@ -14,8 +14,8 @@ import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { LoggerPort } from '@/shared-kernel';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 
 export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lifecycle {

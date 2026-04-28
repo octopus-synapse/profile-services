@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ConfigPort } from '@/shared-kernel/config';
 import { PasswordResetEmailPort } from '../../../domain/ports';
 
@@ -12,7 +11,6 @@ export abstract class EmailServicePort {
   }): Promise<void>;
 }
 
-@Injectable()
 export class EmailPasswordResetSender extends PasswordResetEmailPort {
   private readonly appUrl: string;
 

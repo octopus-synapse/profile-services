@@ -10,6 +10,7 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 import { Disable2faUseCase } from './application/use-cases/disable-2fa/disable-2fa.use-case';
 import { Get2faStatusUseCase } from './application/use-cases/get-2fa-status/get-2fa-status.use-case';
@@ -21,6 +22,7 @@ import { BcryptHashAdapter } from './infrastructure/adapters/external-services/b
 import { QrCodeAdapter } from './infrastructure/adapters/external-services/qrcode.adapter';
 import { SpeakeasyTotpAdapter } from './infrastructure/adapters/external-services/speakeasy-totp.adapter';
 import { TwoFactorRepository } from './infrastructure/adapters/persistence/two-factor.repository';
+import { twoFactorAuthRoutes } from './two-factor-auth.routes';
 
 export { TwoFactorAuthUseCases };
 
@@ -42,5 +44,18 @@ export function buildTwoFactorAuthUseCases(
     get2faStatus: new Get2faStatusUseCase(repository),
     regenerateBackupCodes: new RegenerateBackupCodesUseCase(repository, hash, logger),
     validate2fa: new Validate2faUseCase(repository, totp, hash, cache, logger),
+  };
+}
+
+export function buildTwoFactorAuthComposition(
+  prisma: PrismaService,
+  cache: CacheService,
+  logger: LoggerPort,
+): BoundedContextComposition<TwoFactorAuthUseCases> {
+  const useCases = buildTwoFactorAuthUseCases(prisma, cache, logger);
+
+  return {
+    useCases,
+    routes: twoFactorAuthRoutes,
   };
 }

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   FeatureFlagRepositoryPort,
@@ -30,7 +29,6 @@ function toRecord(row: FlagRow): FlagRecord {
   };
 }
 
-@Injectable()
 export class PrismaFeatureFlagRepository extends FeatureFlagRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
     super();

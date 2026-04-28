@@ -19,4 +19,3 @@ export type {
   SectionProgressData,
 } from './domain/ports/onboarding-progress.port';
 export { OnboardingProgressRepositoryPort } from './domain/ports/onboarding-progress.port';
-export { OnboardingModule } from './onboarding.module';

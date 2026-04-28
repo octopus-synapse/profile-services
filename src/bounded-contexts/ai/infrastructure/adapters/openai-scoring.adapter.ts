@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigPort } from '@/shared-kernel/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
 import {
   AiEmptyResponseException,
   AiInvalidOutputException,
@@ -68,7 +67,6 @@ const NormalizedRequirementsOutputSchema = z.object({
  */
 const CTX = 'OpenAIScoringAdapter';
 
-@Injectable()
 export class OpenAIScoringAdapter extends ScoringLlmPort {
   private readonly client: OpenAI;
   private readonly model: string;
