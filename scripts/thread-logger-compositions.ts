@@ -137,7 +137,7 @@ function transformBody(src: string): string {
     }
     const body = src.slice(openBraceIdx + 1, j);
     const rewritten = appendLoggerToCalls(body);
-    out += rewritten + '}';
+    out += `${rewritten}}`;
     i = j + 1;
   }
   return out;

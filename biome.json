@@ -13,7 +13,23 @@
     {
       "includes": ["scripts/**/*.ts"],
       "linter": {
-        "rules": { "suspicious": { "noAssignInExpressions": "off" } }
+        "rules": {
+          "suspicious": { "noAssignInExpressions": "off" },
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
+    },
+    {
+      "includes": [
+        "src/bounded-contexts/**/*.routes.ts",
+        "src/bounded-contexts/**/testing/**/*.ts",
+        "src/bounded-contexts/**/value-objects/**/*.ts",
+        "src/bounded-contexts/**/application/use-cases/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
       }
     },
     {

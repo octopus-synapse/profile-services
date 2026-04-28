@@ -162,12 +162,12 @@ function* catchBodies(src: string): Generator<string> {
 }
 
 console.log(`\n=== Worker gaps (${buckets.worker.length}) ===`);
-buckets.worker.forEach((f) => console.log(`  ${f}`));
+for (const f of buckets.worker) console.log(`  ${f}`);
 console.log(`\n=== Handler gaps (${buckets.handler.length}) ===`);
-buckets.handler.forEach((f) => console.log(`  ${f}`));
+for (const f of buckets.handler) console.log(`  ${f}`);
 console.log(`\n=== Infra adapter gaps (${buckets.infra.length}) ===`);
-buckets.infra.forEach((f) => console.log(`  ${f}`));
+for (const f of buckets.infra) console.log(`  ${f}`);
 console.log(`\n=== Use-case gaps (${buckets.useCase.length}) ===`);
-buckets.useCase.forEach((f) => console.log(`  ${f}`));
+for (const f of buckets.useCase) console.log(`  ${f}`);
 console.log(`\n=== Silent catches (${buckets.silent.length}) ===`);
-buckets.silent.forEach((f) => console.log(`  ${f}`));
+for (const f of buckets.silent) console.log(`  ${f}`);

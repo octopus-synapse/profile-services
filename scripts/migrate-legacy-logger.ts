@@ -196,7 +196,8 @@ for (const path of walk(SRC)) {
   //    the FIRST constructor that follows the class declaration, since
   //    nested classes are uncommon in this codebase.
   const ctorIdxRe = /constructor\s*\(([\s\S]*?)\)\s*\{/;
-  const classDeclIdx = mutated.indexOf(classMatchText!);
+  if (!classMatchText) continue;
+  const classDeclIdx = mutated.indexOf(classMatchText);
   const ctorMatch = ctorIdxRe.exec(mutated.slice(classDeclIdx));
   if (ctorMatch) {
     const fullCtorAt = classDeclIdx + ctorMatch.index;

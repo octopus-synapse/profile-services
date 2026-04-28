@@ -36,26 +36,9 @@ if (!VERBOSE) {
   console.debug = noop;
   console.info = noop;
 
-  // Suppress NestJS Logger
-  const { Logger, ConsoleLogger } = await import('@nestjs/common');
-
-  Logger.overrideLogger(false);
-
-  const loggerProto = Logger.prototype as unknown as Record<string, unknown>;
-  loggerProto.log = noop;
-  loggerProto.error = noop;
-  loggerProto.warn = noop;
-  loggerProto.debug = noop;
-  loggerProto.verbose = noop;
-  loggerProto.fatal = noop;
-
-  const consoleLoggerProto = ConsoleLogger.prototype as unknown as Record<string, unknown>;
-  consoleLoggerProto.log = noop;
-  consoleLoggerProto.error = noop;
-  consoleLoggerProto.warn = noop;
-  consoleLoggerProto.debug = noop;
-  consoleLoggerProto.verbose = noop;
-  consoleLoggerProto.fatal = noop;
+  // (Phase-2 cutover: dropped Nest Logger / ConsoleLogger overrides —
+  // there is no Nest runtime to silence anymore. Pino is configured to
+  // write to stdout, which the redirector below catches.)
 
   // Suppress stdout/stderr
   const originalStdoutWrite = process.stdout.write.bind(process.stdout);
@@ -84,5 +67,4 @@ if (!VERBOSE) {
 // ═══════════════════════════════════════════════════════════════
 
 import 'reflect-metadata';
-import '@nestjs/testing';
 import 'zod';

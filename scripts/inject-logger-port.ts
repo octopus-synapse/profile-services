@@ -193,5 +193,5 @@ for (const path of walk(SRC)) {
 console.log(`\nTouched: ${touched} files (${WRITE ? 'WRITE' : 'dry-run'})`);
 if (skips.length) {
   console.log(`Skipped: ${skips.length}`);
-  skips.forEach((s) => console.log(`  ✗ ${s.rel} — ${s.reason}`));
+  for (const s of skips) console.log(`  ✗ ${s.rel} — ${s.reason}`);
 }
