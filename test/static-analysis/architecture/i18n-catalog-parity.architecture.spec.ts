@@ -18,7 +18,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ERROR_DICTIONARY, LOCALES } from '@packages/i18n';
 
-const SOURCE_ROOT = 'src';
+const SOURCE_ROOT = path.resolve(__dirname, '../../../src');
 
 const KNOWN_BASES = new Set([
   'DomainException',
@@ -52,8 +52,8 @@ function extractBody(src: string, from: number): string {
   let depth = 0;
   for (let i = open; i < src.length; i++) {
     const ch = src[i];
-    if (ch === '{ ') depth++;
-    else if (ch === ' }') {
+    if (ch === '{') depth++;
+    else if (ch === '}') {
       depth--;
       if (depth === 0) return src.slice(open, i + 1);
     }
@@ -71,7 +71,10 @@ function discoverCodes(): Set<string> {
     while (true) {
       match = CLASS_DECL_RE.exec(src);
       if (!match) break;
-      const [, isAbstract, parent] = match;
+      // match[1] = optional `abstract`, match[2] = class name,
+      // match[3] = parent class. Original spec read match[2] as parent,
+      // which silently dropped every BC subclass — fixed in Phase-2.
+      const [, isAbstract, , parent] = match;
       if (isAbstract) continue;
       if (!KNOWN_BASES.has(parent)) continue;
       const body = extractBody(src, match.index);

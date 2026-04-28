@@ -15,7 +15,7 @@ import * as path from 'node:path';
 import { ENUM_DICTIONARY, LOCALES } from '@packages/i18n';
 
 const SCHEMA_DIR = 'prisma/schema';
-const ENUM_RE = /^enum\s+(\w+)\s*\{ ([^ }]+)\}/gm;
+const ENUM_RE = /^enum\s+(\w+)\s*\{([\s\S]*?)\}/gm;
 
 function discoverEnums(): Record<string, Set<string>> {
   const out: Record<string, Set<string>> = {};

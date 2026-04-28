@@ -22,7 +22,7 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const SRC_ROOT = 'src';

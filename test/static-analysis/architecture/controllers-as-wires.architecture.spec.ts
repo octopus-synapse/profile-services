@@ -123,7 +123,10 @@ function analyse(src: string): Smells {
   const out: Smells = { ...ZERO };
 
   // NEST_EXCEPTION_THROW — count each `throw new <NestExc>(` occurrence.
-  for (const m of src.matchAll(new RegExp(NEST_THROW_RE, 'g'))) void m, out.NEST_EXCEPTION_THROW++;
+  for (const _m of src.matchAll(new RegExp(NEST_THROW_RE, 'g'))) {
+    void _m;
+    out.NEST_EXCEPTION_THROW++;
+  }
 
   // MANUAL_ERROR_MAPPING:
   //   (a) any catch body that contains `throw new <NestExc>(`
@@ -150,8 +153,14 @@ function analyse(src: string): Smells {
   }
 
   // MULTI_RESPONSIBILITY — handler reaches into audit / events directly.
-  for (const _m of src.matchAll(/\bthis\.audit\./g)) void _m, out.MULTI_RESPONSIBILITY++;
-  for (const _m of src.matchAll(/\bthis\.events\./g)) void _m, out.MULTI_RESPONSIBILITY++;
+  for (const _m of src.matchAll(/\bthis\.audit\./g)) {
+    void _m;
+    out.MULTI_RESPONSIBILITY++;
+  }
+  for (const _m of src.matchAll(/\bthis\.events\./g)) {
+    void _m;
+    out.MULTI_RESPONSIBILITY++;
+  }
 
   return out;
 }

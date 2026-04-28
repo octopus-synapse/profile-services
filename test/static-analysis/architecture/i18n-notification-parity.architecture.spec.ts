@@ -15,13 +15,13 @@ import * as path from 'node:path';
 import { LOCALES, NOTIFICATION_DICTIONARY } from '@packages/i18n';
 
 const SCHEMA_DIR = 'prisma/schema';
-const PLACEHOLDER_RE = /\{ ([a-zA-Z_][a-zA-Z0-9_]*) }/g;
+const PLACEHOLDER_RE = /\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}/g;
 
 function discoverNotificationTypes(): Set<string> {
   for (const entry of fs.readdirSync(SCHEMA_DIR)) {
     if (!entry.endsWith('.prisma')) continue;
     const src = fs.readFileSync(path.join(SCHEMA_DIR, entry), 'utf8');
-    const match = src.match(/enum\s+NotificationType\s*\{ ([^ }]+)\}/);
+    const match = src.match(/enum\s+NotificationType\s*\{([\s\S]*?)\}/);
     if (!match) continue;
     const values = match[1]
       .split('\n')
