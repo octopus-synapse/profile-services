@@ -50,8 +50,15 @@ import { onboardingRoutes } from './onboarding.routes';
         dsl: DslUseCases,
         serializer: TypstDataSerializerService,
         compiler: TypstCompilerService,
-      ) => new OnboardingPreviewAdapter(prisma, dsl, serializer, compiler),
-      inject: [PrismaService, DslUseCases, TypstDataSerializerService, TypstCompilerService],
+        logger: LoggerPort,
+      ) => new OnboardingPreviewAdapter(prisma, dsl, serializer, compiler, logger),
+      inject: [
+        PrismaService,
+        DslUseCases,
+        TypstDataSerializerService,
+        TypstCompilerService,
+        LoggerPort,
+      ],
     },
     {
       provide: 'ONBOARDING_PREVIEW_ADAPTER_INIT',

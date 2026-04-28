@@ -10,16 +10,15 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Logger } from '@nestjs/common';
 import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import { LoggerPort } from '@/shared-kernel';
 import { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 
 export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lifecycle {
-  private readonly logger = new Logger(OnboardingPreviewAdapter.name);
   private workDir: string | null = null;
 
   constructor(
@@ -27,6 +26,7 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lif
     private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -48,9 +48,12 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lif
         }),
       );
 
-      this.logger.log('Preview worker initialized — templates cached');
+      this.logger.log('Preview worker initialized — templates cached', 'OnboardingPreviewAdapter');
     } catch (err) {
-      this.logger.warn(`Preview worker init failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Preview worker init failed: ${(err as Error).message}`,
+        'OnboardingPreviewAdapter',
+      );
       this.workDir = null;
     }
   }
@@ -83,7 +86,10 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lif
         timeout: 10_000,
       });
     } catch (err) {
-      this.logger.debug(`Preview render failed for user ${userId}: ${(err as Error).message}`);
+      this.logger.debug(
+        `Preview render failed for user ${userId}: ${(err as Error).message}`,
+        'OnboardingPreviewAdapter',
+      );
       return null;
     }
   }
