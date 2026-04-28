@@ -21,6 +21,15 @@ export abstract class CachePort {
 
   abstract acquireLock(key: string, ttlSeconds: number): Promise<CacheLock | null>;
 
+  /** Cache-aside: return cached value or compute via `fn` and store. */
+  async getOrSet<T>(key: string, fn: () => Promise<T>, ttlSeconds?: number): Promise<T> {
+    const cached = await this.get<T>(key);
+    if (cached !== null) return cached;
+    const value = await fn();
+    await this.set(key, value, ttlSeconds);
+    return value;
+  }
+
   /** Optional: POJO impls expose explicit lifecycle. */
   init?(): Promise<void>;
   dispose?(): Promise<void>;

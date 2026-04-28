@@ -44,7 +44,6 @@ export * from './enums';
 // ============================================================================
 export {
   DomainEvent,
-  EventBusModule,
   EventBusPort,
   type EventHandler,
   EventPublisher,

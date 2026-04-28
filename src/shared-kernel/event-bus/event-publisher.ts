@@ -1,20 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { DomainEvent } from './domain/domain-event';
-import { EventBusPort, type EventHandler } from './event-bus.port';
-
 /**
  * Publish-only port kept as an alias of `EventBusPort` for the duration
  * of the migration — every existing call site (use cases, adapters)
  * imports `EventPublisherPort`. After the sweep, callers switch to
  * `EventBusPort` directly and this alias is deleted.
+ *
+ * Phase-2 cutover: `EventPublisher` is now backed by Node's
+ * `EventEmitter` (no `@nestjs/event-emitter`). Wildcard `**` patterns
+ * that the Nest version supported aren't required by any consumer; if
+ * they ever are, swap in a tiny `EventEmitter2`-style matcher.
  */
+
+import { EventEmitter } from 'node:events';
+import type { DomainEvent } from './domain/domain-event';
+import { EventBusPort, type EventHandler } from './event-bus.port';
+
 export abstract class EventPublisherPort extends EventBusPort {}
 
-@Injectable()
 export class EventPublisher extends EventPublisherPort {
-  constructor(private readonly emitter: EventEmitter2) {
+  private readonly emitter = new EventEmitter();
+
+  constructor() {
     super();
+    // Domain events fan out to many handlers under load; the default
+    // 10-listener cap fires false-positive `MaxListenersExceeded` warns.
+    this.emitter.setMaxListeners(0);
   }
 
   publish<T extends DomainEvent>(event: T): void {
@@ -22,7 +31,12 @@ export class EventPublisher extends EventPublisherPort {
   }
 
   async publishAsync<T extends DomainEvent>(event: T): Promise<void> {
-    await this.emitter.emitAsync(event.eventType, event);
+    const listeners = this.emitter.listeners(event.eventType) as Array<
+      (event: unknown) => void | Promise<void>
+    >;
+    for (const listener of listeners) {
+      await listener(event);
+    }
   }
 
   on<T extends DomainEvent>(eventType: string, handler: EventHandler<T>): void {

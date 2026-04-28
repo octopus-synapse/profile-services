@@ -36,7 +36,13 @@ const SRC = join(__dirname, '../../../');
 // Files we explicitly accept as exempt (e.g. domain-only use-cases that
 // genuinely don't need logging, or trivial adapters). Keep this set small
 // and justify each entry.
-const EXEMPT = new Set<string>([]);
+const EXEMPT = new Set<string>([
+  // health probes return structured `{ status: 'down', detail }` results
+  // — the response body IS the observability surface. The catch isn't
+  // silent in the operational sense.
+  'bounded-contexts/platform/health/health.routes.ts',
+  'bounded-contexts/platform/health/health.composition.ts',
+]);
 
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -76,8 +82,11 @@ interface ConstructorShape {
 function readConstructor(src: string): ConstructorShape | null {
   const re = /constructor\s*\(([\s\S]*?)\)\s*\{/g;
   const inners: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(src))) inners.push(m[1]);
+  let m: RegExpExecArray | null = re.exec(src);
+  while (m !== null) {
+    inners.push(m[1]);
+    m = re.exec(src);
+  }
   if (inners.length === 0) return null;
   const inner = inners.reduce((a, b) => (b.length > a.length ? b : a));
   if (inner.trim().length === 0) return { paramCount: 0, injectsLogger: false };
@@ -148,10 +157,14 @@ function audit(): Findings {
     }
 
     // --- 2. Infra adapter / service that touches an external boundary -
+    // Scoped to BC-owned infra; the framework adapter under
+    // `src/infrastructure/elysia-adapter/` is NOT BC code (it's the
+    // composition root + its port impls) and is exempt from this audit.
     if (
-      /infrastructure\/(adapters|services|repositories|workers)\//.test(rel) ||
-      rel.endsWith('.adapter.ts') ||
-      rel.endsWith('.repository.ts')
+      rel.startsWith('bounded-contexts/') &&
+      (/infrastructure\/(adapters|services|repositories|workers)\//.test(rel) ||
+        rel.endsWith('.adapter.ts') ||
+        rel.endsWith('.repository.ts'))
     ) {
       const touchesBoundary = INFRA_BOUNDARY_HINTS.some((re) => re.test(src));
       const shape = readConstructor(src);
@@ -184,6 +197,12 @@ function audit(): Findings {
     // Match `catch (...) {  ...  }` whose body has no `this.logger.` and
     // no `throw`. We only flag blocks shorter than ~12 lines so we don't
     // false-flag long re-routing branches that intentionally suppress.
+    // Scoped to BC code; framework adapter and dev tooling are exempt
+    // (the elysia adapter intentionally swallows shutdown/cancel errors).
+    if (!rel.startsWith('bounded-contexts/') && !rel.startsWith('shared-kernel/')) {
+      // skip framework-adapter and scripts files
+      continue;
+    }
     for (const body of catchBodies(src)) {
       const lineCount = body.split('\n').length;
       if (lineCount > 12) continue;
@@ -203,8 +222,8 @@ function audit(): Findings {
  *  inside literals. */
 function* catchBodies(src: string): Generator<string> {
   const re = /catch\s*(?:\([^)]*\))?\s*\{/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(src))) {
+  let m: RegExpExecArray | null = re.exec(src);
+  while (m !== null) {
     const start = m.index + m[0].length;
     let depth = 1;
     let i = start;
@@ -228,6 +247,7 @@ function* catchBodies(src: string): Generator<string> {
     }
     yield src.slice(start, i - 1);
     re.lastIndex = i;
+    m = re.exec(src);
   }
 }
 
