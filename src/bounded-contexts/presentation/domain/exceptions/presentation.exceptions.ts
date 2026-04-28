@@ -135,3 +135,41 @@ export class SectionNotFoundInResumeException extends DomainException {
     super(`Section ${sectionTypeKey} not found`);
   }
 }
+
+/**
+ * Public-resume share access surface — used by the routes under
+ * `presentation/public-resumes/*`.
+ */
+export class PublicResumeNotFoundException extends DomainException {
+  readonly code: string = 'PUBLIC_RESUME_NOT_FOUND';
+  readonly statusHint = 404;
+  constructor(public readonly slug: string) {
+    super(`Public resume "${slug}" not found`);
+  }
+}
+
+export class ShareLinkExpiredException extends DomainException {
+  readonly code: string = 'SHARE_LINK_EXPIRED';
+  readonly statusHint = 410;
+  constructor(public readonly slug: string) {
+    super(`Share link "${slug}" has expired`);
+  }
+}
+
+/**
+ * QR / share-image generators require a target URL — empty input is a
+ * validation error.
+ */
+export class QrUrlRequiredException extends ValidationException {
+  readonly code: string = 'QR_URL_REQUIRED';
+  constructor() {
+    super('A non-empty URL is required to generate the QR code');
+  }
+}
+
+export class UrlRequiredException extends ValidationException {
+  readonly code: string = 'URL_REQUIRED';
+  constructor() {
+    super('A non-empty URL is required');
+  }
+}

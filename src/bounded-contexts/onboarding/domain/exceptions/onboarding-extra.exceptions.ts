@@ -116,3 +116,33 @@ export class OnboardingUsernameTakenException extends ConflictException {
     super('Username is already taken');
   }
 }
+
+/**
+ * The route-level `requireOnboardingCompleted` gate emits this when a
+ * user with `onboardingCompleted = false` hits a feature locked behind
+ * the gate. Replaces the deleted Nest `OnboardingCompletedGuard`.
+ */
+export class OnboardingNotCompletedException extends DomainException {
+  readonly code: string = 'ONBOARDING_NOT_COMPLETED';
+  readonly statusHint = 403;
+  constructor() {
+    super('Onboarding must be completed before accessing this resource');
+  }
+}
+
+/**
+ * Wraps an unexpected persistence failure during onboarding section
+ * persistence (Prisma error, transaction rollback, etc.). The audit
+ * trail preserves the original cause; this exception carries the stable
+ * code so the i18n filter can translate the response.
+ */
+export class OnboardingSectionPersistenceFailedException extends DomainException {
+  readonly code: string = 'ONBOARDING_SECTION_PERSISTENCE_FAILED';
+  readonly statusHint = 500;
+  constructor(
+    public readonly sectionTypeKey: string,
+    detail?: string,
+  ) {
+    super(`Failed to persist onboarding section "${sectionTypeKey}"${detail ? `: ${detail}` : ''}`);
+  }
+}

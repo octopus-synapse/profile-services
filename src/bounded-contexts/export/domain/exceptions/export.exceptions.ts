@@ -108,3 +108,32 @@ export class TypstWasmRendererNotImplementedException extends DomainException {
     );
   }
 }
+
+/**
+ * Format-specific generation failures. These wrap the underlying engine
+ * error (Typst, Puppeteer, docx) with a stable `code` so the i18n
+ * filter translates the response without leaking implementation detail.
+ */
+export class ExportPdfGenerationFailedException extends DomainException {
+  readonly code: string = 'EXPORT_PDF_GENERATION_FAILED';
+  readonly statusHint = 502;
+  constructor(detail?: string) {
+    super(detail ? `PDF generation failed: ${detail}` : 'PDF generation failed');
+  }
+}
+
+export class ExportDocxGenerationFailedException extends DomainException {
+  readonly code: string = 'EXPORT_DOCX_GENERATION_FAILED';
+  readonly statusHint = 502;
+  constructor(detail?: string) {
+    super(detail ? `DOCX generation failed: ${detail}` : 'DOCX generation failed');
+  }
+}
+
+export class ExportBannerGenerationFailedException extends DomainException {
+  readonly code: string = 'EXPORT_BANNER_GENERATION_FAILED';
+  readonly statusHint = 502;
+  constructor(detail?: string) {
+    super(detail ? `Banner generation failed: ${detail}` : 'Banner generation failed');
+  }
+}

@@ -119,3 +119,28 @@ export class TokenVerificationFailedException extends UnauthorizedException {
     super('Unable to verify token validity - please try again');
   }
 }
+
+/**
+ * Emitted by the JWT auth-extractor stage when the bearer is malformed,
+ * has a bad signature, or doesn't satisfy issuer/audience. Distinct
+ * from `TokenInvalidException` (refresh-token specific) so the i18n
+ * catalog can phrase the two differently.
+ */
+export class InvalidTokenException extends UnauthorizedException {
+  readonly code: string = 'INVALID_TOKEN';
+  constructor(reason?: string) {
+    super(reason ? `Invalid token: ${reason}` : 'Invalid token');
+  }
+}
+
+/**
+ * Session lookup miss. Distinct from `SessionExpiredException` (the
+ * session existed but its TTL passed) and `InvalidSessionException`
+ * (record present but malformed / user mismatch).
+ */
+export class SessionNotFoundException extends UnauthorizedException {
+  readonly code: string = 'SESSION_NOT_FOUND';
+  constructor() {
+    super('Session not found');
+  }
+}
