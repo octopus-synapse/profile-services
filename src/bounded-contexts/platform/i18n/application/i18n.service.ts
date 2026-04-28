@@ -11,8 +11,9 @@
  * kept intact so the gap surfaces in staging, not silently in prod.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
+import { LoggerPort } from '@/shared-kernel';
 import {
   MissingTranslationError,
   type SupportedLocale,
@@ -28,7 +29,9 @@ function isKnownCode(code: string): code is ErrorCode {
 
 @Injectable()
 export class I18nService extends TranslationPort {
-  private readonly logger = new Logger(I18nService.name);
+  constructor(private readonly logger: LoggerPort) {
+    super();
+  }
 
   translate(code: string, params: TranslationParams, locale: SupportedLocale): string {
     if (!isKnownCode(code)) throw new MissingTranslationError(code, locale);
@@ -51,6 +54,7 @@ export class I18nService extends TranslationPort {
       if (value === undefined) {
         this.logger.warn(
           `i18n param "${key}" missing for code "${code}" (${locale}); leaving placeholder intact`,
+          'I18nService',
         );
         return `{${key}}`;
       }

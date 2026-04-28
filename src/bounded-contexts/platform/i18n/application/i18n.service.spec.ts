@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { MissingTranslationError } from '../domain/translation.port';
 import { I18nService } from './i18n.service';
 
 describe('I18nService', () => {
-  const i18n = new I18nService();
+  const i18n = new I18nService(stubLogger);
 
   it('resolves a known static code in en', () => {
     const msg = i18n.translate('ACCOUNT_DEACTIVATED', {}, 'en');

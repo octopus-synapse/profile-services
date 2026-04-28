@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import type { ArgumentsHost } from '@nestjs/common';
 import { I18nService } from '@/bounded-contexts/platform/i18n/application/i18n.service';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ConflictException,
   DomainException,
@@ -29,7 +30,7 @@ function mockHost(acceptLanguage?: string): {
 }
 
 describe('DomainExceptionFilter', () => {
-  const i18n = new I18nService();
+  const i18n = new I18nService(stubLogger);
 
   it('emits canonical envelope with translated message and params for EntityNotFound', () => {
     const filter = new DomainExceptionFilter(i18n);
