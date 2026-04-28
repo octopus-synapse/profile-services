@@ -17,6 +17,14 @@ import { OpenAIScoringAdapter } from './infrastructure/adapters/openai-scoring.a
   imports: [ConfigModule],
   providers: [
     OpenAIAdapter,
+    {
+      provide: 'OPENAI_ADAPTER_INIT',
+      useFactory: async (svc: OpenAIAdapter) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [OpenAIAdapter],
+    },
     OpenAIScoringAdapter,
     OpenAIEmbeddingsAdapter,
     // LLM — transforms

@@ -30,6 +30,14 @@ import { platformRoutes } from './platform.routes';
   providers: [
     SectionTypeRepository,
     {
+      provide: 'SECTION_TYPE_REPOSITORY_INIT',
+      useFactory: async (svc: SectionTypeRepository) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [SectionTypeRepository],
+    },
+    {
       provide: PlatformUseCases,
       useFactory: (
         prisma: PrismaService,

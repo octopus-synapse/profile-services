@@ -42,8 +42,32 @@ import { SseFlagStream } from './infrastructure/sse/sse-flag-stream.service';
   providers: [
     { provide: FeatureFlagRepositoryPort, useClass: PrismaFeatureFlagRepository },
     RedisFlagCache,
+    {
+      provide: 'REDIS_FLAG_CACHE_INIT',
+      useFactory: async (svc: RedisFlagCache) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [RedisFlagCache],
+    },
     SseFlagStream,
+    {
+      provide: 'SSE_FLAG_STREAM_INIT',
+      useFactory: async (svc: SseFlagStream) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [SseFlagStream],
+    },
     FlagStateService,
+    {
+      provide: 'FLAG_STATE_SERVICE_INIT',
+      useFactory: async (svc: FlagStateService) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [FlagStateService],
+    },
     EvaluateFlagsUseCase,
     ToggleFlagUseCase,
     ImpactAnalysisUseCase,

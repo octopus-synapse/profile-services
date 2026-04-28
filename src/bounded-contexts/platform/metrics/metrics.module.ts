@@ -28,6 +28,14 @@ import { MetricsService } from './metrics.service';
   ],
   providers: [
     MetricsService,
+    {
+      provide: 'METRICS_SERVICE_INIT',
+      useFactory: async (svc: MetricsService) => {
+        await svc.init?.();
+        return true;
+      },
+      inject: [MetricsService],
+    },
     { provide: MetricsReaderPort, useExisting: MetricsService },
     {
       provide: MetricsUseCases,

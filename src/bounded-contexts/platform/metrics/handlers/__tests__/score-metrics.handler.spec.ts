@@ -18,7 +18,7 @@ describe('ScoreMetricsHandler', () => {
 
   beforeEach(() => {
     metrics = new MetricsService();
-    metrics.onModuleInit();
+    void metrics.init();
     handler = new ScoreMetricsHandler(metrics, stubLogger);
   });
 
