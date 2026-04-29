@@ -383,7 +383,11 @@ describe('E2E Journey: Chat', () => {
       const noPermUser = authHelper.createTestUser('chat-noperm');
       const resultNoPerm = await authHelper.registerAndLogin(noPermUser);
 
-      // Remove roles from user to simulate a user without chat permission
+      // Remove role assignments and legacy roles to simulate a user
+      // without any permissions (chat:use comes from the `user` role).
+      await prisma.userRoleAssignment.deleteMany({
+        where: { userId: resultNoPerm.userId },
+      });
       await prisma.user.update({
         where: { id: resultNoPerm.userId },
         data: { roles: [] },

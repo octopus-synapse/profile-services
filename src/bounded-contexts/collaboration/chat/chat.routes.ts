@@ -157,6 +157,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   {
     method: 'POST',
     path: '/chat/conversations/:conversationId/read',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
@@ -311,6 +312,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   {
     method: 'DELETE',
     path: '/chat/blocked/:userId',
+    statusCode: 204,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
@@ -323,7 +325,6 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
       await bundle.block.unblockUserUseCase.execute(ctx.user!.userId, userId);
-      return { success: true, data: {} };
     },
   },
   {

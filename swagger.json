@@ -4087,7 +4087,7 @@
     "/api/auth/session": {
       "get": {
         "summary": "Get Session",
-        "description": "Validates session cookie and returns current user data if authenticated.",
+        "description": "Returns current user data if authenticated via session cookie or JWT bearer.",
         "tags": [
           "auth"
         ],
