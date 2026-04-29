@@ -16,36 +16,7 @@ export interface GroupDefinition extends CreateGroupInput {
   permissions?: string[];
 }
 
-export const SYSTEM_GROUPS: GroupDefinition[] = [
-  {
-    name: 'administrators',
-    displayName: 'Administrators',
-    description: 'System administrators group',
-    isSystem: true,
-    roles: ['admin'],
-  },
-  {
-    name: 'content_team',
-    displayName: 'Content Team',
-    description: 'Team responsible for content moderation and approval',
-    isSystem: true,
-    roles: ['approver'],
-  },
-  {
-    name: 'users',
-    displayName: 'All Users',
-    description: 'Default group for all registered users',
-    isSystem: true,
-    roles: ['user'],
-  },
-  // Job-seeker cohort. The `user_standard` role is a marker that gates the
-  // onboarding + fit-profile + match invariants. Admins join `administrators`
-  // and never get this, so their accounts bypass those gates.
-  {
-    name: 'job_seekers',
-    displayName: 'Job Seekers',
-    description: 'Regular end-user accounts (candidates). Gated by onboarding + fit-profile.',
-    isSystem: true,
-    roles: ['user', 'user_standard'],
-  },
-];
+// Groups are scheduled for removal in the auth refactor (see plan).
+// Keeping the array empty preserves the seed pipeline shape without
+// allocating any rows. Tables are dropped in a separate migration.
+export const SYSTEM_GROUPS: GroupDefinition[] = [];

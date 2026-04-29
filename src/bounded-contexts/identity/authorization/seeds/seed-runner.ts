@@ -99,12 +99,11 @@ async function seedRoles(
 
     roleMap.set(roleDef.name, role.id);
 
-    // Per product decision: `admin` and `super_admin` receive every permission
-    // declared in the Permission enum. Other roles use their explicit list.
+    // Per product decision: the `admin` role receives every permission
+    // declared in the Permission enum (auto-grant). Other roles use their
+    // explicit list.
     const grants =
-      roleDef.name === 'admin' || roleDef.name === 'super_admin'
-        ? Array.from(permissionMap.keys())
-        : roleDef.permissions;
+      roleDef.name === 'admin' ? Array.from(permissionMap.keys()) : roleDef.permissions;
 
     for (const permKey of grants) {
       const permissionId = permissionMap.get(permKey);
