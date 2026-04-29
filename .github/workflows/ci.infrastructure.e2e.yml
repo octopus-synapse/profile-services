@@ -14,7 +14,7 @@ jobs:
   test:
     uses: octopus-synapse/octopus-workflows/.github/workflows/_infrastructure-test-template.yml@v1
     with:
-      test-command: "bun test --config=bunfig.e2e.toml"
+      test-command: "bun run test:e2e:ci"
       test-name: "E2E"
       db-name: "e2e_test_db"
       timeout: 20

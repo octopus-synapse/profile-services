@@ -26,7 +26,13 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
+import { seedOnboardingSteps } from '../../../prisma/seeds/onboarding-step.seed';
+import { seedResumeStyles } from '../../../prisma/seeds/resume-styles.seed';
+import { seedSectionTypes } from '../../../prisma/seeds/section-type.seed';
+import { seedSpokenLanguages } from '../../../prisma/seeds/spoken-language.seed';
+import { seedTechSkills } from '../../../prisma/seeds/tech-skill.seed';
 import { createTestRequest, type TestRequest } from './test-request';
 
 export interface TestApp {
@@ -59,6 +65,11 @@ export async function startTestApp(): Promise<TestApp> {
   }
   const baseUrl = `http://localhost:${port}`;
   const request = createTestRequest(baseUrl);
+
+  // Idempotent seed of catalog + authorization data so e2e specs find
+  // permissions, roles, languages, skills, section-types, etc. populated
+  // even when running against a fresh `dev`/`e2e`/`test` database.
+  await seedTestCatalogs(handle.prisma);
 
   const TABLES = [
     'AuditLog',
@@ -118,6 +129,62 @@ export async function startTestApp(): Promise<TestApp> {
  */
 export async function stopTestApp(): Promise<void> {
   // intentional no-op
+}
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123!@#';
+const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin User';
+
+async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
+  await seedAuthorization(prisma);
+
+  const adminId = await ensureAdminUser(prisma);
+
+  const tasks: Array<Promise<unknown>> = [
+    seedSpokenLanguages(prisma),
+    seedTechSkills(prisma),
+    seedSectionTypes(prisma),
+    seedOnboardingSteps(prisma),
+    seedResumeStyles(prisma, adminId),
+  ];
+  await Promise.all(tasks);
+}
+
+async function ensureAdminUser(prisma: PrismaClient): Promise<string> {
+  let admin = await prisma.user.findFirst({ where: { email: ADMIN_EMAIL } });
+
+  if (!admin) {
+    const hashedPassword = await Bun.password.hash(ADMIN_PASSWORD, {
+      algorithm: 'bcrypt',
+      cost: 10,
+    });
+    admin = await prisma.user.create({
+      data: {
+        email: ADMIN_EMAIL,
+        passwordHash: hashedPassword,
+        name: ADMIN_NAME,
+        emailVerified: new Date(),
+        roles: ['role_user', 'role_admin'],
+        hasCompletedOnboarding: true,
+      },
+    });
+  } else if (!admin.hasCompletedOnboarding || !admin.emailVerified) {
+    admin = await prisma.user.update({
+      where: { id: admin.id },
+      data: { hasCompletedOnboarding: true, emailVerified: admin.emailVerified ?? new Date() },
+    });
+  }
+
+  const adminRole = await prisma.role.findUnique({ where: { name: 'admin' } });
+  if (adminRole) {
+    await prisma.userRoleAssignment.upsert({
+      where: { userId_roleId: { userId: admin.id, roleId: adminRole.id } },
+      create: { userId: admin.id, roleId: adminRole.id },
+      update: {},
+    });
+  }
+
+  return admin.id;
 }
 
 let processExitWired = false;

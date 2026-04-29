@@ -53,7 +53,7 @@ describe('E2E Journey 6: DSL Integration', () => {
   describe('Step 1: Setup', () => {
     it('should create user and resume via onboarding', async () => {
       testUser = authHelper.createTestUser('dsl-integration');
-      const result = await authHelper.registerAndLogin(testUser);
+      const result = await authHelper.registerAndLogin(testUser, { skipOnboarding: true });
       testUser.token = result.token;
       testUser.userId = result.userId;
 

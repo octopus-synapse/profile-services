@@ -38,7 +38,6 @@ export class ResumeOnboardingAdapter {
     // layout variance is now a property of the ResumeStyle, not the Resume.
     const resumeData = {
       fullName: personalInfo.fullName,
-      emailContact: personalInfo.email,
       phone: personalInfo.phone,
       location: personalInfo.location,
       jobTitle: professionalProfile.jobTitle,

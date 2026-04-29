@@ -134,11 +134,26 @@ describe('E2E Journey: Email Verification', () => {
   describe('Step 4: Verify Email', () => {
     it('should verify email via direct database update', async () => {
       // In a real flow, user would click a link with a token.
-      // In tests, we update the DB directly.
+      // In tests, we update the DB directly. We also clear the
+      // onboarding gate and grant the default user role so step 5 can
+      // assert plain protected-route access without re-implementing the
+      // full onboarding flow here.
       await prisma.user.update({
         where: { id: testUser.userId! },
-        data: { emailVerified: new Date() },
+        data: {
+          emailVerified: new Date(),
+          hasCompletedOnboarding: true,
+          onboardingCompletedAt: new Date(),
+        },
       });
+      const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
+      if (userRole) {
+        await prisma.userRoleAssignment.upsert({
+          where: { userId_roleId: { userId: testUser.userId!, roleId: userRole.id } },
+          create: { userId: testUser.userId!, roleId: userRole.id },
+          update: {},
+        });
+      }
 
       // Verify the update was applied
       const user = await prisma.user.findUnique({

@@ -89,6 +89,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
   {
     method: 'POST',
     path: '/resume-analytics/:resumeId/track-view',
+    statusCode: 201,
     auth: { kind: 'public' },
     params: ResumeIdParam,
     body: TrackViewBody,
@@ -241,6 +242,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
   {
     method: 'POST',
     path: '/resume-analytics/:resumeId/snapshot',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,

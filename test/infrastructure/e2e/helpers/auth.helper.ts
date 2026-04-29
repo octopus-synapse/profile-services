@@ -76,6 +76,20 @@ export class AuthHelper {
       if (Object.keys(update).length > 0) {
         await this.prisma.user.update({ where: { id: testUser.userId }, data: update });
       }
+
+      // Assign the seeded `user` role so the permission gate finds
+      // resume:create / read / update / etc. for this account. The
+      // /api/accounts endpoint only sets the legacy `User.roles` array
+      // column; the authorization model uses UserRoleAssignment rows.
+      const userRole = await this.prisma.role.findUnique({ where: { name: 'user' } });
+      if (userRole) {
+        await this.prisma.userRoleAssignment.upsert({
+          where: { userId_roleId: { userId: testUser.userId, roleId: userRole.id } },
+          create: { userId: testUser.userId, roleId: userRole.id },
+          update: {},
+        });
+      }
+
       // UserConsent rows are created by /api/accounts when the request
       // body carries `acceptedTosVersion` + `acceptedPrivacyVersion`
       // (which we send above). Re-inserting here would collide on the

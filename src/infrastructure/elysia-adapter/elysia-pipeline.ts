@@ -232,6 +232,12 @@ export function consentGuardStage(skipGlobally: boolean): PipelineStage {
       const route = ctx.state.__route as Route | undefined;
       if (!route || route.auth.kind !== 'jwt') return next();
       if (route.guards?.some((g) => g.id === 'skip-tos-check')) return next();
+      // Onboarding routes are reachable to users who haven't completed
+      // onboarding yet — that's the whole point. Admin onboarding routes
+      // (/v1/admin/onboarding/*) still require completion.
+      if (route.path.startsWith('/v1/onboarding/') || route.path === '/v1/onboarding') {
+        return next();
+      }
       if (!ctx.user) return next();
       if (ctx.user.hasCompletedOnboarding === true) return next();
       ctx.state.responseStatus = 403;

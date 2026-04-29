@@ -6300,10 +6300,6 @@
                     "type": "string",
                     "maxLength": 20
                   },
-                  "emailContact": {
-                    "type": "string",
-                    "format": "email"
-                  },
                   "location": {
                     "type": "string",
                     "maxLength": 100
@@ -6479,10 +6475,6 @@
                   "phone": {
                     "type": "string",
                     "maxLength": 20
-                  },
-                  "emailContact": {
-                    "type": "string",
-                    "format": "email"
                   },
                   "location": {
                     "type": "string",

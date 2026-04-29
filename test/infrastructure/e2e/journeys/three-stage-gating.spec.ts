@@ -81,8 +81,7 @@ describe('E2E Journey: 3-Stage Gating (verify + onboarding)', () => {
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${user.token}`);
       expect(res.status).toBe(403);
-      // EmailVerifiedGuard throws EmailNotVerifiedException — shape asserts on message key.
-      expect(String(res.body.message ?? '')).toMatch(/verified|verificad/i);
+      expect(res.body.error?.code).toBe('EMAIL_NOT_VERIFIED');
     });
   });
 
@@ -112,7 +111,7 @@ describe('E2E Journey: 3-Stage Gating (verify + onboarding)', () => {
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${user.token}`);
       expect(res.status).toBe(403);
-      expect(res.body.code ?? res.body.message?.code).toBe('ONBOARDING_NOT_COMPLETED');
+      expect(res.body.error?.code).toBe('ONBOARDING_NOT_COMPLETED');
     });
 
     it('session + onboarding endpoints stay reachable (whitelisted)', async () => {

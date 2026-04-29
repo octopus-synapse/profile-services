@@ -7,7 +7,7 @@
       "!**/swagger-test.json",
       "!**/swagger-generation-report.json",
       "!docs",
-      "!test/infrastructure/_legacy/**"
+      "!test/infrastructure/_legacy"
     ]
   },
   "overrides": [
