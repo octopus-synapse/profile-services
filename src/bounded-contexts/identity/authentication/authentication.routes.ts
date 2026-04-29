@@ -196,16 +196,17 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
   {
     method: 'GET',
     path: '/auth/session',
-    auth: { kind: 'public' },
+    auth: { kind: 'optional' },
     openapi: {
       summary: 'Get Session',
       tags: ['auth'],
-      description: 'Validates session cookie and returns current user data if authenticated.',
+      description: 'Returns current user data if authenticated via session cookie or JWT bearer.',
     },
     sdk: { exported: true, name: 'session' },
     handler: async (ctx, bc) => {
       const result = await bc.validateSession.execute({
         cookieReader: ctxCookieReader(ctx),
+        userId: ctx.user?.userId,
       });
       return {
         success: true,

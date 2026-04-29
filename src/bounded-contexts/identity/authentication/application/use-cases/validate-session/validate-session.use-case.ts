@@ -32,42 +32,48 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
   ) {}
 
   async execute(command: ValidateSessionCommand): Promise<ValidateSessionResult> {
-    const { cookieReader } = command;
+    const { cookieReader, userId: directUserId } = command;
 
-    // 1. Extract session token from cookie
-    const sessionToken = this.sessionStorage.getSessionCookie(cookieReader);
-    if (!sessionToken) {
-      return { success: false, user: null };
-    }
+    let resolvedUserId: string | undefined = directUserId;
 
-    // 2. Verify and decode JWT
-    let payload: SessionPayload;
-    try {
-      const decoded = await this.tokenGenerator.verifySessionToken(sessionToken);
-      if (!decoded) {
+    if (!resolvedUserId) {
+      // 1. Extract session token from cookie
+      const sessionToken = this.sessionStorage.getSessionCookie(cookieReader);
+      if (!sessionToken) {
         return { success: false, user: null };
       }
-      payload = decoded;
-    } catch (err) {
-      // Token is malformed/expired/tampered. Don't surface the reason to the
-      // client (info leak about JWT secret state), but emit telemetry so a
-      // spike of failures is visible — investigation of "users keep getting
-      // logged out" starts here.
-      this.logger.debug(
-        `Session token verification failed: ${err instanceof Error ? err.message : 'unknown'}`,
-        'ValidateSessionUseCase',
-      );
-      return { success: false, user: null };
-    }
 
-    // 3. Check expiration (exp is in seconds, Date.now() is in milliseconds)
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    if (nowInSeconds > payload.exp) {
-      return { success: false, user: null };
+      // 2. Verify and decode JWT
+      let payload: SessionPayload;
+      try {
+        const decoded = await this.tokenGenerator.verifySessionToken(sessionToken);
+        if (!decoded) {
+          return { success: false, user: null };
+        }
+        payload = decoded;
+      } catch (err) {
+        // Token is malformed/expired/tampered. Don't surface the reason to the
+        // client (info leak about JWT secret state), but emit telemetry so a
+        // spike of failures is visible — investigation of "users keep getting
+        // logged out" starts here.
+        this.logger.debug(
+          `Session token verification failed: ${err instanceof Error ? err.message : 'unknown'}`,
+          'ValidateSessionUseCase',
+        );
+        return { success: false, user: null };
+      }
+
+      // 3. Check expiration (exp is in seconds, Date.now() is in milliseconds)
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      if (nowInSeconds > payload.exp) {
+        return { success: false, user: null };
+      }
+
+      resolvedUserId = payload.sub;
     }
 
     // 4. Fetch fresh user data
-    const userData = await this.repository.findSessionUser(payload.sub);
+    const userData = await this.repository.findSessionUser(resolvedUserId);
     if (!userData) {
       return { success: false, user: null };
     }

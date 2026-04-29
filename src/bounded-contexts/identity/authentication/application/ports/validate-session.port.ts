@@ -10,6 +10,14 @@ import type { SessionUserData } from './create-session.port';
 
 export interface ValidateSessionCommand {
   cookieReader: CookieReader;
+  /**
+   * Optional userId — when provided, the use case skips cookie/JWT
+   * verification and resolves the session payload directly from the
+   * repository. Used by `/auth/session` to support callers that
+   * authenticated through the pipeline JWT (Authorization header) but
+   * have no session cookie.
+   */
+  userId?: string;
 }
 
 export interface ValidateSessionResult {
