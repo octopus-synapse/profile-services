@@ -64,7 +64,6 @@ export class PdfImportService {
         fullName: extracted.fullName,
         jobTitle: extracted.jobTitle,
         summary: extracted.summary,
-        emailContact: extracted.email,
         phone: extracted.phone,
         location: extracted.location,
         linkedin: extracted.linkedin,

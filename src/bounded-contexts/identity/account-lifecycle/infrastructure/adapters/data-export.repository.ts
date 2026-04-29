@@ -80,7 +80,6 @@ export class DataExportRepository implements DataExportRepositoryPort {
         fullName: r.fullName,
         jobTitle: r.jobTitle,
         summary: r.summary,
-        emailContact: r.emailContact,
         phone: r.phone,
         location: r.location,
         website: r.website,

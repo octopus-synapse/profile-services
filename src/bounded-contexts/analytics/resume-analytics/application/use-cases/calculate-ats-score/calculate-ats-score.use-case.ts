@@ -73,11 +73,11 @@ export class CalculateAtsScoreUseCase extends AtsScoringPort {
   private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
     const issues: ATSIssue[] = [];
 
-    if (!resume.emailContact && !resume.phone) {
+    if (!resume.phone) {
       issues.push({
         code: 'MISSING_CONTACT_INFO',
         severity: 'high',
-        message: 'Add your email address and phone number',
+        message: 'Add your phone number',
       });
     }
 

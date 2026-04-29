@@ -38,7 +38,6 @@ export type ResumeForJsonExport = {
 export type ResumeForLatexExport = {
   title: string | null;
   fullName: string | null;
-  emailContact: string | null;
   phone: string | null;
   jobTitle: string | null;
   user: { name: string | null; email: string | null; phone: string | null };

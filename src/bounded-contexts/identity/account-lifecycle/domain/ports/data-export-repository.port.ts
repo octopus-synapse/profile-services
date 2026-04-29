@@ -40,7 +40,6 @@ export interface ExportedResumePersonalInfo {
   fullName: string | null;
   jobTitle: string | null;
   summary: string | null;
-  emailContact: string | null;
   phone: string | null;
   location: string | null;
   website: string | null;

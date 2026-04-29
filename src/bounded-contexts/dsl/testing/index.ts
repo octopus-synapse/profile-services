@@ -98,7 +98,6 @@ export class InMemoryResumeDslRepository extends ResumeDslRepositoryPort {
       jobTitle: resume.jobTitle ?? 'Developer',
       summary: resume.summary ?? 'Summary',
       phone: resume.phone ?? null,
-      emailContact: resume.emailContact ?? null,
       location: resume.location ?? null,
       linkedin: resume.linkedin ?? null,
       github: resume.github ?? null,

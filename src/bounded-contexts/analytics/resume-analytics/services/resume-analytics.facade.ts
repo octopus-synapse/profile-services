@@ -208,7 +208,6 @@ export class ResumeAnalyticsFacade {
 
     return {
       summary: resume.summary,
-      emailContact: resume.emailContact,
       phone: resume.phone,
       jobTitle: resume.jobTitle,
       sections,

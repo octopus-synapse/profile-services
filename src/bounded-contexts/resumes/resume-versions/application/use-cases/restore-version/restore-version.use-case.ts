@@ -30,7 +30,6 @@ const RESUME_MUTABLE_FIELDS = [
   'fullName',
   'jobTitle',
   'phone',
-  'emailContact',
   'location',
   'linkedin',
   'github',

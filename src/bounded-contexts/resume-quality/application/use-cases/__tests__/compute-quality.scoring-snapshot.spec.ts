@@ -61,7 +61,6 @@ class CapturingRepo extends QualityScoreRepositoryPort {
 
 const FULL: ResumeForCompleteness = {
   fullName: 'Alex Morgan',
-  emailContact: 'alex@example.com',
   summary:
     'Backend engineer with 7 years building reliable services in TypeScript and Go for fintech.',
   jobTitle: 'Senior Backend Engineer',
@@ -75,7 +74,6 @@ const FULL: ResumeForCompleteness = {
 
 const PARTIAL: ResumeForCompleteness = {
   fullName: 'Sam Chen',
-  emailContact: 'sam@example.com',
   summary: 'Frontend developer.',
   jobTitle: null,
   experiences: [{ startedAt: new Date('2024-01-01') }],
@@ -85,7 +83,6 @@ const PARTIAL: ResumeForCompleteness = {
 
 const SPARSE: ResumeForCompleteness = {
   fullName: '',
-  emailContact: null,
   summary: null,
   jobTitle: null,
   experiences: [],

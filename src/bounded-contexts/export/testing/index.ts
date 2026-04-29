@@ -193,7 +193,6 @@ interface ResumeWithSections {
   slug: string | null;
   summary: string | null;
   fullName: string | null;
-  emailContact: string | null;
   phone: string | null;
   isPublic: boolean;
   createdAt: Date;

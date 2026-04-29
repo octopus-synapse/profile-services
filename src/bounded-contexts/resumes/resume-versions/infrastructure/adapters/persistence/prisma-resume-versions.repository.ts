@@ -323,7 +323,6 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
     this.setStringOrNull(data, 'fullName', snapshot.fullName);
     this.setStringOrNull(data, 'jobTitle', snapshot.jobTitle);
     this.setStringOrNull(data, 'phone', snapshot.phone);
-    this.setStringOrNull(data, 'emailContact', snapshot.emailContact);
     this.setStringOrNull(data, 'location', snapshot.location);
     this.setStringOrNull(data, 'linkedin', snapshot.linkedin);
     this.setStringOrNull(data, 'github', snapshot.github);
@@ -358,7 +357,6 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       | 'fullName'
       | 'jobTitle'
       | 'phone'
-      | 'emailContact'
       | 'location'
       | 'linkedin'
       | 'github'

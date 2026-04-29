@@ -28,7 +28,6 @@ describe('AnalyzeKeywordsUseCase', () => {
   const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Full-stack developer with expertise in React and Node.js',
     jobTitle: 'Senior Software Engineer',
-    emailContact: 'test@example.com',
     phone: '+1234567890',
     sections: [
       createSection('SKILL', [

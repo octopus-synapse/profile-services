@@ -59,7 +59,6 @@ export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
 
     return {
       summary: resume.summary,
-      emailContact: resume.emailContact,
       phone: resume.phone,
       jobTitle: resume.jobTitle,
       sections,

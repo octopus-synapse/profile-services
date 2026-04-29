@@ -52,11 +52,13 @@ export class ATSScoreService {
   private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
     const issues: ATSIssue[] = [];
 
-    if (!resume.emailContact && !resume.phone) {
+    // Email is sourced from the User aggregate (always present after
+    // signup), so we only flag missing phone here.
+    if (!resume.phone) {
       issues.push({
         code: 'MISSING_CONTACT_INFO',
         severity: 'high',
-        message: 'Add your email address and phone number',
+        message: 'Add your phone number',
       });
     }
 

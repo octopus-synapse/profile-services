@@ -32,7 +32,6 @@ describe('BuildAnalyticsDashboardUseCase', () => {
 
   const mockResume: ResumeForAnalytics = {
     summary: 'Experienced developer',
-    emailContact: 'test@example.com',
     phone: '+1234567890',
     sections: [
       {

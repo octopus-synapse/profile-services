@@ -5,7 +5,6 @@ import { COMPLETENESS_WEIGHTS, type QualityIssue } from '../types';
  * trivial to unit-test with literals. */
 export interface ResumeForCompleteness {
   readonly fullName: string | null;
-  readonly emailContact: string | null;
   readonly summary: string | null;
   readonly jobTitle: string | null;
   readonly experiences: ReadonlyArray<{
@@ -42,11 +41,11 @@ export function scoreCompleteness(resume: ResumeForCompleteness): CompletenessRe
     issues.push({ code: 'CODE_MISSING_FULL_NAME', severity: 'high' });
   }
 
-  if (nonBlank(resume.emailContact)) {
-    score += COMPLETENESS_WEIGHTS.email;
-  } else {
-    issues.push({ code: 'CODE_MISSING_EMAIL', severity: 'high' });
-  }
+  // Email is sourced from `User.email` (set at signup), no longer
+  // stored per-resume. Award the email weight unconditionally so the
+  // composite completeness score matches what the rule used to do
+  // when every resume had an `emailContact` populated from signup.
+  score += COMPLETENESS_WEIGHTS.email;
 
   if (nonBlank(resume.jobTitle)) {
     score += COMPLETENESS_WEIGHTS.jobTitle;

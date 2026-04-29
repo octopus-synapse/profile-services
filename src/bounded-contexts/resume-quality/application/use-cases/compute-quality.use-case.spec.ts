@@ -63,7 +63,6 @@ class InMemoryQualityRepo extends QualityScoreRepositoryPort {
 function fullResume(): ResumeForCompleteness {
   return {
     fullName: 'Jane Doe',
-    emailContact: 'jane@example.com',
     summary:
       'Senior backend engineer with 8 years shipping reliable services in Go and Rust for fintech.',
     jobTitle: 'Senior Backend Engineer',

@@ -69,7 +69,6 @@ export const ResumeSchema = z.object({
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),
-  emailContact: z.string().email().nullable(),
   location: z.string().nullable(),
   linkedin: z.string().url().nullable(),
   github: z.string().url().nullable(),

@@ -30,7 +30,6 @@ type PrismaResumeData = {
   fullName?: string | null;
   jobTitle?: string | null;
   phone?: string | null;
-  emailContact?: string | null;
   location?: string | null;
   linkedin?: string | null;
   github?: string | null;
@@ -147,7 +146,6 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
       fullName: resume.fullName ?? null,
       jobTitle: resume.jobTitle ?? null,
       phone: resume.phone ?? null,
-      emailContact: resume.emailContact ?? null,
       location: resume.location ?? null,
       linkedin: resume.linkedin ?? null,
       github: resume.github ?? null,

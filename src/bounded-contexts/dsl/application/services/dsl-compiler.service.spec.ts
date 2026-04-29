@@ -126,7 +126,6 @@ describe('DslCompilerService', () => {
         jobTitle: 'Backend Engineer',
         summary: null,
         phone: null,
-        emailContact: null,
         location: null,
         linkedin: null,
         github: null,

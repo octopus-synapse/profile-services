@@ -22,7 +22,6 @@ export interface CreateMockResumeOptions {
   fullName?: string | null;
   jobTitle?: string | null;
   phone?: string | null;
-  emailContact?: string | null;
   location?: string | null;
   linkedin?: string | null;
   github?: string | null;
@@ -64,7 +63,6 @@ const defaultResume: Resume = {
   fullName: null,
   jobTitle: null,
   phone: null,
-  emailContact: null,
   location: null,
   linkedin: null,
   github: null,

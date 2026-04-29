@@ -68,7 +68,7 @@ export class ExportLatexUseCase {
 
   private generateSimpleTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
-    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
+    const email = this.escapeLatex(resume.user.email ?? '');
     const phone = this.escapeLatex(resume.user.phone ?? resume.phone ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
@@ -156,7 +156,7 @@ ${email}${phone ? ` \\textbar{  } ${phone}` : ''}
 
   private generateModerncvTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
-    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
+    const email = this.escapeLatex(resume.user.email ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
     const nameParts = name.split(' ');
 

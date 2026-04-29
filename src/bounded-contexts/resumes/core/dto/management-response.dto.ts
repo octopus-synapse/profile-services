@@ -99,7 +99,6 @@ const ResumeDetailsSchema = z.object({
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),
-  emailContact: z.string().nullable(),
   location: z.string().nullable(),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),

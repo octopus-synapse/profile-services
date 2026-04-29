@@ -133,7 +133,6 @@ export interface GenericResume {
   fullName: string | null;
   jobTitle: string | null;
   phone: string | null;
-  emailContact: string | null;
   location: string | null;
   linkedin: string | null;
   github: string | null;

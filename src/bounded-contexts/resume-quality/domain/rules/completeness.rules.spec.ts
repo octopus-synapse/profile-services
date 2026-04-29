@@ -4,7 +4,6 @@ import { type ResumeForCompleteness, scoreCompleteness } from './completeness.ru
 function makeResume(overrides: Partial<ResumeForCompleteness> = {}): ResumeForCompleteness {
   return {
     fullName: 'Jane Doe',
-    emailContact: 'jane@example.com',
     summary:
       'Senior backend engineer with 8 years experience shipping reliable services in Go and Rust for fintech.',
     jobTitle: 'Senior Backend Engineer',
@@ -83,7 +82,6 @@ describe('scoreCompleteness', () => {
   it('stays within 0..100 even when every rule fails', () => {
     const empty: ResumeForCompleteness = {
       fullName: null,
-      emailContact: null,
       summary: null,
       jobTitle: null,
       experiences: [],

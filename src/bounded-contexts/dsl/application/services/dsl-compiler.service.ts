@@ -78,7 +78,10 @@ export class DslCompilerService {
             fullName: resumeData.fullName,
             jobTitle: resumeData.jobTitle,
             phone: resumeData.phone,
-            email: resumeData.emailContact,
+            // email used to come from `Resume.emailContact`; the column
+            // was dropped in commit acc22598 — pass null until we plumb
+            // `User.email` through the GenericResume loader.
+            email: null,
             location: resumeData.location,
             linkedin: resumeData.linkedin,
             github: resumeData.github,

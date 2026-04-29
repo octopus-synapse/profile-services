@@ -41,7 +41,6 @@ describe('CalculateAtsScoreUseCase', () => {
 
   const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Experienced full-stack developer with 5 years of experience',
-    emailContact: 'test@example.com',
     phone: '+1234567890',
     jobTitle: 'Software Engineer',
     sections: [
@@ -113,7 +112,7 @@ describe('CalculateAtsScoreUseCase', () => {
     });
 
     it('should detect missing contact info', async () => {
-      const result = await useCase.calculate(createResume({ emailContact: null, phone: null }));
+      const result = await useCase.calculate(createResume({ phone: null }));
       expect(result.issues).toContainEqual(
         expect.objectContaining({ code: 'MISSING_CONTACT_INFO', severity: 'high' }),
       );
@@ -189,9 +188,7 @@ describe('CalculateAtsScoreUseCase', () => {
     });
 
     it('should generate recommendations from issues', async () => {
-      const result = await useCase.calculate(
-        createResume({ summary: 'Too short', emailContact: null, phone: null }),
-      );
+      const result = await useCase.calculate(createResume({ summary: 'Too short', phone: null }));
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
 
@@ -242,7 +239,7 @@ describe('CalculateAtsScoreUseCase', () => {
 
     it('should return zero score for empty resume', async () => {
       const result = await useCase.calculate(
-        createResume({ summary: '', emailContact: null, phone: null, sections: [] }),
+        createResume({ summary: '', phone: null, sections: [] }),
       );
       expect(result.score).toBe(0);
     });

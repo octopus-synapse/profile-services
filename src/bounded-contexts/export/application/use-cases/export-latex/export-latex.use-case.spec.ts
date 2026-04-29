@@ -49,7 +49,6 @@ function buildLatexResume(
   return {
     title: base.title,
     fullName: base.fullName,
-    emailContact: base.emailContact,
     phone: base.phone,
     jobTitle: base.jobTitle,
     user: { name: 'John Doe', email: 'john@example.com', phone: '+1234567890' },

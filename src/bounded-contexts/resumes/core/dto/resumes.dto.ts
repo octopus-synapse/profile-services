@@ -51,7 +51,6 @@ const CreateResumeRequestSchema = z.object({
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
   phone: z.string().max(20).optional(),
-  emailContact: z.string().email().optional(),
   location: z.string().max(100).optional(),
   linkedin: z.string().url().optional(),
   github: z.string().url().optional(),

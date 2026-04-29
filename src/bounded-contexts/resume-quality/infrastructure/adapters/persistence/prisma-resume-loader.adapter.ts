@@ -19,7 +19,6 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
       where: { id: resumeId },
       select: {
         fullName: true,
-        emailContact: true,
         summary: true,
         jobTitle: true,
         // The domain shape stays minimal; richer section/item data is
@@ -30,7 +29,6 @@ export class PrismaResumeLoader extends ResumeLoaderPort {
 
     return {
       fullName: row.fullName,
-      emailContact: row.emailContact,
       summary: row.summary,
       jobTitle: row.jobTitle,
       experiences: [],

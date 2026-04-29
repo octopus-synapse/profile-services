@@ -75,7 +75,6 @@ export class ResumeDataRepository implements ResumeDataRepositoryPort {
     return {
       title: resume.title,
       fullName: resume.fullName,
-      emailContact: resume.emailContact,
       phone: resume.phone,
       jobTitle: resume.jobTitle,
       user: resume.user,
