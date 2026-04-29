@@ -73,6 +73,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   {
     method: 'POST',
     path: '/resume-import/json',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,

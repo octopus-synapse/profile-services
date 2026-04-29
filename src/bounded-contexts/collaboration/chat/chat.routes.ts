@@ -52,6 +52,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   {
     method: 'POST',
     path: '/chat/messages',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     body: SendMessageSchema,
@@ -291,6 +292,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   {
     method: 'POST',
     path: '/chat/blocked',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     body: BlockUserSchema,

@@ -36,7 +36,7 @@ const PageLimitQuery = z.object({
   limit: z.string().optional(),
 });
 
-const IdParam = z.object({ id: z.string() });
+const _IdParam = z.object({ id: z.string() });
 const UserIdParam = z.object({ userId: z.string() });
 const ResumeIdParam = z.object({ resumeId: z.string() });
 const ResumeIdAndTypeKeyParam = z.object({
@@ -122,10 +122,10 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   },
   {
     method: 'GET',
-    path: '/v1/resumes/:id/full',
+    path: '/v1/resumes/:resumeId/full',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
-    params: IdParam,
+    params: ResumeIdParam,
     openapi: {
       summary: 'Get a resume with all sections',
       tags: ['resumes'],
@@ -133,17 +133,17 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
       return { success: true, data: toResumeFullResponseDto(result) };
     },
   },
   {
     method: 'GET',
-    path: '/v1/resumes/:id',
+    path: '/v1/resumes/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
-    params: IdParam,
+    params: ResumeIdParam,
     openapi: {
       summary: 'Get a specific resume',
       tags: ['resumes'],
@@ -151,7 +151,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
       return { success: true, data: toResumeFullResponseDto(result) };
     },
@@ -159,6 +159,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   {
     method: 'POST',
     path: '/v1/resumes',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_CREATE,
     body: CreateResumeBody,
@@ -176,10 +177,10 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   },
   {
     method: 'PATCH',
-    path: '/v1/resumes/:id',
+    path: '/v1/resumes/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
-    params: IdParam,
+    params: ResumeIdParam,
     body: UpdateResumeBody,
     openapi: {
       summary: 'Update a resume',
@@ -188,7 +189,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       const body = ctx.body as unknown as UpdateResume;
       const result = await bc.updateResumeForUserUseCase.execute(id, ctx.user!.userId, body);
       return { success: true, data: toResumeResponseDto(result) };
@@ -196,10 +197,10 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   },
   {
     method: 'DELETE',
-    path: '/v1/resumes/:id',
+    path: '/v1/resumes/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
-    params: IdParam,
+    params: ResumeIdParam,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -207,17 +208,17 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeForUserUseCase.execute(id, ctx.user!.userId);
       return { success: true, data: { deleted: true, id } };
     },
   },
   {
     method: 'GET',
-    path: '/v1/resumes/:id/thumbnail.svg',
+    path: '/v1/resumes/:resumeId/thumbnail.svg',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
-    params: IdParam,
+    params: ResumeIdParam,
     headers: {
       'Content-Type': 'image/svg+xml; charset=utf-8',
       'Cache-Control': 'private, max-age=300',
@@ -228,7 +229,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
       description: 'Resume CRUD operations',
     },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
       const resume = (result as { resume?: Record<string, unknown> }).resume ?? result;
       const fullName =
@@ -308,7 +309,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     path: '/v1/resumes/manage/:id',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
-    params: IdParam,
+    params: ResumeIdParam,
     openapi: {
       summary: 'Get full resume details',
       tags: ['resumes'],
@@ -316,7 +317,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       const resume = await bc.getResumeDetailsUseCase.execute(id);
       return { success: true, data: { resume } };
     },
@@ -326,7 +327,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     path: '/v1/resumes/manage/:id',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
-    params: IdParam,
+    params: ResumeIdParam,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -334,7 +335,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { id } = ctx.params as { id: string };
+      const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeUseCase.execute(id);
       return { success: true, data: { message: 'Resume deleted successfully' } };
     },

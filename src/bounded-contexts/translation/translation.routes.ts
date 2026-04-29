@@ -50,6 +50,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
     method: 'POST',
     path: '/v1/translation/text',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateTextSchema,
@@ -90,6 +91,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
     method: 'POST',
     path: '/v1/translation/batch',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateBatchSchema,
@@ -112,6 +114,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
     method: 'POST',
     path: '/v1/translation/pt-to-en',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
@@ -130,6 +133,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
     method: 'POST',
     path: '/v1/translation/en-to-pt',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,

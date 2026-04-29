@@ -135,6 +135,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
   {
     method: 'POST',
     path: '/v1/shares',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     body: CreateShareSchema,

@@ -11,6 +11,7 @@
 
 import type Elysia from 'elysia';
 import type { Observable } from 'rxjs';
+import { ZodError } from 'zod';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route';
@@ -97,7 +98,27 @@ export function mountRoutes<TBundle>(
   for (const route of group.routes) {
     const path = `${prefix}${route.path}`;
     const handler = async (ec: ElysiaCtx) => {
-      const ctx = await buildHttpCtx(route, ec);
+      let ctx: HttpCtx;
+      try {
+        ctx = await buildHttpCtx(route, ec);
+      } catch (err) {
+        // Validation (`route.body.parse(...)`) runs in `buildHttpCtx`
+        // before the pipeline, so a ZodError here would otherwise
+        // surface as a 500. Map it to the 400 the API contract
+        // promises (`{ success: false, error: { code, message } }`).
+        if (err instanceof ZodError) {
+          ec.set.status = 400;
+          return {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Request validation failed',
+              details: err.issues,
+            },
+          };
+        }
+        throw err;
+      }
 
       const terminal = async (): Promise<void> => {
         const result = await route.handler(ctx, group.bundle);

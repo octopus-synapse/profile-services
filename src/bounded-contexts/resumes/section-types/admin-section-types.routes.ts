@@ -66,6 +66,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
   {
     method: 'POST',
     path: '/v1/admin/section-types',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     body: CreateSectionTypeSchema as unknown as z.ZodType<CreateSectionTypeDto>,

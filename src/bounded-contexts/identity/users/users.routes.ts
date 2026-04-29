@@ -64,9 +64,14 @@ const AssignRolesSchema = z.object({ roles: z.array(z.string()) });
 
 export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
   // ─── Profile ──────────────────────────────────────────────────────
+  // NOTE: mounted under `/v1/profiles/:username` rather than
+  // `/v1/users/:username/profile` to avoid colliding with the
+  // social/feed BCs, which own `/v1/users/:userId/...` at the same
+  // tree position (memoirist requires a consistent param name across
+  // BCs sharing a prefix).
   {
     method: 'GET',
-    path: '/v1/users/:username/profile',
+    path: '/v1/profiles/:username',
     auth: { kind: 'public' },
     params: UsernameParam,
     openapi: {
@@ -97,7 +102,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const result = await bundle.profile.getProfileUseCase.execute(ctx.user!.userId);
-      return { success: true, data: { ...result, profile: result } };
+      return { success: true, data: result };
     },
   },
   {

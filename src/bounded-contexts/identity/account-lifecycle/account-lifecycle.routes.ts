@@ -36,6 +36,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
   {
     method: 'POST',
     path: '/accounts',
+    statusCode: 201,
     auth: { kind: 'public' },
     body: CreateAccountSchema,
     openapi: {

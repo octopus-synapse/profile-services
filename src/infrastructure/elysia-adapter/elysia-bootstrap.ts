@@ -38,27 +38,35 @@ import {
   buildFitProfileComposition,
 } from '@/bounded-contexts/fit-profile/fit-profile.composition';
 import { buildAccountLifecycleUseCases } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.composition';
+import { accountLifecycleRoutes } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes';
 import { buildAuthenticationUseCases } from '@/bounded-contexts/identity/authentication/authentication.composition';
+import { authenticationRoutes } from '@/bounded-contexts/identity/authentication/authentication.routes';
 import { buildAuthorizationUseCases } from '@/bounded-contexts/identity/authorization/authorization.composition';
 import { buildEmailVerificationUseCases } from '@/bounded-contexts/identity/email-verification/email-verification.composition';
+import { emailVerificationRoutes } from '@/bounded-contexts/identity/email-verification/email-verification.routes';
 import {
   buildOAuthComposition,
   buildOAuthUseCases,
 } from '@/bounded-contexts/identity/oauth/oauth.composition';
 import { buildPasswordManagementUseCases } from '@/bounded-contexts/identity/password-management/password-management.composition';
+import { passwordManagementRoutes } from '@/bounded-contexts/identity/password-management/password-management.routes';
 import {
   buildTwoFactorAuthComposition,
   buildTwoFactorAuthUseCases,
 } from '@/bounded-contexts/identity/two-factor-auth/two-factor-auth.composition';
 import { buildShadowProfileUseCases } from '@/bounded-contexts/identity/users/shadow-profile/shadow-profile.composition';
+import { shadowProfileRoutes } from '@/bounded-contexts/identity/users/shadow-profile/shadow-profile.routes';
 import { buildUiStateUseCases } from '@/bounded-contexts/identity/users/ui-state/ui-state.composition';
+import { uiStateRoutes } from '@/bounded-contexts/identity/users/ui-state/ui-state.routes';
 import { buildUsersUseCases } from '@/bounded-contexts/identity/users/users.composition';
+import { usersRoutes } from '@/bounded-contexts/identity/users/users.routes';
 import { buildImportComposition } from '@/bounded-contexts/import/import.composition';
 import { buildUploadComposition } from '@/bounded-contexts/integration/upload/upload.composition';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
 import { buildOnboardingComposition } from '@/bounded-contexts/onboarding/onboarding.composition';
+import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.routes';
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
@@ -69,6 +77,7 @@ import { buildI18nComposition } from '@/bounded-contexts/platform/i18n/i18n.comp
 import { buildMetricsComposition } from '@/bounded-contexts/platform/metrics/metrics.composition';
 import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-runner/test-runner.composition';
+import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
 import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/webhooks.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
@@ -77,6 +86,7 @@ import { buildResumeQualityComposition } from '@/bounded-contexts/resume-quality
 import { buildResumeStylesComposition } from '@/bounded-contexts/resume-styles/resume-styles.composition';
 import { buildResumesCoreComposition } from '@/bounded-contexts/resumes/core/resumes.composition';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { resumesRoutes } from '@/bounded-contexts/resumes/core/resumes.routes';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters/resume-event-publisher.adapter';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories/section-type.repository';
 import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resume-versions/resume-versions.composition';
@@ -87,6 +97,7 @@ import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalo
 import { buildSocialComposition } from '@/bounded-contexts/social/social.composition';
 import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stories/success-stories.composition';
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
+import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { BullMQJobQueueAdapter } from './bullmq-job-queue.adapter';
@@ -95,11 +106,13 @@ import { CronerCronAdapter } from './croner-cron.adapter';
 import { buildDefaultPipeline } from './elysia-pipeline';
 import { mountRoutes } from './elysia-route-mounter';
 import { InMemoryCacheAdapter } from './in-memory-cache.adapter';
+import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
 import { NullFeatureFlagsAdapter } from './null-feature-flags.adapter';
 import { PinoLoggerAdapter } from './pino-logger.adapter';
+import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
 
 export interface BootstrapHandle {
@@ -120,13 +133,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     issuer: config.get<string>('JWT_ISSUER'),
     audience: config.get<string>('JWT_AUDIENCE'),
   });
-  const authExtractor = new JoseAuthExtractorAdapter(jwt, {
-    cookieName: config.getOrDefault<string>('AUTH_COOKIE_NAME', 'access_token'),
-  });
-
   const prisma = new PrismaClient(createPrismaClientOptions());
   await prisma.$connect();
   logger.log('Prisma connected', 'ElysiaBootstrap');
+
+  const userSnapshot = new PrismaUserSnapshotAdapter(prisma);
+  const authExtractor = new JoseAuthExtractorAdapter(
+    jwt,
+    { cookieName: config.getOrDefault<string>('AUTH_COOKIE_NAME', 'access_token') },
+    userSnapshot,
+  );
 
   // Redis-backed adapters (BullMQ, optional Redis cache) emit
   // connection errors via the global uncaughtException channel when
@@ -437,11 +453,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const upload = buildUploadComposition(s3, logger);
 
   // Onboarding consumes typst services exposed by export composition.
+  const cacheLock = new InMemoryCacheLockAdapter();
   const onboarding = buildOnboardingComposition({
     prisma: prisma as never,
     logger,
     auditLog,
-    cacheLock: cache as never,
+    cacheLock: cacheLock as never,
     sseStream,
     dsl: { renderResumeDsl: dsl.useCases.renderResumeDsl },
     typstSerializer: exportBc.typstDataSerializer,
@@ -454,10 +471,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // shared with resume-quality + job-match below.
   const cacheInvalidation = new CacheInvalidationService(cache, logger);
   const flags = new NullFeatureFlagsAdapter();
+  // resumes-core's use-cases consume `ResumeEventPublisher` (typed
+  // `publishResumeCreated/Updated/Deleted/...`), not the raw EventBus.
+  // Reuse the adapter built above for resume-versions so handlers'
+  // calls land on a function instead of `undefined`.
   const resumesCore = buildResumesCoreComposition(
     prisma as never,
     resumeVersions.versionService as never,
-    eventBus as never,
+    resumeEvents as never,
     cacheInvalidation as never,
     logger,
   ) as never;
@@ -553,10 +574,27 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   });
 
   // --- Pipeline ---
+  // The permission checker reuses `authorization.checks.checkPermissionUseCase`
+  // (built by buildAuthorizationCheckUseCases). Wrapping it in the
+  // `{ check(userId, resource, action): Promise<boolean> }` shape the
+  // pipeline expects keeps the stage framework-free.
+  const permissionChecker = {
+    check: async (userId: string, resource: string, action: string): Promise<boolean> => {
+      return (
+        authorization as unknown as {
+          checks: {
+            checkPermissionUseCase: { execute(u: string, r: string, a: string): Promise<boolean> };
+          };
+        }
+      ).checks.checkPermissionUseCase.execute(userId, resource, action);
+    },
+  };
   const pipeline = buildDefaultPipeline({
     logger,
     authExtractor,
     i18n: i18n.translation,
+    skipTosCheck: config.getOrDefault<string>('SKIP_TOS_CHECK', 'false') === 'true',
+    permissionChecker,
   });
 
   // --- Mount routes on Elysia ---
@@ -600,6 +638,69 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   ] as const) {
     mountRoutes(app, { bundle: bc.useCases, routes: bc.routes }, { prefix: '/api', pipeline });
   }
+
+  // BCs whose composition functions return raw useCases instead of
+  // `{ useCases, routes }`. We import the route arrays directly and
+  // mount them against the bundle the route file expects.
+  const extra: ReadonlyArray<{ bundle: unknown; routes: unknown }> = [
+    { bundle: accountLifecycle, routes: accountLifecycleRoutes },
+    {
+      bundle: (authenticationUseCases as { bundle: unknown }).bundle,
+      routes: authenticationRoutes,
+    },
+    { bundle: emailVerification, routes: emailVerificationRoutes },
+    { bundle: passwordManagement, routes: passwordManagementRoutes },
+    { bundle: (users as { bundle: unknown }).bundle, routes: usersRoutes },
+    {
+      bundle: (shadowProfile as { shadowProfileService: unknown }).shadowProfileService,
+      routes: shadowProfileRoutes,
+    },
+    { bundle: uiState, routes: uiStateRoutes },
+    {
+      bundle: (translation as { useCases: unknown }).useCases ?? translation,
+      routes: translationRoutes,
+    },
+    {
+      bundle: (testRunner as { useCases: unknown }).useCases ?? testRunner,
+      routes: testRunnerRoutes,
+    },
+    {
+      bundle: (onboarding as { useCases: unknown }).useCases ?? onboarding,
+      routes: onboardingRoutes,
+    },
+    {
+      bundle: (resumesCore as { useCases: unknown }).useCases ?? resumesCore,
+      routes: resumesRoutes,
+    },
+    // resumesCore exposes two extra bundles via `.management` and
+    // `.genericSections` — mount their routes so admin resume actions
+    // (`/v1/resumes/manage/...`) and section-type endpoints
+    // (`/v1/resumes/:resumeId/sections/...`) actually resolve.
+    {
+      bundle: (resumesCore as { management: { useCases: unknown } }).management.useCases,
+      routes: (resumesCore as { management: { routes: unknown } }).management.routes,
+    },
+    {
+      bundle: (resumesCore as { genericSections: { useCases: unknown } }).genericSections.useCases,
+      routes: (resumesCore as { genericSections: { routes: unknown } }).genericSections.routes,
+    },
+    { bundle: skillsCatalog.admin.useCases, routes: skillsCatalog.admin.routes },
+    { bundle: skillsCatalog.skills.useCases, routes: skillsCatalog.skills.routes },
+    {
+      bundle: skillsCatalog.spokenLanguages.useCases,
+      routes: skillsCatalog.spokenLanguages.routes,
+    },
+    { bundle: skillsCatalog.techSkills.useCases, routes: skillsCatalog.techSkills.routes },
+    { bundle: skillsCatalog.techSkills.services.sync, routes: skillsCatalog.techSkills.syncRoutes },
+  ];
+  for (const e of extra) {
+    mountRoutes(
+      app,
+      { bundle: e.bundle as never, routes: e.routes as never },
+      { prefix: '/api', pipeline },
+    );
+  }
+
   // SSE bundles use a different bundle type than the BC's main
   // useCases — mount them separately.
   mountRoutes(
