@@ -2710,14 +2710,14 @@
         }
       }
     },
-    "/api/v1/users/{username}/profile": {
+    "/api/v1/profiles/{username}": {
       "get": {
         "summary": "Get a user's public profile by username",
         "description": "Users API",
         "tags": [
           "users"
         ],
-        "operationId": "get_v1_users_username_profile",
+        "operationId": "get_v1_profiles_username",
         "parameters": [
           {
             "name": "username",
@@ -6360,17 +6360,17 @@
         }
       }
     },
-    "/api/v1/resumes/{id}/full": {
+    "/api/v1/resumes/{resumeId}/full": {
       "get": {
         "summary": "Get a resume with all sections",
         "description": "Resume CRUD operations",
         "tags": [
           "resumes"
         ],
-        "operationId": "get_v1_resumes_id_full",
+        "operationId": "get_v1_resumes_resumeId_full",
         "parameters": [
           {
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -6393,17 +6393,17 @@
         }
       }
     },
-    "/api/v1/resumes/{id}": {
+    "/api/v1/resumes/{resumeId}": {
       "get": {
         "summary": "Get a specific resume",
         "description": "Resume CRUD operations",
         "tags": [
           "resumes"
         ],
-        "operationId": "get_v1_resumes_id",
+        "operationId": "get_v1_resumes_resumeId",
         "parameters": [
           {
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -6431,10 +6431,10 @@
         "tags": [
           "resumes"
         ],
-        "operationId": "patch_v1_resumes_id",
+        "operationId": "patch_v1_resumes_resumeId",
         "parameters": [
           {
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -6526,10 +6526,10 @@
         "tags": [
           "resumes"
         ],
-        "operationId": "delete_v1_resumes_id",
+        "operationId": "delete_v1_resumes_resumeId",
         "parameters": [
           {
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -6552,17 +6552,17 @@
         }
       }
     },
-    "/api/v1/resumes/{id}/thumbnail.svg": {
+    "/api/v1/resumes/{resumeId}/thumbnail.svg": {
       "get": {
         "summary": "Lightweight SVG thumbnail of the resume (name + title + summary preview)",
         "description": "Resume CRUD operations",
         "tags": [
           "resumes"
         ],
-        "operationId": "get_v1_resumes_id_thumbnail_svg",
+        "operationId": "get_v1_resumes_resumeId_thumbnail_svg",
         "parameters": [
           {
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
