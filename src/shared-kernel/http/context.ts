@@ -15,6 +15,7 @@ export interface UserPayload {
   readonly userId: string;
   readonly email: string;
   readonly emailVerified?: boolean;
+  readonly hasCompletedOnboarding?: boolean;
 }
 
 export interface HttpCtx<

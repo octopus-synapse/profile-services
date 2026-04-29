@@ -12,6 +12,7 @@
 import type { JwtPort } from '@/shared-kernel/auth/jwt.port';
 import { AuthExtractorPort, type RawAuthRequest } from '@/shared-kernel/http/auth-extractor.port';
 import type { UserPayload } from '@/shared-kernel/http/context';
+import type { UserSnapshotPort } from '@/shared-kernel/http/user-snapshot.port';
 
 interface JwtPayloadShape {
   readonly sub?: string;
@@ -29,6 +30,7 @@ export class JoseAuthExtractorAdapter extends AuthExtractorPort {
   constructor(
     private readonly jwt: JwtPort,
     private readonly config: JoseAuthExtractorConfig = {},
+    private readonly userSnapshot?: UserSnapshotPort,
   ) {
     super();
   }
@@ -39,6 +41,21 @@ export class JoseAuthExtractorAdapter extends AuthExtractorPort {
     const payload = await this.jwt.verifyAsync<JwtPayloadShape>(token);
     const userId = payload.userId ?? payload.sub;
     if (!userId) return null;
+
+    // Refresh `emailVerified` + `hasCompletedOnboarding` from DB so
+    // gate stages don't operate on stale token-time snapshots (a user
+    // can verify their email or finish onboarding mid-session).
+    if (this.userSnapshot) {
+      const snap = await this.userSnapshot.get(userId);
+      if (!snap) return null;
+      return {
+        userId: snap.userId,
+        email: snap.email || payload.email || '',
+        emailVerified: snap.emailVerified,
+        hasCompletedOnboarding: snap.hasCompletedOnboarding,
+      };
+    }
+
     return {
       userId,
       email: payload.email ?? '',

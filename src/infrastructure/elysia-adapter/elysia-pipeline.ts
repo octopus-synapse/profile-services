@@ -4,20 +4,22 @@
  * (`(ctx, next) => Promise<void>`), so this file is the only place
  * Elysia knows about them.
  *
- * Stage list — same 9 the plan calls out:
+ * Stage list:
  *   1. requestLogging   — log method/path/status/duration via LoggerPort
  *   2. cors             — handled by @elysiajs/cors plugin at app level
  *   3. rateLimit        — CacheRateLimiter, configured per-route via guards
  *   4. authExtractor    — populates ctx.user via AuthExtractorPort
  *   5. errorMapper      — wraps the chain; converts DomainException → HTTP
- *   6. responseWrapper  — wraps plain values in { success, data }
- *   7. humanRelativeDates — placeholder (no-op until i18n wiring lands)
- *   8. consentGuard     — placeholder (no-op until consent wiring lands)
- *   9. emailVerifiedGuard — placeholder (no-op until verified wiring lands)
+ *   6. emailVerifiedGuard — 403 EMAIL_NOT_VERIFIED unless route opts out
+ *      via `guards: [{ id: 'allow-unverified-email' }]`
+ *   7. consentGuard     — 403 ONBOARDING_NOT_COMPLETED unless route opts
+ *      out via `guards: [{ id: 'skip-tos-check' }]` (or env
+ *      SKIP_TOS_CHECK=true globally)
+ *   8. responseWrapper  — wraps plain values in { success, data }
  *
- * Stages 7-9 are intentionally no-ops here; their full implementations
- * will land in Phase 1 alongside the BCs that need them. The shape is
- * already in place so adding them later is a one-line registration.
+ * The two gate stages run AFTER `authExtractor` so they have a
+ * populated `ctx.user`, and BEFORE `responseWrapper` so the 403 body
+ * they emit is the final response.
  */
 
 import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
@@ -35,6 +37,14 @@ export interface PipelineDeps {
   readonly authExtractor?: AuthExtractorPort;
   readonly i18n?: TranslationPort;
   readonly rateLimiter?: CacheRateLimiter;
+  /** When `true`, `consentGuard` short-circuits to next() — used by the
+   *  dev compose where we don't want to enforce TOS on every request. */
+  readonly skipTosCheck?: boolean;
+  /** Permission checker used by `permissionStage` to gate routes that
+   *  declare `permission: Permission.X` or `permission: { resource, action }`. */
+  readonly permissionChecker?: {
+    check(userId: string, resource: string, action: string): Promise<boolean>;
+  };
 }
 
 /** Build the default ordered stage list. `requestLogging` is outermost
@@ -44,6 +54,9 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
   const stages: PipelineStage[] = [requestLoggingStage(deps.logger), errorMapperStage(deps)];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
+  stages.push(emailVerifiedGuardStage());
+  stages.push(consentGuardStage(deps.skipTosCheck === true));
+  if (deps.permissionChecker) stages.push(permissionGuardStage(deps.permissionChecker));
   stages.push(responseWrapperStage);
   return stages;
 }
@@ -165,6 +178,119 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
         return;
       }
       await next();
+    },
+  };
+}
+
+/**
+ * Email-verification gate. Routes with `auth.kind === 'jwt'` reject
+ * with 403 EMAIL_NOT_VERIFIED unless:
+ *   - the route opts out via `guards: [{ id: 'allow-unverified-email' }]`
+ *     (signup, login, refresh, the verification endpoints themselves,
+ *     consent acceptance, GDPR export, etc.); or
+ *   - the user's `emailVerified` is true (snapshot refreshed at
+ *     auth-extractor time).
+ *
+ * Public/optional routes pass through (no `ctx.user` to gate against).
+ */
+export function emailVerifiedGuardStage(): PipelineStage {
+  return {
+    name: 'emailVerifiedGuard',
+    async run(ctx, next) {
+      const route = ctx.state.__route as Route | undefined;
+      if (!route || route.auth.kind !== 'jwt') return next();
+      if (route.guards?.some((g) => g.id === 'allow-unverified-email')) return next();
+      if (!ctx.user) return next(); // authExtractor already 401'd if missing
+      if (ctx.user.emailVerified === true) return next();
+      ctx.state.responseStatus = 403;
+      ctx.state.responseBody = {
+        success: false,
+        error: {
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Email address must be verified to access this resource',
+        },
+      };
+    },
+  };
+}
+
+/**
+ * Onboarding-completion gate. Same shape as the email-verified gate:
+ * routes opt out via `guards: [{ id: 'skip-tos-check' }]` (the legacy
+ * gate name — covers both consent + onboarding pages); env
+ * `SKIP_TOS_CHECK=true` globally bypasses for the dev compose.
+ *
+ * Hits 403 ONBOARDING_NOT_COMPLETED when the user hasn't finished
+ * onboarding. The user's `hasCompletedOnboarding` is hydrated by the
+ * auth-extractor from a fresh DB snapshot per request.
+ */
+export function consentGuardStage(skipGlobally: boolean): PipelineStage {
+  return {
+    name: 'consentGuard',
+    async run(ctx, next) {
+      if (skipGlobally) return next();
+      const route = ctx.state.__route as Route | undefined;
+      if (!route || route.auth.kind !== 'jwt') return next();
+      if (route.guards?.some((g) => g.id === 'skip-tos-check')) return next();
+      if (!ctx.user) return next();
+      if (ctx.user.hasCompletedOnboarding === true) return next();
+      ctx.state.responseStatus = 403;
+      ctx.state.responseBody = {
+        success: false,
+        error: {
+          code: 'ONBOARDING_NOT_COMPLETED',
+          message: 'Onboarding must be completed before accessing this resource',
+        },
+      };
+    },
+  };
+}
+
+/**
+ * Permission gate. Routes with `permission: Permission.X` (a string
+ * like `'resume:create'`) or `permission: { resource, action }` get
+ * checked against the user's authorization context. Anything that
+ * fails the check resolves to 403 INSUFFICIENT_PERMISSION.
+ *
+ * `Permission` enum values are dotted resource:action strings; we
+ * split on `:` to recover the pair `CheckPermissionUseCase` wants.
+ * Object form passes through unchanged.
+ *
+ * Public/optional routes pass through.
+ */
+export function permissionGuardStage(checker: {
+  check(userId: string, resource: string, action: string): Promise<boolean>;
+}): PipelineStage {
+  return {
+    name: 'permissionGuard',
+    async run(ctx, next) {
+      const route = ctx.state.__route as Route | undefined;
+      if (!route?.permission) return next();
+      if (route.auth.kind !== 'jwt') return next();
+      if (!ctx.user) return next();
+
+      let resource: string;
+      let action: string;
+      if (typeof route.permission === 'string') {
+        const idx = route.permission.indexOf(':');
+        if (idx < 0) return next(); // malformed — let it through rather than hard-fail
+        resource = route.permission.slice(0, idx);
+        action = route.permission.slice(idx + 1);
+      } else {
+        resource = route.permission.resource;
+        action = route.permission.action;
+      }
+
+      const allowed = await checker.check(ctx.user.userId, resource, action);
+      if (allowed) return next();
+      ctx.state.responseStatus = 403;
+      ctx.state.responseBody = {
+        success: false,
+        error: {
+          code: 'INSUFFICIENT_PERMISSION',
+          message: `Missing permission: ${resource}:${action}`,
+        },
+      };
     },
   };
 }
