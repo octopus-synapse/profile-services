@@ -52,6 +52,7 @@ VERBOSE=false
 FILTER=""
 AUTO_DETECT=true
 STARTED_BY_US=false
+FRESH=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -64,6 +65,7 @@ while [[ $# -gt 0 ]]; do
         --no-cleanup) CLEANUP=false; shift ;;
         --verbose) VERBOSE=true; shift ;;
         --filter) FILTER="$2"; shift 2 ;;
+        --fresh) FRESH=true; shift ;;
         --help|-h)
             head -30 "$0" | tail -28
             exit 0
@@ -206,13 +208,34 @@ if [[ "$AUTO_DETECT" == "true" ]]; then
     ENVIRONMENT=$(detect_environment)
 
     if [[ -z "$ENVIRONMENT" ]]; then
-        log_warn "No running environment detected"
-        log_info "Starting e2e environment..."
-        ENVIRONMENT="e2e"
+        if [[ -t 0 ]] && [[ -t 1 ]]; then
+            # Interactive terminal: present arrow-key menu via `select`.
+            log_warn "No running environment detected"
+            log_info "Pick an environment to start (↑/↓ + Enter, Ctrl-C to abort):"
+            PS3="> "
+            select choice in "dev (development containers)" "e2e (isolated e2e env)" "test (postgres-only test)" "prod (production-like)"; do
+                case $REPLY in
+                    1) ENVIRONMENT="dev"; break ;;
+                    2) ENVIRONMENT="e2e"; break ;;
+                    3) ENVIRONMENT="test"; break ;;
+                    4) ENVIRONMENT="prod"; break ;;
+                    *) echo "Invalid choice. Try again." ;;
+                esac
+            done
+        else
+            # Non-interactive (CI): default to e2e.
+            log_warn "No running environment detected; defaulting to e2e"
+            ENVIRONMENT="e2e"
+        fi
         STARTED_BY_US=true
     else
         log_info "Detected environment: $ENVIRONMENT"
-        CLEANUP=false  # Don't cleanup containers we didn't start
+        if [[ "$FRESH" == "true" ]]; then
+            log_warn "--fresh requested: tearing down running $ENVIRONMENT before re-starting"
+            STARTED_BY_US=true
+        else
+            CLEANUP=false  # Don't cleanup containers we didn't start
+        fi
     fi
 else
     log_info "Using specified environment: $ENVIRONMENT"
