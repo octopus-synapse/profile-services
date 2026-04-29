@@ -102,7 +102,16 @@ import { NullFeatureFlagsAdapter } from './null-feature-flags.adapter';
 import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
 
-export async function bootstrap(): Promise<void> {
+export interface BootstrapHandle {
+  /** Live Elysia instance (server already listening). */
+  readonly app: Elysia;
+  /** PrismaClient already connected — reused by test harnesses. */
+  readonly prisma: PrismaClient;
+  /** Stop the listener + drain lifecycles (reverse order). Idempotent. */
+  stop(): Promise<void>;
+}
+
+export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Framework-free port impls ---
   const config = new ProcessEnvConfigAdapter();
   const logger = new PinoLoggerAdapter();
@@ -626,8 +635,10 @@ export async function bootstrap(): Promise<void> {
   );
 
   // --- SIGTERM / SIGINT: dispose in reverse order ---
-  const shutdown = async (signal: string): Promise<void> => {
-    logger.log(`Received ${signal}, shutting down...`, 'ElysiaBootstrap');
+  let stopped = false;
+  const drainLifecycles = async (): Promise<void> => {
+    if (stopped) return;
+    stopped = true;
     for (const l of [...lifecycles].reverse()) {
       try {
         await l.dispose?.();
@@ -639,10 +650,23 @@ export async function bootstrap(): Promise<void> {
         );
       }
     }
+  };
+  const shutdown = async (signal: string): Promise<void> => {
+    logger.log(`Received ${signal}, shutting down...`, 'ElysiaBootstrap');
+    await drainLifecycles();
     process.exit(0);
   };
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
   process.on('SIGINT', () => void shutdown('SIGINT'));
+
+  return {
+    app,
+    prisma,
+    async stop(): Promise<void> {
+      await app.stop();
+      await drainLifecycles();
+    },
+  };
 }
 
 // Direct-execution entry: `bun --bun src/infrastructure/elysia-adapter/elysia-bootstrap.ts`.
