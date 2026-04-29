@@ -26,7 +26,7 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { bootstrap, type BootstrapHandle } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
+import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
 import { createTestRequest, type TestRequest } from './test-request';
 
 export interface TestApp {
@@ -93,9 +93,7 @@ export async function startTestApp(): Promise<TestApp> {
     async cleanDatabase(): Promise<void> {
       for (const t of TABLES) {
         try {
-          await handle.prisma.$executeRawUnsafe(
-            `TRUNCATE TABLE "${t}" RESTART IDENTITY CASCADE`,
-          );
+          await handle.prisma.$executeRawUnsafe(`TRUNCATE TABLE "${t}" RESTART IDENTITY CASCADE`);
         } catch {
           // Table may not exist in every test schema — ignore.
         }
@@ -104,12 +102,37 @@ export async function startTestApp(): Promise<TestApp> {
   };
 
   cached = { handle, app: testApp };
+  wireProcessExitOnce();
   return testApp;
 }
 
-/** Stop the cached test-app. Call from `afterAll`. */
+/**
+ * Stop the cached test-app.
+ *
+ * Per-spec `afterAll` calls are no-ops on purpose: bun:test runs spec
+ * files in parallel within the same process and they share this
+ * module-level cache, so a single afterAll calling `stopTestApp()`
+ * would tear down Prisma and the listener while sibling files were
+ * still using them. Real teardown happens on process `beforeExit`
+ * (wired below) — by then every test is done.
+ */
 export async function stopTestApp(): Promise<void> {
-  if (!cached) return;
-  await cached.handle.stop();
-  cached = null;
+  // intentional no-op
+}
+
+let processExitWired = false;
+function wireProcessExitOnce(): void {
+  if (processExitWired) return;
+  processExitWired = true;
+  const stop = async (): Promise<void> => {
+    if (!cached) return;
+    try {
+      await cached.handle.stop();
+    } finally {
+      cached = null;
+    }
+  };
+  process.once('beforeExit', stop);
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
 }

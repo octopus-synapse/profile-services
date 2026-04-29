@@ -41,9 +41,13 @@ export class AuthHelper {
   async registerAndLogin(user?: TestUser): Promise<TestUser> {
     const u = user ?? this.createTestUser();
 
-    const signup = await this.app.request
-      .post('/api/v1/auth/signup')
-      .send({ email: u.email, password: u.password, name: u.name });
+    const signup = await this.app.request.post('/api/accounts').send({
+      email: u.email,
+      password: u.password,
+      name: u.name,
+      acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+      acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+    });
     if (signup.status >= 400) {
       throw new Error(
         `signup failed: ${signup.status} ${typeof signup.body === 'string' ? signup.body : JSON.stringify(signup.body)}`,
@@ -56,16 +60,22 @@ export class AuthHelper {
     const userRow = await this.app.prisma.user.findUnique({ where: { email: u.email } });
     if (!userRow) throw new Error('user row missing after signup');
     u.userId = userRow.id;
-    // Mark the user verified directly. ToS acceptance lives on
-    // `UserConsent` rows in the new schema — port that write when a
-    // suite needs the consent guard to pass.
+    // Mark the user verified + onboarded so the email-verified gate
+    // and the consent/onboarding gate both let the test through.
+    // ToS rows are created by /api/accounts from the `acceptedTosVersion`
+    // body field; tests that explicitly exercise the gates set up
+    // their own state.
     await this.app.prisma.user.update({
       where: { id: userRow.id },
-      data: { emailVerified: new Date() },
+      data: {
+        emailVerified: new Date(),
+        hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
+      },
     });
 
     const login = await this.app.request
-      .post('/api/v1/auth/login')
+      .post('/api/auth/login')
       .send({ email: u.email, password: u.password });
     if (login.status >= 400) {
       throw new Error(

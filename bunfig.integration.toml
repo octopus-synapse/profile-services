@@ -3,7 +3,6 @@
 # `test/infrastructure/integration/` run here — `_legacy/` stays
 # excluded until each suite is converted to the new `TestApp` harness.
 root = "./test/infrastructure/integration"
-preload = []
 timeout = 60000
 
 [install.scopes]

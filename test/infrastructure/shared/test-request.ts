@@ -29,7 +29,8 @@ import { basename } from 'node:path';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
-export interface TestResponse<T = unknown> {
+// biome-ignore lint/suspicious/noExplicitAny: matches supertest's loose `body: any` typing
+export interface TestResponse<T = any> {
   readonly status: number;
   readonly headers: Headers;
   readonly body: T;
@@ -100,6 +101,20 @@ class RequestBuilder implements PromiseLike<TestResponse> {
     return this;
   }
 
+  /** Source-compat shim. fetch has no per-request timeout knob; tests
+   *  that needed `.timeout(ms)` did so for slow PDF generation, which
+   *  is bounded server-side now. */
+  timeout(_ms: number): this {
+    return this;
+  }
+
+  /** Source-compat shim. supertest used `.responseType('blob')` to keep
+   *  binary bodies as Buffers. fetch always returns text/Buffer per the
+   *  body parser, so this is a no-op. */
+  responseType(_type: string): this {
+    return this;
+  }
+
   private buildUrl(): string {
     let url = `${this.baseUrl}${this.path}`;
     if (this.queryParams) {
@@ -156,7 +171,8 @@ class RequestBuilder implements PromiseLike<TestResponse> {
       }
     }
     const setCookie =
-      typeof (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === 'function'
+      typeof (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie ===
+      'function'
         ? (res.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
         : res.headers.get('set-cookie')
           ? [res.headers.get('set-cookie') as string]
@@ -164,11 +180,9 @@ class RequestBuilder implements PromiseLike<TestResponse> {
     return { status: res.status, headers: res.headers, body: parsed, text, setCookie };
   }
 
+  // biome-ignore lint/suspicious/noThenProperty: thenable lets `await builder` execute the request, mirroring supertest's API.
   then<TResult1 = TestResponse, TResult2 = never>(
-    onfulfilled?:
-      | ((value: TestResponse) => TResult1 | PromiseLike<TResult1>)
-      | null
-      | undefined,
+    onfulfilled?: ((value: TestResponse) => TResult1 | PromiseLike<TResult1>) | null | undefined,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null | undefined,
   ): PromiseLike<TResult1 | TResult2> {
     return this.exec().then(onfulfilled, onrejected);
