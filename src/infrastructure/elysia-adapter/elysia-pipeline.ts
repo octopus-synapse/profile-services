@@ -299,11 +299,16 @@ export function permissionGuardStage(
       }
 
       // 2) Onboarding-completed state.
+      // Pre-verify routes (allow-unverified-email) implicitly allow
+      // incomplete onboarding — a user who hasn't verified email
+      // hasn't entered the onboarding flow yet, so demanding it would
+      // be a contradiction.
       const isOnboardingRoute =
         route.path.startsWith('/v1/onboarding/') || route.path === '/v1/onboarding';
       const allowsIncompleteOnboarding =
         skipOnboardingGlobally ||
         isOnboardingRoute ||
+        allowsUnverified ||
         route.guards?.some((g) => g.id === 'skip-tos-check') === true;
       const effectiveOnboarding = ctx.user.hasCompletedOnboarding === true && !suspendsOnboarding;
       if (!allowsIncompleteOnboarding && !effectiveOnboarding) {

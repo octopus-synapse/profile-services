@@ -76,7 +76,8 @@ export class EmailSenderService {
     });
   }
 
-  private stripHtml(html: string): string {
+  private stripHtml(html: string | undefined): string {
+    if (!html) return '';
     return html
       .replace(/<style[^>]*>.*<\/style>/gm, '')
       .replace(/<script[^>]*>.*<\/script>/gm, '')

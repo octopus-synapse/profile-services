@@ -76,12 +76,12 @@ describe('E2E Journey: 3-Stage Gating (verify + onboarding)', () => {
       expect(res.body.data.user.needsOnboarding).toBe(true);
     });
 
-    it('returns 403 EMAIL_NOT_VERIFIED on a protected endpoint', async () => {
+    it('returns 403 with email-verified missing on a protected endpoint', async () => {
       const res = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${user.token}`);
       expect(res.status).toBe(403);
-      expect(res.body.error?.code).toBe('EMAIL_NOT_VERIFIED');
+      expect(res.body.error?.missing).toContain('email-verified');
     });
   });
 
@@ -111,7 +111,7 @@ describe('E2E Journey: 3-Stage Gating (verify + onboarding)', () => {
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${user.token}`);
       expect(res.status).toBe(403);
-      expect(res.body.error?.code).toBe('ONBOARDING_NOT_COMPLETED');
+      expect(res.body.error?.missing).toContain('onboarding-completed');
     });
 
     it('session + onboarding endpoints stay reachable (whitelisted)', async () => {
@@ -133,6 +133,18 @@ describe('E2E Journey: 3-Stage Gating (verify + onboarding)', () => {
         where: { id: user.userId! },
         data: { hasCompletedOnboarding: true, onboardingCompletedAt: new Date() },
       });
+
+      // Onboarding completion is what grants the `user` role under the
+      // new auth model. The spec's direct DB write skips that, so do
+      // it manually here.
+      const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
+      if (userRole) {
+        await prisma.userRoleAssignment.upsert({
+          where: { userId_roleId: { userId: user.userId!, roleId: userRole.id } },
+          create: { userId: user.userId!, roleId: userRole.id },
+          update: {},
+        });
+      }
 
       const login = await app.request
         .post('/api/auth/login')

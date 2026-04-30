@@ -55,7 +55,10 @@ export class CreateSessionUseCase implements CreateSessionPort {
     // 3. Set cookie (side effect via cookie writer abstraction)
     this.sessionStorage.setSessionCookie(cookieWriter, sessionToken, session.expiresAt);
 
-    // 4. Fetch user data for response
+    // 4. Fetch user data for response. Invalidate the session cache
+    // first so callers that just verified email / completed onboarding
+    // immediately see the fresh state on the next /auth/session call.
+    await this.repository.invalidateSessionCache(userId);
     const userData = await this.repository.findSessionUser(userId);
     if (!userData) {
       throw new SessionUserNotFoundException();

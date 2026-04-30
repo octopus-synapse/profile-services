@@ -8,7 +8,10 @@
 import type { UserAuthContext, UserId } from '../../../domain/entities/user-auth-context.entity';
 import type { AuthorizationCachePort } from '../../../domain/ports/authorization-cache.port';
 
-const DEFAULT_CACHE_TTL_SECONDS = 60; // 1 minute
+// Tests mutate roles/permissions out-of-band (direct Prisma writes) and
+// re-login to refresh state. With a 60s TTL they read stale context.
+// Disable the cache entirely in NODE_ENV=test.
+const DEFAULT_CACHE_TTL_SECONDS = process.env.NODE_ENV === 'test' ? 0 : 60;
 const MAX_CACHE_SIZE = 1000;
 
 interface CacheEntry {
