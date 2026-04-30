@@ -51,7 +51,7 @@ describe('E2E: Onboarding Completion', () => {
       testUser.userId = result.userId;
     });
 
-    it('should show incomplete onboarding status before completion', async () => {
+    it.serial('should show incomplete onboarding status before completion', async () => {
       const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -60,7 +60,7 @@ describe('E2E: Onboarding Completion', () => {
       expect(response.body.data.hasCompletedOnboarding).toBe(false);
     });
 
-    it('should complete onboarding with minimal data', async () => {
+    it.serial('should complete onboarding with minimal data', async () => {
       const onboardingData = createMinimalOnboardingData(`minimal_${Date.now()}`);
 
       const response = await app.request
@@ -73,7 +73,7 @@ describe('E2E: Onboarding Completion', () => {
       expect(response.body.data.resumeId).toBeDefined();
     });
 
-    it('should show completed onboarding status after completion', async () => {
+    it.serial('should show completed onboarding status after completion', async () => {
       const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -82,7 +82,7 @@ describe('E2E: Onboarding Completion', () => {
       expect(response.body.data.hasCompletedOnboarding).toBe(true);
     });
 
-    it('should prevent duplicate onboarding completion', async () => {
+    it.serial('should prevent duplicate onboarding completion', async () => {
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -109,7 +109,7 @@ describe('E2E: Onboarding Completion', () => {
       }
     });
 
-    it('should complete onboarding with full profile data', async () => {
+    it.serial('should complete onboarding with full profile data', async () => {
       const onboardingData = createFullOnboardingData(`full_${Date.now()}`);
 
       const response = await app.request
@@ -124,7 +124,7 @@ describe('E2E: Onboarding Completion', () => {
       createdResumeId = response.body.data.resumeId;
     });
 
-    it('should have created resume with sections', async () => {
+    it.serial('should have created resume with sections', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${createdResumeId}/full`)
         .set('Authorization', `Bearer ${fullUser.token}`);
@@ -139,7 +139,7 @@ describe('E2E: Onboarding Completion', () => {
   });
 
   describe('Authentication Boundary', () => {
-    it('should reject onboarding without authentication', async () => {
+    it.serial('should reject onboarding without authentication', async () => {
       const response = await app.request
         .post('/api/v1/onboarding')
         .send(createMinimalOnboardingData(`noauth_${Date.now()}`));
@@ -147,13 +147,13 @@ describe('E2E: Onboarding Completion', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should reject status check without authentication', async () => {
+    it.serial('should reject status check without authentication', async () => {
       const response = await app.request.get('/api/v1/onboarding/status');
 
       expect(response.status).toBe(401);
     });
 
-    it('should reject with invalid token', async () => {
+    it.serial('should reject with invalid token', async () => {
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', 'Bearer invalid-token')

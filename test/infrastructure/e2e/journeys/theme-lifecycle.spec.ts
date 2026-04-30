@@ -77,7 +77,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
   // ── Step 1: Setup ───────────────────────────────────────────────────
 
   describe('Step 1: Setup', () => {
-    it('should create and authenticate a regular user', async () => {
+    it.serial('should create and authenticate a regular user', async () => {
       testUser = authHelper.createTestUser('resume-style');
       const result = await authHelper.registerAndLogin(testUser);
       testUser.token = result.token;
@@ -87,7 +87,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(testUser.userId).toBeDefined();
     });
 
-    it('should create a resume to apply styles against', async () => {
+    it.serial('should create a resume to apply styles against', async () => {
       const res = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -109,7 +109,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
   // ── Step 2: Browse the catalog ─────────────────────────────────────
 
   describe('Step 2: Browse the catalog', () => {
-    it('should list seeded system styles (paginated envelope)', async () => {
+    it.serial('should list seeded system styles (paginated envelope)', async () => {
       const res = await app.request
         .get('/api/v1/resume-styles?page=1&limit=20')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -131,7 +131,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       firstSystemStyleId = systemStyle.id;
     });
 
-    it('should respect the limit query parameter', async () => {
+    it.serial('should respect the limit query parameter', async () => {
       const res = await app.request
         .get('/api/v1/resume-styles?page=1&limit=1')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -141,7 +141,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(res.body.data.limit).toBe(1);
     });
 
-    it('should fetch a style detail with full config', async () => {
+    it.serial('should fetch a style detail with full config', async () => {
       const res = await app.request
         .get(`/api/v1/resume-styles/${firstSystemStyleId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -157,7 +157,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(typeof style.atsSafetyBreakdown).toBe('object');
     });
 
-    it('should reject unauthenticated catalog reads', async () => {
+    it.serial('should reject unauthenticated catalog reads', async () => {
       const res = await app.request.get('/api/v1/resume-styles');
       expect(res.status).toBe(401);
     });
@@ -166,7 +166,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
   // ── Step 3: Apply a style to a resume ──────────────────────────────
 
   describe('Step 3: Apply a style to a resume', () => {
-    it('should apply a system style to the user-owned resume', async () => {
+    it.serial('should apply a system style to the user-owned resume', async () => {
       const res = await app.request
         .post(`/api/v1/resumes/${resumeId}/style`)
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -183,7 +183,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(updated?.styleId).toBe(firstSystemStyleId);
     });
 
-    it('should reject applying a style to someone else’s resume', async () => {
+    it.serial('should reject applying a style to someone else’s resume', async () => {
       const stranger = authHelper.createTestUser('resume-style-stranger');
       const strangerResult = await authHelper.registerAndLogin(stranger);
 
@@ -206,7 +206,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
   describe('Step 4: Admin CRUD', () => {
     let createdStyleId: string;
 
-    it('should reject regular users on POST /v1/admin/resume-styles', async () => {
+    it.serial('should reject regular users on POST /v1/admin/resume-styles', async () => {
       const res = await app.request
         .post('/api/v1/admin/resume-styles')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -221,7 +221,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should let admin create a non-system style', async () => {
+    it.serial('should let admin create a non-system style', async () => {
       const suffix = Date.now();
       const res = await app.request
         .post('/api/v1/admin/resume-styles')
@@ -244,7 +244,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       customStyleIds.push(createdStyleId);
     });
 
-    it('should let admin update the non-system style', async () => {
+    it.serial('should let admin update the non-system style', async () => {
       const res = await app.request
         .patch(`/api/v1/admin/resume-styles/${createdStyleId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -254,7 +254,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect(res.body.data.description).toBe('Updated by lifecycle journey');
     });
 
-    it('should refuse to update a system style', async () => {
+    it.serial('should refuse to update a system style', async () => {
       const res = await app.request
         .patch(`/api/v1/admin/resume-styles/${firstSystemStyleId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -265,7 +265,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       expect([400, 403, 409, 422]).toContain(res.status);
     });
 
-    it('should let admin delete the non-system style', async () => {
+    it.serial('should let admin delete the non-system style', async () => {
       const res = await app.request
         .delete(`/api/v1/admin/resume-styles/${createdStyleId}`)
         .set('Authorization', `Bearer ${adminToken}`);
@@ -279,7 +279,7 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
       customStyleIds.splice(customStyleIds.indexOf(createdStyleId), 1);
     });
 
-    it('should refuse to delete a system style', async () => {
+    it.serial('should refuse to delete a system style', async () => {
       const res = await app.request
         .delete(`/api/v1/admin/resume-styles/${firstSystemStyleId}`)
         .set('Authorization', `Bearer ${adminToken}`);

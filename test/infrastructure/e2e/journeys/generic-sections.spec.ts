@@ -98,7 +98,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Setup: Create Test Users and Resumes', () => {
-    it('should create and authenticate user A with resume', async () => {
+    it.serial('should create and authenticate user A with resume', async () => {
       userA = authHelper.createTestUser('gen-sections-a');
 
       // Register and login
@@ -122,7 +122,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       userAResumeId = resumeResponse.body.data.id;
     });
 
-    it('should create and authenticate user B with resume', async () => {
+    it.serial('should create and authenticate user B with resume', async () => {
       userB = authHelper.createTestUser('gen-sections-b');
 
       // Register and login
@@ -148,7 +148,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Section Types Discovery', () => {
-    it('should list all active section types including custom', async () => {
+    it.serial('should list all active section types including custom', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections/types`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -166,7 +166,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(customType.isActive).toBe(true);
     });
 
-    it('should include required structure for each section type', async () => {
+    it.serial('should include required structure for each section type', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections/types`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -183,7 +183,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       }
     });
 
-    it('should require authentication to list section types', async () => {
+    it.serial('should require authentication to list section types', async () => {
       const response = await app.request.get(`/api/v1/resumes/${userAResumeId}/sections/types`);
 
       expect(response.status).toBe(401);
@@ -191,7 +191,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('List Resume Sections', () => {
-    it('should list sections for a resume (initially empty)', async () => {
+    it.serial('should list sections for a resume (initially empty)', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -201,13 +201,13 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(Array.isArray(response.body.data.sections)).toBe(true);
     });
 
-    it('should require authentication to list sections', async () => {
+    it.serial('should require authentication to list sections', async () => {
       const response = await app.request.get(`/api/v1/resumes/${userAResumeId}/sections`);
 
       expect(response.status).toBe(401);
     });
 
-    it('should prevent user B from listing user A sections', async () => {
+    it.serial('should prevent user B from listing user A sections', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set('Authorization', `Bearer ${userB.token}`);
@@ -217,7 +217,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Create Section Items', () => {
-    it('should create a section item', async () => {
+    it.serial('should create a section item', async () => {
       const payload = {
         content: { title: 'First Item Title', description: 'First item description' },
       };
@@ -236,7 +236,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       itemId = response.body.data.item.id;
     });
 
-    it('should create multiple items in the same section', async () => {
+    it.serial('should create multiple items in the same section', async () => {
       const payload = {
         content: { title: 'Second Item Title', description: 'Second item description' },
       };
@@ -253,7 +253,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       secondItemId = response.body.data.item.id;
     });
 
-    it('should require authentication to create items', async () => {
+    it.serial('should require authentication to create items', async () => {
       const payload = {
         content: { title: 'Unauthorized Item' },
       };
@@ -265,7 +265,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should prevent user B from creating items in user A resume', async () => {
+    it.serial('should prevent user B from creating items in user A resume', async () => {
       const payload = {
         content: { title: 'Cross User Item' },
       };
@@ -278,7 +278,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect([403, 404]).toContain(response.status);
     });
 
-    it('should reject invalid section type key', async () => {
+    it.serial('should reject invalid section type key', async () => {
       const payload = {
         content: { title: 'Test' },
       };
@@ -291,7 +291,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect([400, 404]).toContain(response.status);
     });
 
-    it('should reject content missing required field', async () => {
+    it.serial('should reject content missing required field', async () => {
       const payload = {
         content: { description: 'Missing title field' },
       };
@@ -306,7 +306,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Verify Created Items in Section List', () => {
-    it('should list created items when getting resume sections', async () => {
+    it.serial('should list created items when getting resume sections', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -334,7 +334,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Update Section Items', () => {
-    it('should update a section item', async () => {
+    it.serial('should update a section item', async () => {
       const payload = {
         content: { title: 'Updated Item Title', description: 'Updated description' },
       };
@@ -350,7 +350,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.body.data.item.content.description).toBe('Updated description');
     });
 
-    it('should require authentication to update items', async () => {
+    it.serial('should require authentication to update items', async () => {
       const payload = {
         content: { title: 'Unauthorized Update' },
       };
@@ -362,7 +362,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should prevent user B from updating user A items', async () => {
+    it.serial('should prevent user B from updating user A items', async () => {
       const payload = {
         content: { title: 'Cross User Update' },
       };
@@ -375,7 +375,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect([403, 404]).toContain(response.status);
     });
 
-    it('should return error for non-existent item ID', async () => {
+    it.serial('should return error for non-existent item ID', async () => {
       const payload = {
         content: { title: 'Ghost Item' },
       };
@@ -392,7 +392,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Delete Section Items', () => {
-    it('should delete a section item', async () => {
+    it.serial('should delete a section item', async () => {
       const response = await app.request
         .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${secondItemId}`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -401,7 +401,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should verify item is deleted from sections list', async () => {
+    it.serial('should verify item is deleted from sections list', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set('Authorization', `Bearer ${userA.token}`);
@@ -417,7 +417,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       }
     });
 
-    it('should require authentication to delete items', async () => {
+    it.serial('should require authentication to delete items', async () => {
       const response = await app.request.delete(
         `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
       );
@@ -425,7 +425,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should prevent user B from deleting user A items', async () => {
+    it.serial('should prevent user B from deleting user A items', async () => {
       const response = await app.request
         .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userB.token}`);
@@ -433,7 +433,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect([403, 404]).toContain(response.status);
     });
 
-    it('should return error for non-existent item ID', async () => {
+    it.serial('should return error for non-existent item ID', async () => {
       const response = await app.request
         .delete(
           `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/clxxxxxxxxxxxxxxxxxxx`,
@@ -445,7 +445,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('User B Section Operations (Isolation)', () => {
-    it('should allow user B to create items in their own resume', async () => {
+    it.serial('should allow user B to create items in their own resume', async () => {
       const payload = {
         content: { title: 'User B Item', description: 'User B description' },
       };
@@ -460,7 +460,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(response.body.data.item.content.title).toBe('User B Item');
     });
 
-    it('should not show user A items in user B section list', async () => {
+    it.serial('should not show user A items in user B section list', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${userBResumeId}/sections`)
         .set('Authorization', `Bearer ${userB.token}`);
@@ -488,7 +488,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   });
 
   describe('Cleanup: Delete Remaining Items', () => {
-    it('should delete remaining item from user A', async () => {
+    it.serial('should delete remaining item from user A', async () => {
       const response = await app.request
         .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userA.token}`);

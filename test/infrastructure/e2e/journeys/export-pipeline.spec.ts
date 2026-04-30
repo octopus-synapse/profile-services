@@ -48,7 +48,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
   });
 
   describe('Step 1: Setup', () => {
-    it('should create user with full profile for meaningful exports', async () => {
+    it.serial('should create user with full profile for meaningful exports', async () => {
       testUser = authHelper.createTestUser('export');
       const result = await authHelper.registerAndLogin(testUser, { skipOnboarding: true });
       testUser.token = result.token;
@@ -69,35 +69,39 @@ describe('E2E Journey 5: Export Pipeline', () => {
   });
 
   describe('Step 2: DOCX Export', () => {
-    it('should export resume as DOCX with correct headers', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/docx')
-        .set('Authorization', `Bearer ${testUser.token}`);
+    it.serial(
+      'should export resume as DOCX with correct headers',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/docx')
+          .set('Authorization', `Bearer ${testUser.token}`);
 
-      expect(response.status).toBe(200);
+        expect(response.status).toBe(200);
 
-      // Validate Content-Type header (NestJS may append charset=utf-8 in CI).
-      expect(response.headers.get('content-type')).toContain(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      );
+        // Validate Content-Type header (NestJS may append charset=utf-8 in CI).
+        expect(response.headers.get('content-type')).toContain(
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        );
 
-      // Validate Content-Disposition header (attachment)
-      expect(response.headers.get('content-disposition')).toBeDefined();
-      expect(response.headers.get('content-disposition')).toContain('resume.docx');
+        // Validate Content-Disposition header (attachment)
+        expect(response.headers.get('content-disposition')).toBeDefined();
+        expect(response.headers.get('content-disposition')).toContain('resume.docx');
 
-      // Validate binary payload (supertest may expose as Buffer or raw text/body)
-      const contentLength = Number(response.headers.get('content-length') ?? 0);
-      const isBuffer = Buffer.isBuffer(response.body);
-      const bodyLength = isBuffer
-        ? response.body.length
-        : typeof response.text === 'string'
-          ? response.text.length
-          : 0;
+        // Validate binary payload (supertest may expose as Buffer or raw text/body)
+        const contentLength = Number(response.headers.get('content-length') ?? 0);
+        const isBuffer = Buffer.isBuffer(response.body);
+        const bodyLength = isBuffer
+          ? response.body.length
+          : typeof response.text === 'string'
+            ? response.text.length
+            : 0;
 
-      expect(isBuffer || contentLength > 1000 || bodyLength > 1000).toBe(true);
-    }, 30000); // 30s timeout (DOCX is faster than PDF)
+        expect(isBuffer || contentLength > 1000 || bodyLength > 1000).toBe(true);
+      },
+      30000,
+    ); // 30s timeout (DOCX is faster than PDF)
 
-    it('should require authentication for DOCX export', async () => {
+    it.serial('should require authentication for DOCX export', async () => {
       const response = await app.request.get('/api/v1/export/resume/docx');
 
       expect(response.status).toBe(401);
@@ -105,164 +109,196 @@ describe('E2E Journey 5: Export Pipeline', () => {
   });
 
   describe('Step 3: Banner Export', () => {
-    it('should export LinkedIn banner as PNG', async () => {
-      const response = await app.request
-        .get('/api/v1/export/banner')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .query({ palette: 'default' });
+    it.serial(
+      'should export LinkedIn banner as PNG',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/banner')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .query({ palette: 'default' });
 
-      // Banner generation depends on local Chrome/Puppeteer availability
-      expect([200, 500]).toContain(response.status);
+        // Banner generation depends on local Chrome/Puppeteer availability
+        expect([200, 500]).toContain(response.status);
 
-      if (response.status === 200) {
-        // Validate Content-Type header
-        expect(response.headers.get('content-type')).toBe('image/png');
+        if (response.status === 200) {
+          // Validate Content-Type header
+          expect(response.headers.get('content-type')).toBe('image/png');
 
-        // Validate Content-Disposition header
-        expect(response.headers.get('content-disposition')).toBeDefined();
-        expect(response.headers.get('content-disposition')).toContain('linkedin-banner.png');
+          // Validate Content-Disposition header
+          expect(response.headers.get('content-disposition')).toBeDefined();
+          expect(response.headers.get('content-disposition')).toContain('linkedin-banner.png');
 
-        // Validate response is Buffer
-        expect(Buffer.isBuffer(response.body)).toBe(true);
+          // Validate response is Buffer
+          expect(Buffer.isBuffer(response.body)).toBe(true);
 
-        // Validate reasonable file size (PNG should be > 5KB)
-        expect(response.body.length).toBeGreaterThan(5000);
-      }
-    }, 60000); // 60s timeout (Puppeteer can be slow)
+          // Validate reasonable file size (PNG should be > 5KB)
+          expect(response.body.length).toBeGreaterThan(5000);
+        }
+      },
+      60000,
+    ); // 60s timeout (Puppeteer can be slow)
 
-    it('should handle custom logo in banner', async () => {
-      const response = await app.request
-        .get('/api/v1/export/banner')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .query({ palette: 'default', logo: 'https://example.com/logo.png' });
+    it.serial(
+      'should handle custom logo in banner',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/banner')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .query({ palette: 'default', logo: 'https://example.com/logo.png' });
 
-      // Should succeed or gracefully handle invalid logo
-      expect([200, 500]).toContain(response.status);
-    }, 60000);
+        // Should succeed or gracefully handle invalid logo
+        expect([200, 500]).toContain(response.status);
+      },
+      60000,
+    );
   });
 
   describe('Step 4: PDF Export', () => {
-    it('should export resume as PDF', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${testUser.token}`);
+    it.serial(
+      'should export resume as PDF',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${testUser.token}`);
 
-      // PDF generation may timeout or fail in test environment
-      // Accept both success and graceful failure
-      expect([200, 500]).toContain(response.status);
+        // PDF generation may timeout or fail in test environment
+        // Accept both success and graceful failure
+        expect([200, 500]).toContain(response.status);
 
-      if (response.status === 200) {
-        // Validate Content-Type header
-        expect(response.headers.get('content-type')).toBe('application/pdf');
+        if (response.status === 200) {
+          // Validate Content-Type header
+          expect(response.headers.get('content-type')).toBe('application/pdf');
 
-        // Validate Content-Disposition header
-        expect(response.headers.get('content-disposition')).toBeDefined();
-        expect(response.headers.get('content-disposition')).toContain('resume.pdf');
+          // Validate Content-Disposition header
+          expect(response.headers.get('content-disposition')).toBeDefined();
+          expect(response.headers.get('content-disposition')).toContain('resume.pdf');
 
-        // Validate response is Buffer
-        expect(Buffer.isBuffer(response.body)).toBe(true);
+          // Validate response is Buffer
+          expect(Buffer.isBuffer(response.body)).toBe(true);
 
-        // Validate reasonable file size (PDF should be > 5KB)
-        expect(response.body.length).toBeGreaterThan(5000);
-      } else {
-        // Puppeteer may not be available or timeout
-        console.warn('⚠️  PDF export failed (Puppeteer unavailable?)');
-      }
-    }, 60000); // 60s timeout (PDF generation is slow)
+          // Validate reasonable file size (PDF should be > 5KB)
+          expect(response.body.length).toBeGreaterThan(5000);
+        } else {
+          // Puppeteer may not be available or timeout
+          console.warn('⚠️  PDF export failed (Puppeteer unavailable?)');
+        }
+      },
+      60000,
+    ); // 60s timeout (PDF generation is slow)
   });
 
   describe('Step 5: PDF with Query Parameters', () => {
-    it('should export PDF with custom palette', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .query({ palette: 'default' });
+    it.serial(
+      'should export PDF with custom palette',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .query({ palette: 'default' });
 
-      expect([200, 500]).toContain(response.status);
+        expect([200, 500]).toContain(response.status);
 
-      if (response.status === 200) {
-        expect(response.headers.get('content-type')).toBe('application/pdf');
-        expect(Buffer.isBuffer(response.body)).toBe(true);
-      }
-    }, 60000);
+        if (response.status === 200) {
+          expect(response.headers.get('content-type')).toBe('application/pdf');
+          expect(Buffer.isBuffer(response.body)).toBe(true);
+        }
+      },
+      60000,
+    );
 
-    it('should export PDF with language parameter', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .query({ lang: 'en' });
+    it.serial(
+      'should export PDF with language parameter',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .query({ lang: 'en' });
 
-      expect([200, 500]).toContain(response.status);
+        expect([200, 500]).toContain(response.status);
 
-      if (response.status === 200) {
-        expect(response.headers.get('content-type')).toBe('application/pdf');
-        expect(Buffer.isBuffer(response.body)).toBe(true);
-      }
-    }, 60000);
+        if (response.status === 200) {
+          expect(response.headers.get('content-type')).toBe('application/pdf');
+          expect(Buffer.isBuffer(response.body)).toBe(true);
+        }
+      },
+      60000,
+    );
 
-    it('should export PDF with custom banner color', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .query({ palette: 'default', lang: 'en', bannerColor: '#0066cc' });
+    it.serial(
+      'should export PDF with custom banner color',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .query({ palette: 'default', lang: 'en', bannerColor: '#0066cc' });
 
-      expect([200, 500]).toContain(response.status);
+        expect([200, 500]).toContain(response.status);
 
-      if (response.status === 200) {
-        expect(response.headers.get('content-type')).toBe('application/pdf');
-        expect(Buffer.isBuffer(response.body)).toBe(true);
-      }
-    }, 60000);
+        if (response.status === 200) {
+          expect(response.headers.get('content-type')).toBe('application/pdf');
+          expect(Buffer.isBuffer(response.body)).toBe(true);
+        }
+      },
+      60000,
+    );
   });
 
   describe('Step 6: Error Cases', () => {
-    it('should require authentication for PDF export', async () => {
+    it.serial('should require authentication for PDF export', async () => {
       const response = await app.request.get('/api/v1/export/resume/pdf');
 
       expect(response.status).toBe(401);
     });
 
-    it('should require authentication for banner export', async () => {
+    it.serial('should require authentication for banner export', async () => {
       const response = await app.request.get('/api/v1/export/banner');
 
       expect(response.status).toBe(401);
     });
 
-    it('should handle invalid palette gracefully', async () => {
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .set('x-e2e-bypass-rate-limit', 'true')
-        .query({ palette: 'nonexistent-palette' });
+    it.serial(
+      'should handle invalid palette gracefully',
+      async () => {
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${testUser.token}`)
+          .set('x-e2e-bypass-rate-limit', 'true')
+          .query({ palette: 'nonexistent-palette' });
 
-      // Should either succeed with default palette or return client error
-      expect([200, 400, 500]).toContain(response.status);
-    }, 60000);
+        // Should either succeed with default palette or return client error
+        expect([200, 400, 500]).toContain(response.status);
+      },
+      60000,
+    );
 
-    it('should handle missing resume data gracefully', async () => {
-      // Create new user with minimal profile (no resume content)
-      const minimalUser = authHelper.createTestUser('minimal-export');
-      const minimalResult = await authHelper.registerAndLogin(minimalUser, {
-        skipOnboarding: true,
-      });
+    it.serial(
+      'should handle missing resume data gracefully',
+      async () => {
+        // Create new user with minimal profile (no resume content)
+        const minimalUser = authHelper.createTestUser('minimal-export');
+        const minimalResult = await authHelper.registerAndLogin(minimalUser, {
+          skipOnboarding: true,
+        });
 
-      const response = await app.request
-        .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${minimalResult.token}`)
-        .set('x-e2e-bypass-rate-limit', 'true');
+        const response = await app.request
+          .get('/api/v1/export/resume/pdf')
+          .set('Authorization', `Bearer ${minimalResult.token}`)
+          .set('x-e2e-bypass-rate-limit', 'true');
 
-      // Should either succeed with empty resume or return client error.
-      // 403 is also acceptable because the user has skipped onboarding
-      // and therefore lacks the `user` role's resume:export permission.
-      expect([200, 400, 403, 500]).toContain(response.status);
+        // Should either succeed with empty resume or return client error.
+        // 403 is also acceptable because the user has skipped onboarding
+        // and therefore lacks the `user` role's resume:export permission.
+        expect([200, 400, 403, 500]).toContain(response.status);
 
-      // Cleanup minimal user
-      await cleanupHelper.deleteUserByEmail(minimalUser.email);
-    }, 60000);
+        // Cleanup minimal user
+        await cleanupHelper.deleteUserByEmail(minimalUser.email);
+      },
+      60000,
+    );
   });
 
   describe('Performance Note', () => {
-    it('should complete all exports within target time', () => {
+    it.serial('should complete all exports within target time', () => {
       // This is informational - actual timing depends on Puppeteer
       // DOCX: ~1-3s
       // Banner: ~2-10s (Puppeteer)

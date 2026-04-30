@@ -390,7 +390,12 @@ log_step "Running E2E tests..."
 echo ""
 
 # Build test command
-TEST_CMD="bun test --config=bunfig.e2e.toml"
+# `--concurrent` runs tests within each file in parallel (bun 1.3+).
+# `--max-concurrency` caps in-flight tests to avoid DB pool exhaustion
+# (Prisma default pool is small; the app + autocannon-style suites
+# starve it past ~10 concurrent queries). Tests that share mutable
+# state must mark themselves with `test.serial` / `describe.serial`.
+TEST_CMD="bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8"
 if [[ -n "$FILTER" ]]; then
     TEST_CMD="$TEST_CMD --test-name-pattern '$FILTER'"
 fi

@@ -59,7 +59,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 1: Create User and Resume', () => {
-    it('should create user, complete onboarding, and get resume', async () => {
+    it.serial('should create user, complete onboarding, and get resume', async () => {
       testUser = authHelper.createTestUser('analytics-pipeline');
       const onboardingData = createFullOnboardingData('analytics_pipe');
 
@@ -103,7 +103,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 2: Take Initial Snapshot', () => {
-    it('should take initial analytics snapshot', async () => {
+    it.serial('should take initial analytics snapshot', async () => {
       const response = await app.request
         .post(`/api/resume-analytics/${resumeId}/snapshot`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -120,7 +120,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 3: Track Several Views', () => {
-    it('should track view from different sources', async () => {
+    it.serial('should track view from different sources', async () => {
       const viewSources = [
         {
           userAgent: 'Mozilla/5.0 (LinkedIn Bot)',
@@ -150,7 +150,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       }
     });
 
-    it('should track view without authentication (public endpoint)', async () => {
+    it.serial('should track view without authentication (public endpoint)', async () => {
       const response = await app.request
         .post(`/api/resume-analytics/${resumeId}/track-view`)
         .send({});
@@ -160,7 +160,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 4: Get Dashboard', () => {
-    it('should return dashboard with analytics data', async () => {
+    it.serial('should return dashboard with analytics data', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/dashboard`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -174,7 +174,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       expect(dashboard).toBeDefined();
     });
 
-    it('should require authentication for dashboard', async () => {
+    it.serial('should require authentication for dashboard', async () => {
       const response = await app.request.get(`/api/resume-analytics/${resumeId}/dashboard`);
 
       expect(response.status).toBe(401);
@@ -182,7 +182,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 5: Check ATS Score', () => {
-    it('should calculate and return ATS score', async () => {
+    it.serial('should calculate and return ATS score', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/ats-score`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -207,7 +207,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 6: Take Another Snapshot', () => {
-    it('should take a second snapshot', async () => {
+    it.serial('should take a second snapshot', async () => {
       const response = await app.request
         .post(`/api/resume-analytics/${resumeId}/snapshot`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -219,7 +219,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 7: Verify Score Progression', () => {
-    it('should show progression with both snapshots', async () => {
+    it.serial('should show progression with both snapshots', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/progression`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -244,7 +244,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 8: View History', () => {
-    it('should show all snapshots in history', async () => {
+    it.serial('should show all snapshots in history', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/history`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -268,7 +268,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       }
     });
 
-    it('should support limit parameter in history', async () => {
+    it.serial('should support limit parameter in history', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/history`)
         .query({ limit: 1 })
@@ -281,7 +281,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 9: View Stats', () => {
-    it('should return view statistics', async () => {
+    it.serial('should return view statistics', async () => {
       const response = await app.request
         .get(`/api/resume-analytics/${resumeId}/views`)
         .query({ period: 'month' })
@@ -294,7 +294,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
   });
 
   describe('Step 10: Error Boundaries', () => {
-    it('should return 404 for non-existent resume analytics', async () => {
+    it.serial('should return 404 for non-existent resume analytics', async () => {
       const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
 
       const response = await app.request
@@ -304,7 +304,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       expect(response.status).toBe(404);
     });
 
-    it('should prevent cross-user analytics access', async () => {
+    it.serial('should prevent cross-user analytics access', async () => {
       // Create another user
       const otherUser = authHelper.createTestUser('analytics-other');
       const otherResult = await authHelper.registerAndLogin(otherUser, { skipOnboarding: true });

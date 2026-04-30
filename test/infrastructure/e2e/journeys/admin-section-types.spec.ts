@@ -81,7 +81,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 1: Verify Seeded Section Types ────────────────────────────
 
   describe('Step 1: Seeded section types', () => {
-    it('should list seeded section types', async () => {
+    it.serial('should list seeded section types', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -111,7 +111,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       }
     });
 
-    it('should get work_experience_v1 with full details', async () => {
+    it.serial('should get work_experience_v1 with full details', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -128,7 +128,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 2: Semantic Kinds ─────────────────────────────────────────
 
   describe('Step 2: Semantic kinds', () => {
-    it('should return all unique semantic kinds', async () => {
+    it.serial('should return all unique semantic kinds', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types/semantic-kinds')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -145,11 +145,11 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 3: Auth Boundaries ────────────────────────────────────────
 
   describe('Step 3: Auth boundaries', () => {
-    it('should reject unauthenticated list request', async () => {
+    it.serial('should reject unauthenticated list request', async () => {
       await app.request.get('/api/v1/admin/section-types').expect(401);
     });
 
-    it('should reject regular user listing (403)', async () => {
+    it.serial('should reject regular user listing (403)', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${regularUser.token}`);
@@ -157,7 +157,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should reject regular user create (403)', async () => {
+    it.serial('should reject regular user create (403)', async () => {
       // Send a payload that satisfies the create schema (all 3
       // SUPPORTED_LOCALES required) so Zod validation doesn't 400
       // before the auth/permission stage runs.
@@ -187,7 +187,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should reject regular user update (403)', async () => {
+    it.serial('should reject regular user update (403)', async () => {
       const res = await app.request
         .patch('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${regularUser.token}`)
@@ -196,7 +196,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should reject regular user delete (403)', async () => {
+    it.serial('should reject regular user delete (403)', async () => {
       const res = await app.request
         .delete('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${regularUser.token}`);
@@ -208,7 +208,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 4: Create Custom Section Type ─────────────────────────────
 
   describe('Step 4: Create custom section type', () => {
-    it('should create a new section type with i18n', async () => {
+    it.serial('should create a new section type with i18n', async () => {
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -266,7 +266,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.body.data.translations['pt-BR'].title).toBe('Secao de Teste de Jornada');
     });
 
-    it('should reject duplicate key', async () => {
+    it.serial('should reject duplicate key', async () => {
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -286,7 +286,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(409);
     });
 
-    it('should reject invalid key format', async () => {
+    it.serial('should reject invalid key format', async () => {
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -301,7 +301,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should verify created type appears in listing', async () => {
+    it.serial('should verify created type appears in listing', async () => {
       const res = await app.request
         .get(`/api/v1/admin/section-types/${testKey}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -315,7 +315,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 5: Update Section Type ────────────────────────────────────
 
   describe('Step 5: Update section type', () => {
-    it('should update custom section type title and icon', async () => {
+    it.serial('should update custom section type title and icon', async () => {
       const res = await app.request
         .patch(`/api/v1/admin/section-types/${testKey}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -339,7 +339,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.body.data.translations.en.title).toBe('Updated Test');
     });
 
-    it('should reject definition changes on system types', async () => {
+    it.serial('should reject definition changes on system types', async () => {
       const res = await app.request
         .patch('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -348,7 +348,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should allow icon update on system types', async () => {
+    it.serial('should allow icon update on system types', async () => {
       const res = await app.request
         .patch('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -358,7 +358,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.body.data.icon).toBe('💼');
     });
 
-    it('should return 404 for nonexistent key', async () => {
+    it.serial('should return 404 for nonexistent key', async () => {
       await app.request
         .patch('/api/v1/admin/section-types/totally_missing_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -370,7 +370,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 6: Search and Filter ──────────────────────────────────────
 
   describe('Step 6: Search and filter', () => {
-    it('should search section types by name', async () => {
+    it.serial('should search section types by name', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types?search=journey')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -385,7 +385,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       }
     });
 
-    it('should filter by isActive', async () => {
+    it.serial('should filter by isActive', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types?isActive=true')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -396,7 +396,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       }
     });
 
-    it('should paginate results', async () => {
+    it.serial('should paginate results', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types?page=1&pageSize=2')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -412,7 +412,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 7: Delete and Verify ──────────────────────────────────────
 
   describe('Step 7: Delete section type', () => {
-    it('should create another section type for deletion', async () => {
+    it.serial('should create another section type for deletion', async () => {
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -432,7 +432,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(201);
     });
 
-    it('should reject deletion of system types', async () => {
+    it.serial('should reject deletion of system types', async () => {
       const res = await app.request
         .delete('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -440,28 +440,28 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should delete custom section type', async () => {
+    it.serial('should delete custom section type', async () => {
       await app.request
         .delete(`/api/v1/admin/section-types/${testKey2}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(204);
     });
 
-    it('should return 404 for deleted section type', async () => {
+    it.serial('should return 404 for deleted section type', async () => {
       await app.request
         .get(`/api/v1/admin/section-types/${testKey2}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
 
-    it('should return 404 when deleting nonexistent key', async () => {
+    it.serial('should return 404 when deleting nonexistent key', async () => {
       await app.request
         .delete('/api/v1/admin/section-types/ghost_key_v1')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
 
-    it('should delete the first custom section type (cleanup)', async () => {
+    it.serial('should delete the first custom section type (cleanup)', async () => {
       await app.request
         .delete(`/api/v1/admin/section-types/${testKey}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -478,7 +478,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
   // ── Step 8: Edge Cases ─────────────────────────────────────────────
 
   describe('Step 8: Edge cases', () => {
-    it('should handle empty search gracefully', async () => {
+    it.serial('should handle empty search gracefully', async () => {
       const res = await app.request
         .get('/api/v1/admin/section-types?search=')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -488,7 +488,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
       expect(res.body.data.items.length).toBeGreaterThan(0);
     });
 
-    it('should handle missing required fields on create', async () => {
+    it.serial('should handle missing required fields on create', async () => {
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)

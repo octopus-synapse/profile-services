@@ -80,7 +80,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Required Fields Validation', () => {
-    it('should reject empty request body', async () => {
+    it.serial('should reject empty request body', async () => {
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -89,7 +89,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject missing username', async () => {
+    it.serial('should reject missing username', async () => {
       const payload = createValidBasePayload('missing_username');
       const { username: _username, ...payloadWithoutUsername } = payload;
 
@@ -101,7 +101,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject missing personalInfo', async () => {
+    it.serial('should reject missing personalInfo', async () => {
       const payload = createValidBasePayload('missing_personal');
       const { personalInfo: _personalInfo, ...payloadWithoutPersonal } = payload;
 
@@ -113,7 +113,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject missing templateSelection', async () => {
+    it.serial('should reject missing templateSelection', async () => {
       const payload = createValidBasePayload('missing_template');
       const { templateSelection: _template, ...payloadWithoutTemplate } = payload;
 
@@ -127,7 +127,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Username Validation', () => {
-    it('should reject username with special characters', async () => {
+    it.serial('should reject username with special characters', async () => {
       const payload = createValidBasePayload('special_chars');
       payload.username = 'user@name!';
 
@@ -139,7 +139,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject username with hyphens', async () => {
+    it.serial('should reject username with hyphens', async () => {
       const payload = createValidBasePayload('hyphen_test');
       payload.username = 'user-name-test';
 
@@ -151,7 +151,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject username that is too short', async () => {
+    it.serial('should reject username that is too short', async () => {
       const payload = createValidBasePayload('short_username');
       payload.username = 'ab';
 
@@ -165,7 +165,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Personal Info Validation', () => {
-    it('should reject invalid email format', async () => {
+    it.serial('should reject invalid email format', async () => {
       const payload = createValidBasePayload('invalid_email');
       payload.personalInfo.email = 'not-an-email';
 
@@ -177,7 +177,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject empty fullName', async () => {
+    it.serial('should reject empty fullName', async () => {
       const payload = createValidBasePayload('empty_name');
       payload.personalInfo.fullName = '';
 
@@ -191,7 +191,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Languages Validation', () => {
-    it('should reject invalid language level', async () => {
+    it.serial('should reject invalid language level', async () => {
       const payload = createValidBasePayload('invalid_lang_level');
       payload.languages = [{ name: 'English', level: 'INVALID_LEVEL' as never }];
 
@@ -203,7 +203,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject empty language name', async () => {
+    it.serial('should reject empty language name', async () => {
       const payload = createValidBasePayload('empty_lang_name');
       payload.languages = [{ name: '', level: 'FLUENT' }];
 
@@ -217,7 +217,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Template Selection Validation', () => {
-    it('should reject empty template', async () => {
+    it.serial('should reject empty template', async () => {
       const payload = createValidBasePayload('empty_template');
       payload.templateSelection = { template: '', palette: 'default' };
 
@@ -229,7 +229,7 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should reject empty palette', async () => {
+    it.serial('should reject empty palette', async () => {
       const payload = createValidBasePayload('empty_palette');
       payload.templateSelection = { template: 'modern', palette: '' };
 
@@ -243,7 +243,7 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Content-Type Handling', () => {
-    it('should reject non-JSON content type', async () => {
+    it.serial('should reject non-JSON content type', async () => {
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)

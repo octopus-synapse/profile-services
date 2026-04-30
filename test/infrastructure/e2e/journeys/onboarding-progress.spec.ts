@@ -61,7 +61,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       },
     };
 
-    it('should save onboarding progress', async () => {
+    it.serial('should save onboarding progress', async () => {
       const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -71,7 +71,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should retrieve saved progress', async () => {
+    it.serial('should retrieve saved progress', async () => {
       const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -82,7 +82,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       expect(response.body.data.personalInfo).toBeDefined();
     });
 
-    it('should update existing progress', async () => {
+    it.serial('should update existing progress', async () => {
       const updatedProgress = {
         currentStep: 'professional-profile',
         completedSteps: ['welcome', 'personal-info'],
@@ -112,7 +112,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
   });
 
   describe('Progress Without Authentication', () => {
-    it('should reject progress save without token', async () => {
+    it.serial('should reject progress save without token', async () => {
       // Body must satisfy OnboardingProgressSchema so Zod validation
       // doesn't 400 the request before the auth stage runs.
       const response = await app.request.put('/api/v1/onboarding/progress').send({
@@ -123,7 +123,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       expect(response.status).toBe(401);
     });
 
-    it('should reject progress retrieval without token', async () => {
+    it.serial('should reject progress retrieval without token', async () => {
       const response = await app.request.get('/api/v1/onboarding/progress');
 
       expect(response.status).toBe(401);
@@ -131,7 +131,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
   });
 
   describe('Progress Isolation', () => {
-    it('should isolate progress between users', async () => {
+    it.serial('should isolate progress between users', async () => {
       // Create second user
       const secondUser = authHelper.createTestUser('progress-isolation');
       const result = await authHelper.registerAndLogin(secondUser, { skipOnboarding: true });
@@ -176,7 +176,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       }
     });
 
-    it('should save progress then complete onboarding', async () => {
+    it.serial('should save progress then complete onboarding', async () => {
       // First, save partial progress
       await app.request
         .put('/api/v1/onboarding/progress')

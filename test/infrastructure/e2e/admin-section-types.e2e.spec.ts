@@ -66,13 +66,13 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Authentication & Authorization ──────────────────────────────────
 
   describe('Auth Boundaries', () => {
-    it('should reject unauthenticated requests', async () => {
+    it.serial('should reject unauthenticated requests', async () => {
       const response = await app.request.get('/api/v1/admin/section-types');
 
       expect(response.status).toBe(401);
     });
 
-    it('should reject non-admin users', async () => {
+    it.serial('should reject non-admin users', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${regularUser.token}`);
@@ -84,7 +84,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── List Section Types ──────────────────────────────────────────────
 
   describe('GET /api/v1/admin/section-types', () => {
-    it('should return paginated list of seeded section types', async () => {
+    it.serial('should return paginated list of seeded section types', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -96,7 +96,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(typeof response.body.data.totalPages).toBe('number');
     });
 
-    it('should respect pageSize parameter', async () => {
+    it.serial('should respect pageSize parameter', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types?page=1&pageSize=3')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -106,7 +106,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.body.data.pageSize).toBe(3);
     });
 
-    it('should filter by search term', async () => {
+    it.serial('should filter by search term', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types?search=work')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -122,7 +122,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       }
     });
 
-    it('should filter by isActive', async () => {
+    it.serial('should filter by isActive', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types?isActive=true')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -134,7 +134,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       }
     });
 
-    it('should filter by semanticKind', async () => {
+    it.serial('should filter by semanticKind', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types?semanticKind=WORK_EXPERIENCE')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -150,7 +150,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Semantic Kinds ──────────────────────────────────────────────────
 
   describe('GET /api/v1/admin/section-types/semantic-kinds', () => {
-    it('should return list of unique semantic kinds', async () => {
+    it.serial('should return list of unique semantic kinds', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types/semantic-kinds')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -165,7 +165,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Get by Key ──────────────────────────────────────────────────────
 
   describe('GET /api/v1/admin/section-types/:key', () => {
-    it('should return section type with translations and icon', async () => {
+    it.serial('should return section type with translations and icon', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -179,7 +179,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(typeof response.body.data.translations).toBe('object');
     });
 
-    it('should return 404 for nonexistent key', async () => {
+    it.serial('should return 404 for nonexistent key', async () => {
       const response = await app.request
         .get('/api/v1/admin/section-types/nonexistent_v1')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -191,7 +191,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Create ──────────────────────────────────────────────────────────
 
   describe('POST /api/v1/admin/section-types', () => {
-    it('should create a custom section type with i18n', async () => {
+    it.serial('should create a custom section type with i18n', async () => {
       const payload = {
         key: testSectionKey,
         slug: 'e2e-test-section',
@@ -247,7 +247,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.body.data.translations['pt-BR'].title).toBe('Teste E2E');
     });
 
-    it('should reject duplicate key', async () => {
+    it.serial('should reject duplicate key', async () => {
       const translation = {
         title: 'Dup',
         label: 'dup',
@@ -274,7 +274,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.status).toBe(409);
     });
 
-    it('should validate key format (must be snake_case_vN)', async () => {
+    it.serial('should validate key format (must be snake_case_vN)', async () => {
       const response = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -293,7 +293,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Update ──────────────────────────────────────────────────────────
 
   describe('PATCH /api/v1/admin/section-types/:key', () => {
-    it('should update a custom section type', async () => {
+    it.serial('should update a custom section type', async () => {
       const response = await app.request
         .patch(`/api/v1/admin/section-types/${testSectionKey}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -316,7 +316,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.body.data.icon).toBe('✅');
     });
 
-    it('should allow icon/translation updates on system types', async () => {
+    it.serial('should allow icon/translation updates on system types', async () => {
       const response = await app.request
         .patch('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -326,7 +326,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.body.data.icon).toBe('💼');
     });
 
-    it('should reject definition changes on system types', async () => {
+    it.serial('should reject definition changes on system types', async () => {
       const response = await app.request
         .patch('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -335,7 +335,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should return 404 for nonexistent key', async () => {
+    it.serial('should return 404 for nonexistent key', async () => {
       const response = await app.request
         .patch('/api/v1/admin/section-types/nonexistent_v1')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -348,7 +348,7 @@ describe('E2E: Admin Section Types CRUD', () => {
   // ── Delete ──────────────────────────────────────────────────────────
 
   describe('DELETE /api/v1/admin/section-types/:key', () => {
-    it('should reject deletion of system types', async () => {
+    it.serial('should reject deletion of system types', async () => {
       const response = await app.request
         .delete('/api/v1/admin/section-types/work_experience_v1')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -356,7 +356,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should delete a custom section type', async () => {
+    it.serial('should delete a custom section type', async () => {
       const deleteResponse = await app.request
         .delete(`/api/v1/admin/section-types/${testSectionKey}`)
         .set('Authorization', `Bearer ${adminToken}`);
@@ -371,7 +371,7 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(getResponse.status).toBe(404);
     });
 
-    it('should return 404 for nonexistent key', async () => {
+    it.serial('should return 404 for nonexistent key', async () => {
       const response = await app.request
         .delete('/api/v1/admin/section-types/nonexistent_v1')
         .set('Authorization', `Bearer ${adminToken}`);

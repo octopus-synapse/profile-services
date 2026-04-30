@@ -44,7 +44,7 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 1: Login Sets Session Cookie', () => {
-    it('should set httpOnly session cookie on login', async () => {
+    it.serial('should set httpOnly session cookie on login', async () => {
       const response = await app.request
         .post('/api/auth/login')
         .send({ email: testUser.email, password: testUser.password });
@@ -70,7 +70,7 @@ describe('E2E: Session-Based Authentication', () => {
       accessCookie = accessCookieHeader as string;
     });
 
-    it('should not set session cookie on failed login', async () => {
+    it.serial('should not set session cookie on failed login', async () => {
       const response = await app.request
         .post('/api/auth/login')
         .send({ email: testUser.email, password: 'WrongPassword123!' });
@@ -84,7 +84,7 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 2: Session Endpoint Validates Cookie', () => {
-    it('should return authenticated user when valid session cookie is present', async () => {
+    it.serial('should return authenticated user when valid session cookie is present', async () => {
       const response = await app.request.get('/api/auth/session').set('Cookie', accessCookie);
 
       expect(response.status).toBe(200);
@@ -95,7 +95,7 @@ describe('E2E: Session-Based Authentication', () => {
       expect(response.body.data.user.email).toBe(testUser.email);
     });
 
-    it('should return unauthenticated when no cookie is present', async () => {
+    it.serial('should return unauthenticated when no cookie is present', async () => {
       const response = await app.request.get('/api/auth/session');
 
       expect(response.status).toBe(200);
@@ -104,7 +104,7 @@ describe('E2E: Session-Based Authentication', () => {
       expect(response.body.data.user).toBeNull();
     });
 
-    it('should return unauthenticated with invalid cookie', async () => {
+    it.serial('should return unauthenticated with invalid cookie', async () => {
       const response = await app.request
         .get('/api/auth/session')
         .set('Cookie', 'access_token=invalid-token');
@@ -117,14 +117,17 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 3: Protected Routes Accept Cookie Authentication', () => {
-    it('should access protected endpoint with session cookie (no bearer token)', async () => {
-      const response = await app.request.get('/api/v1/users/profile').set('Cookie', accessCookie);
+    it.serial(
+      'should access protected endpoint with session cookie (no bearer token)',
+      async () => {
+        const response = await app.request.get('/api/v1/users/profile').set('Cookie', accessCookie);
 
-      expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
-    });
+        expect(response.status).toBe(200);
+        expect(response.body.data).toBeDefined();
+      },
+    );
 
-    it('should preferentially use cookie over bearer token', async () => {
+    it.serial('should preferentially use cookie over bearer token', async () => {
       // Create a second user to test cookie precedence
       const secondUser = authHelper.createTestUser('session-second');
       const secondResult = await authHelper.registerAndLogin(secondUser);
@@ -145,7 +148,7 @@ describe('E2E: Session-Based Authentication', () => {
       }
     });
 
-    it('should fallback to bearer token when no cookie present', async () => {
+    it.serial('should fallback to bearer token when no cookie present', async () => {
       const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -156,7 +159,7 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 4: Logout Clears Session Cookie', () => {
-    it('should clear session cookie on logout', async () => {
+    it.serial('should clear session cookie on logout', async () => {
       // Login again to get fresh tokens
       const loginResponse = await app.request
         .post('/api/auth/login')
@@ -184,7 +187,7 @@ describe('E2E: Session-Based Authentication', () => {
       }
     });
 
-    it('should reject session cookie after logout', async () => {
+    it.serial('should reject session cookie after logout', async () => {
       // First login to get a valid session
       const loginResponse = await app.request
         .post('/api/auth/login')
@@ -215,7 +218,7 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 5: Session User Data', () => {
-    it('should return complete user data in session response', async () => {
+    it.serial('should return complete user data in session response', async () => {
       // Login fresh
       const loginResponse = await app.request
         .post('/api/auth/login')

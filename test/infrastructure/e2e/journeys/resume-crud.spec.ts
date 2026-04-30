@@ -58,7 +58,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 1: Setup', () => {
-    it('should create and authenticate a new user with full profile', async () => {
+    it.serial('should create and authenticate a new user with full profile', async () => {
       testUser = authHelper.createTestUser('resume-crud');
       const onboardingData = createFullOnboardingData('resume-crud');
 
@@ -85,7 +85,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 2: Check Resume Slots', () => {
-    it('should show 1 resume used, 3 remaining after onboarding', async () => {
+    it.serial('should show 1 resume used, 3 remaining after onboarding', async () => {
       const response = await app.request
         .get('/api/v1/resumes/slots')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -99,7 +99,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 3: Retrieve Default Resume', () => {
-    it('should retrieve the resume created by onboarding', async () => {
+    it.serial('should retrieve the resume created by onboarding', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${defaultResumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -110,7 +110,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.data.title).toBeDefined();
     });
 
-    it('should retrieve full resume with /full endpoint', async () => {
+    it.serial('should retrieve full resume with /full endpoint', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${defaultResumeId}/full`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -124,7 +124,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 4: Create Second Resume', () => {
-    it('should create a new resume with full data', async () => {
+    it.serial('should create a new resume with full data', async () => {
       const resumeData = createResumeWithSections('second');
 
       const response = await app.request
@@ -140,7 +140,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       secondResumeId = response.body.data.id;
     });
 
-    it('should reject resume creation without authentication', async () => {
+    it.serial('should reject resume creation without authentication', async () => {
       const resumeData = createResumeWithSections('unauthorized');
 
       const response = await app.request.post('/api/v1/resumes').send(resumeData);
@@ -150,7 +150,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 5: Update Resume', () => {
-    it('should update resume title and summary', async () => {
+    it.serial('should update resume title and summary', async () => {
       const response = await app.request
         .patch(`/api/v1/resumes/${secondResumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -164,7 +164,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.data.title).toBe('Updated Professional Resume');
     });
 
-    it('should reject update without authentication', async () => {
+    it.serial('should reject update without authentication', async () => {
       const response = await app.request
         .patch(`/api/v1/resumes/${secondResumeId}`)
         .send({ title: 'Hacked Resume' });
@@ -174,7 +174,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 6: List Resumes', () => {
-    it('should list all user resumes with pagination', async () => {
+    it.serial('should list all user resumes with pagination', async () => {
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -188,7 +188,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.data.meta.total).toBe(2);
     });
 
-    it('should respect pagination limit', async () => {
+    it.serial('should respect pagination limit', async () => {
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -200,7 +200,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 7: Discover Section Types', () => {
-    it('should list available section types', async () => {
+    it.serial('should list available section types', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${secondResumeId}/sections/types`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -233,7 +233,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 8: List Resume Sections', () => {
-    it('should list existing sections for resume', async () => {
+    it.serial('should list existing sections for resume', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${secondResumeId}/sections`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -246,7 +246,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 9: Section Item CRUD', () => {
-    it('should create a section item (experience)', async () => {
+    it.serial('should create a section item (experience)', async () => {
       const itemContent = createSectionItemContent(workExperienceSectionTypeKey);
 
       const response = await app.request
@@ -265,7 +265,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       }
     });
 
-    it('should update the section item', async () => {
+    it.serial('should update the section item', async () => {
       if (!sectionItemId) {
         expect(true).toBe(true);
         return;
@@ -297,7 +297,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       return;
     }
 
-    it('should delete the section item', async () => {
+    it.serial('should delete the section item', async () => {
       const response = await app.request
         .delete(
           `/api/v1/resumes/${secondResumeId}/sections/${workExperienceSectionTypeKey}/items/${sectionItemId}`,
@@ -308,7 +308,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should return 404 for non-existent section type', async () => {
+    it.serial('should return 404 for non-existent section type', async () => {
       const response = await app.request
         .post(`/api/v1/resumes/${secondResumeId}/sections/invalid_type_v1/items`)
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -322,7 +322,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
     let _thirdResumeId: string;
     let fourthResumeId: string;
 
-    it('should create 3rd resume successfully', async () => {
+    it.serial('should create 3rd resume successfully', async () => {
       const resumeData = createResumeWithSections('third');
 
       const response = await app.request
@@ -336,7 +336,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       _thirdResumeId = response.body.data.id;
     });
 
-    it('should create 4th resume successfully (at limit)', async () => {
+    it.serial('should create 4th resume successfully (at limit)', async () => {
       const resumeData = createResumeWithSections('fourth');
 
       const response = await app.request
@@ -350,7 +350,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       fourthResumeId = response.body.data.id;
     });
 
-    it('should show 4 resumes used, 0 remaining', async () => {
+    it.serial('should show 4 resumes used, 0 remaining', async () => {
       const response = await app.request
         .get('/api/v1/resumes/slots')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -360,7 +360,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.data.remaining).toBe(0);
     });
 
-    it('should reject 5th resume with 422 error', async () => {
+    it.serial('should reject 5th resume with 422 error', async () => {
       const resumeData = createResumeWithSections('fifth');
 
       const response = await app.request
@@ -378,7 +378,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(String(errCodeOrMessage)).toMatch(/RESUME_SLOT_LIMIT_REACHED|Resume limit reached/);
     });
 
-    it('should allow creating resume after deleting one', async () => {
+    it.serial('should allow creating resume after deleting one', async () => {
       // Delete one resume
       const deleteResponse = await app.request
         .delete(`/api/v1/resumes/${fourthResumeId}`)
@@ -406,7 +406,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 11: Delete Resume', () => {
-    it('should delete a resume successfully', async () => {
+    it.serial('should delete a resume successfully', async () => {
       const response = await app.request
         .delete(`/api/v1/resumes/${secondResumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -415,7 +415,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should return 404 when accessing deleted resume', async () => {
+    it.serial('should return 404 when accessing deleted resume', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${secondResumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -425,7 +425,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 12: Error Cases', () => {
-    it('should return error for non-existent resume', async () => {
+    it.serial('should return error for non-existent resume', async () => {
       const fakeResumeId = 'clhxxxxxxxxxxxxxxxxxx';
 
       const response = await app.request
@@ -436,7 +436,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect([400, 404]).toContain(response.status);
     });
 
-    it('should prevent cross-user resume access', async () => {
+    it.serial('should prevent cross-user resume access', async () => {
       // Create second user
       const otherUser = authHelper.createTestUser('other-user');
       const otherResult = await authHelper.registerAndLogin(otherUser, { skipOnboarding: true });
@@ -453,7 +453,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       await cleanupHelper.deleteUserByEmail(otherUser.email);
     });
 
-    it('should prevent cross-user resume updates', async () => {
+    it.serial('should prevent cross-user resume updates', async () => {
       // Create second user
       const otherUser = authHelper.createTestUser('other-user-2');
       const otherResult = await authHelper.registerAndLogin(otherUser, { skipOnboarding: true });

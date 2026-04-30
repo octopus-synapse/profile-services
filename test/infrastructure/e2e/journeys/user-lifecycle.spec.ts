@@ -51,7 +51,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 1: Account Creation', () => {
-    it('should create and authenticate a new user', async () => {
+    it.serial('should create and authenticate a new user', async () => {
       testUser = authHelper.createTestUser('lifecycle');
       const result = await authHelper.registerAndLogin(testUser, { skipOnboarding: true });
 
@@ -62,7 +62,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect(testUser.userId).toBeDefined();
     });
 
-    it('should reject duplicate email', async () => {
+    it.serial('should reject duplicate email', async () => {
       const response = await app.request.post('/api/accounts').send({
         email: testUser.email,
         password: testUser.password,
@@ -76,7 +76,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 2: Pre-Onboarding Status', () => {
-    it('should show incomplete onboarding status', async () => {
+    it.serial('should show incomplete onboarding status', async () => {
       const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -87,7 +87,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 3: Onboarding Completion', () => {
-    it('should complete onboarding with minimal data', async () => {
+    it.serial('should complete onboarding with minimal data', async () => {
       const onboardingData = createMinimalOnboardingData(`lifecycle_${Date.now()}`);
 
       const response = await app.request
@@ -102,7 +102,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       resumeId = response.body.data.resumeId;
     });
 
-    it('should have updated onboarding status', async () => {
+    it.serial('should have updated onboarding status', async () => {
       const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -111,7 +111,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect(response.body.data.hasCompletedOnboarding).toBe(true);
     });
 
-    it('should prevent duplicate onboarding', async () => {
+    it.serial('should prevent duplicate onboarding', async () => {
       const onboardingData = createMinimalOnboardingData('duplicate');
 
       const response = await app.request
@@ -124,7 +124,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 4: Resume Verification', () => {
-    it('should have created resume after onboarding', async () => {
+    it.serial('should have created resume after onboarding', async () => {
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -134,7 +134,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect(Array.isArray(response.body.data.data)).toBe(true);
     });
 
-    it('should retrieve resume with sections', async () => {
+    it.serial('should retrieve resume with sections', async () => {
       const response = await app.request
         .get(`/api/v1/resumes/${resumeId}/full`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -149,7 +149,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 5: Share Creation', () => {
-    it('should create a public share', async () => {
+    it.serial('should create a public share', async () => {
       const response = await app.request
         .post('/api/v1/shares')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -165,7 +165,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       shareId = response.body.data.share.id;
     });
 
-    it('should list shares for resume', async () => {
+    it.serial('should list shares for resume', async () => {
       const response = await app.request
         .get(`/api/v1/shares/resume/${resumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -179,7 +179,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 6: Public Resume Access', () => {
-    it('should access public resume without authentication', async () => {
+    it.serial('should access public resume without authentication', async () => {
       const response = await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
 
       expect(response.status).toBe(200);
@@ -188,7 +188,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect(response.body.data.resume.id).toBe(resumeId);
     });
 
-    it('should fail with invalid slug', async () => {
+    it.serial('should fail with invalid slug', async () => {
       const response = await app.request.get('/api/v1/public/resumes/nonexistent_slug_12345');
 
       expect([404, 400]).toContain(response.status);
@@ -196,7 +196,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
   });
 
   describe('Step 7: Share Deletion', () => {
-    it('should delete share by id', async () => {
+    it.serial('should delete share by id', async () => {
       const deleteResponse = await app.request
         .delete(`/api/v1/shares/${shareId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -204,7 +204,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect([200, 204]).toContain(deleteResponse.status);
     });
 
-    it('should no longer access deleted share', async () => {
+    it.serial('should no longer access deleted share', async () => {
       const response = await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
 
       expect([404, 410]).toContain(response.status);

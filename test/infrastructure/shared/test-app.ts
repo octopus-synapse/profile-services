@@ -166,12 +166,21 @@ async function ensureAdminUser(prisma: PrismaClient): Promise<string> {
         emailVerified: new Date(),
         roles: ['role_user', 'role_admin'],
         hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
       },
     });
-  } else if (!admin.hasCompletedOnboarding || !admin.emailVerified) {
+  } else if (
+    !admin.hasCompletedOnboarding ||
+    !admin.emailVerified ||
+    admin.onboardingCompletedAt === null
+  ) {
     admin = await prisma.user.update({
       where: { id: admin.id },
-      data: { hasCompletedOnboarding: true, emailVerified: admin.emailVerified ?? new Date() },
+      data: {
+        hasCompletedOnboarding: true,
+        emailVerified: admin.emailVerified ?? new Date(),
+        onboardingCompletedAt: admin.onboardingCompletedAt ?? new Date(),
+      },
     });
   }
 

@@ -45,7 +45,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 1: Register New User', () => {
-    it('should register a new user without verifying email', async () => {
+    it.serial('should register a new user without verifying email', async () => {
       testUser = authHelper.createTestUser('email-verify');
 
       // Register (but DO NOT verify email via helper). The
@@ -70,7 +70,7 @@ describe('E2E Journey: Email Verification', () => {
       expect(testUser.userId).toBeDefined();
     });
 
-    it('should login even with unverified email', async () => {
+    it.serial('should login even with unverified email', async () => {
       const loginResponse = await app.request
         .post('/api/auth/login')
         .send({ email: testUser.email, password: testUser.password });
@@ -85,7 +85,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 2: Access Protected Route (Unverified)', () => {
-    it('should block access to protected route with unverified email', async () => {
+    it.serial('should block access to protected route with unverified email', async () => {
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -101,7 +101,7 @@ describe('E2E Journey: Email Verification', () => {
       expect(response.body.error?.missing).toContain('email-verified');
     });
 
-    it('should block access to user profile with unverified email', async () => {
+    it.serial('should block access to user profile with unverified email', async () => {
       const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -113,7 +113,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 3: Request Email Verification', () => {
-    it('should request a verification email', async () => {
+    it.serial('should request a verification email', async () => {
       const response = await app.request
         .post('/api/email-verification/send')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -127,7 +127,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 4: Verify Email', () => {
-    it('should verify email via direct database update', async () => {
+    it.serial('should verify email via direct database update', async () => {
       // In a real flow, user would click a link with a token.
       // In tests, we update the DB directly. We also clear the
       // onboarding gate and grant the default user role so step 5 can
@@ -170,7 +170,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 5: Access Protected Routes (Verified)', () => {
-    it('should now access protected route after email verification', async () => {
+    it.serial('should now access protected route after email verification', async () => {
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -180,7 +180,7 @@ describe('E2E Journey: Email Verification', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should access user profile after email verification', async () => {
+    it.serial('should access user profile after email verification', async () => {
       const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -189,7 +189,7 @@ describe('E2E Journey: Email Verification', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should be able to create a resume after verification', async () => {
+    it.serial('should be able to create a resume after verification', async () => {
       const response = await app.request
         .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`)
@@ -203,7 +203,7 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 6: Re-request Verification (Already Verified)', () => {
-    it('should handle re-request when already verified', async () => {
+    it.serial('should handle re-request when already verified', async () => {
       const response = await app.request
         .post('/api/email-verification/send')
         .set('Authorization', `Bearer ${testUser.token}`);
@@ -219,13 +219,13 @@ describe('E2E Journey: Email Verification', () => {
   });
 
   describe('Step 7: Edge Cases', () => {
-    it('should reject verification request without authentication', async () => {
+    it.serial('should reject verification request without authentication', async () => {
       const response = await app.request.post('/api/email-verification/send');
 
       expect(response.status).toBe(401);
     });
 
-    it('should reject verification with invalid token', async () => {
+    it.serial('should reject verification with invalid token', async () => {
       const response = await app.request
         .post('/api/email-verification/verify')
         .send({ token: 'invalid-fake-token-12345' });
@@ -233,13 +233,13 @@ describe('E2E Journey: Email Verification', () => {
       expect([400, 404]).toContain(response.status);
     });
 
-    it('should reject verification with empty token', async () => {
+    it.serial('should reject verification with empty token', async () => {
       const response = await app.request.post('/api/email-verification/verify').send({ token: '' });
 
       expect([400, 422]).toContain(response.status);
     });
 
-    it('should reject verification without token field', async () => {
+    it.serial('should reject verification without token field', async () => {
       const response = await app.request.post('/api/email-verification/verify').send({});
 
       expect([400, 422]).toContain(response.status);
