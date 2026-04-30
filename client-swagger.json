@@ -9978,9 +9978,13 @@
                 "type": "object",
                 "properties": {
                   "data": {
-                    "nullable": true
+                    "type": "object",
+                    "properties": {}
                   }
-                }
+                },
+                "required": [
+                  "data"
+                ]
               }
             }
           }
@@ -10008,9 +10012,13 @@
                 "type": "object",
                 "properties": {
                   "data": {
-                    "nullable": true
+                    "type": "object",
+                    "properties": {}
                   }
-                }
+                },
+                "required": [
+                  "data"
+                ]
               }
             }
           }
