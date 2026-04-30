@@ -45,6 +45,28 @@ export interface PipelineDeps {
   readonly permissionChecker?: {
     check(userId: string, resource: string, action: string): Promise<boolean>;
   };
+  /** AccessModifier port — when provided, the permission gate consults
+   *  active modifiers per-request to apply DENY suspensions on state /
+   *  role and GRANT overrides on permissions. */
+  readonly accessModifierLookup?: AccessModifierLookup;
+}
+
+/** The slice of IAccessModifierRepository the gate actually needs. */
+export interface AccessModifierLookup {
+  findActiveForUser(userId: string, at?: Date): Promise<readonly ActiveModifier[]>;
+}
+
+export interface ActiveModifier {
+  readonly modifierType:
+    | 'SUSPEND_EMAIL_VERIFIED'
+    | 'SUSPEND_ONBOARDING'
+    | 'SUSPEND_ROLE_USER'
+    | 'SUSPEND_ROLE_ADMIN'
+    | 'GRANT_PERMISSION';
+  readonly effect: 'DENY' | 'GRANT';
+  readonly permissionId: string | null;
+  /** Permission key in `resource:action` form (resolved by the lookup). */
+  readonly permissionKey?: string;
 }
 
 /** Build the default ordered stage list. `requestLogging` is outermost
@@ -58,6 +80,7 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
     stages.push(
       permissionGuardStage(deps.permissionChecker, {
         skipOnboardingGlobally: deps.skipTosCheck === true,
+        accessModifierLookup: deps.accessModifierLookup,
       }),
     );
   }
@@ -239,9 +262,13 @@ export function consentGuardStage(_skipGlobally: boolean): PipelineStage {
  */
 export function permissionGuardStage(
   checker: { check(userId: string, resource: string, action: string): Promise<boolean> },
-  options?: { skipOnboardingGlobally?: boolean },
+  options?: {
+    skipOnboardingGlobally?: boolean;
+    accessModifierLookup?: AccessModifierLookup;
+  },
 ): PipelineStage {
   const skipOnboardingGlobally = options?.skipOnboardingGlobally === true;
+  const lookup = options?.accessModifierLookup;
 
   return {
     name: 'permissionGuard',
@@ -250,12 +277,24 @@ export function permissionGuardStage(
       if (!route || route.auth.kind !== 'jwt') return next();
       if (!ctx.user) return next(); // authExtractor already 401'd if needed
 
+      // Pull active modifiers once per request (when wired). Suspends a
+      // state column or role; grants an individual permission outside
+      // any role.
+      const modifiers = lookup ? await lookup.findActiveForUser(ctx.user.userId) : [];
+      const suspendsEmailVerified = modifiers.some(
+        (m) => m.modifierType === 'SUSPEND_EMAIL_VERIFIED' && m.effect === 'DENY',
+      );
+      const suspendsOnboarding = modifiers.some(
+        (m) => m.modifierType === 'SUSPEND_ONBOARDING' && m.effect === 'DENY',
+      );
+
       const missing: string[] = [];
 
       // 1) Email-verified state.
       const allowsUnverified =
         route.guards?.some((g) => g.id === 'allow-unverified-email') === true;
-      if (!allowsUnverified && ctx.user.emailVerified !== true) {
+      const effectiveEmailVerified = ctx.user.emailVerified === true && !suspendsEmailVerified;
+      if (!allowsUnverified && !effectiveEmailVerified) {
         missing.push('email-verified');
       }
 
@@ -266,7 +305,8 @@ export function permissionGuardStage(
         skipOnboardingGlobally ||
         isOnboardingRoute ||
         route.guards?.some((g) => g.id === 'skip-tos-check') === true;
-      if (!allowsIncompleteOnboarding && ctx.user.hasCompletedOnboarding !== true) {
+      const effectiveOnboarding = ctx.user.hasCompletedOnboarding === true && !suspendsOnboarding;
+      if (!allowsIncompleteOnboarding && !effectiveOnboarding) {
         missing.push('onboarding-completed');
       }
 
@@ -286,8 +326,18 @@ export function permissionGuardStage(
           resource = route.permission.resource;
           action = route.permission.action;
         }
-        const allowed = await checker.check(ctx.user.userId, resource, action);
-        if (!allowed) missing.push(`${resource}:${action}`);
+        const permKey = `${resource}:${action}`;
+        // GRANT_PERMISSION modifier short-circuits the role check.
+        const granted = modifiers.some(
+          (m) =>
+            m.modifierType === 'GRANT_PERMISSION' &&
+            m.effect === 'GRANT' &&
+            m.permissionKey === permKey,
+        );
+        if (!granted) {
+          const allowed = await checker.check(ctx.user.userId, resource, action);
+          if (!allowed) missing.push(permKey);
+        }
       }
 
       if (missing.length === 0) return next();
