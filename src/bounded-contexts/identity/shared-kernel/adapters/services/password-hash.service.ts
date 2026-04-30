@@ -11,7 +11,10 @@
  * which is timing-safe (constant-time comparison via the bcrypt C library).
  */
 
-const BCRYPT_COST = 12;
+// Default cost 12 matches OWASP guidance. Tests override via
+// `BCRYPT_COST=4` to drop hash time from ~80ms to ~6ms — same
+// bcrypt algorithm, just fewer rounds.
+const BCRYPT_COST = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
 
 export class PasswordHashService {
   async hash(password: string): Promise<string> {

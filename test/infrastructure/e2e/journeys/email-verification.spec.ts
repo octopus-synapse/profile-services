@@ -137,7 +137,6 @@ describe('E2E Journey: Email Verification', () => {
         where: { id: testUser.userId! },
         data: {
           emailVerified: new Date(),
-          hasCompletedOnboarding: true,
           onboardingCompletedAt: new Date(),
         },
       });

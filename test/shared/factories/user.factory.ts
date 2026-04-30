@@ -52,7 +52,6 @@ const defaultUser: User = {
   website: null,
   linkedin: null,
   github: null,
-  hasCompletedOnboarding: false,
   onboardingCompletedAt: null,
   isActive: true,
   lastLoginAt: null,

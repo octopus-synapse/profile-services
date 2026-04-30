@@ -69,7 +69,6 @@ export class AuthHelper {
       where: { id: userRow.id },
       data: {
         emailVerified: new Date(),
-        hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
       },
     });

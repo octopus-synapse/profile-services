@@ -26,13 +26,22 @@ export class DataExportRepository implements DataExportRepositoryPort {
         email: true,
         name: true,
         username: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return user;
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async getUserConsents(userId: string): Promise<ExportedConsent[]> {

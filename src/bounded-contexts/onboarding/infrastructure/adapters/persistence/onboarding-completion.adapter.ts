@@ -66,7 +66,6 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     await tx.user.update({
       where: { id: userId },
       data: {
-        hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
         username: data.username,
         name: data.personalInfo.fullName,

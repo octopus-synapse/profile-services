@@ -23,7 +23,7 @@ export class PrismaCandidateDirectoryRepository implements CandidateDirectoryRep
       where: {
         id: { not: params.excludeUserId },
         isActive: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: { not: null },
         preferences: { profileVisibility: { in: ['public', 'link'] } },
       },
       take: params.poolCap,

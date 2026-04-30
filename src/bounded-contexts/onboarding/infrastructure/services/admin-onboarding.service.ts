@@ -64,7 +64,7 @@ export class AdminOnboardingService {
   async getStats() {
     const [totalStarted, totalCompleted, allProgress] = await Promise.all([
       this.prisma.onboardingProgress.count(),
-      this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
+      this.prisma.user.count({ where: { onboardingCompletedAt: { not: null } } }),
       this.prisma.onboardingProgress.findMany({
         select: { currentStep: true, completedSteps: true },
       }),

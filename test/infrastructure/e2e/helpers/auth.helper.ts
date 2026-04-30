@@ -70,7 +70,6 @@ export class AuthHelper {
       const update: Record<string, unknown> = {};
       if (!opts.skipEmailVerify) update.emailVerified = new Date();
       if (!opts.skipOnboarding) {
-        update.hasCompletedOnboarding = true;
         update.onboardingCompletedAt = new Date();
       }
       if (Object.keys(update).length > 0) {

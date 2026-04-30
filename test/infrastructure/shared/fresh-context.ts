@@ -15,18 +15,21 @@
  * back a token + user-id that no other test holds. Tests then own
  * their fixture for their lifetime — no cross-test interference.
  *
- * Usage:
+ * Performance notes:
  *
- *   it('creates a resume', async () => {
- *     const me = await freshUser(app);
- *     const r = await app.request.post('/api/v1/resumes')
- *       .set(me.bearer())
- *       .send({ title: 'x' });
- *     expect(r.status).toBe(201);
- *   });
+ * - We bypass the HTTP signup → login round trip and write straight
+ *   to Postgres + sign the JWT directly with `jose`. The two HTTP
+ *   calls were ~150ms together (bcrypt cost 12 dominates); direct
+ *   inserts + a synchronous `SignJWT` cost ~5ms.
+ * - bcrypt is still run for the password hash (so tests that exercise
+ *   the real login flow can verify it), but the cost is `BCRYPT_COST`
+ *   from env — `.env.test` pins it to 4.
+ * - The signup route's UserConsent rows are mirrored here so the
+ *   ToS/Privacy gate sees a complete consent history.
  */
 
 import { randomUUID } from 'node:crypto';
+import { SignJWT } from 'jose';
 import type { TestApp } from './test-app';
 
 export interface FreshUser {
@@ -35,7 +38,6 @@ export interface FreshUser {
   readonly password: string;
   readonly name: string;
   readonly token: string;
-  readonly refreshCookie?: string;
   /** `Authorization: Bearer <token>` header object, ready for `.set()`. */
   bearer(): { Authorization: string };
 }
@@ -53,10 +55,44 @@ export interface FreshUserOptions {
   readonly password?: string;
 }
 
+const TOS_VERSION = process.env.TOS_VERSION || '1.0.0';
+const PRIVACY_VERSION = process.env.PRIVACY_POLICY_VERSION || '1.0.0';
+const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-integration-tests-min-32-chars';
+const ACCESS_TOKEN_TTL_SECONDS = Number.parseInt(
+  process.env.JWT_ACCESS_TOKEN_EXPIRES_IN ?? '3600',
+  10,
+);
+
+const SECRET_KEY = new TextEncoder().encode(JWT_SECRET);
+
+async function signAccessToken(userId: string, email: string): Promise<string> {
+  // Mirrors `JwtTokenGenerator.generateTokenPair` — same { sub, email }
+  // payload + HS256 + the same `expiresIn`. The pipeline's
+  // `JoseAuthExtractorAdapter.verifyAsync` accepts it without any
+  // changes because we sign with the same secret.
+  const now = Math.floor(Date.now() / 1000);
+  return new SignJWT({ sub: userId, email })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt(now)
+    .setExpirationTime(now + ACCESS_TOKEN_TTL_SECONDS)
+    .sign(SECRET_KEY);
+}
+
+async function hashPassword(password: string): Promise<string> {
+  // bcrypt cost is env-driven (`BCRYPT_COST=4` in .env.test). Same
+  // algorithm as production — just fewer rounds — so passwords still
+  // verify through the real PasswordHashService when a spec exercises
+  // the actual login flow.
+  return Bun.password.hash(password, {
+    algorithm: 'bcrypt',
+    cost: Number.parseInt(process.env.BCRYPT_COST ?? '4', 10),
+  });
+}
+
 /**
  * Build a fully-onboarded user (email verified, role assigned) and
- * return the JWT access token + identity. Every call is independent
- * — the email is randomized so two parallel tests never collide.
+ * return a JWT access token + identity. Every call is independent —
+ * the email is randomized so two parallel tests never collide.
  */
 export async function freshUser(app: TestApp, opts: FreshUserOptions = {}): Promise<FreshUser> {
   const id = randomUUID().slice(0, 12);
@@ -64,69 +100,60 @@ export async function freshUser(app: TestApp, opts: FreshUserOptions = {}): Prom
   const password = opts.password ?? 'FreshPass123!';
   const name = `Fresh User ${id}`;
 
-  // Signup carries the LGPD consent fields so the schema accepts the body.
-  const signup = await app.request.post('/api/accounts').send({
-    email,
-    password,
-    name,
-    acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
-    acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+  const passwordHash = await hashPassword(password);
+
+  // 1. Create the User row + the consent rows + (optionally) the
+  // verified-email + completed-onboarding flags in a single
+  // transaction. Replaces the prior signup HTTP call (~80ms bcrypt +
+  // route-handler overhead) with a single round-trip to Postgres.
+  const now = new Date();
+  const verifyAt = opts.skipEmailVerify ? null : now;
+  const onboardedAt = opts.skipOnboarding ? null : now;
+
+  const user = await app.prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      name,
+      emailVerified: verifyAt,
+      onboardingCompletedAt: onboardedAt,
+      consents: {
+        createMany: {
+          data: [
+            { documentType: 'TERMS_OF_SERVICE', version: TOS_VERSION, ipAddress: '127.0.0.1' },
+            { documentType: 'PRIVACY_POLICY', version: PRIVACY_VERSION, ipAddress: '127.0.0.1' },
+          ],
+        },
+      },
+    },
+    select: { id: true, email: true },
   });
-  if (signup.status >= 400) {
-    throw new Error(
-      `freshUser signup failed: ${signup.status} ${typeof signup.body === 'string' ? signup.body : JSON.stringify(signup.body)}`,
-    );
-  }
-  const userRow = await app.prisma.user.findUnique({ where: { email } });
-  if (!userRow) throw new Error(`freshUser: user row missing after signup (${email})`);
-  const userId = userRow.id;
 
-  if (!opts.skipEmailVerify) {
-    await app.prisma.user.update({
-      where: { id: userId },
-      data: { emailVerified: new Date() },
-    });
-  }
-
+  // 2. Assign the role. Onboarded users get `user`; admin fixtures
+  // get `admin`. Mirrors what `OnboardingCompletionAdapter` does in
+  // production — the permission gate reads from `userRoleAssignment`,
+  // not the legacy `User.roles` column.
   if (!opts.skipOnboarding) {
-    await app.prisma.user.update({
-      where: { id: userId },
-      data: { hasCompletedOnboarding: true, onboardingCompletedAt: new Date() },
-    });
     const roleName = opts.admin ? 'admin' : 'user';
     const role = await app.prisma.role.findUnique({ where: { name: roleName } });
     if (role) {
-      await app.prisma.userRoleAssignment.upsert({
-        where: { userId_roleId: { userId, roleId: role.id } },
-        create: { userId, roleId: role.id, assignedBy: 'fresh-user-fixture' },
-        update: {},
+      await app.prisma.userRoleAssignment.create({
+        data: { userId: user.id, roleId: role.id, assignedBy: 'fresh-user-fixture' },
       });
     }
   }
 
-  // Login — returns the access token. We rely on the same login
-  // path the real client takes so the JWT carries whatever claims
-  // production expects.
-  const login = await app.request.post('/api/auth/login').send({ email, password });
-  if (login.status >= 400) {
-    throw new Error(
-      `freshUser login failed: ${login.status} ${typeof login.body === 'string' ? login.body : JSON.stringify(login.body)}`,
-    );
-  }
-  const body = login.body as { accessToken?: string; data?: { accessToken?: string } };
-  const token = body.accessToken ?? body.data?.accessToken;
-  if (!token) {
-    throw new Error(`freshUser login returned no token: ${JSON.stringify(login.body)}`);
-  }
-  const refreshCookie = login.setCookie?.find?.((c) => c.startsWith('refresh_token=')) ?? undefined;
+  // 3. Sign the JWT directly. No HTTP login → no bcrypt verify, no
+  // session-cookie write, no event publish. Pipeline still verifies
+  // the token because we sign with the same secret + claims.
+  const token = await signAccessToken(user.id, user.email!);
 
   return {
-    userId,
+    userId: user.id,
     email,
     password,
     name,
     token,
-    refreshCookie,
     bearer() {
       return { Authorization: `Bearer ${token}` };
     },
@@ -136,7 +163,7 @@ export async function freshUser(app: TestApp, opts: FreshUserOptions = {}): Prom
 /**
  * Build a fully-onboarded admin user. Same contract as `freshUser`
  * with `admin: true` — exposed as a separate name so call sites read
- * naturally (`freshAdmin(app)` vs `freshUser(app, { admin: true })`).
+ * naturally.
  */
 export function freshAdmin(
   app: TestApp,

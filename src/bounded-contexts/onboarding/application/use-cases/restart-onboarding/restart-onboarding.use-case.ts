@@ -85,7 +85,7 @@ export class RestartOnboardingUseCase {
     // Mark user as needing onboarding again
     await this.prisma.user.update({
       where: { id: userId },
-      data: { hasCompletedOnboarding: false, onboardingCompletedAt: null },
+      data: { onboardingCompletedAt: null },
     });
 
     return { success: true };

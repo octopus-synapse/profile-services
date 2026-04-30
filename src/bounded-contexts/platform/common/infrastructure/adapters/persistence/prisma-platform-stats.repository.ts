@@ -31,7 +31,7 @@ export class PrismaPlatformStatsRepository extends PlatformStatsRepositoryPort {
       await Promise.all([
         this.prisma.user.count(),
         this.prisma.resume.count(),
-        this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
+        this.prisma.user.count({ where: { onboardingCompletedAt: { not: null } } }),
         this.prisma.user.count({ where: { createdAt: { gte: recentDate } } }),
         this.authService.countUsersWithRole('admin'),
       ]);

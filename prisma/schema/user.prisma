@@ -36,11 +36,10 @@ model User {
   primaryResume   Resume? @relation("UserPrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
 
   // Onboarding tracking — `onboardingCompletedAt != null` is the
-  // logical source of truth. `hasCompletedOnboarding` is kept as a
-  // denormalized boolean shadow during the migration to avoid churning
-  // dozens of read-side selects/filters that expect a boolean.
-  hasCompletedOnboarding Boolean   @default(false)
-  onboardingCompletedAt  DateTime?
+  // single source of truth. The legacy denormalized boolean
+  // (`hasCompletedOnboarding`) was dropped: code that exposes the
+  // boolean to clients now derives it from this column.
+  onboardingCompletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -130,7 +129,6 @@ model User {
   @@index([username])
   @@index([email])
   @@index([emailVerified])
-  @@index([hasCompletedOnboarding])
   @@index([onboardingCompletedAt])
   @@index([primaryResumeId])
   @@index([isActive])

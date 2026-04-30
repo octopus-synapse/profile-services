@@ -53,7 +53,7 @@ export class PrismaCareerCohortRepository implements CareerCohortRepositoryPort 
       where: {
         id: { not: input.requesterId },
         isActive: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: { not: null },
         preferences: { profileVisibility: { in: ['public', 'link'] } },
         primaryResume: { isNot: null },
       },

@@ -52,7 +52,7 @@ export class PrismaAdminDashboardRepository extends AdminDashboardRepositoryPort
       this.prisma.user.count({ where: { createdAt: { gte: startOfMonth } } }),
       this.prisma.resume.count({ where: { createdAt: { gte: startOfWeek } } }),
       this.prisma.resume.count({ where: { createdAt: { gte: startOfMonth } } }),
-      this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
+      this.prisma.user.count({ where: { onboardingCompletedAt: { not: null } } }),
     ]);
 
     this.logger.debug('Loaded admin dashboard counts', 'PrismaAdminDashboardRepository', {

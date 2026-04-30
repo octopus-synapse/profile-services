@@ -16,7 +16,7 @@ const USER_LIST_SELECT = {
   email: true,
   name: true,
   username: true,
-  hasCompletedOnboarding: true,
+  onboardingCompletedAt: true,
   createdAt: true,
   updatedAt: true,
   image: true,
@@ -59,7 +59,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       email: user.email,
       name: user.name,
       username: user.username,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       image: user.image,
@@ -101,7 +101,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       email: user.email,
       name: user.name,
       username: user.username,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       image: user.image,
@@ -127,7 +127,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
   }
 
   async updateUser(userId: string, data: UpdateUserData): Promise<UpdatedUser> {
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data,
       select: {
@@ -135,10 +135,18 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
         email: true,
         name: true,
         username: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: true,
         updatedAt: true,
       },
     });
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async deleteUser(userId: string): Promise<void> {

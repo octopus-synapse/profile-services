@@ -18,17 +18,24 @@ export class OnboardingRepository extends OnboardingRepositoryPort {
   }
 
   async findUserById(userId: string): Promise<UserForOnboarding | null> {
-    return this.prisma.user.findUnique({
+    const row = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, hasCompletedOnboarding: true },
+      select: { id: true, onboardingCompletedAt: true },
     });
+    if (!row) return null;
+    return { id: row.id, hasCompletedOnboarding: row.onboardingCompletedAt !== null };
   }
 
   async getOnboardingStatus(userId: string): Promise<OnboardingStatus | null> {
-    return this.prisma.user.findUnique({
+    const row = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { hasCompletedOnboarding: true, onboardingCompletedAt: true },
+      select: { onboardingCompletedAt: true },
     });
+    if (!row) return null;
+    return {
+      hasCompletedOnboarding: row.onboardingCompletedAt !== null,
+      onboardingCompletedAt: row.onboardingCompletedAt,
+    };
   }
 
   async markOnboardingComplete(
@@ -40,7 +47,6 @@ export class OnboardingRepository extends OnboardingRepositoryPort {
     await prismaTx.user.update({
       where: { id: userId },
       data: {
-        hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
         username: data.username,
         name: data.personalInfo.fullName,
