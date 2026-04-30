@@ -18,4 +18,18 @@ jobs:
       test-name: "E2E"
       db-name: "e2e_test_db"
       timeout: 20
+      # `BCRYPT_COST=4`  → bcrypt drops from ~80ms to ~6ms; matches
+      #                    the local `.env.test`.
+      # `SHARDS=2`       → GitHub-hosted runners are 2 vCPUs; 3+ shards
+      #                    thrash. Bump on larger runners via PR env.
+      extra-env-vars: |
+        BCRYPT_COST=4
+        SHARDS=2
+      # Test-only postgres knobs that take effect on `pg_reload_conf()`.
+      # `fsync` and `wal_level` would help more but require a restart;
+      # those need a custom postgres image (TODO).
+      db-init-sql: |
+        ALTER SYSTEM SET synchronous_commit = off;
+        ALTER SYSTEM SET full_page_writes = off;
+        SELECT pg_reload_conf();
     secrets: inherit
