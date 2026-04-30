@@ -54,9 +54,13 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
   const stages: PipelineStage[] = [requestLoggingStage(deps.logger), errorMapperStage(deps)];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
-  stages.push(emailVerifiedGuardStage());
-  stages.push(consentGuardStage(deps.skipTosCheck === true));
-  if (deps.permissionChecker) stages.push(permissionGuardStage(deps.permissionChecker));
+  if (deps.permissionChecker) {
+    stages.push(
+      permissionGuardStage(deps.permissionChecker, {
+        skipOnboardingGlobally: deps.skipTosCheck === true,
+      }),
+    );
+  }
   stages.push(responseWrapperStage);
   return stages;
 }
@@ -183,119 +187,132 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
 }
 
 /**
- * Email-verification gate. Routes with `auth.kind === 'jwt'` reject
- * with 403 EMAIL_NOT_VERIFIED unless:
- *   - the route opts out via `guards: [{ id: 'allow-unverified-email' }]`
- *     (signup, login, refresh, the verification endpoints themselves,
- *     consent acceptance, GDPR export, etc.); or
- *   - the user's `emailVerified` is true (snapshot refreshed at
- *     auth-extractor time).
- *
- * Public/optional routes pass through (no `ctx.user` to gate against).
+ * Email-verification gate (legacy). Kept as a no-op shim — the unified
+ * `permissionGateStage` (below) now performs both state and domain
+ * checks in a single pass. This export remains so existing pipeline
+ * compositions that name-mention `emailVerifiedGuardStage` keep
+ * compiling; remove once every adapter switches to the unified gate.
  */
 export function emailVerifiedGuardStage(): PipelineStage {
   return {
     name: 'emailVerifiedGuard',
-    async run(ctx, next) {
-      const route = ctx.state.__route as Route | undefined;
-      if (!route || route.auth.kind !== 'jwt') return next();
-      if (route.guards?.some((g) => g.id === 'allow-unverified-email')) return next();
-      if (!ctx.user) return next(); // authExtractor already 401'd if missing
-      if (ctx.user.emailVerified === true) return next();
-      ctx.state.responseStatus = 403;
-      ctx.state.responseBody = {
-        success: false,
-        error: {
-          code: 'EMAIL_NOT_VERIFIED',
-          message: 'Email address must be verified to access this resource',
-        },
-      };
+    async run(_ctx, next) {
+      return next();
     },
   };
 }
 
 /**
- * Onboarding-completion gate. Same shape as the email-verified gate:
- * routes opt out via `guards: [{ id: 'skip-tos-check' }]` (the legacy
- * gate name — covers both consent + onboarding pages); env
- * `SKIP_TOS_CHECK=true` globally bypasses for the dev compose.
- *
- * Hits 403 ONBOARDING_NOT_COMPLETED when the user hasn't finished
- * onboarding. The user's `hasCompletedOnboarding` is hydrated by the
- * auth-extractor from a fresh DB snapshot per request.
+ * Consent / onboarding gate (legacy). Kept as a no-op shim for the
+ * same reason as `emailVerifiedGuardStage`.
  */
-export function consentGuardStage(skipGlobally: boolean): PipelineStage {
+export function consentGuardStage(_skipGlobally: boolean): PipelineStage {
   return {
     name: 'consentGuard',
-    async run(ctx, next) {
-      if (skipGlobally) return next();
-      const route = ctx.state.__route as Route | undefined;
-      if (!route || route.auth.kind !== 'jwt') return next();
-      if (route.guards?.some((g) => g.id === 'skip-tos-check')) return next();
-      // Onboarding routes are reachable to users who haven't completed
-      // onboarding yet — that's the whole point. Admin onboarding routes
-      // (/v1/admin/onboarding/*) still require completion.
-      if (route.path.startsWith('/v1/onboarding/') || route.path === '/v1/onboarding') {
-        return next();
-      }
-      if (!ctx.user) return next();
-      if (ctx.user.hasCompletedOnboarding === true) return next();
-      ctx.state.responseStatus = 403;
-      ctx.state.responseBody = {
-        success: false,
-        error: {
-          code: 'ONBOARDING_NOT_COMPLETED',
-          message: 'Onboarding must be completed before accessing this resource',
-        },
-      };
+    async run(_ctx, next) {
+      return next();
     },
   };
 }
 
 /**
- * Permission gate. Routes with `permission: Permission.X` (a string
- * like `'resume:create'`) or `permission: { resource, action }` get
- * checked against the user's authorization context. Anything that
- * fails the check resolves to 403 INSUFFICIENT_PERMISSION.
+ * Unified permission gate. Composes:
+ *   1) state checks — `User.emailVerified`, `User.hasCompletedOnboarding`
+ *      (with the same opt-outs as the legacy gates: `allow-unverified-email`
+ *      and `skip-tos-check` markers, plus `/v1/onboarding/*` whitelist);
+ *   2) domain check — `route.permission` resolved through the injected
+ *      `checker.check(userId, resource, action)` (which itself layers
+ *      role-derived permissions with active AccessModifier rows).
  *
- * `Permission` enum values are dotted resource:action strings; we
- * split on `:` to recover the pair `CheckPermissionUseCase` wants.
- * Object form passes through unchanged.
+ * Outcome: every gate failure surfaces a single 403 carrying
+ * `error.code` (back-compat: emits `EMAIL_NOT_VERIFIED` or
+ * `ONBOARDING_NOT_COMPLETED` when exactly that single state is
+ * missing; otherwise `INSUFFICIENT_PERMISSION`) plus
+ * `error.missing: string[]` listing every absent grant. Frontend can
+ * read the array to choose redirects/UX without parsing the message.
  *
- * Public/optional routes pass through.
+ * `SKIP_TOS_CHECK=true` (dev compose) globally bypasses the
+ * onboarding-completed state check for parity with the legacy
+ * `consentGuardStage` behaviour.
+ *
+ * Public/optional routes pass through (no `ctx.user`).
  */
-export function permissionGuardStage(checker: {
-  check(userId: string, resource: string, action: string): Promise<boolean>;
-}): PipelineStage {
+export function permissionGuardStage(
+  checker: { check(userId: string, resource: string, action: string): Promise<boolean> },
+  options?: { skipOnboardingGlobally?: boolean },
+): PipelineStage {
+  const skipOnboardingGlobally = options?.skipOnboardingGlobally === true;
+
   return {
     name: 'permissionGuard',
     async run(ctx, next) {
       const route = ctx.state.__route as Route | undefined;
-      if (!route?.permission) return next();
-      if (route.auth.kind !== 'jwt') return next();
-      if (!ctx.user) return next();
+      if (!route || route.auth.kind !== 'jwt') return next();
+      if (!ctx.user) return next(); // authExtractor already 401'd if needed
 
-      let resource: string;
-      let action: string;
-      if (typeof route.permission === 'string') {
-        const idx = route.permission.indexOf(':');
-        if (idx < 0) return next(); // malformed — let it through rather than hard-fail
-        resource = route.permission.slice(0, idx);
-        action = route.permission.slice(idx + 1);
-      } else {
-        resource = route.permission.resource;
-        action = route.permission.action;
+      const missing: string[] = [];
+
+      // 1) Email-verified state.
+      const allowsUnverified =
+        route.guards?.some((g) => g.id === 'allow-unverified-email') === true;
+      if (!allowsUnverified && ctx.user.emailVerified !== true) {
+        missing.push('email-verified');
       }
 
-      const allowed = await checker.check(ctx.user.userId, resource, action);
-      if (allowed) return next();
+      // 2) Onboarding-completed state.
+      const isOnboardingRoute =
+        route.path.startsWith('/v1/onboarding/') || route.path === '/v1/onboarding';
+      const allowsIncompleteOnboarding =
+        skipOnboardingGlobally ||
+        isOnboardingRoute ||
+        route.guards?.some((g) => g.id === 'skip-tos-check') === true;
+      if (!allowsIncompleteOnboarding && ctx.user.hasCompletedOnboarding !== true) {
+        missing.push('onboarding-completed');
+      }
+
+      // 3) Domain permission.
+      if (route.permission) {
+        let resource: string;
+        let action: string;
+        if (typeof route.permission === 'string') {
+          const idx = route.permission.indexOf(':');
+          if (idx < 0) {
+            // malformed — log and let it through rather than hard-fail
+            return next();
+          }
+          resource = route.permission.slice(0, idx);
+          action = route.permission.slice(idx + 1);
+        } else {
+          resource = route.permission.resource;
+          action = route.permission.action;
+        }
+        const allowed = await checker.check(ctx.user.userId, resource, action);
+        if (!allowed) missing.push(`${resource}:${action}`);
+      }
+
+      if (missing.length === 0) return next();
+
+      // Back-compat: surface the historical specific code when exactly
+      // one state-permission is missing. Otherwise fall back to the
+      // generic INSUFFICIENT_PERMISSION envelope; the `missing[]` field
+      // always carries the full list either way.
+      let code: 'EMAIL_NOT_VERIFIED' | 'ONBOARDING_NOT_COMPLETED' | 'INSUFFICIENT_PERMISSION' =
+        'INSUFFICIENT_PERMISSION';
+      let message = `Missing: ${missing.join(', ')}`;
+      if (missing.length === 1) {
+        if (missing[0] === 'email-verified') {
+          code = 'EMAIL_NOT_VERIFIED';
+          message = 'Email address must be verified to access this resource';
+        } else if (missing[0] === 'onboarding-completed') {
+          code = 'ONBOARDING_NOT_COMPLETED';
+          message = 'Onboarding must be completed before accessing this resource';
+        }
+      }
+
       ctx.state.responseStatus = 403;
       ctx.state.responseBody = {
         success: false,
-        error: {
-          code: 'INSUFFICIENT_PERMISSION',
-          message: `Missing permission: ${resource}:${action}`,
-        },
+        error: { code, message, missing },
       };
     },
   };
