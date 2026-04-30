@@ -134,9 +134,15 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject non-existent user', async () => {
+      // Unique email so prior runs (or other tests) can't poison the
+      // failed-attempts counter on a hardcoded address and trip the
+      // 423 lockout instead of the expected 401.
       const res = await getRequest()
         .post('/api/auth/login')
-        .send({ email: 'nonexistent@test.com', password: TEST_USER.password });
+        .send({
+          email: `nonexistent-${uniqueTestId()}@test.com`,
+          password: TEST_USER.password,
+        });
 
       expect(res.status).toBe(401);
     });

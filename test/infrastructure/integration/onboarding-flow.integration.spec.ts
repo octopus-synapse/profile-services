@@ -340,7 +340,7 @@ describe('Complete Onboarding Flow', () => {
       const response = await getRequest()
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(createOnboardingPayload({ username: 'testuser' }));
+        .send(createOnboardingPayload({ username: uniqueTestUsername('tospre') }));
 
       expect([200, 403]).toContain(response.status);
     });
