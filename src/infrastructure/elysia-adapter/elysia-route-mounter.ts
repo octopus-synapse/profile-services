@@ -84,9 +84,9 @@ function applyResponseHeaders(ctx: HttpCtx, ec: ElysiaCtx): void {
   const structured = drainCookieJarStructured(ctx);
   if (Object.keys(structured).length > 0) {
     const set = ec.set as { cookie?: Record<string, unknown> };
-    const cookieMap = (set.cookie ??= {});
+    if (!set.cookie) set.cookie = {};
     for (const [name, entry] of Object.entries(structured)) {
-      cookieMap[name] = entry;
+      set.cookie[name] = entry;
     }
   }
 }

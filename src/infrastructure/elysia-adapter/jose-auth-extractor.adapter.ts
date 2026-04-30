@@ -64,12 +64,17 @@ export class JoseAuthExtractorAdapter extends AuthExtractorPort {
   }
 
   private readToken(req: RawAuthRequest): string | undefined {
+    // Cookie takes precedence over Authorization Bearer so server-side
+    // sessions (set on login) win over any client-supplied header. The
+    // session-auth e2e journey pins this contract.
+    const cookieName = this.config.cookieName ?? 'access_token';
+    const cookieToken = req.cookies?.[cookieName];
+    if (cookieToken) return cookieToken;
     const auth = req.headers.authorization ?? req.headers.Authorization;
     const header = Array.isArray(auth) ? auth[0] : auth;
     if (header?.toLowerCase().startsWith('bearer ')) {
       return header.slice(7).trim() || undefined;
     }
-    const cookieName = this.config.cookieName ?? 'access_token';
-    return req.cookies?.[cookieName];
+    return undefined;
   }
 }
