@@ -17,8 +17,8 @@ export function wrapResponse(data: unknown): unknown {
   // Buffer pass-through.
   if (data instanceof Uint8Array) return data;
   // StreamableFile / Buffer / Readable check — duck-typed so this file
-  // doesn't import @nestjs.
-  if (typeof data === 'object' && data !== null) {
+  // doesn't import @nestjs. (`null` is already short-circuited above.)
+  if (typeof data === 'object') {
     const maybeStream = data as {
       getStream?: () => unknown;
       pipe?: () => unknown;
