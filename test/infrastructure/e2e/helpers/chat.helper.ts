@@ -30,13 +30,25 @@ export class ChatHelper {
       });
     }
 
-    // Assign permission to user (upsert to avoid duplicates)
-    await this.prisma.userPermission.upsert({
+    // Per-user grants now live in AccessModifier (effect=GRANT,
+    // type=GRANT_PERMISSION). Use deleteMany+create to keep the helper
+    // idempotent without relying on a composite unique key.
+    await this.prisma.accessModifier.deleteMany({
       where: {
-        userId_permissionId: { userId, permissionId: permission.id },
+        userId,
+        modifierType: 'GRANT_PERMISSION',
+        permissionId: permission.id,
       },
-      create: { userId, permissionId: permission.id, granted: true },
-      update: { granted: true },
+    });
+    await this.prisma.accessModifier.create({
+      data: {
+        userId,
+        modifierType: 'GRANT_PERMISSION',
+        effect: 'GRANT',
+        permissionId: permission.id,
+        reason: 'e2e test setup: grant chat:use',
+        createdBy: userId,
+      },
     });
   }
 

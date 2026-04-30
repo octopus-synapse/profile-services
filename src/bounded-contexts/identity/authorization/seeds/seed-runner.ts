@@ -10,7 +10,6 @@ import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/pr
 import { Permission } from '@/shared-kernel/authorization/permission.enum';
 import type { CreatePermissionInput } from '../domain/entities/permission.entity';
 import { SYSTEM_PERMISSIONS as LEGACY_PERMISSIONS } from './permissions';
-import { SYSTEM_GROUPS } from './system-groups';
 import { SYSTEM_ROLES } from './system-roles';
 
 let cliPrisma: PrismaClient | null = null;
@@ -127,70 +126,22 @@ async function seedRoles(
   return roleMap;
 }
 
+// Groups were dropped from the auth model. The function is kept as a
+// no-op so call sites that still pass a (now empty) SYSTEM_GROUPS list
+// don't need to be touched.
 async function seedGroups(
-  prisma: PrismaClient,
-  roleMap: Map<string, string>,
-  permissionMap: Map<string, string>,
+  _prisma: PrismaClient,
+  _roleMap: Map<string, string>,
+  _permissionMap: Map<string, string>,
 ): Promise<void> {
-  console.log('👥 Seeding groups...');
-
-  for (const groupDef of SYSTEM_GROUPS) {
-    const group = await prisma.group.upsert({
-      where: { name: groupDef.name },
-      create: {
-        name: groupDef.name,
-        displayName: groupDef.displayName,
-        description: groupDef.description,
-        isSystem: groupDef.isSystem ?? false,
-        parentId: groupDef.parentId,
-      },
-      update: {
-        displayName: groupDef.displayName,
-        description: groupDef.description,
-        isSystem: groupDef.isSystem ?? false,
-      },
-    });
-
-    // Assign roles to group
-    for (const roleName of groupDef.roles) {
-      const roleId = roleMap.get(roleName);
-      if (roleId) {
-        await prisma.groupRole.upsert({
-          where: {
-            groupId_roleId: { groupId: group.id, roleId },
-          },
-          create: { groupId: group.id, roleId },
-          update: {},
-        });
-      } else {
-        console.warn(`  ⚠ Role "${roleName}" not found for group "${groupDef.name}"`);
-      }
-    }
-
-    // Assign direct permissions to group
-    if (groupDef.permissions) {
-      for (const permKey of groupDef.permissions) {
-        const permissionId = permissionMap.get(permKey);
-        if (permissionId) {
-          await prisma.groupPermission.upsert({
-            where: {
-              groupId_permissionId: { groupId: group.id, permissionId },
-            },
-            create: { groupId: group.id, permissionId },
-            update: {},
-          });
-        }
-      }
-    }
-
-    console.log(`  ✓ ${groupDef.name} (${groupDef.roles.length} roles)`);
-  }
-
-  console.log(`  Created/updated ${SYSTEM_GROUPS.length} groups\n`);
+  // intentional no-op
 }
 
 export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void> {
-  const prisma = prismaArg ?? (cliPrisma ??= new PrismaClient(createPrismaClientOptions()));
+  if (!prismaArg && !cliPrisma) {
+    cliPrisma = new PrismaClient(createPrismaClientOptions());
+  }
+  const prisma = prismaArg ?? (cliPrisma as PrismaClient);
   console.log('\n🚀 Starting authorization seed...\n');
 
   try {

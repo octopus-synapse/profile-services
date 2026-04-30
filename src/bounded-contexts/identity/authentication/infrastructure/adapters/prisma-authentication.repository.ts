@@ -70,9 +70,9 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
             email: true,
             name: true,
             username: true,
-            hasCompletedOnboarding: true,
+            onboardingCompletedAt: true,
             emailVerified: true,
-            roles: true,
+            userRoles: { select: { role: { select: { name: true } } } },
           },
         });
 
@@ -80,18 +80,25 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
           return null;
         }
 
-        const roles = user.roles ?? ['role_user'];
-        const isAdmin = roles.includes('role_admin');
+        const roleNames = user.userRoles.map((ur) => ur.role.name);
+        const isAdmin = roleNames.includes('admin');
+        // Legacy callers expect role IDs in `role_*` form. Map between
+        // the new model (`admin`, `user`) and the historical IDs.
+        const legacyRoles = roleNames.flatMap((name): string[] => {
+          if (name === 'admin') return ['role_admin', 'role_user'];
+          if (name === 'user') return ['role_user'];
+          return [];
+        });
 
         return {
           id: user.id,
           email: user.email ?? '',
           name: user.name,
           username: user.username,
-          hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
+          hasCompletedOnboarding: user.onboardingCompletedAt !== null,
           emailVerified: !!user.emailVerified,
           role: isAdmin ? 'ADMIN' : 'USER',
-          roles,
+          roles: legacyRoles,
         };
       },
       SESSION_CACHE_TTL,

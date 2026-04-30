@@ -1,10 +1,14 @@
 // Authorization Models
-// Dynamic RBAC (Role-Based Access Control) with Group Inheritance
 //
-// Design Principles:
-// - SRP: Each model has a single, clear responsibility
-// - OCP: New permissions/roles/groups can be added without code changes
-// - DIP: Domain does not depend on this schema; repositories abstract it
+// RBAC (Role-Based Access Control) — flat, two-role model:
+// `user` and `admin`. Permissions live on roles via `RolePermission`.
+//
+// Account state (email-verified, onboarding-completed) lives on
+// `User` as timestamps — see prisma/schema/user.prisma.
+//
+// Per-user grants/suspensions (e.g., "suspend email-verified for 14
+// days") live in `AccessModifier`, which can carry an `endsAt` and
+// override either a state column or a permission-via-role.
 
 /// Permission defines a single atomic action on a resource.
 /// Example: "resume:create", "user:delete", "theme:approve"
@@ -27,21 +31,21 @@ model Permission {
   updatedAt DateTime @updatedAt
 
   // Relations
-  roles  RolePermission[]
-  groups GroupPermission[]
-  users  UserPermission[]
+  roles    RolePermission[]
+  modifier AccessModifier[]
 
   @@unique([resource, action])
   @@index([resource])
   @@index([action])
 }
 
-/// Role is a named collection of permissions.
-/// Roles can be assigned to users or groups.
+/// Role is a named collection of permissions. The system has only two:
+/// `user` (job-seeker capabilities) and `admin` (auto-grant of every
+/// Permission enum value).
 model Role {
   id String @id @default(cuid())
 
-  /// Unique role name (e.g., "content_moderator", "resume_reviewer")
+  /// Unique role name. System uses 'user' and 'admin'.
   name String @unique
 
   /// Human-readable display name
@@ -62,44 +66,9 @@ model Role {
   // Relations
   permissions RolePermission[]
   users       UserRoleAssignment[]
-  groups      GroupRole[]
 
   @@index([name])
   @@index([priority])
-}
-
-/// Group allows hierarchical organization of roles.
-/// Groups can inherit from other groups (tree structure).
-model Group {
-  id String @id @default(cuid())
-
-  /// Unique group name (e.g., "engineering", "content_team")
-  name String @unique
-
-  /// Human-readable display name
-  displayName String
-
-  /// Description of this group's purpose
-  description String?
-
-  /// Whether this is a system group (cannot be deleted)
-  isSystem Boolean @default(false)
-
-  /// Parent group for inheritance (nullable for root groups)
-  parentId String?
-  parent   Group?  @relation("GroupHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  children Group[] @relation("GroupHierarchy")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  roles       GroupRole[]
-  permissions GroupPermission[]
-  users       UserGroup[]
-
-  @@index([name])
-  @@index([parentId])
 }
 
 // ============================================================================
@@ -121,42 +90,6 @@ model RolePermission {
 
   @@unique([roleId, permissionId])
   @@index([roleId])
-  @@index([permissionId])
-}
-
-/// Assigns roles to groups
-model GroupRole {
-  id      String @id @default(cuid())
-  groupId String
-  roleId  String
-
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  role  Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  /// Who assigned this role
-  assignedBy String?
-  assignedAt DateTime @default(now())
-
-  @@unique([groupId, roleId])
-  @@index([groupId])
-  @@index([roleId])
-}
-
-/// Direct permissions on groups (in addition to role-based)
-model GroupPermission {
-  id           String @id @default(cuid())
-  groupId      String
-  permissionId String
-
-  group      Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  /// Who assigned this permission
-  assignedBy String?
-  assignedAt DateTime @default(now())
-
-  @@unique([groupId, permissionId])
-  @@index([groupId])
   @@index([permissionId])
 }
 
@@ -182,53 +115,72 @@ model UserRoleAssignment {
   @@index([expiresAt])
 }
 
-/// Assigns groups to users
-model UserGroup {
-  id      String @id @default(cuid())
-  userId  String
-  groupId String
+// ============================================================================
+// Access modifiers
+// ============================================================================
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  /// Who assigned this group membership
-  assignedBy String?
-  assignedAt DateTime @default(now())
-
-  /// Optional expiration for temporary membership
-  expiresAt DateTime?
-
-  @@unique([userId, groupId])
-  @@index([userId])
-  @@index([groupId])
-  @@index([expiresAt])
+enum ModifierEffect {
+  /// Suspend a state or revoke a permission for the duration window.
+  DENY
+  /// Grant a permission (or restore a state) for the duration window.
+  GRANT
 }
 
-/// Direct permissions on users (overrides, exceptions)
-model UserPermission {
-  id           String @id @default(cuid())
-  userId       String
-  permissionId String
+enum ModifierType {
+  /// Suspends `User.emailVerifiedAt` even if the timestamp is set.
+  SUSPEND_EMAIL_VERIFIED
+  /// Suspends `User.onboardingCompletedAt` even if the timestamp is set.
+  SUSPEND_ONBOARDING
+  /// Suspends a role assignment without removing the row.
+  SUSPEND_ROLE_USER
+  /// Suspends a role assignment without removing the row.
+  SUSPEND_ROLE_ADMIN
+  /// Grants an individual permission outside any role (e.g., beta features).
+  GRANT_PERMISSION
+}
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+/// AccessModifier overlays state/role/permission with a time-bounded,
+/// audit-friendly suspension or grant. The permission gate composes
+/// modifiers on top of `User.<event>At` and `UserRoleAssignment` to
+/// decide if a request is allowed.
+///
+/// Modifier rows are immutable history: revoke by setting `revokedAt`,
+/// never delete. Anyone querying audit can replay activations and
+/// revocations from the same table.
+model AccessModifier {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  /// Grant (true) or deny (false) - allows explicit denials
-  granted Boolean @default(true)
+  /// What is being suspended/granted.
+  modifierType ModifierType
+  /// DENY (suspends) or GRANT (adds).
+  effect       ModifierEffect
 
-  /// Who assigned this permission
-  assignedBy String?
-  assignedAt DateTime @default(now())
+  /// For GRANT_PERMISSION: which permission is granted.
+  permissionId String?
+  permission   Permission? @relation(fields: [permissionId], references: [id], onDelete: SetNull)
 
-  /// Optional expiration
-  expiresAt DateTime?
+  /// Free-text reason audit log surfaces ("suspeita de comprometimento", "beta cohort A").
+  reason String
 
-  /// Reason for this direct assignment
-  reason String?
+  /// When the modifier becomes active.
+  startsAt DateTime @default(now())
+  /// When the modifier expires. `null` = active until revoked.
+  endsAt   DateTime?
 
-  @@unique([userId, permissionId])
+  /// Who applied the modifier (admin userId).
+  createdBy String
+
+  /// When the modifier was revoked. `null` = still in effect within window.
+  revokedAt DateTime?
+  /// Who revoked the modifier (admin userId).
+  revokedBy String?
+
+  createdAt DateTime @default(now())
+
   @@index([userId])
+  @@index([userId, endsAt, revokedAt])
+  @@index([modifierType])
   @@index([permissionId])
-  @@index([granted])
-  @@index([expiresAt])
 }

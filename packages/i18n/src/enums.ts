@@ -312,6 +312,32 @@ export const ENUM_DICTIONARY = {
     QA: { en: 'QA', 'pt-BR': 'QA' },
     SECURITY: { en: 'Security', 'pt-BR': 'Segurança' },
   },
+  ModifierEffect: {
+    DENY: { en: 'Deny', 'pt-BR': 'Negar' },
+    GRANT: { en: 'Grant', 'pt-BR': 'Conceder' },
+  },
+  ModifierType: {
+    SUSPEND_EMAIL_VERIFIED: {
+      en: 'Suspend email-verified state',
+      'pt-BR': 'Suspender estado de e-mail verificado',
+    },
+    SUSPEND_ONBOARDING: {
+      en: 'Suspend onboarding-completed state',
+      'pt-BR': 'Suspender estado de onboarding concluído',
+    },
+    SUSPEND_ROLE_USER: {
+      en: 'Suspend `user` role',
+      'pt-BR': 'Suspender role `user`',
+    },
+    SUSPEND_ROLE_ADMIN: {
+      en: 'Suspend `admin` role',
+      'pt-BR': 'Suspender role `admin`',
+    },
+    GRANT_PERMISSION: {
+      en: 'Grant individual permission',
+      'pt-BR': 'Conceder permissão individual',
+    },
+  },
   WeeklyCuratedBatchStatus: {
     COMPLETED: { en: 'Completed', 'pt-BR': 'Concluído' },
     FAILED: { en: 'Failed', 'pt-BR': 'Falhou' },

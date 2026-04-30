@@ -1,8 +1,12 @@
 /**
  * User Authorization Repository Implementation
  *
- * Infrastructure layer implementation of IUserAuthorizationRepository.
- * Handles user-specific authorization data: roles, groups, and direct permissions.
+ * Backs role assignments via Prisma. Group operations and per-user
+ * permission grants moved out of the model:
+ * - Groups were dropped from the schema; group-related methods are
+ *   no-ops kept for interface parity during the migration window.
+ * - Per-user grants/suspensions live in `AccessModifier` (handled by
+ *   a dedicated repository, not this one).
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -20,17 +24,11 @@ import type {
 export class UserAuthorizationRepository implements IUserAuthorizationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]> {
-    const records = await this.prisma.userPermission.findMany({
-      where: { userId },
-      select: { permissionId: true, granted: true, expiresAt: true },
-    });
-
-    return records.map((r) => ({
-      permissionId: r.permissionId,
-      granted: r.granted,
-      expiresAt: r.expiresAt ?? undefined,
-    }));
+  async getUserPermissions(_userId: UserId): Promise<UserPermissionAssignment[]> {
+    // Direct user permissions are tracked in `AccessModifier` now —
+    // this repository no longer surfaces them. The permission resolver
+    // composes role permissions with AccessModifier rows separately.
+    return [];
   }
 
   async getUserRoles(userId: UserId): Promise<UserRoleAssignment[]> {
@@ -42,13 +40,8 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
     return records.map((r) => ({ roleId: r.roleId, expiresAt: r.expiresAt ?? undefined }));
   }
 
-  async getUserGroups(userId: UserId): Promise<UserGroupMembership[]> {
-    const records = await this.prisma.userGroup.findMany({
-      where: { userId },
-      select: { groupId: true, expiresAt: true },
-    });
-
-    return records.map((r) => ({ groupId: r.groupId, expiresAt: r.expiresAt ?? undefined }));
+  async getUserGroups(_userId: UserId): Promise<UserGroupMembership[]> {
+    return [];
   }
 
   // ============================================================================
@@ -93,96 +86,51 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
   }
 
   // ============================================================================
-  // User Group Membership
+  // User Group Membership — no-ops (groups dropped)
   // ============================================================================
 
   async addToGroup(
-    userId: UserId,
-    groupId: GroupId,
-    options?: { assignedBy?: string; expiresAt?: Date },
+    _userId: UserId,
+    _groupId: GroupId,
+    _options?: { assignedBy?: string; expiresAt?: Date },
   ): Promise<void> {
-    await this.prisma.userGroup.upsert({
-      where: {
-        userId_groupId: { userId, groupId },
-      },
-      create: { userId, groupId, assignedBy: options?.assignedBy, expiresAt: options?.expiresAt },
-      update: { expiresAt: options?.expiresAt },
-    });
+    // no-op
   }
 
-  async removeFromGroup(userId: UserId, groupId: GroupId): Promise<void> {
-    await this.prisma.userGroup.deleteMany({
-      where: { userId, groupId },
-    });
+  async removeFromGroup(_userId: UserId, _groupId: GroupId): Promise<void> {
+    // no-op
   }
 
   async setGroups(
-    userId: UserId,
-    groupIds: GroupId[],
-    options?: { assignedBy?: string },
+    _userId: UserId,
+    _groupIds: GroupId[],
+    _options?: { assignedBy?: string },
   ): Promise<void> {
-    await this.prisma.$transaction([
-      // Remove all existing groups
-      this.prisma.userGroup.deleteMany({
-        where: { userId },
-      }),
-      // Add new groups
-      this.prisma.userGroup.createMany({
-        data: groupIds.map((groupId) => ({ userId, groupId, assignedBy: options?.assignedBy })),
-      }),
-    ]);
+    // no-op
   }
 
   // ============================================================================
-  // User Direct Permissions
+  // User Direct Permissions — moved to AccessModifier (no-ops here)
   // ============================================================================
 
   async grantPermission(
-    userId: UserId,
-    permissionId: PermissionId,
-    options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
+    _userId: UserId,
+    _permissionId: PermissionId,
+    _options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
   ): Promise<void> {
-    await this.prisma.userPermission.upsert({
-      where: {
-        userId_permissionId: { userId, permissionId },
-      },
-      create: {
-        userId,
-        permissionId,
-        granted: true,
-        assignedBy: options?.assignedBy,
-        expiresAt: options?.expiresAt,
-        reason: options?.reason,
-      },
-      update: { granted: true, expiresAt: options?.expiresAt, reason: options?.reason },
-    });
+    // no-op (use AccessModifier with effect=GRANT instead)
   }
 
   async denyPermission(
-    userId: UserId,
-    permissionId: PermissionId,
-    options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
+    _userId: UserId,
+    _permissionId: PermissionId,
+    _options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
   ): Promise<void> {
-    await this.prisma.userPermission.upsert({
-      where: {
-        userId_permissionId: { userId, permissionId },
-      },
-      create: {
-        userId,
-        permissionId,
-        granted: false,
-        assignedBy: options?.assignedBy,
-        expiresAt: options?.expiresAt,
-        reason: options?.reason,
-      },
-      update: { granted: false, expiresAt: options?.expiresAt, reason: options?.reason },
-    });
+    // no-op (use AccessModifier with effect=DENY instead)
   }
 
-  async removeDirectPermission(userId: UserId, permissionId: PermissionId): Promise<void> {
-    await this.prisma.userPermission.deleteMany({
-      where: { userId, permissionId },
-    });
+  async removeDirectPermission(_userId: UserId, _permissionId: PermissionId): Promise<void> {
+    // no-op
   }
 
   // ============================================================================
@@ -227,33 +175,17 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
     return this.countUsersWithRole(role.id);
   }
 
-  async getUsersInGroup(groupId: GroupId): Promise<UserId[]> {
-    const records = await this.prisma.userGroup.findMany({
-      where: {
-        groupId,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
-      select: { userId: true },
-    });
-
-    return records.map((r) => r.userId);
+  async getUsersInGroup(_groupId: GroupId): Promise<UserId[]> {
+    return [];
   }
 
   async cleanupExpiredAssignments(): Promise<number> {
     const now = new Date();
 
-    const [roles, groups, permissions] = await this.prisma.$transaction([
-      this.prisma.userRoleAssignment.deleteMany({
-        where: { expiresAt: { lt: now } },
-      }),
-      this.prisma.userGroup.deleteMany({
-        where: { expiresAt: { lt: now } },
-      }),
-      this.prisma.userPermission.deleteMany({
-        where: { expiresAt: { lt: now } },
-      }),
-    ]);
+    const expired = await this.prisma.userRoleAssignment.deleteMany({
+      where: { expiresAt: { lt: now } },
+    });
 
-    return roles.count + groups.count + permissions.count;
+    return expired.count;
   }
 }

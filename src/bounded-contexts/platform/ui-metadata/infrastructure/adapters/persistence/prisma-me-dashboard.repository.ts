@@ -83,11 +83,17 @@ export class PrismaMeDashboardRepository extends MeDashboardRepositoryPort {
   }
 
   async listActivePermissionGrants(userId: string): Promise<PermissionGrant[]> {
-    const grants = await this.prisma.userPermission.findMany({
+    // Per-user permission grants moved to AccessModifier (effect=GRANT
+    // with optional `endsAt`). Until the dashboard adopts the new
+    // source, surface only modifier rows that grant a Permission and
+    // are still active.
+    const grants = await this.prisma.accessModifier.findMany({
       where: {
         userId,
-        granted: true,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        modifierType: 'GRANT_PERMISSION',
+        effect: 'GRANT',
+        revokedAt: null,
+        OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
       },
       select: { permission: { select: { resource: true, action: true } } },
     });
