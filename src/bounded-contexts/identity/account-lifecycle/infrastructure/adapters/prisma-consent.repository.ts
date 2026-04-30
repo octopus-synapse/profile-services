@@ -19,11 +19,26 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
   ) {}
 
   async create(data: CreateConsentData): Promise<ConsentRecord> {
-    return this.prisma.userConsent.create({
-      data: {
+    // Idempotent: signup pre-creates consent rows for the current
+    // versions of every document, so a subsequent `/accept-consent`
+    // call (e.g. user re-confirming) would otherwise blow up on the
+    // unique (userId, documentType, version) constraint.
+    return this.prisma.userConsent.upsert({
+      where: {
+        userId_documentType_version: {
+          userId: data.userId,
+          documentType: data.documentType,
+          version: data.version,
+        },
+      },
+      create: {
         userId: data.userId,
         documentType: data.documentType,
         version: data.version,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+      },
+      update: {
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
       },

@@ -33,7 +33,11 @@ import {
 
 const ImportIdParams = z.object({ importId: z.string() });
 const JsonImportBodySchema = z.object({
-  data: z.unknown(),
+  // `data` must be present — without it the handler immediately
+  // throws a 500 inside `validateJsonResume(undefined)`. Forcing
+  // an object here keeps the failure mode at the schema layer
+  // (400 Bad Request).
+  data: z.object({}).passthrough(),
 });
 
 const GithubImportBodySchema = z.object({

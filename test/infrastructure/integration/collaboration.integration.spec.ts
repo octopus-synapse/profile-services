@@ -338,7 +338,8 @@ describeIntegration('Collaboration Integration Tests', () => {
         .delete(`/api/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
         .set('Authorization', `Bearer ${ownerToken}`);
 
-      expect(response.status).toBe(204);
+      // Handler returns a JSON envelope, so 200 — not 204 (which is body-less).
+      expect(response.status).toBe(200);
     });
 
     it('should no longer list removed collaborator', async () => {

@@ -40,6 +40,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
   {
     method: 'POST',
     path: '/resumes/:resumeId/collaborators',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,

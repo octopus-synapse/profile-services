@@ -19,6 +19,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  signupBody,
   uniqueTestId,
 } from './setup';
 
@@ -169,18 +170,26 @@ describe('Data Integrity Integration', () => {
       const duplicateEmail = `duplicate-${uniqueTestId()}@example.com`;
 
       // First registration
-      await getRequest().post('/api/accounts').send({
-        email: duplicateEmail,
-        password: 'SecurePass123!',
-        name: 'First User',
-      });
+      await getRequest()
+        .post('/api/accounts')
+        .send(
+          signupBody({
+            email: duplicateEmail,
+            password: 'SecurePass123!',
+            name: 'First User',
+          }),
+        );
 
       // Second registration with same email
-      const response = await getRequest().post('/api/accounts').send({
-        email: duplicateEmail,
-        password: 'DifferentPass123!',
-        name: 'Second User',
-      });
+      const response = await getRequest()
+        .post('/api/accounts')
+        .send(
+          signupBody({
+            email: duplicateEmail,
+            password: 'DifferentPass123!',
+            name: 'Second User',
+          }),
+        );
 
       expect(response.status).toBe(409); // Conflict
     });

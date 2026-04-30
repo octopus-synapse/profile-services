@@ -168,6 +168,19 @@ export function mountRoutes<TBundle>(
         for (const [k, v] of Object.entries(route.headers)) ec.set.headers[k] = v;
       }
       applyResponseHeaders(ctx, ec);
+      // Unwrap `StreamableFile` (src/shared-kernel/http/streamable-file.ts)
+      // so binary endpoints (`*.png`, PDF exports) emit raw bytes
+      // instead of JSON-serialized objects.
+      const body = ctx.state.responseBody as unknown;
+      if (
+        body &&
+        typeof body === 'object' &&
+        'source' in body &&
+        ((body as { source: unknown }).source instanceof Uint8Array ||
+          (body as { source: unknown }).source instanceof ArrayBuffer)
+      ) {
+        return (body as { source: Uint8Array | ArrayBuffer }).source;
+      }
       return ctx.state.responseBody;
     };
     const verb = route.method.toLowerCase() as Lowercase<HttpMethod>;

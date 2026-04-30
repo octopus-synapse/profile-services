@@ -20,7 +20,7 @@ export class PrismaUserSnapshotAdapter extends UserSnapshotPort {
         id: true,
         email: true,
         emailVerified: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: true,
       },
     });
     if (!row) return null;
@@ -28,7 +28,11 @@ export class PrismaUserSnapshotAdapter extends UserSnapshotPort {
       userId: row.id,
       email: row.email ?? '',
       emailVerified: row.emailVerified !== null,
-      hasCompletedOnboarding: row.hasCompletedOnboarding,
+      // Derive from `onboardingCompletedAt` (the new source of truth)
+      // instead of the legacy `hasCompletedOnboarding` boolean. The
+      // legacy column is kept for back-compat queries but is no
+      // longer reliably written by every onboarding-completion path.
+      hasCompletedOnboarding: row.onboardingCompletedAt !== null,
     };
   }
 }

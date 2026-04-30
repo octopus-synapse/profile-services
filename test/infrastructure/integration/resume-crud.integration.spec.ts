@@ -11,7 +11,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../shared';
-import { acceptTosWithPrisma, getApp, uniqueTestId } from './setup';
+import { acceptTosWithPrisma, assignUserRole, getApp, signupBody, uniqueTestId } from './setup';
 
 describe('Resume CRUD Integration', () => {
   let app: TestApp;
@@ -30,18 +30,25 @@ describe('Resume CRUD Integration', () => {
     prisma = app.prisma;
 
     // Create test user
-    const signupResponse = await app.request.post('/api/accounts').send(testUser).expect(201);
+    const signupResponse = await app.request
+      .post('/api/accounts')
+      .send(signupBody(testUser))
+      .expect(201);
 
     userId = signupResponse.body.data.userId;
 
     // Verify email to allow access to protected routes
     await prisma.user.update({
       where: { id: userId },
-      data: { emailVerified: new Date() },
+      data: { emailVerified: new Date(), onboardingCompletedAt: new Date() },
     });
 
     // Accept ToS and Privacy Policy (GDPR compliance)
     await acceptTosWithPrisma(prisma, userId);
+
+    // Mirror onboarding-completion: assign `user` role so domain
+    // routes pass the permission gate.
+    await assignUserRole(userId);
 
     const loginResponse = await app.request.post('/api/auth/login').send({
       email: testUser.email,
@@ -82,7 +89,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(resumeData)
         .expect(201);
-
+      expect(response.body.success).toBe(true);
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe(resumeData.title);
       expect(response.body.data.title).toBe(resumeData.title);

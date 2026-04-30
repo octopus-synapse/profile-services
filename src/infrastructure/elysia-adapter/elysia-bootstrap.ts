@@ -62,6 +62,8 @@ import { uiStateRoutes } from '@/bounded-contexts/identity/users/ui-state/ui-sta
 import { buildUsersUseCases } from '@/bounded-contexts/identity/users/users.composition';
 import { usersRoutes } from '@/bounded-contexts/identity/users/users.routes';
 import { buildImportComposition } from '@/bounded-contexts/import/import.composition';
+import { buildMecSyncUseCases } from '@/bounded-contexts/integration/mec-sync/mec-sync.composition';
+import { mecSyncRoutes } from '@/bounded-contexts/integration/mec-sync/mec-sync.routes';
 import { buildUploadComposition } from '@/bounded-contexts/integration/upload/upload.composition';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
@@ -71,6 +73,8 @@ import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.route
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
+import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platform.composition';
+import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
 import { buildHealthComposition } from '@/bounded-contexts/platform/health/health.composition';
@@ -520,6 +524,17 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
   ) as never;
 
+  // MEC sync — public catalog routes (`/api/v1/mec/...`).
+  const mecSync = buildMecSyncUseCases(prisma as never, cache as never, logger);
+
+  // Platform common — public enums + admin dashboard/alerts/stats.
+  const platformUseCases = buildPlatformUseCases(
+    prisma as never,
+    logger,
+    (authorization as { authService: unknown }).authService as never,
+    sectionTypeRepo as never,
+  );
+
   // Test runner consumes the real social services.
   const testRunner = buildTestRunnerComposition(
     prisma as never,
@@ -676,6 +691,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       bundle: (translation as { useCases: unknown }).useCases ?? translation,
       routes: translationRoutes,
     },
+    { bundle: mecSync, routes: mecSyncRoutes },
+    { bundle: platformUseCases, routes: platformRoutes },
     {
       bundle: (testRunner as { useCases: unknown }).useCases ?? testRunner,
       routes: testRunnerRoutes,

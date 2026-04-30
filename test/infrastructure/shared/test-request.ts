@@ -160,14 +160,34 @@ class RequestBuilder implements PromiseLike<TestResponse> {
       headers: this.headers,
       body: body ?? undefined,
     });
-    const text = await res.text();
-    let parsed: unknown = text;
     const ct = res.headers.get('content-type') ?? '';
-    if (ct.includes('application/json') && text.length > 0) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        // leave parsed as raw text
+    // Binary responses (PNG QR codes, OG images, PDFs) need to come
+    // back as Buffer so specs can do `Buffer.isBuffer(body)` and read
+    // the magic-byte prefix. `res.text()` would re-decode the bytes
+    // through UTF-8 and corrupt them.
+    const isBinary =
+      ct.startsWith('image/') ||
+      ct === 'application/pdf' ||
+      ct === 'application/octet-stream' ||
+      ct.startsWith('font/') ||
+      ct.startsWith('audio/') ||
+      ct.startsWith('video/');
+    let text = '';
+    let parsed: unknown;
+    if (isBinary) {
+      const ab = await res.arrayBuffer();
+      const buf = Buffer.from(ab);
+      parsed = buf;
+      text = '';
+    } else {
+      text = await res.text();
+      parsed = text;
+      if (ct.includes('application/json') && text.length > 0) {
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          // leave parsed as raw text
+        }
       }
     }
     const setCookie =

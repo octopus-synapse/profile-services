@@ -74,6 +74,19 @@ export class AuthHelper {
       },
     });
 
+    // Mirror what the real onboarding-completion adapter does: assign
+    // the `user` role so the new permission pipeline lets domain
+    // routes through. Without this row the user has zero domain
+    // perms and every gated route returns 403.
+    const userRole = await this.app.prisma.role.findUnique({ where: { name: 'user' } });
+    if (userRole) {
+      await this.app.prisma.userRoleAssignment.upsert({
+        where: { userId_roleId: { userId: userRow.id, roleId: userRole.id } },
+        create: { userId: userRow.id, roleId: userRole.id, assignedBy: 'integration-test-helper' },
+        update: {},
+      });
+    }
+
     const login = await this.app.request
       .post('/api/auth/login')
       .send({ email: u.email, password: u.password });

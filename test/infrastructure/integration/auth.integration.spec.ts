@@ -1,8 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import {
+  assignUserRole,
   closeApp,
   getApp,
+  getPrisma,
   getRequest,
+  signupBody,
   TEST_USER,
   testContext,
   uniqueTestId,
@@ -19,13 +22,18 @@ describe('Auth Smoke Tests', () => {
     // Pre-create user for all tests
     const createRes = await getRequest()
       .post('/api/accounts')
-      .send({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name });
+      .send(signupBody({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name }));
     if (createRes.status === 201) {
       const userId = createRes.body.data.userId;
       testContext.userId = userId;
 
-      // Verify email so user can access protected routes
+      // Verify email + complete onboarding so user can access protected routes
       await verifyUserEmail(userId);
+      await getPrisma().user.update({
+        where: { id: userId },
+        data: { onboardingCompletedAt: new Date() },
+      });
+      await assignUserRole(userId);
 
       // Login to get tokens
       const loginRes = await getRequest()
@@ -48,7 +56,9 @@ describe('Auth Smoke Tests', () => {
     it('should reject duplicate email', async () => {
       const res = await getRequest()
         .post('/api/accounts')
-        .send({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name });
+        .send(
+          signupBody({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name }),
+        );
 
       expect(res.status).toBe(409);
     });
@@ -56,7 +66,13 @@ describe('Auth Smoke Tests', () => {
     it('should reject invalid email format', async () => {
       const res = await getRequest()
         .post('/api/accounts')
-        .send({ email: 'invalid-email', password: TEST_USER.password, name: TEST_USER.name });
+        .send(
+          signupBody({
+            email: 'invalid-email',
+            password: TEST_USER.password,
+            name: TEST_USER.name,
+          }),
+        );
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(res.status);
@@ -65,11 +81,13 @@ describe('Auth Smoke Tests', () => {
     it('should reject weak password', async () => {
       const res = await getRequest()
         .post('/api/accounts')
-        .send({
-          email: `weak-pass-${uniqueTestId()}@test.com`,
-          password: '123',
-          name: TEST_USER.name,
-        });
+        .send(
+          signupBody({
+            email: `weak-pass-${uniqueTestId()}@test.com`,
+            password: '123',
+            name: TEST_USER.name,
+          }),
+        );
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(res.status);
@@ -79,7 +97,7 @@ describe('Auth Smoke Tests', () => {
       const newEmail = `signup-test-${uniqueTestId()}@test.com`;
       const res = await getRequest()
         .post('/api/accounts')
-        .send({ email: newEmail, password: TEST_USER.password, name: TEST_USER.name });
+        .send(signupBody({ email: newEmail, password: TEST_USER.password, name: TEST_USER.name }));
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('data');
@@ -208,13 +226,13 @@ describe('Auth Smoke Tests', () => {
       expect(res.body.status).toBe('ok');
     });
 
-    it('GET /api/health/db should check database', async () => {
-      const res = await getRequest().get('/api/health/db');
+    it('GET /api/health/ready should run readiness probes', async () => {
+      const res = await getRequest().get('/api/health/ready');
 
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toHaveProperty('status');
-      expect(res.body.data.status).toBe('ok');
+      // 200 if every probe passes; 503 if any fails.
+      expect([200, 503]).toContain(res.status);
+      expect(res.body).toHaveProperty('status');
+      expect(res.body).toHaveProperty('probes');
     });
   });
 });

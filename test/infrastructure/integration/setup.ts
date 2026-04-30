@@ -104,6 +104,25 @@ export async function closeApp(): Promise<void> {
   // intentionally no-op
 }
 
+// ─── Signup helpers ───────────────────────────────────────────────
+
+/**
+ * Wraps a signup payload with the LGPD consent fields the
+ * `/api/accounts` schema now requires (`acceptedTosVersion`,
+ * `acceptedPrivacyVersion`). Specs predating that requirement still
+ * build `{ email, password, name }` objects — wrap them through this
+ * before posting so the schema accepts the body.
+ */
+export function signupBody<T extends Record<string, unknown>>(
+  base: T,
+): T & { acceptedTosVersion: string; acceptedPrivacyVersion: string } {
+  return {
+    ...base,
+    acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+    acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+  };
+}
+
 // ─── Auth helpers ─────────────────────────────────────────────────
 
 export async function createTestUserAndLogin(
@@ -168,6 +187,25 @@ export function unwrapApiData<T>(body: unknown): T {
 export async function verifyUserEmail(userId: string): Promise<void> {
   const prisma = getPrisma();
   await prisma.user.update({ where: { id: userId }, data: { emailVerified: new Date() } });
+}
+
+/**
+ * Assigns the system `user` role to a userId so the new permission
+ * pipeline lets domain routes through. Mirrors what the
+ * onboarding-completion adapter does in production. Specs that
+ * bypass the onboarding flow but still need authenticated access
+ * (verify email + accept ToS, then immediately hit a protected
+ * route) call this directly.
+ */
+export async function assignUserRole(userId: string): Promise<void> {
+  const prisma = getPrisma();
+  const role = await prisma.role.findUnique({ where: { name: 'user' } });
+  if (!role) return;
+  await prisma.userRoleAssignment.upsert({
+    where: { userId_roleId: { userId, roleId: role.id } },
+    create: { userId, roleId: role.id, assignedBy: 'integration-test-setup' },
+    update: {},
+  });
 }
 
 export async function acceptTosForUser(userId: string): Promise<void> {

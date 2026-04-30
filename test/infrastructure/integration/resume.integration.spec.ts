@@ -45,8 +45,11 @@ describe('Resume Smoke Tests', () => {
       expect(res.status).toBe(401);
     });
 
-    it('should create resume with empty body (all fields optional)', async () => {
-      const res = await getRequest().post('/api/v1/resumes').set(authHeader()).send({});
+    it('should create resume with only the required `title` field', async () => {
+      const res = await getRequest()
+        .post('/api/v1/resumes')
+        .set(authHeader())
+        .send({ title: 'Smoke Test Resume' });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('data');

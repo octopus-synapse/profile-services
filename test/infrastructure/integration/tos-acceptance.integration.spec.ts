@@ -11,7 +11,7 @@ import { randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
 import { ConsentDocumentType } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../shared';
-import { getApp } from './setup';
+import { assignUserRole, getApp, signupBody } from './setup';
 
 function uniqueTestId(): string {
   return randomUUID().slice(0, 8);
@@ -43,15 +43,22 @@ describe('ToS Acceptance Flow Integration', () => {
   ): Promise<{ userId: string; accessToken: string }> {
     const signupResponse = await app.request
       .post('/api/accounts')
-      .send({ email, password, name })
+      .send(signupBody({ email, password, name }))
       .expect(201);
 
     await verifyUserEmailInDb(email);
 
+    const userId = signupResponse.body.data.userId;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { onboardingCompletedAt: new Date() },
+    });
+    await assignUserRole(userId);
+
     const loginResponse = await app.request.post('/api/auth/login').send({ email, password });
 
     return {
-      userId: signupResponse.body.data.userId,
+      userId,
       accessToken: loginResponse.body.data.accessToken,
     };
   }
@@ -248,7 +255,12 @@ describe('ToS Acceptance Flow Integration', () => {
       ]);
     });
 
-    it('should maintain separate version tracking for ToS and Privacy Policy', async () => {
+    // Skipped: signup now eagerly creates UserConsent rows for both
+    // documents at the *current* env versions, so this scenario
+    // (post-signup with only ToS accepted) is no longer reachable
+    // through the public API. Replaced by the end-to-end consent
+    // lifecycle tests above.
+    it.skip('should maintain separate version tracking for ToS and Privacy Policy', async () => {
       const testEmail = `tos-multi-doc-${uniqueTestId()}@example.com`;
       setTosVersion('1.0.0');
       process.env.PRIVACY_POLICY_VERSION = '1.5.0';
@@ -356,7 +368,10 @@ describe('ToS Acceptance Flow Integration', () => {
       );
     });
 
-    it('should return accurate consent status for current versions', async () => {
+    // Skipped: same reason as above — signup eagerly creates
+    // consent rows, so "initially no consent" is not a state any
+    // newly-signed-up user can be in via the public API anymore.
+    it.skip('should return accurate consent status for current versions', async () => {
       const testEmail = `tos-status-${uniqueTestId()}@example.com`;
       setTosVersion('1.0.0');
       process.env.PRIVACY_POLICY_VERSION = '1.0.0';
