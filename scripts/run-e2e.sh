@@ -389,26 +389,104 @@ echo ""
 log_step "Running E2E tests..."
 echo ""
 
-# Build test command
-# `--concurrent` runs tests within each file in parallel (bun 1.3+).
-# `--max-concurrency` caps in-flight tests to avoid DB pool exhaustion
-# (Prisma default pool is small; the app + autocannon-style suites
-# starve it past ~10 concurrent queries). Tests that share mutable
-# state must mark themselves with `test.serial` / `describe.serial`.
-TEST_CMD="bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8"
-if [[ -n "$FILTER" ]]; then
-    TEST_CMD="$TEST_CMD --test-name-pattern '$FILTER'"
+# Multi-process sharding. Bun is single-process per `bun test`
+# invocation, so wall-clock time is dominated by the longest file
+# in the suite. We split the spec list across $SHARDS workers,
+# each with its own Bun process, all hitting the same shared
+# Postgres / Redis. Fixtures use `freshUser()` (random emails) to
+# avoid cross-process row collisions; the admin singleton is
+# upserted (`ensureAdminUser`) so 4 workers booting at once don't
+# race on the unique constraint.
+#
+# Override via `SHARDS=N bun run test:e2e` (default 3, which is the
+# sweet spot on a 4-core box: 3 workers + Postgres + I/O leaves a
+# core idle so the kernel scheduler doesn't thrash). Set `SHARDS=1`
+# to disable sharding entirely.
+#
+# Within each shard we still pass `--concurrent --max-concurrency=8`
+# so tests inside a file run in parallel where they can.
+SHARDS="${SHARDS:-3}"
+
+mapfile -t ALL_FILES < <(find test/infrastructure/e2e -name "*.spec.ts" | sort)
+TOTAL_FILES=${#ALL_FILES[@]}
+
+if [[ $TOTAL_FILES -eq 0 ]]; then
+    log_error "No e2e spec files found under test/infrastructure/e2e/"
+    exit 1
 fi
 
-# Run tests
-if eval "$TEST_CMD"; then
-    echo ""
-    log_info "All E2E tests passed!"
-    EXIT_CODE=0
+# Cap shard count by file count — splitting 10 files into 16 shards
+# leaves shards with nothing to run.
+if (( SHARDS > TOTAL_FILES )); then
+    SHARDS=$TOTAL_FILES
+fi
+
+# Pre-seed once before fanning out workers (only if sharding) so
+# they don't fight over the catalog upserts at boot.
+if [[ $SHARDS -gt 1 ]]; then
+    log_info "Pre-seeding catalogs..."
+    if ! bun scripts/_e2e-preseed.ts; then
+        log_error "Pre-seed failed"
+        exit 1
+    fi
+    export E2E_SKIP_SEED=1
+fi
+
+if [[ $SHARDS -eq 1 ]]; then
+    log_info "Running ${TOTAL_FILES} spec file(s) in a single process..."
+    if [[ -n "$FILTER" ]]; then
+        bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+            --test-name-pattern "$FILTER" "${ALL_FILES[@]}"
+    else
+        bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 "${ALL_FILES[@]}"
+    fi
+    EXIT_CODE=$?
 else
-    echo ""
+    log_info "Sharding ${TOTAL_FILES} spec file(s) across ${SHARDS} process(es)..."
+    declare -a SHARD_PIDS=()
+    declare -a SHARD_LOGS=()
+
+    for ((i=0; i<SHARDS; i++)); do
+        # Round-robin distribution: file N goes to shard (N mod SHARDS).
+        # Tends to balance better than chunked when files have very
+        # different runtimes.
+        SHARD_FILES=()
+        for ((j=i; j<TOTAL_FILES; j+=SHARDS)); do
+            SHARD_FILES+=("${ALL_FILES[$j]}")
+        done
+
+        log_file=$(mktemp)
+        SHARD_LOGS+=("$log_file")
+
+        if [[ -n "$FILTER" ]]; then
+            (bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+                --test-name-pattern "$FILTER" "${SHARD_FILES[@]}" >"$log_file" 2>&1) &
+        else
+            (bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+                "${SHARD_FILES[@]}" >"$log_file" 2>&1) &
+        fi
+        SHARD_PIDS+=("$!")
+    done
+
+    EXIT_CODE=0
+    for ((i=0; i<SHARDS; i++)); do
+        if ! wait "${SHARD_PIDS[$i]}"; then
+            EXIT_CODE=1
+        fi
+        echo ""
+        echo "=============================================================="
+        echo "  Shard $((i+1))/${SHARDS}"
+        echo "=============================================================="
+        cat "${SHARD_LOGS[$i]}"
+        rm -f "${SHARD_LOGS[$i]}"
+    done
+fi
+
+echo ""
+if [[ $EXIT_CODE -eq 0 ]]; then
+    log_info "All E2E tests passed!"
+else
     log_error "E2E tests failed!"
-    EXIT_CODE=1
 fi
 
 exit $EXIT_CODE

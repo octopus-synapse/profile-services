@@ -69,7 +69,16 @@ export async function startTestApp(): Promise<TestApp> {
   // Idempotent seed of catalog + authorization data so e2e specs find
   // permissions, roles, languages, skills, section-types, etc. populated
   // even when running against a fresh `dev`/`e2e`/`test` database.
-  await seedTestCatalogs(handle.prisma);
+  // When sharding, the runner pre-seeds once and exports
+  // `E2E_SKIP_SEED=1` so workers don't redo the work in parallel
+  // (and don't fight over the catalog upserts). The admin user is
+  // still ensured per-worker (cheap upsert) since some specs read
+  // its id.
+  if (process.env.E2E_SKIP_SEED === '1') {
+    await ensureAdminUser(handle.prisma);
+  } else {
+    await seedTestCatalogs(handle.prisma);
+  }
 
   const TABLES = [
     'AuditLog',
@@ -135,7 +144,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123!@#';
 const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin User';
 
-async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
+export async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
   await seedAuthorization(prisma);
 
   const adminId = await ensureAdminUser(prisma);
@@ -151,32 +160,31 @@ async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
 }
 
 async function ensureAdminUser(prisma: PrismaClient): Promise<string> {
-  let admin = await prisma.user.findFirst({ where: { email: ADMIN_EMAIL } });
-
-  if (!admin) {
-    const hashedPassword = await Bun.password.hash(ADMIN_PASSWORD, {
-      algorithm: 'bcrypt',
-      cost: Number.parseInt(process.env.BCRYPT_COST ?? '10', 10),
-    });
-    admin = await prisma.user.create({
-      data: {
-        email: ADMIN_EMAIL,
-        passwordHash: hashedPassword,
-        name: ADMIN_NAME,
-        emailVerified: new Date(),
-        roles: ['role_user', 'role_admin'],
-        onboardingCompletedAt: new Date(),
-      },
-    });
-  } else if (!admin.emailVerified || admin.onboardingCompletedAt === null) {
-    admin = await prisma.user.update({
-      where: { id: admin.id },
-      data: {
-        emailVerified: admin.emailVerified ?? new Date(),
-        onboardingCompletedAt: admin.onboardingCompletedAt ?? new Date(),
-      },
-    });
-  }
+  // Shard-safe: with `bun test --shard X/N` running 4 processes
+  // against the same Postgres, the prior `findFirst → create`
+  // pattern raced and one of the workers crashed on the unique
+  // email constraint. `upsert` collapses the read+write into a
+  // single atomic statement.
+  const hashedPassword = await Bun.password.hash(ADMIN_PASSWORD, {
+    algorithm: 'bcrypt',
+    cost: Number.parseInt(process.env.BCRYPT_COST ?? '10', 10),
+  });
+  const admin = await prisma.user.upsert({
+    where: { email: ADMIN_EMAIL },
+    create: {
+      email: ADMIN_EMAIL,
+      passwordHash: hashedPassword,
+      name: ADMIN_NAME,
+      emailVerified: new Date(),
+      roles: ['role_user', 'role_admin'],
+      onboardingCompletedAt: new Date(),
+    },
+    update: {
+      // Only fill gaps — don't churn an already-good admin row.
+      emailVerified: { set: new Date() },
+      onboardingCompletedAt: { set: new Date() },
+    },
+  });
 
   const adminRole = await prisma.role.findUnique({ where: { name: 'admin' } });
   if (adminRole) {
