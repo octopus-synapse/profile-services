@@ -16,6 +16,10 @@ import type { LocalizedDictionary } from './types';
 export type ErrorCode = keyof typeof ERROR_DICTIONARY;
 
 export const ERROR_DICTIONARY = {
+  ACCESS_MODIFIER_NOT_FOUND: {
+    en: 'Access modifier not found',
+    'pt-BR': 'Modificador de acesso não encontrado',
+  },
   ACCOUNT_ALREADY_ACTIVE: {
     en: 'Account is already active',
     'pt-BR': 'A conta já está ativa',
