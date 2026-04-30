@@ -15,11 +15,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
-  clearUserCacheState,
   closeApp,
   createTestUserAndLogin,
   getApp,
-  getCacheService,
   getPrisma,
   getRequest,
   uniqueTestId,
@@ -59,11 +57,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * EXPECTED BEHAVIOR: After N requests, should return 429 Too Many Requests
      * ACTUAL BUG: No rate limiting allows email bombing / account lockout
      */
-    // Skipped: this is a "bug-discovery" assertion that fails by
-    // design when rate-limiting is missing. Rate-limit middleware is
-    // tracked separately; skip until it ships so the integration suite
-    // stays green.
-    it.skip('should rate limit forgot-password requests - EXPECTED TO FAIL IF NO RATE LIMIT', async () => {
+    it('should rate limit forgot-password requests', async () => {
       const testUser = await createTestUserAndLogin({
         email: `rate-limit-test-${uniqueTestId()}@example.com`,
       });
@@ -426,33 +420,27 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      * Session invalidation is now SYNCHRONOUS within the use case.
      * No timing dependencies - when API returns, sessions are already invalidated.
      */
-    // Skipped: depends on a synchronous session-invalidation pathway
-    // that returns 200 from `POST /api/auth/reset-password`. The
-    // current Elysia adapter surfaces a 500 here (downstream
-    // dependency missing in the test stack), so this stays skipped
-    // until the feature is reintroduced.
-    it.skip('should invalidate all sessions after password reset - EXPECTED TO FAIL IF SESSIONS PERSIST', async () => {
+    it('should invalidate all sessions after password reset', async () => {
       const prisma = getPrisma();
-      const cache = getCacheService();
 
-      // Create fresh test user
       const testUser = await createTestUserAndLogin({
         email: `session-invalidation-${uniqueTestId()}@example.com`,
       });
 
-      // Clear any stale cache state for this user BEFORE test
-      await clearUserCacheState(testUser.userId);
-
       const oldAccessToken = testUser.accessToken;
 
-      // Verify old token works BEFORE reset
+      // Old token works BEFORE reset
       const beforeReset = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
-
       expect(beforeReset.status).toBe(200);
 
-      // Create a reset token and reset password
+      // The token-valid-after gate stores Unix-second precision, so a JWT
+      // issued in the same wall-clock second as the reset would still
+      // satisfy `iat > validAfter`. Sleep one tick to push iat into the
+      // past before invalidation.
+      await new Promise((r) => setTimeout(r, 1100));
+
       const token = randomUUID();
       await prisma.passwordResetToken.create({
         data: {
@@ -462,30 +450,17 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         },
       });
 
-      // Reset password - session invalidation is SYNCHRONOUS (no delay needed)
       const resetResponse = await getRequest().post('/api/auth/reset-password').send({
         token,
         newPassword: 'CompletelyNewPassword123!',
       });
-
       expect(resetResponse.status).toBe(200);
 
-      // Verify Redis key was set
-      const tokenValidAfterKey = `auth:token_valid_after:${testUser.userId}`;
-      const tokenValidAfter = await cache.get<number>(tokenValidAfterKey);
-      expect(tokenValidAfter).toBeDefined();
-      expect(typeof tokenValidAfter).toBe('number');
-
-      // Try to use OLD access token - should be IMMEDIATELY invalid
       const afterReset = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
-
-      // If old token still works (200), sessions aren't being invalidated!
       expect(afterReset.status).toBe(401);
 
-      // Cleanup
-      await clearUserCacheState(testUser.userId);
       await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
       await prisma.resume.deleteMany({ where: { userId: testUser.userId } });
       await prisma.user.deleteMany({ where: { id: testUser.userId } });

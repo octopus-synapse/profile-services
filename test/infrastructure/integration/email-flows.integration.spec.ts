@@ -218,11 +218,4 @@ describe('Email Flows Integration', () => {
       await prisma.user.delete({ where: { id: userId } });
     });
   });
-
-  describe.skip('Email Service Graceful Degradation', () => {
-    // Skipped: relied on overriding EmailSenderService via Nest DI, which
-    // the new bootstrap doesn't expose. Retest after wiring a port-level
-    // hook for swapping the email adapter at runtime.
-    it('should handle email service not configured gracefully', async () => {});
-  });
 });

@@ -107,6 +107,7 @@ import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { BullMQJobQueueAdapter } from './bullmq-job-queue.adapter';
 import { CacheIdempotencyAdapter } from './cache-idempotency.adapter';
+import { CacheRateLimiter } from './cache-rate-limit.adapter';
 import { CronerCronAdapter } from './croner-cron.adapter';
 import { buildDefaultPipeline } from './elysia-pipeline';
 import { mountRoutes } from './elysia-route-mounter';
@@ -144,10 +145,15 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   logger.log('Prisma connected', 'ElysiaBootstrap');
 
   const userSnapshot = new PrismaUserSnapshotAdapter(prisma);
+  // Cache is needed by the auth extractor (token-valid-after gate) and
+  // by every BC that takes `CachePort`. Construct early so it can be
+  // injected here; the remaining adapters keep their original order.
+  const cache = new InMemoryCacheAdapter();
   const authExtractor = new JoseAuthExtractorAdapter(
     jwt,
     { cookieName: config.getOrDefault<string>('AUTH_COOKIE_NAME', 'access_token') },
     userSnapshot,
+    cache,
   );
 
   // Redis-backed adapters (BullMQ, optional Redis cache) emit
@@ -177,7 +183,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   ];
 
   // --- Infra port adapters (shared by BCs) ---
-  const cache = new InMemoryCacheAdapter();
+  // (`cache` is constructed earlier so the auth extractor can read it.)
   const sseStream = new InMemorySseStreamAdapter();
   const cron = new CronerCronAdapter();
   const eventBus = new EventPublisher();
@@ -612,6 +618,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     i18n: i18n.translation,
     skipTosCheck: config.getOrDefault<string>('SKIP_TOS_CHECK', 'false') === 'true',
     permissionChecker,
+    rateLimiter: new CacheRateLimiter(cache),
   });
 
   // --- Mount routes on Elysia ---

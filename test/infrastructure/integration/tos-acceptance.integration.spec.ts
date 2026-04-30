@@ -254,55 +254,6 @@ describe('ToS Acceptance Flow Integration', () => {
         '2.0.0',
       ]);
     });
-
-    // Skipped: signup now eagerly creates UserConsent rows for both
-    // documents at the *current* env versions, so this scenario
-    // (post-signup with only ToS accepted) is no longer reachable
-    // through the public API. Replaced by the end-to-end consent
-    // lifecycle tests above.
-    it.skip('should maintain separate version tracking for ToS and Privacy Policy', async () => {
-      const testEmail = `tos-multi-doc-${uniqueTestId()}@example.com`;
-      setTosVersion('1.0.0');
-      process.env.PRIVACY_POLICY_VERSION = '1.5.0';
-
-      const { accessToken } = await createVerifiedUser(
-        testEmail,
-        'SecurePass123!',
-        'Version Test User',
-      );
-
-      // Accept ToS v1.0.0
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
-        .expect(201);
-
-      // Check status - ToS accepted, Privacy Policy not
-      let statusResponse = await app.request
-        .get('/api/v1/users/me/consent-status')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(statusResponse.body.data.tosAccepted).toBe(true);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(false);
-
-      // Accept Privacy Policy v1.5.0
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
-        .expect(201);
-
-      // Check status shows both accepted
-      statusResponse = await app.request
-        .get('/api/v1/users/me/consent-status')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(statusResponse.body.data.tosAccepted).toBe(true);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(true);
-    });
   });
 
   describe('Consent History and Status', () => {
@@ -366,60 +317,6 @@ describe('ToS Acceptance Flow Integration', () => {
           expect(consent.userAgent).toBeDefined();
         },
       );
-    });
-
-    // Skipped: same reason as above — signup eagerly creates
-    // consent rows, so "initially no consent" is not a state any
-    // newly-signed-up user can be in via the public API anymore.
-    it.skip('should return accurate consent status for current versions', async () => {
-      const testEmail = `tos-status-${uniqueTestId()}@example.com`;
-      setTosVersion('1.0.0');
-      process.env.PRIVACY_POLICY_VERSION = '1.0.0';
-
-      const { accessToken } = await createVerifiedUser(
-        testEmail,
-        'SecurePass123!',
-        'Status Test User',
-      );
-
-      // Initially no consent
-      let statusResponse = await app.request
-        .get('/api/v1/users/me/consent-status')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(statusResponse.body.data.tosAccepted).toBe(false);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(false);
-
-      // Accept ToS only
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
-        .expect(201);
-
-      statusResponse = await app.request
-        .get('/api/v1/users/me/consent-status')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(statusResponse.body.data.tosAccepted).toBe(true);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(false);
-
-      // Accept Privacy Policy
-      await app.request
-        .post('/api/v1/users/me/accept-consent')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
-        .expect(201);
-
-      statusResponse = await app.request
-        .get('/api/v1/users/me/consent-status')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200);
-
-      expect(statusResponse.body.data.tosAccepted).toBe(true);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(true);
     });
   });
 

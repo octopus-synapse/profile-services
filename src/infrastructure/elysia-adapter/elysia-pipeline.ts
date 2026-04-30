@@ -184,11 +184,31 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
     name: 'rateLimit',
     async run(ctx, next) {
       const route = ctx.state.__route as Route | undefined;
-      const guard = route?.guards?.find((g) => g.id === 'rate-limit');
+      const guard = route?.guards?.find((g) => g.id === 'rate-limit' || g.id === 'throttle');
       if (!guard) return next();
-      const meta = guard.metadata ?? {};
-      const ttl = typeof meta.ttl === 'number' ? meta.ttl : 60;
-      const limit = typeof meta.limit === 'number' ? meta.limit : 60;
+      // Tests opt out per-request to exercise non-rate-limit paths
+      // without burning budget. Bypass is honored only in NODE_ENV=test.
+      if (process.env.NODE_ENV === 'test' && ctx.headers['x-e2e-bypass-rate-limit'] === 'true') {
+        return next();
+      }
+      const meta = (guard.metadata ?? {}) as Record<string, unknown>;
+      // Accept three shapes: `{ttl, limit}`, `{default: {ttl, limit}}`
+      // (Nest throttler), `{points, duration}` (legacy decorator).
+      const nested = (meta.default as Record<string, unknown> | undefined) ?? {};
+      const rawTtl =
+        (typeof meta.ttl === 'number' ? meta.ttl : undefined) ??
+        (typeof nested.ttl === 'number' ? nested.ttl : undefined) ??
+        (typeof meta.duration === 'number' ? meta.duration : undefined);
+      const limit =
+        (typeof meta.limit === 'number' ? meta.limit : undefined) ??
+        (typeof nested.limit === 'number' ? nested.limit : undefined) ??
+        (typeof meta.points === 'number' ? meta.points : undefined) ??
+        60;
+      // `{default: {ttl: 60000}}` is Nest throttler ms; everything else
+      // is seconds. Heuristic: values ≥ 1000 are ms.
+      const ttlSeconds =
+        rawTtl === undefined ? 60 : rawTtl >= 1000 ? Math.floor(rawTtl / 1000) : rawTtl;
+      const ttl = ttlSeconds;
       const key = `${ctx.ip ?? 'anon'}:${route?.method}:${route?.path}`;
       const result = await limiter.check(key, { ttl, limit });
       ctx.state.responseHeaders = {

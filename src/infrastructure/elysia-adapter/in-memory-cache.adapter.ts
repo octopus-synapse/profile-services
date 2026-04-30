@@ -40,6 +40,10 @@ export class InMemoryCacheAdapter extends CachePort {
     });
   }
 
+  async setSecure<T>(key: string, value: T, ttlSeconds = 0): Promise<void> {
+    return this.set(key, value, ttlSeconds);
+  }
+
   async delete(key: string): Promise<void> {
     this.store.delete(key);
   }
