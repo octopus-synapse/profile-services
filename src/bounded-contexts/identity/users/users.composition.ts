@@ -67,9 +67,12 @@ export function buildUsersUseCases(
   const profile = buildUserProfileUseCases(prisma, resumesRepository);
   const preferences = buildUserPreferencesUseCases(prisma, logger);
   const username = buildUsernameUseCases(prisma);
+  // OWASP-recommended cost is 12; tests pin BCRYPT_COST=4 in .env.test
+  // to drop hash time from ~80ms to ~6ms. Same algorithm — fewer rounds.
+  const bcryptCost = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
   const management = buildUserManagementUseCases(
     prisma,
-    (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 }),
+    (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: bcryptCost }),
     logger,
   );
 

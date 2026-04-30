@@ -17,7 +17,14 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
-import { AuthHelper, startTestApp, stopTestApp, type TestApp, type TestRequest } from '../shared';
+import {
+  AuthHelper,
+  freshUser,
+  startTestApp,
+  stopTestApp,
+  type TestApp,
+  type TestRequest,
+} from '../shared';
 
 // Load test env so DATABASE_URL / REDIS_HOST / JWT_SECRET land before
 // the bootstrap reads process.env.
@@ -129,35 +136,25 @@ export async function createTestUserAndLogin(
   customUser?: Partial<{ email: string; password: string; name: string }>,
 ): Promise<{ accessToken: string; userId: string; refreshToken: string }> {
   const app = await getApp();
-  const auth = cachedAuth ?? new AuthHelper(app);
 
-  const overrides = {
-    email: customUser?.email ?? uniqueTestEmail('test'),
-    password: customUser?.password ?? TEST_USER.password,
-    name: customUser?.name ?? TEST_USER.name,
-  };
+  // Bypass HTTP signup → login (real bcrypt + 2 round-trips, ~150ms each)
+  // and provision the user + consent rows + JWT directly in Postgres.
+  // Same fixture the e2e suite uses; no spec relies on the legacy
+  // refreshToken (real refresh-token flow lives in `auth.integration`,
+  // which exercises the actual login route end-to-end).
+  const fresh = await freshUser(app, {
+    email: customUser?.email,
+    password: customUser?.password,
+  });
 
-  const baseUser = auth.createTestUser();
-  baseUser.email = overrides.email;
-  baseUser.password = overrides.password;
-  baseUser.name = overrides.name;
-
-  const ready = await auth.registerAndLogin(baseUser);
-  if (!ready.token || !ready.userId) {
-    throw new Error('createTestUserAndLogin: missing token/userId after registerAndLogin');
-  }
-
-  // Accept ToS/Privacy for the consent guard — mirrors legacy behaviour.
-  await acceptTosForUser(ready.userId);
-
-  testContext.accessToken = ready.token;
-  testContext.refreshToken = ready.refreshCookie ?? '';
-  testContext.userId = ready.userId;
+  testContext.accessToken = fresh.token;
+  testContext.refreshToken = '';
+  testContext.userId = fresh.userId;
 
   return {
-    accessToken: ready.token,
-    userId: ready.userId,
-    refreshToken: ready.refreshCookie ?? '',
+    accessToken: fresh.token,
+    userId: fresh.userId,
+    refreshToken: '',
   };
 }
 
