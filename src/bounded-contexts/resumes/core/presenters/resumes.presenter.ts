@@ -46,12 +46,12 @@ export function toResumeFullResponseDto(resume: ResumeResult): ResumeFullRespons
   }
   return {
     ...toResumeResponseDto(resume),
-    activeThemeId: resume.activeThemeId ?? undefined,
-    activeTheme: resume.activeTheme
+    styleId: resume.styleId ?? undefined,
+    style: resume.style
       ? {
-          id: resume.activeTheme.id,
-          name: resume.activeTheme.name,
-          description: resume.activeTheme.description ?? undefined,
+          id: resume.style.id,
+          name: resume.style.name,
+          description: resume.style.description ?? undefined,
         }
       : undefined,
     resumeSections,
@@ -91,11 +91,6 @@ export function toPaginatedResumesData(
   for (const r of result) data.push(toResumeListItemDto(r));
   return {
     data,
-    meta: {
-      total: result.length,
-      page: fallback.page,
-      limit: fallback.limit,
-      totalPages: 1,
-    },
+    meta: { total: result.length, page: fallback.page, limit: fallback.limit, totalPages: 1 },
   };
 }

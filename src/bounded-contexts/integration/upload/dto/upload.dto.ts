@@ -1,13 +1,16 @@
 /**
- * Upload DTOs
+ * Upload DTOs — Zod-first.
  *
- * Data Transfer Objects for file upload API.
- * Using createZodDto for response schemas and ApiProperty for file uploads.
+ * Response payloads are Zod schemas. Multipart `file` fields are described
+ * via `extendZodWithOpenApi`'s `.openapi({ format: 'binary' })` so the
+ * OpenAPI document still advertises a binary upload field.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+extendZodWithOpenApi(z);
 
 // ============================================================================
 // Response Schemas
@@ -30,24 +33,24 @@ export class UploadResponseDto extends createZodDto(UploadResponseSchema) {}
 export class DeleteResponseDto extends createZodDto(DeleteResponseSchema) {}
 
 // ============================================================================
-// Request DTOs (for multipart/form-data file uploads)
-// These use @ApiProperty for proper Swagger binary format documentation
+// Request DTOs (multipart/form-data file uploads)
 // ============================================================================
 
-export class UploadProfileImageRequestDto {
-  @ApiProperty({
+const ProfileImageUploadSchema = z.object({
+  file: z.any().openapi({
     type: 'string',
     format: 'binary',
     description: 'The profile image file to upload (JPEG, PNG, WebP)',
-  })
-  file: Express.Multer.File;
-}
+  }),
+});
 
-export class UploadCompanyLogoRequestDto {
-  @ApiProperty({
+const CompanyLogoUploadSchema = z.object({
+  file: z.any().openapi({
     type: 'string',
     format: 'binary',
     description: 'The company logo file to upload (JPEG, PNG, WebP, SVG)',
-  })
-  file: Express.Multer.File;
-}
+  }),
+});
+
+export class UploadProfileImageRequestDto extends createZodDto(ProfileImageUploadSchema) {}
+export class UploadCompanyLogoRequestDto extends createZodDto(CompanyLogoUploadSchema) {}

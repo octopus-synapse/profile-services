@@ -8,9 +8,7 @@ const LogoutSchema = z.object({
 });
 
 // Response Schema
-const LogoutResponseSchema = z.object({
-  message: z.string(),
-});
+const LogoutResponseSchema = z.object({ message: z.string() });
 
 // DTO Classes
 export class LogoutDto extends createZodDto(LogoutSchema) {}

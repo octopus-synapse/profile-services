@@ -22,10 +22,12 @@ class StubAnalyticsProjection implements AnalyticsProjectionPort {
   }
 }
 
+import { stubLogger } from '@/shared-kernel/logger/testing';
+
 describe('SyncProjectionOnResumeDeletedHandler', () => {
   it('deletes the analytics projection for the resume', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnResumeDeletedHandler(projection);
+    const handler = new SyncProjectionOnResumeDeletedHandler(projection, stubLogger);
     const event = new ResumeDeletedEvent('resume-1', { userId: 'user-1' });
 
     await handler.handle(event);
@@ -35,7 +37,7 @@ describe('SyncProjectionOnResumeDeletedHandler', () => {
 
   it('uses event aggregateId as the projection id to delete', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnResumeDeletedHandler(projection);
+    const handler = new SyncProjectionOnResumeDeletedHandler(projection, stubLogger);
     const event = new ResumeDeletedEvent('resume-xyz', { userId: 'user-2' });
 
     await handler.handle(event);

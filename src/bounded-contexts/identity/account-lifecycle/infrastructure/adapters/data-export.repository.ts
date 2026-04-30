@@ -4,19 +4,17 @@
  * Prisma-based implementation for exporting user data (GDPR compliance).
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
-  DataExportRepositoryPort,
   ExportedAuditLog,
   ExportedConsent,
   ExportedResume,
   ExportedUserData,
 } from '../../domain/ports/data-export-repository.port';
+import { DataExportRepositoryPort } from '../../domain/ports/data-export-repository.port';
 
 const DEFAULT_AUDIT_LOG_LIMIT = 1000;
 
-@Injectable()
 export class DataExportRepository implements DataExportRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -28,13 +26,22 @@ export class DataExportRepository implements DataExportRepositoryPort {
         email: true,
         name: true,
         username: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return user;
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async getUserConsents(userId: string): Promise<ExportedConsent[]> {
@@ -60,10 +67,7 @@ export class DataExportRepository implements DataExportRepositoryPort {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                key: true,
-                semanticKind: true,
-              },
+              select: { key: true, semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
@@ -85,7 +89,6 @@ export class DataExportRepository implements DataExportRepositoryPort {
         fullName: r.fullName,
         jobTitle: r.jobTitle,
         summary: r.summary,
-        emailContact: r.emailContact,
         phone: r.phone,
         location: r.location,
         website: r.website,
@@ -112,13 +115,7 @@ export class DataExportRepository implements DataExportRepositoryPort {
   ): Promise<ExportedAuditLog[]> {
     const logs = await this.prisma.auditLog.findMany({
       where: { userId },
-      select: {
-        action: true,
-        entityType: true,
-        entityId: true,
-        createdAt: true,
-        ipAddress: true,
-      },
+      select: { action: true, entityType: true, entityId: true, createdAt: true, ipAddress: true },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

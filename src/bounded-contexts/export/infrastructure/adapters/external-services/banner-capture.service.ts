@@ -3,25 +3,27 @@
  * Captures screenshots of banners in high quality
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Page } from 'puppeteer';
+import { BannerElementNotFoundException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
+import type { ConfigPort } from '@/shared-kernel/config';
 import { DEFAULT } from '../../constants/ui.constants';
 import { BannerPageSetup, BannerReadyWaiter } from '../helpers';
-import { BrowserManagerService } from './browser-manager.service';
+import type { BrowserManagerService } from './browser-manager.service';
 
-@Injectable()
+const CTX = 'BannerCaptureService';
+
 export class BannerCaptureService {
-  private readonly logger = new Logger(BannerCaptureService.name);
   private readonly pageSetup: BannerPageSetup;
   private readonly readyWaiter: BannerReadyWaiter;
 
   constructor(
     private readonly browserManager: BrowserManagerService,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigPort,
+    private readonly logger: LoggerPort,
   ) {
-    this.pageSetup = new BannerPageSetup(configService);
-    this.readyWaiter = new BannerReadyWaiter();
+    this.pageSetup = new BannerPageSetup(configService, logger);
+    this.readyWaiter = new BannerReadyWaiter(logger);
   }
 
   async capture(palette: string = DEFAULT.PALETTE, logoUrl: string = ''): Promise<Buffer> {
@@ -43,8 +45,8 @@ export class BannerCaptureService {
   private async captureBannerElement(page: Page): Promise<Buffer> {
     const banner = await page.$('#banner');
     if (!banner) {
-      this.logger.error('[BannerCapture] #banner not found!');
-      throw new Error('Banner element not found');
+      this.logger.error('#banner element not found', undefined, CTX);
+      throw new BannerElementNotFoundException();
     }
 
     return (await banner.screenshot({

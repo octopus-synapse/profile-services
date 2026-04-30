@@ -1,4 +1,4 @@
-import type { BlockRepositoryPort } from '../../ports/block.port';
+import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class CheckBlockStatusUseCase {
   constructor(private readonly repository: BlockRepositoryPort) {}

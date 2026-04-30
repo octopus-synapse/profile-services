@@ -7,10 +7,10 @@
  * - Message sending utilities
  */
 
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/client';
 
 export class ChatHelper {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   /**
    * Ensure user has chat:use permission
@@ -20,39 +20,34 @@ export class ChatHelper {
     // First, ensure the permission exists
     let permission = await this.prisma.permission.findUnique({
       where: {
-        resource_action: {
-          resource: 'chat',
-          action: 'use',
-        },
+        resource_action: { resource: 'chat', action: 'use' },
       },
     });
 
     if (!permission) {
       permission = await this.prisma.permission.create({
-        data: {
-          resource: 'chat',
-          action: 'use',
-          description: 'Use chat features',
-          isSystem: true,
-        },
+        data: { resource: 'chat', action: 'use', description: 'Use chat features', isSystem: true },
       });
     }
 
-    // Assign permission to user (upsert to avoid duplicates)
-    await this.prisma.userPermission.upsert({
+    // Per-user grants now live in AccessModifier (effect=GRANT,
+    // type=GRANT_PERMISSION). Use deleteMany+create to keep the helper
+    // idempotent without relying on a composite unique key.
+    await this.prisma.accessModifier.deleteMany({
       where: {
-        userId_permissionId: {
-          userId,
-          permissionId: permission.id,
-        },
-      },
-      create: {
         userId,
+        modifierType: 'GRANT_PERMISSION',
         permissionId: permission.id,
-        granted: true,
       },
-      update: {
-        granted: true,
+    });
+    await this.prisma.accessModifier.create({
+      data: {
+        userId,
+        modifierType: 'GRANT_PERMISSION',
+        effect: 'GRANT',
+        permissionId: permission.id,
+        reason: 'e2e test setup: grant chat:use',
+        createdBy: userId,
       },
     });
   }

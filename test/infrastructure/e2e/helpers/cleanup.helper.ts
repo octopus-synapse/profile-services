@@ -5,13 +5,13 @@
  * Ensures test isolation and prevents data pollution.
  */
 
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/client';
 
 export class CleanupHelper {
   private trackedThemeIds: string[] = [];
   private trackedUserIds: string[] = [];
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   /**
    * Track a theme ID for cleanup
@@ -49,7 +49,7 @@ export class CleanupHelper {
    */
   async deleteThemeById(themeId: string): Promise<void> {
     try {
-      await this.prisma.resumeTheme.delete({ where: { id: themeId } });
+      await this.prisma.resumeStyle.delete({ where: { id: themeId } });
     } catch (error) {
       // Theme might not exist or already deleted
       console.warn(`Cleanup warning for theme ${themeId}:`, error);

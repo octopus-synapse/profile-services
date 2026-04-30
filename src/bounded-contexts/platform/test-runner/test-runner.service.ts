@@ -1,27 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
-import { FollowService } from '@/bounded-contexts/social/services/follow.service';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
-
-// --- Types ---
-
-interface TestResult {
-  name: string;
-  pass: boolean;
-  detail: string;
-  durationMs: number;
-}
-
-interface TestResults {
-  [key: string]: unknown;
-  suite: string;
-  results: TestResult[];
-  totalMs: number;
-  passed: number;
-  failed: number;
-}
+import { InvalidTestSuiteException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
+import type { FollowService } from '@/bounded-contexts/social/services/follow.service';
+import type { LoggerPort } from '@/shared-kernel';
+import {
+  type TestResult,
+  type TestResults,
+  TestSuiteRunnerPort,
+} from './domain/ports/test-suite-runner.port';
 
 // --- Available Suites ---
 
@@ -29,14 +15,15 @@ const AVAILABLE_SUITES = ['seed-check', 'auth-flow', 'social-crud', 'onboarding-
 
 // --- Service ---
 
-@Injectable()
-export class TestRunnerService {
+export class TestRunnerService extends TestSuiteRunnerPort {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
     private readonly connectionService: ConnectionService,
     private readonly followService: FollowService,
-  ) {}
+  ) {
+    super();
+  }
 
   getAvailableSuites(): string[] {
     return [...AVAILABLE_SUITES];
@@ -55,9 +42,7 @@ export class TestRunnerService {
       case 'onboarding-resume':
         return this.runSuite(suite, () => this.onboardingResume());
       default:
-        throw new ValidationException(
-          `Unknown suite "${suite}". Available: ${AVAILABLE_SUITES.join(', ')}`,
-        );
+        throw new InvalidTestSuiteException(suite, AVAILABLE_SUITES);
     }
   }
 
@@ -84,16 +69,28 @@ export class TestRunnerService {
   // Test helper
   // ---------------------------------------------------------------------------
 
+  /**
+   * Wraps a single test step so its assertions can use plain JS Error throws.
+   *
+   * The bare error throws inside the per-suite methods below
+   * (seedCheck, authFlow, socialCrud, onboardingResume) are intentional internal
+   * test assertions: they are caught here and converted into a `TestResult`
+   * whose `detail` field surfaces the message in the suite report. They never
+   * propagate to the HTTP layer, so they are not user-facing exceptions and do
+   * not need stable codes.
+   */
   private async runTest(name: string, fn: () => Promise<string>): Promise<TestResult> {
     const start = performance.now();
     try {
       const detail = await fn();
       return { name, pass: true, detail, durationMs: Math.round(performance.now() - start) };
     } catch (err) {
+      const detail = String(err instanceof Error ? err.message : err);
+      this.logger.warn(`Test "${name}" failed: ${detail}`, 'TestRunnerService');
       return {
         name,
         pass: false,
-        detail: String(err instanceof Error ? err.message : err),
+        detail,
         durationMs: Math.round(performance.now() - start),
       };
     }
@@ -189,11 +186,7 @@ export class TestRunnerService {
         await this.runTest('Create temp user', async () => {
           const hash = await Bun.password.hash(testPassword);
           await this.prisma.user.create({
-            data: {
-              email: testEmail,
-              name: '__test_user',
-              passwordHash: hash,
-            },
+            data: { email: testEmail, name: '__test_user', passwordHash: hash },
           });
           return `Created user with email ${testEmail}`;
         }),
@@ -389,10 +382,7 @@ export class TestRunnerService {
       results.push(
         await this.runTest('Create resume', async () => {
           const resume = await this.prisma.resume.create({
-            data: {
-              userId,
-              title: '__test_resume',
-            },
+            data: { userId, title: '__test_resume' },
           });
           resumeId = resume.id;
           return `Created resume: ${resumeId}`;

@@ -14,10 +14,8 @@ export interface LoginLockStatus {
   resetInSeconds: number | null;
 }
 
-export interface LoginAttemptsPort {
-  record(attempt: LoginAttemptRecord): Promise<void>;
-  getLockStatus(email: string): Promise<LoginLockStatus>;
-  clearFailedAttempts(email: string): Promise<void>;
+export abstract class LoginAttemptsPort {
+  abstract record(attempt: LoginAttemptRecord): Promise<void>;
+  abstract getLockStatus(email: string): Promise<LoginLockStatus>;
+  abstract clearFailedAttempts(email: string): Promise<void>;
 }
-
-export const LOGIN_ATTEMPTS_PORT = Symbol('LoginAttemptsPort');

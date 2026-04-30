@@ -5,7 +5,7 @@
  * last used timestamp, and remaining backup codes.
  */
 
-import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
+import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 export interface TwoFactorStatus {
   enabled: boolean;
@@ -20,11 +20,7 @@ export class Get2faStatusUseCase {
     const twoFactorAuth = await this.repository.findByUserId(userId);
 
     if (!twoFactorAuth) {
-      return {
-        enabled: false,
-        lastUsedAt: null,
-        backupCodesRemaining: 0,
-      };
+      return { enabled: false, lastUsedAt: null, backupCodesRemaining: 0 };
     }
 
     const backupCodesRemaining = await this.repository.countUnusedBackupCodes(userId);

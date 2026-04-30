@@ -45,6 +45,22 @@ log_error() { echo -e "${RED}[e2e]${NC} $1"; }
 log_step() { echo -e "${BLUE}[e2e]${NC} $1"; }
 log_detect() { echo -e "${CYAN}[detect]${NC} $1" >&2; }
 
+# Wall-clock timer. We capture the start at script entry (right
+# after arg parsing & util defs) and print the elapsed total in
+# the final summary block, regardless of pass/fail.
+SCRIPT_START_NS=$(date +%s%N)
+fmt_elapsed() {
+    local end_ns=$(date +%s%N)
+    local elapsed_ms=$(( (end_ns - SCRIPT_START_NS) / 1000000 ))
+    if (( elapsed_ms < 1000 )); then
+        printf '%dms' "$elapsed_ms"
+    else
+        local secs=$(( elapsed_ms / 1000 ))
+        local rem=$(( elapsed_ms % 1000 ))
+        printf '%d.%03ds' "$secs" "$rem"
+    fi
+}
+
 # Defaults
 ENVIRONMENT=""
 CLEANUP=true
@@ -52,6 +68,7 @@ VERBOSE=false
 FILTER=""
 AUTO_DETECT=true
 STARTED_BY_US=false
+FRESH=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -64,6 +81,7 @@ while [[ $# -gt 0 ]]; do
         --no-cleanup) CLEANUP=false; shift ;;
         --verbose) VERBOSE=true; shift ;;
         --filter) FILTER="$2"; shift 2 ;;
+        --fresh) FRESH=true; shift ;;
         --help|-h)
             head -30 "$0" | tail -28
             exit 0
@@ -111,17 +129,44 @@ detect_environment() {
     echo ""
 }
 
+# Default host ports per environment (fallback when the container does
+# not publish a port — i.e. only joined to a private docker network and
+# accessed via host networking through another mapping like a sibling
+# stack publishing the same internal port).
+declare -A DEFAULT_PG_PORT=(
+    ["dev"]="5432"
+    ["e2e"]="5433"
+    ["test"]="5433"
+    ["prod"]="5432"
+)
+declare -A DEFAULT_REDIS_PORT=(
+    ["dev"]="6379"
+    ["e2e"]="6380"
+    ["test"]="6380"
+    ["prod"]="6379"
+)
+declare -A DEFAULT_BACKEND_PORT=(
+    ["dev"]="3001"
+    ["e2e"]="3001"
+    ["prod"]="3001"
+)
+
 # Get connection info for a detected environment
 get_connection_info() {
     local env=$1
     IFS='|' read -r compose_file pg_container redis_container backend_container db_name <<< "${ENV_CONFIG[$env]}"
 
-    # Get actual exposed ports from running containers
+    # Get actual exposed ports from running containers; fall back to the
+    # environment's canonical default port when the container is on a
+    # private network without a host mapping.
     PG_PORT=$(get_container_port "$pg_container" 5432)
+    [[ -z "$PG_PORT" ]] && PG_PORT="${DEFAULT_PG_PORT[$env]:-5432}"
     REDIS_PORT=$(get_container_port "$redis_container" 6379)
+    [[ -z "$REDIS_PORT" ]] && REDIS_PORT="${DEFAULT_REDIS_PORT[$env]:-6379}"
 
     if [[ -n "$backend_container" ]] && is_container_running "$backend_container"; then
         BACKEND_PORT=$(get_container_port "$backend_container" 3001)
+        [[ -z "$BACKEND_PORT" ]] && BACKEND_PORT="${DEFAULT_BACKEND_PORT[$env]:-3001}"
     else
         BACKEND_PORT=""
     fi
@@ -206,13 +251,34 @@ if [[ "$AUTO_DETECT" == "true" ]]; then
     ENVIRONMENT=$(detect_environment)
 
     if [[ -z "$ENVIRONMENT" ]]; then
-        log_warn "No running environment detected"
-        log_info "Starting e2e environment..."
-        ENVIRONMENT="e2e"
+        if [[ -t 0 ]] && [[ -t 1 ]]; then
+            # Interactive terminal: present arrow-key menu via `select`.
+            log_warn "No running environment detected"
+            log_info "Pick an environment to start (↑/↓ + Enter, Ctrl-C to abort):"
+            PS3="> "
+            select choice in "dev (development containers)" "e2e (isolated e2e env)" "test (postgres-only test)" "prod (production-like)"; do
+                case $REPLY in
+                    1) ENVIRONMENT="dev"; break ;;
+                    2) ENVIRONMENT="e2e"; break ;;
+                    3) ENVIRONMENT="test"; break ;;
+                    4) ENVIRONMENT="prod"; break ;;
+                    *) echo "Invalid choice. Try again." ;;
+                esac
+            done
+        else
+            # Non-interactive (CI): default to e2e.
+            log_warn "No running environment detected; defaulting to e2e"
+            ENVIRONMENT="e2e"
+        fi
         STARTED_BY_US=true
     else
         log_info "Detected environment: $ENVIRONMENT"
-        CLEANUP=false  # Don't cleanup containers we didn't start
+        if [[ "$FRESH" == "true" ]]; then
+            log_warn "--fresh requested: tearing down running $ENVIRONMENT before re-starting"
+            STARTED_BY_US=true
+        else
+            CLEANUP=false  # Don't cleanup containers we didn't start
+        fi
     fi
 else
     log_info "Using specified environment: $ENVIRONMENT"
@@ -339,21 +405,104 @@ echo ""
 log_step "Running E2E tests..."
 echo ""
 
-# Build test command
-TEST_CMD="bun test --config=bunfig.e2e.toml"
-if [[ -n "$FILTER" ]]; then
-    TEST_CMD="$TEST_CMD --test-name-pattern '$FILTER'"
+# Multi-process sharding. Bun is single-process per `bun test`
+# invocation, so wall-clock time is dominated by the longest file
+# in the suite. We split the spec list across $SHARDS workers,
+# each with its own Bun process, all hitting the same shared
+# Postgres / Redis. Fixtures use `freshUser()` (random emails) to
+# avoid cross-process row collisions; the admin singleton is
+# upserted (`ensureAdminUser`) so 4 workers booting at once don't
+# race on the unique constraint.
+#
+# Override via `SHARDS=N bun run test:e2e` (default 3, which is the
+# sweet spot on a 4-core box: 3 workers + Postgres + I/O leaves a
+# core idle so the kernel scheduler doesn't thrash). Set `SHARDS=1`
+# to disable sharding entirely.
+#
+# Within each shard we still pass `--concurrent --max-concurrency=8`
+# so tests inside a file run in parallel where they can.
+SHARDS="${SHARDS:-3}"
+
+mapfile -t ALL_FILES < <(find test/infrastructure/e2e -name "*.spec.ts" | sort)
+TOTAL_FILES=${#ALL_FILES[@]}
+
+if [[ $TOTAL_FILES -eq 0 ]]; then
+    log_error "No e2e spec files found under test/infrastructure/e2e/"
+    exit 1
 fi
 
-# Run tests
-if eval "$TEST_CMD"; then
-    echo ""
-    log_info "All E2E tests passed!"
-    EXIT_CODE=0
+# Cap shard count by file count — splitting 10 files into 16 shards
+# leaves shards with nothing to run.
+if (( SHARDS > TOTAL_FILES )); then
+    SHARDS=$TOTAL_FILES
+fi
+
+# Pre-seed once before fanning out workers (only if sharding) so
+# they don't fight over the catalog upserts at boot.
+if [[ $SHARDS -gt 1 ]]; then
+    log_info "Pre-seeding catalogs..."
+    if ! bun scripts/_e2e-preseed.ts; then
+        log_error "Pre-seed failed"
+        exit 1
+    fi
+    export E2E_SKIP_SEED=1
+fi
+
+if [[ $SHARDS -eq 1 ]]; then
+    log_info "Running ${TOTAL_FILES} spec file(s) in a single process..."
+    if [[ -n "$FILTER" ]]; then
+        bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+            --test-name-pattern "$FILTER" "${ALL_FILES[@]}"
+    else
+        bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 "${ALL_FILES[@]}"
+    fi
+    EXIT_CODE=$?
 else
-    echo ""
-    log_error "E2E tests failed!"
-    EXIT_CODE=1
+    log_info "Sharding ${TOTAL_FILES} spec file(s) across ${SHARDS} process(es)..."
+    declare -a SHARD_PIDS=()
+    declare -a SHARD_LOGS=()
+
+    for ((i=0; i<SHARDS; i++)); do
+        # Round-robin distribution: file N goes to shard (N mod SHARDS).
+        # Tends to balance better than chunked when files have very
+        # different runtimes.
+        SHARD_FILES=()
+        for ((j=i; j<TOTAL_FILES; j+=SHARDS)); do
+            SHARD_FILES+=("${ALL_FILES[$j]}")
+        done
+
+        log_file=$(mktemp)
+        SHARD_LOGS+=("$log_file")
+
+        if [[ -n "$FILTER" ]]; then
+            (bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+                --test-name-pattern "$FILTER" "${SHARD_FILES[@]}" >"$log_file" 2>&1) &
+        else
+            (bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+                "${SHARD_FILES[@]}" >"$log_file" 2>&1) &
+        fi
+        SHARD_PIDS+=("$!")
+    done
+
+    EXIT_CODE=0
+    for ((i=0; i<SHARDS; i++)); do
+        if ! wait "${SHARD_PIDS[$i]}"; then
+            EXIT_CODE=1
+        fi
+        echo ""
+        echo "=============================================================="
+        echo "  Shard $((i+1))/${SHARDS}"
+        echo "=============================================================="
+        cat "${SHARD_LOGS[$i]}"
+        rm -f "${SHARD_LOGS[$i]}"
+    done
+fi
+
+echo ""
+if [[ $EXIT_CODE -eq 0 ]]; then
+    log_info "All E2E tests passed!  (total wall-clock: $(fmt_elapsed))"
+else
+    log_error "E2E tests failed!  (total wall-clock: $(fmt_elapsed))"
 fi
 
 exit $EXIT_CODE

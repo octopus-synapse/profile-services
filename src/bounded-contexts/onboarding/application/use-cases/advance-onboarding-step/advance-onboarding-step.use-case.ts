@@ -1,9 +1,12 @@
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
+import { OnboardingAlreadyAtLastStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
-import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
+import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { OnboardingStepDataMapper } from '../shared/onboarding-step-data.mapper';
+
+const CTX = 'AdvanceOnboardingStepUseCase';
 
 export class AdvanceOnboardingStepUseCase {
   private readonly stepDataMapper = new OnboardingStepDataMapper();
@@ -12,9 +15,7 @@ export class AdvanceOnboardingStepUseCase {
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
     private readonly sectionTypeDefinition: SectionTypeDefinitionPort,
-    private readonly logger?: {
-      debug: (msg: string, ctx: string, meta?: Record<string, unknown>) => void;
-    },
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(
@@ -27,7 +28,7 @@ export class AdvanceOnboardingStepUseCase {
     const nextStep = currentIndex < steps.length - 1 ? steps[currentIndex + 1] : null;
 
     if (!nextStep) {
-      throw new ValidationException('Already at the last step');
+      throw new OnboardingAlreadyAtLastStepException();
     }
 
     // Business rule: navigation through the onboarding is free — users can advance
@@ -52,10 +53,10 @@ export class AdvanceOnboardingStepUseCase {
     };
 
     if (stepData) {
-      this.logger?.debug('executeNext: merging step data', 'AdvanceOnboardingStepUseCase', {
-        currentStep: progress.currentStep,
-        stepDataKeys: Object.keys(stepData),
-      });
+      this.logger.debug(
+        `executeNext: merging step data — step=${progress.currentStep} keys=${Object.keys(stepData).join(',')}`,
+        CTX,
+      );
       this.stepDataMapper.mergeStepData(update, progress.currentStep, stepData, progress);
     }
 

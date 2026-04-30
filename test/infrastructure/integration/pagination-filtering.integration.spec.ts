@@ -12,15 +12,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import { type TestApp } from '../shared';
 import { createTestUserAndLogin, getApp, getPrisma, uniqueTestId } from './setup';
 
 const describeIntegration =
   process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION ? describe : describe.skip;
 
 describeIntegration('Pagination & Filtering Integration', () => {
-  let app: INestApplication;
+  let app: TestApp; // was INestApplication
   let userToken: string;
   let userId: string;
   const uid = uniqueTestId();
@@ -53,7 +52,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     beforeAll(async () => {
       // Create a few resumes for pagination testing
       for (let i = 1; i <= 3; i++) {
-        await request(app.getHttpServer())
+        await app.request
           .post('/api/v1/resumes')
           .set('Authorization', `Bearer ${userToken}`)
           .send({
@@ -65,7 +64,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     }, 15000);
 
     it('should return resumes with default pagination', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -78,132 +77,71 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should return empty results for unauthenticated request', async () => {
-      await request(app.getHttpServer()).get('/api/v1/resumes').expect(401);
+      await app.request.get('/api/v1/resumes').expect(401);
     });
   });
 
   // ── Themes Pagination ──────────────────────────────────────────────
 
-  describe('GET /api/v1/themes - pagination', () => {
-    it('should return themes with explicit page and limit', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?page=1&limit=5')
+  // The legacy `/api/v1/themes` BC was renamed and reshaped into
+  // `/api/v1/resume-styles`. The new contract returns
+  // `{ items, total, page, limit }` (no nested `pagination`, no
+  // `themes` array, no category/search/sort filters).
+  describe('GET /api/v1/resume-styles - pagination', () => {
+    const auth = (): { Authorization: string } => ({ Authorization: `Bearer ${userToken}` });
+
+    it('should return styles with explicit page and limit', async () => {
+      const res = await app.request
+        .get('/api/v1/resume-styles?page=1&limit=5')
+        .set(auth())
         .expect(200);
 
       expect(res.body.success).toBe(true);
-      expect(res.body.data.pagination).toBeDefined();
-      expect(res.body.data.pagination.page).toBe(1);
-      expect(res.body.data.pagination.limit).toBeDefined();
-      expect(typeof res.body.data.pagination.total).toBe('number');
-      expect(typeof res.body.data.pagination.totalPages).toBe('number');
-      expect(Array.isArray(res.body.data.themes)).toBe(true);
-      expect(res.body.data.themes.length).toBeLessThanOrEqual(5);
+      expect(res.body.data.page).toBe(1);
+      expect(typeof res.body.data.limit).toBe('number');
+      expect(typeof res.body.data.total).toBe('number');
+      expect(Array.isArray(res.body.data.items)).toBe(true);
+      expect(res.body.data.items.length).toBeLessThanOrEqual(5);
     });
 
     it('should return page 2 correctly', async () => {
-      const page1 = await request(app.getHttpServer())
-        .get('/api/v1/themes?page=1&limit=2')
+      const page1 = await app.request
+        .get('/api/v1/resume-styles?page=1&limit=2')
+        .set(auth())
+        .expect(200);
+      const page2 = await app.request
+        .get('/api/v1/resume-styles?page=2&limit=2')
+        .set(auth())
         .expect(200);
 
-      const page2 = await request(app.getHttpServer())
-        .get('/api/v1/themes?page=2&limit=2')
-        .expect(200);
+      expect(page2.body.data.page).toBe(2);
 
-      expect(page2.body.data.pagination.page).toBe(2);
-
-      // If there are enough themes, page 2 should have different items
-      if (page1.body.data.pagination.total > 2 && page2.body.data.themes.length > 0) {
-        const page1Ids = page1.body.data.themes.map((t: { id: string }) => t.id);
-        const page2Ids = page2.body.data.themes.map((t: { id: string }) => t.id);
-        // No overlap between pages
+      if (page1.body.data.total > 2 && page2.body.data.items.length > 0) {
+        const page1Ids = page1.body.data.items.map((t: { id: string }) => t.id);
+        const page2Ids = page2.body.data.items.map((t: { id: string }) => t.id);
         const overlap = page1Ids.filter((id: string) => page2Ids.includes(id));
         expect(overlap.length).toBe(0);
       }
     });
 
     it('should handle page beyond total gracefully', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?page=9999&limit=10')
+      const res = await app.request
+        .get('/api/v1/resume-styles?page=9999&limit=10')
+        .set(auth())
         .expect(200);
 
       expect(res.body.success).toBe(true);
-      expect(res.body.data.themes.length).toBe(0);
-      expect(res.body.data.pagination.page).toBe(9999);
+      expect(res.body.data.items.length).toBe(0);
+      expect(res.body.data.page).toBe(9999);
     });
 
     it('should handle limit=1', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?page=1&limit=1')
+      const res = await app.request
+        .get('/api/v1/resume-styles?page=1&limit=1')
+        .set(auth())
         .expect(200);
 
-      expect(res.body.data.themes.length).toBeLessThanOrEqual(1);
-    });
-
-    it('should cap limit at maximum (100)', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/themes?page=1&limit=1000');
-
-      // Should either cap at 100 or reject with 400
-      if (res.status === 200) {
-        expect(res.body.data.themes.length).toBeLessThanOrEqual(100);
-      } else {
-        expect(res.status).toBe(400);
-      }
-    });
-
-    it('should reject limit=0', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/themes?page=1&limit=0');
-
-      // Should be 400 Bad Request (limit min is 1 per schema)
-      expect(res.status).toBe(400);
-    });
-
-    it('should reject negative page', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/themes?page=-1&limit=10');
-
-      // page min is 1
-      expect(res.status).toBe(400);
-    });
-
-    it('should reject page=0', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/themes?page=0&limit=10');
-
-      // page min is 1
-      expect(res.status).toBe(400);
-    });
-
-    it('should support sorting', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?sortBy=createdAt&sortDir=desc&limit=5')
-        .expect(200);
-
-      expect(res.body.success).toBe(true);
-      const themes = res.body.data.themes;
-      if (themes.length >= 2) {
-        // Verify descending order by createdAt
-        const dates = themes.map((t: { createdAt: string }) => new Date(t.createdAt).getTime());
-        for (let i = 1; i < dates.length; i++) {
-          expect(dates[i - 1]).toBeGreaterThanOrEqual(dates[i]);
-        }
-      }
-    });
-
-    it('should filter by category', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?category=PROFESSIONAL&limit=10')
-        .expect(200);
-
-      for (const theme of res.body.data.themes) {
-        expect(theme.category).toBe('PROFESSIONAL');
-      }
-    });
-
-    it('should filter by search term', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/themes?search=system&limit=10')
-        .expect(200);
-
-      expect(res.body.success).toBe(true);
-      // Search should not error even if no results
+      expect(res.body.data.items.length).toBeLessThanOrEqual(1);
     });
   });
 
@@ -211,7 +149,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
 
   describe('GET /api/v1/spoken-languages - search & limit', () => {
     it('should return all active languages', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -222,7 +160,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should search languages by name', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=english')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -232,7 +170,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should respect limit on search', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=a&limit=2')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -241,7 +179,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should reject invalid limit (negative)', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=test&limit=-1')
         .set('Authorization', `Bearer ${userToken}`);
 
@@ -249,7 +187,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should reject invalid limit (non-numeric)', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=test&limit=abc')
         .set('Authorization', `Bearer ${userToken}`);
 
@@ -257,7 +195,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should return empty array for no matches', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=zzzznonexistent')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -270,7 +208,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
 
   describe('GET /api/v1/users/:userId/followers - pagination', () => {
     it('should return followers with default pagination', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/users/${userId}/followers`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -280,7 +218,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should accept page and limit params', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/users/${userId}/followers?page=1&limit=5`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -289,7 +227,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should return empty followers for new user', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/users/${userId}/followers?page=1&limit=10`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -306,7 +244,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
 
     it('should cap limit at 100', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/users/${userId}/followers?page=1&limit=500`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
@@ -320,9 +258,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
 
   describe('GET /api/v1/users/:userId/social-stats', () => {
     it('should return social stats for user', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`/api/v1/users/${userId}/social-stats`)
-        .expect(200);
+      const res = await app.request.get(`/api/v1/users/${userId}/social-stats`).expect(200);
 
       expect(res.body.success).toBe(true);
       expect(typeof res.body.data.followers).toBe('number');

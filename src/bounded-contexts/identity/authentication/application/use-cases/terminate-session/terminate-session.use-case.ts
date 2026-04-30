@@ -5,30 +5,23 @@
  * Used during logout or manual session revocation.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { LoggerPort } from '@/shared-kernel';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { SessionTerminatedEvent } from '../../../domain';
-import type { SessionPayload, SessionStoragePort, TokenGeneratorPort } from '../../../domain/ports';
+import type { SessionPayload } from '../../../domain/ports';
+import { SessionStoragePort, TokenGeneratorPort } from '../../../domain/ports';
 import type {
   TerminateSessionCommand,
   TerminateSessionPort,
   TerminateSessionResult,
 } from '../../ports';
 
-// Injection tokens
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const SESSION_STORAGE = Symbol('SessionStoragePort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class TerminateSessionUseCase implements TerminateSessionPort {
   constructor(
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(SESSION_STORAGE)
     private readonly sessionStorage: SessionStoragePort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: TerminateSessionCommand): Promise<TerminateSessionResult> {
@@ -67,5 +60,3 @@ export class TerminateSessionUseCase implements TerminateSessionPort {
     };
   }
 }
-
-export { EVENT_BUS, SESSION_STORAGE, TOKEN_GENERATOR };

@@ -76,7 +76,14 @@ export abstract class ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<ConnectionUser & { reason: string; score: number }>;
+    data: Array<
+      ConnectionUser & {
+        reason: string;
+        score: number;
+        mutualCount: number;
+        commonSkills: string[];
+      }
+    >;
     total: number;
   }>;
 
@@ -87,22 +94,20 @@ export abstract class ConnectionRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const CONNECTION_USE_CASES = Symbol('CONNECTION_USE_CASES');
-
-export interface ConnectionUseCases {
-  sendConnectionRequestUseCase: {
+export abstract class ConnectionUseCases {
+  abstract readonly sendConnectionRequestUseCase: {
     execute: (requesterId: string, targetId: string) => Promise<ConnectionWithUser>;
   };
-  acceptConnectionUseCase: {
+  abstract readonly acceptConnectionUseCase: {
     execute: (connectionId: string, currentUserId: string) => Promise<ConnectionWithUser>;
   };
-  rejectConnectionUseCase: {
+  abstract readonly rejectConnectionUseCase: {
     execute: (connectionId: string, currentUserId: string) => Promise<ConnectionWithUser>;
   };
-  removeConnectionUseCase: {
+  abstract readonly removeConnectionUseCase: {
     execute: (connectionId: string, currentUserId: string) => Promise<void>;
   };
-  getPendingRequestsUseCase: {
+  abstract readonly getPendingRequestsUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
@@ -114,7 +119,7 @@ export interface ConnectionUseCases {
       totalPages: number;
     }>;
   };
-  getConnectionsUseCase: {
+  abstract readonly getConnectionsUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
@@ -126,13 +131,13 @@ export interface ConnectionUseCases {
       totalPages: number;
     }>;
   };
-  getConnectionStatsUseCase: {
+  abstract readonly getConnectionStatsUseCase: {
     execute: (userId: string) => Promise<{ connections: number }>;
   };
-  checkConnectedUseCase: {
+  abstract readonly checkConnectedUseCase: {
     execute: (userA: string, userB: string) => Promise<boolean>;
   };
-  getConnectionSuggestionsUseCase: {
+  abstract readonly getConnectionSuggestionsUseCase: {
     execute: (userId: string) => Promise<ConnectionUser[]>;
   };
 }

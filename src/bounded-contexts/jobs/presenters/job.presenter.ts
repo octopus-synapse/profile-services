@@ -24,5 +24,5 @@ export function parseRemotePolicies(raw: string | undefined): RemotePolicy[] | u
 
 export function parseSkillsCsv(raw: string | undefined): string[] | undefined {
   if (!raw) return undefined;
-  return raw.split(',');
+  return raw.split(', ');
 }

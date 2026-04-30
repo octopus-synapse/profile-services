@@ -72,17 +72,11 @@ const ProgrammingLanguageSchema = z.object({
 // Response Data Schemas
 // ============================================================================
 
-const TechSkillListDataSchema = z.object({
-  skills: z.array(TechSkillSchema),
-});
+const TechSkillListDataSchema = z.object({ skills: z.array(TechSkillSchema) });
 
-const TechNicheListDataSchema = z.object({
-  niches: z.array(TechNicheSchema),
-});
+const TechNicheListDataSchema = z.object({ niches: z.array(TechNicheSchema) });
 
-const TechAreaListDataSchema = z.object({
-  areas: z.array(TechAreaSchema),
-});
+const TechAreaListDataSchema = z.object({ areas: z.array(TechAreaSchema) });
 
 const ProgrammingLanguageListDataSchema = z.object({
   languages: z.array(ProgrammingLanguageSchema),

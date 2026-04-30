@@ -1,4 +1,4 @@
-import type { ActivityRepositoryPort } from '../../ports/activity.port';
+import { ActivityRepositoryPort } from '../../ports/activity.port';
 
 export class PurgeOldActivitiesUseCase {
   constructor(private readonly repository: ActivityRepositoryPort) {}

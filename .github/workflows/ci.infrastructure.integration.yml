@@ -1,5 +1,12 @@
 name: _infrastructure-integration
 
+# Phase-2 cutover (Nest → Elysia + Bun) replaced AppModule + supertest
+# with the framework-free `bootstrap()` + the supertest-shaped fetch
+# wrapper under `test/infrastructure/shared/`. Only the migrated
+# suites (`test/infrastructure/integration/*.spec.ts`) run here; the
+# legacy tree under `test/infrastructure/_legacy/integration/` is
+# opt-in via a manual run only and gets converted suite-by-suite.
+
 on:
   workflow_call:
 
@@ -7,8 +14,23 @@ jobs:
   test:
     uses: octopus-synapse/octopus-workflows/.github/workflows/_infrastructure-test-template.yml@v1
     with:
-      test-command: "bun test --config=bunfig.integration.toml"
+      test-command: "bun run test:integration:ci"
       test-name: "Integration"
       db-name: "integration_test_db"
       timeout: 15
+      # `BCRYPT_COST=4`  → bcrypt drops from ~80ms to ~6ms; matches
+      #                    .env.test, halves total time spent in signup.
+      # `SHARDS=2`       → GitHub-hosted runners are 2 vCPUs; 3+ shards
+      #                    thrash on Postgres. Bump on larger runners
+      #                    via PR env override.
+      extra-env-vars: |
+        BCRYPT_COST=4
+        SHARDS=2
+      # Test-only postgres knobs that take effect on `pg_reload_conf()`.
+      # `fsync` and `wal_level` would help more but require a restart;
+      # those need a custom postgres image (TODO).
+      db-init-sql: |
+        ALTER SYSTEM SET synchronous_commit = off;
+        ALTER SYSTEM SET full_page_writes = off;
+        SELECT pg_reload_conf();
     secrets: inherit

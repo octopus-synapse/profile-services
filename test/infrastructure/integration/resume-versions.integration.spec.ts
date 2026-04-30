@@ -48,12 +48,7 @@ describe('Resume Versions Integration', () => {
 
       // Manually create initial version (normally done by service)
       await prisma.resumeVersion.create({
-        data: {
-          resumeId,
-          versionNumber: 1,
-          snapshot: resume,
-          label: 'Initial version',
-        },
+        data: { resumeId, versionNumber: 1, snapshot: resume, label: 'Initial version' },
       });
 
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
@@ -82,12 +77,7 @@ describe('Resume Versions Integration', () => {
       });
 
       await prisma.resumeVersion.create({
-        data: {
-          resumeId,
-          versionNumber: 2,
-          snapshot: updated,
-          label: 'Added experience section',
-        },
+        data: { resumeId, versionNumber: 2, snapshot: updated, label: 'Added experience section' },
       });
 
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
@@ -113,10 +103,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(unwrapApiData(response.body)).toMatchObject({
-        id: versions[0].id,
-        versionNumber: 2,
-      });
+      expect(unwrapApiData(response.body)).toMatchObject({ id: versions[0].id, versionNumber: 2 });
     });
   });
 
@@ -134,7 +121,8 @@ describe('Resume Versions Integration', () => {
         .post(`/api/v1/versions/${resumeId}/restore/${firstVersion.id}`)
         .set(authHeader());
 
-      expect(response.status).toBe(201);
+      // Restore is idempotent overwrite — 200 OK, not 201 Created.
+      expect(response.status).toBe(200);
 
       const updatedResume = await prisma.resume.findUnique({
         where: { id: resumeId },
@@ -166,7 +154,8 @@ describe('Resume Versions Integration', () => {
         .post(`/api/v1/versions/${resumeId}/restore/${versions[0].id}`)
         .set(authHeader());
 
-      expect(response.status).toBe(201);
+      // Restore is idempotent overwrite — 200 OK, not 201 Created.
+      expect(response.status).toBe(200);
 
       const versionsAfter = await prisma.resumeVersion.count({
         where: { resumeId },

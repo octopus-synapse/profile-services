@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   createOnboardingProgress,
   DEFAULT_SECTION_TYPES,
@@ -30,7 +31,12 @@ describe('AdvanceOnboardingStepUseCase', () => {
     saveProgressFn = (userId, data) => saveUseCase.execute(userId, data);
     getProgressFn = (userId) => getUseCase.execute(userId);
 
-    useCase = new AdvanceOnboardingStepUseCase(saveProgressFn, getProgressFn, sectionTypeDef);
+    useCase = new AdvanceOnboardingStepUseCase(
+      saveProgressFn,
+      getProgressFn,
+      sectionTypeDef,
+      stubLogger,
+    );
   });
 
   it('advances from welcome to personal-info', async () => {
@@ -86,11 +92,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
   it('merges step data when provided during advance', async () => {
     // Arrange
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     // Act — advance from welcome, providing personal-info data early

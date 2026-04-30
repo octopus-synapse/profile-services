@@ -13,16 +13,14 @@ export interface DeleteAccountResult {
   success: true;
 }
 
-export interface DeleteAccountPort {
+export abstract class DeleteAccountPort {
   /**
    * Permanently deletes a user account and all associated data.
    * @throws EntityNotFoundException if user not found
    * @throws AccountDeletionRequiresConfirmationException if confirmation is invalid
    */
-  execute(command: DeleteAccountCommand): Promise<DeleteAccountResult>;
+  abstract execute(command: DeleteAccountCommand): Promise<DeleteAccountResult>;
 }
-
-export const DELETE_ACCOUNT_PORT = Symbol('DeleteAccountPort');
 
 /**
  * Required confirmation phrase for account deletion

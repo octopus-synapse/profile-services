@@ -127,12 +127,7 @@ export class InMemoryShareAnalyticsRepository implements ShareAnalyticsRepositor
     return this.getAnalyticsForShare(shareId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit)
-      .map(({ event, country, city, createdAt }) => ({
-        event,
-        country,
-        city,
-        createdAt,
-      }));
+      .map(({ event, country, city, createdAt }) => ({ event, country, city, createdAt }));
   }
 
   async getDetailedEvents(shareId: string, filters?: EventFilters): Promise<DetailedEventResult[]> {

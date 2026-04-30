@@ -1,6 +1,5 @@
 // Export DTOs from local bounded-context
 
-export * from './controllers';
 export * from './dto/analytics.dto';
 export type {
   AnalyticsDashboard,
@@ -18,5 +17,4 @@ export type {
   ViewStats,
   ViewStatsOptions,
 } from './interfaces';
-export * from './resume-analytics.module';
 export * from './services';

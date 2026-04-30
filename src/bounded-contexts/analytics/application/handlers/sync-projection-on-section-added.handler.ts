@@ -1,31 +1,25 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { SectionAddedEvent } from '@/bounded-contexts/resumes';
-import {
-  ANALYTICS_PROJECTION_PORT,
-  AnalyticsProjectionPort,
-} from '../ports/analytics-projection.port';
+import { LoggerPort } from '@/shared-kernel';
+import { AnalyticsProjectionPort } from '../ports/analytics-projection.port';
 
-@Injectable()
+const CTX = 'SyncProjectionOnSectionAddedHandler';
+
 export class SyncProjectionOnSectionAddedHandler {
-  private readonly logger = new Logger(SyncProjectionOnSectionAddedHandler.name);
-
   constructor(
-    @Inject(ANALYTICS_PROJECTION_PORT)
     private readonly projection: AnalyticsProjectionPort,
+    private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(SectionAddedEvent.TYPE)
   async handle(event: SectionAddedEvent): Promise<void> {
     const resumeId = event.aggregateId;
     const semanticKind = event.payload.sectionKind;
 
     if (!semanticKind) {
-      this.logger.warn(`No semanticKind in event for resume: ${resumeId}`);
+      this.logger.warn(`No semanticKind in event for resume: ${resumeId}`, CTX);
       return;
     }
 
-    this.logger.debug(`Incrementing ${semanticKind} count for resume: ${resumeId}`);
+    this.logger.debug(`Incrementing ${semanticKind} count for resume: ${resumeId}`, CTX);
 
     await this.projection.incrementSectionCount(resumeId, semanticKind);
   }

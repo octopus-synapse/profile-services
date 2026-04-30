@@ -1,15 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  GENERIC_RESUME_SECTIONS_USE_CASES,
-  type GenericResumeSectionsUseCases,
-} from './generic-resume-sections/ports/generic-resume-sections-repository.port';
+import { GenericResumeSectionsUseCases } from './generic-resume-sections/ports/generic-resume-sections-repository.port';
 
-@Injectable()
 export class GenericResumeSectionsService {
-  constructor(
-    @Inject(GENERIC_RESUME_SECTIONS_USE_CASES)
-    private readonly useCases: GenericResumeSectionsUseCases,
-  ) {}
+  constructor(private readonly useCases: GenericResumeSectionsUseCases) {}
 
   async listSectionTypes() {
     return this.useCases.listSectionTypesUseCase.execute();

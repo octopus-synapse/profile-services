@@ -16,10 +16,7 @@ export class UsernameRepository extends UsernameRepositoryPort {
   async updateUsername(userId: string, username: string): Promise<{ username: string }> {
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        username,
-        usernameUpdatedAt: new Date(),
-      },
+      data: { username, usernameUpdatedAt: new Date() },
       select: { username: true },
     });
 

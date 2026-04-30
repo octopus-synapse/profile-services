@@ -60,10 +60,7 @@ export class InMemoryOnboardingRepository extends OnboardingRepositoryPort {
     const user = this.users.get(userId);
     if (!user) return null;
 
-    return {
-      id: user.id,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-    };
+    return { id: user.id, hasCompletedOnboarding: user.hasCompletedOnboarding };
   }
 
   async getOnboardingStatus(userId: string): Promise<OnboardingStatus | null> {
@@ -181,10 +178,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
 
     this.progressRecords.set(userId, record);
 
-    return {
-      currentStep: record.currentStep,
-      completedSteps: record.completedSteps,
-    };
+    return { currentStep: record.currentStep, completedSteps: record.completedSteps };
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -287,10 +281,7 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
       github: 'https://github.com/johndoe',
       website: 'https://johndoe.dev',
     },
-    templateSelection: {
-      templateId: 'PROFESSIONAL',
-      colorScheme: 'ocean',
-    },
+    templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'ocean' },
     sections: [],
     ...overrides,
   };
@@ -319,10 +310,7 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
   currentStep: 'personal-info',
   completedSteps: ['welcome'],
   username: 'johndoe',
-  personalInfo: {
-    fullName: 'John Doe',
-    email: 'john@example.com',
-  },
+  personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
 });
 
 // ============================================================================

@@ -5,7 +5,7 @@
  */
 
 import type { ScoreProgressionPoint, ViewStats, ViewStatsOptions } from '../interfaces';
-import type { SnapshotPort, ViewTrackingPort } from '../ports';
+import { SnapshotPort, ViewTrackingPort } from '../ports';
 
 /**
  * In-Memory View Tracking for testing

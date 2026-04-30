@@ -189,6 +189,8 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
     const originalMethod = descriptor.value;
 
     if (typeof originalMethod !== 'function') {
+      // Decorator misuse — fires at class evaluation time. Not user-facing:
+      // this is a programmer error caught at module load.
       throw new Error(`@Cacheable can only be applied to methods. Got: ${typeof originalMethod}`);
     }
 

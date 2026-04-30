@@ -200,9 +200,7 @@ describe('LocaleContent', () => {
 
     it('should preserve existing locales and sections', () => {
       const newSections: Record<string, LocalizedSection> = {
-        work_experience_v1: {
-          title: 'Experiencia Laboral',
-        },
+        work_experience_v1: { title: 'Experiencia Laboral' },
       };
 
       const result = addLocale(validContent, 'es', newSections);
@@ -214,9 +212,7 @@ describe('LocaleContent', () => {
 
     it('should not duplicate locale if it already exists', () => {
       const newSections: Record<string, LocalizedSection> = {
-        work_experience_v1: {
-          title: 'Updated Work Experience',
-        },
+        work_experience_v1: { title: 'Updated Work Experience' },
       };
 
       const result = addLocale(validContent, 'en', newSections);
@@ -241,9 +237,7 @@ describe('LocaleContent', () => {
     it('should not mutate the original content', () => {
       const original = structuredClone(validContent);
       const newSections: Record<string, LocalizedSection> = {
-        work_experience_v1: {
-          title: 'Experiencia Laboral',
-        },
+        work_experience_v1: { title: 'Experiencia Laboral' },
       };
 
       addLocale(validContent, 'es', newSections);

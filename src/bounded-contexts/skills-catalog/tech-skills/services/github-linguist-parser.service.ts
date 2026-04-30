@@ -3,17 +3,16 @@
  * Parses programming languages from GitHub's Linguist repository
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { ExternalDataParseFailedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import { parse } from '@/shared-kernel/utils/yaml-parser';
 import { GITHUB_LINGUIST_URL, LANGUAGE_METADATA } from '../constants/language-metadata.const';
 import type { GithubLanguagesYml, ParsedLanguage } from '../interfaces';
 import { githubLanguagesYmlSchema } from '../schemas/github-linguist.schema';
 import { createLanguageSlug } from '../utils';
 
-@Injectable()
 export class GithubLinguistParserService {
-  constructor(private readonly logger: AppLoggerService) {}
+  constructor(private readonly logger: LoggerPort) {}
 
   /** Fetch and parse languages from GitHub Linguist */
   async fetchAndParse(): Promise<ParsedLanguage[]> {
@@ -22,7 +21,10 @@ export class GithubLinguistParserService {
     try {
       const response = await fetch(GITHUB_LINGUIST_URL);
       if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+        throw new ExternalDataParseFailedException(
+          'GitHub Linguist',
+          `fetch ${response.status} ${response.statusText}`,
+        );
       }
 
       const yamlContent = await response.text();

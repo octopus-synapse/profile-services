@@ -3,10 +3,10 @@
  */
 
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
+  ResumeShareAccessDeniedException,
+  ShareNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 export class DeleteShareUseCase {
   constructor(private readonly shareRepo: ShareRepositoryPort) {}
@@ -15,11 +15,11 @@ export class DeleteShareUseCase {
     const share = await this.shareRepo.findByIdWithResume(shareId);
 
     if (!share) {
-      throw new EntityNotFoundException('Share', shareId);
+      throw new ShareNotFoundException();
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this share');
+      throw new ResumeShareAccessDeniedException();
     }
 
     return this.shareRepo.delete(shareId);

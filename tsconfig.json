@@ -18,14 +18,22 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "isolatedModules": true,
     "paths": {
       "@/*": ["src/*"],
-      "@test/*": ["test/*"]
+      "@test/*": ["test/*"],
+      "@packages/*": ["packages/*/src"]
     }
   },
-  "exclude": ["scripts", "prisma", "commitlint.config.ts", "fix-imports.ts", "prisma.config.ts"]
+  "exclude": [
+    "scripts",
+    "prisma",
+    "commitlint.config.ts",
+    "fix-imports.ts",
+    "prisma.config.ts",
+    "test/infrastructure/_legacy"
+  ]
 }

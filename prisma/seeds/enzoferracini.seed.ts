@@ -30,24 +30,25 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       username,
       emailVerified: new Date(),
       isActive: true,
-      hasCompletedOnboarding: true,
       onboardingCompletedAt: new Date(),
       phone: '+55 11 99999-0000',
       location: 'São Paulo, SP',
       bio: 'Software engineer building tools for other engineers.',
       github: 'enzoferracini',
       linkedin: 'enzoferracini',
+      // Job-seeker marker — required for onboarding + fit-profile + match gates.
+      roles: ['role_user', 'role_user_standard'],
     },
   });
 
-  // Typst PDF generation requires an active theme on the resume.
-  const defaultTheme = await prisma.resumeTheme.findFirst({
-    where: { isSystemTheme: true },
+  // Typst PDF generation requires an active style on the resume.
+  const defaultStyle = await prisma.resumeStyle.findFirst({
+    where: { isSystem: true },
     orderBy: { createdAt: 'asc' },
   });
-  if (!defaultTheme) {
+  if (!defaultStyle) {
     throw new Error(
-      "Cannot seed 'enzoferracini': no system theme found. Run seedThemes before this seed.",
+      "Cannot seed 'enzoferracini': no system resume style found. Run seedResumeStyles before this seed.",
     );
   }
 
@@ -58,7 +59,6 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       fullName: 'Enzo Ferracini',
       jobTitle: 'Software Engineer',
       phone: '+55 11 99999-0000',
-      emailContact: email,
       location: 'São Paulo, SP',
       linkedin: 'enzoferracini',
       github: 'enzoferracini',
@@ -69,7 +69,7 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       slug: username,
       primaryLanguage: 'pt-br',
       language: 'pt-br',
-      activeThemeId: defaultTheme.id,
+      styleId: defaultStyle.id,
     },
   });
 

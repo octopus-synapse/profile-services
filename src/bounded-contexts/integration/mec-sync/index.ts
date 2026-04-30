@@ -1,19 +1,11 @@
 /**
- * MEC Sync Module - Clean Architecture
+ * MEC Sync — public surface for cross-BC consumers.
  *
- * Structure:
- * ├── constants/       # Configuration constants
- * ├── dto/            # Data Transfer Objects
- * ├── guards/         # Authentication guards
- * ├── interfaces/     # TypeScript interfaces
- * ├── mappers/        # Data transformation functions
- * ├── parsers/        # CSV parsing utilities
- * ├── repositories/   # Data access layer
- * └── services/       # Business logic
+ * ADR-001 layout: domain (entities + ports), application (services +
+ * use cases), infrastructure (controllers + adapters + guards).
  */
 
 export * from '@/shared-kernel';
-export * from './mec-sync.module';
-export * from './services/course-query.service';
-export * from './services/institution-query.service';
-export * from './services/mec-stats.service';
+export { CourseQueryService } from './application/services/course-query.service';
+export { InstitutionQueryService } from './application/services/institution-query.service';
+export { MecStatsService } from './application/services/mec-stats.service';

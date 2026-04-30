@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { SnapshotRepositoryPort } from '../application/ports/resume-analytics.port';
 import type { AnalyticsSnapshot, ScoreProgressionPoint } from '../interfaces';
 
@@ -11,7 +10,6 @@ interface AnalyticsSnapshotInput {
   missingKeywords?: string[];
 }
 
-@Injectable()
 export class SnapshotService {
   constructor(private readonly repository: SnapshotRepositoryPort) {}
 

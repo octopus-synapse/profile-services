@@ -1,8 +1,8 @@
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  SectionTypeSlugVersionTakenException,
+  SystemSectionTypeImmutableException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
@@ -25,9 +25,7 @@ export class UpdateSectionTypeUseCase {
       );
 
       if (attemptedRestrictedUpdate) {
-        throw new ValidationException(
-          'Cannot modify key, semanticKind, or definition of system section types',
-        );
+        throw new SystemSectionTypeImmutableException();
       }
     }
 
@@ -39,9 +37,7 @@ export class UpdateSectionTypeUseCase {
       );
 
       if (existingSlug) {
-        throw new ConflictException(
-          `Section type with slug '${dto.slug}' and version ${existing.version} already exists`,
-        );
+        throw new SectionTypeSlugVersionTakenException(dto.slug, existing.version);
       }
     }
 

@@ -7,7 +7,6 @@
  * Milestone 5 - Issue #34
  */
 
-import { Injectable } from '@nestjs/common';
 import { Paragraph, TextRun } from 'docx';
 import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 
@@ -25,7 +24,6 @@ export interface SectionRenderContext {
   config: DocxExportConfig;
 }
 
-@Injectable()
 export class GenericDocxSectionBuilder {
   /**
    * Build DOCX paragraphs for a section item using definition-driven config.

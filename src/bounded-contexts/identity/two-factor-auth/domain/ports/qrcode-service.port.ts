@@ -5,11 +5,9 @@
  * Implementation uses qrcode library.
  */
 
-export interface QrCodeServicePort {
+export abstract class QrCodeServicePort {
   /**
    * Generate a QR code data URL from text
    */
-  generateDataUrl(text: string): Promise<string>;
+  abstract generateDataUrl(text: string): Promise<string>;
 }
-
-export const QR_CODE_SERVICE_PORT = Symbol('QrCodeServicePort');

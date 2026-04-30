@@ -1,0 +1,53 @@
+// Resume Style System - ATS-safe visual styles for resumes (formerly ResumeTheme).
+//
+// Every ResumeStyle is ATS-safe by invariant: creation below the configured
+// threshold is rejected (422), and a DB trigger enforces that `styleScore`
+// can only move forward (monotonic).
+
+model ResumeStyle {
+  id String @id @default(cuid())
+
+  name        String
+  description String? @db.Text
+
+  authorId String
+  author   User   @relation("StyleAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Versioning (numeric, incremented on each admin edit)
+  version     Int  @default(1)
+  historyJson Json @default("[]") // [{ version, styleScore, changedAt, changedBy }]
+
+  // ATS-safety and Style Score
+  styleScore         Int  @default(0) // 0-100, monotonic (trigger enforces)
+  atsSafetyBreakdown Json @default("{}") // { layout, typography, fileLevel } breakdown
+
+  // Layout & template
+  layoutKind    LayoutKind @default(SINGLE_COLUMN)
+  typstTemplate String // identifier/path in export/infrastructure/typst/templates/
+
+  // Core style configuration (design tokens: palette, fonts, spacing, margens)
+  styleConfig Json
+
+  // Style DSL - Per-section style overrides
+  // Format: { "work_experience_v1": { container: {...}, title: {...}, content: {...} } }
+  sectionStyles Json @default("{}")
+
+  thumbnailUrl  String?
+  previewImages String[]
+
+  isSystem Boolean @default(false)
+
+  // Fork lineage
+  parentStyleId String?
+  parentStyle   ResumeStyle?  @relation("StyleForks", fields: [parentStyleId], references: [id], onDelete: SetNull)
+  forks         ResumeStyle[] @relation("StyleForks")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumes Resume[] @relation("ResumeActiveStyle")
+
+  @@index([authorId])
+  @@index([isSystem])
+  @@index([createdAt])
+}

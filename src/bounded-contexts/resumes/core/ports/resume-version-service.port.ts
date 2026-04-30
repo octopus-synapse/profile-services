@@ -11,14 +11,7 @@ export abstract class ResumeVersionServicePort {
   abstract getVersions(
     resumeId: string,
     userId: string,
-  ): Promise<
-    Array<{
-      id: string;
-      versionNumber: number;
-      label: string | null;
-      createdAt: Date;
-    }>
-  >;
+  ): Promise<Array<{ id: string; versionNumber: number; label: string | null; createdAt: Date }>>;
 
   abstract restoreVersion(
     resumeId: string,

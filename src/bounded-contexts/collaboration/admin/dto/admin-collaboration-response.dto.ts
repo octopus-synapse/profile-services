@@ -3,10 +3,7 @@ import { z } from 'zod';
 
 // --- Collaboration Stats ---
 
-const RoleCountSchema = z.object({
-  role: z.string(),
-  count: z.number().int(),
-});
+const RoleCountSchema = z.object({ role: z.string(), count: z.number().int() });
 
 const AdminCollaborationStatsDataSchema = z.object({
   totalCollaborations: z.number().int(),
@@ -25,10 +22,7 @@ const CollaboratorUserSchema = z.object({
   email: z.string(),
 });
 
-const CollaboratorResumeSchema = z.object({
-  id: z.string(),
-  title: z.string().nullable(),
-});
+const CollaboratorResumeSchema = z.object({ id: z.string(), title: z.string().nullable() });
 
 const CollaborationItemSchema = z.object({
   id: z.string(),

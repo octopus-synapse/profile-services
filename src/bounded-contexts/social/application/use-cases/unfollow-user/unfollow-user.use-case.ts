@@ -1,4 +1,4 @@
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import { FollowRepositoryPort } from '../../ports/follow.port';
 
 export class UnfollowUserUseCase {
   constructor(private readonly repository: FollowRepositoryPort) {}

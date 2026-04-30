@@ -7,12 +7,12 @@ model Notification {
 
   type    NotificationType
   actorId String?
-  actor   User?  @relation("NotificationActors", fields: [actorId], references: [id])
+  actor   User?            @relation("NotificationActors", fields: [actorId], references: [id])
 
   entityType String? // "post", "comment", "connection"
   entityId   String?
 
-  message String
+  message       String
   /**
    * Stable i18n key (e.g. "notification.application_stale") so the same
    * notification can be re-rendered in any language without hitting the
@@ -21,10 +21,10 @@ model Notification {
    */
   messageKey    String?
   messageParams Json?
-  read    Boolean @default(false)
+  read          Boolean @default(false)
 
   // Email delivery tracking — null means "never sent", value means "sent at that time".
-  emailSentAt      DateTime?
+  emailSentAt       DateTime?
   emailDigestSentAt DateTime?
 
   createdAt DateTime @default(now())
@@ -35,12 +35,12 @@ model Notification {
 }
 
 model NotificationPreference {
-  id           String           @id @default(cuid())
-  userId       String
-  type         NotificationType
-  enabled      Boolean          @default(true)
+  id            String            @id @default(cuid())
+  userId        String
+  type          NotificationType
+  enabled       Boolean           @default(true)
   // Per-type email delivery override. null/true = email on each event; false = never email.
-  emailEnabled Boolean          @default(true)
+  emailEnabled  Boolean           @default(true)
   // Instant vs. batched delivery — 'INSTANT' sends per-event, 'DAILY' rolls up in a digest.
   emailDelivery EmailDeliveryMode @default(INSTANT)
 
@@ -62,10 +62,10 @@ enum EmailDeliveryMode {
 // Guarantees the cron job is idempotent: a retry after a partial failure
 // cannot double-send.
 model UserWeeklyDigestLog {
-  id        String   @id @default(cuid())
-  userId    String
-  weekKey   String // YYYY-Www format (ISO-8601 week)
-  sentAt    DateTime @default(now())
+  id      String   @id @default(cuid())
+  userId  String
+  weekKey String // YYYY-Www format (ISO-8601 week)
+  sentAt  DateTime @default(now())
 
   @@unique([userId, weekKey])
   @@index([weekKey])

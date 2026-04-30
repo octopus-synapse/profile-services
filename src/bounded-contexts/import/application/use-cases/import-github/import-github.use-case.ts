@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { GITHUB_API_PORT, type GithubApiPort } from './github-api.port';
+import { GithubApiPort } from './github-api.port';
 import { type ParsedGithubProfile, parseGithubProfile } from './parse-github-profile';
 
 export interface ImportGithubInput {
@@ -8,9 +7,8 @@ export interface ImportGithubInput {
   repoLimit?: number;
 }
 
-@Injectable()
 export class ImportGithubUseCase {
-  constructor(@Inject(GITHUB_API_PORT) private readonly api: GithubApiPort) {}
+  constructor(private readonly api: GithubApiPort) {}
 
   async execute(input: ImportGithubInput): Promise<ParsedGithubProfile> {
     const user = await this.api.getUser(input.token, input.username);

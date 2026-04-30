@@ -54,10 +54,7 @@ describe('ResumeDslV2Schema', () => {
   });
 
   it('should reject a non-semver version', () => {
-    const dsl = {
-      version: 'v2',
-      sections: [],
-    };
+    const dsl = { version: 'v2', sections: [] };
 
     const result = ResumeDslV2Schema.safeParse(dsl);
 

@@ -10,11 +10,10 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ResumeTranslationService } from './resume-translation.service';
+import type { ResumeTranslationService } from './resume-translation.service';
 import { TranslationService } from './translation.service';
-import { TranslationBatchService } from './translation-batch.service';
-import { TranslationCoreService } from './translation-core.service';
+import type { TranslationBatchService } from './translation-batch.service';
+import type { TranslationCoreService } from './translation-core.service';
 
 describe('TranslationService (Facade)', () => {
   let service: TranslationService;
@@ -23,15 +22,13 @@ describe('TranslationService (Facade)', () => {
     checkServiceHealth: ReturnType<typeof mock>;
     isAvailable: ReturnType<typeof mock>;
   };
-  let fakeBatchService: {
-    translateBatch: ReturnType<typeof mock>;
-  };
+  let fakeBatchService: { translateBatch: ReturnType<typeof mock> };
   let fakeResumeService: {
     translateToEnglish: ReturnType<typeof mock>;
     translateToPortuguese: ReturnType<typeof mock>;
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fakeCoreService = {
       translate: mock((text: string) =>
         Promise.resolve({ original: text, translated: `[translated] ${text}` }),
@@ -58,16 +55,11 @@ describe('TranslationService (Facade)', () => {
       ),
     };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TranslationService,
-        { provide: TranslationCoreService, useValue: fakeCoreService },
-        { provide: TranslationBatchService, useValue: fakeBatchService },
-        { provide: ResumeTranslationService, useValue: fakeResumeService },
-      ],
-    }).compile();
-
-    service = module.get<TranslationService>(TranslationService);
+    service = new TranslationService(
+      fakeCoreService as unknown as TranslationCoreService,
+      fakeBatchService as unknown as TranslationBatchService,
+      fakeResumeService as unknown as ResumeTranslationService,
+    );
   });
 
   describe('translate', () => {

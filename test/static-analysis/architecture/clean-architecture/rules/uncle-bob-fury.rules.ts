@@ -180,11 +180,15 @@ export function checkBoundedContextIsolation(): RuleResult {
 
               const relativePath = path.relative(SOURCE_ROOT, file);
 
-              // Infrastructure layer and module files are allowed to import cross-BC
-              // (adapters integrate with external systems, modules wire DI)
+              // Infrastructure layer and wiring files are allowed to import cross-BC.
+              // - Adapters integrate with external systems
+              // - `*.module.ts` is Nest DI wiring
+              // - `*.composition.ts` is the framework-free DI wiring (same role,
+              //   different framework binding) — conceptually equivalent to a module
               if (
                 relativePath.includes('/infrastructure/') ||
-                relativePath.endsWith('.module.ts')
+                relativePath.endsWith('.module.ts') ||
+                relativePath.endsWith('.composition.ts')
               ) {
                 continue;
               }

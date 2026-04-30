@@ -8,22 +8,22 @@
  * - This handler only cleans up social data when a user is deleted.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { UserDeletedEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
+const CTX = 'CleanupSocialOnUserDeleteHandler';
+
 export class CleanupSocialOnUserDeleteHandler {
-  private readonly logger = new Logger(CleanupSocialOnUserDeleteHandler.name);
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
-  constructor(private readonly prisma: PrismaService) {}
-
-  @OnEvent(UserDeletedEvent.TYPE)
   async handle(event: UserDeletedEvent): Promise<void> {
     const userId = event.aggregateId;
 
-    this.logger.log(`Cleaning up social data for deleted user: ${userId}`);
+    this.logger.log(`Cleaning up social data for deleted user: ${userId}`, CTX);
 
     // Delete follows, connections, and activities where user is involved
     const [
@@ -57,6 +57,7 @@ export class CleanupSocialOnUserDeleteHandler {
         `${connectionsAsRequester.count} connections as requester, ` +
         `${connectionsAsTarget.count} connections as target, ` +
         `${activities.count} activities`,
+      CTX,
     );
   }
 }

@@ -134,11 +134,7 @@ describe('locale-resolver', () => {
         fields: [
           {
             ...definition.fields[0],
-            meta: {
-              ...definition.fields[0].meta,
-              widget: 'input',
-              maxLength: 100,
-            },
+            meta: { ...definition.fields[0].meta, widget: 'input', maxLength: 100 },
           },
         ],
       };

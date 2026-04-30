@@ -90,12 +90,7 @@ export class InMemoryEmailLogRepository {
 
   async update(options: {
     where: { id: string };
-    data: Partial<{
-      status: EmailStatus;
-      sentAt: Date;
-      failedAt: Date;
-      error: string;
-    }>;
+    data: Partial<{ status: EmailStatus; sentAt: Date; failedAt: Date; error: string }>;
   }): Promise<EmailLog> {
     const index = this.logs.findIndex((log) => log.id === options.where.id);
     if (index === -1) {

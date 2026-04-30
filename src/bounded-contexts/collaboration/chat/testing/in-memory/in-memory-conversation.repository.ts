@@ -67,11 +67,7 @@ export class InMemoryConversationRepository {
   async findByUserId(
     userId: string,
     options: { cursor?: string; limit: number },
-  ): Promise<{
-    conversations: StoredConversation[];
-    nextCursor: string | null;
-    hasMore: boolean;
-  }> {
+  ): Promise<{ conversations: StoredConversation[]; nextCursor: string | null; hasMore: boolean }> {
     let conversations = Array.from(this.conversations.values())
       .filter((c) => c.participant1Id === userId || c.participant2Id === userId)
       .sort((a, b) => {

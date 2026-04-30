@@ -11,33 +11,28 @@ export {
   type DateFormat,
   type DateFormatPattern,
   DateFormatPatternSchema,
-  DateFormatPatterns,
-  // Date Format
+  DateFormatPatterns, // Date Format
   DateFormatSchema,
   type ExportFormat,
   type ExportFormatKebab,
-  ExportFormatKebabSchema,
-  // Export Format
+  ExportFormatKebabSchema, // Export Format
   ExportFormatSchema,
   exportFormatFromKebab,
   exportFormatToKebab,
   type LanguageProficiency,
   type LanguageProficiencyKebab,
-  LanguageProficiencyKebabSchema,
-  // Language Proficiency
+  LanguageProficiencyKebabSchema, // Language Proficiency
   LanguageProficiencySchema,
   LanguageProficiencyToNumeric,
   languageProficiencyFromKebab,
   languageProficiencyToKebab,
   type Palette,
   type PaletteKebab,
-  PaletteKebabSchema,
-  // Palette
+  PaletteKebabSchema, // Palette
   PaletteSchema,
   type ProfileVisibility,
   type ProfileVisibilityKebab,
-  ProfileVisibilityKebabSchema,
-  // Profile Visibility
+  ProfileVisibilityKebabSchema, // Profile Visibility
   ProfileVisibilitySchema,
   paletteFromKebab,
   paletteToKebab,
@@ -45,27 +40,14 @@ export {
   profileVisibilityToKebab,
   type ThemeMode,
   type ThemeModeKebab,
-  ThemeModeKebabSchema,
-  // Theme Mode
+  ThemeModeKebabSchema, // Theme Mode
   ThemeModeSchema,
   themeModeFromKebab,
   themeModeToKebab,
   type UILanguage,
   type UILanguageKebab,
-  UILanguageKebabSchema,
-  // UI Language
+  UILanguageKebabSchema, // UI Language
   UILanguageSchema,
   uiLanguageFromKebab,
   uiLanguageToKebab,
 } from './platform.enum';
-
-// Resume Template
-// Used by: onboarding, resumes, platform
-export {
-  type ResumeTemplate,
-  type ResumeTemplateKebab,
-  ResumeTemplateKebabSchema,
-  ResumeTemplateSchema,
-  resumeTemplateFromKebab,
-  resumeTemplateToKebab,
-} from './resume-template.enum';

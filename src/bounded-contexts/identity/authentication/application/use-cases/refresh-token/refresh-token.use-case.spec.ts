@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { TokenRefreshedEvent } from '../../../domain/events';
 import { InvalidRefreshTokenException } from '../../../domain/exceptions';
@@ -27,7 +28,7 @@ describe('RefreshTokenUseCase', () => {
     tokenGenerator = new InMemoryTokenGenerator();
     eventBus = new InMemoryEventBus();
 
-    useCase = new RefreshTokenUseCase(repository, tokenGenerator, eventBus);
+    useCase = new RefreshTokenUseCase(repository, tokenGenerator, eventBus, stubLogger);
   });
 
   describe('execute', () => {

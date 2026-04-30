@@ -23,12 +23,7 @@ export const BenchmarkResponseSchema = z.object({
     commonCredentials: z.array(z.string()),
   }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-      action: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string(), action: z.string() }),
   ),
 });
 

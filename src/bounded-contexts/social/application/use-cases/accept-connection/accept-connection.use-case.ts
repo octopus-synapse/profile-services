@@ -1,15 +1,19 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionAcceptedEvent } from '../../../domain/events';
-import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
+import {
+  ConnectionNotPendingException,
+  NotConnectionTargetException,
+} from '../../../domain/exceptions/social.exceptions';
+import type { ConnectionWithUser } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class AcceptConnectionUseCase {
   constructor(
     private readonly repository: ConnectionRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
@@ -19,11 +23,11 @@ export class AcceptConnectionUseCase {
     }
 
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
 
     if (connection.targetId !== currentUserId) {
-      throw new ValidationException('Only the target user can accept a connection request');
+      throw new NotConnectionTargetException('accept');
     }
 
     const updated = await this.repository.updateConnectionStatus(connectionId, 'ACCEPTED');

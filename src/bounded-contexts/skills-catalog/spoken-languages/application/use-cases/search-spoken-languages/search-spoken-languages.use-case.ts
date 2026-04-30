@@ -1,8 +1,6 @@
 import { APP_CONFIG } from '@/shared-kernel';
-import type {
-  SpokenLanguage,
-  SpokenLanguagesRepositoryPort,
-} from '../../ports/spoken-languages.port';
+import type { SpokenLanguage } from '../../ports/spoken-languages.port';
+import { SpokenLanguagesRepositoryPort } from '../../ports/spoken-languages.port';
 
 export class SearchSpokenLanguagesUseCase {
   constructor(private readonly repository: SpokenLanguagesRepositoryPort) {}

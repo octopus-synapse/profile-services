@@ -1,30 +1,36 @@
 import { getBaseTemplate } from './base.template';
 
-export const getVerificationEmailTemplate = (name: string, verificationUrl: string): string => {
+export const getVerificationEmailTemplate = (
+  name: string,
+  code: string,
+  verificationUrl: string,
+): string => {
   const content = `
-    <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">
-      Olá, ${name}! 👋
-    </h2>
-    <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 24px;">
-      Bem-vindo ao <strong>ProFile</strong>! Estamos muito felizes em tê-lo conosco.
+    <h2>Olá, ${name}!</h2>
+    <p>
+      Bem-vindo ao <strong>Patch Careers</strong>. Para confirmar seu email,
+      use o código abaixo na tela de verificação:
     </p>
-    <p style="font-size: 16px; line-height: 1.6; color: #4b5563; margin-bottom: 24px;">
-      Para começar a usar sua conta e criar currículos incríveis, precisamos verificar seu endereço de email.
-    </p>
-    <div style="text-align: center;">
-      <a href="${verificationUrl}" class="btn">
-        Verificar meu email
-      </a>
+    <div style="text-align: center; margin: 28px 0;">
+      <div style="display: inline-block; padding: 16px 24px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+        <span style="font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 30px; letter-spacing: 8px; color: #111827; font-weight: 600;">
+          ${code}
+        </span>
+      </div>
+    </div>
+    <div style="text-align: center; margin: 8px 0 24px;">
+      <a href="${verificationUrl}" class="btn">Verificar email</a>
     </div>
     <div class="divider"></div>
     <p class="text-muted">
-      Ou copie e cole este link no seu navegador:<br>
-      <a href="${verificationUrl}" style="color: #3B82F6; word-break: break-all;">${verificationUrl}</a>
+      Se o botão não funcionar, copie e cole este link no navegador:<br>
+      <a href="${verificationUrl}" style="word-break: break-all;">${verificationUrl}</a>
     </p>
-    <p class="text-muted" style="margin-top: 24px;">
-      <strong>Este link expira em 24 horas.</strong> Se você não criou uma conta no ProFile, ignore este email.
+    <p class="text-muted" style="margin-top: 20px;">
+      <strong style="color: #111827;">Este código expira em 15 minutos.</strong>
+      Se você não criou uma conta no Patch Careers, ignore este email.
     </p>
   `;
 
-  return getBaseTemplate(content, 'Verifique seu email - ProFile');
+  return getBaseTemplate(content, 'Verifique seu email - Patch Careers');
 };

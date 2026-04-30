@@ -21,8 +21,7 @@ export type RateLimitKeyStrategy = 'ip' | 'user' | 'ip-and-endpoint' | 'user-and
  * Configuration for a single rate limit rule
  */
 export interface RateLimitConfig {
-  /** Maximum number of requests allowed */
-  readonly points: number;
+  /** Maximum number of requests allowed */ readonly points: number;
   /** Time window in seconds */
   readonly duration: number;
   /** Resource identifier for grouping limits */
@@ -48,8 +47,7 @@ export interface RateLimitContextConfig {
  * Rate limit result returned after consuming a point
  */
 export interface RateLimitResult {
-  /** Current remaining points */
-  readonly remainingPoints: number;
+  /** Current remaining points */ readonly remainingPoints: number;
   /** Milliseconds before next reset */
   readonly msBeforeNext: number;
   /** Total points consumed */
@@ -84,8 +82,7 @@ export interface RateLimitErrorPayload {
  * Options for the @RateLimit decorator
  */
 export interface RateLimitOptions {
-  /** Number of points allowed */
-  readonly points: number;
+  /** Number of points allowed */ readonly points: number;
   /** Duration in seconds */
   readonly duration: number;
   /** Resource identifier */

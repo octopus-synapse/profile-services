@@ -5,6 +5,11 @@
  * Uses recursive descent parsing with operator precedence.
  */
 
+import { ValidationException } from '@/shared-kernel/exceptions';
+import {
+  DslExpectedTokenException,
+  DslUnexpectedTokenException,
+} from '../../domain/exceptions/dsl.exceptions';
 import { ExpressionLexer, type Token, TokenType } from './expression-lexer';
 
 export enum ExpressionType {
@@ -72,9 +77,14 @@ export class ExpressionParser {
     try {
       return this.parseTemplate();
     } catch (error) {
+      // Expected parser failures (unexpected/expected tokens etc.) are
+      // wrapped as `ErrorExpr` so the evaluator can surface a partial
+      // result without crashing the whole compile. Anything else
+      // (TypeError, RangeError, etc.) is a real bug — let it propagate.
+      if (!(error instanceof ValidationException)) throw error;
       return {
         type: ExpressionType.ERROR,
-        message: error instanceof Error ? error.message : 'Parse error',
+        message: error.message,
         position: this.current,
       };
     }
@@ -85,17 +95,14 @@ export class ExpressionParser {
 
     while (!this.isAtEnd()) {
       if (this.check(TokenType.STRING)) {
-        parts.push({
-          type: ExpressionType.LITERAL,
-          value: this.advance().value,
-        });
+        parts.push({ type: ExpressionType.LITERAL, value: this.advance().value });
       } else if (this.check(TokenType.EXPR_START)) {
         this.advance(); // consume ${
         const expr = this.parseExpression();
         parts.push(expr);
 
         if (!this.check(TokenType.EXPR_END)) {
-          throw new Error('Expected } after expression');
+          throw new DslExpectedTokenException(' } after expression');
         }
         this.advance(); // consume }
       } else {
@@ -187,7 +194,7 @@ export class ExpressionParser {
       }
 
       if (!this.check(TokenType.RPAREN)) {
-        throw new Error('Expected ) after function arguments');
+        throw new DslExpectedTokenException(') after function arguments');
       }
       this.advance(); // consume )
 
@@ -218,7 +225,7 @@ export class ExpressionParser {
       while (this.check(TokenType.DOT)) {
         this.advance(); // consume .
         if (!this.check(TokenType.IDENTIFIER)) {
-          throw new Error('Expected identifier after .');
+          throw new DslExpectedTokenException('identifier after .');
         }
         path.push(this.advance().value);
       }
@@ -231,13 +238,13 @@ export class ExpressionParser {
       this.advance(); // consume (
       const expr = this.parseExpression();
       if (!this.check(TokenType.RPAREN)) {
-        throw new Error('Expected )');
+        throw new DslExpectedTokenException(')');
       }
       this.advance(); // consume )
       return expr;
     }
 
-    throw new Error(`Unexpected token: ${this.peek().type}`);
+    throw new DslUnexpectedTokenException(this.peek().type);
   }
 
   private check(type: TokenType): boolean {

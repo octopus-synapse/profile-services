@@ -133,13 +133,12 @@ export interface GenericResume {
   fullName: string | null;
   jobTitle: string | null;
   phone: string | null;
-  emailContact: string | null;
   location: string | null;
   linkedin: string | null;
   github: string | null;
   website: string | null;
   sections: GenericResumeSection[];
-  activeTheme?: {
+  style?: {
     id: string;
     name: string;
     styleConfig: unknown;

@@ -140,9 +140,7 @@ describe('github-client', () => {
         'https://api.github.com/repos/myowner/myrepo/actions/runs/456/jobs',
         expect.objectContaining({
           method: 'GET',
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token',
-          }),
+          headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
         }),
       );
     });
@@ -195,10 +193,7 @@ describe('github-client', () => {
     });
 
     it('returns null for empty comments array', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([]),
-      } as Response);
+      mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) } as Response);
 
       const client = createGitHubClient({
         token: 'test-token',
@@ -216,10 +211,7 @@ describe('github-client', () => {
   describe('postComment', () => {
     it('creates new comment when none exists', async () => {
       // First call: findCommentByTag returns empty
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([]),
-      } as Response);
+      mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) } as Response);
       // Second call: POST new comment
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -270,16 +262,11 @@ describe('github-client', () => {
       expect(mockFetch.mock.calls[1][0]).toBe(
         'https://api.github.com/repos/owner/repo/issues/comments/456',
       );
-      expect(mockFetch.mock.calls[1][1]).toMatchObject({
-        method: 'PATCH',
-      });
+      expect(mockFetch.mock.calls[1][1]).toMatchObject({ method: 'PATCH' });
     });
 
     it('includes tag marker in comment body', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([]),
-      } as Response);
+      mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) } as Response);
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ id: 123 }),

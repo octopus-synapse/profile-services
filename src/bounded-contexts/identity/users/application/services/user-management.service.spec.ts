@@ -9,8 +9,9 @@ import {
   InMemoryUserManagementRepository,
   StubAuthorizationService,
 } from '@/bounded-contexts/identity/shared-kernel/testing';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { UserManagementUseCases } from '../ports/user-management.port';
+import { stubLogger } from '@/shared-kernel/logger/testing';
+import { LastManagerCannotBeDeletedException } from '../../domain/exceptions/users.exceptions';
+import { UserManagementUseCases } from '../ports/user-management.port';
 import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-case';
 import { DeleteUserUseCase } from '../use-cases/user-management/delete-user.use-case';
 import { GetUserDetailsUseCase } from '../use-cases/user-management/get-user-details.use-case';
@@ -48,12 +49,14 @@ describe('UserManagementService (Facade)', () => {
       createUserUseCase: new CreateUserUseCase(
         repository,
         async (password: string) => `hashed_${password}`,
+        stubLogger,
       ),
       updateUserUseCase: new UpdateUserUseCase(repository),
       deleteUserUseCase: new DeleteUserUseCase(repository),
       resetPasswordUseCase: new ResetPasswordUseCase(
         repository,
         async (password: string) => `hashed_${password}`,
+        stubLogger,
       ),
     };
 
@@ -67,12 +70,7 @@ describe('UserManagementService (Facade)', () => {
       const result = await service.listUsers(options);
 
       expect(result.users.length).toBe(2);
-      expect(result.pagination).toEqual({
-        page: 1,
-        limit: 20,
-        total: 2,
-        totalPages: 1,
-      });
+      expect(result.pagination).toEqual({ page: 1, limit: 20, total: 2, totalPages: 1 });
     });
 
     it('should apply search filter', async () => {
@@ -136,7 +134,7 @@ describe('UserManagementService (Facade)', () => {
       authService.setUsersWithAdminRole(1);
 
       await expect(service.deleteUser(mockUserId, mockRequesterId)).rejects.toThrow(
-        ValidationException,
+        LastManagerCannotBeDeletedException,
       );
 
       expect(repository.getUser(mockUserId)).toBeDefined();

@@ -56,10 +56,7 @@ export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
     return Array.from(this.snapshots.values())
       .filter((s) => s.resumeId === resumeId && s.createdAt >= cutoff)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-      .map((s) => ({
-        date: s.createdAt.toISOString().split('T')[0],
-        score: s.atsScore,
-      }));
+      .map((s) => ({ date: s.createdAt.toISOString().split('T')[0], score: s.atsScore }));
   }
 
   seedSnapshot(snapshot: Partial<AnalyticsSnapshot>): void {

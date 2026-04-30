@@ -34,9 +34,7 @@ describe('MetricsService', () => {
 
       it('should track signup method', async () => {
         service.incrementUserSignup({ method: 'google' });
-        const value = await service.getMetricValue('user_signup_total', {
-          method: 'google',
-        });
+        const value = await service.getMetricValue('user_signup_total', { method: 'google' });
         expect(value).toBe(1);
       });
     });
@@ -44,9 +42,7 @@ describe('MetricsService', () => {
     describe('export_completed_total', () => {
       it('should increment export completed counter', async () => {
         service.incrementExportCompleted({ format: 'pdf' });
-        const value = await service.getMetricValue('export_completed_total', {
-          format: 'pdf',
-        });
+        const value = await service.getMetricValue('export_completed_total', { format: 'pdf' });
         expect(value).toBe(1);
       });
 
@@ -55,9 +51,7 @@ describe('MetricsService', () => {
         service.incrementExportCompleted({ format: 'docx' });
         service.incrementExportCompleted({ format: 'pdf' });
 
-        const pdfValue = await service.getMetricValue('export_completed_total', {
-          format: 'pdf',
-        });
+        const pdfValue = await service.getMetricValue('export_completed_total', { format: 'pdf' });
         const docxValue = await service.getMetricValue('export_completed_total', {
           format: 'docx',
         });
@@ -90,11 +84,7 @@ describe('MetricsService', () => {
 
     describe('api_latency_seconds', () => {
       it('should observe API latency', () => {
-        service.observeApiLatency(0.05, {
-          method: 'GET',
-          route: '/api/v1/resumes',
-          status: '200',
-        });
+        service.observeApiLatency(0.05, { method: 'GET', route: '/api/v1/resumes', status: '200' });
 
         const histogram = service.getHistogramMetric('api_latency_seconds');
         expect(histogram).toBeDefined();

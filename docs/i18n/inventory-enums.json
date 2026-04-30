@@ -1,0 +1,400 @@
+{
+  "summary": {
+    "enumCount": 35,
+    "valueCount": 200
+  },
+  "enums": {
+    "CollaboratorRole": {
+      "values": [
+        "VIEWER",
+        "EDITOR",
+        "ADMIN"
+      ],
+      "exposedIn": []
+    },
+    "BadgeKind": {
+      "values": [
+        "FIRST_BUILD",
+        "ATS_90_PLUS",
+        "MENTORED_10",
+        "INTERVIEWS_5",
+        "CONTRIBUTOR",
+        "EVENT_SPEAKER"
+      ],
+      "exposedIn": []
+    },
+    "AnalyticsEvent": {
+      "values": [
+        "VIEW",
+        "DOWNLOAD"
+      ],
+      "exposedIn": []
+    },
+    "ConnectionStatus": {
+      "values": [
+        "PENDING",
+        "ACCEPTED",
+        "REJECTED"
+      ],
+      "exposedIn": []
+    },
+    "SkillProficiency": {
+      "values": [
+        "BEGINNER",
+        "INTERMEDIATE",
+        "ADVANCED",
+        "EXPERT"
+      ],
+      "exposedIn": []
+    },
+    "WeeklyCuratedBatchStatus": {
+      "values": [
+        "PENDING",
+        "SENT",
+        "COMPLETED",
+        "FAILED"
+      ],
+      "exposedIn": []
+    },
+    "WeeklyCuratedItemStatus": {
+      "values": [
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "REJECTED",
+        "EXPIRED"
+      ],
+      "exposedIn": []
+    },
+    "EmailDeliveryMode": {
+      "values": [
+        "INSTANT",
+        "DAILY",
+        "WEEKLY",
+        "OFF"
+      ],
+      "exposedIn": []
+    },
+    "ThemeStatus": {
+      "values": [
+        "DRAFT",
+        "PRIVATE",
+        "PENDING_APPROVAL",
+        "PUBLISHED",
+        "REJECTED"
+      ],
+      "exposedIn": []
+    },
+    "ThemeCategory": {
+      "values": [
+        "PROFESSIONAL",
+        "CREATIVE",
+        "TECHNICAL",
+        "ACADEMIC",
+        "MINIMAL",
+        "MODERN",
+        "CLASSIC",
+        "EXECUTIVE"
+      ],
+      "exposedIn": []
+    },
+    "MecSyncStatus": {
+      "values": [
+        "RUNNING",
+        "SUCCESS",
+        "FAILED",
+        "PARTIAL"
+      ],
+      "exposedIn": []
+    },
+    "TechAreaType": {
+      "values": [
+        "DEVELOPMENT",
+        "DEVOPS",
+        "DATA",
+        "SECURITY",
+        "DESIGN",
+        "PRODUCT",
+        "QA",
+        "INFRASTRUCTURE",
+        "OTHER"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-niche.dto.ts",
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-area.dto.ts"
+      ]
+    },
+    "SkillType": {
+      "values": [
+        "LANGUAGE",
+        "FRAMEWORK",
+        "LIBRARY",
+        "DATABASE",
+        "TOOL",
+        "PLATFORM",
+        "METHODOLOGY",
+        "SOFT_SKILL",
+        "CERTIFICATION",
+        "OTHER"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/skills-catalog/tech-skills/dto/tech-skill.dto.ts"
+      ]
+    },
+    "AuditAction": {
+      "values": [
+        "USERNAME_CHANGED",
+        "PROFILE_UPDATED",
+        "RESUME_CREATED",
+        "RESUME_UPDATED",
+        "RESUME_DELETED",
+        "RESUME_VISIBILITY_CHANGED",
+        "PREFERENCES_UPDATED",
+        "ONBOARDING_COMPLETED",
+        "ACCOUNT_DELETED",
+        "PASSWORD_CHANGED",
+        "EMAIL_CHANGED",
+        "UNAUTHORIZED_ACCESS_ATTEMPT",
+        "USER_LOGIN",
+        "USER_LOGOUT",
+        "TOS_ACCEPTED",
+        "PRIVACY_POLICY_ACCEPTED",
+        "DATA_EXPORT_REQUESTED",
+        "DATA_EXPORT_DOWNLOADED",
+        "ROLE_CHANGED",
+        "TWO_FACTOR_ENABLED",
+        "TWO_FACTOR_DISABLED"
+      ],
+      "exposedIn": []
+    },
+    "ConsentDocumentType": {
+      "values": [
+        "TERMS_OF_SERVICE",
+        "PRIVACY_POLICY",
+        "MARKETING_CONSENT"
+      ],
+      "exposedIn": []
+    },
+    "ResumeTemplate": {
+      "values": [
+        "PROFESSIONAL",
+        "CREATIVE",
+        "TECHNICAL",
+        "MINIMAL",
+        "MODERN",
+        "EXECUTIVE",
+        "ACADEMIC"
+      ],
+      "exposedIn": []
+    },
+    "ActivityType": {
+      "values": [
+        "RESUME_CREATED",
+        "RESUME_UPDATED",
+        "RESUME_SHARED",
+        "RESUME_PUBLISHED",
+        "THEME_PUBLISHED",
+        "ACHIEVEMENT_EARNED",
+        "SKILL_ADDED",
+        "PROFILE_UPDATED",
+        "FOLLOWED_USER",
+        "CONNECTED_USER"
+      ],
+      "exposedIn": []
+    },
+    "AttestationWitnessStatus": {
+      "values": [
+        "PENDING",
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED"
+      ],
+      "exposedIn": []
+    },
+    "PostType": {
+      "values": [
+        "ACHIEVEMENT",
+        "OPPORTUNITY",
+        "LEARNING",
+        "BUILD",
+        "QUESTION",
+        "REPOST",
+        "CHALLENGE"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/feed/dto/create-post-request.dto.ts"
+      ]
+    },
+    "AnonymousCategory": {
+      "values": [
+        "SALARY",
+        "INTERVIEW",
+        "LAYOFF",
+        "TOXIC_CULTURE",
+        "HARASSMENT"
+      ],
+      "exposedIn": []
+    },
+    "ReactionType": {
+      "values": [
+        "LIKE",
+        "CELEBRATE",
+        "LOVE",
+        "INSIGHTFUL",
+        "CURIOUS"
+      ],
+      "exposedIn": []
+    },
+    "ReportStatus": {
+      "values": [
+        "PENDING",
+        "REVIEWED",
+        "DISMISSED"
+      ],
+      "exposedIn": []
+    },
+    "NotificationType": {
+      "values": [
+        "POST_LIKED",
+        "POST_COMMENTED",
+        "POST_REPOSTED",
+        "POST_BOOKMARKED",
+        "COMMENT_REPLIED",
+        "CONNECTION_REQUEST",
+        "CONNECTION_ACCEPTED",
+        "FOLLOW_NEW",
+        "SKILL_DECAY",
+        "APPLICATION_STALE",
+        "CONNECTION_RECOMMENDATION"
+      ],
+      "exposedIn": []
+    },
+    "JobType": {
+      "values": [
+        "INTERNSHIP",
+        "CONTRACT",
+        "FULL_TIME",
+        "PART_TIME",
+        "VOLUNTEER",
+        "FREELANCE"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/jobs/dto/job.dto.ts"
+      ]
+    },
+    "PaymentCurrency": {
+      "values": [
+        "BRL",
+        "USD",
+        "EUR",
+        "GBP"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/jobs/presenters/job.presenter.ts",
+        "src/bounded-contexts/jobs/dto/job.dto.ts"
+      ]
+    },
+    "RemotePolicy": {
+      "values": [
+        "REMOTE",
+        "HYBRID",
+        "ONSITE"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/jobs/presenters/job.presenter.ts",
+        "src/bounded-contexts/jobs/dto/job.dto.ts"
+      ]
+    },
+    "EnglishLevel": {
+      "values": [
+        "BASIC",
+        "INTERMEDIATE",
+        "ADVANCED",
+        "FLUENT"
+      ],
+      "exposedIn": [
+        "src/bounded-contexts/jobs/dto/job.dto.ts"
+      ]
+    },
+    "ApplyMode": {
+      "values": [
+        "ONE_CLICK",
+        "WEEKLY_CURATED",
+        "AUTO_APPLY"
+      ],
+      "exposedIn": []
+    },
+    "ImportSource": {
+      "values": [
+        "LINKEDIN",
+        "PDF",
+        "DOCX",
+        "JSON",
+        "GITHUB"
+      ],
+      "exposedIn": []
+    },
+    "ImportStatus": {
+      "values": [
+        "PENDING",
+        "PROCESSING",
+        "MAPPING",
+        "VALIDATING",
+        "IMPORTING",
+        "COMPLETED",
+        "FAILED",
+        "PARTIAL"
+      ],
+      "exposedIn": []
+    },
+    "SuccessStoryStatus": {
+      "values": [
+        "DRAFT",
+        "PENDING_REVIEW",
+        "PUBLISHED",
+        "ARCHIVED"
+      ],
+      "exposedIn": []
+    },
+    "EmailStatus": {
+      "values": [
+        "PENDING",
+        "SENT",
+        "FAILED",
+        "BOUNCED"
+      ],
+      "exposedIn": []
+    },
+    "DigestFrequency": {
+      "values": [
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "NEVER"
+      ],
+      "exposedIn": []
+    },
+    "JobApplicationStatus": {
+      "values": [
+        "SUBMITTED",
+        "VIEWED",
+        "REJECTED",
+        "ACCEPTED",
+        "WITHDRAWN"
+      ],
+      "exposedIn": []
+    },
+    "JobApplicationEventType": {
+      "values": [
+        "SUBMITTED",
+        "VIEWED",
+        "INTERVIEW_SCHEDULED",
+        "INTERVIEW_COMPLETED",
+        "OFFER_RECEIVED",
+        "REJECTED",
+        "WITHDRAWN",
+        "FOLLOW_UP_SENT"
+      ],
+      "exposedIn": []
+    }
+  }
+}

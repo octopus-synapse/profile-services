@@ -230,10 +230,7 @@ describe('card', () => {
     it('escapes commit message with special characters', () => {
       const data: CardData = {
         ...baseData,
-        git: {
-          ...baseData.git,
-          commit_message: 'fix: handle <script> & "quotes"',
-        },
+        git: { ...baseData.git, commit_message: 'fix: handle <script> & "quotes"' },
       };
 
       const svg = generateCard(data);
@@ -260,10 +257,7 @@ describe('card', () => {
     it('shows co-authors when present', () => {
       const data: CardData = {
         ...baseData,
-        git: {
-          ...baseData.git,
-          co_authors: ['Claude AI'],
-        },
+        git: { ...baseData.git, co_authors: ['Claude AI'] },
       };
 
       const svg = generateCard(data);
@@ -298,10 +292,7 @@ describe('card', () => {
               ...baseData.metrics.precommit.checks.slice(1),
             ],
           },
-          overall: {
-            ...baseData.metrics.overall,
-            status: 'fail',
-          },
+          overall: { ...baseData.metrics.overall, status: 'fail' },
         },
       };
 
@@ -328,10 +319,7 @@ describe('card', () => {
     it('handles empty co-authors array', () => {
       const data: CardData = {
         ...baseData,
-        git: {
-          ...baseData.git,
-          co_authors: [],
-        },
+        git: { ...baseData.git, co_authors: [] },
       };
 
       const svg = generateCard(data);

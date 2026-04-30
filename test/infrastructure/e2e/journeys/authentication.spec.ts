@@ -1,249 +1,183 @@
 /**
- * E2E Test: Authentication Journey
+ * E2E: Authentication
  *
- * Tests all authentication flows and security boundaries.
- *
- * Flow:
- * 1. Login with valid credentials
- * 2. Access protected resources
- * 3. Token refresh
- * 4. Invalid token handling
- * 5. Password validation
- * 6. Logout
- *
- * Response Format:
- * { success: true, data: { accessToken, refreshToken, user } }
- *
- * Target Time: < 15 seconds
+ * Concurrent-safe: every `it` mints its own user via `freshUser()`,
+ * so tests don't share token/userId state. Bun's `--concurrent` flag
+ * can run them in parallel without colliding.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import request, { type Test } from 'supertest';
-import type { AuthHelper } from '../helpers/auth.helper';
-import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { freshUser, stopTestApp, type TestApp } from '../../shared';
 import { createE2ETestApp } from '../setup';
 
-describe('E2E Journey 2: Authentication', () => {
-  let app: INestApplication;
-  let authHelper: AuthHelper;
-  let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
-  let refreshToken: string;
+describe('E2E: Authentication', () => {
+  let app: TestApp;
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
     app = testApp.app;
-    authHelper = testApp.authHelper;
-    cleanupHelper = testApp.cleanupHelper;
-
-    // Create and prepare a test user
-    testUser = authHelper.createTestUser('auth');
-    const result = await authHelper.registerAndLogin(testUser);
-    testUser.token = result.token;
-    testUser.userId = result.userId;
-    // Email verification and ToS acceptance handled by registerAndLogin
   });
 
   afterAll(async () => {
-    if (testUser?.email) {
-      await cleanupHelper.deleteUserByEmail(testUser.email);
-    }
-
-    await app.close();
+    await stopTestApp();
   });
 
-  describe('Step 1: Login Flow', () => {
-    it('should login with valid credentials', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+  describe('Login flow', () => {
+    it('logs in with valid credentials', async () => {
+      const me = await freshUser(app);
+      const response = await app.request
+        .post('/api/auth/login')
+        .send({ email: me.email, password: me.password });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
       expect(response.body.data.accessToken).toBeDefined();
       expect(response.body.data.refreshToken).toBeDefined();
-      expect(response.body.data.userId).toBeDefined();
-
-      refreshToken = response.body.data.refreshToken;
+      expect(response.body.data.userId).toBe(me.userId);
     });
 
-    it('should reject invalid password', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: testUser.email,
-        password: 'WrongPassword123!',
+    it('rejects invalid password', async () => {
+      const me = await freshUser(app);
+      const response = await app.request
+        .post('/api/auth/login')
+        .send({ email: me.email, password: 'WrongPassword123!' });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('rejects non-existent email', async () => {
+      const response = await app.request.post('/api/auth/login').send({
+        email: `nonexistent-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+        password: 'AnyPassword123!',
       });
 
       expect(response.status).toBe(401);
     });
 
-    it('should reject non-existent email', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: 'nonexistent@test.com',
-        password: testUser.password,
-      });
-
-      expect(response.status).toBe(401);
-    });
-
-    it('should reject malformed email', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: 'not-an-email',
-        password: testUser.password,
-      });
+    it('rejects malformed email', async () => {
+      const response = await app.request
+        .post('/api/auth/login')
+        .send({ email: 'not-an-email', password: 'AnyPassword123!' });
 
       expect(response.status).toBe(400);
     });
   });
 
-  describe('Step 2: Protected Resource Access', () => {
-    it('should access protected endpoint with valid token', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/v1/users/profile')
-        .set('Authorization', `Bearer ${testUser.token}`);
+  describe('Protected resource access', () => {
+    it('accesses protected endpoint with valid token', async () => {
+      const me = await freshUser(app);
+      const response = await app.request.get('/api/v1/users/profile').set(me.bearer());
 
       expect(response.status).toBe(200);
       expect(response.body.data).toBeDefined();
     });
 
-    it('should reject request without token', async () => {
-      const response = await request(app.getHttpServer()).get('/api/v1/users/profile');
-
+    it('rejects request without token', async () => {
+      const response = await app.request.get('/api/v1/users/profile');
       expect(response.status).toBe(401);
     });
 
-    it('should reject request with invalid token', async () => {
-      const response = await request(app.getHttpServer())
+    it('rejects request with invalid token', async () => {
+      const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', 'Bearer invalid-token');
-
       expect(response.status).toBe(401);
     });
 
-    it('should reject request with malformed Authorization header', async () => {
-      const response = await request(app.getHttpServer())
+    it('rejects request with malformed Authorization header', async () => {
+      const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', 'InvalidFormat');
-
       expect(response.status).toBe(401);
     });
 
-    it('should reject expired token', async () => {
-      // Using an obviously expired/invalid JWT format
+    it('rejects expired token', async () => {
       const expiredToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.invalid';
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${expiredToken}`);
-
       expect(response.status).toBe(401);
     });
   });
 
-  describe('Step 3: Token Refresh', () => {
-    it('should refresh access token with valid refresh token', async () => {
-      // Skip if refresh token wasn't captured
-      if (!refreshToken) {
-        console.warn('Skipping refresh test - no refresh token available');
-        return;
-      }
+  describe('Token refresh', () => {
+    it('refreshes access token with valid refresh token', async () => {
+      const me = await freshUser(app);
+      // Login to obtain a refresh token (the helper holds the cookie
+      // but the refresh endpoint expects the body field).
+      const login = await app.request
+        .post('/api/auth/login')
+        .send({ email: me.email, password: me.password });
+      const refreshToken = login.body.data?.refreshToken;
+      expect(refreshToken).toBeDefined();
 
-      const response = await request(app.getHttpServer()).post('/api/auth/refresh').send({
-        refreshToken,
-      });
-
+      const response = await app.request.post('/api/auth/refresh').send({ refreshToken });
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.accessToken).toBeDefined();
+      expect(response.body.data?.accessToken).toBeDefined();
     });
 
-    it('should reject invalid refresh token', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/refresh').send({
-        refreshToken: 'invalid-refresh-token',
-      });
-
+    it('rejects invalid refresh token', async () => {
+      const response = await app.request
+        .post('/api/auth/refresh')
+        .send({ refreshToken: 'invalid-refresh-token' });
       expect(response.status).toBe(401);
     });
 
-    it('should use new token to access protected resources', async () => {
-      // Get a fresh login to ensure we have valid tokens
-      const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+    it('uses new token to access protected resources', async () => {
+      const me = await freshUser(app);
+      const login = await app.request
+        .post('/api/auth/login')
+        .send({ email: me.email, password: me.password });
+      const newToken = login.body.data?.accessToken as string;
+      expect(newToken).toBeDefined();
 
-      const newToken = loginResponse.body.data?.accessToken;
-      if (!newToken) {
-        console.warn('Skipping test - could not get new token');
-        return;
-      }
-
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${newToken}`);
-
       expect(response.status).toBe(200);
     });
   });
 
-  describe('Step 4: Password Validation', () => {
-    it('should enforce minimum password length', async () => {
-      const weakPasswordUser = {
-        email: `weak-pwd-${Date.now()}@test.com`,
+  describe('Password validation', () => {
+    it('rejects passwords below the minimum length', async () => {
+      const response = await app.request.post('/api/accounts').send({
+        email: `weak-pwd-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
         password: 'short',
         name: 'Weak Password User',
-      };
-
-      const response = await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send(weakPasswordUser);
-
+        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+      });
       expect(response.status).toBe(400);
     });
 
-    it('should enforce password complexity', async () => {
-      const simplePasswordUser = {
-        email: `simple-pwd-${Date.now()}@test.com`,
-        password: 'password', // No numbers or special chars
+    it('rejects overly simple passwords', async () => {
+      const response = await app.request.post('/api/accounts').send({
+        email: `simple-pwd-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+        password: 'password',
         name: 'Simple Password User',
-      };
-
-      const response = await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send(simplePasswordUser);
-
+        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+      });
       expect(response.status).toBe(400);
     });
   });
 
-  describe('Step 5: Rate Limiting (if implemented)', () => {
-    it('should handle multiple login attempts gracefully', async () => {
-      // Make several login attempts
-      const attempts: Test[] = [];
+  describe('Failed-login throttling', () => {
+    it('handles multiple wrong-password attempts gracefully', async () => {
+      const me = await freshUser(app);
+      const results: number[] = [];
       for (let i = 0; i < 5; i++) {
-        attempts.push(
-          request(app.getHttpServer()).post('/api/auth/login').send({
-            email: testUser.email,
-            password: 'WrongPassword123!',
-          }),
-        );
+        const r = await app.request
+          .post('/api/auth/login')
+          .send({ email: me.email, password: 'WrongPassword123!' });
+        results.push(r.status);
       }
-
-      const results = await Promise.all(attempts);
-
-      // All should be 401 (wrong password)
-      // If rate limiting is active, some might be 429
-      results.forEach((result) => {
-        expect([401, 429]).toContain(result.status);
-      });
+      // Each attempt is either a wrong-password 401 or — once the
+      // failure window fills up — a rate-limited 429 / locked 423.
+      for (const status of results) {
+        expect([401, 423, 429]).toContain(status);
+      }
     });
   });
 });

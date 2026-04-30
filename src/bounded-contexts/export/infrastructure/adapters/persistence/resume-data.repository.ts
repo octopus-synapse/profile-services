@@ -6,10 +6,10 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
-  ResumeDataRepositoryPort,
   ResumeForJsonExport,
   ResumeForLatexExport,
 } from '../../../domain/ports/resume-data.repository.port';
+import { ResumeDataRepositoryPort } from '../../../domain/ports/resume-data.repository.port';
 
 export class ResumeDataRepository implements ResumeDataRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
@@ -22,15 +22,11 @@ export class ResumeDataRepository implements ResumeDataRepositoryPort {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                semanticKind: true,
-              },
+              select: { semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -50,9 +46,7 @@ export class ResumeDataRepository implements ResumeDataRepositoryPort {
       user: resume.user,
       sections: resume.resumeSections.map((rs) => ({
         semanticKind: rs.sectionType.semanticKind,
-        items: rs.items.map((item) => ({
-          content: item.content as Record<string, unknown>,
-        })),
+        items: rs.items.map((item) => ({ content: item.content as Record<string, unknown> })),
       })),
     };
   }
@@ -65,17 +59,11 @@ export class ResumeDataRepository implements ResumeDataRepositoryPort {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                key: true,
-                semanticKind: true,
-                title: true,
-              },
+              select: { key: true, semanticKind: true, title: true },
             },
             items: {
               orderBy: { order: 'asc' },
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -87,7 +75,6 @@ export class ResumeDataRepository implements ResumeDataRepositoryPort {
     return {
       title: resume.title,
       fullName: resume.fullName,
-      emailContact: resume.emailContact,
       phone: resume.phone,
       jobTitle: resume.jobTitle,
       user: resume.user,

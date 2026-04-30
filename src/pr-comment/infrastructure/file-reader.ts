@@ -38,6 +38,8 @@ export function createFileReader(readFile: ReadFileFn = defaultReadFile): FileRe
 
       // Validate required fields
       if (!data.metrics) {
+        // CLI tooling (CI/CD only): not user-facing. Surfaces as a failed
+        // GitHub Actions step when the attestation file is malformed.
         throw new Error('Invalid attestation: missing metrics');
       }
 

@@ -3,16 +3,22 @@
  * Single Responsibility: Write operations for user data
  */
 
-import { Injectable, Logger } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { type UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
+import {
+  LoggerPort,
+  type UpdateFullPreferences,
+  UpdatePreferences,
+  UpdateProfile,
+} from '@/shared-kernel';
 
-@Injectable()
+const CTX = 'UserMutationRepository';
+
 export class UserMutationRepository {
-  private readonly logger = new Logger(UserMutationRepository.name);
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async createUserAccount(userData: {
     id: string;
@@ -20,12 +26,12 @@ export class UserMutationRepository {
     name?: string;
     photoURL?: string;
   }): Promise<User> {
-    this.logger.log(`Creating user account: ${userData.email}`);
+    this.logger.log(`Creating user account: ${userData.email}`, CTX);
     return await this.prisma.user.create({ data: userData });
   }
 
   async updateUserAccount(userId: string, userData: Partial<User>): Promise<User> {
-    this.logger.log(`Updating user account: ${userId}`);
+    this.logger.log(`Updating user account: ${userId}`, CTX);
     return await this.prisma.user.update({
       where: { id: userId },
       data: userData,
@@ -33,12 +39,12 @@ export class UserMutationRepository {
   }
 
   async deleteUserAccount(userId: string): Promise<void> {
-    this.logger.log(`Deleting user account: ${userId}`);
+    this.logger.log(`Deleting user account: ${userId}`, CTX);
     await this.prisma.user.delete({ where: { id: userId } });
   }
 
   async updateUserProfile(userId: string, profile: UpdateProfile): Promise<User> {
-    this.logger.log(`Updating profile for user: ${userId}`);
+    this.logger.log(`Updating profile for user: ${userId}`, CTX);
     return await this.prisma.user.update({
       where: { id: userId },
       data: profile,
@@ -46,7 +52,7 @@ export class UserMutationRepository {
   }
 
   async updateUserPreferences(userId: string, preferences: UpdatePreferences): Promise<void> {
-    this.logger.log(`Updating preferences for user: ${userId}`);
+    this.logger.log(`Updating preferences for user: ${userId}`, CTX);
     await this.prisma.user.update({
       where: { id: userId },
       data: preferences,
@@ -57,7 +63,7 @@ export class UserMutationRepository {
     userId: string,
     preferences: UpdateFullPreferences,
   ): Promise<UserPreferences> {
-    this.logger.log(`Upserting full preferences for user: ${userId}`);
+    this.logger.log(`Upserting full preferences for user: ${userId}`, CTX);
     // `applyCriteria` is a nested relation on the Prisma model — Prisma rejects
     // raw partials in a spread. Pull it out so only scalar fields flow into
     // `create` / `update` here; the dedicated preferences repository handles
@@ -71,7 +77,7 @@ export class UserMutationRepository {
   }
 
   async updatePalette(userId: string, palette: string): Promise<void> {
-    this.logger.log(`Updating palette for user: ${userId}`);
+    this.logger.log(`Updating palette for user: ${userId}`, CTX);
     await this.prisma.userPreferences.upsert({
       where: { userId },
       create: { userId, palette },
@@ -80,7 +86,7 @@ export class UserMutationRepository {
   }
 
   async updateBannerColor(userId: string, bannerColor: string): Promise<void> {
-    this.logger.log(`Updating banner color for user: ${userId}`);
+    this.logger.log(`Updating banner color for user: ${userId}`, CTX);
     await this.prisma.userPreferences.upsert({
       where: { userId },
       create: { userId, bannerColor },
@@ -89,7 +95,7 @@ export class UserMutationRepository {
   }
 
   async updateUsername(userId: string, username: string): Promise<User> {
-    this.logger.log(`Updating username for user: ${userId}`);
+    this.logger.log(`Updating username for user: ${userId}`, CTX);
     return await this.prisma.user.update({
       where: { id: userId },
       data: { username, usernameUpdatedAt: new Date() },

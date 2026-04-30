@@ -7,8 +7,10 @@
 
 import type { ParsedResumeData } from '../types/import.types';
 
-export interface ResumeCreatorPort {
-  create(userId: string, data: ParsedResumeData, importId: string): Promise<{ id: string }>;
+export abstract class ResumeCreatorPort {
+  abstract create(
+    userId: string,
+    data: ParsedResumeData,
+    importId: string,
+  ): Promise<{ id: string }>;
 }
-
-export const RESUME_CREATOR = Symbol('ResumeCreatorPort');

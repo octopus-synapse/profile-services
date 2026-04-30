@@ -9,10 +9,10 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { ConflictException, ValidationException } from '@/shared-kernel';
 import type {
   OnboardingProgressData,
-  OnboardingProgressRepositoryPort,
   ProgressRecord,
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 import type { OnboardingProgress } from '../../../domain/schemas/onboarding-progress.schema';
 import { SaveProgressUseCase } from './save-progress.use-case';
 
@@ -47,10 +47,7 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       updatedAt: new Date(),
     };
     this.progressMap.set(userId, record);
-    return {
-      currentStep: record.currentStep,
-      completedSteps: record.completedSteps,
-    };
+    return { currentStep: record.currentStep, completedSteps: record.completedSteps };
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -85,10 +82,7 @@ describe('SaveProgressUseCase', () => {
 
     const result = await useCase.execute('user-1', data);
 
-    expect(result).toEqual({
-      currentStep: 'personal-info',
-      completedSteps: ['welcome'],
-    });
+    expect(result).toEqual({ currentStep: 'personal-info', completedSteps: ['welcome'] });
     // CRITICAL: NO envelope with success
     expect(result).not.toHaveProperty('success');
   });
@@ -152,13 +146,7 @@ describe('SaveProgressUseCase', () => {
       const data: OnboardingProgress = {
         currentStep: 'experience',
         completedSteps: ['welcome'],
-        sections: [
-          {
-            sectionTypeKey: 'work_experience_v1',
-            noData: true,
-            items: [],
-          },
-        ],
+        sections: [{ sectionTypeKey: 'work_experience_v1', noData: true, items: [] }],
       };
 
       const result = await useCase.execute('user-1', data);

@@ -4,17 +4,15 @@
  * Aggregates view stats, ATS score, and progression into a dashboard.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type {
   AnalyticsDashboard,
   ATSScoreResult,
   ScoreProgressionPoint,
   ViewStats,
 } from '../../../interfaces';
-import type { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class BuildAnalyticsDashboardUseCase {
   constructor(
@@ -22,6 +20,7 @@ export class BuildAnalyticsDashboardUseCase {
     private readonly viewStats: ViewStatsProviderPort,
     private readonly atsScore: AtsScoringPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string, userId: string): Promise<AnalyticsDashboard> {
@@ -76,11 +75,7 @@ export class BuildAnalyticsDashboardUseCase {
       },
       viewTrend: viewStats.viewsByDay,
       topSources: viewStats.topSources,
-      keywordHealth: {
-        score: avgSectionScore,
-        topKeywords: [],
-        missingCritical: [],
-      },
+      keywordHealth: { score: avgSectionScore, topKeywords: [], missingCritical: [] },
       industryPosition: { percentile: 0, trend },
       recommendations: atsResult.recommendations.map((msg) => ({
         type: 'improve_content' as const,

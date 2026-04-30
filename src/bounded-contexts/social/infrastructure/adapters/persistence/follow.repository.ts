@@ -5,12 +5,7 @@ import {
   type PaginationParams,
 } from '../../../application/ports/follow.port';
 
-const USER_SELECT = {
-  id: true,
-  name: true,
-  username: true,
-  photoURL: true,
-} as const;
+const USER_SELECT = { id: true, name: true, username: true, photoURL: true } as const;
 
 export class FollowRepository extends FollowRepositoryPort {
   constructor(private readonly prisma: PrismaService) {

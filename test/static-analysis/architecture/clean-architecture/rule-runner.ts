@@ -14,9 +14,5 @@ export interface RuleResult {
 export type Rule = () => RuleResult;
 
 export function runRule(ruleName: string, category: string, checkFn: () => string[]): RuleResult {
-  return {
-    rule: ruleName,
-    category,
-    violations: checkFn(),
-  };
+  return { rule: ruleName, category, violations: checkFn() };
 }

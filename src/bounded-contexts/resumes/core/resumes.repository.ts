@@ -1,17 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
+import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../domain/exceptions/resumes.exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
-@Injectable()
-export class ResumesRepository extends ResumesRepositoryPort {
-  private readonly logger = new Logger(ResumesRepository.name);
+const CTX = 'ResumesRepository';
 
+export class ResumesRepository extends ResumesRepositoryPort {
   private readonly includeRelations = {
     resumeSections: {
       orderBy: { order: 'asc' as const },
@@ -22,16 +20,15 @@ export class ResumesRepository extends ResumesRepositoryPort {
         },
       },
     },
-    activeTheme: {
-      select: {
-        id: true,
-        name: true,
-        description: true,
-      },
+    style: {
+      select: { id: true, name: true, description: true },
     },
   };
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -50,14 +47,9 @@ export class ResumesRepository extends ResumesRepositoryPort {
   }
 
   async createResumeForUser(userId: string, resumeCreationData: CreateResumeData): Promise<Resume> {
-    this.logger.log(`Creating resume for user: ${userId}`);
-    const resumeData = {
-      userId,
-      ...resumeCreationData,
-    };
-    return await this.prisma.resume.create({
-      data: resumeData,
-    });
+    this.logger.log(`Creating resume for user: ${userId}`, CTX);
+    const resumeData = { userId, ...resumeCreationData };
+    return await this.prisma.resume.create({ data: resumeData });
   }
 
   async updateResumeForUser(
@@ -65,7 +57,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
     userId: string,
     resumeUpdateData: UpdateResumeData,
   ): Promise<Resume | null> {
-    this.logger.log(`Updating resume: ${id}`);
+    this.logger.log(`Updating resume: ${id}`, CTX);
 
     await this.ensureResumeOwnership(id, userId);
 
@@ -76,7 +68,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   }
 
   async deleteResumeForUser(id: string, userId: string): Promise<boolean> {
-    this.logger.log(`Deleting resume: ${id}`);
+    this.logger.log(`Deleting resume: ${id}`, CTX);
 
     // Use deleteMany with both id and userId to avoid race conditions
     // This is atomic and handles concurrent delete requests gracefully
@@ -89,10 +81,10 @@ export class ResumesRepository extends ResumesRepositoryPort {
       // Check if resume exists but belongs to another user
       const resume = await this.prisma.resume.findUnique({ where: { id } });
       if (resume) {
-        throw new ForbiddenException('Access denied to resume');
+        throw new ResumeAccessDeniedException();
       }
       // Resume doesn't exist - could have been deleted by concurrent request
-      throw new EntityNotFoundException('Resume', id);
+      throw new ResumeNotFoundException();
     }
 
     return true;
@@ -101,7 +93,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   private async ensureResumeOwnership(id: string, userId: string): Promise<void> {
     const resume = await this.findResumeByIdAndUserId(id, userId);
     if (!resume) {
-      throw new ForbiddenException('Access denied to resume');
+      throw new ResumeAccessDeniedException();
     }
   }
 

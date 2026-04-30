@@ -18,13 +18,11 @@ export interface TerminateSessionResult {
   message: string;
 }
 
-export interface TerminateSessionPort {
+export abstract class TerminateSessionPort {
   /**
    * Terminates session by clearing cookie and optionally all refresh tokens
    * @param command - Termination parameters with cookie abstractions
    * @returns Success status and message
    */
-  execute(command: TerminateSessionCommand): Promise<TerminateSessionResult>;
+  abstract execute(command: TerminateSessionCommand): Promise<TerminateSessionResult>;
 }
-
-export const TERMINATE_SESSION_PORT = Symbol('TerminateSessionPort');

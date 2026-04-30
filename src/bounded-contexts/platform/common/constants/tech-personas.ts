@@ -12,24 +12,20 @@ export {
   AI_ML_PERSONA,
   BACKEND_PERSONA,
   CLOUD_PERSONA,
-  DATA_PERSONA,
-  // Individual personas (for direct access if needed)
+  DATA_PERSONA, // Individual personas (for direct access if needed)
   DEVOPS_PERSONA,
   FRONTEND_PERSONA,
   FULLSTACK_PERSONA,
   GAME_DEV_PERSONA,
-  getAllPersonaIds,
-  // Helper functions
+  getAllPersonaIds, // Helper functions
   getPersonaConfig,
   isValidPersona,
   MOBILE_PERSONA,
   QA_PERSONA,
   SECURITY_PERSONA,
-  suggestPersona,
-  // Aggregated record
+  suggestPersona, // Aggregated record
   TECH_PERSONAS,
-  type TechPersona,
-  // Enum
+  type TechPersona, // Enum
   TechPersonaEnum,
   UX_UI_PERSONA,
 } from './personas';

@@ -7,21 +7,21 @@
  *
  * Interaction testing é aceitável em bordas, mas preferimos testar
  * o comportamento observável (promise resolve/reject).
+ *
+ * Pós-migração para POJO: instanciamos a classe diretamente — sem
+ * `@nestjs/testing` — já que `EmailService` não tem mais `@Injectable`.
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
-import { EmailSenderService } from './services/email-sender.service';
-import { EmailTemplateService } from './services/email-template.service';
+import type { EmailSenderService } from './services/email-sender.service';
+import type { EmailTemplateService } from './services/email-template.service';
 
 describe('EmailService (Adapter)', () => {
   let service: EmailService;
 
   // Stubs que simulam sucesso das operações
-  const stubSenderService = {
-    sendEmail: mock().mockResolvedValue(undefined),
-  };
+  const stubSenderService = { sendEmail: mock().mockResolvedValue(undefined) };
 
   const stubTemplateService = {
     sendVerificationEmail: mock().mockResolvedValue(undefined),
@@ -30,16 +30,11 @@ describe('EmailService (Adapter)', () => {
     sendPasswordChangedEmail: mock().mockResolvedValue(undefined),
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        EmailService,
-        { provide: EmailSenderService, useValue: stubSenderService },
-        { provide: EmailTemplateService, useValue: stubTemplateService },
-      ],
-    }).compile();
-
-    service = module.get<EmailService>(EmailService);
+  beforeEach(() => {
+    service = new EmailService(
+      stubSenderService as unknown as EmailSenderService,
+      stubTemplateService as unknown as EmailTemplateService,
+    );
   });
 
   describe('sendEmail', () => {
@@ -57,11 +52,7 @@ describe('EmailService (Adapter)', () => {
     it('should propagate error when sending fails', async () => {
       stubSenderService.sendEmail.mockRejectedValueOnce(new Error('SMTP error'));
 
-      const options = {
-        to: 'user@example.com',
-        subject: 'Test',
-        html: '<p>Content</p>',
-      };
+      const options = { to: 'user@example.com', subject: 'Test', html: '<p>Content</p>' };
 
       await expect(async () => await service.sendEmail(options)).toThrow('SMTP error');
     });

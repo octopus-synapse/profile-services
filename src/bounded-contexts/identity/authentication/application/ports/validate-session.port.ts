@@ -10,6 +10,14 @@ import type { SessionUserData } from './create-session.port';
 
 export interface ValidateSessionCommand {
   cookieReader: CookieReader;
+  /**
+   * Optional userId — when provided, the use case skips cookie/JWT
+   * verification and resolves the session payload directly from the
+   * repository. Used by `/auth/session` to support callers that
+   * authenticated through the pipeline JWT (Authorization header) but
+   * have no session cookie.
+   */
+  userId?: string;
 }
 
 export interface ValidateSessionResult {
@@ -17,13 +25,11 @@ export interface ValidateSessionResult {
   user: SessionUserData | null;
 }
 
-export interface ValidateSessionPort {
+export abstract class ValidateSessionPort {
   /**
    * Validates session cookie and returns user data if valid
    * @param command - Validation parameters with cookie reader
    * @returns User data or null if not authenticated
    */
-  execute(command: ValidateSessionCommand): Promise<ValidateSessionResult>;
+  abstract execute(command: ValidateSessionCommand): Promise<ValidateSessionResult>;
 }
-
-export const VALIDATE_SESSION_PORT = Symbol('ValidateSessionPort');

@@ -1,8 +1,5 @@
-import type {
-  ActivityRepositoryPort,
-  ActivityType,
-  ActivityWithUser,
-} from '../../ports/activity.port';
+import type { ActivityType, ActivityWithUser } from '../../ports/activity.port';
+import { ActivityRepositoryPort } from '../../ports/activity.port';
 import type { PaginatedResult, PaginationParams } from '../../ports/follow.port';
 
 export class GetActivitiesByTypeUseCase {
@@ -20,12 +17,6 @@ export class GetActivitiesByTypeUseCase {
       pagination,
     );
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

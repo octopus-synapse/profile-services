@@ -39,9 +39,7 @@ export interface SectionInput {
  */
 export interface ProjectionSection {
   semanticKind: string;
-  items: Array<{
-    content: Record<string, unknown>;
-  }>;
+  items: Array<{ content: Record<string, unknown> }>;
 }
 
 // ============================================================================
@@ -144,10 +142,7 @@ export function findAllSectionsByKind(sections: SectionInput[], kind: string): S
  * Get visible items from all sections with a given semantic kind.
  */
 export function getVisibleItemsByKind(
-  sections: Array<{
-    semanticKind: string;
-    items: GenericSectionItem[];
-  }>,
+  sections: Array<{ semanticKind: string; items: GenericSectionItem[] }>,
   kind: string,
 ): GenericSectionItem[] {
   const section = sections.find((s) => s.semanticKind === kind);
@@ -211,9 +206,7 @@ interface RawSection {
 export function toGenericSections(rawSections: RawSection[]): ProjectionSection[] {
   return rawSections.map((rs) => ({
     semanticKind: rs.sectionType.semanticKind,
-    items: rs.items.map((item) => ({
-      content: item.content as Record<string, unknown>,
-    })),
+    items: rs.items.map((item) => ({ content: item.content as Record<string, unknown> })),
   }));
 }
 
@@ -238,8 +231,5 @@ export function extractFields(
  * Generic item projection - returns all content fields.
  */
 export function projectGenericItem(item: GenericSectionItem): Record<string, unknown> {
-  return {
-    id: item.id,
-    ...item.content,
-  };
+  return { id: item.id, ...item.content };
 }

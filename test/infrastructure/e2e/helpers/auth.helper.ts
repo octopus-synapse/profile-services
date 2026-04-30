@@ -1,16 +1,14 @@
 /**
- * E2E Test Auth Helper
+ * E2E Test Auth Helper (Elysia harness).
  *
- * Provides authentication utilities for E2E tests:
- * - User creation and cleanup
- * - Token management
- * - Session handling
+ * Replaces the legacy supertest + INestApplication helper with the
+ * `TestApp` shape. Method surface kept identical so migrated journey
+ * suites need no changes.
  */
 
 import { randomUUID } from 'node:crypto';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/client';
+import { type TestApp } from '../../shared';
 
 export interface TestUser {
   email: string;
@@ -22,17 +20,13 @@ export interface TestUser {
 
 export class AuthHelper {
   constructor(
-    private readonly app: INestApplication,
-    private readonly prisma?: PrismaService,
+    private readonly app: TestApp,
+    private readonly prisma?: PrismaClient,
   ) {}
 
-  /**
-   * Create a unique test user with UUID to prevent collisions
-   */
   createTestUser(suffix?: string): TestUser {
     const uuid = randomUUID().slice(0, 8);
     const uniqueSuffix = suffix ? `${suffix}-${uuid}` : uuid;
-
     return {
       email: `e2e-${uniqueSuffix}@example.com`,
       password: 'TestPassword123!',
@@ -41,140 +35,123 @@ export class AuthHelper {
   }
 
   /**
-   * Register a new user, verify email, accept ToS, and return ready-to-use token
+   * Register and log in a test user.
+   *
+   * Default behavior (no opts): the helper flips both `emailVerified`
+   * and `hasCompletedOnboarding` directly in the DB so the gates don't
+   * block downstream calls. Specs that exercise the gates themselves
+   * (three-stage-gating, onboarding journeys, email-verification) pass
+   * `{ skipEmailVerify: true, skipOnboarding: true }` to keep the
+   * gate state authentic.
    */
-  async registerAndLogin(user?: TestUser): Promise<TestUser> {
+  async registerAndLogin(
+    user?: TestUser,
+    opts: { skipEmailVerify?: boolean; skipOnboarding?: boolean } = {},
+  ): Promise<TestUser> {
     const testUser = user || this.createTestUser();
 
-    // Register
-    const signupResponse = await request(this.app.getHttpServer()).post('/api/accounts').send({
+    const signup = await this.app.request.post('/api/accounts').send({
       email: testUser.email,
       password: testUser.password,
       name: testUser.name,
+      acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+      acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
     });
-
-    if (signupResponse.status !== 201) {
+    if (signup.status !== 201 && signup.status !== 200) {
       throw new Error(
-        `Signup failed: ${signupResponse.status} - ${JSON.stringify(signupResponse.body)}`,
+        `Signup failed: ${signup.status} - ${typeof signup.body === 'string' ? signup.body : JSON.stringify(signup.body)}`,
       );
     }
+    const data =
+      (signup.body as { data?: { userId: string } }).data ?? (signup.body as { userId: string });
+    testUser.userId = data.userId;
 
-    // Response format: { success: true, data: { userId, email, message } }
-    const responseData = signupResponse.body.data || signupResponse.body;
-    testUser.userId = responseData.userId;
-
-    // Verify email directly in database (simulates email verification)
     if (this.prisma && testUser.userId) {
-      await this.prisma.user.update({
-        where: { id: testUser.userId },
-        data: { emailVerified: new Date() },
-      });
+      const update: Record<string, unknown> = {};
+      if (!opts.skipEmailVerify) update.emailVerified = new Date();
+      if (!opts.skipOnboarding) {
+        update.onboardingCompletedAt = new Date();
+      }
+      if (Object.keys(update).length > 0) {
+        await this.prisma.user.update({ where: { id: testUser.userId }, data: update });
+      }
 
-      // Accept ToS directly in DB (simulates ToS acceptance)
-      // Version must match TOS_VERSION and PRIVACY_POLICY_VERSION config (default: 1.0.0)
-      await this.prisma.userConsent.createMany({
-        data: [
-          {
-            userId: testUser.userId,
-            documentType: 'TERMS_OF_SERVICE',
-            version: '1.0.0',
-            acceptedAt: new Date(),
-          },
-          {
-            userId: testUser.userId,
-            documentType: 'PRIVACY_POLICY',
-            version: '1.0.0',
-            acceptedAt: new Date(),
-          },
-        ],
-      });
+      // Assign the seeded `user` role so the permission gate finds
+      // resume:create / read / update / etc. for this account. The
+      // /api/accounts endpoint only sets the legacy `User.roles` array
+      // column; the authorization model uses UserRoleAssignment rows.
+      const userRole = await this.prisma.role.findUnique({ where: { name: 'user' } });
+      if (userRole) {
+        await this.prisma.userRoleAssignment.upsert({
+          where: { userId_roleId: { userId: testUser.userId, roleId: userRole.id } },
+          create: { userId: testUser.userId, roleId: userRole.id },
+          update: {},
+        });
+      }
+
+      // UserConsent rows are created by /api/accounts when the request
+      // body carries `acceptedTosVersion` + `acceptedPrivacyVersion`
+      // (which we send above). Re-inserting here would collide on the
+      // (userId, documentType, version) unique key.
     }
 
-    // Login to get access token
     testUser.token = await this.login(testUser.email, testUser.password);
-
     return testUser;
   }
 
-  /**
-   * Login with existing credentials
-   */
   async login(email: string, password: string): Promise<string> {
-    const response = await request(this.app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ email, password });
-
-    if (response.status !== 200) {
-      throw new Error(`Login failed: ${response.status} - ${JSON.stringify(response.body)}`);
+    const res = await this.app.request.post('/api/auth/login').send({ email, password });
+    if (res.status !== 200) {
+      throw new Error(
+        `Login failed: ${res.status} - ${typeof res.body === 'string' ? res.body : JSON.stringify(res.body)}`,
+      );
     }
-
-    // Response format: { success: true, data: { accessToken, refreshToken, user } }
-    const responseData = response.body.data || response.body;
-    return responseData.accessToken || responseData.token;
+    const body = res.body as {
+      accessToken?: string;
+      token?: string;
+      data?: { accessToken?: string; token?: string };
+    };
+    const token = body.accessToken ?? body.token ?? body.data?.accessToken ?? body.data?.token;
+    if (!token) throw new Error('Login response missing access token');
+    return token;
   }
 
-  /**
-   * Refresh token
-   */
   async refreshToken(token: string): Promise<string> {
-    const response = await request(this.app.getHttpServer())
+    const res = await this.app.request
       .post('/api/auth/refresh')
       .set('Authorization', `Bearer ${token}`);
-
-    if (response.status !== 200) {
-      throw new Error('Token refresh failed');
-    }
-
-    return response.body.token;
+    if (res.status !== 200) throw new Error('Token refresh failed');
+    return (res.body as { token: string }).token;
   }
 
-  /**
-   * Get current user info
-   */
-  async getCurrentUser(token: string) {
-    const response = await request(this.app.getHttpServer())
+  async getCurrentUser(token: string): Promise<unknown> {
+    const res = await this.app.request
       .get('/api/v1/users/profile')
       .set('Authorization', `Bearer ${token}`);
-
-    return response.body;
+    return res.body;
   }
 
-  /**
-   * Accept ToS for user (uses /api/v1/users/me/accept-consent endpoint)
-   */
   async acceptToS(token: string): Promise<void> {
-    const tosResponse = await request(this.app.getHttpServer())
+    const tosRes = await this.app.request
       .post('/api/v1/users/me/accept-consent')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        documentType: 'TERMS_OF_SERVICE',
-      });
-
-    if (tosResponse.status !== 201) {
-      throw new Error(
-        `ToS acceptance failed: ${tosResponse.status} - ${JSON.stringify(tosResponse.body)}`,
-      );
+      .send({ documentType: 'TERMS_OF_SERVICE' });
+    if (tosRes.status !== 201) {
+      throw new Error(`ToS acceptance failed: ${tosRes.status} - ${JSON.stringify(tosRes.body)}`);
     }
-
-    const privacyResponse = await request(this.app.getHttpServer())
+    const ppRes = await this.app.request
       .post('/api/v1/users/me/accept-consent')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        documentType: 'PRIVACY_POLICY',
-      });
-
-    if (privacyResponse.status !== 201) {
+      .send({ documentType: 'PRIVACY_POLICY' });
+    if (ppRes.status !== 201) {
       throw new Error(
-        `Privacy policy acceptance failed: ${privacyResponse.status} - ${JSON.stringify(privacyResponse.body)}`,
+        `Privacy policy acceptance failed: ${ppRes.status} - ${JSON.stringify(ppRes.body)}`,
       );
     }
   }
 
-  /**
-   * Request email verification
-   */
   async requestEmailVerification(token: string): Promise<void> {
-    await request(this.app.getHttpServer())
+    await this.app.request
       .post('/api/email-verification/send')
       .set('Authorization', `Bearer ${token}`);
   }

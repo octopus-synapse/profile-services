@@ -1,7 +1,5 @@
-import type {
-  OnboardingProgressData,
-  OnboardingProgressRepositoryPort,
-} from '../../../domain/ports/onboarding-progress.port';
+import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
 /** Onboarding progress expires after 36 hours */
 const PROGRESS_EXPIRATION_HOURS = 36;

@@ -9,22 +9,14 @@ import { ExportJsonUseCase } from './export-json.use-case';
 
 type JsonResumeLike = {
   $schema: string;
-  basics: {
-    name: string;
-    email?: string;
-  };
-  sections: Array<{
-    semanticKind: string;
-    items: Record<string, unknown>[];
-  }>;
+  basics: { name: string; email?: string };
+  sections: Array<{ semanticKind: string; items: Record<string, unknown>[] }>;
 };
 
 type ProfileExportLike = {
   format: 'profile';
   version: string;
-  resume: {
-    sections: unknown[];
-  };
+  resume: { sections: unknown[] };
 };
 
 function isJsonResumeLike(value: unknown): value is JsonResumeLike {
@@ -69,15 +61,10 @@ class InMemoryResumeDataRepository implements ResumeDataRepositoryPort {
         }
       ).resumeSections?.map((rs) => ({
         semanticKind: rs.sectionType.semanticKind,
-        items: rs.items.map((item) => ({
-          content: item.content,
-        })),
+        items: rs.items.map((item) => ({ content: item.content })),
       })) ?? resume.sections;
 
-    this.resumes.set(resume.id, {
-      ...resume,
-      sections,
-    });
+    this.resumes.set(resume.id, { ...resume, sections });
   }
 
   clear(): void {
@@ -110,11 +97,7 @@ describe('ExportJsonUseCase', () => {
     createdAt: baseResume.createdAt,
     updatedAt: baseResume.updatedAt,
     sections: [] as ResumeForJsonExport['sections'],
-    user: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1234567890',
-    },
+    user: { name: 'John Doe', email: 'john@example.com', phone: '+1234567890' },
     resumeSections: [
       {
         sectionType: { key: 'experience', semanticKind: 'WORK_EXPERIENCE', title: 'Experience' },
@@ -264,10 +247,7 @@ describe('ExportJsonUseCase', () => {
 
   describe('Custom ProFile format', () => {
     it('should export in ProFile custom format when specified', async () => {
-      const result = await useCase.execute({
-        resumeId: 'resume-123',
-        format: 'profile',
-      });
+      const result = await useCase.execute({ resumeId: 'resume-123', format: 'profile' });
 
       expect(isProfileExportLike(result)).toBe(true);
       if (!isProfileExportLike(result)) {

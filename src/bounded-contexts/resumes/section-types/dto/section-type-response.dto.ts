@@ -41,9 +41,7 @@ const SectionTypeListDataSchema = z.object({
   totalPages: z.number().int(),
 });
 
-const SemanticKindsDataSchema = z.object({
-  kinds: z.array(z.string()),
-});
+const SemanticKindsDataSchema = z.object({ kinds: z.array(z.string()) });
 
 // ============================================================================
 // DTOs

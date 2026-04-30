@@ -1,7 +1,12 @@
 /**
  * Account Lifecycle Domain Exceptions
  */
-import { ConflictException, DomainException } from '../../../shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 /**
  * Account Already Exists Exception
@@ -9,6 +14,7 @@ import { ConflictException, DomainException } from '../../../shared-kernel/excep
  * Thrown when trying to create an account with existing email.
  */
 export class AccountAlreadyExistsException extends ConflictException {
+  readonly code: string = 'ACCOUNT_ALREADY_EXISTS';
   constructor(email: string) {
     super(`An account with email ${email} already exists`);
   }
@@ -34,6 +40,7 @@ export class AccountDeactivatedException extends DomainException {
  */
 export class AccountAlreadyActiveException extends DomainException {
   readonly code = 'ACCOUNT_ALREADY_ACTIVE';
+  readonly statusHint = 409;
   constructor() {
     super('Account is already active');
   }
@@ -46,7 +53,40 @@ export class AccountAlreadyActiveException extends DomainException {
  */
 export class AccountDeletionRequiresConfirmationException extends DomainException {
   readonly code = 'DELETION_REQUIRES_CONFIRMATION';
+  readonly statusHint = 400;
   constructor() {
     super('Account deletion requires explicit confirmation');
+  }
+}
+
+/**
+ * Consent Required Exception
+ *
+ * Thrown when the user has not accepted the current Terms of Service or
+ * Privacy Policy versions. The ConsentGuard raises this to halt the
+ * request pipeline until consent is recorded.
+ */
+export class ConsentRequiredException extends ForbiddenException {
+  readonly code: string = 'CONSENT_REQUIRED';
+  constructor() {
+    super('consent_required');
+  }
+}
+
+/**
+ * Consent Version Mismatch Exception
+ *
+ * Thrown during signup when the client did not acknowledge the current
+ * Terms of Service / Privacy Policy versions. LGPD: signup MUST capture
+ * the user's acceptance of the very versions the server believes are in
+ * force right now.
+ */
+export class ConsentVersionMismatchException extends ValidationException {
+  readonly code: string = 'CONSENT_VERSION_MISMATCH';
+  constructor(
+    public readonly expectedTos: string,
+    public readonly expectedPrivacy: string,
+  ) {
+    super(`consent_version_mismatch: expected TOS=${expectedTos}, Privacy=${expectedPrivacy}`);
   }
 }

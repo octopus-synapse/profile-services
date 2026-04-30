@@ -39,8 +39,8 @@ model SectionType {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resumeSections    ResumeSection[]
-  onboardingSteps   OnboardingStep[]
+  resumeSections  ResumeSection[]
+  onboardingSteps OnboardingStep[]
 
   @@unique([slug, version])
   @@index([semanticKind])
@@ -70,7 +70,7 @@ model ResumeSection {
 }
 
 model SectionItem {
-  id              String @id @default(cuid())
+  id              String        @id @default(cuid())
   resumeSectionId String
   resumeSection   ResumeSection @relation(fields: [resumeSectionId], references: [id], onDelete: Cascade)
 

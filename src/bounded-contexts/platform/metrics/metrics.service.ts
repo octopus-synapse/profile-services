@@ -1,5 +1,9 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import {
+  type MetricsOverviewSnapshot,
+  MetricsReaderPort,
+} from './domain/ports/metrics-reader.port';
 
 type CounterLabels = Record<string, string>;
 
@@ -25,24 +29,39 @@ interface ApiLatencyLabels {
   [key: string]: string;
 }
 
-@Injectable()
-export class MetricsService implements OnModuleInit {
+/** Labels for the scoring subsystem.
+ * - `type` discriminates which score family fired (resume_quality | match).
+ * - `outcome` reflects degradation: success = all sub-scores filled,
+ *   partial = at least one degraded to null, failed = the use case threw.
+ *   Cache hits count as `success` regardless of which sub-scores ran when
+ *   the value was originally computed — the histogram captures the
+ *   read-path cost, not the underlying compute work. */
+interface ScoreComputedLabels {
+  type: 'resume_quality' | 'match';
+  outcome: 'success' | 'partial' | 'failed';
+  [key: string]: string;
+}
+
+export class MetricsService extends MetricsReaderPort implements Lifecycle {
   private readonly registry: Registry;
 
   // Counters
   private readonly resumeCreatedCounter: Counter<string>;
   private readonly userSignupCounter: Counter<string>;
   private readonly exportCompletedCounter: Counter<string>;
+  private readonly scoreComputedCounter: Counter<string>;
 
   // Histograms
   private readonly exportDurationHistogram: Histogram<string>;
   private readonly apiLatencyHistogram: Histogram<string>;
+  private readonly scoreComputeDurationHistogram: Histogram<string>;
 
   // Gauges
   private readonly activeUsersGauge: Gauge<string>;
   private readonly pendingExportsGauge: Gauge<string>;
 
   constructor() {
+    super();
     this.registry = new Registry();
 
     // Counters
@@ -67,6 +86,13 @@ export class MetricsService implements OnModuleInit {
       registers: [this.registry],
     });
 
+    this.scoreComputedCounter = new Counter({
+      name: 'score_computed_total',
+      help: 'Scoring-subsystem computations completed, by score family and degradation outcome',
+      labelNames: ['type', 'outcome'],
+      registers: [this.registry],
+    });
+
     // Histograms
     this.exportDurationHistogram = new Histogram({
       name: 'export_duration_seconds',
@@ -84,6 +110,16 @@ export class MetricsService implements OnModuleInit {
       registers: [this.registry],
     });
 
+    // Buckets fit cache-hit reads (~10ms) up to full match recomputes
+    // that fan out to embeddings + LLM (~5–15s wall-clock).
+    this.scoreComputeDurationHistogram = new Histogram({
+      name: 'score_compute_duration_seconds',
+      help: 'Wall-clock duration of a single scoring use-case execution',
+      labelNames: ['type'],
+      buckets: [0.01, 0.05, 0.25, 1, 3, 8, 20],
+      registers: [this.registry],
+    });
+
     // Gauges
     this.activeUsersGauge = new Gauge({
       name: 'active_users_total',
@@ -98,7 +134,7 @@ export class MetricsService implements OnModuleInit {
     });
   }
 
-  onModuleInit(): void {
+  async init(): Promise<void> {
     collectDefaultMetrics({ register: this.registry });
   }
 
@@ -140,6 +176,18 @@ export class MetricsService implements OnModuleInit {
     return this.apiLatencyHistogram.startTimer(labels);
   }
 
+  // Scoring subsystem
+  incrementScoreComputed(labels: ScoreComputedLabels): void {
+    this.scoreComputedCounter.inc(labels);
+  }
+
+  observeScoreComputeDuration(
+    durationSeconds: number,
+    labels: { type: ScoreComputedLabels['type']; [key: string]: string },
+  ): void {
+    this.scoreComputeDurationHistogram.observe(labels, durationSeconds);
+  }
+
   // Gauge methods
   setActiveUsers(count: number): void {
     this.activeUsersGauge.set(count);
@@ -168,6 +216,12 @@ export class MetricsService implements OnModuleInit {
   // Prometheus output
   async getMetrics(): Promise<string> {
     return this.registry.metrics();
+  }
+
+  /** MetricsReaderPort surface — alias of `getMetrics` so the use case
+   *  layer doesn't import the historical name. */
+  getPrometheusText(): Promise<string> {
+    return this.getMetrics();
   }
 
   getContentType(): string {
@@ -213,11 +267,7 @@ export class MetricsService implements OnModuleInit {
     const result: Record<string, unknown> = {};
 
     for (const metric of metrics) {
-      result[metric.name] = {
-        help: metric.help,
-        type: metric.type,
-        values: metric.values,
-      };
+      result[metric.name] = { help: metric.help, type: metric.type, values: metric.values };
     }
 
     return result;
@@ -238,11 +288,11 @@ export class MetricsService implements OnModuleInit {
       const labels = value.labels as Record<string, string>;
       const route = `${labels.method} ${labels.route}`;
 
-      if (!routeMap.has(route)) {
-        routeMap.set(route, { count: 0, sum: 0, buckets: new Map() });
+      let entry = routeMap.get(route);
+      if (!entry) {
+        entry = { count: 0, sum: 0, buckets: new Map() };
+        routeMap.set(route, entry);
       }
-
-      const entry = routeMap.get(route)!;
 
       if (value.metricName?.endsWith('_count') || (!value.metricName && labels.le === undefined)) {
         if (labels.le === undefined) {
@@ -276,17 +326,7 @@ export class MetricsService implements OnModuleInit {
    * Aggregated overview used by the admin dashboard. Computing it here keeps
    * the controller free of prometheus-shape parsing and metric arithmetic.
    */
-  async getOverviewSnapshot(): Promise<{
-    counters: { resumeCreated: number; userSignups: number; exportCompleted: number };
-    gauges: { activeUsers: number; pendingExports: number };
-    process: {
-      uptimeSeconds: number;
-      heapUsedMb: number;
-      heapTotalMb: number;
-      eventLoopLagMs: number;
-    };
-    latency: Record<string, unknown>[];
-  }> {
+  async getOverviewSnapshot(): Promise<MetricsOverviewSnapshot> {
     const [metricsJson, latencySummary] = await Promise.all([
       this.getMetricsJson(),
       this.getLatencySummary(),

@@ -75,10 +75,7 @@ export class JsonResumeParser {
     if (jsonResume.languages && jsonResume.languages.length > 0) {
       sections.push({
         sectionTypeKey: 'language_v1',
-        items: jsonResume.languages.map((l) => ({
-          name: l.language ?? '',
-          level: l.fluency,
-        })),
+        items: jsonResume.languages.map((l) => ({ name: l.language ?? '', level: l.fluency })),
       });
     }
 

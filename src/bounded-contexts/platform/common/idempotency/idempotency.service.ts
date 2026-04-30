@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import { CacheLockService } from '../cache/cache-lock.service';
 import { AppLoggerService } from '../logger/logger.service';
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24h
 
-@Injectable()
 export class IdempotencyService {
   constructor(
     private readonly cacheLock: CacheLockService,

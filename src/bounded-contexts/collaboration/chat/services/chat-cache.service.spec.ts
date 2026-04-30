@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { ChatCacheService } from './chat-cache.service';
 
 describe('ChatCacheService', () => {
@@ -12,19 +11,9 @@ describe('ChatCacheService', () => {
     delete: ReturnType<typeof mock>;
   };
 
-  beforeEach(async () => {
-    cacheService = {
-      getOrSet: mock(),
-      get: mock(),
-      set: mock(),
-      delete: mock(),
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ChatCacheService, { provide: CacheService, useValue: cacheService }],
-    }).compile();
-
-    service = module.get<ChatCacheService>(ChatCacheService);
+  beforeEach(() => {
+    cacheService = { getOrSet: mock(), get: mock(), set: mock(), delete: mock() };
+    service = new ChatCacheService(cacheService as unknown as CachePort);
   });
 
   describe('getUnreadCount', () => {
@@ -116,10 +105,7 @@ describe('ChatCacheService', () => {
 
       expect(cacheService.set).toHaveBeenCalledWith(
         'chat:online:user-123',
-        expect.objectContaining({
-          isOnline: true,
-          lastSeen: expect.any(String),
-        }),
+        expect.objectContaining({ isOnline: true, lastSeen: expect.any(String) }),
         120, // ONLINE_TTL
       );
     });
@@ -131,10 +117,7 @@ describe('ChatCacheService', () => {
 
       expect(cacheService.set).toHaveBeenCalledWith(
         'chat:online:user-123',
-        expect.objectContaining({
-          isOnline: false,
-          lastSeen: expect.any(String),
-        }),
+        expect.objectContaining({ isOnline: false, lastSeen: expect.any(String) }),
         120,
       );
     });
@@ -146,10 +129,7 @@ describe('ChatCacheService', () => {
       await service.setOnlineStatus('user-123', true);
 
       const after = new Date().toISOString();
-      const callArg = cacheService.set.mock.calls[0][1] as {
-        isOnline: boolean;
-        lastSeen: string;
-      };
+      const callArg = cacheService.set.mock.calls[0][1] as { isOnline: boolean; lastSeen: string };
       expect(callArg.lastSeen >= before).toBe(true);
       expect(callArg.lastSeen <= after).toBe(true);
     });

@@ -26,5 +26,3 @@ export abstract class VariantRepositoryPort {
   abstract update(id: string, input: Partial<CreateVariantInput>): Promise<VariantData>;
   abstract delete(id: string): Promise<void>;
 }
-
-export const VARIANT_REPOSITORY = Symbol('VARIANT_REPOSITORY');

@@ -4,8 +4,9 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryViewTrackingRepository } from '@/bounded-contexts/analytics/testing';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
-import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';
 import { TrackViewUseCase } from './track-view.use-case';
 
@@ -31,8 +32,8 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
       },
     };
 
-    trackViewUseCase = new TrackViewUseCase(ownership, viewTrackingRepo, eventBus);
-    getViewStatsUseCase = new GetViewStatsUseCase(ownership, viewTrackingRepo);
+    trackViewUseCase = new TrackViewUseCase(ownership, viewTrackingRepo, eventBus, stubLogger);
+    getViewStatsUseCase = new GetViewStatsUseCase(ownership, viewTrackingRepo, stubLogger);
   });
 
   describe('trackView', () => {
@@ -69,10 +70,7 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
     });
 
     it('should detect google source', async () => {
-      await trackViewUseCase.execute({
-        ...viewInput,
-        referer: 'https://www.google.com/search',
-      });
+      await trackViewUseCase.execute({ ...viewInput, referer: 'https://www.google.com/search' });
 
       const events = viewTrackingRepo.getAll();
       expect(events[0].source).toBe('google');

@@ -8,9 +8,7 @@
 // Domain Types
 // ============================================================================
 
-export type UpdatedUsername = {
-  username: string;
-};
+export type UpdatedUsername = { username: string };
 
 export type UsernameUnavailableReason = 'taken' | 'reserved' | 'invalid_format';
 
@@ -31,10 +29,7 @@ export type UsernameValidationErrorCode =
   | 'UPPERCASE'
   | 'ALREADY_TAKEN';
 
-export type UsernameValidationError = {
-  code: UsernameValidationErrorCode;
-  message: string;
-};
+export type UsernameValidationError = { code: UsernameValidationErrorCode; message: string };
 
 export type UsernameValidationResult = {
   username: string;
@@ -61,10 +56,8 @@ export abstract class UsernameRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const USERNAME_USE_CASES = Symbol('USERNAME_USE_CASES');
-
-export interface UsernameUseCases {
-  updateUsernameUseCase: {
+export abstract class UsernameUseCases {
+  abstract readonly updateUsernameUseCase: {
     execute: (userId: string, username: string) => Promise<UpdatedUsername>;
   };
 }

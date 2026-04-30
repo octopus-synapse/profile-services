@@ -5,6 +5,11 @@
  */
 
 import {
+  DslErrorExpressionException,
+  DslUnknownFunctionException,
+  DslUnknownOperatorException,
+} from '../../domain/exceptions/dsl.exceptions';
+import {
   type BinaryExpr,
   type Expression,
   ExpressionParser,
@@ -52,7 +57,7 @@ export class TokenEvaluator {
         return this.evaluateTemplate(expr);
 
       case ExpressionType.ERROR:
-        throw new Error(expr.message);
+        throw new DslErrorExpressionException(expr.message);
 
       default:
         return undefined;
@@ -99,7 +104,7 @@ export class TokenEvaluator {
         return left === right;
 
       default:
-        throw new Error(`Unknown operator: ${expr.operator}`);
+        throw new DslUnknownOperatorException(expr.operator);
     }
   }
 
@@ -157,7 +162,7 @@ export class TokenEvaluator {
         return args[0] ?? args[1];
 
       default:
-        throw new Error(`Unknown function: ${expr.name}`);
+        throw new DslUnknownFunctionException(expr.name);
     }
   }
 

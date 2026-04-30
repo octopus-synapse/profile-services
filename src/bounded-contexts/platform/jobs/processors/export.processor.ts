@@ -1,6 +1,5 @@
-import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { UnsupportedExportFormatException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import type { ExportJobData } from '../queue.service';
 
 interface ResumePdfService {
@@ -29,30 +28,40 @@ export interface ExportResult {
   downloadUrl: string;
 }
 
-@Injectable()
-@Processor('export', {
-  concurrency: 5,
-  limiter: {
-    max: 10,
-    duration: 1000,
-  },
-})
-export class ExportProcessor extends WorkerHost {
-  private readonly logger = new Logger(ExportProcessor.name);
+/**
+ * Job describing the BullMQ-shaped contract this processor consumes.
+ * We deliberately don't import `Job` from `bullmq` so the processor
+ * stays framework-agnostic — adapters are expected to call into
+ * `process` with a structurally-compatible value.
+ */
+export interface ExportJob {
+  readonly id?: string;
+  readonly data: ExportJobData;
+  attemptsMade: number;
+  opts: { attempts?: number };
+  updateProgress(value: number): Promise<unknown>;
+}
 
+const CTX = 'ExportProcessor';
+
+/**
+ * Framework-free POJO. When this processor is wired against a real
+ * queue, register it via `JobQueuePort.register('export', ...)` from
+ * the owning module's composition.
+ */
+export class ExportProcessor {
   constructor(
     private readonly resumePdfService: ResumePdfService,
     private readonly resumeDocxService: ResumeDocxService,
     private readonly notificationService: NotificationService,
     private readonly uploadService: UploadService,
-  ) {
-    super();
-  }
+    private readonly logger?: LoggerPort,
+  ) {}
 
-  async process(job: Job<ExportJobData>): Promise<ExportResult> {
+  async process(job: ExportJob): Promise<ExportResult> {
     const { type, resumeId, userId } = job.data;
 
-    this.logger.log(`Processing export job ${job.id}: ${type} for resume ${resumeId}`);
+    this.logger?.log(`Processing export job ${job.id}: ${type} for resume ${resumeId}`, CTX);
 
     try {
       await job.updateProgress(10);
@@ -73,7 +82,7 @@ export class ExportProcessor extends WorkerHost {
           extension = 'docx';
           break;
         default:
-          throw new Error(`Unsupported export type: ${type}`);
+          throw new UnsupportedExportFormatException(type);
       }
 
       await job.updateProgress(60);
@@ -93,11 +102,15 @@ export class ExportProcessor extends WorkerHost {
 
       await job.updateProgress(100);
 
-      this.logger.log(`Export job ${job.id} completed successfully`);
+      this.logger?.log(`Export job ${job.id} completed successfully`, CTX);
 
       return { downloadUrl: uploadResult.url };
     } catch (error) {
-      this.logger.error(`Export job ${job.id} failed:`, error);
+      this.logger?.error(
+        `Export job ${job.id} failed: ${(error as Error).message}`,
+        (error as Error).stack,
+        CTX,
+      );
 
       const isFinalAttempt = job.attemptsMade >= (job.opts.attempts ?? 3);
 
@@ -112,15 +125,5 @@ export class ExportProcessor extends WorkerHost {
 
       throw error;
     }
-  }
-
-  @OnWorkerEvent('completed')
-  onCompleted(job: Job): void {
-    this.logger.log(`Job ${job.id} completed successfully`);
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job, error: Error): void {
-    this.logger.error(`Job ${job.id} failed:`, error);
   }
 }

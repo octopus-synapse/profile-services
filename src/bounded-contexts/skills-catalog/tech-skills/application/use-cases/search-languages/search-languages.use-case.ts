@@ -1,13 +1,14 @@
 import * as crypto from 'node:crypto';
-import { API_LIMITS } from '@/shared-kernel';
+import { API_LIMITS, type LoggerPort } from '@/shared-kernel';
 import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../../../interfaces';
-import type { CachePort, ProgrammingLanguageRepositoryPort } from '../../ports/tech-skills.port';
+import { CachePort, ProgrammingLanguageRepositoryPort } from '../../ports/tech-skills.port';
 
 export class SearchLanguagesUseCase {
   constructor(
     private readonly repository: ProgrammingLanguageRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(query: string, limit = 20): Promise<ProgrammingLanguage[]> {

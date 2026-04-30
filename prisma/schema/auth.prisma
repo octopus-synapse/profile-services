@@ -41,12 +41,12 @@ model VerificationToken {
 // Identity BC - Token Models
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -56,13 +56,13 @@ model PasswordResetToken {
 }
 
 model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
   email     String
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -82,6 +82,10 @@ model RefreshToken {
   ipAddress  String?
   userAgent  String?   @db.Text
   deviceName String?
+  // How the session was authenticated — "PASSWORD", "2FA_TOTP", "2FA_BACKUP_CODE",
+  // or future OAuth values like "OAUTH_GITHUB". Nullable so existing rows stay
+  // compatible; we fill it going forward for all new sessions.
+  authMethod String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -92,14 +96,14 @@ model RefreshToken {
 
 // Tracks per-user failed login attempts for account lockout
 model LoginAttempt {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String?
   email       String
   success     Boolean
   ipAddress   String?
-  userAgent   String?   @db.Text
+  userAgent   String?  @db.Text
   failureCode String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 

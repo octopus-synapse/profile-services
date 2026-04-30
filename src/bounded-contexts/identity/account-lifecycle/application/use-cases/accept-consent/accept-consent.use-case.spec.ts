@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   InMemoryAuditLogger,
   InMemoryConsentRepository,
@@ -25,7 +26,7 @@ describe('AcceptConsentUseCase', () => {
     auditLogger = new InMemoryAuditLogger();
     versionConfig = new StubVersionConfig('1.0.0', '2.0.0', '1.0.0');
 
-    useCase = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger);
+    useCase = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger, stubLogger);
   });
 
   describe('execute', () => {

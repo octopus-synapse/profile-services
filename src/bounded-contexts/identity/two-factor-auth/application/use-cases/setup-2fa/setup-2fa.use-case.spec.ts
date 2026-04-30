@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TwoFactorAlreadyEnabledException } from '../../../domain/exceptions';
 import {
   DEFAULT_ENABLED_TWO_FACTOR_RECORD,
@@ -36,7 +37,7 @@ describe('Setup2faUseCase', () => {
 
     repository.seedUser(userId, email);
 
-    useCase = new Setup2faUseCase(repository, totpService, qrCodeService);
+    useCase = new Setup2faUseCase(repository, totpService, qrCodeService, stubLogger);
   });
 
   // ───────────────────────────────────────────────────────────────

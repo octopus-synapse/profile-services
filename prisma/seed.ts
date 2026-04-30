@@ -3,12 +3,13 @@ import { seedAuthorization } from '../src/bounded-contexts/identity/authorizatio
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
+import { seedFitQuestions } from './seeds/fit-questions.seed';
 import { seedJobs } from './seeds/job.seed';
 import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
+import { seedResumeStyles } from './seeds/resume-styles.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedTechSkills } from './seeds/tech-skill.seed';
-import { seedThemes } from './seeds/theme.seed';
 import { seedUsernames } from './seeds/username.seed';
 
 const prisma = new PrismaClient(createPrismaClientOptions());
@@ -39,7 +40,7 @@ async function main() {
         name: adminName,
         emailVerified: new Date(),
         roles: ['role_user', 'role_admin'],
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
       },
     });
 
@@ -56,12 +57,12 @@ async function main() {
       });
       console.log('✅ Admin user roles updated to include role_admin');
     }
-    if (!admin.hasCompletedOnboarding) {
+    if (admin.onboardingCompletedAt === null) {
       await prisma.user.update({
         where: { id: admin.id },
-        data: { hasCompletedOnboarding: true },
+        data: { onboardingCompletedAt: new Date() },
       });
-      console.log('✅ Admin user onboarding flag set to true');
+      console.log('✅ Admin user onboarding timestamp set');
     }
     console.log('✅ Admin user already exists');
   }
@@ -91,8 +92,11 @@ async function main() {
     console.log('✅ Admin role assigned to admin user');
   }
 
-  // Seed system themes
-  await seedThemes(prisma, admin.id);
+  // Seed system resume styles (2 ATS-safe)
+  await seedResumeStyles(prisma, admin.id);
+
+  // Seed psychometric fit-question pool (100 stratified)
+  await seedFitQuestions(prisma);
 
   // Seed spoken languages catalog
   await seedSpokenLanguages(prisma);
@@ -136,7 +140,7 @@ async function main() {
         username: 'e2e-test-user',
         emailVerified: new Date(),
         isActive: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
       },
     });
 

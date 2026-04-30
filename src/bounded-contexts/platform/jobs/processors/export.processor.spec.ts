@@ -6,10 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { getQueueToken } from '@nestjs/bullmq';
-import { Test, TestingModule } from '@nestjs/testing';
-import type { Job } from 'bullmq';
-import { ExportProcessor } from './export.processor';
+import { type ExportJob, ExportProcessor } from './export.processor';
 
 // ============================================================================
 // In-Memory Service Implementations
@@ -124,11 +121,6 @@ class InMemoryUploadService {
 // Test Factory
 // ============================================================================
 
-const _RESUME_PDF_SERVICE = Symbol('RESUME_PDF_SERVICE');
-const _RESUME_DOCX_SERVICE = Symbol('RESUME_DOCX_SERVICE');
-const _NOTIFICATION_SERVICE = Symbol('NOTIFICATION_SERVICE');
-const _UPLOAD_SERVICE = Symbol('UPLOAD_SERVICE');
-
 describe('ExportProcessor', () => {
   let processor: ExportProcessor;
   let pdfService: InMemoryResumePdfService;
@@ -136,35 +128,21 @@ describe('ExportProcessor', () => {
   let notificationService: InMemoryNotificationService;
   let uploadService: InMemoryUploadService;
 
-  const setupProcessor = async () => {
+  const setupProcessor = (): void => {
     pdfService = new InMemoryResumePdfService();
     docxService = new InMemoryResumeDocxService();
     notificationService = new InMemoryNotificationService();
     uploadService = new InMemoryUploadService();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        {
-          provide: ExportProcessor,
-          useFactory: () =>
-            new ExportProcessor(pdfService, docxService, notificationService, uploadService),
-        },
-        {
-          provide: getQueueToken('export'),
-          useValue: { add: mock() },
-        },
-      ],
-    }).compile();
-
-    processor = module.get<ExportProcessor>(ExportProcessor);
+    processor = new ExportProcessor(pdfService, docxService, notificationService, uploadService);
   };
 
-  beforeEach(async () => {
-    await setupProcessor();
+  beforeEach(() => {
+    setupProcessor();
   });
 
-  // Factory for creating mock Job objects
-  const createMockJob = (data: Record<string, unknown>): Job => {
+  // Factory for creating mock Job objects (structurally compatible with ExportJob).
+  const createMockJob = (data: Record<string, unknown>): ExportJob => {
     const job = {
       id: 'job-123',
       data,
@@ -172,17 +150,13 @@ describe('ExportProcessor', () => {
       opts: { attempts: 3 },
       updateProgress: mock(() => Promise.resolve()),
     };
-    return job as unknown as Job;
+    return job as unknown as ExportJob;
   };
 
   describe('process', () => {
     describe('PDF Export', () => {
       it('should generate PDF and upload', async () => {
-        const job = createMockJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
 
         const result = await processor.process(job);
 
@@ -192,11 +166,7 @@ describe('ExportProcessor', () => {
       });
 
       it('should update progress during processing', async () => {
-        const job = createMockJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
 
         await processor.process(job);
 
@@ -204,30 +174,19 @@ describe('ExportProcessor', () => {
       });
 
       it('should send notification on success', async () => {
-        const job = createMockJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
 
         await processor.process(job);
 
         expect(notificationService.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            userId: 'user-456',
-            type: 'EXPORT_COMPLETED',
-          }),
+          expect.objectContaining({ userId: 'user-456', type: 'EXPORT_COMPLETED' }),
         );
       });
     });
 
     describe('DOCX Export', () => {
       it('should generate DOCX and upload', async () => {
-        const job = createMockJob({
-          type: 'docx',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'docx', resumeId: 'resume-123', userId: 'user-456' });
 
         const result = await processor.process(job);
 
@@ -238,11 +197,7 @@ describe('ExportProcessor', () => {
 
     describe('Error Handling', () => {
       it('should send failure notification on final attempt', async () => {
-        const job = createMockJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
         job.attemptsMade = 3;
         job.opts.attempts = 3;
 
@@ -251,19 +206,12 @@ describe('ExportProcessor', () => {
         await expect(processor.process(job)).rejects.toThrow('Generation failed');
 
         expect(notificationService.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-            userId: 'user-456',
-            type: 'EXPORT_FAILED',
-          }),
+          expect.objectContaining({ userId: 'user-456', type: 'EXPORT_FAILED' }),
         );
       });
 
       it('should not send failure notification on retryable attempt', async () => {
-        const job = createMockJob({
-          type: 'pdf',
-          resumeId: 'resume-123',
-          userId: 'user-456',
-        });
+        const job = createMockJob({ type: 'pdf', resumeId: 'resume-123', userId: 'user-456' });
         job.attemptsMade = 1;
         job.opts.attempts = 3;
 

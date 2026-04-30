@@ -20,17 +20,11 @@ const ShareLinkDataSchema = z.object({
   publicUrl: z.string(),
 });
 
-const ShareCreateDataSchema = z.object({
-  share: ShareLinkDataSchema,
-});
+const ShareCreateDataSchema = z.object({ share: ShareLinkDataSchema });
 
-const ShareListDataSchema = z.object({
-  shares: z.array(ShareLinkDataSchema),
-});
+const ShareListDataSchema = z.object({ shares: z.array(ShareLinkDataSchema) });
 
-const ShareDeleteDataSchema = z.object({
-  deleted: z.boolean(),
-});
+const ShareDeleteDataSchema = z.object({ deleted: z.boolean() });
 
 // ============================================================================
 // DTOs

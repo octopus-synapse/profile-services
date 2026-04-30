@@ -3,9 +3,6 @@
  * Handles document styling for DOCX exports
  */
 
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
 export class DocxStylesService {
   /**
    * Get document styles configuration

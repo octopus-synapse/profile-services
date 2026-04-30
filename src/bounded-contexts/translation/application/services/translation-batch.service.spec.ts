@@ -9,31 +9,20 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { TranslationBatchService } from './translation-batch.service';
-import { TranslationCoreService } from './translation-core.service';
+import type { TranslationCoreService } from './translation-core.service';
 
 describe('TranslationBatchService', () => {
   let service: TranslationBatchService;
-  let fakeCoreService: {
-    translate: ReturnType<typeof mock>;
-  };
+  let fakeCoreService: { translate: ReturnType<typeof mock> };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fakeCoreService = {
       translate: mock((text: string) =>
         Promise.resolve({ original: text, translated: `translated_${text}` }),
       ),
     };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TranslationBatchService,
-        { provide: TranslationCoreService, useValue: fakeCoreService },
-      ],
-    }).compile();
-
-    service = module.get<TranslationBatchService>(TranslationBatchService);
+    service = new TranslationBatchService(fakeCoreService as unknown as TranslationCoreService);
   });
 
   describe('translateBatch', () => {

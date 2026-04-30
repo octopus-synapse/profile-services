@@ -6,17 +6,11 @@
 // Cache configuration
 export { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from './cache.config';
 // GitHub Linguist types
-export type {
-  GithubLanguage,
-  GithubLanguagesYml,
-} from './github-linguist.interface';
+export type { GithubLanguage, GithubLanguagesYml } from './github-linguist.interface';
 // Parsed data types
 export type { ParsedLanguage, ParsedSkill } from './parsed-skill.interface';
 // Stack Overflow types
-export type {
-  StackOverflowResponse,
-  StackOverflowTag,
-} from './stackoverflow.interface';
+export type { StackOverflowResponse, StackOverflowTag } from './stackoverflow.interface';
 
 // Sync result
 export type { TechSkillsSyncResult } from './sync-result.interface';

@@ -16,12 +16,7 @@ export type BlockedUserWithDetails = {
   blockedId: string;
   reason: string | null;
   createdAt: Date;
-  blocked: {
-    id: string;
-    name: string | null;
-    photoURL: string | null;
-    username: string | null;
-  };
+  blocked: { id: string; name: string | null; photoURL: string | null; username: string | null };
 };
 
 // ============================================================================
@@ -44,19 +39,17 @@ export abstract class BlockRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const BLOCK_USE_CASES = Symbol('BLOCK_USE_CASES');
-
-export interface BlockUseCases {
-  blockUserUseCase: {
+export abstract class BlockUseCases {
+  abstract readonly blockUserUseCase: {
     execute: (blockerId: string, dto: BlockUser) => Promise<BlockedUserResponse>;
   };
-  unblockUserUseCase: {
+  abstract readonly unblockUserUseCase: {
     execute: (blockerId: string, blockedId: string) => Promise<void>;
   };
-  getBlockedUsersUseCase: {
+  abstract readonly getBlockedUsersUseCase: {
     execute: (userId: string) => Promise<BlockedUserResponse[]>;
   };
-  checkBlockStatusUseCase: {
+  abstract readonly checkBlockStatusUseCase: {
     execute: (blockerId: string, blockedId: string) => Promise<boolean>;
   };
 }

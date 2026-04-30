@@ -3,21 +3,19 @@
  * Provides caching layer for chat operations using Redis
  */
 
-import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 
 interface UnreadCountResult {
   totalUnread: number;
   byConversation: Record<string, number>;
 }
 
-@Injectable()
 export class ChatCacheService {
   private readonly UNREAD_TTL = 30; // 30 seconds
   private readonly CONVERSATIONS_TTL = 60; // 60 seconds
   private readonly ONLINE_TTL = 120; // 2 minutes
 
-  constructor(private readonly cache: CacheService) {}
+  constructor(private readonly cache: CachePort) {}
 
   // Cache key generators
   private unreadKey(userId: string): string {

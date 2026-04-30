@@ -10,12 +10,14 @@
  * resume and skip steps the user already has data for.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildShadowPayload, ShadowPayloadSchema } from './build-shadow-payload';
-import { SHADOW_GITHUB_API, type ShadowGithubApi } from './ports/github-api.port';
+import { ShadowGithubApi } from './ports/github-api.port';
+import {
+  ShadowProfileAlreadyClaimedException,
+  ShadowProfileNotFoundException,
+} from './shadow-profile.exceptions';
 
 export interface ShadowProfileSnapshot {
   id: string;
@@ -26,11 +28,10 @@ export interface ShadowProfileSnapshot {
   claimedByUserId: string | null;
 }
 
-@Injectable()
 export class ShadowProfileService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(SHADOW_GITHUB_API) private readonly github: ShadowGithubApi,
+    private readonly github: ShadowGithubApi,
   ) {}
 
   async upsertGithub(input: { token: string; username: string }): Promise<ShadowProfileSnapshot> {
@@ -41,12 +42,7 @@ export class ShadowProfileService {
 
     const row = await this.prisma.shadowProfile.upsert({
       where: { source_externalHandle: { source: 'github', externalHandle: user.login } },
-      create: {
-        source: 'github',
-        externalHandle: user.login,
-        contactEmail: null,
-        payload,
-      },
+      create: { source: 'github', externalHandle: user.login, contactEmail: null, payload },
       update: { payload },
     });
 
@@ -84,9 +80,9 @@ export class ShadowProfileService {
 
   async claimForUser(shadowId: string, userId: string): Promise<ShadowProfileSnapshot> {
     const existing = await this.prisma.shadowProfile.findUnique({ where: { id: shadowId } });
-    if (!existing) throw new ConflictException('Shadow profile not found');
+    if (!existing) throw new ShadowProfileNotFoundException();
     if (existing.claimedByUserId && existing.claimedByUserId !== userId) {
-      throw new ConflictException('Shadow profile already claimed by another user');
+      throw new ShadowProfileAlreadyClaimedException();
     }
 
     // Apply the shadow payload to the user's primary resume so the claim is
@@ -129,8 +125,7 @@ export class ShadowProfileService {
       await this.prisma.resume.update({
         where: { id: user.primaryResumeId },
         data: {
-          primaryStack: merged,
-          // Don't clobber a custom job title; only fill when empty.
+          primaryStack: merged, // Don't clobber a custom job title; only fill when empty.
           jobTitle: resume?.jobTitle ?? headline,
         },
       });

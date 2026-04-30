@@ -1,8 +1,8 @@
 [test]
-# Configuration for integration tests (DB + Redis required)
+# Integration configuration. Only the migrated suites under
+# `test/infrastructure/integration/` run here — `_legacy/` stays
+# excluded until each suite is converted to the new `TestApp` harness.
 root = "./test/infrastructure/integration"
-preload = ["./test/infrastructure/integration/setup.ts"]
-# Timeout for tests AND hooks (beforeEach/afterEach)
 timeout = 60000
 
 [install.scopes]

@@ -4,13 +4,12 @@
  * Also handles resume caching and password verification.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
-import type { CachePort } from '../../domain/ports/cache.port';
-import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type {
-  ShareRepositoryPort,
-  ShareWithResume,
-} from '../../domain/ports/share.repository.port';
+import { CachePort } from '../../domain/ports/cache.port';
+import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
+import type { ShareWithResume } from '../../domain/ports/share.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 const CACHE_TTL = 60; // 60 seconds
 
@@ -19,6 +18,7 @@ export class GetShareBySlugUseCase {
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(slug: string): Promise<ShareWithResume | null> {

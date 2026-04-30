@@ -4,16 +4,15 @@
  * Retrieves historical analytics snapshots for a resume.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { AnalyticsSnapshot } from '../../../interfaces';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class GetSnapshotHistoryUseCase {
   constructor(
     private readonly ownership: ResumeOwnershipPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
+import { LoggerPort } from '@/shared-kernel';
 import type {
-  GithubApiPort,
   GithubRepoSummary,
   GithubUserSummary,
 } from '../../application/use-cases/import-github/github-api.port';
+import { GithubApiPort } from '../../application/use-cases/import-github/github-api.port';
 
 const BASE = 'https://api.github.com';
 const UA = 'patch-careers/1.0';
@@ -33,9 +34,8 @@ interface GithubRepoResponse {
   languages_url: string;
 }
 
-@Injectable()
 export class GithubApiAdapter implements GithubApiPort {
-  private readonly logger = new Logger(GithubApiAdapter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async getUser(token: string, username?: string): Promise<GithubUserSummary> {
     const path = username ? `/users/${encodeURIComponent(username)}` : '/user';
@@ -90,7 +90,7 @@ export class GithubApiAdapter implements GithubApiPort {
         Accept: 'application/vnd.github+json',
       },
     });
-    if (!res.ok) throw new Error(`GitHub languages ${res.status}`);
+    if (!res.ok) throw new GitHubApiRequestFailedException('languages', res.status);
     return (await res.json()) as Record<string, number>;
   }
 
@@ -105,8 +105,11 @@ export class GithubApiAdapter implements GithubApiPort {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.warn(`GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`);
-      throw new Error(`GitHub API ${path} ${res.status}`);
+      this.logger.warn(
+        `GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`,
+        'GithubApiAdapter',
+      );
+      throw new GitHubApiRequestFailedException(path, res.status);
     }
     return (await res.json()) as T;
   }

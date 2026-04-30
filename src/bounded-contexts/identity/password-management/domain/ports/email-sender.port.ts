@@ -4,11 +4,13 @@
  * Outbound port for sending password reset emails.
  */
 
-export interface PasswordResetEmailPort {
+export abstract class PasswordResetEmailPort {
   /**
    * Sends a password reset email
    */
-  sendResetEmail(email: string, userName: string | null, resetToken: string): Promise<void>;
+  abstract sendResetEmail(
+    email: string,
+    userName: string | null,
+    resetToken: string,
+  ): Promise<void>;
 }
-
-export const PASSWORD_RESET_EMAIL_PORT = Symbol('PasswordResetEmailPort');

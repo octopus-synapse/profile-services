@@ -10,16 +10,12 @@ import type { PdfGeneratorOptions } from '../../domain/ports/pdf-generator.port'
 // Use Cases Interface
 // ============================================================================
 
-export const EXPORT_USE_CASES = Symbol('EXPORT_USE_CASES');
-
-export interface ExportUseCases {
-  exportDocxUseCase: {
+export abstract class ExportUseCases {
+  abstract readonly exportDocxUseCase: {
     execute: (dto: { userId: string }) => Promise<Buffer>;
   };
-  exportPdfUseCase: {
-    execute: (dto?: PdfGeneratorOptions) => Promise<Buffer>;
-  };
-  exportJsonUseCase: {
+  abstract readonly exportPdfUseCase: { execute: (dto?: PdfGeneratorOptions) => Promise<Buffer> };
+  abstract readonly exportJsonUseCase: {
     execute: (dto: {
       resumeId: string;
       format?: 'jsonresume' | 'profile';
@@ -31,7 +27,7 @@ export interface ExportUseCases {
       language?: 'en' | 'pt';
     }) => Promise<Buffer>;
   };
-  exportLatexUseCase: {
+  abstract readonly exportLatexUseCase: {
     execute: (dto: {
       resumeId: string;
       template?: 'simple' | 'moderncv';
@@ -43,7 +39,7 @@ export interface ExportUseCases {
       language?: 'en' | 'pt';
     }) => Promise<Buffer>;
   };
-  exportBundleUseCase: {
+  abstract readonly exportBundleUseCase: {
     execute: (dto: {
       userId: string;
       resumeId: string;

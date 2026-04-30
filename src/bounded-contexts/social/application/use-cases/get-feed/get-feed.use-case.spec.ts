@@ -3,6 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   ActivityRepositoryPort,
   ActivityType,
@@ -85,7 +86,7 @@ describe('GetFeedUseCase', () => {
   beforeEach(() => {
     activityRepo = new StubActivityRepository();
     followRepo = new StubFollowRepository();
-    useCase = new GetFeedUseCase(activityRepo, followRepo);
+    useCase = new GetFeedUseCase(activityRepo, followRepo, stubLogger);
   });
 
   it('should return activities from followed users', async () => {

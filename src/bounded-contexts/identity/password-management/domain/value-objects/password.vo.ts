@@ -72,10 +72,7 @@ export class Password {
     }
 
     if (!/[0-9]/.test(password)) {
-      violations.push({
-        rule: 'number',
-        message: 'Password must contain at least one number',
-      });
+      violations.push({ rule: 'number', message: 'Password must contain at least one number' });
     }
 
     return violations;

@@ -82,10 +82,12 @@ describe('2FA Security - Bug Discovery Tests', () => {
      *
      * This is a REPLAY ATTACK vulnerability.
      */
-    it('should REJECT same TOTP token used twice - EXPECTED TO FAIL IF BUG EXISTS', async () => {
+    it('should REJECT same TOTP token used twice', async () => {
       // Get fresh credentials for isolated test
+      const testPassword = 'SecurePass123!';
       const testUser = await createTestUserAndLogin({
         email: `2fa-reuse-test-${uniqueTestId()}@example.com`,
+        password: testPassword,
       });
 
       // Setup 2FA
@@ -110,7 +112,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
       // Step 1: Login with password (triggers 2FA challenge)
       const loginRes = await getRequest().post('/api/auth/login').send({
         email: user?.email,
-        password: 'SecurePass123!',
+        password: testPassword,
       });
 
       expect(loginRes.body.data?.twoFactorRequired).toBe(true);
@@ -156,7 +158,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * ACTUAL BUG: No rate limiting on 2FA validation
      */
     it(
-      'should lock out after 5 failed 2FA attempts - EXPECTED TO FAIL IF NO RATE LIMIT',
+      'should lock out after 5 failed 2FA attempts',
       async () => {
         // Clear rate limit state from previous tests to ensure clean state
         await clearRateLimitState();

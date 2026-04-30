@@ -7,8 +7,8 @@
 import type {
   BackupCodeRecord,
   TwoFactorRecord,
-  TwoFactorRepositoryPort,
 } from '../../../two-factor-auth/domain/ports/two-factor.repository.port';
+import { TwoFactorRepositoryPort } from '../../../two-factor-auth/domain/ports/two-factor.repository.port';
 
 export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
   private records: Map<string, TwoFactorRecord> = new Map();
@@ -21,12 +21,7 @@ export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
   }
 
   async create(userId: string, secret: string): Promise<TwoFactorRecord> {
-    const record: TwoFactorRecord = {
-      userId,
-      secret,
-      enabled: false,
-      lastUsedAt: null,
-    };
+    const record: TwoFactorRecord = { userId, secret, enabled: false, lastUsedAt: null };
     this.records.set(userId, record);
     return record;
   }

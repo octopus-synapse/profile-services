@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import type { ViewTracker } from '../../application/handlers';
+import { LoggerPort } from '@/shared-kernel';
+import { ViewTracker } from '../../application/handlers';
 
 /**
  * Adapter that implements the ViewTracker port.
@@ -11,12 +11,15 @@ import type { ViewTracker } from '../../application/handlers';
  * The actual analytics tracking happens through ViewTrackingService
  * when external viewers access resumes.
  */
-@Injectable()
+
 export class ViewTrackerAdapter implements ViewTracker {
-  private readonly logger = new Logger(ViewTrackerAdapter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async trackResumeUpdate(resumeId: string, fields: readonly string[]): Promise<void> {
-    this.logger.debug(`Resume ${resumeId} updated fields: ${fields.join(', ')}`);
+    this.logger.debug(
+      `Resume ${resumeId} updated fields: ${fields.join(', ')}`,
+      'ViewTrackerAdapter',
+    );
 
     // Future: Could track update frequency patterns for analytics
     // e.g., which sections are most frequently edited

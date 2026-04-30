@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   EmailVerificationRepositoryPort,
@@ -6,50 +5,33 @@ import type {
   VerificationTokenData,
 } from '../../../domain/ports';
 
-@Injectable()
 export class PrismaEmailVerificationRepository implements EmailVerificationRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async findUserById(userId: string): Promise<UserVerificationStatus | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-      },
+      select: { id: true, email: true, emailVerified: true },
     });
 
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      emailVerified: user.emailVerified !== null,
-    };
+    return { id: user.id, email: user.email ?? '', emailVerified: user.emailVerified !== null };
   }
 
   async findUserByEmail(email: string): Promise<UserVerificationStatus | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        emailVerified: true,
-      },
+      select: { id: true, email: true, emailVerified: true },
     });
 
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      emailVerified: user.emailVerified !== null,
-    };
+    return { id: user.id, email: user.email ?? '', emailVerified: user.emailVerified !== null };
   }
 
   async createVerificationToken(
@@ -59,12 +41,7 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
     email: string,
   ): Promise<void> {
     await this.prisma.emailVerificationToken.create({
-      data: {
-        userId,
-        token,
-        expiresAt,
-        email,
-      },
+      data: { userId, token, expiresAt, email },
     });
   }
 
@@ -114,5 +91,15 @@ export class PrismaEmailVerificationRepository implements EmailVerificationRepos
     });
 
     return token !== null;
+  }
+
+  async getLastTokenCreatedAt(userId: string): Promise<Date | null> {
+    const token = await this.prisma.emailVerificationToken.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+
+    return token?.createdAt ?? null;
   }
 }

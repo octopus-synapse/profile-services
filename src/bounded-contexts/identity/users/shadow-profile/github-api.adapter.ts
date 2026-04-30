@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import type { ShadowGithubApi, ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
+import { LoggerPort } from '@/shared-kernel';
+import type { ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
+import { ShadowGithubApi } from './ports/github-api.port';
+import { ShadowGitHubApiRequestFailedException } from './shadow-profile.exceptions';
 
 const BASE = 'https://api.github.com';
 const UA = 'patch-careers/1.0';
@@ -29,9 +31,8 @@ interface GhRepoResponse {
   languages_url: string;
 }
 
-@Injectable()
 export class ShadowGithubApiAdapter implements ShadowGithubApi {
-  private readonly logger = new Logger(ShadowGithubApiAdapter.name);
+  constructor(private readonly logger: LoggerPort) {}
 
   async getUser(token: string, username?: string): Promise<ShadowGithubUser> {
     const path = username ? `/users/${encodeURIComponent(username)}` : '/user';
@@ -85,7 +86,7 @@ export class ShadowGithubApiAdapter implements ShadowGithubApi {
         Accept: 'application/vnd.github+json',
       },
     });
-    if (!res.ok) throw new Error(`GitHub languages ${res.status}`);
+    if (!res.ok) throw new ShadowGitHubApiRequestFailedException('languages', res.status);
     return (await res.json()) as Record<string, number>;
   }
 
@@ -100,8 +101,11 @@ export class ShadowGithubApiAdapter implements ShadowGithubApi {
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.warn(`GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`);
-      throw new Error(`GitHub API ${path} ${res.status}`);
+      this.logger.warn(
+        `GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`,
+        'ShadowGithubApiAdapter',
+      );
+      throw new ShadowGitHubApiRequestFailedException(path, res.status);
     }
     return (await res.json()) as T;
   }

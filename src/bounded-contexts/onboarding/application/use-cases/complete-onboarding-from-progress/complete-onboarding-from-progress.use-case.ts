@@ -1,6 +1,8 @@
+import type { LoggerPort } from '@/shared-kernel';
 import {
+  OnboardingGenericValidationException,
+  OnboardingMissingRequiredDataException,
   type OnboardingValidationError,
-  OnboardingValidationException,
 } from '../../../domain/exceptions/onboarding.exceptions';
 import type { CompletionResult } from '../../../domain/ports/onboarding-completion.port';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
@@ -14,6 +16,7 @@ export class CompleteOnboardingFromProgressUseCase {
   constructor(
     private readonly getProgress: GetProgressFn,
     private readonly completeOnboarding: CompleteOnboardingExecutor,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<CompletionResult> {
@@ -75,11 +78,11 @@ export class CompleteOnboardingFromProgressUseCase {
 
     if (errors.length > 0) {
       const missingFields = errors.filter((e) => e.code === 'REQUIRED').map((e) => e.field);
-      throw new OnboardingValidationException(
-        missingFields.length > 0 ? 'ONBOARDING_INCOMPLETE' : 'VALIDATION_ERROR',
-        missingFields.length > 0
-          ? `Missing required data: ${missingFields.join(', ')}`
-          : `Validation failed: ${errors.map((e) => e.message).join('; ')}`,
+      if (missingFields.length > 0) {
+        throw new OnboardingMissingRequiredDataException(missingFields);
+      }
+      throw new OnboardingGenericValidationException(
+        `Validation failed: ${errors.map((e) => e.message).join('; ')}`,
         errors,
       );
     }

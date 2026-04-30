@@ -14,12 +14,10 @@ export interface RefreshTokenResult {
   expiresIn: number;
 }
 
-export interface RefreshTokenPort {
+export abstract class RefreshTokenPort {
   /**
    * Refreshes access token using a valid refresh token.
    * @throws InvalidRefreshTokenException if token is invalid or expired
    */
-  execute(command: RefreshTokenCommand): Promise<RefreshTokenResult>;
+  abstract execute(command: RefreshTokenCommand): Promise<RefreshTokenResult>;
 }
-
-export const REFRESH_TOKEN_PORT = Symbol('RefreshTokenPort');

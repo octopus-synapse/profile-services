@@ -4,9 +4,7 @@ import { EmailSchema, PasswordSchema } from '../primitives';
 /**
  * Reset Password Request Schema
  */
-export const ResetPasswordRequestSchema = z.object({
-  email: EmailSchema,
-});
+export const ResetPasswordRequestSchema = z.object({ email: EmailSchema });
 
 export type ResetPasswordRequest = z.infer<typeof ResetPasswordRequestSchema>;
 

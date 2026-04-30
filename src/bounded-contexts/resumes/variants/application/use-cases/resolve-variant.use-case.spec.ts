@@ -1,12 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
-import type { BaseSectionsReader } from './resolve-variant.use-case';
-import { ResolveVariantUseCase } from './resolve-variant.use-case';
+import { stubLogger } from '@/shared-kernel/logger/testing';
+import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import { BaseSectionsReader, ResolveVariantUseCase } from './resolve-variant.use-case';
 
 class InMemoryVariantRepository implements VariantRepositoryPort {
   private variants: VariantData[] = [];
@@ -109,7 +106,7 @@ describe('ResolveVariantUseCase', () => {
   beforeEach(() => {
     variantRepo = new InMemoryVariantRepository();
     sectionsReader = new StubSectionsReader();
-    useCase = new ResolveVariantUseCase(variantRepo, sectionsReader);
+    useCase = new ResolveVariantUseCase(variantRepo, sectionsReader, stubLogger);
   });
 
   it('resolves variant by loading base sections and applying overrides', async () => {
@@ -125,7 +122,7 @@ describe('ResolveVariantUseCase', () => {
   });
 
   it('throws when variant not found', async () => {
-    await expect(useCase.execute('nonexistent')).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute('nonexistent')).rejects.toThrow(VariantNotFoundException);
   });
 
   it('applies text overrides to item content', async () => {

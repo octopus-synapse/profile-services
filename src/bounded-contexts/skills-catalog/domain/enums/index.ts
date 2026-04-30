@@ -2,11 +2,7 @@
  * Skills Catalog Domain Enums
  */
 
-export {
-  type SkillLevel,
-  SkillLevelSchema,
-  SkillLevelToNumeric,
-} from './skill-level.enum';
+export { type SkillLevel, SkillLevelSchema, SkillLevelToNumeric } from './skill-level.enum';
 
 export {
   type SkillType,

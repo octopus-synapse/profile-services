@@ -151,11 +151,7 @@ export class InMemoryResumeJson implements ResumeJsonPort {
     }
 
     if (options?.format === 'profile') {
-      return {
-        format: 'profile',
-        version: '1.0',
-        resume,
-      };
+      return { format: 'profile', version: '1.0', resume };
     }
 
     return {
@@ -197,25 +193,14 @@ interface ResumeWithSections {
   slug: string | null;
   summary: string | null;
   fullName: string | null;
-  emailContact: string | null;
   phone: string | null;
   isPublic: boolean;
   createdAt: Date;
   updatedAt: Date;
-  user: {
-    name: string | null;
-    email: string | null;
-    phone: string | null;
-  };
+  user: { name: string | null; email: string | null; phone: string | null };
   resumeSections: Array<{
-    sectionType: {
-      key: string;
-      semanticKind: string;
-      title: string;
-    };
-    items: Array<{
-      content: Record<string, unknown>;
-    }>;
+    sectionType: { key: string; semanticKind: string; title: string };
+    items: Array<{ content: Record<string, unknown> }>;
   }>;
 }
 

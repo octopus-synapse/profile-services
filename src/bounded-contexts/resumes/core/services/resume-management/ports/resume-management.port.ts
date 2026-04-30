@@ -3,15 +3,10 @@ import type { Prisma } from '@prisma/client';
 export type ResumeListItem = Prisma.ResumeGetPayload<{
   include: {
     resumeSections: {
-      include: {
-        sectionType: true;
-        items: true;
-      };
+      include: { sectionType: true; items: true };
     };
     _count: {
-      select: {
-        resumeSections: true;
-      };
+      select: { resumeSections: true };
     };
   };
 }>;
@@ -19,17 +14,10 @@ export type ResumeListItem = Prisma.ResumeGetPayload<{
 export type ResumeDetails = Prisma.ResumeGetPayload<{
   include: {
     user: {
-      select: {
-        id: true;
-        email: true;
-        name: true;
-      };
+      select: { id: true; email: true; name: true };
     };
     resumeSections: {
-      include: {
-        sectionType: true;
-        items: true;
-      };
+      include: { sectionType: true; items: true };
     };
   };
 }>;
@@ -46,16 +34,12 @@ export abstract class ResumeManagementRepositoryPort {
   abstract deleteResumeById(resumeId: string): Promise<void>;
 }
 
-export const RESUME_MANAGEMENT_USE_CASES = Symbol('RESUME_MANAGEMENT_USE_CASES');
-
-export interface ResumeManagementUseCases {
-  listResumesForUserUseCase: {
+export abstract class ResumeManagementUseCases {
+  abstract readonly listResumesForUserUseCase: {
     execute: (userId: string) => Promise<{ resumes: ResumeListItem[] }>;
   };
-  getResumeDetailsUseCase: {
+  abstract readonly getResumeDetailsUseCase: {
     execute: (resumeId: string) => Promise<ResumeDetails>;
   };
-  deleteResumeUseCase: {
-    execute: (resumeId: string) => Promise<void>;
-  };
+  abstract readonly deleteResumeUseCase: { execute: (resumeId: string) => Promise<void> };
 }

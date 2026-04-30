@@ -67,12 +67,7 @@ export const defaultSectionTypes = [
         recommendedPosition: 2,
         scoring: {
           baseScore: 30,
-          fieldWeights: {
-            ORGANIZATION: 20,
-            JOB_TITLE: 20,
-            START_DATE: 15,
-            DESCRIPTION: 5,
-          },
+          fieldWeights: { ORGANIZATION: 20, JOB_TITLE: 20, START_DATE: 15, DESCRIPTION: 5 },
         },
       },
     },

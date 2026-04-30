@@ -7,7 +7,6 @@
  * Kent Beck: "Optimize later. First make it work, then make it fast."
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '../../logger/logger.service';
 import { CacheService } from '../cache.service';
@@ -30,7 +29,6 @@ const CACHE_TTL = {
 
 // --- Service ---
 
-@Injectable()
 export class CacheWarmingService {
   private stats: WarmingStats = {
     lastWarmTime: null,
@@ -64,7 +62,7 @@ export class CacheWarmingService {
           profileViews: true,
           primaryLanguage: true,
           accentColor: true,
-          template: true,
+
           createdAt: true,
           updatedAt: true,
         },
@@ -76,8 +74,12 @@ export class CacheWarmingService {
           try {
             await this.cache.set(`public:resume:${resume.slug}`, resume, CACHE_TTL.POPULAR_RESUME);
             warmed++;
-          } catch {
+          } catch (error) {
             this.stats.errors++;
+            this.logger.warn(
+              `Failed to warm cache for resume: ${resume.slug} — ${error instanceof Error ? error.message : 'unknown'}`,
+              'CacheWarmingService',
+            );
           }
         }
       }
@@ -114,7 +116,7 @@ export class CacheWarmingService {
           profileViews: true,
           primaryLanguage: true,
           accentColor: true,
-          template: true,
+
           createdAt: true,
           updatedAt: true,
         },

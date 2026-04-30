@@ -4,10 +4,8 @@
  * Retrieves aggregated analytics for a shared resume.
  */
 
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ShareAnalyticsNotAuthorizedException } from '../../../../domain/exceptions/analytics.exceptions';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 
 export class GetShareAnalyticsUseCase {
@@ -21,7 +19,7 @@ export class GetShareAnalyticsUseCase {
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized');
+      throw new ShareAnalyticsNotAuthorizedException();
     }
 
     const analytics = await this.repository.groupByEvent(shareId);
@@ -35,10 +33,7 @@ export class GetShareAnalyticsUseCase {
       totalViews: analytics.find((a) => a.event === 'VIEW')?._count.event ?? 0,
       totalDownloads: analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
       uniqueVisitors: uniqueViews.length,
-      byCountry: byCountry.map((c) => ({
-        country: c.country,
-        count: c._count.country,
-      })),
+      byCountry: byCountry.map((c) => ({ country: c.country, count: c._count.country })),
       byDeviceType: byDeviceType.map((d) => ({
         deviceType: d.deviceType,
         count: d._count.deviceType,

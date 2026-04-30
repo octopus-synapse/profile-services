@@ -4,22 +4,20 @@
  * Delegates to specialized services for implementation
  */
 
-import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import type { LoggerPort } from '@/shared-kernel';
 import type { TechSkillsSyncResult } from '../interfaces';
-import { GithubLinguistParserService } from './github-linguist-parser.service';
-import { LanguagesSyncService } from './languages-sync.service';
-import { SkillsDataSyncService } from './skills-data-sync.service';
-import { StackOverflowParserService } from './stackoverflow-parser.service';
-import { TechAreasSyncService } from './tech-areas-sync.service';
-import { TechNichesSyncService } from './tech-niches-sync.service';
+import type { GithubLinguistParserService } from './github-linguist-parser.service';
+import type { LanguagesSyncService } from './languages-sync.service';
+import type { SkillsDataSyncService } from './skills-data-sync.service';
+import type { StackOverflowParserService } from './stackoverflow-parser.service';
+import type { TechAreasSyncService } from './tech-areas-sync.service';
+import type { TechNichesSyncService } from './tech-niches-sync.service';
 
-@Injectable()
 export class TechSkillsSyncService {
   constructor(
     private readonly cache: CacheService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
     private readonly linguistParser: GithubLinguistParserService,
     private readonly stackOverflowParser: StackOverflowParserService,
     private readonly techAreasSync: TechAreasSyncService,

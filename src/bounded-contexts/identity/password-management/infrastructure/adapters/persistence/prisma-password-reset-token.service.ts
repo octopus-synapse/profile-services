@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { InvalidResetTokenException } from '../../../domain/exceptions';
-import type { PasswordResetTokenPort } from '../../../domain/ports';
+import { PasswordResetTokenPort } from '../../../domain/ports';
 
 const TOKEN_EXPIRATION_HOURS = 24;
 
-@Injectable()
 export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -20,11 +18,7 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
 
     // Create new token
     await this.prisma.passwordResetToken.create({
-      data: {
-        userId,
-        token,
-        expiresAt,
-      },
+      data: { userId, token, expiresAt },
     });
   }
 

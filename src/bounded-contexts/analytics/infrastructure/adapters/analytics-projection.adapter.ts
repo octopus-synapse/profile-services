@@ -1,8 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AnalyticsProjectionPort } from '../../application/ports/analytics-projection.port';
 
-@Injectable()
 export class AnalyticsProjectionAdapter extends AnalyticsProjectionPort {
   constructor(private readonly prisma: PrismaService) {
     super();
@@ -17,10 +15,7 @@ export class AnalyticsProjectionAdapter extends AnalyticsProjectionPort {
         title: data.title,
         sectionCounts: {},
       },
-      update: {
-        userId: data.userId,
-        title: data.title,
-      },
+      update: { userId: data.userId, title: data.title },
     });
   }
 

@@ -9,8 +9,9 @@ import {
   defaultResumeAnalytics,
   InMemoryBenchmarkRepository,
 } from '@/bounded-contexts/analytics/testing';
-import type { AtsScoringPort } from '../../ports/facade.ports';
-import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
+import { stubLogger } from '@/shared-kernel/logger/testing';
+import { AtsScoringPort } from '../../ports/facade.ports';
+import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetIndustryBenchmarkUseCase } from './get-industry-benchmark.use-case';
 
 describe('GetIndustryBenchmarkUseCase', () => {
@@ -38,30 +39,24 @@ describe('GetIndustryBenchmarkUseCase', () => {
       },
     };
 
-    useCase = new GetIndustryBenchmarkUseCase(benchmarkRepo, ownership, atsScore);
+    useCase = new GetIndustryBenchmarkUseCase(benchmarkRepo, ownership, atsScore, stubLogger);
   });
 
   describe('getIndustryBenchmark', () => {
     it('should calculate percentile correctly', async () => {
-      const result = await useCase.getIndustryBenchmark(85, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(85, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(80);
     });
 
     it('should return total in industry', async () => {
-      const result = await useCase.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.totalInIndustry).toBe(5);
     });
 
     it('should include comparison data', async () => {
-      const result = await useCase.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.comparison).toBeDefined();
       expect(result.comparison.avgATSScore).toBe(75);
@@ -69,9 +64,7 @@ describe('GetIndustryBenchmarkUseCase', () => {
     });
 
     it('should generate recommendations when below average', async () => {
-      const result = await useCase.getIndustryBenchmark(60, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(60, { industry: 'software_engineering' });
 
       expect(result.recommendations.length).toBeGreaterThan(0);
       expect(result.recommendations[0].priority).toBe('high');
@@ -80,18 +73,14 @@ describe('GetIndustryBenchmarkUseCase', () => {
     it('should handle empty dataset', async () => {
       benchmarkRepo.clear();
 
-      const result = await useCase.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(50);
       expect(result.totalInIndustry).toBe(0);
     });
 
     it('should include top performers profile', async () => {
-      const result = await useCase.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.topPerformers).toBeDefined();
       expect(result.topPerformers.avgCareerDepthYears).toBe(5);
@@ -99,17 +88,13 @@ describe('GetIndustryBenchmarkUseCase', () => {
     });
 
     it('should calculate correct percentile for highest score', async () => {
-      const result = await useCase.getIndustryBenchmark(95, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(95, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(100);
     });
 
     it('should calculate correct percentile for lowest score', async () => {
-      const result = await useCase.getIndustryBenchmark(50, {
-        industry: 'software_engineering',
-      });
+      const result = await useCase.getIndustryBenchmark(50, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(0);
     });

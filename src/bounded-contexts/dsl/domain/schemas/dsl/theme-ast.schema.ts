@@ -52,10 +52,7 @@ export const TypographyTokensSchema = z.object({
     mono: FontFamilySchema.optional(),
   }),
   fontSize: z
-    .object({
-      base: FontSizeScaleSchema,
-      scale: z.number().min(1).max(2).default(1.25),
-    })
+    .object({ base: FontSizeScaleSchema, scale: z.number().min(1).max(2).default(1.25) })
     .or(FontSizeScaleSchema), // Allow shorthand
   fontWeight: z
     .object({
@@ -117,12 +114,7 @@ export const SpacingTokensSchema = z.object({
 export const EffectsTokensSchema = z.object({
   borderRadius: BorderRadiusSchema,
   shadows: ShadowSchema,
-  gradients: z
-    .object({
-      enabled: z.boolean(),
-      direction: z.string().optional(),
-    })
-    .optional(),
+  gradients: z.object({ enabled: z.boolean(), direction: z.string().optional() }).optional(),
 });
 
 // =============================================================================
@@ -223,27 +215,15 @@ export const ThemeDefinitionSchema = z.object({
 // =============================================================================
 
 export const ResolvedTypographySchema = z.object({
-  fontFamily: z.object({
-    heading: z.string(),
-    body: z.string(),
-    mono: z.string().optional(),
-  }),
-  fontSize: z.object({
-    base: z.number(),
-    heading: z.number(),
-    scale: z.number(),
-  }),
+  fontFamily: z.object({ heading: z.string(), body: z.string(), mono: z.string().optional() }),
+  fontSize: z.object({ base: z.number(), heading: z.number(), scale: z.number() }),
   fontWeight: z.object({
     normal: z.number(),
     medium: z.number(),
     semibold: z.number(),
     bold: z.number(),
   }),
-  lineHeight: z.object({
-    tight: z.number(),
-    base: z.number(),
-    relaxed: z.number(),
-  }),
+  lineHeight: z.object({ tight: z.number(), base: z.number(), relaxed: z.number() }),
   headingStyle: z.object({
     fontWeight: z.number(),
     textTransform: z.string().optional(),
@@ -277,10 +257,7 @@ export const ResolvedSpacingSchema = z.object({
   contentPadding: z.number(),
 });
 
-export const ResolvedEffectsSchema = z.object({
-  borderRadius: z.number(),
-  shadows: z.string(),
-});
+export const ResolvedEffectsSchema = z.object({ borderRadius: z.number(), shadows: z.string() });
 
 export const ResolvedTokensSchema = z.object({
   typography: ResolvedTypographySchema,

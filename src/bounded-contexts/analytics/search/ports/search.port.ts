@@ -6,10 +6,8 @@
 
 import type { SearchParams, SearchResult, SearchResultItem } from '../resume-search.service';
 
-export const SEARCH_SERVICE_PORT = Symbol('SEARCH_SERVICE_PORT');
-
-export interface SearchServicePort {
-  search(params: SearchParams): Promise<SearchResult>;
-  suggest(prefix: string, limit?: number): Promise<string[]>;
-  findSimilar(resumeId: string, limit?: number): Promise<SearchResultItem[]>;
+export abstract class SearchServicePort {
+  abstract search(params: SearchParams): Promise<SearchResult>;
+  abstract suggest(prefix: string, limit?: number): Promise<string[]>;
+  abstract findSimilar(resumeId: string, limit?: number): Promise<SearchResultItem[]>;
 }

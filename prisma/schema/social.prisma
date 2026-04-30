@@ -51,10 +51,10 @@ enum ConnectionStatus {
 }
 
 model SkillEndorsement {
-  id              String @id @default(cuid())
-  endorsedUserId  String
-  skillName       String
-  endorserUserId  String
+  id             String @id @default(cuid())
+  endorsedUserId String
+  skillName      String
+  endorserUserId String
 
   createdAt DateTime @default(now())
 
@@ -73,11 +73,11 @@ enum SkillProficiency {
 // Self-declared proficiency per skill. Orthogonal to endorsements — the
 // former is "how I see myself", the latter is "what peers vouched for".
 model UserSkillProficiency {
-  id          String           @id @default(cuid())
-  userId      String
-  user        User             @relation("UserSkillProficiencies", fields: [userId], references: [id], onDelete: Cascade)
-  skillName   String
-  proficiency SkillProficiency @default(INTERMEDIATE)
+  id                String           @id @default(cuid())
+  userId            String
+  user              User             @relation("UserSkillProficiencies", fields: [userId], references: [id], onDelete: Cascade)
+  skillName         String
+  proficiency       SkillProficiency @default(INTERMEDIATE)
   yearsOfExperience Int?
 
   createdAt DateTime @default(now())

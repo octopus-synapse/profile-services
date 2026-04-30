@@ -4,8 +4,6 @@
  * seeding a resume.
  */
 
-export const GITHUB_API_PORT = Symbol('GithubApiPort');
-
 export interface GithubRepoSummary {
   name: string;
   fullName: string;
@@ -31,9 +29,9 @@ export interface GithubUserSummary {
   followers: number;
 }
 
-export interface GithubApiPort {
-  getUser(token: string, username?: string): Promise<GithubUserSummary>;
-  listRepositories(
+export abstract class GithubApiPort {
+  abstract getUser(token: string, username?: string): Promise<GithubUserSummary>;
+  abstract listRepositories(
     token: string,
     username: string,
     options?: { limit?: number },

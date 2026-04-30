@@ -22,6 +22,23 @@ model Job {
   remotePolicy    RemotePolicy?
   minEnglishLevel EnglishLevel?
 
+  // Structured requirements + AI enrichment (job-match context).
+  // `requirementsStructured` holds the recruiter-filled slots; the AI-enriched
+  // payload is kept separately so we can diff/audit what the model added.
+  requirementsStructured   Json?
+  requirementsEnrichedByAi Json?
+  enrichedAt               DateTime?
+  enrichedBy               String?
+
+  // Whether the recruiter has captured the job's cultural/behavioural profile
+  // (JobFitProfile). Used to gate "Match Score" availability recruiter-side.
+  culturalProfileCaptured Boolean @default(false)
+
+  // Semantic Matcher input: job description embedding (pgvector, 1536 dims
+  // — text-embedding-3-small). Stored here so Match Score sub-compute can
+  // reuse it without re-calling OpenAI on every request.
+  embeddingVector Unsupported("vector(1536)")?
+
   isActive  Boolean   @default(true)
   expiresAt DateTime?
 
@@ -30,6 +47,9 @@ model Job {
 
   bookmarks    JobBookmark[]
   applications JobApplication[]
+
+  // Scoring subsystem — recruiter-owned fit profile (one per job).
+  fitProfile JobFitProfile?
 
   // Resume versions tailored *for* this job. Populated by the tailor pipeline
   // so we can (a) avoid re-running the LLM when a tailored version already

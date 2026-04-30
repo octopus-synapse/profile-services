@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel';
-import type { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
+import { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
 import { GetOnboardingStatusUseCase } from './get-onboarding-status.use-case';
 
 describe('GetOnboardingStatusUseCase', () => {
@@ -9,10 +9,7 @@ describe('GetOnboardingStatusUseCase', () => {
 
   beforeEach(() => {
     repository = {
-      findUserById: mock(async () => ({
-        id: 'user-1',
-        hasCompletedOnboarding: false,
-      })),
+      findUserById: mock(async () => ({ id: 'user-1', hasCompletedOnboarding: false })),
       getOnboardingStatus: mock(async () => ({
         hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date('2026-01-01'),

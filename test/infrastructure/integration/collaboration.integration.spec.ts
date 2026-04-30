@@ -104,10 +104,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: collaboratorUserId,
-          role: 'VIEWER',
-        });
+        .send({ userId: collaboratorUserId, role: 'VIEWER' });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -120,10 +117,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: collaborator2UserId,
-          role: 'EDITOR',
-        });
+        .send({ userId: collaborator2UserId, role: 'EDITOR' });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -131,10 +125,9 @@ describeIntegration('Collaboration Integration Tests', () => {
     });
 
     it('should reject invitation without authentication', async () => {
-      const response = await getRequest().post(`/api/resumes/${resumeId}/collaborators`).send({
-        userId: outsiderUserId,
-        role: 'VIEWER',
-      });
+      const response = await getRequest()
+        .post(`/api/resumes/${resumeId}/collaborators`)
+        .send({ userId: outsiderUserId, role: 'VIEWER' });
 
       expect(response.status).toBe(401);
     });
@@ -143,10 +136,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: outsiderUserId,
-          role: 'INVALID_ROLE',
-        });
+        .send({ userId: outsiderUserId, role: 'INVALID_ROLE' });
 
       expect(response.status).toBe(400);
     });
@@ -155,10 +145,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: '',
-          role: 'VIEWER',
-        });
+        .send({ userId: '', role: 'VIEWER' });
 
       expect(response.status).toBe(400);
     });
@@ -167,10 +154,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: collaboratorUserId,
-          role: 'VIEWER',
-        });
+        .send({ userId: collaboratorUserId, role: 'VIEWER' });
 
       // Should be idempotent (200/201) or return conflict (409)
       expect([200, 201, 409]).toContain(response.status);
@@ -341,10 +325,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({
-          userId: ownerUserId,
-          role: 'VIEWER',
-        });
+        .send({ userId: ownerUserId, role: 'VIEWER' });
 
       // Should reject - owner cannot be a collaborator on their own resume
       expect([400, 409, 422]).toContain(response.status);
@@ -357,7 +338,8 @@ describeIntegration('Collaboration Integration Tests', () => {
         .delete(`/api/resumes/${resumeId}/collaborators/${collaborator2UserId}`)
         .set('Authorization', `Bearer ${ownerToken}`);
 
-      expect(response.status).toBe(204);
+      // Handler returns a JSON envelope, so 200 — not 204 (which is body-less).
+      expect(response.status).toBe(200);
     });
 
     it('should no longer list removed collaborator', async () => {
@@ -411,10 +393,7 @@ describeIntegration('Collaboration Integration Tests', () => {
       const response = await getRequest()
         .post(`/api/resumes/${resumeId}/collaborators`)
         .set('Authorization', `Bearer ${outsiderToken}`)
-        .send({
-          userId: outsiderUserId,
-          role: 'ADMIN',
-        });
+        .send({ userId: outsiderUserId, role: 'ADMIN' });
 
       expect([403, 404]).toContain(response.status);
     });

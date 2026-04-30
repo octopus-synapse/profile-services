@@ -5,7 +5,6 @@
  * from the endorsed user's resumes, no separate "user skill" entity exists).
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface UserSkillSummary {
@@ -22,14 +21,8 @@ export interface EndorserInfo {
   endorsedAt: Date;
 }
 
-const USER_SELECT = {
-  id: true,
-  name: true,
-  username: true,
-  photoURL: true,
-} as const;
+const USER_SELECT = { id: true, name: true, username: true, photoURL: true } as const;
 
-@Injectable()
 export class SkillEndorsementService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -91,11 +84,7 @@ export class SkillEndorsementService {
     const { skillEndorsement } = this.prisma;
     await skillEndorsement.upsert({
       where: {
-        endorsedUserId_skillName_endorserUserId: {
-          endorsedUserId,
-          skillName,
-          endorserUserId,
-        },
+        endorsedUserId_skillName_endorserUserId: { endorsedUserId, skillName, endorserUserId },
       },
       create: { endorsedUserId, skillName, endorserUserId },
       update: {},

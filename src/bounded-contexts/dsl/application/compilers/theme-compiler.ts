@@ -42,24 +42,11 @@ const FONT_FAMILY_MAP: Record<FontFamily, string> = {
 // Size Mappings
 // =============================================================================
 
-const FONT_SIZE_MAP: Record<FontSizeScale, number> = {
-  sm: 14,
-  base: 16,
-  lg: 18,
-};
+const FONT_SIZE_MAP: Record<FontSizeScale, number> = { sm: 14, base: 16, lg: 18 };
 
-const DENSITY_MAP: Record<Density, number> = {
-  compact: 0.85,
-  comfortable: 1,
-  spacious: 1.25,
-};
+const DENSITY_MAP: Record<Density, number> = { compact: 0.85, comfortable: 1, spacious: 1.25 };
 
-const SPACING_SIZE_MAP: Record<SpacingSize, number> = {
-  sm: 2,
-  md: 4,
-  lg: 6,
-  xl: 8,
-};
+const SPACING_SIZE_MAP: Record<SpacingSize, number> = { sm: 2, md: 4, lg: 6, xl: 8 };
 
 const BORDER_RADIUS_MAP: Record<BorderRadius, number> = {
   none: 0,
@@ -100,10 +87,7 @@ function resolveHeadingStyle(style: HeadingStyle, primaryColor: string): Resolve
       };
 
     case 'uppercase':
-      return {
-        fontWeight: 600,
-        textTransform: 'uppercase',
-      };
+      return { fontWeight: 600, textTransform: 'uppercase' };
 
     case 'accent-border':
       return {
@@ -183,7 +167,7 @@ export class ThemeCompiler {
 
   private evaluateCondition(condition: string, context: RenderContext): boolean {
     const evaluator = new TokenEvaluator({ context });
-    // Wrap condition in ${} if not already wrapped for expression parsing
+    // Wrap condition in ${  } if not already wrapped for expression parsing
     const wrapped = condition.includes('${') ? condition : `\${${condition}}`;
     const parser = new ExpressionParser(wrapped);
     const expr = parser.parse();
@@ -276,8 +260,8 @@ export class ThemeCompiler {
     }
 
     const headingSize = Math.round(baseSize * scale * scale);
-    // biome-ignore lint/complexity/useLiteralKeys: dynamic theme context property
-    const primaryColor = String(evalContext.colors?.['primary'] || '#2563eb');
+    const colors = (evalContext.colors ?? {}) as Record<string, unknown>;
+    const primaryColor = String(colors.primary ?? '#2563eb');
 
     return {
       fontFamily: {
@@ -285,11 +269,7 @@ export class ThemeCompiler {
         body: FONT_FAMILY_MAP[typography.fontFamily.body],
         mono: typography.fontFamily.mono ? FONT_FAMILY_MAP[typography.fontFamily.mono] : undefined,
       },
-      fontSize: {
-        base: baseSize,
-        heading: headingSize,
-        scale,
-      },
+      fontSize: { base: baseSize, heading: headingSize, scale },
       fontWeight: {
         normal: typography.fontWeight?.normal ?? 400,
         medium: typography.fontWeight?.medium ?? 500,
@@ -350,13 +330,7 @@ export class ThemeCompiler {
       ? unit * SPACING_SIZE_MAP[spacing.contentPadding] * density
       : unit * 4 * density;
 
-    return {
-      unit,
-      density,
-      sectionGap,
-      itemGap,
-      contentPadding,
-    };
+    return { unit, density, sectionGap, itemGap, contentPadding };
   }
 
   private resolveEffects(theme: ThemeDefinition) {

@@ -1,8 +1,10 @@
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
+  ConnectionNotPendingException,
+  NotConnectionTargetException,
+} from '../../../domain/exceptions/social.exceptions';
+import type { ConnectionWithUser } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class RejectConnectionUseCase {
   constructor(private readonly repository: ConnectionRepositoryPort) {}
@@ -14,11 +16,11 @@ export class RejectConnectionUseCase {
     }
 
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
 
     if (connection.targetId !== currentUserId) {
-      throw new ValidationException('Only the target user can reject a connection request');
+      throw new NotConnectionTargetException('reject');
     }
 
     return this.repository.updateConnectionStatus(connectionId, 'REJECTED');

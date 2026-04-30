@@ -1,5 +1,5 @@
 import type { UsernameValidationError, ValidateUsernameResponse } from '@/shared-kernel';
-import type { UsernameRepositoryPort } from '../../ports/username.port';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 
 /**
  * Reserved usernames that cannot be used by regular users.
@@ -51,27 +51,18 @@ export class ValidateUsernameUseCase {
 
     // Check for uppercase
     if (trimmed !== trimmed.toLowerCase()) {
-      errors.push({
-        code: 'UPPERCASE',
-        message: 'Username must contain only lowercase letters',
-      });
+      errors.push({ code: 'UPPERCASE', message: 'Username must contain only lowercase letters' });
     }
 
     const normalized = trimmed.toLowerCase();
 
     // Check length
     if (normalized.length < 3) {
-      errors.push({
-        code: 'TOO_SHORT',
-        message: 'Username must be at least 3 characters',
-      });
+      errors.push({ code: 'TOO_SHORT', message: 'Username must be at least 3 characters' });
     }
 
     if (normalized.length > 30) {
-      errors.push({
-        code: 'TOO_LONG',
-        message: 'Username cannot exceed 30 characters',
-      });
+      errors.push({ code: 'TOO_LONG', message: 'Username cannot exceed 30 characters' });
     }
 
     // Check format (only lowercase letters, numbers, underscores)
@@ -84,18 +75,12 @@ export class ValidateUsernameUseCase {
 
     // Check start character
     if (normalized.length >= 1 && !/^[a-z]/.test(normalized)) {
-      errors.push({
-        code: 'INVALID_START',
-        message: 'Username must start with a letter',
-      });
+      errors.push({ code: 'INVALID_START', message: 'Username must start with a letter' });
     }
 
     // Check end character
     if (normalized.length >= 1 && !/[a-z0-9]$/.test(normalized)) {
-      errors.push({
-        code: 'INVALID_END',
-        message: 'Username must end with a letter or number',
-      });
+      errors.push({ code: 'INVALID_END', message: 'Username must end with a letter or number' });
     }
 
     // Check consecutive underscores
@@ -108,10 +93,7 @@ export class ValidateUsernameUseCase {
 
     // Check reserved usernames
     if (RESERVED_USERNAMES.has(normalized)) {
-      errors.push({
-        code: 'RESERVED',
-        message: 'This username is reserved',
-      });
+      errors.push({ code: 'RESERVED', message: 'This username is reserved' });
     }
 
     // Only check availability if format is valid
@@ -123,18 +105,10 @@ export class ValidateUsernameUseCase {
       available = !isTaken;
 
       if (isTaken) {
-        errors.push({
-          code: 'ALREADY_TAKEN',
-          message: 'This username is already taken',
-        });
+        errors.push({ code: 'ALREADY_TAKEN', message: 'This username is already taken' });
       }
     }
 
-    return {
-      username: normalized,
-      valid: errors.length === 0,
-      available,
-      errors,
-    };
+    return { username: normalized, valid: errors.length === 0, available, errors };
   }
 }

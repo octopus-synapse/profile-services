@@ -5,16 +5,14 @@
  * Uses Redis for token timestamp and Prisma for refresh token cleanup.
  */
 
-import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { SessionInvalidationPort } from '../../../domain/ports';
+import { SessionInvalidationPort } from '../../../domain/ports';
 
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
 const TOKEN_VALID_AFTER_KEY_PREFIX = 'auth:token_valid_after:';
 
-@Injectable()
 export class SessionInvalidationAdapter implements SessionInvalidationPort {
   constructor(
     private readonly cacheService: CacheService,

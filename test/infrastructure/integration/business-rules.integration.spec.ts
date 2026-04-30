@@ -8,13 +8,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import type { Response } from 'supertest';
+import type { TestResponse as Response } from '../shared';
 import {
   closeApp,
   createTestUserAndLogin,
   getApp,
   getPrisma,
   getRequest,
+  signupBody,
   uniqueTestId,
   uniqueTestUsername,
 } from './setup';
@@ -72,11 +73,15 @@ describe('Business Rules Integration', () => {
       // Create new unverified user with unique email
       const unverifiedEmail = `unverified-${uniqueTestId()}@example.com`;
 
-      const signupRes = await getRequest().post('/api/accounts').send({
-        email: unverifiedEmail,
-        password: 'SecurePass123!',
-        name: 'Unverified User',
-      });
+      const signupRes = await getRequest()
+        .post('/api/accounts')
+        .send(
+          signupBody({
+            email: unverifiedEmail,
+            password: 'SecurePass123!',
+            name: 'Unverified User',
+          }),
+        );
 
       const unverifiedToken = signupRes.body.data?.accessToken;
 
@@ -104,11 +109,15 @@ describe('Business Rules Integration', () => {
       // Create user without ToS
       const noTosEmail = `no-tos-${uniqueTestId()}@example.com`;
 
-      const signupRes = await getRequest().post('/api/accounts').send({
-        email: noTosEmail,
-        password: 'SecurePass123!',
-        name: 'No ToS User',
-      });
+      const signupRes = await getRequest()
+        .post('/api/accounts')
+        .send(
+          signupBody({
+            email: noTosEmail,
+            password: 'SecurePass123!',
+            name: 'No ToS User',
+          }),
+        );
 
       const noTosToken = signupRes.body.data?.accessToken;
       const noTosUserId = signupRes.body.data?.user?.id;

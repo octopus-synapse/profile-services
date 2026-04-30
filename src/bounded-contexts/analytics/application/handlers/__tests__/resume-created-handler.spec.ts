@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { AnalyticsRecorder, ResumeCreatedHandler } from '../resume-created.handler';
 
 describe('ResumeCreatedHandler', () => {
@@ -12,14 +13,11 @@ describe('ResumeCreatedHandler', () => {
 
   beforeEach(() => {
     mockRecorder = { recordResumeCreation: mock(() => Promise.resolve()) };
-    handler = new ResumeCreatedHandler(mockRecorder as AnalyticsRecorder, idempotency);
+    handler = new ResumeCreatedHandler(mockRecorder as AnalyticsRecorder, idempotency, stubLogger);
   });
 
   it('records resume creation with correct resumeId', async () => {
-    const event = new ResumeCreatedEvent('resume-123', {
-      userId: 'user-1',
-      title: 'Dev Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-123', { userId: 'user-1', title: 'Dev Resume' });
 
     await handler.handle(event);
 

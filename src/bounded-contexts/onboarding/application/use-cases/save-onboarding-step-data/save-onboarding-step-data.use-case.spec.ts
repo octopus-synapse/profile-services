@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { createOnboardingProgress, InMemoryOnboardingProgressRepository } from '../../../testing';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
@@ -21,7 +22,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     saveProgressFn = (userId, data) => saveUseCase.execute(userId, data);
     getProgressFn = (userId) => getUseCase.execute(userId);
 
-    useCase = new SaveOnboardingStepDataUseCase(saveProgressFn, getProgressFn);
+    useCase = new SaveOnboardingStepDataUseCase(saveProgressFn, getProgressFn, stubLogger);
   });
 
   it('saves personal-info step data', async () => {
@@ -96,10 +97,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, {
-      templateId: 'MINIMAL',
-      colorScheme: 'dark',
-    });
+    const result = await useCase.execute(USER_ID, { templateId: 'MINIMAL', colorScheme: 'dark' });
 
     // Assert
     expect(result.templateSelection).toEqual({ templateId: 'MINIMAL', colorScheme: 'dark' });
@@ -143,10 +141,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, {
-      fullName: 'John',
-      email: 'john@test.com',
-    });
+    const result = await useCase.execute(USER_ID, { fullName: 'John', email: 'john@test.com' });
 
     // Assert — step and completedSteps should not change
     expect(result.currentStep).toBe('personal-info');

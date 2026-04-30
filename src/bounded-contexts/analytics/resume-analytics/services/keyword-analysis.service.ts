@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import type { ResumeForAnalytics } from '../domain/types';
 import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords';
 import type {
@@ -30,7 +29,6 @@ function extractStrings(content: Record<string, unknown>): string[] {
   return parts;
 }
 
-@Injectable()
 export class KeywordAnalysisService {
   getKeywordSuggestions(
     resume: ResumeForAnalytics,
@@ -94,11 +92,7 @@ export class KeywordAnalysisService {
       .map((keyword) => {
         const matches = textLower.match(new RegExp(keyword, 'gi'));
         return matches
-          ? {
-              keyword,
-              count: matches.length,
-              relevance: Math.min(matches.length * 20, 100),
-            }
+          ? { keyword, count: matches.length, relevance: Math.min(matches.length * 20, 100) }
           : null;
       })
       .filter((r): r is { keyword: string; count: number; relevance: number } => r !== null)

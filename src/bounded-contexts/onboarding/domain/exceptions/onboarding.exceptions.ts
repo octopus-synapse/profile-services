@@ -1,7 +1,13 @@
 /**
- * Structured error response for onboarding validation failures.
- * Frontend displays these messages directly - no hardcoded validation needed.
+ * Onboarding Validation Exceptions
+ *
+ * One subclass per failure shape — each carries a literal `code` and
+ * `statusHint` so the arch test + catalog-parity test can enumerate them
+ * statically. The previous design fed `code` through the constructor, which
+ * made the audit regex blind and defeated TypeScript's abstract-member check.
  */
+import { DomainException } from '@/shared-kernel/exceptions';
+
 export interface OnboardingValidationError {
   code: string;
   field: string;
@@ -9,24 +15,24 @@ export interface OnboardingValidationError {
 }
 
 /**
- * Domain exception for onboarding validation failures.
- * Mapped to HTTP 400 by the infrastructure layer (exception filter).
+ * Shared base carrying the structured `details` payload and the legacy
+ * `getResponse()` contract that the filter still reads. Subclasses below
+ * declare the concrete `code` / `statusHint` / default message.
  */
-export class OnboardingValidationException extends Error {
-  readonly statusCode = 400;
+export abstract class OnboardingValidationException extends DomainException {
+  readonly statusHint = 400;
 
   constructor(
-    public readonly code: string,
     message: string,
     public readonly details: OnboardingValidationError[] = [],
   ) {
     super(message);
-    this.name = 'OnboardingValidationException';
+    this.name = this.constructor.name;
   }
 
   getResponse() {
     return {
-      statusCode: this.statusCode,
+      statusCode: this.statusHint,
       error: 'Onboarding Validation Failed',
       code: this.code,
       message: this.message,
@@ -34,58 +40,99 @@ export class OnboardingValidationException extends Error {
     };
   }
 
-  static missingRequiredData(missing: string[]): OnboardingValidationException {
+  // --- Factory helpers preserved for call-site compatibility ---------------
+
+  static missingRequiredData(missing: string[]): OnboardingMissingRequiredDataException {
+    return new OnboardingMissingRequiredDataException(missing);
+  }
+
+  static invalidPersonalInfo(
+    errors: OnboardingValidationError[],
+  ): OnboardingInvalidPersonalInfoException {
+    return new OnboardingInvalidPersonalInfoException(errors);
+  }
+
+  static invalidProfessionalProfile(
+    errors: OnboardingValidationError[],
+  ): OnboardingInvalidProfessionalProfileException {
+    return new OnboardingInvalidProfessionalProfileException(errors);
+  }
+
+  static invalidUsername(reason: string): OnboardingInvalidUsernameException {
+    return new OnboardingInvalidUsernameException(reason);
+  }
+
+  static usernameAlreadyTaken(username: string): OnboardingUsernameAlreadyTakenException {
+    return new OnboardingUsernameAlreadyTakenException(username);
+  }
+
+  static stepNotCompleted(stepId: string): OnboardingStepNotCompletedException {
+    return new OnboardingStepNotCompletedException(stepId);
+  }
+}
+
+export class OnboardingMissingRequiredDataException extends OnboardingValidationException {
+  readonly code = 'ONBOARDING_INCOMPLETE';
+  constructor(missing: string[]) {
     const details = missing.map((field) => ({
       code: 'REQUIRED_FIELD_MISSING',
       field,
       message: `${formatFieldName(field)} is required`,
     }));
-
-    return new OnboardingValidationException(
-      'ONBOARDING_INCOMPLETE',
-      `Missing required data: ${missing.join(', ')}`,
-      details,
-    );
+    super(`Missing required data: ${missing.join(', ')}`, details);
   }
+}
 
-  static invalidPersonalInfo(errors: OnboardingValidationError[]): OnboardingValidationException {
-    return new OnboardingValidationException(
-      'INVALID_PERSONAL_INFO',
-      'Personal information is invalid',
-      errors,
-    );
+export class OnboardingInvalidPersonalInfoException extends OnboardingValidationException {
+  readonly code = 'INVALID_PERSONAL_INFO';
+  constructor(errors: OnboardingValidationError[]) {
+    super('Personal information is invalid', errors);
   }
+}
 
-  static invalidProfessionalProfile(
-    errors: OnboardingValidationError[],
-  ): OnboardingValidationException {
-    return new OnboardingValidationException(
-      'INVALID_PROFESSIONAL_PROFILE',
-      'Professional profile is invalid',
-      errors,
-    );
+export class OnboardingInvalidProfessionalProfileException extends OnboardingValidationException {
+  readonly code = 'INVALID_PROFESSIONAL_PROFILE';
+  constructor(errors: OnboardingValidationError[]) {
+    super('Professional profile is invalid', errors);
   }
+}
 
-  static invalidUsername(reason: string): OnboardingValidationException {
-    return new OnboardingValidationException('INVALID_USERNAME', reason, [
-      { code: 'INVALID_USERNAME', field: 'username', message: reason },
+export class OnboardingInvalidUsernameException extends OnboardingValidationException {
+  readonly code = 'INVALID_USERNAME';
+  constructor(reason: string) {
+    super(reason, [{ code: 'INVALID_USERNAME', field: 'username', message: reason }]);
+  }
+}
+
+export class OnboardingUsernameAlreadyTakenException extends OnboardingValidationException {
+  readonly code = 'USERNAME_TAKEN';
+  constructor(username: string) {
+    super(`Username "${username}" is already taken`, [
+      { code: 'USERNAME_TAKEN', field: 'username', message: 'This username is already taken' },
     ]);
   }
+}
 
-  static usernameAlreadyTaken(username: string): OnboardingValidationException {
-    return new OnboardingValidationException(
-      'USERNAME_TAKEN',
-      `Username "${username}" is already taken`,
-      [{ code: 'USERNAME_TAKEN', field: 'username', message: 'This username is already taken' }],
-    );
+export class OnboardingStepNotCompletedException extends OnboardingValidationException {
+  readonly code = 'STEP_NOT_COMPLETED';
+  constructor(stepId: string) {
+    super(`Step "${stepId}" must be completed first`, [
+      { code: 'STEP_INCOMPLETE', field: stepId, message: 'Complete this step before proceeding' },
+    ]);
   }
+}
 
-  static stepNotCompleted(stepId: string): OnboardingValidationException {
-    return new OnboardingValidationException(
-      'STEP_NOT_COMPLETED',
-      `Step "${stepId}" must be completed first`,
-      [{ code: 'STEP_INCOMPLETE', field: stepId, message: 'Complete this step before proceeding' }],
-    );
+export class OnboardingDataValidationFailedException extends OnboardingValidationException {
+  readonly code = 'ONBOARDING_DATA_VALIDATION_FAILED';
+  constructor(errors: OnboardingValidationError[]) {
+    super('Invalid onboarding data', errors);
+  }
+}
+
+export class OnboardingGenericValidationException extends OnboardingValidationException {
+  readonly code = 'ONBOARDING_GENERIC_VALIDATION';
+  constructor(message: string, errors: OnboardingValidationError[]) {
+    super(message, errors);
   }
 }
 

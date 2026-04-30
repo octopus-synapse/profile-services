@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  SectionItemContentInvalidException,
+  UnknownSectionTypeException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   FieldValidationError,
   SectionItemValidationResult,
@@ -21,7 +23,6 @@ import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
  * - Full resume validation
  * - Detailed error reporting
  */
-@Injectable()
 export class GenericSectionValidationService {
   constructor(
     private readonly zodFactory: SectionDefinitionZodFactory,
@@ -64,7 +65,7 @@ export class GenericSectionValidationService {
     const result = schema.safeParse(content);
 
     if (!result.success) {
-      throw new ValidationException(`Invalid content for section type ${sectionTypeKey}`);
+      throw new SectionItemContentInvalidException(sectionTypeKey);
     }
 
     return result.data;
@@ -104,13 +105,7 @@ export class GenericSectionValidationService {
     const allItemsValid = itemResults.every((r) => r.isValid);
     const isValid = allItemsValid && sectionErrors.length === 0;
 
-    return {
-      isValid,
-      sectionId,
-      sectionTypeKey,
-      itemResults,
-      sectionErrors,
-    };
+    return { isValid, sectionId, sectionTypeKey, itemResults, sectionErrors };
   }
 
   /**
@@ -122,11 +117,7 @@ export class GenericSectionValidationService {
       sectionTypeKey: string;
       items: Array<{ id?: string; content: Record<string, unknown> }>;
     }>,
-  ): {
-    isValid: boolean;
-    sectionResults: SectionValidationResult[];
-    resumeErrors: string[];
-  } {
+  ): { isValid: boolean; sectionResults: SectionValidationResult[]; resumeErrors: string[] } {
     const sectionResults: SectionValidationResult[] = [];
     const resumeErrors: string[] = [];
 
@@ -166,10 +157,7 @@ export class GenericSectionValidationService {
   checkSemanticRoles(
     sectionTypeKey: string,
     content: Record<string, unknown>,
-  ): {
-    presentRoles: string[];
-    missingRequiredRoles: string[];
-  } {
+  ): { presentRoles: string[]; missingRequiredRoles: string[] } {
     const sectionType = this.getSectionType(sectionTypeKey);
     const definition = sectionType.definition;
 
@@ -195,7 +183,7 @@ export class GenericSectionValidationService {
   private getSectionType(key: string): SectionTypeWithDefinition {
     const sectionType = this.sectionTypeRepo.getByKey(key);
     if (!sectionType) {
-      throw new ValidationException(`Unknown section type: ${key}`);
+      throw new UnknownSectionTypeException(key);
     }
     return sectionType;
   }

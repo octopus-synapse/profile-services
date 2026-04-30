@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+  ResumeShareSlugInvalidException,
+  ResumeShareSlugTakenException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
   type ShareEntity,
@@ -50,10 +51,7 @@ type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdW
 
 class StubResumeReadRepository implements ResumeReadRepositoryPort {
   findById = mock(
-    async (_id: string): Promise<ResumeRecord | null> => ({
-      id: 'resume-456',
-      userId: 'user-123',
-    }),
+    async (_id: string): Promise<ResumeRecord | null> => ({ id: 'resume-456', userId: 'user-123' }),
   );
   async findByIdWithSections(_id: string): Promise<ResumeWithSections> {
     throw new Error('not used in test');
@@ -67,6 +65,7 @@ describe('CreateShareUseCase', () => {
   let eventPublisher: {
     publish: ReturnType<typeof mock>;
     publishAsync: ReturnType<typeof mock>;
+    on: ReturnType<typeof mock>;
   };
 
   const userId = 'user-123';
@@ -78,9 +77,10 @@ describe('CreateShareUseCase', () => {
     eventPublisher = {
       publish: mock(() => {}),
       publishAsync: mock(async () => {}),
+      on: mock(() => {}),
     };
 
-    useCase = new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher);
+    useCase = new CreateShareUseCase(shareRepo, resumeRepo, eventPublisher, stubLogger);
   });
 
   it('should create a share with a generated slug', async () => {
@@ -117,13 +117,13 @@ describe('CreateShareUseCase', () => {
     expect(createCall[0].password).toBeNull();
   });
 
-  it('should throw BadRequestException for invalid slug format', async () => {
+  it('should throw ResumeShareSlugInvalidException for invalid slug format', async () => {
     await expect(useCase.execute(userId, { resumeId, slug: 'invalid slug!@#' })).rejects.toThrow(
-      BadRequestException,
+      ResumeShareSlugInvalidException,
     );
   });
 
-  it('should throw ConflictException when slug already exists', async () => {
+  it('should throw ResumeShareSlugTakenException when slug already exists', async () => {
     shareRepo.findBySlugOnly = mock(async () => ({
       id: 'existing',
       resumeId,
@@ -136,20 +136,22 @@ describe('CreateShareUseCase', () => {
     }));
 
     await expect(useCase.execute(userId, { resumeId, slug: 'taken-slug' })).rejects.toThrow(
-      ConflictException,
+      ResumeShareSlugTakenException,
     );
   });
 
-  it('should throw NotFoundException when resume does not exist', async () => {
+  it('should throw ResumeNotFoundException when resume does not exist', async () => {
     resumeRepo.findById = mock(async () => null);
 
-    await expect(useCase.execute(userId, { resumeId })).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute(userId, { resumeId })).rejects.toThrow(ResumeNotFoundException);
   });
 
-  it('should throw ForbiddenException when user does not own the resume', async () => {
+  it('should throw ResumeAccessDeniedException when user does not own the resume', async () => {
     resumeRepo.findById = mock(async () => ({ id: resumeId, userId: 'other-user' }));
 
-    await expect(useCase.execute(userId, { resumeId })).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute(userId, { resumeId })).rejects.toThrow(
+      ResumeAccessDeniedException,
+    );
   });
 
   it('should publish a ResumePublishedEvent on success', async () => {

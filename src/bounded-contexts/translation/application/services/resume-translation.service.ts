@@ -3,7 +3,6 @@
  * Handles translation of resume objects
  */
 
-import { Injectable } from '@nestjs/common';
 import type { TranslationLanguage } from '../../domain/types/translation.types';
 import { TranslationCoreService } from './translation-core.service';
 
@@ -25,7 +24,6 @@ const NON_TRANSLATABLE_KEYS = new Set([
   'currentStep',
 ]);
 
-@Injectable()
 export class ResumeTranslationService {
   constructor(private readonly coreService: TranslationCoreService) {}
 

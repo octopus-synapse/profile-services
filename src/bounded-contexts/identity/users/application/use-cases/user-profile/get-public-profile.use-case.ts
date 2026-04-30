@@ -1,5 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { PublicProfileData, UserProfileRepositoryPort } from '../../ports/user-profile.port';
+import type { PublicProfileData } from '../../ports/user-profile.port';
+import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 
 /**
  * Get Public Profile Use Case
@@ -19,10 +20,13 @@ export class GetPublicProfileUseCase {
 
     const userResume = await this.repository.findResumeByUserId(foundUser.id);
 
+    // The repository only returns rows where username is already set — we
+    // defensively coerce to string to satisfy the DTO's non-nullable shape
+    // without reaching for a non-null assertion.
     return {
       user: {
         id: foundUser.id,
-        username: foundUser.username!,
+        username: foundUser.username ?? '',
         name: foundUser.name,
         photoURL: foundUser.photoURL,
         bio: foundUser.bio,

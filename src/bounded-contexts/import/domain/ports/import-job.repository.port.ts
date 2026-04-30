@@ -7,17 +7,15 @@
 
 import type { CreateImportJobParams, ImportJobData, ImportStatus } from '../types/import.types';
 
-export interface ImportJobRepositoryPort {
-  create(params: CreateImportJobParams): Promise<ImportJobData>;
-  findById(id: string): Promise<ImportJobData | null>;
-  findByUserId(userId: string): Promise<ImportJobData[]>;
-  updateStatus(
+export abstract class ImportJobRepositoryPort {
+  abstract create(params: CreateImportJobParams): Promise<ImportJobData>;
+  abstract findById(id: string): Promise<ImportJobData | null>;
+  abstract findByUserId(userId: string): Promise<ImportJobData[]>;
+  abstract updateStatus(
     id: string,
     status: ImportStatus,
     errorMessage?: string | null,
     resumeId?: string,
   ): Promise<ImportJobData>;
-  delete(id: string): Promise<void>;
+  abstract delete(id: string): Promise<void>;
 }
-
-export const IMPORT_JOB_REPOSITORY = Symbol('ImportJobRepositoryPort');

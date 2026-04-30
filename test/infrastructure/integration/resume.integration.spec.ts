@@ -40,15 +40,16 @@ describe('Resume Smoke Tests', () => {
     });
 
     it('should reject without authentication', async () => {
-      const res = await getRequest().post('/api/v1/resumes').send({
-        title: 'Unauthorized Resume',
-      });
+      const res = await getRequest().post('/api/v1/resumes').send({ title: 'Unauthorized Resume' });
 
       expect(res.status).toBe(401);
     });
 
-    it('should create resume with empty body (all fields optional)', async () => {
-      const res = await getRequest().post('/api/v1/resumes').set(authHeader()).send({});
+    it('should create resume with only the required `title` field', async () => {
+      const res = await getRequest()
+        .post('/api/v1/resumes')
+        .set(authHeader())
+        .send({ title: 'Smoke Test Resume' });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('data');
@@ -112,10 +113,10 @@ describe('Resume Smoke Tests', () => {
 
   describe('PATCH /api/resumes/:id', () => {
     it('should update resume', async () => {
-      const res = await getRequest().patch(`/api/v1/resumes/${resumeId}`).set(authHeader()).send({
-        title: 'Updated Smoke Test Resume',
-        jobTitle: 'Senior Software Engineer',
-      });
+      const res = await getRequest()
+        .patch(`/api/v1/resumes/${resumeId}`)
+        .set(authHeader())
+        .send({ title: 'Updated Smoke Test Resume', jobTitle: 'Senior Software Engineer' });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -151,9 +152,10 @@ describe('Resume Smoke Tests', () => {
 
     beforeAll(async () => {
       // Create a temporary resume to delete
-      const res = await getRequest().post('/api/v1/resumes').set(authHeader()).send({
-        title: 'Temp Resume for Deletion',
-      });
+      const res = await getRequest()
+        .post('/api/v1/resumes')
+        .set(authHeader())
+        .send({ title: 'Temp Resume for Deletion' });
 
       tempResumeId = res.body.data.id;
     });

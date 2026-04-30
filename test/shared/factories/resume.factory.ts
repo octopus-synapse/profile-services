@@ -3,7 +3,7 @@
  * Creates mock Resume objects for testing with proper types
  */
 
-import { Prisma, Resume, ResumeTemplate } from '@prisma/client';
+import { Prisma, Resume } from '@prisma/client';
 
 export interface CreateMockResumeOptions {
   id?: string;
@@ -11,7 +11,6 @@ export interface CreateMockResumeOptions {
   title?: string;
   slug?: string;
   isPublic?: boolean;
-  template?: ResumeTemplate;
   language?: string;
   primaryLanguage?: string;
   contentPtBr?: Prisma.JsonValue;
@@ -23,7 +22,6 @@ export interface CreateMockResumeOptions {
   fullName?: string | null;
   jobTitle?: string | null;
   phone?: string | null;
-  emailContact?: string | null;
   location?: string | null;
   linkedin?: string | null;
   github?: string | null;
@@ -39,7 +37,7 @@ export interface CreateMockResumeOptions {
   leetcode?: string | null;
   accentColor?: string | null;
   customTheme?: Prisma.JsonValue;
-  activeThemeId?: string | null;
+  styleId?: string | null;
   profileViews?: number;
   totalStars?: number;
   totalCommits?: number;
@@ -54,7 +52,6 @@ const defaultResume: Resume = {
   title: 'My Resume',
   slug: 'my-resume',
   isPublic: false,
-  template: 'PROFESSIONAL',
   language: 'pt-br',
   primaryLanguage: 'pt-br',
   contentPtBr: null,
@@ -66,7 +63,6 @@ const defaultResume: Resume = {
   fullName: null,
   jobTitle: null,
   phone: null,
-  emailContact: null,
   location: null,
   linkedin: null,
   github: null,
@@ -82,7 +78,7 @@ const defaultResume: Resume = {
   leetcode: null,
   accentColor: '#3B82F6',
   customTheme: null,
-  activeThemeId: null,
+  styleId: null,
   profileViews: 0,
   totalStars: 0,
   totalCommits: 0,
@@ -102,11 +98,7 @@ export function createMockResume(options: CreateMockResumeOptions = {}): Resume 
 }
 
 export function createMockPublicResume(options: CreateMockResumeOptions = {}): Resume {
-  return createMockResume({
-    ...options,
-    isPublic: true,
-    publishedAt: new Date(),
-  });
+  return createMockResume({ ...options, isPublic: true, publishedAt: new Date() });
 }
 
 /**
@@ -118,11 +110,7 @@ export interface ResumeWithSections extends Resume {
     sectionTypeId: string;
     order: number;
     isVisible: boolean;
-    sectionType: {
-      key: string;
-      semanticKind: string;
-      title: string;
-    };
+    sectionType: { key: string; semanticKind: string; title: string };
     items: Array<{
       id: string;
       content: Record<string, unknown>;

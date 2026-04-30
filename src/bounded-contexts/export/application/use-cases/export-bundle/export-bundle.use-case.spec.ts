@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'bun:test';
 import JSZip from 'jszip';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ExportBundleUseCase } from './export-bundle.use-case';
 
-const pdfStub = {
-  execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8'),
-};
+const pdfStub = { execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8') };
 
-const docxStub = {
-  execute: async () => Buffer.from('PK stub docx', 'utf-8'),
-};
+const docxStub = { execute: async () => Buffer.from('PK stub docx', 'utf-8') };
 
 const jsonStub = {
   execute: async () => ({ basics: { name: 'Enzo' } }),
@@ -17,7 +14,7 @@ const jsonStub = {
 
 describe('ExportBundleUseCase', () => {
   it('should produce a zip containing all requested formats with sensible filenames', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
 
@@ -33,13 +30,17 @@ describe('ExportBundleUseCase', () => {
   });
 
   it('should preserve per-format content inside the zip', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
 
-    const pdf = await zip.file('resume.pdf')!.async('string');
-    const docx = await zip.file('resume.docx')!.async('string');
-    const json = await zip.file('resume.json')!.async('string');
+    const pdfFile = zip.file('resume.pdf');
+    const docxFile = zip.file('resume.docx');
+    const jsonFile = zip.file('resume.json');
+    if (!pdfFile || !docxFile || !jsonFile) throw new Error('expected entries missing from bundle');
+    const pdf = await pdfFile.async('string');
+    const docx = await docxFile.async('string');
+    const json = await jsonFile.async('string');
 
     expect(pdf).toBe('%PDF-1.4 stub');
     expect(docx).toBe('PK stub docx');
@@ -47,7 +48,7 @@ describe('ExportBundleUseCase', () => {
   });
 
   it('should allow opting out of formats via options.formats', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({
       userId: 'user-1',
@@ -67,7 +68,7 @@ describe('ExportBundleUseCase', () => {
         throw new Error('docx engine down');
       },
     };
-    const useCase = new ExportBundleUseCase(pdfStub, failingDocx, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, failingDocx, jsonStub, stubLogger);
 
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
@@ -77,14 +78,16 @@ describe('ExportBundleUseCase', () => {
     expect(zip.file('resume.docx')).toBeNull();
     // The failing format leaves a note in _errors.txt so the downloader
     // knows what went missing instead of getting a silent omission.
-    expect(zip.file('_errors.txt')).not.toBeNull();
-    const errors = await zip.file('_errors.txt')!.async('string');
+    const errorsFile = zip.file('_errors.txt');
+    expect(errorsFile).not.toBeNull();
+    if (!errorsFile) throw new Error('_errors.txt missing from bundle');
+    const errors = await errorsFile.async('string');
     expect(errors).toContain('docx');
     expect(errors).toContain('docx engine down');
   });
 
   it('should default to all three formats when options.formats is omitted', async () => {
-    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub);
+    const useCase = new ExportBundleUseCase(pdfStub, docxStub, jsonStub, stubLogger);
     const buffer = await useCase.execute({ userId: 'user-1', resumeId: 'resume-1' });
     const zip = await JSZip.loadAsync(buffer);
 

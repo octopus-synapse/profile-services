@@ -3,16 +3,14 @@
  * Single Responsibility: Sync tech areas to database
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { TECH_AREAS } from '../data';
 
-@Injectable()
 export class TechAreasSyncService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async syncAreas(): Promise<number> {

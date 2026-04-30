@@ -25,10 +25,7 @@ export class AccountCreatedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email,
-    };
+    return { userId: this.userId, email: this.email };
   }
 }
 
@@ -54,10 +51,7 @@ export class AccountDeactivatedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      reason: this.reason,
-    };
+    return { userId: this.userId, reason: this.reason };
   }
 }
 
@@ -80,9 +74,7 @@ export class AccountReactivatedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-    };
+    return { userId: this.userId };
   }
 }
 
@@ -108,9 +100,6 @@ export class AccountDeletedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email,
-    };
+    return { userId: this.userId, email: this.email };
   }
 }

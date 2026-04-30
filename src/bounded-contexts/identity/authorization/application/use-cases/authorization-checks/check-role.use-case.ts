@@ -4,6 +4,7 @@
  * Checks if a user has a specific role (by ID or name).
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import type { UserId } from '../../../domain/entities/user-auth-context.entity';
 import type { IRoleRepository } from '../../../domain/ports/authorization-repositories.port';
 import type { GetAuthContextUseCase } from './get-auth-context.use-case';
@@ -12,6 +13,7 @@ export class CheckRoleUseCase {
   constructor(
     private readonly getAuthContext: GetAuthContextUseCase,
     private readonly roleRepo: IRoleRepository,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: UserId, roleIdOrName: string): Promise<boolean> {

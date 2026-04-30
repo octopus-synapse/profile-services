@@ -114,9 +114,7 @@ describe('CreateSectionTypeSchema', () => {
 
 describe('UpdateSectionTypeSchema', () => {
   it('should pass without translations (partial update)', () => {
-    const result = UpdateSectionTypeSchema.safeParse({
-      title: 'Updated Title',
-    });
+    const result = UpdateSectionTypeSchema.safeParse({ title: 'Updated Title' });
 
     expect(result.success).toBe(true);
   });
@@ -250,35 +248,25 @@ describe('CreateSectionTypeSchema — icon format validation', () => {
 
 describe('UpdateSectionTypeSchema — icon format validation', () => {
   it('should pass when both iconType and icon are valid lucide', () => {
-    const result = UpdateSectionTypeSchema.safeParse({
-      iconType: 'lucide',
-      icon: 'book-open',
-    });
+    const result = UpdateSectionTypeSchema.safeParse({ iconType: 'lucide', icon: 'book-open' });
 
     expect(result.success).toBe(true);
   });
 
   it('should reject mismatched iconType lucide with emoji icon', () => {
-    const result = UpdateSectionTypeSchema.safeParse({
-      iconType: 'lucide',
-      icon: '🎓',
-    });
+    const result = UpdateSectionTypeSchema.safeParse({ iconType: 'lucide', icon: '🎓' });
 
     expect(result.success).toBe(false);
   });
 
   it('should skip cross-field validation when only icon is provided', () => {
-    const result = UpdateSectionTypeSchema.safeParse({
-      icon: 'anything-goes',
-    });
+    const result = UpdateSectionTypeSchema.safeParse({ icon: 'anything-goes' });
 
     expect(result.success).toBe(true);
   });
 
   it('should skip cross-field validation when only iconType is provided', () => {
-    const result = UpdateSectionTypeSchema.safeParse({
-      iconType: 'lucide',
-    });
+    const result = UpdateSectionTypeSchema.safeParse({ iconType: 'lucide' });
 
     expect(result.success).toBe(true);
   });

@@ -334,7 +334,7 @@ describe('TokenEvaluator', () => {
         args: [],
       };
 
-      expect(() => evaluator.evaluate(expr)).toThrow(/unknown function/i);
+      expect(() => evaluator.evaluate(expr)).toThrow(/DSL function.*not registered/i);
     });
   });
 

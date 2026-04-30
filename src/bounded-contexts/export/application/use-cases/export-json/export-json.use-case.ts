@@ -6,10 +6,8 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type {
-  ResumeDataRepositoryPort,
-  ResumeForJsonExport,
-} from '../../../domain/ports/resume-data.repository.port';
+import type { ResumeForJsonExport } from '../../../domain/ports/resume-data.repository.port';
+import { ResumeDataRepositoryPort } from '../../../domain/ports/resume-data.repository.port';
 
 // ============================================================================
 // DTOs & Types
@@ -28,10 +26,7 @@ interface JsonResumeBasics {
   phone?: string;
   url?: string;
   summary?: string;
-  location?: {
-    city?: string;
-    countryCode?: string;
-  };
+  location?: { city?: string; countryCode?: string };
 }
 
 interface JsonResumeSection {
@@ -102,10 +97,7 @@ export class ExportJsonUseCase {
         id: resume.id,
         title: resume.title,
         slug: resume.slug,
-        user: {
-          name: resume.user.name,
-          email: resume.user.email,
-        },
+        user: { name: resume.user.name, email: resume.user.email },
         sections: resume.sections.map((section) => ({
           semanticKind: section.semanticKind,
           items: section.items.map((item) => item.content),

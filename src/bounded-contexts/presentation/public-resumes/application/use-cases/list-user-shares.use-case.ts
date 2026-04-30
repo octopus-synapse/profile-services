@@ -2,28 +2,30 @@
  * List User Shares Use Case
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
+import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 export class ListUserSharesUseCase {
   constructor(
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, resumeId: string) {
     const resume = await this.resumeRepo.findById(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume', resumeId);
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     return this.shareRepo.findByResumeId(resumeId);

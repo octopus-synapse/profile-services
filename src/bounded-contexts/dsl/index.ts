@@ -1,4 +1,10 @@
-export * from './dsl.module';
-export * from './dsl-compiler.service';
-export * from './dsl-validator.service';
-export * from './token-resolver.service';
+export { DslUseCases } from './application/ports/dsl.port';
+export { DslCompilerService } from './application/services/dsl-compiler.service';
+export { DslValidatorService } from './application/services/dsl-validator.service';
+export { ThemeDslService } from './application/services/theme-dsl.service';
+export type { ResolvedTokens } from './application/services/token-resolver.service';
+export { TokenResolverService } from './application/services/token-resolver.service';
+export { RenderPublicResumeDslUseCase } from './application/use-cases/render-public-resume-dsl/render-public-resume-dsl.use-case';
+export { RenderResumeDslUseCase } from './application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
+export { ResumeDslRepositoryPort } from './domain/ports/resume-dsl.repository.port';
+export { buildDslComposition, buildDslUseCases } from './dsl.composition';

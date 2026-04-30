@@ -8,10 +8,7 @@
 // Domain Types
 // ============================================================================
 
-export type PaginationParams = {
-  page: number;
-  limit: number;
-};
+export type PaginationParams = { page: number; limit: number };
 
 export type PaginatedResult<T> = {
   data: T[];
@@ -26,18 +23,8 @@ export type FollowWithUser = {
   followerId: string;
   followingId: string;
   createdAt: Date;
-  follower?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-  following?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
+  follower?: { id: string; name: string | null; username: string | null; photoURL: string | null };
+  following?: { id: string; name: string | null; username: string | null; photoURL: string | null };
   /**
    * Present when the list is fetched by an authenticated viewer — indicates
    * whether the viewer is currently following the person on this row.
@@ -81,34 +68,30 @@ export abstract class FollowRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const FOLLOW_USE_CASES = Symbol('FOLLOW_USE_CASES');
-
-export interface FollowUseCases {
-  followUserUseCase: {
+export abstract class FollowUseCases {
+  abstract readonly followUserUseCase: {
     execute: (followerId: string, followingId: string) => Promise<FollowWithUser>;
   };
-  unfollowUserUseCase: {
+  abstract readonly unfollowUserUseCase: {
     execute: (followerId: string, followingId: string) => Promise<void>;
   };
-  checkFollowingUseCase: {
+  abstract readonly checkFollowingUseCase: {
     execute: (followerId: string, followingId: string) => Promise<boolean>;
   };
-  getFollowersUseCase: {
+  abstract readonly getFollowersUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
     ) => Promise<PaginatedResult<FollowWithUser>>;
   };
-  getFollowingUseCase: {
+  abstract readonly getFollowingUseCase: {
     execute: (
       userId: string,
       pagination: PaginationParams,
     ) => Promise<PaginatedResult<FollowWithUser>>;
   };
-  getSocialStatsUseCase: {
+  abstract readonly getSocialStatsUseCase: {
     execute: (userId: string) => Promise<{ followers: number; following: number }>;
   };
-  getFollowingIdsUseCase: {
-    execute: (userId: string) => Promise<string[]>;
-  };
+  abstract readonly getFollowingIdsUseCase: { execute: (userId: string) => Promise<string[]> };
 }

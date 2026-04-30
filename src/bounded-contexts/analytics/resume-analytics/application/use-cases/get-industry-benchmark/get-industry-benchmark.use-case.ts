@@ -4,6 +4,7 @@
  * Compares a resume's ATS score against industry-wide data.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type {
   BenchmarkRecommendation,
   IndustryBenchmark,
@@ -11,17 +12,15 @@ import type {
   IndustryComparison,
   TopPerformersProfile,
 } from '../../../interfaces';
-import type { AtsScoringPort } from '../../ports/facade.ports';
-import type {
-  BenchmarkRepositoryPort,
-  ResumeOwnershipPort,
-} from '../../ports/resume-analytics.port';
+import { AtsScoringPort } from '../../ports/facade.ports';
+import { BenchmarkRepositoryPort, ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 
 export class GetIndustryBenchmarkUseCase {
   constructor(
     private readonly benchmarkRepo: BenchmarkRepositoryPort,
     private readonly ownership: ResumeOwnershipPort,
     private readonly atsScore: AtsScoringPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

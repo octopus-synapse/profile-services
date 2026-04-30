@@ -1,22 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { ImportNotFoundException } from '../../../domain/exceptions/import.exceptions';
-import {
-  IMPORT_JOB_REPOSITORY,
-  type ImportJobRepositoryPort,
-} from '../../../domain/ports/import-job.repository.port';
-import { RESUME_CREATOR, type ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
+import { ImportJobRepositoryPort } from '../../../domain/ports/import-job.repository.port';
+import { ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
 import { JsonResumeParser } from '../../../domain/services/json-resume-parser';
 import type { ImportResult } from '../../../domain/types/import.types';
 
-@Injectable()
 export class ProcessImportUseCase {
   private readonly parser = new JsonResumeParser();
 
   constructor(
-    @Inject(IMPORT_JOB_REPOSITORY)
     private readonly repository: ImportJobRepositoryPort,
-    @Inject(RESUME_CREATOR)
     private readonly resumeCreator: ResumeCreatorPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(importId: string): Promise<ImportResult> {

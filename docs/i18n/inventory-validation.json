@@ -1,0 +1,59 @@
+{
+  "summary": {
+    "schemas": 996,
+    "refinements": 6
+  },
+  "zodIssueShapes": [
+    "too_small(type=string,min=1) → REQUIRED",
+    "too_small(type=string,min>1) → STRING_TOO_SHORT",
+    "too_big(type=string) → STRING_TOO_LONG",
+    "too_small(type=number) → NUMBER_TOO_SMALL",
+    "too_big(type=number) → NUMBER_TOO_LARGE",
+    "too_small(type=array,min=1) → ARRAY_REQUIRED",
+    "too_small(type=array,min>1) → ARRAY_TOO_SHORT",
+    "invalid_type(expected=string) → MUST_BE_STRING",
+    "invalid_type(expected=number) → MUST_BE_NUMBER",
+    "invalid_type(expected=boolean) → MUST_BE_BOOLEAN",
+    "invalid_string(validation=email) → EMAIL_INVALID",
+    "invalid_string(validation=url) → URL_INVALID",
+    "invalid_string(validation=uuid) → UUID_INVALID",
+    "invalid_string(validation=cuid) → CUID_INVALID",
+    "invalid_string(validation=datetime) → DATETIME_INVALID",
+    "invalid_string(validation=regex) → REGEX_MISMATCH",
+    "invalid_enum_value → INVALID_ENUM_VALUE",
+    "unrecognized_keys → UNRECOGNIZED_KEYS",
+    "custom → require explicit code via { params: { code: \"...\" } }"
+  ],
+  "refinements": [
+    {
+      "file": "src/shared-kernel/schemas/primitives/professional-profile.schema.ts",
+      "line": 40,
+      "snippet": "alUrlSchema = z .string() .trim() .refine( (val) => { if (!val || val === '') return true; try { new URL(val); return true"
+    },
+    {
+      "file": "src/bounded-contexts/identity/users/domain/schemas/username.schema.ts",
+      "line": 89,
+      "snippet": "not contain consecutive underscores') .refine((username) => !(RESERVED_USERNAMES as readonly string[]).includes(username), { message: 'This username is re"
+    },
+    {
+      "file": "src/bounded-contexts/resumes/section-types/dto/section-type.dto.ts",
+      "line": 98,
+      "snippet": "ring(), SectionTypeTranslationSchema) .refine((translations) => SUPPORTED_LOCALES.every((locale) => locale in translations), { message: `Translations must"
+    },
+    {
+      "file": "src/bounded-contexts/resumes/section-types/dto/section-type.dto.ts",
+      "line": 146,
+      "snippet": ": SectionTypeTranslationsSchema, }) .superRefine((data, ctx) => { if (data.iconType === 'lucide' && !VALIDATION_PATTERNS.LUCIDE_ICON_NAME.test(data.icon"
+    },
+    {
+      "file": "src/bounded-contexts/resumes/section-types/dto/section-type.dto.ts",
+      "line": 194,
+      "snippet": "slationsUpdateSchema.optional(), }) .superRefine((data, ctx) => { if (data.iconType && data.icon) { if (data.iconType === 'lucide' && !VALIDATION_"
+    },
+    {
+      "file": "src/bounded-contexts/resumes/domain/value-objects/resume-dsl.ts",
+      "line": 38,
+      "snippet": "l(), }) .optional(), }) .refine( (dsl) => { const orders = dsl.sections.map((s) => s.order); return new Set(orders).size === ord"
+    }
+  ]
+}

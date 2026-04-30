@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ResumeUpdatedHandler, ViewTracker } from '../resume-updated.handler';
 
 describe('ResumeUpdatedHandler', () => {
@@ -8,7 +9,7 @@ describe('ResumeUpdatedHandler', () => {
 
   beforeEach(() => {
     mockTracker = { trackResumeUpdate: mock(() => Promise.resolve()) };
-    handler = new ResumeUpdatedHandler(mockTracker as ViewTracker);
+    handler = new ResumeUpdatedHandler(mockTracker as ViewTracker, stubLogger);
   });
 
   it('tracks resume update with correct fields', async () => {

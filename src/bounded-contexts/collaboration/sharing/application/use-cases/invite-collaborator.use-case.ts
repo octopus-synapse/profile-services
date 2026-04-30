@@ -1,12 +1,13 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
 import { CollaborationStartedEvent } from '@/bounded-contexts/collaboration/domain/events';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import {
+  CannotInviteSelfAsCollaboratorException,
+  CollaboratorAlreadyInvitedException,
+  OnlyResumeOwnerCanInviteException,
+  ResumeNotFoundForCollaborationException,
+} from '../../../domain/exceptions/collaboration.exceptions';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,
   InviteCollaboratorParams,
@@ -16,18 +17,17 @@ export class InviteCollaboratorUseCase {
   constructor(
     private readonly repo: CollaborationRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(params: InviteCollaboratorParams): Promise<CollaboratorWithUser> {
     const resume = await this.repo.findResumeOwner(params.resumeId);
-    if (!resume) throw new NotFoundException('Resume not found');
-    if (resume.userId !== params.inviterId)
-      throw new ForbiddenException('Only resume owner can invite collaborators');
-    if (params.inviterId === params.inviteeId)
-      throw new BadRequestException('Cannot add yourself as a collaborator');
+    if (!resume) throw new ResumeNotFoundForCollaborationException(params.resumeId);
+    if (resume.userId !== params.inviterId) throw new OnlyResumeOwnerCanInviteException();
+    if (params.inviterId === params.inviteeId) throw new CannotInviteSelfAsCollaboratorException();
 
     const existing = await this.repo.findCollaborator(params.resumeId, params.inviteeId);
-    if (existing) throw new ConflictException('User is already a collaborator');
+    if (existing) throw new CollaboratorAlreadyInvitedException();
 
     const collaborator = await this.repo.createCollaborator({
       resumeId: params.resumeId,

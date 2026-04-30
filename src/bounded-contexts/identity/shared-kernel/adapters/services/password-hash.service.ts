@@ -11,14 +11,20 @@
  * which is timing-safe (constant-time comparison via the bcrypt C library).
  */
 
-import { Injectable } from '@nestjs/common';
+// Default cost 12 matches OWASP guidance. Tests override via
+// `BCRYPT_COST=4` to drop hash time from ~80ms to ~6ms — same
+// bcrypt algorithm, just fewer rounds.
+const DEFAULT_BCRYPT_COST = 12;
 
-const BCRYPT_COST = 12;
+function envBcryptCost(): number {
+  return Number.parseInt(process.env.BCRYPT_COST ?? String(DEFAULT_BCRYPT_COST), 10);
+}
 
-@Injectable()
 export class PasswordHashService {
+  constructor(private readonly cost: number = envBcryptCost()) {}
+
   async hash(password: string): Promise<string> {
-    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });
+    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: this.cost });
   }
 
   /**

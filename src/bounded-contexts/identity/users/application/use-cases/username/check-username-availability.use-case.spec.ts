@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { UsernameRepositoryPort } from '../../ports/username.port';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 import { CheckUsernameAvailabilityUseCase } from './check-username-availability.use-case';
 
 describe('CheckUsernameAvailabilityUseCase', () => {

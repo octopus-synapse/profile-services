@@ -5,10 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type {
-  PdfGeneratorOptions,
-  PdfGeneratorPort,
-} from '../../../domain/ports/pdf-generator.port';
+import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
+import { PdfGeneratorPort } from '../../../domain/ports/pdf-generator.port';
 
 /**
  * In-Memory PDF Generator for testing

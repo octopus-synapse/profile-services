@@ -23,26 +23,20 @@ describe('BenchmarkService', () => {
 
   describe('getIndustryBenchmark', () => {
     it('should calculate percentile correctly', async () => {
-      const result = await service.getIndustryBenchmark(85, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(85, { industry: 'software_engineering' });
 
       // Score of 85 is above 80 (4 scores below), so percentile = 80%
       expect(result.percentile).toBe(80);
     });
 
     it('should return total in industry', async () => {
-      const result = await service.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.totalInIndustry).toBe(5);
     });
 
     it('should include comparison data', async () => {
-      const result = await service.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.comparison).toBeDefined();
       expect(result.comparison.avgATSScore).toBe(75); // (60+70+75+80+90)/5 = 75
@@ -50,9 +44,7 @@ describe('BenchmarkService', () => {
     });
 
     it('should generate recommendations when below average', async () => {
-      const result = await service.getIndustryBenchmark(60, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(60, { industry: 'software_engineering' });
 
       expect(result.recommendations.length).toBeGreaterThan(0);
       expect(result.recommendations[0].priority).toBe('high');
@@ -61,18 +53,14 @@ describe('BenchmarkService', () => {
     it('should handle empty dataset', async () => {
       benchmarkRepo.clear();
 
-      const result = await service.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(50); // Default when no data
       expect(result.totalInIndustry).toBe(0);
     });
 
     it('should include top performers profile', async () => {
-      const result = await service.getIndustryBenchmark(75, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(75, { industry: 'software_engineering' });
 
       expect(result.topPerformers).toBeDefined();
       expect(result.topPerformers.avgCareerDepthYears).toBe(5);
@@ -80,17 +68,13 @@ describe('BenchmarkService', () => {
     });
 
     it('should calculate correct percentile for highest score', async () => {
-      const result = await service.getIndustryBenchmark(95, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(95, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(100); // Above all 5 scores
     });
 
     it('should calculate correct percentile for lowest score', async () => {
-      const result = await service.getIndustryBenchmark(50, {
-        industry: 'software_engineering',
-      });
+      const result = await service.getIndustryBenchmark(50, { industry: 'software_engineering' });
 
       expect(result.percentile).toBe(0); // Below all 5 scores
     });

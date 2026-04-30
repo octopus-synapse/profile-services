@@ -45,10 +45,7 @@ describe('AuthorizationManagementService', () => {
 
   describe('assignRole', () => {
     it('should assign role to user', async () => {
-      await service.assignRole({
-        userId: mockUserId,
-        roleId: mockRoleId,
-      });
+      await service.assignRole({ userId: mockUserId, roleId: mockRoleId });
 
       expect(mockUserAuthRepo.assignRole).toHaveBeenCalledWith(
         mockUserId,
@@ -70,11 +67,7 @@ describe('AuthorizationManagementService', () => {
     it('should include expiration when provided', async () => {
       const expiresAt = new Date('2025-12-31');
 
-      await service.assignRole({
-        userId: mockUserId,
-        roleId: mockRoleId,
-        expiresAt,
-      });
+      await service.assignRole({ userId: mockUserId, roleId: mockRoleId, expiresAt });
 
       expect(mockUserAuthRepo.assignRole).toHaveBeenCalledWith(
         mockUserId,
@@ -86,10 +79,7 @@ describe('AuthorizationManagementService', () => {
 
   describe('revokeRole', () => {
     it('should revoke role from user', async () => {
-      await service.revokeRole({
-        userId: mockUserId,
-        roleId: mockRoleId,
-      });
+      await service.revokeRole({ userId: mockUserId, roleId: mockRoleId });
 
       expect(mockUserAuthRepo.revokeRole).toHaveBeenCalledWith(mockUserId, mockRoleId);
     });
@@ -107,10 +97,7 @@ describe('AuthorizationManagementService', () => {
 
   describe('grantPermission', () => {
     it('should grant permission to user', async () => {
-      await service.grantPermission({
-        userId: mockUserId,
-        permissionId: mockPermissionId,
-      });
+      await service.grantPermission({ userId: mockUserId, permissionId: mockPermissionId });
 
       expect(mockUserAuthRepo.grantPermission).toHaveBeenCalledWith(
         mockUserId,
@@ -120,10 +107,7 @@ describe('AuthorizationManagementService', () => {
     });
 
     it('should publish PermissionGrantedEvent', async () => {
-      await service.grantPermission({
-        userId: mockUserId,
-        permissionId: mockPermissionId,
-      });
+      await service.grantPermission({ userId: mockUserId, permissionId: mockPermissionId });
 
       expect(mockEventPublisher.publish).toHaveBeenCalled();
     });
@@ -145,10 +129,7 @@ describe('AuthorizationManagementService', () => {
     });
 
     it('should publish PermissionDeniedEvent', async () => {
-      await service.denyPermission({
-        userId: mockUserId,
-        permissionId: mockPermissionId,
-      });
+      await service.denyPermission({ userId: mockUserId, permissionId: mockPermissionId });
 
       expect(mockEventPublisher.publish).toHaveBeenCalled();
     });
@@ -156,10 +137,7 @@ describe('AuthorizationManagementService', () => {
 
   describe('addToGroup', () => {
     it('should add user to group', async () => {
-      await service.addToGroup({
-        userId: mockUserId,
-        groupId: mockGroupId,
-      });
+      await service.addToGroup({ userId: mockUserId, groupId: mockGroupId });
 
       expect(mockUserAuthRepo.addToGroup).toHaveBeenCalledWith(
         mockUserId,
@@ -169,10 +147,7 @@ describe('AuthorizationManagementService', () => {
     });
 
     it('should publish GroupMembershipChangedEvent', async () => {
-      await service.addToGroup({
-        userId: mockUserId,
-        groupId: mockGroupId,
-      });
+      await service.addToGroup({ userId: mockUserId, groupId: mockGroupId });
 
       expect(mockEventPublisher.publish).toHaveBeenCalled();
     });

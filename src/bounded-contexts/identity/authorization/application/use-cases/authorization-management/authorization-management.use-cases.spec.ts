@@ -6,8 +6,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   GroupMembershipChangedEvent,
   PermissionDeniedEvent,
@@ -26,6 +27,10 @@ class InMemoryEventBus implements EventPublisherPort {
 
   async publishAsync<T>(event: DomainEvent<T>): Promise<void> {
     this.events.push(event);
+  }
+
+  on(): void {
+    /* no-op for tests */
   }
 
   getEventsByType<T extends DomainEvent<unknown>>(ctor: abstract new (...args: never[]) => T): T[] {
@@ -59,7 +64,7 @@ describe('AssignRoleUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new AssignRoleUseCase(userAuthRepo, eventBus);
+    useCase = new AssignRoleUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should assign a role to the user', async () => {
@@ -71,11 +76,7 @@ describe('AssignRoleUseCase', () => {
   });
 
   it('should publish RoleAssignedEvent with correct payload', async () => {
-    await useCase.execute({
-      userId: USER_ID,
-      roleId: ROLE_ID,
-      assignedBy: 'admin-001',
-    });
+    await useCase.execute({ userId: USER_ID, roleId: ROLE_ID, assignedBy: 'admin-001' });
 
     expect(eventBus.hasPublished(RoleAssignedEvent)).toBe(true);
     const events = eventBus.getEventsByType(RoleAssignedEvent);
@@ -117,7 +118,7 @@ describe('RevokeRoleUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new RevokeRoleUseCase(userAuthRepo, eventBus);
+    useCase = new RevokeRoleUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should remove the role from the user', async () => {
@@ -172,7 +173,7 @@ describe('GrantPermissionUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new GrantPermissionUseCase(userAuthRepo, eventBus);
+    useCase = new GrantPermissionUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should grant a permission to the user', async () => {
@@ -222,7 +223,7 @@ describe('DenyPermissionUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new DenyPermissionUseCase(userAuthRepo, eventBus);
+    useCase = new DenyPermissionUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should deny a permission to the user', async () => {
@@ -258,10 +259,7 @@ describe('DenyPermissionUseCase', () => {
   });
 
   it('should override a previously granted permission', async () => {
-    userAuthRepo.seedPermission(USER_ID, {
-      permissionId: PERMISSION_ID,
-      granted: true,
-    });
+    userAuthRepo.seedPermission(USER_ID, { permissionId: PERMISSION_ID, granted: true });
 
     await useCase.execute({ userId: USER_ID, permissionId: PERMISSION_ID });
 
@@ -279,7 +277,7 @@ describe('AddToGroupUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new AddToGroupUseCase(userAuthRepo, eventBus);
+    useCase = new AddToGroupUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should add the user to a group', async () => {
@@ -325,7 +323,7 @@ describe('RemoveFromGroupUseCase', () => {
   beforeEach(() => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
-    useCase = new RemoveFromGroupUseCase(userAuthRepo, eventBus);
+    useCase = new RemoveFromGroupUseCase(userAuthRepo, eventBus, stubLogger);
   });
 
   it('should remove the user from a group', async () => {

@@ -29,10 +29,6 @@ Authorization: Bearer <your-jwt-token>
 ### Error Responses
 All errors follow a consistent format:
 \`\`\`json
-{
-  "statusCode": 400,
-  "message": "Error description",
-  "error": "Bad Request"
-}
+{ "statusCode": 400, "message": "Error description", "error": "Bad Request" }
 \`\`\`
 `.trim();

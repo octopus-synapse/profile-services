@@ -4,9 +4,7 @@
  * Domain types for username operations.
  */
 
-export type UpdatedUsername = {
-  username: string;
-};
+export type UpdatedUsername = { username: string };
 
 export type UsernameUnavailableReason = 'taken' | 'reserved' | 'invalid_format';
 
@@ -16,10 +14,7 @@ export type UsernameAvailability = {
   reason?: UsernameUnavailableReason;
 };
 
-export type UsernameValidationError = {
-  code: string;
-  message: string;
-};
+export type UsernameValidationError = { code: string; message: string };
 
 export type UsernameValidationResult = {
   username: string;
@@ -29,10 +24,8 @@ export type UsernameValidationResult = {
 };
 
 // Use Cases Interface Symbol
-export const USERNAME_USE_CASES = Symbol('USERNAME_USE_CASES');
-
-export interface UsernameUseCases {
-  updateUsernameUseCase: {
+export abstract class UsernameUseCases {
+  abstract readonly updateUsernameUseCase: {
     execute: (userId: string, username: string) => Promise<UpdatedUsername>;
   };
 }

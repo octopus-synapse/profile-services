@@ -157,15 +157,11 @@ export type SubmitOnboardingDto = z.infer<typeof SubmitOnboardingDtoSchema>;
  * API Response Schemas
  * Standard wrappers for onboarding endpoints
  */
-export const OnboardingStatusResponseSchema = z.object({
-  data: OnboardingStatusSchema,
-});
+export const OnboardingStatusResponseSchema = z.object({ data: OnboardingStatusSchema });
 
 export type OnboardingStatusResponseEnvelope = z.infer<typeof OnboardingStatusResponseSchema>;
 
-export const OnboardingProgressResponseSchema = z.object({
-  data: OnboardingProgressSchema,
-});
+export const OnboardingProgressResponseSchema = z.object({ data: OnboardingProgressSchema });
 
 export type OnboardingProgressResponseEnvelope = z.infer<typeof OnboardingProgressResponseSchema>;
 

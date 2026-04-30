@@ -39,13 +39,11 @@ export interface CreateSessionResult {
   user: SessionUserData;
 }
 
-export interface CreateSessionPort {
+export abstract class CreateSessionPort {
   /**
    * Creates a new session and sets httpOnly cookie
    * @param command - Session creation parameters with cookie writer
    * @returns User data for immediate client use
    */
-  execute(command: CreateSessionCommand): Promise<CreateSessionResult>;
+  abstract execute(command: CreateSessionCommand): Promise<CreateSessionResult>;
 }
-
-export const CREATE_SESSION_PORT = Symbol('CreateSessionPort');

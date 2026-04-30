@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { UserLoggedOutEvent } from '../../../domain/events';
 import {
@@ -23,7 +24,7 @@ describe('LogoutUseCase', () => {
     repository = new InMemoryAuthenticationRepository();
     eventBus = new InMemoryEventBus();
 
-    useCase = new LogoutUseCase(repository, eventBus);
+    useCase = new LogoutUseCase(repository, eventBus, stubLogger);
   });
 
   describe('execute', () => {
@@ -40,10 +41,7 @@ describe('LogoutUseCase', () => {
       repository.seedRefreshToken(otherUserToken);
 
       // Act
-      const result = await useCase.execute({
-        userId: 'user-1',
-        logoutAllSessions: true,
-      });
+      const result = await useCase.execute({ userId: 'user-1', logoutAllSessions: true });
 
       // Assert
       expect(result).toEqual({ success: true });
@@ -70,10 +68,7 @@ describe('LogoutUseCase', () => {
       repository.seedRefreshToken(token2);
 
       // Act
-      const result = await useCase.execute({
-        userId: 'user-1',
-        refreshToken: 'refresh-token-1',
-      });
+      const result = await useCase.execute({ userId: 'user-1', refreshToken: 'refresh-token-1' });
 
       // Assert
       expect(result).toEqual({ success: true });
@@ -95,9 +90,7 @@ describe('LogoutUseCase', () => {
       repository.seedRefreshToken(token);
 
       // Act
-      const result = await useCase.execute({
-        userId: 'user-1',
-      });
+      const result = await useCase.execute({ userId: 'user-1' });
 
       // Assert
       expect(result).toEqual({ success: true });

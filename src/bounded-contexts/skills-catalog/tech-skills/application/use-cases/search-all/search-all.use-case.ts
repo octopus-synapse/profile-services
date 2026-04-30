@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
 import type { TechSkill } from '../../../dto/tech-skill.dto';
 import type { SearchLanguagesUseCase } from '../search-languages/search-languages.use-case';
@@ -7,6 +8,7 @@ export class SearchAllUseCase {
   constructor(
     private readonly searchLanguages: SearchLanguagesUseCase,
     private readonly searchSkills: SearchSkillsUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

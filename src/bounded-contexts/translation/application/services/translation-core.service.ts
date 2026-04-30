@@ -1,10 +1,13 @@
 /**
  * Core Translation Service
- * Handles basic translation operations using LibreTranslate
+ * Handles basic translation operations using LibreTranslate.
+ *
+ * Framework-free: takes the LibreTranslate URL as a constructor argument.
+ * The composition root reads `LIBRETRANSLATE_URL` from config and calls
+ * `checkServiceHealth()` once during bootstrap.
  */
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { LoggerPort } from '@/shared-kernel';
 import type {
   LanguageDetectionResult,
   SourceLanguage,
@@ -12,20 +15,16 @@ import type {
   TranslationResult,
 } from '../../domain/types/translation.types';
 
-@Injectable()
-export class TranslationCoreService implements OnModuleInit {
-  private readonly logger = new Logger(TranslationCoreService.name);
-  private readonly libreTranslateUrl: string;
+const CTX = 'TranslationCoreService';
+
+export class TranslationCoreService {
   private isServiceAvailable = false;
 
-  constructor(private readonly configService: ConfigService) {
-    const url = this.configService.get<string>('LIBRETRANSLATE_URL');
-    this.libreTranslateUrl = url ?? 'http://libretranslate:5000';
-    new URL(this.libreTranslateUrl);
-  }
-
-  async onModuleInit() {
-    await this.checkServiceHealth();
+  constructor(
+    private readonly libreTranslateUrl: string,
+    private readonly logger: LoggerPort,
+  ) {
+    new URL(libreTranslateUrl);
   }
 
   async checkServiceHealth(): Promise<boolean> {
@@ -36,12 +35,14 @@ export class TranslationCoreService implements OnModuleInit {
       this.isServiceAvailable = response.ok;
       this.logger.log(
         `LibreTranslate service is ${this.isServiceAvailable ? 'available' : 'unavailable'}`,
+        CTX,
       );
       return this.isServiceAvailable;
     } catch {
       this.isServiceAvailable = false;
       this.logger.warn(
         'LibreTranslate service is not available. Translation features will be disabled.',
+        CTX,
       );
       return false;
     }
@@ -57,7 +58,7 @@ export class TranslationCoreService implements OnModuleInit {
     }
 
     if (!this.isServiceAvailable) {
-      this.logger.warn('Translation service unavailable, returning original text');
+      this.logger.warn('Translation service unavailable, returning original text', CTX);
       return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
@@ -91,6 +92,8 @@ export class TranslationCoreService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        undefined,
+        CTX,
       );
       return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
@@ -110,6 +113,8 @@ export class TranslationCoreService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        undefined,
+        CTX,
       );
       return [];
     }

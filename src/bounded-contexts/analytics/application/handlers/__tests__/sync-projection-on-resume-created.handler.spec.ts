@@ -21,14 +21,13 @@ class StubAnalyticsProjection implements AnalyticsProjectionPort {
   }
 }
 
+import { stubLogger } from '@/shared-kernel/logger/testing';
+
 describe('SyncProjectionOnResumeCreatedHandler', () => {
   it('upserts analytics projection with correct data', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnResumeCreatedHandler(projection);
-    const event = new ResumeCreatedEvent('resume-1', {
-      userId: 'user-1',
-      title: 'My Resume',
-    });
+    const handler = new SyncProjectionOnResumeCreatedHandler(projection, stubLogger);
+    const event = new ResumeCreatedEvent('resume-1', { userId: 'user-1', title: 'My Resume' });
 
     await handler.handle(event);
 
@@ -40,7 +39,7 @@ describe('SyncProjectionOnResumeCreatedHandler', () => {
 
   it('uses event aggregateId as the projection id', async () => {
     const projection = new StubAnalyticsProjection();
-    const handler = new SyncProjectionOnResumeCreatedHandler(projection);
+    const handler = new SyncProjectionOnResumeCreatedHandler(projection, stubLogger);
     const event = new ResumeCreatedEvent('resume-abc', {
       userId: 'user-2',
       title: 'Another Resume',

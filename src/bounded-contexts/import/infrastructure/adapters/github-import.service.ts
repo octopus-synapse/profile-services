@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { graphql } from '@octokit/graphql';
-import { OAuthService } from '@/bounded-contexts/identity/oauth/services/oauth.service';
+import { GetOAuthAccessTokenUseCase } from '@/bounded-contexts/identity/oauth/application/use-cases/get-oauth-access-token/get-oauth-access-token.use-case';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
+import { GithubNotConnectedException } from '../../domain/exceptions/import.exceptions';
 
 type GithubViewer = {
   login: string;
@@ -79,19 +79,17 @@ export type GithubImportResult = {
   profileUpdated: boolean;
 };
 
-@Injectable()
 export class GithubImportService {
-  private readonly logger = new Logger(GithubImportService.name);
-
   constructor(
     private readonly prisma: PrismaService,
-    private readonly oauth: OAuthService,
+    private readonly getAccessToken: GetOAuthAccessTokenUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async import(userId: string): Promise<GithubImportResult> {
-    const token = await this.oauth.getAccessToken(userId, 'github');
+    const token = await this.getAccessToken.execute(userId, 'github');
     if (!token) {
-      throw new ConflictException('GITHUB_NOT_CONNECTED');
+      throw new GithubNotConnectedException();
     }
 
     const client = graphql.defaults({ headers: { authorization: `token ${token}` } });
@@ -124,6 +122,7 @@ export class GithubImportService {
 
     this.logger.log(
       `GitHub import for ${userId}: ${primaryStack.length} langs, ${buildPostsCreated} builds`,
+      'GithubImportService',
     );
     return { userId, primaryStack, buildPostsCreated, profileUpdated };
   }

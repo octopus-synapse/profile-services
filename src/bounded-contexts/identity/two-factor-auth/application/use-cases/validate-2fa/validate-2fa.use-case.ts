@@ -8,6 +8,7 @@
  */
 
 import * as crypto from 'node:crypto';
+import type { LoggerPort } from '@/shared-kernel';
 import type { HashServicePort } from '../../../domain/ports/hash-service.port';
 import type { TotpServicePort } from '../../../domain/ports/totp-service.port';
 import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
@@ -30,7 +31,8 @@ export class Validate2faUseCase implements Validate2faInboundPort {
     private readonly repository: TwoFactorRepositoryPort,
     private readonly totpService: TotpServicePort,
     private readonly hashService: HashServicePort,
-    private readonly cacheService?: CacheService,
+    private readonly cacheService: CacheService | undefined,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

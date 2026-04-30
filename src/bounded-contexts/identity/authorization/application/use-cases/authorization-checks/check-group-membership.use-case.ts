@@ -4,6 +4,7 @@
  * Checks if a user belongs to a group (by ID or name).
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import type { UserId } from '../../../domain/entities/user-auth-context.entity';
 import type { IGroupRepository } from '../../../domain/ports/authorization-repositories.port';
 import type { GetAuthContextUseCase } from './get-auth-context.use-case';
@@ -12,6 +13,7 @@ export class CheckGroupMembershipUseCase {
   constructor(
     private readonly getAuthContext: GetAuthContextUseCase,
     private readonly groupRepo: IGroupRepository,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: UserId, groupIdOrName: string): Promise<boolean> {

@@ -32,16 +32,12 @@ export abstract class SpokenLanguagesRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const SPOKEN_LANGUAGES_USE_CASES = Symbol('SPOKEN_LANGUAGES_USE_CASES');
-
-export interface SpokenLanguagesUseCases {
-  getActiveSpokenLanguagesUseCase: {
-    execute: () => Promise<SpokenLanguage[]>;
-  };
-  searchSpokenLanguagesUseCase: {
+export abstract class SpokenLanguagesUseCases {
+  abstract readonly getActiveSpokenLanguagesUseCase: { execute: () => Promise<SpokenLanguage[]> };
+  abstract readonly searchSpokenLanguagesUseCase: {
     execute: (query: string, limit?: number) => Promise<SpokenLanguage[]>;
   };
-  getSpokenLanguageByCodeUseCase: {
+  abstract readonly getSpokenLanguageByCodeUseCase: {
     execute: (code: string) => Promise<SpokenLanguage | null>;
   };
 }

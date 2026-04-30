@@ -1,2 +1,5 @@
-export { ChatGateway } from './chat.gateway';
-export { type AuthenticatedSocket, WsAuthGuard, type WsJwtPayload } from './ws-auth.guard';
+export {
+  type ChatHandlersDeps,
+  type ChatRealtimePort,
+  registerChatWebSocketHandlers,
+} from './chat-handlers';

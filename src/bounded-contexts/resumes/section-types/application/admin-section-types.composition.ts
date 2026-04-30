@@ -1,9 +1,9 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
+import type { BoundedContextComposition } from '@/shared-kernel/composition';
+import { adminSectionTypesRoutes } from '../admin-section-types.routes';
 import { AdminSectionTypesRepository } from '../infrastructure/repositories/admin-section-types.repository';
-import {
-  ADMIN_SECTION_TYPES_USE_CASES,
-  type AdminSectionTypesUseCases,
-} from './ports/admin-section-types.port';
+import { AdminSectionTypesUseCases } from './ports/admin-section-types.port';
 import { CreateSectionTypeUseCase } from './use-cases/create-section-type/create-section-type.use-case';
 import { DeleteSectionTypeUseCase } from './use-cases/delete-section-type/delete-section-type.use-case';
 import { GetSectionTypeUseCase } from './use-cases/get-section-type/get-section-type.use-case';
@@ -11,10 +11,13 @@ import { GetSemanticKindsUseCase } from './use-cases/get-semantic-kinds/get-sema
 import { ListSectionTypesAdminUseCase } from './use-cases/list-section-types-admin/list-section-types-admin.use-case';
 import { UpdateSectionTypeUseCase } from './use-cases/update-section-type/update-section-type.use-case';
 
-export { ADMIN_SECTION_TYPES_USE_CASES };
+export { AdminSectionTypesUseCases };
 
-export function buildAdminSectionTypesUseCases(prisma: PrismaService): AdminSectionTypesUseCases {
-  const repository = new AdminSectionTypesRepository(prisma);
+export function buildAdminSectionTypesUseCases(
+  prisma: PrismaService,
+  logger: LoggerPort,
+): AdminSectionTypesUseCases {
+  const repository = new AdminSectionTypesRepository(prisma, logger);
 
   return {
     listSectionTypesAdminUseCase: new ListSectionTypesAdminUseCase(repository),
@@ -23,5 +26,20 @@ export function buildAdminSectionTypesUseCases(prisma: PrismaService): AdminSect
     updateSectionTypeUseCase: new UpdateSectionTypeUseCase(repository),
     deleteSectionTypeUseCase: new DeleteSectionTypeUseCase(repository),
     getSemanticKindsUseCase: new GetSemanticKindsUseCase(repository),
+  };
+}
+
+/**
+ * Build the framework-free composition for the resumes/section-types
+ * BC. Exposes the canonical `{ useCases, routes }` shape consumed by
+ * both the Elysia bootstrap and the Nest module shell.
+ */
+export function buildAdminSectionTypesComposition(
+  prisma: PrismaService,
+  logger: LoggerPort,
+): BoundedContextComposition<AdminSectionTypesUseCases> {
+  return {
+    useCases: buildAdminSectionTypesUseCases(prisma, logger),
+    routes: adminSectionTypesRoutes,
   };
 }

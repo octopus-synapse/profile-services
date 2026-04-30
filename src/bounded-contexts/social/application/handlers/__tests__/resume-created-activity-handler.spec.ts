@@ -9,6 +9,8 @@ const idempotency = {
   once: <T>(_key: string, fn: () => Promise<T>) => fn(),
 } as unknown as IdempotencyService;
 
+import { stubLogger } from '@/shared-kernel/logger/testing';
+
 class StubActivityCreator extends ActivityCreatorPort {
   createActivity = mock(
     async (
@@ -35,14 +37,11 @@ describe('ResumeCreatedActivityHandler', () => {
 
   beforeEach(() => {
     activityCreator = new StubActivityCreator();
-    handler = new ResumeCreatedActivityHandler(activityCreator, idempotency);
+    handler = new ResumeCreatedActivityHandler(activityCreator, idempotency, stubLogger);
   });
 
   it('creates activity with RESUME_CREATED type', async () => {
-    const event = new ResumeCreatedEvent('resume-123', {
-      userId: 'user-1',
-      title: 'Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-123', { userId: 'user-1', title: 'Resume' });
 
     await handler.handle(event);
 
@@ -56,10 +55,7 @@ describe('ResumeCreatedActivityHandler', () => {
   });
 
   it('creates activity with correct userId', async () => {
-    const event = new ResumeCreatedEvent('resume-123', {
-      userId: 'user-abc',
-      title: 'Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-123', { userId: 'user-abc', title: 'Resume' });
 
     await handler.handle(event);
 
@@ -67,10 +63,7 @@ describe('ResumeCreatedActivityHandler', () => {
   });
 
   it('creates activity with resumeId as entityId', async () => {
-    const event = new ResumeCreatedEvent('resume-xyz', {
-      userId: 'user-1',
-      title: 'Resume',
-    });
+    const event = new ResumeCreatedEvent('resume-xyz', { userId: 'user-1', title: 'Resume' });
 
     await handler.handle(event);
 

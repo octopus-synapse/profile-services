@@ -1,100 +1,53 @@
 /**
- * E2E Test Setup
+ * Compat layer for migrated e2e suites.
  *
- * Creates and configures NestJS application for E2E testing
+ * Exposes `createE2ETestApp()` returning the same shape the legacy
+ * `_legacy/e2e/setup.ts` returned (`{ app, authHelper, cleanupHelper,
+ * prisma }`), but `app` is now the `TestApp` harness — a fetch-based
+ * supertest-shape wrapper around the production Elysia bootstrap.
+ *
+ * Migrated journey suites keep `import { createE2ETestApp } from '../setup'`
+ * unchanged. Inside, `app.request.post(...).send(...)` replaces
+ * `request(app.getHttpServer()).post(...).send(...)` — the chainable
+ * surface is identical.
  */
 
 import { setDefaultTimeout } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '@/app.module';
-import {
-  configureExceptionHandling,
-  configureValidation,
-} from '@/bounded-contexts/platform/common/config/validation.config';
-import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/client';
+import { startTestApp, type TestApp } from '../shared';
 import { AuthHelper } from './helpers/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
 
-/**
- * Mock EmailSenderService for E2E tests
- * Prevents actual email sending and SendGrid dependency
- */
-class MockEmailSenderService {
-  async sendEmail(): Promise<void> {
-    // No-op: Don't actually send emails in E2E tests
-    return Promise.resolve();
-  }
-
-  async sendTemplatedEmail(): Promise<void> {
-    // No-op: Don't actually send emails in E2E tests
-    return Promise.resolve();
-  }
-}
-
 setDefaultTimeout(15000);
 
-let appInstance: INestApplication | null = null;
-let authHelperInstance: AuthHelper | null = null;
-let cleanupHelperInstance: CleanupHelper | null = null;
-let prismaInstance: PrismaService | null = null;
+// AuthHelper / CleanupHelper hold a Prisma reference. When a spec
+// calls `stopTestApp()` the shared module nulls its TestApp cache;
+// the next `createE2ETestApp()` will get a fresh TestApp (with a
+// fresh Prisma) and we have to rebuild the helpers — caching by
+// (app instance) identity ensures we never hand back a helper bound
+// to a closed Prisma client.
+let cachedAppRef: TestApp | null = null;
+let cachedAuth: AuthHelper | null = null;
+let cachedCleanup: CleanupHelper | null = null;
 
-export async function createE2ETestApp(): Promise<{
-  app: INestApplication;
-  authHelper: AuthHelper;
-  cleanupHelper: CleanupHelper;
-  prisma: PrismaService;
-}> {
-  if (appInstance && authHelperInstance && cleanupHelperInstance && prismaInstance) {
-    return {
-      app: appInstance,
-      authHelper: authHelperInstance,
-      cleanupHelper: cleanupHelperInstance,
-      prisma: prismaInstance,
-    };
+export interface E2ETestContext {
+  readonly app: TestApp;
+  readonly authHelper: AuthHelper;
+  readonly cleanupHelper: CleanupHelper;
+  readonly prisma: PrismaClient;
+}
+
+export async function createE2ETestApp(): Promise<E2ETestContext> {
+  const app = await startTestApp();
+  if (cachedAppRef !== app) {
+    cachedAppRef = app;
+    cachedAuth = new AuthHelper(app, app.prisma);
+    cachedCleanup = new CleanupHelper(app.prisma);
   }
-
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
-  })
-    .overrideProvider(EmailSenderService)
-    .useClass(MockEmailSenderService)
-    .compile();
-
-  const app = moduleFixture.createNestApplication();
-  app.setGlobalPrefix('api');
-
-  // Cookie parser for session-based auth testing — uses lightweight built-in middleware
-  app.use(
-    (
-      req: { cookies?: Record<string, string>; headers: { cookie?: string } },
-      _res: unknown,
-      next: () => void,
-    ) => {
-      req.cookies ??= parseCookieHeader(req.headers.cookie);
-      next();
-    },
-  );
-
-  // Apply same configuration as main.ts
-  const logger = app.get(AppLoggerService);
-  configureValidation(app);
-  configureExceptionHandling(app, logger);
-
-  await app.init();
-
-  const prisma = app.get(PrismaService);
-  const authHelper = new AuthHelper(app, prisma);
-  const cleanupHelper = new CleanupHelper(prisma);
-
-  app.close = async () => undefined;
-  appInstance = app;
-  prismaInstance = prisma;
-  authHelperInstance = authHelper;
-  cleanupHelperInstance = cleanupHelper;
-
-  return { app, authHelper, cleanupHelper, prisma };
+  return {
+    app,
+    authHelper: cachedAuth as AuthHelper,
+    cleanupHelper: cachedCleanup as CleanupHelper,
+    prisma: app.prisma,
+  };
 }

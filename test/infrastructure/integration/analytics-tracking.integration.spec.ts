@@ -50,7 +50,6 @@ describe('Analytics Tracking Integration', () => {
         title: 'Analytics Integration Test Resume',
         summary: 'A well-crafted resume for analytics testing.',
         jobTitle: 'Senior Software Engineer',
-        emailContact: 'test@example.com',
         contentPtBr: { sections: [] },
       },
     });

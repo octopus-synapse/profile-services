@@ -12,10 +12,7 @@ import {
   type SectionTypeDto,
 } from '../services/generic-resume-sections/ports/generic-resume-sections-repository.port';
 
-type ResumeEntity = {
-  id: string;
-  userId: string;
-};
+type ResumeEntity = { id: string; userId: string };
 
 export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectionsRepositoryPort {
   private sectionTypes = new Map<string, SectionTypeDto>();
@@ -59,12 +56,9 @@ export class InMemoryGenericResumeSectionsRepository extends GenericResumeSectio
       .sort((a, b) => a.order - b.order);
   }
 
-  async findActiveSectionTypeByKey(sectionTypeKey: string): Promise<{
-    id: string;
-    key: string;
-    maxItems: number | null;
-    definition: unknown;
-  } | null> {
+  async findActiveSectionTypeByKey(
+    sectionTypeKey: string,
+  ): Promise<{ id: string; key: string; maxItems: number | null; definition: unknown } | null> {
     const sectionType = Array.from(this.sectionTypes.values()).find(
       (st) => st.key === sectionTypeKey && st.isActive,
     );

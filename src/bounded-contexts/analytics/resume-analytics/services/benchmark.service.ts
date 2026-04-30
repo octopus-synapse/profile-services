@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { BenchmarkRepositoryPort } from '../application/ports/resume-analytics.port';
 import type {
   BenchmarkRecommendation,
@@ -8,7 +7,6 @@ import type {
   TopPerformersProfile,
 } from '../interfaces';
 
-@Injectable()
 export class BenchmarkService {
   constructor(private readonly repository: BenchmarkRepositoryPort) {}
 

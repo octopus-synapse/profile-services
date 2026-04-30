@@ -8,36 +8,16 @@
 import type { CreatePermissionInput } from '../../domain/entities/permission.entity';
 
 export const AUDIT_LOG_PERMISSIONS: CreatePermissionInput[] = [
-  {
-    resource: 'audit_log',
-    action: 'read',
-    description: 'View audit logs',
-    isSystem: true,
-  },
-  {
-    resource: 'audit_log',
-    action: 'list',
-    description: 'List audit logs',
-    isSystem: true,
-  },
+  { resource: 'audit_log', action: 'read', description: 'View audit logs', isSystem: true },
+  { resource: 'audit_log', action: 'list', description: 'List audit logs', isSystem: true },
 ];
 
 export const ANALYTICS_PERMISSIONS: CreatePermissionInput[] = [
-  {
-    resource: 'analytics',
-    action: 'read',
-    description: 'View analytics',
-    isSystem: true,
-  },
+  { resource: 'analytics', action: 'read', description: 'View analytics', isSystem: true },
 ];
 
 export const STATS_PERMISSIONS: CreatePermissionInput[] = [
-  {
-    resource: 'stats',
-    action: 'read',
-    description: 'View platform statistics',
-    isSystem: true,
-  },
+  { resource: 'stats', action: 'read', description: 'View platform statistics', isSystem: true },
   {
     resource: 'stats',
     action: 'manage',
@@ -47,18 +27,8 @@ export const STATS_PERMISSIONS: CreatePermissionInput[] = [
 ];
 
 export const SETTINGS_PERMISSIONS: CreatePermissionInput[] = [
-  {
-    resource: 'settings',
-    action: 'read',
-    description: 'View system settings',
-    isSystem: true,
-  },
-  {
-    resource: 'settings',
-    action: 'update',
-    description: 'Update system settings',
-    isSystem: true,
-  },
+  { resource: 'settings', action: 'read', description: 'View system settings', isSystem: true },
+  { resource: 'settings', action: 'update', description: 'Update system settings', isSystem: true },
   {
     resource: 'settings',
     action: 'manage',
@@ -74,12 +44,7 @@ export const COLLABORATION_PERMISSIONS: CreatePermissionInput[] = [
     description: 'Create collaborations',
     isSystem: true,
   },
-  {
-    resource: 'collaboration',
-    action: 'read',
-    description: 'View collaborations',
-    isSystem: true,
-  },
+  { resource: 'collaboration', action: 'read', description: 'View collaborations', isSystem: true },
   {
     resource: 'collaboration',
     action: 'update',

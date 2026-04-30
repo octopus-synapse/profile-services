@@ -16,19 +16,14 @@ export type TransactionClient = unknown;
 // Domain Types
 // ============================================================================
 
-export type OnboardingCompletionResult = {
-  resumeId: string;
-};
+export type OnboardingCompletionResult = { resumeId: string };
 
 export type OnboardingStatus = {
   hasCompletedOnboarding: boolean;
   onboardingCompletedAt: Date | null;
 };
 
-export type UserForOnboarding = {
-  id: string;
-  hasCompletedOnboarding: boolean;
-};
+export type UserForOnboarding = { id: string; hasCompletedOnboarding: boolean };
 
 // ============================================================================
 // Repository Port (Abstraction)
@@ -55,37 +50,35 @@ export abstract class OnboardingRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const ONBOARDING_USE_CASES = Symbol('ONBOARDING_USE_CASES');
-
-export interface OnboardingUseCases {
-  completeOnboardingUseCase: {
+export abstract class OnboardingUseCases {
+  abstract readonly completeOnboardingUseCase: {
     execute: (userId: string, data: unknown) => Promise<OnboardingCompletionResult>;
   };
-  completeOnboardingFromProgressUseCase: {
+  abstract readonly completeOnboardingFromProgressUseCase: {
     execute: (userId: string) => Promise<OnboardingCompletionResult>;
   };
-  getOnboardingStatusUseCase: {
+  abstract readonly getOnboardingStatusUseCase: {
     execute: (userId: string) => Promise<OnboardingStatus>;
   };
-  advanceOnboardingStepUseCase: {
+  abstract readonly advanceOnboardingStepUseCase: {
     execute: (
       userId: string,
       stepData?: Record<string, unknown>,
     ) => Promise<OnboardingProgressData>;
   };
-  goBackOnboardingStepUseCase: {
+  abstract readonly goBackOnboardingStepUseCase: {
     execute: (userId: string) => Promise<OnboardingProgressData>;
   };
-  gotoOnboardingStepUseCase: {
+  abstract readonly gotoOnboardingStepUseCase: {
     execute: (userId: string, stepId: string) => Promise<OnboardingProgressData>;
   };
-  saveOnboardingStepDataUseCase: {
+  abstract readonly saveOnboardingStepDataUseCase: {
     execute: (userId: string, stepData: Record<string, unknown>) => Promise<OnboardingProgressData>;
   };
-  getSectionTypeDefinitionsUseCase: {
+  abstract readonly getSectionTypeDefinitionsUseCase: {
     execute: (locale?: string) => Promise<SectionTypeData[]>;
   };
-  restartOnboardingUseCase: {
+  abstract readonly restartOnboardingUseCase: {
     execute: (userId: string, steps: OnboardingStepConfig[]) => Promise<{ success: boolean }>;
   };
 }

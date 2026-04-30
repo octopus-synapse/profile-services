@@ -16,11 +16,7 @@ export type ShareEntity = {
 };
 
 export type ShareWithResume = ShareEntity & {
-  resume: {
-    id: string;
-    userId: string;
-    [key: string]: unknown;
-  };
+  resume: { id: string; userId: string; [key: string]: unknown };
 };
 
 export abstract class ShareRepositoryPort {

@@ -109,8 +109,8 @@ export const BOUNDED_CONTEXTS = [
   'analytics',
   'platform',
   'dsl',
-  'ats-validation',
   'translation',
+  'resume-styles',
 ];
 
 // ============================================================================

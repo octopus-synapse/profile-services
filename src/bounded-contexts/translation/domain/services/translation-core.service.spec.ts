@@ -11,6 +11,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TranslationCoreService } from './translation-core.service';
 
 function mockFetchResponse(data: unknown, status = 200): Response {
@@ -26,8 +27,7 @@ describe('TranslationCoreService', () => {
 
   beforeEach(() => {
     fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(mockFetchResponse({}));
-    const noopLogger = { log: () => {}, warn: () => {}, error: () => {} };
-    service = new TranslationCoreService(noopLogger, 'http://localhost:5000');
+    service = new TranslationCoreService(stubLogger, 'http://localhost:5000');
   });
 
   afterEach(() => {

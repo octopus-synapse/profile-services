@@ -74,9 +74,5 @@ export const createPuppeteerMocks = () => {
   const mockBrowser = createMockBrowser(mockPage);
   const mockElementHandle = createMockElementHandle();
 
-  return {
-    mockPage,
-    mockBrowser,
-    mockElementHandle,
-  };
+  return { mockPage, mockBrowser, mockElementHandle };
 };

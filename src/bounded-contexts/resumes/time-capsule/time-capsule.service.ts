@@ -7,22 +7,23 @@
  * ResumeTimeCapsuleLog.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { buildTimeCapsuleEmail, diffSnapshots } from './build-time-capsule-email';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const YEAR_MS = 365 * MS_PER_DAY;
 const WINDOW_DAYS = 30; // snapshot must exist within ±30 days of "a year ago"
 
-@Injectable()
+/**
+ * Framework-free POJO. Wired by `time-capsule.composition.ts`.
+ */
 export class TimeCapsuleService {
-  private readonly logger = new Logger(TimeCapsuleService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly email: EmailService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async sendAnniversaries(now: Date = new Date()): Promise<{ sent: number; checked: number }> {
@@ -103,6 +104,8 @@ export class TimeCapsuleService {
       } catch (err) {
         this.logger.error(
           `Time capsule failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+          undefined,
+          'TimeCapsuleService',
         );
       }
     }

@@ -29,9 +29,7 @@ describe('GenericResumeSectionsService', () => {
         definition: {
           schemaVersion: 1,
           kind: 'SUMMARY',
-          constraints: {
-            maxItems: 1,
-          },
+          constraints: { maxItems: 1 },
           fields: [{ key: 'text', type: 'string', required: true }],
         },
       });
@@ -62,9 +60,7 @@ describe('GenericResumeSectionsService', () => {
         definition: {
           schemaVersion: 1,
           kind: 'SUMMARY',
-          constraints: {
-            allowsMultipleItems: false,
-          },
+          constraints: { allowsMultipleItems: false },
           fields: [{ key: 'text', type: 'string', required: true }],
         },
       });
@@ -80,9 +76,7 @@ describe('GenericResumeSectionsService', () => {
       });
 
       await expect(
-        service.createItem('resume-1', 'summary_v1', 'user-1', {
-          text: 'Another summary',
-        }),
+        service.createItem('resume-1', 'summary_v1', 'user-1', { text: 'Another summary' }),
       ).rejects.toThrow(ValidationException);
     });
 
@@ -124,9 +118,7 @@ describe('GenericResumeSectionsService', () => {
       });
 
       await expect(
-        service.createItem('resume-1', 'work_experience_v1', 'user-1', {
-          company: 'Octopus',
-        }),
+        service.createItem('resume-1', 'work_experience_v1', 'user-1', { company: 'Octopus' }),
       ).rejects.toThrow(ValidationException);
     });
 
@@ -151,10 +143,7 @@ describe('GenericResumeSectionsService', () => {
         position: 'Senior Engineer',
       });
 
-      expect(created.content).toEqual({
-        company: 'Octopus',
-        position: 'Senior Engineer',
-      });
+      expect(created.content).toEqual({ company: 'Octopus', position: 'Senior Engineer' });
     });
   });
 
@@ -225,9 +214,7 @@ describe('GenericResumeSectionsService', () => {
       });
 
       await expect(
-        service.updateItem('resume-1', 'summary_v1', 'item-missing', 'user-1', {
-          text: 'updated',
-        }),
+        service.updateItem('resume-1', 'summary_v1', 'item-missing', 'user-1', { text: 'updated' }),
       ).rejects.toThrow(EntityNotFoundException);
     });
 
@@ -346,12 +333,7 @@ describe('GenericResumeSectionsService', () => {
 
   describe('listSectionTypes', () => {
     it('returns only active section types', async () => {
-      repository.seedSectionType({
-        id: 'st-1',
-        key: 'active_v1',
-        title: 'Active',
-        isActive: true,
-      });
+      repository.seedSectionType({ id: 'st-1', key: 'active_v1', title: 'Active', isActive: true });
       repository.seedSectionType({
         id: 'st-2',
         key: 'inactive_v1',

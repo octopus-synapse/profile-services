@@ -11,23 +11,21 @@ import type {
   TranslationResult,
 } from '../types/translation.types';
 
-export interface TranslationPort {
-  translate(
+export abstract class TranslationPort {
+  abstract translate(
     text: string,
     sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult>;
 
-  translateBatch(
+  abstract translateBatch(
     texts: string[],
     sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult>;
 
-  detectLanguage?(text: string): Promise<LanguageDetectionResult[]>;
+  abstract detectLanguage?(text: string): Promise<LanguageDetectionResult[]>;
 
-  checkServiceHealth(): Promise<boolean>;
-  isAvailable(): boolean;
+  abstract checkServiceHealth(): Promise<boolean>;
+  abstract isAvailable(): boolean;
 }
-
-export const TRANSLATION_PORT = Symbol('TranslationPort');

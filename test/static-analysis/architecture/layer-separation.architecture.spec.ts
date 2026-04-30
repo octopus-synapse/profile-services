@@ -59,7 +59,7 @@ function hasReturnedEnvelopeVariable(content: string): boolean {
   for (const match of returnVarMatches) {
     const variableName = match[1];
     const declarationRegex = new RegExp(
-      `(?:const|let)\\s+${variableName}\\s*=\\s*\\{([\\s\\S]*?)\\};`,
+      `(?:const|let)\\s+${variableName}\\s*=\\s*\\{ ([\\s\\S]*?)\\ };`,
       'm',
     );
     const declarationMatch = content.match(declarationRegex);
@@ -103,12 +103,12 @@ describe('Architecture - Layer Separation', () => {
         }
 
         // Services MUST NOT return envelope objects with 'success' field
-        if (/return\s*\{[^}]*\bsuccess\s*:/s.test(content)) {
+        if (/return\s*\{ [^ }]*\bsuccess\s*:/s.test(content)) {
           violations.push(`${filePath}: service returns envelope-like object with success field`);
         }
 
         // Check for direct return of envelope-like objects
-        const directReturnObjectMatches = [...content.matchAll(/return\s*\{([\s\S]*?)\};/g)];
+        const directReturnObjectMatches = [...content.matchAll(/return\s*\{ ([\s\S]*?) };/g)];
 
         if (directReturnObjectMatches.some((match) => isEnvelopeLikeObject(match[1]))) {
           violations.push(

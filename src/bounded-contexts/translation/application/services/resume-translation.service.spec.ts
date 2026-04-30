@@ -10,31 +10,20 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeTranslationService } from './resume-translation.service';
-import { TranslationCoreService } from './translation-core.service';
+import type { TranslationCoreService } from './translation-core.service';
 
 describe('ResumeTranslationService', () => {
   let service: ResumeTranslationService;
-  let fakeCoreService: {
-    translate: ReturnType<typeof mock>;
-  };
+  let fakeCoreService: { translate: ReturnType<typeof mock> };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fakeCoreService = {
       translate: mock((text: string) =>
         Promise.resolve({ original: text, translated: `[EN] ${text}` }),
       ),
     };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumeTranslationService,
-        { provide: TranslationCoreService, useValue: fakeCoreService },
-      ],
-    }).compile();
-
-    service = module.get<ResumeTranslationService>(ResumeTranslationService);
+    service = new ResumeTranslationService(fakeCoreService as unknown as TranslationCoreService);
   });
 
   describe('translateToEnglish', () => {
@@ -98,10 +87,7 @@ describe('ResumeTranslationService', () => {
   describe('nested objects', () => {
     it('should translate nested object fields', async () => {
       const resume = {
-        experience: {
-          title: 'Senior Developer',
-          description: 'Led team of 5',
-        },
+        experience: { title: 'Senior Developer', description: 'Led team of 5' },
       };
 
       const result = await service.translateToEnglish(resume);

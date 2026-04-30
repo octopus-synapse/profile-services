@@ -21,6 +21,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+// @ts-expect-error — `glob` ships its own types; lost during nest cleanup.
 import { glob } from 'glob';
 
 interface RouteValidation {

@@ -26,8 +26,6 @@ export class UserDeletedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      reason: this.payload.reason,
-    };
+    return { reason: this.payload.reason };
   }
 }

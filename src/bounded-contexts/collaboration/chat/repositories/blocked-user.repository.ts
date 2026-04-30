@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
-@Injectable()
 export class BlockedUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -13,23 +11,11 @@ export class BlockedUserRepository {
       where: {
         blockerId_blockedId: { blockerId, blockedId },
       },
-      create: {
-        blockerId,
-        blockedId,
-        reason,
-      },
-      update: {
-        reason,
-        createdAt: new Date(),
-      },
+      create: { blockerId, blockedId, reason },
+      update: { reason, createdAt: new Date() },
       include: {
         blocked: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -82,12 +68,7 @@ export class BlockedUserRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         blocked: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });

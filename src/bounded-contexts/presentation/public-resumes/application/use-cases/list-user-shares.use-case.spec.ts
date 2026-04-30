@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
   type ShareEntity,
@@ -79,7 +80,7 @@ describe('ListUserSharesUseCase', () => {
   beforeEach(() => {
     shareRepo = new StubShareRepository();
     resumeRepo = new StubResumeReadRepository();
-    useCase = new ListUserSharesUseCase(shareRepo, resumeRepo);
+    useCase = new ListUserSharesUseCase(shareRepo, resumeRepo, stubLogger);
   });
 
   it('should return all shares for a resume owned by the user', async () => {
@@ -97,16 +98,16 @@ describe('ListUserSharesUseCase', () => {
     expect(result).toHaveLength(0);
   });
 
-  it('should throw EntityNotFoundException when resume does not exist', async () => {
+  it('should throw ResumeNotFoundException when resume does not exist', async () => {
     resumeRepo.findById = mock(async () => null);
 
-    await expect(useCase.execute(userId, resumeId)).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute(userId, resumeId)).rejects.toThrow(ResumeNotFoundException);
   });
 
-  it('should throw ForbiddenException when user does not own the resume', async () => {
+  it('should throw ResumeAccessDeniedException when user does not own the resume', async () => {
     resumeRepo.findById = mock(async () => ({ id: resumeId, userId: 'other-user' }));
 
-    await expect(useCase.execute(userId, resumeId)).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute(userId, resumeId)).rejects.toThrow(ResumeAccessDeniedException);
   });
 
   it('should not call findByResumeId when resume is not found', async () => {

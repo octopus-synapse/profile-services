@@ -1,8 +1,6 @@
 import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
 import type { CollaboratorWithUser, SharedResume } from '../types/collaboration.types';
 
-export const COLLABORATION_REPOSITORY = Symbol('CollaborationRepository');
-
 export abstract class CollaborationRepositoryPort {
   abstract findResumeOwner(resumeId: string): Promise<{ userId: string } | null>;
   abstract findCollaborator(

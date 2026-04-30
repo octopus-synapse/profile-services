@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeShareAccessDeniedException,
+  ShareNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import {
   type ShareEntity,
   ShareRepositoryPort,
@@ -70,19 +70,21 @@ describe('DeleteShareUseCase', () => {
     expect(shareRepo.delete).toHaveBeenCalledWith(shareId);
   });
 
-  it('should throw EntityNotFoundException when share does not exist', async () => {
+  it('should throw ShareNotFoundException when share does not exist', async () => {
     shareRepo.findByIdWithResume = mock(async () => null);
 
-    await expect(useCase.execute(userId, shareId)).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute(userId, shareId)).rejects.toThrow(ShareNotFoundException);
   });
 
-  it('should throw ForbiddenException when user does not own the share', async () => {
+  it('should throw ResumeShareAccessDeniedException when user does not own the share', async () => {
     shareRepo.findByIdWithResume = mock(async () => ({
       ...makeShare(),
       resume: { userId: 'other-user' },
     }));
 
-    await expect(useCase.execute(userId, shareId)).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute(userId, shareId)).rejects.toThrow(
+      ResumeShareAccessDeniedException,
+    );
   });
 
   it('should not call delete when share is not found', async () => {

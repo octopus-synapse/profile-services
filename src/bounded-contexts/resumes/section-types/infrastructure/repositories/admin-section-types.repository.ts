@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import { searchWhere } from '@/shared-kernel/database';
 import {
   AdminSectionTypesRepositoryPort,
@@ -10,7 +11,10 @@ import {
 } from '../../application/ports/admin-section-types.port';
 
 export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -48,9 +52,7 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
   }
 
   async create(data: CreateSectionTypeData): Promise<SectionTypeRecord> {
-    return this.prisma.sectionType.create({
-      data: data as Prisma.SectionTypeCreateInput,
-    });
+    return this.prisma.sectionType.create({ data: data as Prisma.SectionTypeCreateInput });
   }
 
   async update(key: string, data: UpdateSectionTypeData): Promise<SectionTypeRecord> {

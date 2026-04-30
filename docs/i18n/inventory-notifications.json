@@ -1,0 +1,174 @@
+{
+  "summary": {
+    "typeCount": 11
+  },
+  "types": {
+    "POST_LIKED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 31
+        },
+        {
+          "file": "src/bounded-contexts/feed/services/engagement.service.ts",
+          "line": 85
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 182
+        }
+      ]
+    },
+    "POST_COMMENTED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 38
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 183
+        }
+      ]
+    },
+    "POST_REPOSTED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 45
+        },
+        {
+          "file": "src/bounded-contexts/feed/services/engagement.service.ts",
+          "line": 238
+        },
+        {
+          "file": "src/bounded-contexts/feed/services/engagement.service.ts",
+          "line": 256
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 184
+        }
+      ]
+    },
+    "POST_BOOKMARKED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 52
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 185
+        }
+      ]
+    },
+    "COMMENT_REPLIED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 59
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 186
+        }
+      ]
+    },
+    "CONNECTION_REQUEST": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 66
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 187
+        }
+      ]
+    },
+    "CONNECTION_ACCEPTED": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 73
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 188
+        }
+      ]
+    },
+    "FOLLOW_NEW": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 80
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 189
+        }
+      ]
+    },
+    "SKILL_DECAY": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/social/services/skill-decay.service.ts",
+          "line": 77
+        },
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 87
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 190
+        }
+      ]
+    },
+    "APPLICATION_STALE": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 97
+        },
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/me-dashboard.service.ts",
+          "line": 66
+        },
+        {
+          "file": "src/bounded-contexts/jobs/tracker/anti-ghosting.service.ts",
+          "line": 109
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 191
+        }
+      ]
+    },
+    "CONNECTION_RECOMMENDATION": {
+      "paramsFound": [],
+      "sources": [
+        {
+          "file": "src/bounded-contexts/platform/ui-metadata/services/enum-catalog.ts",
+          "line": 107
+        },
+        {
+          "file": "src/bounded-contexts/notifications/services/notification.service.ts",
+          "line": 192
+        }
+      ]
+    }
+  }
+}

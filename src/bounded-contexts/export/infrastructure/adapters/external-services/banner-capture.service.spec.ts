@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ConfigService } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { ConfigPort } from '@/shared-kernel/config';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   createMockBrowser,
   createMockElementHandle,
@@ -11,12 +11,11 @@ import {
 } from '../../__mocks__/puppeteer.mock';
 import { DEFAULT, TIMEOUT, VIEWPORT } from '../../constants/ui.constants';
 import { BannerCaptureService } from './banner-capture.service';
-import { BrowserManagerService } from './browser-manager.service';
+import type { BrowserManagerService } from './browser-manager.service';
 
 describe('BannerCaptureService', () => {
   let service: BannerCaptureService;
-  let browserManagerService: BrowserManagerService;
-  let _configService: ConfigService;
+  let browserManagerService: { getBrowser: ReturnType<typeof mock> };
   let configGetMock: ReturnType<typeof mock>;
   let mockPage: MockPage;
   let mockBrowser: MockBrowser;
@@ -36,7 +35,7 @@ describe('BannerCaptureService', () => {
     console.warn = originalConsoleWarn;
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockPage = createMockPage();
     mockBrowser = createMockBrowser(mockPage);
     mockElementHandle = createMockElementHandle();
@@ -49,27 +48,12 @@ describe('BannerCaptureService', () => {
     // Setup page.$ to return element handle for #banner
     mockPage.$.mockResolvedValue(mockElementHandle);
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        BannerCaptureService,
-        {
-          provide: BrowserManagerService,
-          useValue: {
-            getBrowser: mock().mockResolvedValue(mockBrowser),
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: configGetMock,
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<BannerCaptureService>(BannerCaptureService);
-    browserManagerService = module.get(BrowserManagerService);
-    _configService = module.get(ConfigService);
+    browserManagerService = { getBrowser: mock().mockResolvedValue(mockBrowser) };
+    service = new BannerCaptureService(
+      browserManagerService as unknown as BrowserManagerService,
+      { get: configGetMock } as unknown as ConfigPort,
+      stubLogger,
+    );
   });
 
   afterEach(() => {});
@@ -87,10 +71,7 @@ describe('BannerCaptureService', () => {
       });
       expect(mockPage.goto).toHaveBeenCalledWith(
         expect.stringContaining(`palette=${encodeURIComponent(DEFAULT.PALETTE)}`),
-        expect.objectContaining({
-          waitUntil: 'domcontentloaded',
-          timeout: TIMEOUT.PAGE_LOAD,
-        }),
+        expect.objectContaining({ waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD }),
       );
       expect(mockPage.close).toHaveBeenCalledTimes(1);
       expect(result).toBeInstanceOf(Buffer);

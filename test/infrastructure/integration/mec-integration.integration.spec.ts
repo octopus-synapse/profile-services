@@ -16,22 +16,21 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import { type TestApp } from '../shared';
 import { getApp } from './setup';
 
 const describeIntegration =
   process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION ? describe : describe.skip;
 
 describeIntegration('MEC Integration', () => {
-  let app: INestApplication;
+  let app: TestApp; // was INestApplication
   let hasMecData = false;
 
   beforeAll(async () => {
     app = await getApp();
 
     // Check if MEC data exists by fetching stats
-    const statsRes = await request(app.getHttpServer()).get('/api/v1/mec/stats');
+    const statsRes = await app.request.get('/api/v1/mec/stats');
     if (statsRes.status === 200 && statsRes.body.data?.stats) {
       const stats = statsRes.body.data.stats;
       hasMecData = (stats.totalInstitutions > 0 || stats.totalCourses > 0) ?? false;
@@ -42,7 +41,7 @@ describeIntegration('MEC Integration', () => {
 
   describe('GET /api/v1/mec/stats', () => {
     it('should return MEC statistics', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/mec/stats').expect(200);
+      const res = await app.request.get('/api/v1/mec/stats').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.stats).toBeDefined();
@@ -59,7 +58,7 @@ describeIntegration('MEC Integration', () => {
 
   describe('GET /api/v1/mec/ufs', () => {
     it('should return list of Brazilian states', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/mec/ufs').expect(200);
+      const res = await app.request.get('/api/v1/mec/ufs').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.states).toBeDefined();
@@ -83,7 +82,7 @@ describeIntegration('MEC Integration', () => {
 
   describe('GET /api/v1/mec/areas', () => {
     it('should return knowledge areas', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/mec/areas').expect(200);
+      const res = await app.request.get('/api/v1/mec/areas').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data.areas).toBeDefined();
@@ -104,7 +103,7 @@ describeIntegration('MEC Integration', () => {
         return;
       }
 
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/mec/institutions/search?q=universidade')
         .expect(200);
 
@@ -115,7 +114,7 @@ describeIntegration('MEC Integration', () => {
     it('should search with special characters (Sao Paulo)', async () => {
       if (!hasMecData) return;
 
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/mec/institutions/search?q=${encodeURIComponent('São Paulo')}`)
         .expect(200);
 
@@ -126,7 +125,7 @@ describeIntegration('MEC Integration', () => {
     it('should respect limit parameter', async () => {
       if (!hasMecData) return;
 
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/mec/institutions/search?q=faculdade&limit=3')
         .expect(200);
 
@@ -134,7 +133,7 @@ describeIntegration('MEC Integration', () => {
     });
 
     it('should return empty results for nonsense query', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/mec/institutions/search?q=zzzznonexistent12345')
         .expect(200);
 
@@ -143,7 +142,7 @@ describeIntegration('MEC Integration', () => {
     });
 
     it('should handle empty search query', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/mec/institutions/search?q=');
+      const res = await app.request.get('/api/v1/mec/institutions/search?q=');
 
       // Should return 200 with empty results or 400
       expect([200, 400]).toContain(res.status);
@@ -157,7 +156,7 @@ describeIntegration('MEC Integration', () => {
 
   describe('GET /api/v1/mec/institutions', () => {
     it('should list institutions (no filter)', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/mec/institutions').expect(200);
+      const res = await app.request.get('/api/v1/mec/institutions').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data.institutions)).toBe(true);
@@ -166,9 +165,7 @@ describeIntegration('MEC Integration', () => {
     it('should filter institutions by state (UF)', async () => {
       if (!hasMecData) return;
 
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/mec/institutions?uf=SP')
-        .expect(200);
+      const res = await app.request.get('/api/v1/mec/institutions?uf=SP').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data.institutions)).toBe(true);
@@ -184,9 +181,7 @@ describeIntegration('MEC Integration', () => {
         return;
       }
 
-      const res = await request(app.getHttpServer())
-        .get('/api/v1/mec/courses/search?q=engenharia')
-        .expect(200);
+      const res = await app.request.get('/api/v1/mec/courses/search?q=engenharia').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data.courses)).toBe(true);
@@ -195,7 +190,7 @@ describeIntegration('MEC Integration', () => {
     it('should search with accented characters', async () => {
       if (!hasMecData) return;
 
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get(`/api/v1/mec/courses/search?q=${encodeURIComponent('ciência')}`)
         .expect(200);
 
@@ -206,7 +201,7 @@ describeIntegration('MEC Integration', () => {
     it('should respect limit parameter', async () => {
       if (!hasMecData) return;
 
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/mec/courses/search?q=administracao&limit=2')
         .expect(200);
 
@@ -214,7 +209,7 @@ describeIntegration('MEC Integration', () => {
     });
 
     it('should return empty results for no matches', async () => {
-      const res = await request(app.getHttpServer())
+      const res = await app.request
         .get('/api/v1/mec/courses/search?q=xyznonexistent98765')
         .expect(200);
 
@@ -222,17 +217,13 @@ describeIntegration('MEC Integration', () => {
     });
 
     it('should reject invalid limit (non-positive)', async () => {
-      const res = await request(app.getHttpServer()).get(
-        '/api/v1/mec/courses/search?q=test&limit=0',
-      );
+      const res = await app.request.get('/api/v1/mec/courses/search?q=test&limit=0');
 
       expect(res.status).toBe(400);
     });
 
     it('should reject non-numeric limit', async () => {
-      const res = await request(app.getHttpServer()).get(
-        '/api/v1/mec/courses/search?q=test&limit=abc',
-      );
+      const res = await app.request.get('/api/v1/mec/courses/search?q=test&limit=abc');
 
       expect(res.status).toBe(400);
     });
@@ -243,9 +234,7 @@ describeIntegration('MEC Integration', () => {
   describe('Edge cases', () => {
     it('should handle very long search query', async () => {
       const longQuery = 'a'.repeat(500);
-      const res = await request(app.getHttpServer()).get(
-        `/api/v1/mec/institutions/search?q=${longQuery}`,
-      );
+      const res = await app.request.get(`/api/v1/mec/institutions/search?q=${longQuery}`);
 
       // Should not crash - either 200 with empty results or 400
       expect([200, 400]).toContain(res.status);
@@ -253,7 +242,7 @@ describeIntegration('MEC Integration', () => {
 
     it('should handle SQL injection attempt in search', async () => {
       const sqlInjection = "'; DROP TABLE mec_institution; --";
-      const res = await request(app.getHttpServer()).get(
+      const res = await app.request.get(
         `/api/v1/mec/institutions/search?q=${encodeURIComponent(sqlInjection)}`,
       );
 

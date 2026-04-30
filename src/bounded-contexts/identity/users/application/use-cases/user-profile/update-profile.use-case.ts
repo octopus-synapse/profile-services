@@ -1,9 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type {
-  UpdateProfileData,
-  UserProfile,
-  UserProfileRepositoryPort,
-} from '../../ports/user-profile.port';
+import type { UpdateProfileData, UserProfile } from '../../ports/user-profile.port';
+import { UserProfileRepositoryPort } from '../../ports/user-profile.port';
 
 /**
  * Update Profile Use Case

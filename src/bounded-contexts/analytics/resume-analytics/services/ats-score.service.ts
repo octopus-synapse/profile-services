@@ -5,11 +5,7 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  ANALYTICS_EVENT_BUS_PORT,
-  AnalyticsEventBusPort,
-} from '../application/ports/analytics-event-bus.port';
+import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import {
   AtsScoreCatalogPort,
   type SectionTypeAtsConfig,
@@ -18,11 +14,9 @@ import { generateRecommendations } from '../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../interfaces';
 
-@Injectable()
 export class ATSScoreService {
   constructor(
     private readonly catalog: AtsScoreCatalogPort,
-    @Inject(ANALYTICS_EVENT_BUS_PORT)
     private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
@@ -58,11 +52,13 @@ export class ATSScoreService {
   private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
     const issues: ATSIssue[] = [];
 
-    if (!resume.emailContact && !resume.phone) {
+    // Email is sourced from the User aggregate (always present after
+    // signup), so we only flag missing phone here.
+    if (!resume.phone) {
       issues.push({
         code: 'MISSING_CONTACT_INFO',
         severity: 'high',
-        message: 'Add your email address and phone number',
+        message: 'Add your phone number',
       });
     }
 
@@ -173,10 +169,7 @@ export class ATSScoreService {
             code: 'MISSING_WEIGHTED_FIELDS',
             severity: missingRoles.length > 2 ? 'high' : 'medium',
             message: `Section ${section.semanticKind} item is missing fields: ${missingRoles.join(', ')}`,
-            context: {
-              sectionKind: section.semanticKind,
-              missingFields: missingRoles,
-            },
+            context: { sectionKind: section.semanticKind, missingFields: missingRoles },
           });
         }
       }

@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  DuplicatedSectionFieldKeyException,
+  InvalidSectionTypeDefinitionException,
+  SectionFieldKeyRequiredException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import {
   type SectionDefinition,
   SectionDefinitionSchema,
@@ -15,7 +18,6 @@ import {
  * - All field knowledge comes from SectionType.definition (DB)
  * - Validation rules are driven by the definition, not hardcoded
  */
-@Injectable()
 export class SectionDefinitionZodFactory {
   private readonly schemaCache = new Map<string, z.ZodType<Record<string, unknown>>>();
 
@@ -26,7 +28,7 @@ export class SectionDefinitionZodFactory {
   buildSchema(definition: unknown): z.ZodType<Record<string, unknown>> {
     const parsed = SectionDefinitionSchema.safeParse(definition);
     if (!parsed.success) {
-      throw new ValidationException('Invalid section type definition');
+      throw new InvalidSectionTypeDefinitionException();
     }
 
     // Cache by content hash to handle same kind with different fields
@@ -63,11 +65,11 @@ export class SectionDefinitionZodFactory {
 
     for (const field of definition.fields) {
       if (!field.key) {
-        throw new ValidationException('Top-level section fields must define a key');
+        throw new SectionFieldKeyRequiredException('top-level');
       }
 
       if (uniqueKeys.has(field.key)) {
-        throw new ValidationException(`Duplicated section field key: ${field.key}`);
+        throw new DuplicatedSectionFieldKeyException(field.key);
       }
 
       uniqueKeys.add(field.key);
@@ -200,7 +202,7 @@ export class SectionDefinitionZodFactory {
 
     for (const nestedField of field.fields ?? []) {
       if (!nestedField.key) {
-        throw new ValidationException('Nested object fields must define a key');
+        throw new SectionFieldKeyRequiredException('nested');
       }
 
       shape[nestedField.key] = this.buildFieldSchema(nestedField, true);

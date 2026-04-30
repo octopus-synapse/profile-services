@@ -4,10 +4,8 @@
  * Test double for TOTP operations (time-based one-time passwords).
  */
 
-import type {
-  TotpSecret,
-  TotpServicePort,
-} from '../../../two-factor-auth/domain/ports/totp-service.port';
+import type { TotpSecret } from '../../../two-factor-auth/domain/ports/totp-service.port';
+import { TotpServicePort } from '../../../two-factor-auth/domain/ports/totp-service.port';
 
 export class StubTotpService implements TotpServicePort {
   private generatedSecret: TotpSecret = {

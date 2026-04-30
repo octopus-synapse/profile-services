@@ -11,50 +11,18 @@ import type { CreateRoleInput } from '../domain/entities/role.entity';
  * Role definition with permission assignments
  */
 export interface RoleDefinition extends CreateRoleInput {
-  /** Permissions in "resource:action" format */
-  permissions: string[];
+  /** Permissions in "resource:action" format */ permissions: string[];
 }
 
 export const SYSTEM_ROLES: RoleDefinition[] = [
   {
-    name: 'super_admin',
-    displayName: 'Super Administrator',
-    description: 'Full system access with all permissions',
-    isSystem: true,
-    priority: 100,
-    permissions: ['*:manage'],
-  },
-  {
     name: 'admin',
     displayName: 'Administrator',
-    description: 'Administrative access to manage users and content',
+    description: 'Administrative access — receives every Permission via auto-grant.',
     isSystem: true,
     priority: 90,
-    permissions: [
-      'user:manage',
-      'resume:manage',
-      'theme:manage',
-      'skill:manage',
-      'section_types:manage',
-      'role:read',
-      'role:list',
-      'group:read',
-      'group:list',
-      'permission:read',
-      'permission:list',
-      'audit_log:read',
-      'audit_log:list',
-      'analytics:read',
-      'settings:manage',
-    ],
-  },
-  {
-    name: 'approver',
-    displayName: 'Content Approver',
-    description: 'Can approve or reject user-submitted content',
-    isSystem: true,
-    priority: 50,
-    permissions: ['theme:read', 'theme:list', 'theme:approve', 'theme:reject'],
+    // Permissions auto-granted from `Object.values(Permission)` by seedRoles.
+    permissions: [],
   },
   {
     name: 'user',
@@ -69,6 +37,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'resume:delete',
       'resume:list',
       'resume:export',
+      'resume:import',
       'resume:share',
       'theme:read',
       'theme:list',
@@ -79,6 +48,30 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'collaboration:read',
       'collaboration:update',
       'collaboration:delete',
+      'collaboration:use',
+      'chat:use',
+      'social:use',
+      'feed:use',
+      'notification:read',
+      'analytics:read_own',
+      'section_type:read',
+      'section_type:list',
+      'user:profile_read',
+      'user:profile_update',
     ],
+  },
+  // Marker role: only regular end-users get this. Admins/super_admins do not.
+  // Used by the scoring + onboarding gates to know "this account is a
+  // job-seeker and must respect the invariants (onboarding, fit-profile,
+  // resume quality)". The plain `user` role below is also assigned to admins
+  // for basic resource permissions, so we cannot use it as the gate.
+  {
+    name: 'user_standard',
+    displayName: 'Standard User (job seeker)',
+    description:
+      'Marker role for job-seeker accounts. Required for onboarding, fit-profile and match gates.',
+    isSystem: true,
+    priority: 9,
+    permissions: [],
   },
 ];

@@ -1,9 +1,10 @@
-import { InjectQueue, OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { type Job, type Queue } from 'bullmq';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
-import { CuratedSelectorService } from '../services/curated-selector.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
+import type { LoggerPort } from '@/shared-kernel';
+import { hasPermission, Permission } from '@/shared-kernel/authorization';
+import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
+import type { CuratedSelectorService } from '../application/services/curated-selector.service';
+import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
 
@@ -13,59 +14,65 @@ export type AutoApplyJobData = { kind: 'schedule' } | { kind: 'run-for-user'; us
  * recruiters and avoids burning through the user's reputation. */
 const HOURLY_CAP_PER_USER = 5;
 
-@Injectable()
-@Processor(AUTO_APPLY_QUEUE, { concurrency: 2 })
-export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
-  private readonly logger = new Logger(AutoApplyWorker.name);
+const CTX = 'AutoApplyWorker';
 
+/**
+ * Framework-free POJO. Wired by `registerAutomationJobs` via
+ * `JobQueuePort` (BullMQ adapter lives in
+ * `infrastructure/nest-adapter/bullmq-job-queue.adapter.ts`).
+ */
+export class AutoApplyWorker {
   constructor(
     private readonly prisma: PrismaService,
     private readonly selector: CuratedSelectorService,
     private readonly tailor: ResumeTailorService,
-    @InjectQueue(AUTO_APPLY_QUEUE) private readonly queue: Queue<AutoApplyJobData>,
-  ) {
-    super();
-  }
+    private readonly queue: JobQueuePort,
+    private readonly logger: LoggerPort,
+  ) {}
 
-  async onModuleInit(): Promise<void> {
-    // Hourly at minute 15 — staggers us away from the weekly-curated cron so
-    // the two workers don't fight for DB connections on Monday 9am.
-    await this.queue.add(
-      'auto-apply-schedule',
-      { kind: 'schedule' },
-      {
-        repeat: { pattern: '15 * * * *', tz: 'America/Sao_Paulo' },
-        jobId: 'auto-apply-schedule-cron',
-      },
-    );
-  }
-
-  async process(job: Job<AutoApplyJobData>): Promise<void> {
-    if (job.data.kind === 'schedule') {
-      await this.enqueuePerUser();
-      return;
-    }
-    if (job.data.kind === 'run-for-user') {
-      await this.runForUser(job.data.userId);
+  async process(job: { data: AutoApplyJobData; id?: string }): Promise<void> {
+    try {
+      if (job.data.kind === 'schedule') {
+        await this.enqueuePerUser();
+        return;
+      }
+      if (job.data.kind === 'run-for-user') {
+        await this.runForUser(job.data.userId);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
+      );
+      throw err;
     }
   }
 
   private async enqueuePerUser(): Promise<void> {
-    const users = await this.prisma.user.findMany({
+    const candidates = await this.prisma.user.findMany({
       where: {
         isActive: true,
         preferences: { applyMode: 'AUTO_APPLY' },
       },
-      select: { id: true },
+      select: { id: true, roles: true },
     });
-    this.logger.log(`Enqueueing auto-apply for ${users.length} users`);
-    if (users.length === 0) return;
-    await this.queue.addBulk(
-      users.map((u) => ({
-        name: 'auto-apply-run',
-        data: { kind: 'run-for-user' as const, userId: u.id },
-      })),
+    // Allowlist-gated: only users with AUTO_APPLY permission (granted by the
+    // BETA_TESTER role or ADMIN) are actually enqueued. Users that opted into
+    // AUTO_APPLY in preferences but lack the permission are logged and skipped.
+    const allowed = candidates.filter((u) => hasPermission(u.roles, Permission.AUTO_APPLY));
+    const skipped = candidates.length - allowed.length;
+    this.logger.log(
+      `Enqueueing auto-apply for ${allowed.length} users (skipped ${skipped} without AUTO_APPLY permission)`,
+      CTX,
     );
+    if (allowed.length === 0) return;
+    for (const u of allowed) {
+      await this.queue.enqueue<AutoApplyJobData>(AUTO_APPLY_QUEUE, {
+        kind: 'run-for-user',
+        userId: u.id,
+      });
+    }
   }
 
   private async runForUser(userId: string): Promise<void> {
@@ -75,7 +82,7 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
       where: { userId, createdAt: { gte: oneHourAgo } },
     });
     if (recent >= HOURLY_CAP_PER_USER) {
-      this.logger.log(`User ${userId} hit hourly cap (${recent}/${HOURLY_CAP_PER_USER})`);
+      this.logger.log(`User ${userId} hit hourly cap (${recent}/${HOURLY_CAP_PER_USER})`, CTX);
       return;
     }
 
@@ -137,19 +144,16 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
       } catch (err) {
         const reason = (err as Error).message;
         failures.push({ jobId: pick.jobId, reason });
-        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`);
+        this.logger.error(
+          `Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`,
+          undefined,
+          CTX,
+        );
       }
     }
-    this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`);
+    this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`, CTX);
     if (failures.length === picks.length && picks.length > 0) {
-      throw new Error(
-        `Auto-apply user=${userId} all ${picks.length} picks failed; first reason: ${failures[0].reason}`,
-      );
+      throw new AutoApplyAllPicksFailedException(userId, picks.length, failures[0].reason);
     }
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job<AutoApplyJobData>, err: Error): void {
-    this.logger.error(`Job ${job.id} failed: ${err.message}`);
   }
 }

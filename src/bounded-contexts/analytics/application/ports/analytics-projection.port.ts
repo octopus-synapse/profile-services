@@ -5,8 +5,6 @@
  * Consumed by the SyncProjectionOn* event handlers.
  */
 
-export const ANALYTICS_PROJECTION_PORT = Symbol('ANALYTICS_PROJECTION_PORT');
-
 export abstract class AnalyticsProjectionPort {
   abstract upsertProjection(
     resumeId: string,
