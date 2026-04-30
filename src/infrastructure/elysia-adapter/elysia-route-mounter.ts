@@ -17,7 +17,7 @@ import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route';
 import { isRedirect, isResponseWithHeaders } from '@/shared-kernel/http/route';
 import type { SseEvent } from '@/shared-kernel/http/sse-stream.port';
-import { drainCookieJar, parseCookieHeader } from './cookie-bridge';
+import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge';
 import { runPipeline } from './elysia-pipeline';
 import { parseMultipart } from './multipart-bridge';
 import { observableToSseStream, SSE_HEADERS } from './sse-bridge';
@@ -74,16 +74,19 @@ async function buildHttpCtx(route: Route, ec: ElysiaCtx): Promise<HttpCtx> {
 function applyResponseHeaders(ctx: HttpCtx, ec: ElysiaCtx): void {
   const dynamic = ctx.state.responseHeaders as Record<string, string> | undefined;
   if (dynamic) Object.assign(ec.set.headers, dynamic);
-  for (const cookie of drainCookieJar(ctx)) {
-    // Multiple Set-Cookie headers — Elysia accepts an array via the
-    // `set-cookie` key on `set.headers`.
-    const existing = ec.set.headers['set-cookie'];
-    if (existing && Array.isArray(existing)) {
-      (existing as string[]).push(cookie);
-    } else if (typeof existing === 'string') {
-      ec.set.headers['set-cookie'] = [existing, cookie] as unknown as string;
-    } else {
-      ec.set.headers['set-cookie'] = [cookie] as unknown as string;
+
+  // Feed cookies through Elysia's native `set.cookie` map so its
+  // response builder emits one `Set-Cookie` header per entry. Setting
+  // `set.headers['set-cookie']` directly to an array silently drops
+  // entries because Bun's `Response`/`Headers` collapses arrays into a
+  // single comma-joined value, splitting cookies whose `Expires` field
+  // already contains commas.
+  const structured = drainCookieJarStructured(ctx);
+  if (Object.keys(structured).length > 0) {
+    const set = ec.set as { cookie?: Record<string, unknown> };
+    const cookieMap = (set.cookie ??= {});
+    for (const [name, entry] of Object.entries(structured)) {
+      cookieMap[name] = entry;
     }
   }
 }

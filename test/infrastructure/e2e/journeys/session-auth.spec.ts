@@ -54,17 +54,10 @@ describe('E2E: Session-Based Authentication', () => {
       expect(response.body.data.accessToken).toBeDefined();
       expect(response.body.data.refreshToken).toBeDefined();
 
-      // Extract session cookie from response
-      const cookies = response.headers.get('set-cookie');
-      expect(cookies).toBeDefined();
-
-      // Find session cookie
-      const sessionCookieHeader = Array.isArray(cookies)
-        ? cookies.find((c: string) => c.startsWith('session='))
-        : cookies?.startsWith('session=')
-          ? cookies
-          : undefined;
-
+      // Extract session cookie from the wrapper's pre-parsed setCookie
+      // array (Bun's `Headers.get('set-cookie')` returns null when more
+      // than one Set-Cookie header is present).
+      const sessionCookieHeader = response.setCookie.find((c) => c.startsWith('session='));
       expect(sessionCookieHeader).toBeDefined();
 
       // Verify cookie attributes
@@ -85,14 +78,8 @@ describe('E2E: Session-Based Authentication', () => {
       expect(response.status).toBe(401);
 
       // No session cookie should be set
-      const cookies = response.headers.get('set-cookie');
-      const hasSessionCookie =
-        cookies &&
-        (Array.isArray(cookies)
-          ? cookies.some((c: string) => c.startsWith('session='))
-          : cookies.startsWith('session='));
-
-      expect(hasSessionCookie).toBeFalsy();
+      const hasSessionCookie = response.setCookie.some((c) => c.startsWith('session='));
+      expect(hasSessionCookie).toBe(false);
     });
   });
 
@@ -176,10 +163,7 @@ describe('E2E: Session-Based Authentication', () => {
         .send({ email: testUser.email, password: testUser.password });
 
       const freshRefreshToken = loginResponse.body.data.refreshToken;
-      const freshCookies = loginResponse.headers.get('set-cookie');
-      const freshSessionCookie = Array.isArray(freshCookies)
-        ? freshCookies.find((c: string) => c.startsWith('session='))
-        : freshCookies;
+      const freshSessionCookie = loginResponse.setCookie.find((c) => c.startsWith('session='));
 
       // Now logout
       expect(freshSessionCookie).toBeDefined();
@@ -191,19 +175,11 @@ describe('E2E: Session-Based Authentication', () => {
       expect(logoutResponse.status).toBe(200);
 
       // Check that session cookie was cleared (set to empty or expired)
-      const logoutCookies = logoutResponse.headers.get('set-cookie');
-      if (logoutCookies) {
-        const clearedCookie = Array.isArray(logoutCookies)
-          ? logoutCookies.find((c: string) => c.startsWith('session='))
-          : logoutCookies;
-
-        if (clearedCookie) {
-          // Cookie should be cleared (empty value or expired)
-          expect(
-            clearedCookie.includes('session=;') ||
-              clearedCookie.includes('Expires=Thu, 01 Jan 1970'),
-          ).toBe(true);
-        }
+      const clearedCookie = logoutResponse.setCookie.find((c) => c.startsWith('session='));
+      if (clearedCookie) {
+        expect(
+          clearedCookie.includes('session=;') || clearedCookie.includes('Expires=Thu, 01 Jan 1970'),
+        ).toBe(true);
       }
     });
 
@@ -213,10 +189,7 @@ describe('E2E: Session-Based Authentication', () => {
         .post('/api/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
-      const freshCookies = loginResponse.headers.get('set-cookie');
-      const freshSessionCookie = Array.isArray(freshCookies)
-        ? freshCookies.find((c: string) => c.startsWith('session='))
-        : freshCookies;
+      const freshSessionCookie = loginResponse.setCookie.find((c) => c.startsWith('session='));
 
       // Logout
       expect(freshSessionCookie).toBeDefined();
