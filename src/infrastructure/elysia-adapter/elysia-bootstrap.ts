@@ -115,6 +115,7 @@ import { NullFeatureFlagsAdapter } from './null-feature-flags.adapter';
 import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
+import { applySecurityHeaders, enableCors } from './security-headers';
 
 export interface BootstrapHandle {
   /** Live Elysia instance (server already listening). */
@@ -599,7 +600,21 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   });
 
   // --- Mount routes on Elysia ---
+  // CORS + security-header defaults are wired here so they apply to
+  // every route uniformly. Origin allowlist is environment-driven —
+  // wildcard is rejected outside development to avoid the
+  // OWASP A05 misconfiguration.
   const app = new Elysia();
+  const corsOrigin = config.getOrDefault<string>('CORS_ORIGIN', '');
+  const allowedOrigins = corsOrigin
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  enableCors(app, {
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    isProduction: config.get('NODE_ENV') === 'production',
+  });
+  applySecurityHeaders(app);
   for (const bc of [
     badges,
     successStories,
