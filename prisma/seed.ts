@@ -40,7 +40,7 @@ async function main() {
         name: adminName,
         emailVerified: new Date(),
         roles: ['role_user', 'role_admin'],
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
       },
     });
 
@@ -57,12 +57,12 @@ async function main() {
       });
       console.log('✅ Admin user roles updated to include role_admin');
     }
-    if (!admin.hasCompletedOnboarding) {
+    if (admin.onboardingCompletedAt === null) {
       await prisma.user.update({
         where: { id: admin.id },
-        data: { hasCompletedOnboarding: true },
+        data: { onboardingCompletedAt: new Date() },
       });
-      console.log('✅ Admin user onboarding flag set to true');
+      console.log('✅ Admin user onboarding timestamp set');
     }
     console.log('✅ Admin user already exists');
   }
@@ -140,7 +140,7 @@ async function main() {
         username: 'e2e-test-user',
         emailVerified: new Date(),
         isActive: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: new Date(),
       },
     });
 

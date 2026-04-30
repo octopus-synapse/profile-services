@@ -30,7 +30,6 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       username,
       emailVerified: new Date(),
       isActive: true,
-      hasCompletedOnboarding: true,
       onboardingCompletedAt: new Date(),
       phone: '+55 11 99999-0000',
       location: 'São Paulo, SP',

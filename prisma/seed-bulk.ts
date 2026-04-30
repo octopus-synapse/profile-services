@@ -584,7 +584,6 @@ async function main() {
           u.archetype.id === 'designer' || u.archetype.id === 'pm'
             ? null
             : `https://github.com/${u.username}`,
-        hasCompletedOnboarding: u.tier !== 'casual',
         onboardingCompletedAt: u.tier !== 'casual' ? weightedDate(60, 0.5) : null,
         lastLoginAt:
           u.tier === 'power'
