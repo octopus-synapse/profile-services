@@ -113,9 +113,11 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
 
   describe('Progress Without Authentication', () => {
     it('should reject progress save without token', async () => {
+      // Body must satisfy OnboardingProgressSchema so Zod validation
+      // doesn't 400 the request before the auth stage runs.
       const response = await app.request
         .put('/api/v1/onboarding/progress')
-        .send({ currentStep: 'test' });
+        .send({ currentStep: 'personal-info', personalInfo: { fullName: 'Test' } });
 
       expect(response.status).toBe(401);
     });

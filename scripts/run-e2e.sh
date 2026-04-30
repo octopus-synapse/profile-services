@@ -113,17 +113,44 @@ detect_environment() {
     echo ""
 }
 
+# Default host ports per environment (fallback when the container does
+# not publish a port — i.e. only joined to a private docker network and
+# accessed via host networking through another mapping like a sibling
+# stack publishing the same internal port).
+declare -A DEFAULT_PG_PORT=(
+    ["dev"]="5432"
+    ["e2e"]="5433"
+    ["test"]="5433"
+    ["prod"]="5432"
+)
+declare -A DEFAULT_REDIS_PORT=(
+    ["dev"]="6379"
+    ["e2e"]="6380"
+    ["test"]="6380"
+    ["prod"]="6379"
+)
+declare -A DEFAULT_BACKEND_PORT=(
+    ["dev"]="3001"
+    ["e2e"]="3001"
+    ["prod"]="3001"
+)
+
 # Get connection info for a detected environment
 get_connection_info() {
     local env=$1
     IFS='|' read -r compose_file pg_container redis_container backend_container db_name <<< "${ENV_CONFIG[$env]}"
 
-    # Get actual exposed ports from running containers
+    # Get actual exposed ports from running containers; fall back to the
+    # environment's canonical default port when the container is on a
+    # private network without a host mapping.
     PG_PORT=$(get_container_port "$pg_container" 5432)
+    [[ -z "$PG_PORT" ]] && PG_PORT="${DEFAULT_PG_PORT[$env]:-5432}"
     REDIS_PORT=$(get_container_port "$redis_container" 6379)
+    [[ -z "$REDIS_PORT" ]] && REDIS_PORT="${DEFAULT_REDIS_PORT[$env]:-6379}"
 
     if [[ -n "$backend_container" ]] && is_container_running "$backend_container"; then
         BACKEND_PORT=$(get_container_port "$backend_container" 3001)
+        [[ -z "$BACKEND_PORT" ]] && BACKEND_PORT="${DEFAULT_BACKEND_PORT[$env]:-3001}"
     else
         BACKEND_PORT=""
     fi

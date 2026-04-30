@@ -63,9 +63,13 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
     });
 
     it('should reject duplicate email', async () => {
-      const response = await app.request
-        .post('/api/accounts')
-        .send({ email: testUser.email, password: testUser.password, name: testUser.name });
+      const response = await app.request.post('/api/accounts').send({
+        email: testUser.email,
+        password: testUser.password,
+        name: testUser.name,
+        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
+      });
 
       expect(response.status).toBe(409);
     });

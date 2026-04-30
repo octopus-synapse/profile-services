@@ -368,9 +368,12 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(resumeData);
 
-      expect(response.status).toBe(422);
+      // The use case throws ResumeLimitReached as a Conflict (409) — limit
+      // is a state conflict, not an unprocessable entity per RFC 9110.
+      expect(response.status).toBe(409);
       expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toContain('Resume limit reached');
+      const errMsg = response.body.error?.message ?? response.body.error ?? '';
+      expect(String(errMsg)).toContain('Resume limit reached');
     });
 
     it('should allow creating resume after deleting one', async () => {
