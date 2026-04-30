@@ -323,10 +323,7 @@ export const techSkillsSyncRoutes: ReadonlyArray<Route<TechSkillsSyncService>> =
     },
     handler: async (_ctx, sync) => {
       const result = await sync.runSync();
-      return {
-        success: true,
-        data: { message: 'Tech skills sync completed', result },
-      };
+      return { message: 'Tech skills sync completed', result };
     },
   },
 ];

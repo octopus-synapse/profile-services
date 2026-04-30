@@ -124,7 +124,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechArea.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return undefined;
     },
   },
 
@@ -208,7 +208,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechNiche.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return undefined;
     },
   },
 
@@ -296,7 +296,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechSkill.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return undefined;
     },
   },
 
@@ -379,7 +379,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminSpokenLanguage.execute((ctx.params as { code: string }).code);
-      return { success: true };
+      return undefined;
     },
   },
 
@@ -462,7 +462,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminProgrammingLanguage.execute((ctx.params as { slug: string }).slug);
-      return { success: true };
+      return undefined;
     },
   },
 ];

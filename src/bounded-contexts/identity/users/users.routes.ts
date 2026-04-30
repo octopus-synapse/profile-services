@@ -83,10 +83,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { username } = ctx.params as { username: string };
       const data = await bundle.profile.getPublicProfileUseCase.execute(username);
-      return {
-        success: true,
-        data: PublicProfileDataSchema.parse({ user: data.user, resume: data.resume }),
-      };
+      return PublicProfileDataSchema.parse({ user: data.user, resume: data.resume });
     },
   },
   {
@@ -139,10 +136,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdateUsernameSchema>;
       const result = await bundle.usernameService.updateUsername(ctx.user!.userId, body);
-      return {
-        success: true,
-        data: { username: result.username, message: 'Username updated successfully' },
-      };
+      return { username: result.username, message: 'Username updated successfully' };
     },
   },
   {
@@ -164,12 +158,9 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         ctx.user!.userId,
       );
       return {
-        success: true,
-        data: {
-          username: availability.username,
-          available: availability.available,
-          ...(availability.reason ? { reason: availability.reason } : {}),
-        },
+        username: availability.username,
+        available: availability.available,
+        ...(availability.reason ? { reason: availability.reason } : {}),
       };
     },
   },
@@ -223,10 +214,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const preferences = await bundle.preferences.getFullPreferencesUseCase.execute(
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: UserFullPreferencesDataSchema.parse({ preferences }),
-      };
+      return UserFullPreferencesDataSchema.parse({ preferences });
     },
   },
   {
@@ -328,10 +316,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof AdminCreateUserSchema>;
       const result = await bundle.userManagement.createUser(body);
-      return {
-        success: true,
-        data: { user: toCreatedUserMutation(result), message: 'User created successfully' },
-      };
+      return { user: toCreatedUserMutation(result), message: 'User created successfully' };
     },
   },
   {
@@ -351,10 +336,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminUpdateUserSchema>;
       const result = await bundle.userManagement.updateUser(id, body);
-      return {
-        success: true,
-        data: { user: toUpdatedUserMutation(result), message: 'User updated successfully' },
-      };
+      return { user: toUpdatedUserMutation(result), message: 'User updated successfully' };
     },
   },
   {

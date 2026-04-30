@@ -130,7 +130,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteFitProfile.execute(ctx.user!.userId);
-      return { success: true };
+      return undefined;
     },
   },
 
@@ -277,7 +277,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteFitQuestion.execute(id);
-      return { success: true };
+      return undefined;
     },
   },
 ];

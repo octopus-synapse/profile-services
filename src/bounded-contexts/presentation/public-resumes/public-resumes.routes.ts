@@ -184,11 +184,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { shareId } = ctx.params as { shareId: string };
       await bundle.shareService.deleteShare(ctx.user!.userId, shareId);
-      return {
-        success: true,
-        message: 'Share deleted successfully',
-        data: { deleted: true },
-      };
+      return { deleted: true };
     },
   },
   {
@@ -245,11 +241,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { aliasId } = ctx.params as { aliasId: string };
       await bundle.shareService.removeAlias(ctx.user!.userId, aliasId);
-      return {
-        success: true,
-        message: 'Alias deleted successfully',
-        data: { deleted: true },
-      };
+      return { deleted: true };
     },
   },
 

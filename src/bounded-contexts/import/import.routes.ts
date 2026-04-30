@@ -98,15 +98,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
       });
 
       const result = await bc.processImport.execute(importJob.id);
-      return {
-        success: true,
-        data: toImportResultDto({
-          importId: importJob.id,
-          status: result.status,
-          resumeId: result.resumeId,
-          errors: result.errors,
-        }),
-      };
+      return toImportResultDto({
+        importId: importJob.id,
+        status: result.status,
+        resumeId: result.resumeId,
+        errors: result.errors,
+      });
     },
   },
   {
@@ -194,15 +191,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       const result = await bc.retryImport.execute(importId);
-      return {
-        success: true,
-        data: toImportResultDto({
-          importId,
-          status: result.status,
-          resumeId: result.resumeId,
-          errors: result.errors,
-        }),
-      };
+      return toImportResultDto({
+        importId,
+        status: result.status,
+        resumeId: result.resumeId,
+        errors: result.errors,
+      });
     },
   },
   // ─── GitHub ───────────────────────────────────────────────────────
@@ -273,12 +267,9 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx, bc) => {
       const result = await bc.githubImport.import(ctx.user!.userId);
       return {
-        success: true,
-        data: {
-          primaryStack: result.primaryStack,
-          buildPostsCreated: result.buildPostsCreated,
-          profileUpdated: result.profileUpdated,
-        },
+        primaryStack: result.primaryStack,
+        buildPostsCreated: result.buildPostsCreated,
+        profileUpdated: result.profileUpdated,
       };
     },
   },

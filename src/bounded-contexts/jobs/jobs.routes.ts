@@ -546,8 +546,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { company } = ctx.params as { company: string };
-      const data = await bc.getCompanyResponseStats.execute(company);
-      return { success: true, data };
+      return bc.getCompanyResponseStats.execute(company);
     },
   },
 

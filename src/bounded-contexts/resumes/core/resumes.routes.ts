@@ -99,8 +99,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
       const page = parsePositiveInt(q.page, 1);
       const limit = parsePositiveInt(q.limit, 50);
       const result = await bc.findAllUserResumesUseCase.execute(ctx.user!.userId, page, limit);
-      const data = toPaginatedResumesData(result, { page, limit });
-      return { success: true, data };
+      return toPaginatedResumesData(result, { page, limit });
     },
   },
   {
@@ -363,13 +362,10 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
       const { locale: localeParam } = ctx.query as z.infer<typeof LocaleQuery>;
       const locale = parseLocale(localeParam);
       const rawSectionTypes = await bc.listSectionTypesUseCase.execute();
-      return {
-        success: true,
-        data: toResumeSectionTypesData(
-          rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
-          locale,
-        ),
-      };
+      return toResumeSectionTypesData(
+        rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
+        locale,
+      );
     },
   },
   {

@@ -57,18 +57,15 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         getSystemThemes(bundle),
         bundle.sectionTypes.findAll(locale),
       ]);
-      return {
-        success: true,
-        data: buildSession(
-          data,
-          stepConfigs,
-          strengthConfig,
-          locale,
-          systemThemes,
-          { name: user.name, email: user.email },
-          sectionTypes,
-        ),
-      };
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        systemThemes,
+        { name: user.name, email: user.email },
+        sectionTypes,
+      );
     },
   },
   {
@@ -97,10 +94,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
     },
   },
   {
@@ -124,10 +118,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
     },
   },
   {
@@ -156,10 +147,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
     },
   },
   {
@@ -189,10 +177,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
     },
   },
   {
@@ -217,11 +202,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
           user.userId,
         );
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
-        return {
-          success: true,
-          data: result,
-          resumeId: result.resumeId,
-        };
+        return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
       }
@@ -253,18 +234,15 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         getSystemThemes(bundle),
         bundle.sectionTypes.findAll(locale),
       ]);
-      return {
-        success: true,
-        data: buildSession(
-          data,
-          stepConfigs,
-          strengthConfig,
-          locale,
-          systemThemes,
-          { name: user.name, email: user.email },
-          sectionTypes,
-        ),
-      };
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        systemThemes,
+        { name: user.name, email: user.email },
+        sectionTypes,
+      );
     },
   },
 
@@ -345,11 +323,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       try {
         const result = await bundle.useCases.completeOnboardingUseCase.execute(user.userId, data);
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
-        return {
-          success: true,
-          data: result,
-          resumeId: result.resumeId,
-        };
+        return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
       }

@@ -39,11 +39,8 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (_ctx, service) => {
       const isAvailable = await service.checkServiceHealth();
       return {
-        success: true,
-        data: {
-          status: isAvailable ? 'healthy' : 'unavailable',
-          timestamp: new Date().toISOString(),
-        },
+        status: isAvailable ? 'healthy' : 'unavailable',
+        timestamp: new Date().toISOString(),
       };
     },
   },

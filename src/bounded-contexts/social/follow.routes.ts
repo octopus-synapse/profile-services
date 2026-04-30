@@ -68,11 +68,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
           });
       }
 
-      return {
-        success: true,
-        data: { id: follow.id },
-        message: 'Successfully followed user',
-      };
+      return { id: follow.id };
     },
   },
   {
@@ -88,11 +84,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId: targetUserId } = ctx.params as { userId: string };
       await bundle.followService.unfollow(ctx.user!.userId, targetUserId);
-      return {
-        success: true,
-        message: 'User unfollowed successfully',
-        data: { unfollowed: true },
-      };
+      return { unfollowed: true };
     },
   },
   {
@@ -163,11 +155,8 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
         bundle.connectionService.getPendingRequests(userId, { page: 1, limit: 1 }),
       ]);
       return {
-        success: true,
-        data: {
-          ...stats,
-          pendingInvitations: pendingResult.total,
-        },
+        ...stats,
+        pendingInvitations: pendingResult.total,
       };
     },
   },

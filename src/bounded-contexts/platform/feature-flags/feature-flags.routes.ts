@@ -138,7 +138,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       await bc.broadcastRefresh.execute();
-      return { success: true };
+      return undefined;
     },
   },
 ];

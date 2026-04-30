@@ -222,14 +222,10 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (_ctx, bc) => {
       const result = await bc.triggerMecSync.execute('api');
       return {
-        success: true,
-        message: 'Sync completed successfully',
-        data: {
-          institutionsInserted: result.institutionsInserted,
-          coursesInserted: result.coursesInserted,
-          totalRowsProcessed: result.totalRowsProcessed,
-          errorsCount: result.errors.length,
-        },
+        institutionsInserted: result.institutionsInserted,
+        coursesInserted: result.coursesInserted,
+        totalRowsProcessed: result.totalRowsProcessed,
+        errorsCount: result.errors.length,
       };
     },
   },
@@ -247,12 +243,9 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (_ctx, bc) => {
       const status = await bc.getSyncStatus.execute();
       return {
-        success: true,
-        data: {
-          isRunning: status.isRunning,
-          metadata: status.metadata,
-          lastSync: status.lastSync,
-        },
+        isRunning: status.isRunning,
+        metadata: status.metadata,
+        lastSync: status.lastSync,
       };
     },
   },

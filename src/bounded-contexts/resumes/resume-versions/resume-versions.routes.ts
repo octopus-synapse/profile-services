@@ -60,10 +60,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId, versionId } = ctx.params as { resumeId: string; versionId: string };
       const restored = await bc.restoreVersion.execute(resumeId, versionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
-      };
+      return { restoredFrom: restored.restoredFrom.toISOString() };
     },
   },
   {
@@ -101,10 +98,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
         throw new NotFoundException('Version not found');
       }
       return {
-        success: true,
-        data: {
-          version: { ...version, createdAt: version.createdAt.toISOString() },
-        },
+        version: { ...version, createdAt: version.createdAt.toISOString() },
       };
     },
   },
@@ -121,10 +115,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId, versionId } = ctx.params as { resumeId: string; versionId: string };
       const restored = await bc.restoreVersion.execute(resumeId, versionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
-      };
+      return { restoredFrom: restored.restoredFrom.toISOString() };
     },
   },
 

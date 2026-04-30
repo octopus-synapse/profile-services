@@ -92,7 +92,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteWebhook.execute(ctx.user!.userId, id);
-      return { success: true };
+      return undefined;
     },
   },
   {

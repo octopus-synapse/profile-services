@@ -138,10 +138,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const modifiers = await bc.listActive.execute(userId);
-      return {
-        success: true,
-        data: { modifiers: modifiers.map((m) => m.toJSON()) },
-      };
+      return { modifiers: modifiers.map((m) => m.toJSON()) };
     },
   },
 ];

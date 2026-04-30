@@ -62,10 +62,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = await bc.get2faStatus.execute(ctx.user!.userId);
-      return {
-        success: true,
-        data: { ...result, lastUsedAt: result.lastUsedAt?.toISOString() ?? null },
-      };
+      return { ...result, lastUsedAt: result.lastUsedAt?.toISOString() ?? null };
     },
   },
   {

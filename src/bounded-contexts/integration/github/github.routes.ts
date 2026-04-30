@@ -115,13 +115,10 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
       const { resumeId } = ctx.params as { resumeId: string };
       const result = await bc.getGitHubSyncStatus.execute(ctx.user!.userId, resumeId);
       return {
-        success: true,
-        data: {
-          status: result.hasSynced ? 'COMPLETED' : 'IDLE',
-          progress: result.hasSynced ? 100 : 0,
-          startedAt: result.lastSyncedAt ? toIsoString(result.lastSyncedAt) : undefined,
-          currentTask: undefined,
-        },
+        status: result.hasSynced ? 'COMPLETED' : 'IDLE',
+        progress: result.hasSynced ? 100 : 0,
+        startedAt: result.lastSyncedAt ? toIsoString(result.lastSyncedAt) : undefined,
+        currentTask: undefined,
       };
     },
   },

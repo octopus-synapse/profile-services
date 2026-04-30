@@ -63,18 +63,15 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ]);
 
       return {
-        success: true,
-        data: {
-          stats: {
-            connections: socialStats.connections,
-            followers: socialStats.followers,
-            following: socialStats.following,
-            pendingInvitations: pendingCount.total,
-          },
-          pendingRequests,
-          connections,
-          suggestions,
+        stats: {
+          connections: socialStats.connections,
+          followers: socialStats.followers,
+          following: socialStats.following,
+          pendingInvitations: pendingCount.total,
         },
+        pendingRequests,
+        connections,
+        suggestions,
       };
     },
   },
@@ -94,11 +91,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         targetUserId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request sent successfully',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -117,11 +110,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         connectionId,
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request accepted',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -140,11 +129,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         connectionId,
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request rejected',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -160,11 +145,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { id: connectionId } = ctx.params as { id: string };
       await bundle.connectionService.withdrawSentRequest(connectionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { id: connectionId },
-        message: 'Connection request withdrawn',
-      };
+      return { id: connectionId };
     },
   },
   {
@@ -180,11 +161,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { id: connectionId } = ctx.params as { id: string };
       await bundle.connectionService.removeConnection(connectionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { removed: true },
-        message: 'Connection removed successfully',
-      };
+      return { removed: true };
     },
   },
   {

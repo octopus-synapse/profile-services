@@ -28,10 +28,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     handler: async (ctx, bc) => {
       const { token } = ctx.body as { token: string };
       const result = await bc.verifyEmail.execute({ token });
-      return {
-        success: true,
-        data: { email: result.email, message: 'Email has been verified successfully.' },
-      };
+      return { email: result.email, message: 'Email has been verified successfully.' };
     },
   },
   {
@@ -48,10 +45,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const cooldown = await bc.sendVerificationEmail.execute({ userId: ctx.user!.userId });
-      return {
-        success: true,
-        data: { message: 'Verification email has been sent.', cooldown },
-      };
+      return { message: 'Verification email has been sent.', cooldown };
     },
   },
   {

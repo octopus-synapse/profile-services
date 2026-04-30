@@ -5838,7 +5838,181 @@
         },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stack": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "experienceYears": {
+                          "type": "number"
+                        },
+                        "jobTitle": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "experienceYears",
+                        "jobTitle"
+                      ]
+                    },
+                    "totalPeers": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "current": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "experienceYears": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "peerCount": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "topJobTitles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string"
+                              },
+                              "count": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "count"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "experienceYears",
+                        "peerCount",
+                        "topJobTitles"
+                      ]
+                    },
+                    "buckets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "experienceYears": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "peerCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "topJobTitles": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "title": {
+                                  "type": "string"
+                                },
+                                "count": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "title",
+                                "count"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "experienceYears",
+                          "peerCount",
+                          "topJobTitles"
+                        ]
+                      }
+                    },
+                    "projections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "yearsAhead": {
+                            "type": "integer"
+                          },
+                          "bucket": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "experienceYears": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "peerCount": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "topJobTitles": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "count": {
+                                      "type": "integer",
+                                      "minimum": 0
+                                    }
+                                  },
+                                  "required": [
+                                    "title",
+                                    "count"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "experienceYears",
+                              "peerCount",
+                              "topJobTitles"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "yearsAhead",
+                          "bucket"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "stack",
+                    "user",
+                    "totalPeers",
+                    "current",
+                    "buckets",
+                    "projections"
+                  ]
+                }
+              }
+            }
           }
         }
       }

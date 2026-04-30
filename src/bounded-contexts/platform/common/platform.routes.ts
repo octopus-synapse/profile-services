@@ -101,15 +101,12 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     handler: async (_ctx, bc) => {
       const stats = await bc.getPlatformStats.execute();
       return {
-        success: true,
-        data: {
-          totalUsers: stats.users.total,
-          totalResumes: stats.resumes.total,
-          totalViews: 0,
-          activeUsersToday: stats.users.recentSignups,
-          activeUsersWeek: stats.users.recentSignups,
-          updatedAt: new Date().toISOString(),
-        },
+        totalUsers: stats.users.total,
+        totalResumes: stats.resumes.total,
+        totalViews: 0,
+        activeUsersToday: stats.users.recentSignups,
+        activeUsersWeek: stats.users.recentSignups,
+        updatedAt: new Date().toISOString(),
       };
     },
   },

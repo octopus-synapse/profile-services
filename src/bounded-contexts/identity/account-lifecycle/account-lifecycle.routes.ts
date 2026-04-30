@@ -67,15 +67,12 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       });
 
       return {
-        success: true,
-        data: {
-          userId: result.userId,
-          email: result.email,
-          message: 'Account created successfully.',
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn,
-        },
+        userId: result.userId,
+        email: result.email,
+        message: 'Account created successfully.',
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
       };
     },
   },
@@ -96,10 +93,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         reason: body.reason,
       });
-      return {
-        success: true,
-        data: { message: 'Account has been deactivated.' },
-      };
+      return { message: 'Account has been deactivated.' };
     },
   },
   {
@@ -123,10 +117,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
       });
-      return {
-        success: true,
-        data: { message: 'Account has been permanently deleted.' },
-      };
+      return { message: 'Account has been permanently deleted.' };
     },
   },
   {
@@ -187,18 +178,15 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
             : 'Marketing Consent';
 
       return {
-        success: true,
-        data: {
-          message: `${documentName} accepted successfully`,
-          consent: {
-            id: consent.id,
-            userId: consent.userId,
-            documentType: consent.documentType,
-            version: consent.version,
-            acceptedAt: consent.acceptedAt.toISOString(),
-            ipAddress,
-            userAgent,
-          },
+        message: `${documentName} accepted successfully`,
+        consent: {
+          id: consent.id,
+          userId: consent.userId,
+          documentType: consent.documentType,
+          version: consent.version,
+          acceptedAt: consent.acceptedAt.toISOString(),
+          ipAddress,
+          userAgent,
         },
       };
     },

@@ -41,8 +41,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       const body = ctx.body as { value: unknown };
-      const data = await bundle.setKey(ctx.user!.userId, key, body?.value);
-      return { success: true, data };
+      return bundle.setKey(ctx.user!.userId, key, body?.value);
     },
   },
   {

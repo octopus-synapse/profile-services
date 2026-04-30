@@ -80,7 +80,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     handler: async (ctx, bundle) => {
       const { skillName } = ctx.params as { skillName: string };
       await bundle.service.clearForUser(ctx.user!.userId, skillName);
-      return { success: true };
+      return undefined;
     },
   },
 ];

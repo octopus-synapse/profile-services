@@ -190,10 +190,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const unread = await bundle.chat.getUnreadCountUseCase.execute(ctx.user!.userId);
-      return {
-        success: true,
-        data: { totalUnread: unread.totalUnread, byConversation: unread.byConversation },
-      };
+      return { totalUnread: unread.totalUnread, byConversation: unread.byConversation };
     },
   },
   {
