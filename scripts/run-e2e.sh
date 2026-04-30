@@ -45,6 +45,22 @@ log_error() { echo -e "${RED}[e2e]${NC} $1"; }
 log_step() { echo -e "${BLUE}[e2e]${NC} $1"; }
 log_detect() { echo -e "${CYAN}[detect]${NC} $1" >&2; }
 
+# Wall-clock timer. We capture the start at script entry (right
+# after arg parsing & util defs) and print the elapsed total in
+# the final summary block, regardless of pass/fail.
+SCRIPT_START_NS=$(date +%s%N)
+fmt_elapsed() {
+    local end_ns=$(date +%s%N)
+    local elapsed_ms=$(( (end_ns - SCRIPT_START_NS) / 1000000 ))
+    if (( elapsed_ms < 1000 )); then
+        printf '%dms' "$elapsed_ms"
+    else
+        local secs=$(( elapsed_ms / 1000 ))
+        local rem=$(( elapsed_ms % 1000 ))
+        printf '%d.%03ds' "$secs" "$rem"
+    fi
+}
+
 # Defaults
 ENVIRONMENT=""
 CLEANUP=true
@@ -484,9 +500,9 @@ fi
 
 echo ""
 if [[ $EXIT_CODE -eq 0 ]]; then
-    log_info "All E2E tests passed!"
+    log_info "All E2E tests passed!  (total wall-clock: $(fmt_elapsed))"
 else
-    log_error "E2E tests failed!"
+    log_error "E2E tests failed!  (total wall-clock: $(fmt_elapsed))"
 fi
 
 exit $EXIT_CODE
