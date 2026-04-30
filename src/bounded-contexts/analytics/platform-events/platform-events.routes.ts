@@ -19,7 +19,118 @@ const TrackEventsBodySchema = z.object({
   events: z.array(PlatformEventSchema).min(1).max(100),
 });
 
+/**
+ * Static catalog of analytics events the frontend may emit.
+ *
+ * Each entry carries `{name, version, propsSchema, requiredContext?, piiFields?}`.
+ * The frontend uses this catalog to validate event payloads at the call
+ * site (and refuse to emit events the backend doesn't know about).
+ */
+const EVENT_CATALOG = [
+  {
+    name: 'page_view',
+    version: 1,
+    propsSchema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] },
+  },
+  {
+    name: 'job_viewed',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { jobId: { type: 'string' }, source: { type: 'string' } },
+      required: ['jobId'],
+    },
+  },
+  {
+    name: 'job_bookmarked',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { jobId: { type: 'string' } },
+      required: ['jobId'],
+    },
+  },
+  {
+    name: 'job_apply_started',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { jobId: { type: 'string' } },
+      required: ['jobId'],
+    },
+  },
+  {
+    name: 'job_apply_completed',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { jobId: { type: 'string' }, resumeId: { type: 'string' } },
+      required: ['jobId'],
+    },
+  },
+  {
+    name: 'resume_created',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { resumeId: { type: 'string' } },
+      required: ['resumeId'],
+    },
+  },
+  {
+    name: 'resume_exported',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { resumeId: { type: 'string' }, format: { type: 'string' } },
+      required: ['resumeId', 'format'],
+    },
+  },
+  {
+    name: 'onboarding_step_complete',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { stepKey: { type: 'string' } },
+      required: ['stepKey'],
+    },
+  },
+  {
+    name: 'feed_post_liked',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+      required: ['postId'],
+    },
+  },
+  {
+    name: 'feed_post_bookmarked',
+    version: 1,
+    propsSchema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+      required: ['postId'],
+    },
+  },
+] as const;
+
 export const platformEventsRoutes: ReadonlyArray<Route<TrackPlatformEventsUseCase>> = [
+  {
+    method: 'GET',
+    path: '/v1/events/schemas',
+    auth: { kind: 'jwt' },
+    openapi: {
+      summary: 'Catalog of allowed analytics events',
+      tags: ['platform-events'],
+      description:
+        'Returns `{events:[{name,version,propsSchema,requiredContext?,piiFields?}]}`. The frontend uses this to know which event names + prop shapes are valid before emitting.',
+    },
+    sdk: { exported: true },
+    handler: async () => ({
+      events: EVENT_CATALOG.map((e) => ({ ...e })),
+    }),
+  },
   {
     method: 'POST',
     path: '/v1/events',
@@ -29,7 +140,7 @@ export const platformEventsRoutes: ReadonlyArray<Route<TrackPlatformEventsUseCas
       summary: 'Ingest a batch of product events',
       tags: ['platform-events'],
       description:
-        'Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON.',
+        'Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON. The expected event names + shapes are listed by `/v1/events/schemas`.',
     },
     sdk: { exported: true },
     handler: async (ctx, useCase) => {

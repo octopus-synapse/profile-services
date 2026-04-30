@@ -187,15 +187,52 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const body = ctx.body as z.infer<typeof TailorResumeBody>;
-      const data = await bc.tailorResumeForJob.execute({
+      const data = (await bc.tailorResumeForJob.execute({
         resumeId,
         userId: ctx.user!.userId,
         jobId: body?.jobId,
         jobDescription: body?.jobDescription,
         jobTitle: body?.jobTitle,
         jobCompany: body?.jobCompany,
+      })) as Record<string, unknown>;
+
+      // Convert the legacy `{bullets:[{id,original,tailored,highlights}], summary, jobTitle}`
+      // into a JSON-Patch-like `changes[]` so the frontend renders a generic
+      // diff UI without per-field mapping.
+      const bullets =
+        (data.bullets as Array<{
+          id: string;
+          original: string;
+          tailored: string;
+          highlights?: string[];
+        }>) ?? [];
+      const changes: Array<{
+        path: ReadonlyArray<string | number>;
+        op: 'add' | 'remove' | 'replace';
+        before?: unknown;
+        after?: unknown;
+        highlights?: readonly string[];
+      }> = [];
+      if (typeof data.summary === 'string') {
+        changes.push({ path: ['summary'], op: 'replace', after: data.summary });
+      }
+      if (typeof data.jobTitle === 'string') {
+        changes.push({ path: ['jobTitle'], op: 'replace', after: data.jobTitle });
+      }
+      bullets.forEach((b, i) => {
+        changes.push({
+          path: ['bullets', i],
+          op: b.original ? 'replace' : 'add',
+          before: b.original || undefined,
+          after: b.tailored,
+          highlights: b.highlights ?? [],
+        });
       });
-      return { success: true, data };
+
+      return {
+        ...data,
+        changes,
+      };
     },
   },
 ];

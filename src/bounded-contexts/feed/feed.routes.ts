@@ -48,7 +48,36 @@ function clampLimit(limit?: string): number {
   return Math.min(Number(limit), 50);
 }
 
+const COMPOSER_CONFIG = {
+  maxLength: 3000,
+  mediaTypes: ['image/png', 'image/jpeg', 'image/webp'] as const,
+  maxImages: 4,
+  maxImageBytes: 5 * 1024 * 1024,
+  pollEnabled: true,
+  pollMaxOptions: 4,
+  pollMaxOptionLength: 80,
+  repostEnabled: true,
+  mentionLimit: 10,
+  postTypes: Object.values(PostType),
+} as const;
+
 export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
+  // ─── Composer config ──────────────────────────────────────────────
+  {
+    method: 'GET',
+    path: '/v1/posts/composer-config',
+    auth: { kind: 'jwt' },
+    permission: Permission.FEED_USE,
+    openapi: {
+      summary: 'Composer configuration (server-driven UI)',
+      tags: ['posts'],
+      description:
+        'Returns the server-driven composer config the frontend uses to render the post-creation UI: limits, allowed media types, poll/repost availability, mention cap, post types.',
+    },
+    sdk: { exported: true },
+    handler: async () => ({ ...COMPOSER_CONFIG }),
+  },
+
   // ─── Posts ────────────────────────────────────────────────────────
   {
     method: 'POST',

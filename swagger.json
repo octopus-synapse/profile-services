@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Profile Services API",
-    "version": "0.2.3",
+    "version": "2.0.0",
     "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime)."
   },
   "servers": [
@@ -1896,13 +1896,46 @@
     },
     "/api/v1/pages/me-dashboard": {
       "get": {
-        "summary": "Single payload for the dashboard: counts (resumes, applications, unread notifications), latest activity items, viewer summary. Replaces ~5 parallel UI fetches.",
-        "description": "Composite page payloads",
+        "summary": "Composite dashboard widgets (server-driven)",
+        "description": "Returns `{widgets:[{id,type,title,size,data,actions?,cta?}]}`. Adding/removing widgets is a backend-only change. Today the server emits widgets for greeting, counters, recent notifications and follow-ups; the frontend simply iterates `widgets[]` and dispatches on `type`.",
         "tags": [
           "pages"
         ],
         "operationId": "get_v1_pages_me_dashboard",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/pages/settings/{section}": {
+      "get": {
+        "summary": "Server-driven settings section (fields + actions + info)",
+        "description": "Returns `{section, fields:[...], actions:[...], info:[...]}`. The frontend renders settings pages from this payload — adding a setting field or action is a backend-only change.",
+        "tags": [
+          "pages"
+        ],
+        "operationId": "get_v1_pages_settings_section",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -2098,10 +2131,26 @@
         }
       }
     },
+    "/api/v1/feature-flags/active": {
+      "get": {
+        "summary": "Active flags for the current user",
+        "description": "Returns `{flags: Record<string, boolean>}`. A flag is `true` only if its own enabled state, every ancestor, and the role restriction all allow it. Frontend uses `flags[key]` directly without per-key resolution.",
+        "tags": [
+          "feature-flags"
+        ],
+        "operationId": "get_v1_feature_flags_active",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/feature-flags/evaluate": {
       "get": {
-        "summary": "Evaluate effective flag state for the current user",
-        "description": "Returns a map of flag key to boolean. The boolean is the effective value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.",
+        "summary": "[Deprecated] Use /v1/feature-flags/active",
+        "description": "Same payload as /v1/feature-flags/active. Kept for transition.",
         "tags": [
           "feature-flags"
         ],
@@ -4938,6 +4987,87 @@
         }
       }
     },
+    "/api/v1/search/global": {
+      "get": {
+        "summary": "Global multi-type search (resumes, users, jobs, posts)",
+        "description": "Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Today only the `resumes` group is populated; `users`, `jobs`, `posts` groups stream in once their dedicated indexes are wired.",
+        "tags": [
+          "search"
+        ],
+        "operationId": "get_v1_search_global",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [
+                  {
+                    "kind": "min",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max",
+                    "value": 200
+                  }
+                ],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "_def": {
+                "innerType": {
+                  "_def": {
+                    "checks": [
+                      {
+                        "kind": "int"
+                      },
+                      {
+                        "kind": "min",
+                        "value": 1,
+                        "inclusive": true
+                      },
+                      {
+                        "kind": "max",
+                        "value": 20,
+                        "inclusive": true
+                      }
+                    ],
+                    "typeName": "ZodNumber",
+                    "coerce": true
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "typeName": "ZodDefault"
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/search/similar/{id}": {
       "get": {
         "summary": "Find similar resumes by resume id",
@@ -5010,10 +5140,26 @@
         }
       }
     },
+    "/api/v1/events/schemas": {
+      "get": {
+        "summary": "Catalog of allowed analytics events",
+        "description": "Returns `{events:[{name,version,propsSchema,requiredContext?,piiFields?}]}`. The frontend uses this to know which event names + prop shapes are valid before emitting.",
+        "tags": [
+          "platform-events"
+        ],
+        "operationId": "get_v1_events_schemas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/events": {
       "post": {
         "summary": "Ingest a batch of product events",
-        "description": "Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON.",
+        "description": "Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON. The expected event names + shapes are listed by `/v1/events/schemas`.",
         "tags": [
           "platform-events"
         ],
@@ -11625,11 +11771,44 @@
     "/api/v1/jobs/{id}/fit": {
       "get": {
         "summary": "Fit score breakdown for this job against the viewer's primary resume",
-        "description": "Jobs API",
+        "description": "Returns `{score, dimensions:[{key,label,value,target,color,hint,weight}], matchedKeywords?, missingKeywords?}` so the frontend renders bars/cards by iterating dimensions[] without per-key mapping.",
         "tags": [
           "jobs"
         ],
         "operationId": "get_v1_jobs_id_fit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}/apply-context": {
+      "get": {
+        "summary": "Apply-context: defaults + requirements + blockers for the apply modal",
+        "description": "Returns `{defaults:{coverLetter,resumeId},requirements:[{type,key,label,required,options?}],cta,oneClickAvailable,blockers?:[{code,message,suggestedAction?}]}` so the frontend renders the apply modal entirely server-driven.",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "get_v1_jobs_id_apply_context",
         "parameters": [
           {
             "name": "id",
@@ -11970,6 +12149,22 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/composer-config": {
+      "get": {
+        "summary": "Composer configuration (server-driven UI)",
+        "description": "Returns the server-driven composer config the frontend uses to render the post-creation UI: limits, allowed media types, poll/repost availability, mention cap, post types.",
+        "tags": [
+          "posts"
+        ],
+        "operationId": "get_v1_posts_composer_config",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -13199,6 +13394,22 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/types": {
+      "get": {
+        "summary": "Notification types with channels + user preferences",
+        "description": "Returns `{types:[{key,label,description,category,channels:[{key,enabled,locked?}],userEnabled}]}`. The frontend renders the settings matrix directly from this payload — adding a new type is a backend-only change.",
+        "tags": [
+          "notifications"
+        ],
+        "operationId": "get_v1_notifications_types",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -14553,6 +14764,22 @@
           "Onboarding Preview"
         ],
         "operationId": "get_v1_onboarding_preview_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/recruiting/jobs/form-config": {
+      "get": {
+        "summary": "Server-driven config for the create/edit-job wizard",
+        "description": "Returns `{steps:[{id,label,fields:[...]}], options:{...}}`. The frontend iterates `steps[]` and renders inputs from each `field`. Adding a step or field is a backend-only change.",
+        "tags": [
+          "recruiting"
+        ],
+        "operationId": "get_v1_recruiting_jobs_form_config",
         "parameters": [],
         "responses": {
           "200": {

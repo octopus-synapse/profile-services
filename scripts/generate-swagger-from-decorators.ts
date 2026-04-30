@@ -39,6 +39,16 @@ interface SwaggerReport {
   readonly operations: number;
   readonly schemas: number;
   readonly tags: string[];
+  readonly clientPaths: number;
+  readonly clientOperations: number;
+  readonly omittedFromSdk: ReadonlyArray<{ method: string; path: string; reason: string }>;
+}
+
+const ENFORCEMENT_MODE: 'warn' | 'error' =
+  (process.env.SDK_ENFORCEMENT as 'warn' | 'error' | undefined) ?? 'warn';
+
+function isStreamingRoute(route: Route): boolean {
+  return route.kind === 'sse' || route.kind === 'stream';
 }
 
 function* walk(dir: string): Generator<string> {
@@ -166,11 +176,41 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
 
 async function generate(): Promise<void> {
   const registry = new OpenAPIRegistry();
+  const clientRegistry = new OpenAPIRegistry();
   const routes = await loadRoutes();
+
+  // T12 — sdk.exported enforcement.
+  // Every JSON route is expected to opt into the SDK explicitly via
+  // `sdk: { exported: true }`. SSE / stream routes are always omitted
+  // from the client spec but stay in the server spec for documentation.
+  const omittedFromSdk: Array<{ method: string; path: string; reason: string }> = [];
+  for (const route of routes) {
+    if (isStreamingRoute(route)) continue;
+    if (route.sdk?.exported !== true) {
+      const reason = route.sdk?.exported === false ? 'sdk.exported=false' : 'sdk-missing';
+      omittedFromSdk.push({ method: route.method, path: route.path, reason });
+    }
+  }
+  if (omittedFromSdk.length > 0) {
+    const banner = ENFORCEMENT_MODE === 'error' ? 'Error' : 'Warning';
+    console.warn(
+      `\n[${banner}] ${omittedFromSdk.length} JSON route(s) omitted from client SDK:\n` +
+        omittedFromSdk.map((r) => `  - ${r.method} ${r.path} (${r.reason})`).join('\n'),
+    );
+    if (ENFORCEMENT_MODE === 'error') {
+      throw new Error(
+        `SDK enforcement: ${omittedFromSdk.length} route(s) missing sdk.exported:true. Set SDK_ENFORCEMENT=warn to downgrade to a warning.`,
+      );
+    }
+  }
 
   for (const route of routes) {
     try {
       registerRoute(route, registry);
+      // Mirror to client registry only when SDK-eligible.
+      if (!isStreamingRoute(route) && route.sdk?.exported === true) {
+        registerRoute(route, clientRegistry);
+      }
     } catch (err) {
       console.warn(
         `Failed to register ${route.method} ${route.path}: ${err instanceof Error ? err.message : String(err)}`,
@@ -178,20 +218,29 @@ async function generate(): Promise<void> {
     }
   }
 
-  const generator = new OpenApiGeneratorV3(registry.definitions);
-  const document = generator.generateDocument({
-    openapi: '3.0.0',
+  const baseDocOptions = {
+    openapi: '3.0.0' as const,
     info: {
       title: 'Profile Services API',
-      version: '0.2.3',
+      version: '2.0.0',
       description: 'Generated from framework-free Route descriptors (Elysia + Bun runtime).',
     },
     servers: [{ url: 'http://localhost:3010' }],
+  };
+
+  const document = new OpenApiGeneratorV3(registry.definitions).generateDocument(baseDocOptions);
+  const clientDocument = new OpenApiGeneratorV3(clientRegistry.definitions).generateDocument({
+    ...baseDocOptions,
+    info: {
+      ...baseDocOptions.info,
+      description: `${baseDocOptions.info.description} (Client-only spec — SSE/stream routes omitted.)`,
+    },
   });
 
   const tagSet = new Set<string>();
   for (const route of routes) for (const t of route.openapi.tags) tagSet.add(t);
   document.tags = [...tagSet].sort().map((name) => ({ name }));
+  clientDocument.tags = document.tags;
 
   const report: SwaggerReport = {
     success: true,
@@ -200,20 +249,24 @@ async function generate(): Promise<void> {
     operations: routes.length,
     schemas: Object.keys(document.components?.schemas ?? {}).length,
     tags: [...tagSet].sort(),
+    clientPaths: Object.keys(clientDocument.paths ?? {}).length,
+    clientOperations:
+      routes.length - omittedFromSdk.length - routes.filter(isStreamingRoute).length,
+    omittedFromSdk,
   };
 
   writeFileSync(SWAGGER_PATH, `${JSON.stringify(document, null, 2)}\n`);
-  // Client spec: same shape; the previous Nest path stripped admin
-  // routes via `unwrapClientSpec`. Until that rule is reapplied at the
-  // descriptor level, the client spec equals the server spec.
-  writeFileSync(CLIENT_SWAGGER_PATH, `${JSON.stringify(document, null, 2)}\n`);
+  writeFileSync(CLIENT_SWAGGER_PATH, `${JSON.stringify(clientDocument, null, 2)}\n`);
   writeFileSync(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`);
 
   console.log(`Swagger JSON generated: ${SWAGGER_PATH}`);
   console.log(`Client spec generated: ${CLIENT_SWAGGER_PATH}`);
-  console.log(`Paths: ${report.paths}`);
-  console.log(`Operations: ${report.operations}`);
+  console.log(`Paths: ${report.paths} (client: ${report.clientPaths})`);
+  console.log(`Operations: ${report.operations} (client: ${report.clientOperations})`);
   console.log(`Schemas: ${report.schemas}`);
+  if (omittedFromSdk.length > 0) {
+    console.log(`Omitted from SDK: ${omittedFromSdk.length} (mode=${ENFORCEMENT_MODE})`);
+  }
 }
 
 generate().catch((error: unknown) => {

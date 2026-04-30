@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Profile Services API",
-    "version": "0.2.3",
-    "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime)."
+    "version": "2.0.0",
+    "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime). (Client-only spec — SSE/stream routes omitted.)"
   },
   "servers": [
     {
@@ -42,317 +42,6 @@
         "parameters": [
           {
             "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/feed": {
-      "get": {
-        "summary": "Get authenticated user activity feed",
-        "tags": [
-          "social-activity"
-        ],
-        "operationId": "get_v1_users_userId_feed",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/activities": {
-      "get": {
-        "summary": "Get public activities for a user",
-        "tags": [
-          "social-activity"
-        ],
-        "operationId": "get_v1_users_userId_activities",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/activities/by-type/{type}": {
-      "get": {
-        "summary": "Get user activities filtered by type",
-        "tags": [
-          "social-activity"
-        ],
-        "operationId": "get_v1_users_userId_activities_by_type_type",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "type",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/feed/subscribe": {
-      "get": {
-        "summary": "Subscribe to activity feed stream",
-        "description": "Streams real-time feed updates for the authenticated user.",
-        "tags": [
-          "social-feed"
-        ],
-        "operationId": "get_v1_feed_subscribe",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/feed/subscribe/{type}": {
-      "get": {
-        "summary": "Subscribe to activity type stream",
-        "description": "Streams real-time feed updates filtered by activity type.",
-        "tags": [
-          "social-feed"
-        ],
-        "operationId": "get_v1_feed_subscribe_type",
-        "parameters": [
-          {
-            "name": "type",
             "in": "path",
             "required": true,
             "schema": {
@@ -711,311 +400,6 @@
         }
       }
     },
-    "/api/v1/users/{userId}/follow": {
-      "post": {
-        "summary": "Follow a user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "post_v1_users_userId_follow",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Unfollow a user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "delete_v1_users_userId_follow",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/followers": {
-      "get": {
-        "summary": "Get followers for a user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "get_v1_users_userId_followers",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/following": {
-      "get": {
-        "summary": "Get users followed by a user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "get_v1_users_userId_following",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/is-following": {
-      "get": {
-        "summary": "Check following relationship",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "get_v1_users_userId_is_following",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/social-stats": {
-      "get": {
-        "summary": "Get social stats for authenticated user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "get_v1_users_me_social_stats",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/social-stats": {
-      "get": {
-        "summary": "Get social stats for a user",
-        "tags": [
-          "social-follow"
-        ],
-        "operationId": "get_v1_users_userId_social_stats",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
     "/api/v1/users/me/connection-recommendations": {
       "get": {
         "summary": "Users sharing the most skills with you",
@@ -1043,509 +427,6 @@
                   }
                 },
                 "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/network-summary": {
-      "get": {
-        "summary": "Get network summary for authenticated user",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_me_network_summary",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/connect": {
-      "post": {
-        "summary": "Send a connection request",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "post_v1_users_userId_connect",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/connections/{id}/accept": {
-      "put": {
-        "summary": "Accept a connection request",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "put_v1_connections_id_accept",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/connections/{id}/reject": {
-      "put": {
-        "summary": "Reject a connection request",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "put_v1_connections_id_reject",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/connections/{id}/withdraw": {
-      "delete": {
-        "summary": "Withdraw a sent (pending) connection request",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "delete_v1_connections_id_withdraw",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/connections/{id}": {
-      "delete": {
-        "summary": "Remove a connection",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "delete_v1_connections_id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/connections": {
-      "get": {
-        "summary": "Get accepted connections",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_me_connections",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/connections/pending": {
-      "get": {
-        "summary": "Get pending connection requests",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_me_connections_pending",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/connections/sent": {
-      "get": {
-        "summary": "Get sent (pending) connection requests",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_me_connections_sent",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/connections/suggestions": {
-      "get": {
-        "summary": "Get connection suggestions",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_me_connections_suggestions",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/connection-stats": {
-      "get": {
-        "summary": "Get connection stats for a user",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_userId_connection_stats",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/users/{userId}/is-connected": {
-      "get": {
-        "summary": "Check connection status",
-        "tags": [
-          "social-connections"
-        ],
-        "operationId": "get_v1_users_userId_is_connected",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
               },
               "~standard": {
                 "version": 1,
@@ -1737,98 +618,6 @@
         }
       }
     },
-    "/api/health": {
-      "get": {
-        "summary": "Liveness probe — always 200 once the process is booted",
-        "tags": [
-          "health"
-        ],
-        "operationId": "get_health",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/health/live": {
-      "get": {
-        "summary": "Kubernetes-style liveness alias",
-        "tags": [
-          "health"
-        ],
-        "operationId": "get_health_live",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/health/ready": {
-      "get": {
-        "summary": "Readiness probe — every backend must answer within 2s",
-        "tags": [
-          "health"
-        ],
-        "operationId": "get_health_ready",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/admin/test/run": {
-      "post": {
-        "summary": "Run a test suite",
-        "tags": [
-          "Admin - Test Runner"
-        ],
-        "operationId": "post_v1_admin_test_run",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "suite": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "suite"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/admin/test/suites": {
-      "get": {
-        "summary": "List available test suites",
-        "tags": [
-          "Admin - Test Runner"
-        ],
-        "operationId": "get_v1_admin_test_suites",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
     "/api/v1/enums": {
       "get": {
         "summary": "List all enum keys exposed by the catalog.",
@@ -1896,13 +685,46 @@
     },
     "/api/v1/pages/me-dashboard": {
       "get": {
-        "summary": "Single payload for the dashboard: counts (resumes, applications, unread notifications), latest activity items, viewer summary. Replaces ~5 parallel UI fetches.",
-        "description": "Composite page payloads",
+        "summary": "Composite dashboard widgets (server-driven)",
+        "description": "Returns `{widgets:[{id,type,title,size,data,actions?,cta?}]}`. Adding/removing widgets is a backend-only change. Today the server emits widgets for greeting, counters, recent notifications and follow-ups; the frontend simply iterates `widgets[]` and dispatches on `type`.",
         "tags": [
           "pages"
         ],
         "operationId": "get_v1_pages_me_dashboard",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/pages/settings/{section}": {
+      "get": {
+        "summary": "Server-driven settings section (fields + actions + info)",
+        "description": "Returns `{section, fields:[...], actions:[...], info:[...]}`. The frontend renders settings pages from this payload — adding a setting field or action is a backend-only change.",
+        "tags": [
+          "pages"
+        ],
+        "operationId": "get_v1_pages_settings_section",
+        "parameters": [
+          {
+            "name": "section",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -2098,14 +920,14 @@
         }
       }
     },
-    "/api/v1/feature-flags/evaluate": {
+    "/api/v1/feature-flags/active": {
       "get": {
-        "summary": "Evaluate effective flag state for the current user",
-        "description": "Returns a map of flag key to boolean. The boolean is the effective value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.",
+        "summary": "Active flags for the current user",
+        "description": "Returns `{flags: Record<string, boolean>}`. A flag is `true` only if its own enabled state, every ancestor, and the role restriction all allow it. Frontend uses `flags[key]` directly without per-key resolution.",
         "tags": [
           "feature-flags"
         ],
-        "operationId": "get_v1_feature_flags_evaluate",
+        "operationId": "get_v1_feature_flags_active",
         "parameters": [],
         "responses": {
           "200": {
@@ -2225,22 +1047,6 @@
           "admin-feature-flags"
         ],
         "operationId": "post_v1_admin_feature_flags_broadcast_refresh",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/feature-flags/stream": {
-      "get": {
-        "summary": "Subscribe to flag invalidation broadcasts",
-        "description": "Server-Sent Events channel emitting `invalidate` messages when admin toggles a flag or triggers a broadcast refresh. Clients should re-fetch /evaluate on each message.",
-        "tags": [
-          "feature-flags"
-        ],
-        "operationId": "get_v1_feature_flags_stream",
         "parameters": [],
         "responses": {
           "200": {
@@ -4938,6 +3744,87 @@
         }
       }
     },
+    "/api/v1/search/global": {
+      "get": {
+        "summary": "Global multi-type search (resumes, users, jobs, posts)",
+        "description": "Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Today only the `resumes` group is populated; `users`, `jobs`, `posts` groups stream in once their dedicated indexes are wired.",
+        "tags": [
+          "search"
+        ],
+        "operationId": "get_v1_search_global",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [
+                  {
+                    "kind": "min",
+                    "value": 1
+                  },
+                  {
+                    "kind": "max",
+                    "value": 200
+                  }
+                ],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "_def": {
+                "innerType": {
+                  "_def": {
+                    "checks": [
+                      {
+                        "kind": "int"
+                      },
+                      {
+                        "kind": "min",
+                        "value": 1,
+                        "inclusive": true
+                      },
+                      {
+                        "kind": "max",
+                        "value": 20,
+                        "inclusive": true
+                      }
+                    ],
+                    "typeName": "ZodNumber",
+                    "coerce": true
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "typeName": "ZodDefault"
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/search/similar/{id}": {
       "get": {
         "summary": "Find similar resumes by resume id",
@@ -5010,10 +3897,26 @@
         }
       }
     },
+    "/api/v1/events/schemas": {
+      "get": {
+        "summary": "Catalog of allowed analytics events",
+        "description": "Returns `{events:[{name,version,propsSchema,requiredContext?,piiFields?}]}`. The frontend uses this to know which event names + prop shapes are valid before emitting.",
+        "tags": [
+          "platform-events"
+        ],
+        "operationId": "get_v1_events_schemas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/events": {
       "post": {
         "summary": "Ingest a batch of product events",
-        "description": "Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON.",
+        "description": "Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON. The expected event names + shapes are listed by `/v1/events/schemas`.",
         "tags": [
           "platform-events"
         ],
@@ -5641,105 +4544,6 @@
           "resume-analytics"
         ],
         "operationId": "get_v1_resumes_resumeId_analytics_progression",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/analytics/{resumeId}/live": {
-      "get": {
-        "summary": "Subscribe to live analytics stream",
-        "description": "Streams view and ATS score updates for a resume in real time.",
-        "tags": [
-          "resume-analytics"
-        ],
-        "operationId": "get_v1_analytics_resumeId_live",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/analytics/{resumeId}/views": {
-      "get": {
-        "summary": "Subscribe to live views stream",
-        "description": "Streams only view-count updates for a resume.",
-        "tags": [
-          "resume-analytics"
-        ],
-        "operationId": "get_v1_analytics_resumeId_views",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/analytics/{resumeId}/ats-score": {
-      "get": {
-        "summary": "Subscribe to live ATS stream",
-        "description": "Streams only ATS-score updates for a resume.",
-        "tags": [
-          "resume-analytics"
-        ],
-        "operationId": "get_v1_analytics_resumeId_ats_score",
         "parameters": [
           {
             "name": "resumeId",
@@ -6682,252 +5486,6 @@
         "parameters": [
           {
             "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/resumes/{resumeId}/thumbnail.svg": {
-      "get": {
-        "summary": "Lightweight SVG thumbnail of the resume (name + title + summary preview)",
-        "description": "Resume CRUD operations",
-        "tags": [
-          "resumes"
-        ],
-        "operationId": "get_v1_resumes_resumeId_thumbnail_svg",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/resumes/{resumeId}/versions": {
-      "get": {
-        "summary": "List resume versions (nested route)",
-        "description": "Resume versions returned",
-        "tags": [
-          "resume-versions"
-        ],
-        "operationId": "get_v1_resumes_resumeId_versions",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/resumes/{resumeId}/versions/{versionId}/restore": {
-      "post": {
-        "summary": "Restore resume version (nested route)",
-        "description": "Resume version restored",
-        "tags": [
-          "resume-versions"
-        ],
-        "operationId": "post_v1_resumes_resumeId_versions_versionId_restore",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "versionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/versions/{resumeId}": {
-      "get": {
-        "summary": "List resume versions",
-        "description": "Resume versions returned",
-        "tags": [
-          "resume-versions"
-        ],
-        "operationId": "get_v1_versions_resumeId",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/versions/{resumeId}/{versionId}": {
-      "get": {
-        "summary": "Get a specific resume version",
-        "description": "Resume version returned",
-        "tags": [
-          "resume-versions"
-        ],
-        "operationId": "get_v1_versions_resumeId_versionId",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "versionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/versions/{resumeId}/restore/{versionId}": {
-      "post": {
-        "summary": "Restore resume version",
-        "description": "Resume version restored",
-        "tags": [
-          "resume-versions"
-        ],
-        "operationId": "post_v1_versions_resumeId_restore_versionId",
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "versionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -8139,39 +6697,6 @@
           "admin-resume-styles"
         ],
         "operationId": "delete_v1_admin_resume_styles_id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/resume-styles/{id}/preview.pdf": {
-      "get": {
-        "summary": "Render a generic preview PDF for the style",
-        "description": "ResumeStyle catalog + apply",
-        "tags": [
-          "resume-styles"
-        ],
-        "operationId": "get_v1_resume_styles_id_preview_pdf",
         "parameters": [
           {
             "name": "id",
@@ -11625,11 +10150,44 @@
     "/api/v1/jobs/{id}/fit": {
       "get": {
         "summary": "Fit score breakdown for this job against the viewer's primary resume",
-        "description": "Jobs API",
+        "description": "Returns `{score, dimensions:[{key,label,value,target,color,hint,weight}], matchedKeywords?, missingKeywords?}` so the frontend renders bars/cards by iterating dimensions[] without per-key mapping.",
         "tags": [
           "jobs"
         ],
         "operationId": "get_v1_jobs_id_fit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}/apply-context": {
+      "get": {
+        "summary": "Apply-context: defaults + requirements + blockers for the apply modal",
+        "description": "Returns `{defaults:{coverLetter,resumeId},requirements:[{type,key,label,required,options?}],cta,oneClickAvailable,blockers?:[{code,message,suggestedAction?}]}` so the frontend renders the apply modal entirely server-driven.",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "get_v1_jobs_id_apply_context",
         "parameters": [
           {
             "name": "id",
@@ -11970,6 +10528,22 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/composer-config": {
+      "get": {
+        "summary": "Composer configuration (server-driven UI)",
+        "description": "Returns the server-driven composer config the frontend uses to render the post-creation UI: limits, allowed media types, poll/repost availability, mention cap, post types.",
+        "tags": [
+          "posts"
+        ],
+        "operationId": "get_v1_posts_composer_config",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -13206,6 +11780,22 @@
         }
       }
     },
+    "/api/v1/notifications/types": {
+      "get": {
+        "summary": "Notification types with channels + user preferences",
+        "description": "Returns `{types:[{key,label,description,category,channels:[{key,enabled,locked?}],userEnabled}]}`. The frontend renders the settings matrix directly from this payload — adding a new type is a backend-only change.",
+        "tags": [
+          "notifications"
+        ],
+        "operationId": "get_v1_notifications_types",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/notifications/preferences": {
       "get": {
         "summary": "Get notification preferences for the current user",
@@ -13274,22 +11864,6 @@
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/notifications/subscribe": {
-      "get": {
-        "summary": "Subscribe to notification stream",
-        "description": "Pushes new notifications as they are created for the authenticated user.",
-        "tags": [
-          "notifications"
-        ],
-        "operationId": "get_v1_notifications_subscribe",
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -14338,221 +12912,14 @@
         }
       }
     },
-    "/api/v1/admin/onboarding/steps": {
+    "/api/v1/recruiting/jobs/form-config": {
       "get": {
-        "summary": "List all onboarding steps",
-        "description": "Admin onboarding management",
+        "summary": "Server-driven config for the create/edit-job wizard",
+        "description": "Returns `{steps:[{id,label,fields:[...]}], options:{...}}`. The frontend iterates `steps[]` and renders inputs from each `field`. Adding a step or field is a backend-only change.",
         "tags": [
-          "Admin - Onboarding"
+          "recruiting"
         ],
-        "operationId": "get_v1_admin_onboarding_steps",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create onboarding step",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "post_v1_admin_onboarding_steps",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/admin/onboarding/stats": {
-      "get": {
-        "summary": "Get onboarding funnel statistics",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "get_v1_admin_onboarding_stats",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/admin/onboarding/steps/{key}": {
-      "get": {
-        "summary": "Get onboarding step by key",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "get_v1_admin_onboarding_steps_key",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update onboarding step",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "put_v1_admin_onboarding_steps_key",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete onboarding step",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "delete_v1_admin_onboarding_steps_key",
-        "parameters": [
-          {
-            "name": "key",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/admin/onboarding/config": {
-      "get": {
-        "summary": "Get onboarding config (strength levels)",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "get_v1_admin_onboarding_config",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update onboarding config",
-        "description": "Admin onboarding management",
-        "tags": [
-          "Admin - Onboarding"
-        ],
-        "operationId": "put_v1_admin_onboarding_config",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": {
-                  "nullable": true
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/onboarding/preview/stream": {
-      "get": {
-        "summary": "Subscribe to live resume preview updates",
-        "description": "Streams PNG preview as base64 when onboarding data changes.",
-        "tags": [
-          "Onboarding Preview"
-        ],
-        "operationId": "get_v1_onboarding_preview_stream",
+        "operationId": "get_v1_recruiting_jobs_form_config",
         "parameters": [],
         "responses": {
           "200": {
@@ -16342,384 +14709,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/areas": {
-      "get": {
-        "summary": "Get all tech areas",
-        "description": "Tech areas returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_areas",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/niches": {
-      "get": {
-        "summary": "Get all tech niches",
-        "description": "Tech niches returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_niches",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/areas/{areaType}/niches": {
-      "get": {
-        "summary": "Get niches by tech area type",
-        "description": "Niches by area returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_areas_areaType_niches",
-        "parameters": [
-          {
-            "name": "areaType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/languages": {
-      "get": {
-        "summary": "Get all programming languages",
-        "description": "Programming languages returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_languages",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/languages/search": {
-      "get": {
-        "summary": "Search programming languages",
-        "description": "Programming language search results returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_languages_search",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/skills": {
-      "get": {
-        "summary": "Get all tech skills",
-        "description": "Tech skills returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_skills",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/skills/search": {
-      "get": {
-        "summary": "Search tech skills",
-        "description": "Tech skill search results returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_skills_search",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/niches/{nicheSlug}/skills": {
-      "get": {
-        "summary": "Get skills by niche",
-        "description": "Skills by niche returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_niches_nicheSlug_skills",
-        "parameters": [
-          {
-            "name": "nicheSlug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/skills/type/{type}": {
-      "get": {
-        "summary": "Get skills by type",
-        "description": "Skills by type returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_skills_type_type",
-        "parameters": [
-          {
-            "name": "type",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/search": {
-      "get": {
-        "summary": "Search languages and skills",
-        "description": "Combined search results returned",
-        "tags": [
-          "tech-skills-query"
-        ],
-        "operationId": "get_v1_tech_skills_search",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "_def": {
-                "checks": [],
-                "typeName": "ZodString",
-                "coerce": false
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "_def": {
-                "innerType": {
-                  "_def": {
-                    "checks": [],
-                    "typeName": "ZodString",
-                    "coerce": false
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
-                },
-                "typeName": "ZodOptional"
-              },
-              "~standard": {
-                "version": 1,
-                "vendor": "zod"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/sync": {
-      "post": {
-        "summary": "Trigger tech skills synchronization",
-        "description": "Tech skills sync execution result",
-        "tags": [
-          "tech-skills-sync"
-        ],
-        "operationId": "post_v1_tech_skills_sync",
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response"

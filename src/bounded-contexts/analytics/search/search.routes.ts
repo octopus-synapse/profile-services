@@ -38,7 +38,27 @@ const SimilarQuerySchema = z.object({
 });
 type SimilarQuery = z.infer<typeof SimilarQuerySchema>;
 
+const GlobalSearchQuerySchema = z.object({
+  q: z.string().min(1).max(200),
+  limit: z.coerce.number().int().min(1).max(20).default(5),
+});
+type GlobalSearchQuery = z.infer<typeof GlobalSearchQuerySchema>;
+
 const IdParam = z.object({ id: z.string() });
+
+interface GlobalSearchItem {
+  readonly id: string;
+  readonly title: string;
+  readonly snippet?: string;
+  readonly href: string;
+  readonly badge?: string;
+}
+
+interface GlobalSearchGroup {
+  readonly type: 'users' | 'jobs' | 'resumes' | 'posts';
+  readonly label: string;
+  readonly items: readonly GlobalSearchItem[];
+}
 
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   {
@@ -82,6 +102,46 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
       const q = ctx.query as unknown as SuggestionsQuery;
       const suggestions = await service.suggest(q.prefix || '', q.limit);
       return { suggestions };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/search/global',
+    auth: { kind: 'public' },
+    query: GlobalSearchQuerySchema as unknown as Route<SearchServicePort>['query'],
+    openapi: {
+      summary: 'Global multi-type search (resumes, users, jobs, posts)',
+      tags: ['search'],
+      description:
+        'Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Today only the `resumes` group is populated; `users`, `jobs`, `posts` groups stream in once their dedicated indexes are wired.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, service) => {
+      const q = ctx.query as unknown as GlobalSearchQuery;
+      const resumeResult = await service.search({
+        query: q.q,
+        skills: [],
+        page: 1,
+        limit: q.limit,
+      });
+      // The resume-search service still returns the legacy `{data, ...}`
+      // shape; we adapt here so the global-search wire format stays canonical.
+      const rows =
+        (resumeResult as unknown as { data?: ReadonlyArray<Record<string, unknown>> }).data ?? [];
+      const resumeItems: GlobalSearchItem[] = rows.map((row) => ({
+        id: String(row.id ?? ''),
+        title: String(row.fullName ?? row.jobTitle ?? 'Untitled'),
+        snippet:
+          typeof row.summary === 'string' && row.summary.length > 0
+            ? row.summary.slice(0, 160)
+            : undefined,
+        href: `/resumes/${String(row.slug ?? row.id ?? '')}`,
+      }));
+      const groups: GlobalSearchGroup[] = [
+        { type: 'resumes', label: 'Currículos', items: resumeItems },
+        // TODO: populate users/jobs/posts groups once their indexes ship.
+      ];
+      return { groups };
     },
   },
   {

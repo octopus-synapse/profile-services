@@ -34,15 +34,31 @@ const ToggleFeatureFlagSchema = z
 export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
   {
     method: 'GET',
+    path: '/v1/feature-flags/active',
+    auth: { kind: 'jwt' },
+    openapi: {
+      summary: 'Active flags for the current user',
+      tags: ['feature-flags'],
+      description:
+        'Returns `{flags: Record<string, boolean>}`. A flag is `true` only if its own enabled state, every ancestor, and the role restriction all allow it. Frontend uses `flags[key]` directly without per-key resolution.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const flags = await bc.featureFlagService.snapshotFor(ctx.user!.userId);
+      return { flags };
+    },
+  },
+  // Legacy alias retained while clients migrate.
+  {
+    method: 'GET',
     path: '/v1/feature-flags/evaluate',
     auth: { kind: 'jwt' },
     openapi: {
-      summary: 'Evaluate effective flag state for the current user',
+      summary: '[Deprecated] Use /v1/feature-flags/active',
       tags: ['feature-flags'],
-      description:
-        'Returns a map of flag key to boolean. The boolean is the effective value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.',
+      description: 'Same payload as /v1/feature-flags/active. Kept for transition.',
     },
-    sdk: { exported: true },
+    sdk: { exported: false },
     handler: async (ctx, bc) => {
       const flags = await bc.featureFlagService.snapshotFor(ctx.user!.userId);
       return { flags };

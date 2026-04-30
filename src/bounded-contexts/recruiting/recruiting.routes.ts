@@ -26,7 +26,125 @@ const MatchCandidatesRequestSchema = z.object({
 
 type MatchCandidatesRequest = z.infer<typeof MatchCandidatesRequestSchema>;
 
+/**
+ * Server-driven config for the recruiter's "create / edit job posting"
+ * wizard. The frontend renders steps + fields from this payload and
+ * does not hard-code the form layout.
+ */
+const JOB_FORM_CONFIG = {
+  steps: [
+    {
+      id: 'basics',
+      label: 'Basics',
+      fields: [
+        { key: 'title', type: 'text', label: 'Title', required: true, maxLength: 200 },
+        { key: 'company', type: 'text', label: 'Company', required: true, maxLength: 200 },
+        { key: 'location', type: 'text', label: 'Location', required: false, maxLength: 200 },
+      ],
+    },
+    {
+      id: 'description',
+      label: 'Description',
+      fields: [
+        {
+          key: 'description',
+          type: 'longtext',
+          label: 'Description',
+          required: true,
+          maxLength: 20_000,
+        },
+        {
+          key: 'jobType',
+          type: 'enum',
+          label: 'Job type',
+          required: true,
+          optionsKey: 'jobTypes',
+        },
+        {
+          key: 'remotePolicy',
+          type: 'enum',
+          label: 'Remote policy',
+          required: true,
+          optionsKey: 'remotePolicies',
+        },
+      ],
+    },
+    {
+      id: 'requirements',
+      label: 'Requirements',
+      fields: [
+        {
+          key: 'skills',
+          type: 'tags',
+          label: 'Required skills',
+          required: false,
+          maxItems: 40,
+          itemMaxLength: 60,
+        },
+        {
+          key: 'minEnglishLevel',
+          type: 'enum',
+          label: 'Minimum English level',
+          required: false,
+          optionsKey: 'englishLevels',
+        },
+      ],
+    },
+    {
+      id: 'compensation',
+      label: 'Compensation',
+      fields: [
+        {
+          key: 'salaryMin',
+          type: 'number',
+          label: 'Min. salary',
+          required: false,
+          min: 0,
+        },
+        {
+          key: 'salaryMax',
+          type: 'number',
+          label: 'Max. salary',
+          required: false,
+          min: 0,
+        },
+        {
+          key: 'currency',
+          type: 'enum',
+          label: 'Currency',
+          required: false,
+          optionsKey: 'currencies',
+        },
+      ],
+    },
+  ],
+  options: {
+    jobTypes: ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'],
+    remotePolicies: ['REMOTE', 'HYBRID', 'ONSITE'],
+    englishLevels: ['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT'],
+    currencies: ['BRL', 'USD', 'EUR', 'GBP'],
+  },
+} as const;
+
 export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> = [
+  {
+    method: 'GET',
+    path: '/v1/recruiting/jobs/form-config',
+    auth: { kind: 'jwt' },
+    permission: Permission.JOB_CREATE,
+    openapi: {
+      summary: 'Server-driven config for the create/edit-job wizard',
+      tags: ['recruiting'],
+      description:
+        'Returns `{steps:[{id,label,fields:[...]}], options:{...}}`. The frontend iterates `steps[]` and renders inputs from each `field`. Adding a step or field is a backend-only change.',
+    },
+    sdk: { exported: true },
+    // No use-case dependency — config is static today.
+    handler: async () => ({
+      steps: JOB_FORM_CONFIG.steps,
+      options: JOB_FORM_CONFIG.options,
+    }),
+  },
   {
     method: 'POST',
     path: '/v1/recruiting/match-candidates',
@@ -47,19 +165,15 @@ export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> =
       description: 'Reverse candidate match API',
     },
     sdk: { exported: true },
-    handler: async (
-      ctx,
-      useCase,
-    ): Promise<{ success: true; data: MatchCandidatesForJobOutput }> => {
+    handler: async (ctx, useCase): Promise<MatchCandidatesForJobOutput> => {
       const body = ctx.body as MatchCandidatesRequest;
-      const data = await useCase.execute({
+      return useCase.execute({
         requesterId: ctx.user!.userId,
         jobSkills: body.skills ?? [],
         jobMinEnglish: body.minEnglishLevel ?? null,
         jobRemotePolicy: body.remotePolicy ?? null,
         limit: body.limit,
       });
-      return { success: true, data };
     },
   },
 ];

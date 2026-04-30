@@ -51,7 +51,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
-      const formats = (await bc.listExportFormats.execute()).map((format) => ({ format }));
+      const formats = await bc.listExportFormats.execute();
       return { formats };
     },
   },
