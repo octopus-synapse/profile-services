@@ -86,21 +86,19 @@ describe('E2E Journey: Email Verification', () => {
 
   describe('Step 2: Access Protected Route (Unverified)', () => {
     it('should block access to protected route with unverified email', async () => {
-      // Try to access a protected endpoint (e.g., list resumes)
-      // The EmailVerifiedGuard should block this unless SKIP_EMAIL_VERIFICATION=true
       const response = await app.request
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${testUser.token}`);
 
-      // If SKIP_EMAIL_VERIFICATION is true in test env, this will pass (200)
-      // In production-like config, this should be 401 with email verification message
-      if (response.status === 401) {
-        expect(response.body.message).toContain('verified');
-      } else {
-        // SKIP_EMAIL_VERIFICATION=true - email check is bypassed in tests
-        // This is expected for E2E test environments
-        expect(response.status).toBe(200);
+      // SKIP_EMAIL_VERIFICATION=true bypasses the gate entirely.
+      // Otherwise the unified permission gate emits 403 with
+      // `error.missing` carrying 'email-verified'.
+      if (response.status === 200) {
+        // Gate bypassed (dev compose). No further assertion possible.
+        return;
       }
+      expect(response.status).toBe(403);
+      expect(response.body.error?.missing).toContain('email-verified');
     });
 
     it('should block access to user profile with unverified email', async () => {
@@ -108,12 +106,9 @@ describe('E2E Journey: Email Verification', () => {
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${testUser.token}`);
 
-      if (response.status === 401) {
-        expect(response.body.message).toContain('verified');
-      } else {
-        // SKIP_EMAIL_VERIFICATION=true in test env
-        expect([200, 401]).toContain(response.status);
-      }
+      if (response.status === 200) return;
+      expect(response.status).toBe(403);
+      expect(response.body.error?.missing).toContain('email-verified');
     });
   });
 
