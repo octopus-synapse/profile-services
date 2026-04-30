@@ -135,7 +135,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
           bundle.useCases.exportPdfUseCase.execute({ userId: targetUserId }),
         ),
       );
-      return { success: true, data: presentPdfAsBase64(buffer) };
+      return presentPdfAsBase64(buffer);
     },
   },
 

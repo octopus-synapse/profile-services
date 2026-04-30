@@ -102,7 +102,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const result = await bundle.profile.getProfileUseCase.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -120,7 +120,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdateUserSchema>;
       const result = await bundle.profile.updateProfileUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: { ...result, profile: result } };
+      return { ...result, profile: result };
     },
   },
   // ─── Username ─────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const preferences = await bundle.preferences.getPreferencesUseCase.execute(ctx.user!.userId);
-      return { success: true, data: { preferences } };
+      return { preferences };
     },
   },
   {
@@ -205,7 +205,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdatePreferencesSchema>;
       await bundle.preferences.updatePreferencesUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: { message: 'Preferences updated successfully' } };
+      return { message: 'Preferences updated successfully' };
     },
   },
   {
@@ -247,7 +247,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         ctx.user!.userId,
         body,
       );
-      return { success: true, data: { preferences } };
+      return { preferences };
     },
   },
   // ─── Permissions ──────────────────────────────────────────────────
@@ -291,7 +291,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         search: q.search,
         roleName: q.roleName,
       });
-      return { success: true, data: toUserManagementListData(result) };
+      return toUserManagementListData(result);
     },
   },
   {
@@ -309,7 +309,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const user = await bundle.userManagement.getUserDetails(id);
-      return { success: true, data: toUserDetailsData(user) };
+      return toUserDetailsData(user);
     },
   },
   {
@@ -372,7 +372,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       await bundle.userManagement.deleteUser(id, ctx.user!.userId);
-      return { success: true, data: { message: 'User deleted successfully' } };
+      return { message: 'User deleted successfully' };
     },
   },
   {
@@ -393,7 +393,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminResetPasswordSchema>;
       await bundle.userManagement.resetPassword(id, body);
-      return { success: true, data: { message: 'Password reset successfully' } };
+      return { message: 'Password reset successfully' };
     },
   },
   {
@@ -413,7 +413,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AssignRolesSchema>;
       await bundle.userManagement.assignRoles(id, body.roles, ctx.user!.userId);
-      return { success: true, data: { message: 'Roles updated successfully' } };
+      return { message: 'Roles updated successfully' };
     },
   },
 ];

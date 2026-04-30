@@ -68,7 +68,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
       const userId = ctx.user!.userId;
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.activityService.getFeed(userId, pagination);
-      return { success: true, data: { feed: result } };
+      return { feed: result };
     },
   },
   {
@@ -85,7 +85,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.activityService.getUserActivities(userId, pagination);
-      return { success: true, data: { activities: result } };
+      return { activities: result };
     },
   },
   {
@@ -106,7 +106,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
         type as ActivityType,
         pagination,
       );
-      return { success: true, data: { activities: result } };
+      return { activities: result };
     },
   },
 ];

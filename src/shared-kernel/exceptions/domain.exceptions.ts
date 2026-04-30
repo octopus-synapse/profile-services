@@ -6,6 +6,11 @@
  * and converted to HTTP responses by the application layer.
  */
 
+import type {
+  ErrorSeverity,
+  SuggestedAction,
+} from '@/bounded-contexts/platform/i18n/domain/error-envelope';
+
 /**
  * Base class for all domain exceptions.
  *
@@ -14,13 +19,15 @@
  * - `statusHint`: the HTTP status the filter should emit when this class
  *   reaches the HTTP boundary unhandled.
  *
- * Both fields are `abstract readonly` so TypeScript breaks compilation if a
- * new exception class forgets either. That is the first line of enforcement;
- * the arch test in `test/static-analysis/architecture/` is the second.
+ * `severity` and `suggestedAction` carry UX hints to the frontend. The base
+ * class supplies safe defaults (`'toast'`, no action) so adding the fields
+ * across the codebase is non-breaking; specific subclasses override.
  */
 export abstract class DomainException extends Error {
   abstract readonly code: string;
   abstract readonly statusHint: number;
+  readonly severity: ErrorSeverity = 'toast';
+  readonly suggestedAction?: SuggestedAction;
 
   constructor(message: string) {
     super(message);
@@ -42,6 +49,7 @@ export abstract class DomainException extends Error {
 export class EntityNotFoundException extends DomainException {
   readonly code: string = 'ENTITY_NOT_FOUND';
   readonly statusHint = 404;
+  override readonly severity: ErrorSeverity = 'inline';
 
   constructor(
     public readonly entityType: string,
@@ -62,6 +70,7 @@ export class EntityNotFoundException extends DomainException {
 export class ConflictException extends DomainException {
   readonly code: string = 'CONFLICT';
   readonly statusHint = 409;
+  override readonly severity: ErrorSeverity = 'toast';
 
   constructor(message: string) {
     super(message);
@@ -75,6 +84,7 @@ export class ConflictException extends DomainException {
 export class UnauthorizedException extends DomainException {
   readonly code: string = 'UNAUTHORIZED';
   readonly statusHint = 401;
+  override readonly severity: ErrorSeverity = 'modal';
 
   constructor(message = 'Unauthorized') {
     super(message);
@@ -88,6 +98,7 @@ export class UnauthorizedException extends DomainException {
 export class ForbiddenException extends DomainException {
   readonly code: string = 'FORBIDDEN';
   readonly statusHint = 403;
+  override readonly severity: ErrorSeverity = 'toast';
 
   constructor(message = 'Access denied') {
     super(message);
@@ -101,6 +112,7 @@ export class ForbiddenException extends DomainException {
 export class ValidationException extends DomainException {
   readonly code: string = 'VALIDATION_ERROR';
   readonly statusHint = 400;
+  override readonly severity: ErrorSeverity = 'inline';
 
   constructor(
     message: string,
@@ -117,6 +129,7 @@ export class ValidationException extends DomainException {
 export class BusinessRuleViolationException extends DomainException {
   readonly code: string = 'BUSINESS_RULE_VIOLATION';
   readonly statusHint = 422;
+  override readonly severity: ErrorSeverity = 'banner';
 
   constructor(message: string) {
     super(message);
@@ -130,6 +143,7 @@ export class BusinessRuleViolationException extends DomainException {
 export class LimitExceededException extends DomainException {
   readonly code: string = 'LIMIT_EXCEEDED';
   readonly statusHint = 422;
+  override readonly severity: ErrorSeverity = 'modal';
 
   constructor(
     public readonly limitType: string,

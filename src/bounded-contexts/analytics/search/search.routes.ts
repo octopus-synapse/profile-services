@@ -43,7 +43,7 @@ const IdParam = z.object({ id: z.string() });
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   {
     method: 'GET',
-    path: '/search',
+    path: '/v1/search',
     auth: { kind: 'public' },
     query: SearchQuerySchema as unknown as Route<SearchServicePort>['query'],
     openapi: {
@@ -64,12 +64,12 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
         limit: q.limit,
         sortBy: q.sortBy,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
     method: 'GET',
-    path: '/search/suggestions',
+    path: '/v1/search/suggestions',
     auth: { kind: 'public' },
     query: SuggestionsQuerySchema as unknown as Route<SearchServicePort>['query'],
     openapi: {
@@ -81,12 +81,12 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     handler: async (ctx, service) => {
       const q = ctx.query as unknown as SuggestionsQuery;
       const suggestions = await service.suggest(q.prefix || '', q.limit);
-      return { success: true, data: { suggestions } };
+      return { suggestions };
     },
   },
   {
     method: 'GET',
-    path: '/search/similar/:id',
+    path: '/v1/search/similar/:id',
     auth: { kind: 'public' },
     params: IdParam,
     query: SimilarQuerySchema as unknown as Route<SearchServicePort>['query'],
@@ -100,7 +100,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
       const { id } = ctx.params as { id: string };
       const q = ctx.query as unknown as SimilarQuery;
       const resumes = await service.findSimilar(id, q.limit);
-      return { success: true, data: { resumes } };
+      return { resumes };
     },
   },
 ];

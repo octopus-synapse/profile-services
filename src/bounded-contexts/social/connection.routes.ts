@@ -200,7 +200,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.connectionService.getConnections(ctx.user!.userId, pagination);
-      return { success: true, data: { connections: result } };
+      return { connections: result };
     },
   },
   {
@@ -219,7 +219,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         pagination,
       );
-      return { success: true, data: { pendingRequests: result } };
+      return { pendingRequests: result };
     },
   },
   {
@@ -235,7 +235,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
-      return { success: true, data: { pendingRequests: result } };
+      return { pendingRequests: result };
     },
   },
   {
@@ -257,7 +257,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         pagination,
       );
-      return { success: true, data: { suggestions } };
+      return { suggestions };
     },
   },
   {
@@ -272,7 +272,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
       const stats = await bundle.connectionService.getConnectionStats(userId);
-      return { success: true, data: stats };
+      return stats;
     },
   },
   {
@@ -291,7 +291,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         targetUserId,
       );
-      return { success: true, data: status };
+      return status;
     },
   },
 ];

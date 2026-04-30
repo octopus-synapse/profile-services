@@ -46,7 +46,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     sdk: { exported: true },
     handler: async (_ctx, service) => {
       const languages = await service.findAllActiveLanguages();
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -65,7 +65,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
       const { q, limit } = ctx.query as { q?: string; limit?: string };
       const parsedLimit = parseLimit(limit, 10);
       const languages = await service.searchLanguagesByName(q ?? '', parsedLimit);
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -84,7 +84,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
       const { code } = ctx.params as { code: string };
       const language = await service.findLanguageByCode(code);
       if (!language) throw new SpokenLanguageNotFoundException(code);
-      return { success: true, data: { language } };
+      return { language };
     },
   },
 ];

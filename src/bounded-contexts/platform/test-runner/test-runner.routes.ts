@@ -24,7 +24,7 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     handler: async (ctx, bc) => {
       const { suite } = ctx.body as { suite: string };
       const results = await bc.runTestSuite.execute(suite);
-      return { success: true, data: results as unknown as Record<string, unknown> };
+      return results as unknown as Record<string, unknown>;
     },
   },
   {
@@ -37,10 +37,7 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
       tags: ['Admin - Test Runner'],
     },
     handler: async (_ctx, bc) => {
-      return {
-        success: true,
-        data: { suites: bc.listTestSuites.execute() },
-      };
+      return { suites: bc.listTestSuites.execute() };
     },
   },
 ];

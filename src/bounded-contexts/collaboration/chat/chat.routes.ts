@@ -51,7 +51,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   // ─── Chat: messaging + conversations ───────────────────────────────
   {
     method: 'POST',
-    path: '/chat/messages',
+    path: '/v1/chat/messages',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
@@ -61,12 +61,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const dto = ctx.body as z.infer<typeof SendMessageSchema>;
       const message = await bundle.chat.sendMessageUseCase.execute(ctx.user!.userId, dto);
-      return { success: true, data: { message } };
+      return { message };
     },
   },
   {
     method: 'POST',
-    path: '/chat/conversations/:conversationId/messages',
+    path: '/v1/chat/conversations/:conversationId/messages',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
@@ -86,12 +86,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         conversationId,
         body.content,
       );
-      return { success: true, data: { message } };
+      return { message };
     },
   },
   {
     method: 'GET',
-    path: '/chat/conversations',
+    path: '/v1/chat/conversations',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     query: GetConversationsRequestQuerySchema,
@@ -107,12 +107,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         ctx.user!.userId,
         query,
       );
-      return { success: true, data: { conversations } };
+      return { conversations };
     },
   },
   {
     method: 'GET',
-    path: '/chat/conversations/:conversationId',
+    path: '/v1/chat/conversations/:conversationId',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
@@ -128,12 +128,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         ctx.user!.userId,
         conversationId,
       );
-      return { success: true, data: { conversation } };
+      return { conversation };
     },
   },
   {
     method: 'GET',
-    path: '/chat/conversations/:conversationId/messages',
+    path: '/v1/chat/conversations/:conversationId/messages',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
@@ -152,12 +152,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         cursor: query.cursor,
         limit: query.limit ?? 50,
       });
-      return { success: true, data: { messages } };
+      return { messages };
     },
   },
   {
     method: 'POST',
-    path: '/chat/conversations/:conversationId/read',
+    path: '/v1/chat/conversations/:conversationId/read',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
@@ -174,12 +174,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         ctx.user!.userId,
         conversationId,
       );
-      return { success: true, data: { count: result.count } };
+      return { count: result.count };
     },
   },
   {
     method: 'GET',
-    path: '/chat/unread',
+    path: '/v1/chat/unread',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     openapi: {
@@ -198,7 +198,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   },
   {
     method: 'GET',
-    path: '/chat/conversation-with/:userId',
+    path: '/v1/chat/conversation-with/:userId',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
@@ -215,18 +215,18 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         userId,
       );
       if (!conversationId) {
-        return { success: true, data: { conversationId: null } };
+        return { conversationId: null };
       }
       const conversation = await bundle.chat.getConversationUseCase.execute(
         ctx.user!.userId,
         conversationId,
       );
-      return { success: true, data: { conversationId, conversation } };
+      return { conversationId, conversation };
     },
   },
   {
     method: 'GET',
-    path: '/chat/users/search',
+    path: '/v1/chat/users/search',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     query: SearchQuerySchema,
@@ -239,14 +239,14 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { q } = ctx.query as { q?: string };
       const users = await bundle.search.search(q ?? '', ctx.user!.userId);
-      return { success: true, data: { users } };
+      return { users };
     },
   },
 
   // ─── Chat preferences (pin / mute) ─────────────────────────────────
   {
     method: 'POST',
-    path: '/chat/conversations/:conversationId/preferences/pin',
+    path: '/v1/chat/conversations/:conversationId/preferences/pin',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
@@ -261,12 +261,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
       const { conversationId } = ctx.params as { conversationId: string };
       const body = ctx.body as z.infer<typeof SetPinSchema>;
       await bundle.preferences.setPin(conversationId, ctx.user!.userId, body.pinned);
-      return { success: true, data: { pinned: body.pinned } };
+      return { pinned: body.pinned };
     },
   },
   {
     method: 'POST',
-    path: '/chat/conversations/:conversationId/preferences/mute',
+    path: '/v1/chat/conversations/:conversationId/preferences/mute',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
@@ -286,14 +286,14 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         body.muted,
         body.mutedUntil,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
 
   // ─── Block users ───────────────────────────────────────────────────
   {
     method: 'POST',
-    path: '/chat/blocked',
+    path: '/v1/chat/blocked',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
@@ -307,12 +307,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const dto = ctx.body as z.infer<typeof BlockUserSchema>;
       const block = await bundle.block.blockUserUseCase.execute(ctx.user!.userId, dto);
-      return { success: true, data: { block } };
+      return { block };
     },
   },
   {
     method: 'DELETE',
-    path: '/chat/blocked/:userId',
+    path: '/v1/chat/blocked/:userId',
     statusCode: 204,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
@@ -330,7 +330,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   },
   {
     method: 'GET',
-    path: '/chat/blocked',
+    path: '/v1/chat/blocked',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     openapi: {
@@ -341,12 +341,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const blockedUsers = await bundle.block.getBlockedUsersUseCase.execute(ctx.user!.userId);
-      return { success: true, data: { blockedUsers } };
+      return { blockedUsers };
     },
   },
   {
     method: 'GET',
-    path: '/chat/blocked/:userId/status',
+    path: '/v1/chat/blocked/:userId/status',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
@@ -362,7 +362,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
         ctx.user!.userId,
         userId,
       );
-      return { success: true, data: { isBlocked } };
+      return { isBlocked };
     },
   },
 ];

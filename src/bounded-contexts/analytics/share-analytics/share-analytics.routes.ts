@@ -34,7 +34,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
     handler: async (ctx, service) => {
       const { shareId } = ctx.params as { resumeId: string; shareId: string };
       const analytics = await service.getAnalytics(shareId, ctx.user!.userId);
-      return { success: true, data: { analytics } };
+      return { analytics };
     },
   },
   {
@@ -52,7 +52,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
     handler: async (ctx, service) => {
       const { shareId } = ctx.params as { shareId: string };
       const analytics = await service.getAnalytics(shareId, ctx.user!.userId);
-      return { success: true, data: { analytics } };
+      return { analytics };
     },
   },
   {
@@ -76,7 +76,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
         endDate: q.endDate ? new Date(q.endDate) : undefined,
         eventType: q.eventType,
       });
-      return { success: true, data: { events } };
+      return { events };
     },
   },
 ];

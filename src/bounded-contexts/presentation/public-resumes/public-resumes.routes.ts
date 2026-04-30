@@ -102,7 +102,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
         userAgent: pickHeader(ctx.headers, 'user-agent'),
         referer: pickHeader(ctx.headers, 'referer'),
       });
-      return { success: true, data: { resume, share }, resume, share };
+      return { resume, share };
     },
   },
   {
@@ -127,7 +127,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
         userAgent: pickHeader(ctx.headers, 'user-agent'),
         referer: pickHeader(ctx.headers, 'referer'),
       });
-      return { success: true, data: { resume, share }, resume, share };
+      return { resume, share };
     },
   },
 
@@ -148,7 +148,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const dto = ctx.body as z.infer<typeof CreateShareSchema>;
       const share = await bundle.shareService.createShare(ctx.user!.userId, dto);
-      return { success: true, data: { share: toSharePayload(share) } };
+      return { share: toSharePayload(share) };
     },
   },
   {
@@ -166,7 +166,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const shares = await bundle.shareService.listUserShares(ctx.user!.userId, resumeId);
-      return { success: true, data: { shares: toSharePayloadList(shares) } };
+      return { shares: toSharePayloadList(shares) };
     },
   },
   {
@@ -209,7 +209,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
       const { shareId } = ctx.params as { shareId: string };
       const dto = ctx.body as z.infer<typeof AddAliasSchema>;
       const alias = await bundle.shareService.addAlias(ctx.user!.userId, shareId, dto.slug);
-      return { success: true, data: { alias: toAliasPayload(alias) } };
+      return { alias: toAliasPayload(alias) };
     },
   },
   {
@@ -227,7 +227,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { shareId } = ctx.params as { shareId: string };
       const aliases = await bundle.shareService.listAliases(ctx.user!.userId, shareId);
-      return { success: true, data: { aliases: toAliasPayloadList(aliases) } };
+      return { aliases: toAliasPayloadList(aliases) };
     },
   },
   {

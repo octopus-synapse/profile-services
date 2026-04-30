@@ -100,7 +100,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
         createdBy: adminId,
       });
 
-      return { success: true, data: modifier.toJSON() };
+      return modifier.toJSON();
     },
   },
   // DELETE /api/v1/admin/users/:userId/access-modifiers/:modifierId

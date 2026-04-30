@@ -52,7 +52,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const formats = (await bc.listExportFormats.execute()).map((format) => ({ format }));
-      return { success: true, data: { formats } };
+      return { formats };
     },
   },
   {
@@ -67,7 +67,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const roles = (await bc.listUserRoles.execute()).map((role) => ({ role }));
-      return { success: true, data: { roles } };
+      return { roles };
     },
   },
   {
@@ -82,7 +82,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const types = await bc.listSectionTypes.execute();
-      return { success: true, data: { types } };
+      return { types };
     },
   },
 

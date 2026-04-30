@@ -21,8 +21,10 @@ export class InMemoryAdminSpokenLanguagesRepository extends AdminSpokenLanguages
       items,
       total: items.length,
       page: query.page ?? 1,
-      pageSize: query.pageSize ?? 20,
+      limit: query.pageSize ?? 20,
       totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
     };
   }
   async findOne(code: string) {

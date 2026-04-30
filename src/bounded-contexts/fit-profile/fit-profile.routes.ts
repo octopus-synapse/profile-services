@@ -79,7 +79,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const view = await bc.getFitProfileStatus.execute(ctx.user!.userId);
-      return { success: true, data: presentFitProfileMe(view) };
+      return presentFitProfileMe(view);
     },
   },
   {
@@ -94,7 +94,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const view = await bc.getOrCreateQuestionSet.execute(ctx.user!.userId);
-      return { success: true, data: presentFitQuestions(view) };
+      return presentFitQuestions(view);
     },
   },
   {
@@ -115,7 +115,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         questionSetId: body.questionSetId,
         answers: body.answers,
       });
-      return { success: true, data: presentSubmittedFitProfile(saved) };
+      return presentSubmittedFitProfile(saved);
     },
   },
   {
@@ -151,7 +151,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id: jobId } = ctx.params as { id: string };
       const profile = await bc.getJobFitProfile.execute(jobId);
       if (!profile) throw new JobFitProfileNotSetException(jobId);
-      return { success: true, data: presentJobFitProfile(profile) };
+      return presentJobFitProfile(profile);
     },
   },
   {
@@ -175,7 +175,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         editedByUserId: ctx.user!.userId,
         sliders: body.sliders,
       });
-      return { success: true, data: presentJobFitProfile(saved) };
+      return presentJobFitProfile(saved);
     },
   },
 
@@ -193,7 +193,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const rows = await bc.listFitQuestions.execute();
-      return { success: true, data: presentFitQuestionList(rows) };
+      return presentFitQuestionList(rows);
     },
   },
   {
@@ -212,7 +212,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id } = ctx.params as { id: string };
       const row = await bc.getFitQuestion.execute(id);
       if (!row) throw new FitQuestionNotFoundException(id);
-      return { success: true, data: presentFitQuestion(row) };
+      return presentFitQuestion(row);
     },
   },
   {
@@ -239,7 +239,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         isActive: body.isActive,
         reverseScored: body.reverseScored,
       });
-      return { success: true, data: presentFitQuestion(row) };
+      return presentFitQuestion(row);
     },
   },
   {
@@ -259,7 +259,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpdateFitQuestionSchema>;
       const row = await bc.updateFitQuestion.execute(id, body);
-      return { success: true, data: presentFitQuestion(row) };
+      return presentFitQuestion(row);
     },
   },
   {

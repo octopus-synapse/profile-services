@@ -44,7 +44,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const skill = await bc.addSkill.execute(resumeId, ctx.body as CreateSkillData);
-      return { success: true, data: { skill } };
+      return { skill };
     },
   },
   {
@@ -62,7 +62,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const skills = await bc.listSkillsForResume.execute(resumeId);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -81,7 +81,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     handler: async (ctx, bc) => {
       const { skillId } = ctx.params as { resumeId: string; skillId: string };
       const skill = await bc.updateSkill.execute(skillId, ctx.body as UpdateSkillData);
-      return { success: true, data: { skill } };
+      return { skill };
     },
   },
   {
@@ -99,7 +99,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     handler: async (ctx, bc) => {
       const { skillId } = ctx.params as { resumeId: string; skillId: string };
       await bc.deleteSkill.execute(skillId);
-      return { success: true, data: { result: { deleted: true } } };
+      return { result: { deleted: true } };
     },
   },
 ];

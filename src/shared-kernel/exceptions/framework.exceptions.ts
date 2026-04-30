@@ -9,12 +9,14 @@
  * the path/body/query/headers shape itself.
  */
 
+import type { ErrorSeverity } from '@/bounded-contexts/platform/i18n/domain/error-envelope';
 import { DomainException, ValidationException } from './domain.exceptions';
 
 /** 404 fallback when the router can't resolve the requested path. */
 export class RouteNotFoundException extends DomainException {
   readonly code: string = 'ROUTE_NOT_FOUND';
   readonly statusHint = 404;
+  override readonly severity: ErrorSeverity = 'inline';
   constructor(public readonly path: string) {
     super(`Route ${path} not found`);
   }

@@ -216,15 +216,18 @@ export class InMemoryJobsRepository extends JobsRepositoryPort {
   async listJobs(filters: JobFilters): Promise<PaginatedResult<Job>> {
     const rows = this.filterAll(filters);
     const page = filters.page ?? 1;
-    const pageSize = filters.limit ? Math.min(filters.limit, 100) : 20;
+    const limit = filters.limit ? Math.min(filters.limit, 100) : 20;
     const total = rows.length;
-    const items = rows.slice((page - 1) * pageSize, page * pageSize);
+    const items = rows.slice((page - 1) * limit, page * limit);
+    const totalPages = Math.ceil(total / limit);
     return {
       items: items.map(clone),
       total,
       page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      limit,
+      totalPages,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
     };
   }
 
@@ -233,18 +236,21 @@ export class InMemoryJobsRepository extends JobsRepositoryPort {
     page: number,
     pageSize: number,
   ): Promise<PaginatedResult<Job>> {
-    const safePageSize = Math.min(pageSize, 100);
+    const limit = Math.min(pageSize, 100);
     const rows = [...this.jobs.values()]
       .filter((j) => j.authorId === authorId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     const total = rows.length;
-    const items = rows.slice((page - 1) * safePageSize, page * safePageSize);
+    const items = rows.slice((page - 1) * limit, page * limit);
+    const totalPages = Math.ceil(total / limit);
     return {
       items: items.map(clone),
       total,
       page,
-      pageSize: safePageSize,
-      totalPages: Math.ceil(total / safePageSize),
+      limit,
+      totalPages,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
     };
   }
 

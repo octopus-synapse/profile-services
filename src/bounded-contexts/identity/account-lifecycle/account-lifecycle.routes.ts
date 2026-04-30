@@ -35,7 +35,7 @@ const AcceptConsentRequestSchema = z.object({
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
   {
     method: 'POST',
-    path: '/accounts',
+    path: '/v1/accounts',
     statusCode: 201,
     auth: { kind: 'public' },
     body: CreateAccountSchema,
@@ -81,7 +81,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
   },
   {
     method: 'DELETE',
-    path: '/accounts/deactivate',
+    path: '/v1/accounts/deactivate',
     auth: { kind: 'jwt' },
     body: DeactivateAccountSchema,
     openapi: {
@@ -104,7 +104,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
   },
   {
     method: 'DELETE',
-    path: '/accounts',
+    path: '/v1/accounts',
     auth: { kind: 'jwt' },
     body: DeleteAccountSchema,
     // SkipTosCheck — the user can't be forced to accept new TOS before
@@ -131,7 +131,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
   },
   {
     method: 'GET',
-    path: '/gdpr/export',
+    path: '/v1/me/gdpr-export',
     auth: { kind: 'jwt' },
     // GDPR export must be reachable even if the user hasn't accepted
     // the latest TOS revision — they're exercising their right to
@@ -216,7 +216,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     sdk: { exported: true, name: 'getConsentStatus' },
     handler: async (ctx, bc) => {
       const result = await bc.getConsentStatus.execute({ userId: ctx.user!.userId });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -232,7 +232,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     sdk: { exported: true, name: 'getConsentHistory' },
     handler: async (ctx, bc) => {
       const result = await bc.getConsentHistory.execute({ userId: ctx.user!.userId });
-      return { success: true, data: toConsentHistoryResponse(result) };
+      return toConsentHistoryResponse(result);
     },
   },
 ];

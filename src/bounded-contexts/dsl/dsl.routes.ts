@@ -39,7 +39,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = bc.validateDsl.execute(ctx.body as Record<string, unknown>);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -56,7 +56,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     handler: async (ctx, bc) => {
       const { target } = ctx.query as { target?: 'html' | 'pdf' };
       const ast = bc.previewDsl.execute(ctx.body as Record<string, unknown>, target ?? 'html');
-      return { success: true, data: { ast } };
+      return { ast };
     },
   },
   {
@@ -81,7 +81,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
         target: target ?? 'html',
         locale: parseLocale(locale),
       });
-      return { success: true, data: { ast: result.ast } };
+      return { ast: result.ast };
     },
   },
   {
@@ -104,7 +104,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
         target: target ?? 'html',
         locale: parseLocale(locale),
       });
-      return { success: true, data: { ast: result.ast } };
+      return { ast: result.ast };
     },
   },
 ];

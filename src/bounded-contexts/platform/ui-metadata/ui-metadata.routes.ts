@@ -22,7 +22,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
-      return { success: true, data: bc.listEnumKeys.execute() };
+      return bc.listEnumKeys.execute();
     },
   },
   {
@@ -43,7 +43,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
       if (!out) {
         throw new EntityNotFoundException('Enum', key);
       }
-      return { success: true, data: out };
+      return out;
     },
   },
   {
@@ -59,7 +59,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const menu = await bc.getUserMenu.execute(ctx.user!.userId);
-      return { success: true, data: { menu } };
+      return { menu };
     },
   },
   {

@@ -394,7 +394,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
       const q = ctx.query as z.infer<typeof TrackerQuerySchema>;
       const threshold = q.silentDays ? Math.max(1, Number(q.silentDays)) : 10;
       const applications = await bc.listApplicationTimeline.execute(ctx.user!.userId, threshold);
-      return { success: true, data: { applications } };
+      return { applications };
     },
   },
   {
@@ -421,7 +421,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
         occurredAt: body.occurredAt ? new Date(body.occurredAt) : undefined,
         note: body.note,
       });
-      return { success: true, data: event };
+      return event;
     },
   },
   {

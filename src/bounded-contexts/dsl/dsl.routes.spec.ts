@@ -89,8 +89,7 @@ describe('dslRoutes', () => {
       const route = findRoute('POST', '/v1/dsl/validate');
       const result = await route.handler(makeCtx({ body: mockDsl }), bc);
 
-      expect((result as { success: boolean }).success).toBe(true);
-      expect((result as { data: unknown }).data).toEqual(mockValidationResult);
+      expect(result).toEqual(mockValidationResult);
       expect(validate).toHaveBeenCalledWith(mockDsl);
     });
   });
@@ -100,8 +99,7 @@ describe('dslRoutes', () => {
       const route = findRoute('POST', '/v1/dsl/preview');
       const result = await route.handler(makeCtx({ body: mockDsl, query: {} }), bc);
 
-      expect((result as { success: boolean }).success).toBe(true);
-      expect((result as { data: { ast: unknown } }).data.ast).toBeDefined();
+      expect((result as { ast: unknown }).ast).toBeDefined();
       expect(preview).toHaveBeenCalledWith(mockDsl, 'html');
     });
 
@@ -124,8 +122,7 @@ describe('dslRoutes', () => {
         bc,
       );
 
-      expect((result as { success: boolean }).success).toBe(true);
-      expect((result as { data: { ast: unknown } }).data.ast).toBeDefined();
+      expect((result as { ast: unknown }).ast).toBeDefined();
       expect(render).toHaveBeenCalledWith({
         resumeId: mockResumeId,
         userId: mockUserId,
@@ -176,8 +173,7 @@ describe('dslRoutes', () => {
       const route = findRoute('GET', '/v1/dsl/render/public/:slug');
       const result = await route.handler(makeCtx({ params: { slug: mockSlug }, query: {} }), bc);
 
-      expect((result as { success: boolean }).success).toBe(true);
-      expect((result as { data: { ast: unknown } }).data.ast).toBeDefined();
+      expect((result as { ast: unknown }).ast).toBeDefined();
       expect(renderPublic).toHaveBeenCalledWith({ slug: mockSlug, target: 'html', locale: 'en' });
     });
 

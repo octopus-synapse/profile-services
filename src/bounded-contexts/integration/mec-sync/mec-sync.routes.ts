@@ -65,7 +65,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
       const { q, limit } = ctx.query as { q: string; limit?: string };
       const parsedLimit = parseLimitOrThrow(limit, APP_CONFIG.DEFAULT_PAGE_SIZE);
       const courses = await bc.searchCourses.execute(q, parsedLimit);
-      return { success: true, data: { courses } };
+      return { courses };
     },
   },
   {
@@ -82,7 +82,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (ctx, bc) => {
       const { codigoCurso } = ctx.params as { codigoCurso: string };
       const course = await bc.getCourseByCode.execute(parseCodeOrThrow(codigoCurso));
-      return { success: true, data: { course } };
+      return { course };
     },
   },
 
@@ -101,7 +101,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (ctx, bc) => {
       const { uf } = ctx.query as { uf?: string };
       const institutions = await bc.listInstitutions.execute(uf);
-      return { success: true, data: { institutions } };
+      return { institutions };
     },
   },
   {
@@ -119,7 +119,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
       const { q, limit } = ctx.query as { q: string; limit?: string };
       const parsedLimit = parseLimitLoose(limit, APP_CONFIG.DEFAULT_PAGE_SIZE);
       const institutions = await bc.searchInstitutions.execute(q, parsedLimit);
-      return { success: true, data: { institutions } };
+      return { institutions };
     },
   },
   {
@@ -136,7 +136,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (ctx, bc) => {
       const { codigoIes } = ctx.params as { codigoIes: string };
       const institution = await bc.getInstitutionByCode.execute(parseCodeOrThrow(codigoIes));
-      return { success: true, data: { institution } };
+      return { institution };
     },
   },
   {
@@ -153,7 +153,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     handler: async (ctx, bc) => {
       const { codigoIes } = ctx.params as { codigoIes: string };
       const courses = await bc.listCoursesByInstitution.execute(parseCodeOrThrow(codigoIes));
-      return { success: true, data: { courses } };
+      return { courses };
     },
   },
 
@@ -170,7 +170,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const states = await bc.listStateCodes.execute();
-      return { success: true, data: { states } };
+      return { states };
     },
   },
   {
@@ -185,7 +185,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const areas = await bc.listKnowledgeAreas.execute();
-      return { success: true, data: { areas } };
+      return { areas };
     },
   },
   {
@@ -200,7 +200,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const stats = await bc.getMecStatistics.execute();
-      return { success: true, data: { stats } };
+      return { stats };
     },
   },
 
@@ -272,7 +272,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
       const { limit } = ctx.query as { limit?: string };
       const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
       const history = await bc.getSyncHistory.execute(parsedLimit);
-      return { success: true, data: { history } };
+      return { history };
     },
   },
 ];

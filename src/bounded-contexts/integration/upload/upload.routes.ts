@@ -35,7 +35,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
         mimetype: file.mimetype,
         size: file.size,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -61,7 +61,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
         mimetype: file.mimetype,
         size: file.size,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -80,7 +80,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     handler: async (ctx, bc) => {
       const { key } = ctx.params as { key: string };
       const deleted = await bc.deleteUpload.execute(key);
-      return { success: true, data: { deleted } };
+      return { deleted };
     },
   },
 ];

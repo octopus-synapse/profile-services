@@ -27,7 +27,7 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const badges = await bc.listUserBadges.execute(ctx.user!.userId);
-      return { success: true, data: { badges } };
+      return { badges };
     },
   },
   {
@@ -44,7 +44,7 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const badges = await bc.listUserBadges.execute(userId);
-      return { success: true, data: { badges } };
+      return { badges };
     },
   },
 ];

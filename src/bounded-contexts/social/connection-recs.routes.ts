@@ -33,7 +33,7 @@ export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundl
       const recs = await bundle.service.getRecommendationsFor(ctx.user!.userId, {
         limit: Number.isFinite(parsed) ? parsed : undefined,
       });
-      return { success: true, data: { recommendations: recs } };
+      return { recommendations: recs };
     },
   },
 ];

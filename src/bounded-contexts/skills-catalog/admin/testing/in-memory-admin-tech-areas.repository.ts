@@ -29,13 +29,16 @@ export class InMemoryAdminTechAreasRepository extends AdminTechAreasRepositoryPo
   async findAll(query: AdminTechAreasListQuery): Promise<PaginatedResult<TechArea>> {
     const items = [...this.rows.values()];
     const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
+    const limit = query.pageSize ?? 20;
+    const total = items.length;
     return {
       items,
-      total: items.length,
+      total,
       page,
-      pageSize,
-      totalPages: Math.ceil(items.length / pageSize) || 0,
+      limit,
+      totalPages: Math.ceil(total / limit) || 0,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
     };
   }
 

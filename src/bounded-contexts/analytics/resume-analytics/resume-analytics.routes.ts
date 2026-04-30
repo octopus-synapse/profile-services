@@ -88,7 +88,7 @@ type HistoryQueryT = z.infer<typeof HistoryQuery>;
 export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> = [
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/track-view',
+    path: '/v1/resumes/:resumeId/analytics/track-view',
     statusCode: 201,
     auth: { kind: 'public' },
     params: ResumeIdParam,
@@ -112,12 +112,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         userAgent: Array.isArray(ua) ? ua[0] : ua,
         referer: Array.isArray(referer) ? referer[0] : referer,
       });
-      return { success: true, data: { message: 'View tracked successfully' } };
+      return { message: 'View tracked successfully' };
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/views',
+    path: '/v1/resumes/:resumeId/analytics/views',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -136,12 +136,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         startDate: q.startDate ? new Date(q.startDate) : undefined,
         endDate: q.endDate ? new Date(q.endDate) : undefined,
       });
-      return { success: true, data: stats };
+      return stats;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/ats-score',
+    path: '/v1/resumes/:resumeId/analytics/ats-score',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -154,12 +154,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const score = await facade.calculateATSScore(resumeId, ctx.user!.userId);
-      return { success: true, data: score };
+      return score;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/keywords',
+    path: '/v1/resumes/:resumeId/analytics/keywords',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -174,12 +174,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const options = ctx.query as z.infer<typeof KeywordOptionsQuery>;
       const suggestions = await facade.getKeywordSuggestions(resumeId, ctx.user!.userId, options);
-      return { success: true, data: suggestions };
+      return suggestions;
     },
   },
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/match-job',
+    path: '/v1/resumes/:resumeId/analytics/match-job',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -198,12 +198,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         ctx.user!.userId,
         body.jobDescription,
       );
-      return { success: true, data: match };
+      return match;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/benchmark',
+    path: '/v1/resumes/:resumeId/analytics/benchmark',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -218,12 +218,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const options = ctx.query as z.infer<typeof BenchmarkOptionsQuery>;
       const benchmark = await facade.getIndustryBenchmark(resumeId, ctx.user!.userId, options);
-      return { success: true, data: benchmark };
+      return benchmark;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/dashboard',
+    path: '/v1/resumes/:resumeId/analytics/dashboard',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -236,12 +236,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const dashboard = await facade.getDashboard(resumeId, ctx.user!.userId);
-      return { success: true, data: dashboard };
+      return dashboard;
     },
   },
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/snapshot',
+    path: '/v1/resumes/:resumeId/analytics/snapshot',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
@@ -255,12 +255,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await facade.saveSnapshot(resumeId, ctx.user!.userId);
-      return { success: true, data: snapshot };
+      return snapshot;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/history',
+    path: '/v1/resumes/:resumeId/analytics/history',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -275,12 +275,12 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const q = ctx.query as unknown as HistoryQueryT;
       const history = await facade.getHistory(resumeId, ctx.user!.userId, q);
-      return { success: true, data: history };
+      return history;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/progression',
+    path: '/v1/resumes/:resumeId/analytics/progression',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
@@ -293,7 +293,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const progression = await facade.getScoreProgression(resumeId, ctx.user!.userId);
-      return { success: true, data: progression };
+      return progression;
     },
   },
 ];

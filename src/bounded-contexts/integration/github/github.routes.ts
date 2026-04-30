@@ -59,7 +59,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     handler: async (ctx, bc) => {
       const { username } = ctx.params as { username: string };
       const result = await bc.getGitHubSummary.execute(username);
-      return { success: true, data: toGitHubSummaryDto(result) };
+      return toGitHubSummaryDto(result);
     },
   },
   {
@@ -80,7 +80,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
         body.githubUsername,
         body.resumeId,
       );
-      return { success: true, data: toGitHubSyncResponseDto(result) };
+      return toGitHubSyncResponseDto(result);
     },
   },
   {
@@ -97,7 +97,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const result = await bc.autoSyncGitHubFromResume.execute(ctx.user!.userId, resumeId);
-      return { success: true, data: toGitHubSyncResponseDto(result) };
+      return toGitHubSyncResponseDto(result);
     },
   },
   {

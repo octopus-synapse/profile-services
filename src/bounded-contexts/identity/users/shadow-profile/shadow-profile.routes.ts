@@ -40,7 +40,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
         token: body.token,
         username: body.username,
       });
-      return { success: true, data: snapshot };
+      return snapshot;
     },
   },
   {
@@ -59,7 +59,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     handler: async (ctx, service) => {
       const q = ctx.query as z.infer<typeof FindCandidatesQuery>;
       const rows = await service.findCandidatesFor({ email: q.email, githubLogin: q.githubLogin });
-      return { success: true, data: { candidates: rows } };
+      return { candidates: rows };
     },
   },
   {
@@ -77,7 +77,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     handler: async (ctx, service) => {
       const { id } = ctx.params as { id: string };
       const claimed = await service.claimForUser(id, ctx.user!.userId);
-      return { success: true, data: claimed };
+      return claimed;
     },
   },
 ];

@@ -23,7 +23,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const state = await bundle.getAll(ctx.user!.userId);
-      return { success: true, data: { state } };
+      return { state };
     },
   },
   {
@@ -59,7 +59,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       await bundle.deleteKey(ctx.user!.userId, key);
-      return { success: true, data: { deleted: true } };
+      return { deleted: true };
     },
   },
 ];

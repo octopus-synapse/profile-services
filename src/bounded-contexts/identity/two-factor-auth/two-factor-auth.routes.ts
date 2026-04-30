@@ -20,7 +20,7 @@ const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) });
 export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = [
   {
     method: 'POST',
-    path: '/auth/2fa/setup',
+    path: '/v1/auth/2fa/setup',
     auth: { kind: 'jwt' },
     openapi: {
       summary: 'Setup 2FA',
@@ -30,12 +30,12 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = await bc.setup2fa.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
     method: 'POST',
-    path: '/auth/2fa/verify',
+    path: '/v1/auth/2fa/verify',
     auth: { kind: 'jwt' },
     body: VerifyAndEnable2faSchema,
     openapi: {
@@ -47,12 +47,12 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     handler: async (ctx, bc) => {
       const { code } = ctx.body as { code: string };
       const result = await bc.verifyAndEnable2fa.execute(ctx.user!.userId, code);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
     method: 'GET',
-    path: '/auth/2fa/status',
+    path: '/v1/auth/2fa/status',
     auth: { kind: 'jwt' },
     openapi: {
       summary: 'Get 2FA status',
@@ -70,7 +70,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
   },
   {
     method: 'POST',
-    path: '/auth/2fa/backup-codes/regenerate',
+    path: '/v1/auth/2fa/backup-codes/regenerate',
     auth: { kind: 'jwt' },
     openapi: {
       summary: 'Regenerate backup codes',
@@ -80,12 +80,12 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = await bc.regenerateBackupCodes.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
     method: 'DELETE',
-    path: '/auth/2fa',
+    path: '/v1/auth/2fa',
     statusCode: 204,
     auth: { kind: 'jwt' },
     openapi: {

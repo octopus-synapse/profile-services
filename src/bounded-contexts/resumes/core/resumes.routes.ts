@@ -116,7 +116,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = await bc.getRemainingSlotsUseCase.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -134,7 +134,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: toResumeFullResponseDto(result) };
+      return toResumeFullResponseDto(result);
     },
   },
   {
@@ -152,7 +152,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: toResumeFullResponseDto(result) };
+      return toResumeFullResponseDto(result);
     },
   },
   {
@@ -171,7 +171,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const body = ctx.body as unknown as CreateResume;
       const result = await bc.createResumeForUserUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: toResumeResponseDto(result) };
+      return toResumeResponseDto(result);
     },
   },
   {
@@ -191,7 +191,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
       const { resumeId: id } = ctx.params as { resumeId: string };
       const body = ctx.body as unknown as UpdateResume;
       const result = await bc.updateResumeForUserUseCase.execute(id, ctx.user!.userId, body);
-      return { success: true, data: toResumeResponseDto(result) };
+      return toResumeResponseDto(result);
     },
   },
   {
@@ -209,7 +209,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: { deleted: true, id } };
+      return { deleted: true, id };
     },
   },
   {
@@ -300,7 +300,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const resumes = await bc.listResumesForUserUseCase.execute(userId);
-      return { success: true, data: { resumes: resumes.resumes } };
+      return { resumes: resumes.resumes };
     },
   },
   {
@@ -318,7 +318,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const resume = await bc.getResumeDetailsUseCase.execute(id);
-      return { success: true, data: { resume } };
+      return { resume };
     },
   },
   {
@@ -336,7 +336,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeUseCase.execute(id);
-      return { success: true, data: { message: 'Resume deleted successfully' } };
+      return { message: 'Resume deleted successfully' };
     },
   },
 ];
@@ -386,7 +386,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const sections = await bc.listResumeSectionsUseCase.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { sections } };
+      return { sections };
     },
   },
   {
@@ -414,7 +414,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         ctx.user!.userId,
         body.content ?? {},
       );
-      return { success: true, data: { item } };
+      return { item };
     },
   },
   {
@@ -443,7 +443,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         ctx.user!.userId,
         body.content ?? {},
       );
-      return { success: true, data: { item } };
+      return { item };
     },
   },
   {
@@ -464,7 +464,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         itemId: string;
       };
       await bc.deleteSectionItemUseCase.execute(resumeId, sectionTypeKey, itemId, ctx.user!.userId);
-      return { success: true, data: { deleted: true }, message: 'Section item deleted' };
+      return { deleted: true };
     },
   },
 ];

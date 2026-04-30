@@ -66,7 +66,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });
-      return { success: true, data: presentList(result) };
+      return presentList(result);
     },
   },
   {
@@ -83,7 +83,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const style = await bc.getStyle.execute(id);
-      return { success: true, data: presentDetail(style) };
+      return presentDetail(style);
     },
   },
   {
@@ -106,7 +106,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         resumeId,
         styleId: body.styleId,
       });
-      return { success: true, data: null };
+      return null;
     },
   },
   // ─── Admin CRUD (admin permission gates each route) ───────────────
@@ -133,7 +133,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         sectionStyles: body.sectionStyles,
         authorId: ctx.user!.userId,
       });
-      return { success: true, data: presentDetail(created) };
+      return presentDetail(created);
     },
   },
   {
@@ -160,7 +160,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         styleConfig: body.styleConfig,
         sectionStyles: body.sectionStyles,
       });
-      return { success: true, data: presentDetail(updated) };
+      return presentDetail(updated);
     },
   },
   {
@@ -178,7 +178,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteStyle.execute(id);
-      return { success: true, data: null };
+      return null;
     },
   },
 

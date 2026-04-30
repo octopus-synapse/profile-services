@@ -16,7 +16,7 @@ import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.dto
 export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCases>> = [
   {
     method: 'POST',
-    path: '/email-verification/verify',
+    path: '/v1/auth/email-verification/verify',
     auth: { kind: 'public' },
     body: VerifyEmailSchema,
     openapi: {
@@ -36,7 +36,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
   },
   {
     method: 'POST',
-    path: '/email-verification/send',
+    path: '/v1/auth/email-verification/send',
     auth: { kind: 'jwt' },
     statusCode: 200,
     guards: [{ id: 'allow-unverified-email' }],
@@ -56,7 +56,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
   },
   {
     method: 'GET',
-    path: '/email-verification/resend-status',
+    path: '/v1/auth/email-verification/resend-status',
     auth: { kind: 'jwt' },
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
@@ -68,7 +68,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const cooldown = await bc.getResendCooldown.execute({ userId: ctx.user!.userId });
-      return { success: true, data: cooldown };
+      return cooldown;
     },
   },
 ];

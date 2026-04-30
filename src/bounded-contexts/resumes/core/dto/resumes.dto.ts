@@ -99,16 +99,14 @@ const ResumeFullResponseSchema = ResumeResponseSchema.extend({
 
 const DeleteResponseSchema = z.object({ deleted: z.boolean(), id: z.string() });
 
-const PaginationMetaSchema = z.object({
+const PaginatedResumesDataSchema = z.object({
+  items: z.array(ResumeListItemSchema),
   total: z.number().int(),
   page: z.number().int(),
   limit: z.number().int(),
   totalPages: z.number().int(),
-});
-
-const PaginatedResumesDataSchema = z.object({
-  data: z.array(ResumeListItemSchema),
-  meta: PaginationMetaSchema,
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 // ============================================================================

@@ -44,7 +44,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -79,7 +79,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -145,7 +145,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getTailoredVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -164,7 +164,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const { versionId } = ctx.query as { versionId: string };
       const diff = await bc.getTailoredVersionDiff.execute(resumeId, versionId, ctx.user!.userId);
-      return { success: true, data: diff };
+      return diff;
     },
   },
   {

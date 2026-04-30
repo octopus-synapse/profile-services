@@ -38,7 +38,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const batch = await bc.getCurrentBatch.execute(ctx.user!.userId);
-      return { success: true, data: { batch } };
+      return { batch };
     },
   },
   {
@@ -55,7 +55,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     handler: async (ctx, bc) => {
       const { itemId } = ctx.params as { itemId: string };
       await bc.rejectCuratedItem.execute(ctx.user!.userId, itemId);
-      return { success: true, data: { itemId } };
+      return { itemId };
     },
   },
   {
@@ -74,7 +74,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     handler: async (ctx, bc) => {
       const { itemId } = ctx.params as { itemId: string };
       const result = await bc.approveCuratedItem.execute(ctx.user!.userId, itemId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -104,7 +104,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
         maxApplications: body.maxApplications,
         since,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
 ];

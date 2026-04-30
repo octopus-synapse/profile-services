@@ -286,7 +286,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
       ]);
-      return { success: true, data: buildSession(data, stepConfigs, strengthConfig) };
+      return buildSession(data, stepConfigs, strengthConfig);
     },
   },
   {
@@ -302,7 +302,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const user = ctx.user! as AuthUser;
       const status = await bundle.useCases.getOnboardingStatusUseCase.execute(user.userId);
-      return { success: true, data: status, ...status };
+      return status;
     },
   },
   {
@@ -320,7 +320,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const body = ctx.body as OnboardingProgress;
       const result = await bundle.progress.saveProgressUseCase.execute(user.userId, body);
-      return { success: true, data: result };
+      return result;
     },
   },
   {

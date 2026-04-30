@@ -42,6 +42,6 @@ describe('ListChatConversationsUseCase', () => {
     const result = await useCase.execute({});
 
     expect(result.page).toBe(1);
-    expect(result.pageSize).toBe(20);
+    expect(result.limit).toBe(20);
   });
 });

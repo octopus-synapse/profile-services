@@ -30,7 +30,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.getLatestQuality.execute(resumeId);
       if (!snapshot) throw new ResumeQualitySnapshotMissingException();
-      return { success: true, data: presentQualitySnapshot(snapshot) };
+      return presentQualitySnapshot(snapshot);
     },
   },
   {
@@ -48,7 +48,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.computeQuality.execute(resumeId);
-      return { success: true, data: presentQualitySnapshot(snapshot) };
+      return presentQualitySnapshot(snapshot);
     },
   },
 ];

@@ -30,7 +30,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const { limit } = ctx.query as { limit?: string };
       const stories = await bc.listPublished.execute(limit ? Number(limit) : undefined);
-      return { success: true, data: { stories } };
+      return { stories };
     },
   },
   {
@@ -48,7 +48,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const body = ctx.body as z.infer<typeof CreateSuccessStorySchema>;
       const created = await bc.create.execute(body);
-      return { success: true, data: { id: created.id } };
+      return { id: created.id };
     },
   },
   {
@@ -68,7 +68,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpdateSuccessStorySchema>;
       const updated = await bc.update.execute(id, body);
-      return { success: true, data: { id: updated.id } };
+      return { id: updated.id };
     },
   },
   {
@@ -86,7 +86,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.delete.execute(id);
-      return { success: true, data: { id } };
+      return { id };
     },
   },
 ];

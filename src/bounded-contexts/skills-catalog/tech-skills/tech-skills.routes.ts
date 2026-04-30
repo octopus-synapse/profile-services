@@ -46,7 +46,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const areas = await q.getAllAreas();
-      return { success: true, data: { areas } };
+      return { areas };
     },
   },
   {
@@ -64,7 +64,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { areaType } = ctx.params as { areaType: string };
       const niches = await q.getNichesByArea(areaType as TechAreaType);
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
 
@@ -82,7 +82,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const niches = await q.getAllNiches();
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -100,7 +100,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { nicheSlug } = ctx.params as { nicheSlug: string };
       const skills = await q.getSkillsByNiche(nicheSlug);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
 
@@ -118,7 +118,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const skills = await q.getAllSkills();
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -138,7 +138,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
       const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
 
@@ -155,7 +155,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const areas = await q.getAllAreas();
-      return { success: true, data: { areas } };
+      return { areas };
     },
   },
   {
@@ -170,7 +170,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const niches = await q.getAllNiches();
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -187,7 +187,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { areaType } = ctx.params as { areaType: string };
       const niches = await q.getNichesByArea(areaType as TechAreaType);
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -202,7 +202,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const languages = await q.getAllLanguages();
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -219,7 +219,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
       const languages = await q.searchLanguages(query, parseLimit(limit, 20));
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -234,7 +234,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const skills = await q.getAllSkills();
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -251,7 +251,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
       const skills = await q.searchSkills(query, parseLimit(limit, 20));
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -268,7 +268,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { nicheSlug } = ctx.params as { nicheSlug: string };
       const skills = await q.getSkillsByNiche(nicheSlug);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -287,7 +287,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
       const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -304,7 +304,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
       const results = await q.searchAll(query, parseLimit(limit, 20));
-      return { success: true, data: { results } };
+      return { results };
     },
   },
 ];

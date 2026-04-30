@@ -74,23 +74,29 @@ export function toPaginatedResumesData(
   fallback: { page: number; limit: number },
 ): PaginatedResumesDataDto {
   if (isPaginatedResult(result)) {
-    const data: ResumeListItemDto[] = [];
-    for (const r of result.resumes) data.push(toResumeListItemDto(r));
+    const items: ResumeListItemDto[] = [];
+    for (const r of result.resumes) items.push(toResumeListItemDto(r));
+    const { total, page, limit, totalPages } = result.pagination;
     return {
-      data,
-      meta: {
-        total: result.pagination.total,
-        page: result.pagination.page,
-        limit: result.pagination.limit,
-        totalPages: result.pagination.totalPages,
-      },
+      items,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
     };
   }
 
-  const data: ResumeListItemDto[] = [];
-  for (const r of result) data.push(toResumeListItemDto(r));
+  const items: ResumeListItemDto[] = [];
+  for (const r of result) items.push(toResumeListItemDto(r));
   return {
-    data,
-    meta: { total: result.length, page: fallback.page, limit: fallback.limit, totalPages: 1 },
+    items,
+    total: result.length,
+    page: fallback.page,
+    limit: fallback.limit,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: fallback.page > 1,
   };
 }

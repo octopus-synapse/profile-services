@@ -48,7 +48,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId: body.resumeId,
         jobId: body.jobId,
       });
-      return { success: true, data: presentMatchBreakdown(breakdown) };
+      return presentMatchBreakdown(breakdown);
     },
   },
   {
@@ -70,7 +70,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId,
         jobId,
       });
-      return { success: true, data: presentMatchBreakdown(breakdown) };
+      return presentMatchBreakdown(breakdown);
     },
   },
 ];

@@ -7,6 +7,9 @@
  *
  * Returns `null` when the error isn't a domain-known case — caller
  * should let it bubble to the framework's default 500 handler.
+ *
+ * The body shape is `{ code, message, severity, suggestedAction?, params, fields?, statusCode }`.
+ * No `success: false` envelope — the HTTP status code already conveys "error".
  */
 
 import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
@@ -18,7 +21,16 @@ import {
 } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import { DomainException } from '../exceptions/domain.exceptions';
 
-const FRAMEWORK_FIELDS = new Set(['code', 'statusHint', 'message', 'name', 'stack', 'cause']);
+const FRAMEWORK_FIELDS = new Set([
+  'code',
+  'statusHint',
+  'severity',
+  'suggestedAction',
+  'message',
+  'name',
+  'stack',
+  'cause',
+]);
 
 function extractParams(exception: DomainException): TranslationParams {
   const out: Record<string, string | number | boolean | null> = {};
@@ -42,7 +54,7 @@ function extractParams(exception: DomainException): TranslationParams {
 export interface MappedHttpError {
   readonly status: number;
   readonly headers: Record<string, string>;
-  readonly body: { success: false } & ErrorEnvelope;
+  readonly body: ErrorEnvelope;
 }
 
 /**
@@ -74,15 +86,23 @@ export function mapDomainErrorToHttp(
     if (err instanceof MissingTranslationError) {
       const envelope: ErrorEnvelope = {
         statusCode: 500,
-        error: 'INTERNAL_TRANSLATION_MISSING',
+        code: 'INTERNAL_TRANSLATION_MISSING',
         message: `Missing translation for "${error.code}" in "${locale}"`,
+        severity: 'silent',
         params: { code: error.code, locale },
       };
-      return { status: 500, headers, body: { success: false, ...envelope } };
+      return { status: 500, headers, body: envelope };
     }
     throw err;
   }
 
-  const envelope: ErrorEnvelope = { statusCode: status, error: error.code, message, params };
-  return { status, headers, body: { success: false, ...envelope } };
+  const envelope: ErrorEnvelope = {
+    statusCode: status,
+    code: error.code,
+    message,
+    severity: error.severity,
+    suggestedAction: error.suggestedAction,
+    params,
+  };
+  return { status, headers, body: envelope };
 }

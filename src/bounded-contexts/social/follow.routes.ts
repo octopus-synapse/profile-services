@@ -110,7 +110,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.followService.getFollowers(userId, pagination, ctx.user!.userId);
-      return { success: true, data: { followers: result } };
+      return { followers: result };
     },
   },
   {
@@ -128,7 +128,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
       const result = await bundle.followService.getFollowing(userId, pagination, ctx.user!.userId);
-      return { success: true, data: { following: result } };
+      return { following: result };
     },
   },
   {
@@ -144,7 +144,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId: targetUserId } = ctx.params as { userId: string };
       const isFollowing = await bundle.followService.isFollowing(ctx.user!.userId, targetUserId);
-      return { success: true, data: { isFollowing } };
+      return { isFollowing };
     },
   },
   {
@@ -183,7 +183,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
       const stats = await bundle.followService.getSocialStats(userId);
-      return { success: true, data: stats };
+      return stats;
     },
   },
 ];

@@ -67,7 +67,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
         dto.sourceLanguage as SourceLanguage,
         dto.targetLanguage as TranslationLanguage,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -85,7 +85,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const detections = await service.detectLanguage(dto.text);
-      return { success: true, data: { detections } };
+      return { detections };
     },
   },
   {
@@ -108,7 +108,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
         dto.sourceLanguage as SourceLanguage,
         dto.targetLanguage as TranslationLanguage,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -127,7 +127,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const result = await service.translatePtToEn(dto.text);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -146,7 +146,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const result = await service.translateEnToPt(dto.text);
-      return { success: true, data: result };
+      return result;
     },
   },
 ];

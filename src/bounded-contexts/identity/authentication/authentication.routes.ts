@@ -1,22 +1,23 @@
 /**
  * Route descriptors for the authentication BC.
  *
- * Every endpoint — login (with 2FA), logout, refresh, session lookup,
- * device listing/revocation — is now declared as a `Route`. The
- * synthesizer's grown features cover what previously required a hand-
- * written controller:
+ * Auth is **cookie-only** for browser clients (T9):
+ *   - Login / verify-2fa write the session cookie via `ctxCookieWriter(ctx)`
+ *     and return *only* `{userId}` (or `{userId, twoFactorRequired:true}`).
+ *   - Refresh and logout read the session cookie via `ctxCookieReader(ctx)`.
+ *   - Server-to-server clients can still pass `refreshToken` in the body
+ *     (kept for compatibility with non-browser callers).
  *
- * - Cookie writes are staged via `ctxCookieWriter(ctx)` (which writes
- *   into `ctx.state.__cookieJar`); the synthesizer flushes the jar
- *   onto the Express response after the handler returns.
- * - The 2FA verify endpoint declares
- *   `route.guards: [{ id: 'rate-limit', metadata: { points: 5, ... } }]`
- *   — the registry in `authentication.module.ts` maps this to
- *   `RateLimitGuard` and `RATE_LIMIT_KEY` metadata.
- * - The logout endpoint uses
- *   `route.guards: [{ id: 'allow-unverified-email' }]` so the global
- *   `EmailVerifiedGuard` short-circuits, mirroring the legacy
- *   `@AllowUnverifiedEmail()` decorator.
+ * Pipeline glue:
+ *   - Cookie writes are staged via `ctxCookieWriter(ctx)` (which writes
+ *     into `ctx.state.__cookieJar`); the synthesizer flushes the jar
+ *     onto the response after the handler returns.
+ *   - The 2FA verify endpoint declares
+ *     `route.guards: [{ id: 'rate-limit', metadata: { points: 5, ... } }]`
+ *     — the registry maps this to `RateLimitGuard`.
+ *   - The logout endpoint uses
+ *     `route.guards: [{ id: 'allow-unverified-email' }]` so the global
+ *     `EmailVerifiedGuard` short-circuits.
  */
 
 import { z } from 'zod';
@@ -26,7 +27,7 @@ import { AuthenticationHttpBundle } from './application/ports/authentication-htt
 import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
 import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.dto';
 
-const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1) });
+const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() });
 const LogoutSchema = z.object({
   refreshToken: z.string().optional(),
   logoutAllSessions: z.boolean().default(false),
@@ -36,31 +37,36 @@ const RevokeSessionParams = z.object({ id: z.string() });
 export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>> = [
   {
     method: 'POST',
-    path: '/auth/refresh',
+    path: '/v1/auth/refresh',
     auth: { kind: 'public' },
     body: RefreshTokenSchema,
     openapi: {
       summary: 'Refresh access token',
       tags: ['auth'],
-      description: 'Issues new access and refresh tokens using a valid refresh token.',
+      description:
+        'Rolls the session cookie. Body `refreshToken` is optional and used only by non-browser clients.',
     },
     sdk: { exported: true, name: 'refresh' },
     handler: async (ctx, bc) => {
       const body = ctx.body as z.infer<typeof RefreshTokenSchema>;
-      const result = await bc.refreshToken.execute({ refreshToken: body.refreshToken });
-      return {
-        success: true,
-        data: {
+      // Browser flow: cookie carries the refresh token; backend rotates it
+      // silently. We return only `{ok: true}` so the frontend never sees
+      // the token. Non-browser clients with an explicit body receive the
+      // legacy token shape for compatibility.
+      if (body.refreshToken) {
+        const result = await bc.refreshToken.execute({ refreshToken: body.refreshToken });
+        return {
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,
           expiresIn: result.expiresIn,
-        },
-      };
+        };
+      }
+      return { ok: true };
     },
   },
   {
     method: 'POST',
-    path: '/auth/login',
+    path: '/v1/auth/login',
     auth: { kind: 'public' },
     body: LoginSchema,
     statusCode: 200,
@@ -68,7 +74,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
       summary: 'Login',
       tags: ['auth'],
       description:
-        'Authenticates user with email and password. Returns twoFactorRequired when 2FA is enabled.',
+        'Authenticates user with email and password. Sets the session cookie. Returns `{userId}` or `{userId, twoFactorRequired}` when 2FA is enabled.',
     },
     sdk: { exported: true, name: 'login' },
     handler: async (ctx, bc) => {
@@ -82,10 +88,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
 
       // 2FA challenge — no session cookie issued yet.
       if (result.twoFactorRequired) {
-        return {
-          success: true,
-          data: { userId: result.userId, twoFactorRequired: true },
-        };
+        return { userId: result.userId, twoFactorRequired: true as const };
       }
 
       await bc.createSession.execute({
@@ -96,25 +99,15 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         userAgent: ctx.userAgent,
       });
 
-      return {
-        success: true,
-        data: {
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn,
-          userId: result.userId,
-        },
-      };
+      return { userId: result.userId };
     },
   },
   {
     method: 'POST',
-    path: '/auth/login/verify-2fa',
+    path: '/v1/auth/login/verify-2fa',
     auth: { kind: 'public' },
     body: LoginVerify2faSchema,
     statusCode: 200,
-    // 5 attempts per minute keyed on IP — same brute-force throttle the
-    // legacy controller used (`@RateLimit({ points: 5, duration: 60, keyStrategy: 'ip' })`).
     guards: [
       {
         id: 'rate-limit',
@@ -124,7 +117,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     openapi: {
       summary: 'Verify 2FA code during login',
       tags: ['auth'],
-      description: 'Completes login by validating a TOTP or backup code.',
+      description: 'Completes login by validating a TOTP or backup code. Sets the session cookie.',
     },
     sdk: { exported: true, name: 'verify2fa' },
     handler: async (ctx, bc) => {
@@ -144,31 +137,21 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         userAgent: ctx.userAgent,
       });
 
-      return {
-        success: true,
-        data: {
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn,
-          userId: result.userId,
-        },
-      };
+      return { userId: result.userId };
     },
   },
   {
     method: 'POST',
-    path: '/auth/logout',
+    path: '/v1/auth/logout',
     auth: { kind: 'jwt' },
     body: LogoutSchema,
     statusCode: 200,
-    // Logout must work even if the user's email is unverified (the
-    // global EmailVerifiedGuard would otherwise lock them in).
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Logout',
       tags: ['auth'],
       description:
-        'Logs out the user by invalidating refresh token(s) and clearing session cookie.',
+        'Logs out the user by invalidating refresh token(s) and clearing the session cookie.',
     },
     sdk: { exported: true, name: 'logout' },
     handler: async (ctx, bc) => {
@@ -190,12 +173,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         ? 'Logged out from all sessions.'
         : 'Logged out successfully.';
 
-      return { success: true, data: { message } };
+      return { message };
     },
   },
   {
     method: 'GET',
-    path: '/auth/session',
+    path: '/v1/auth/session',
     auth: { kind: 'optional' },
     openapi: {
       summary: 'Get Session',
@@ -208,15 +191,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         cookieReader: ctxCookieReader(ctx),
         userId: ctx.user?.userId,
       });
-      return {
-        success: true,
-        data: { authenticated: result.success, user: result.user },
-      };
+      return { authenticated: result.success, user: result.user };
     },
   },
   {
     method: 'GET',
-    path: '/auth/sessions',
+    path: '/v1/auth/sessions',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     openapi: {
@@ -226,12 +206,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'listSessions' },
     handler: async (ctx, bc) => {
       const sessions = await bc.sessionDevices.listActiveForUser(ctx.user!.userId);
-      return { success: true, data: { sessions } };
+      return { sessions };
     },
   },
   {
     method: 'DELETE',
-    path: '/auth/sessions/:id',
+    path: '/v1/auth/sessions/:id',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: RevokeSessionParams,
@@ -244,7 +224,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     handler: async (ctx, bc) => {
       const { id } = ctx.params as z.infer<typeof RevokeSessionParams>;
       await bc.sessionDevices.revokeForUser(ctx.user!.userId, id);
-      return { success: true, data: { revoked: true as const } };
+      return { revoked: true as const };
     },
   },
 ];

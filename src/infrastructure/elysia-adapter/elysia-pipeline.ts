@@ -115,8 +115,11 @@ export function errorMapperStage(deps: PipelineDeps): PipelineStage {
         );
         ctx.state.responseStatus = 500;
         ctx.state.responseBody = {
-          success: false,
-          error: { code: 'INTERNAL', message: 'Internal Server Error' },
+          statusCode: 500,
+          code: 'INTERNAL',
+          message: 'Internal Server Error',
+          severity: 'modal',
+          params: {},
         };
       }
     },
@@ -157,8 +160,11 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
         if (route.auth.kind === 'jwt' && !user) {
           ctx.state.responseStatus = 401;
           ctx.state.responseBody = {
-            success: false,
-            error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+            statusCode: 401,
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+            severity: 'modal',
+            params: {},
           };
           return;
         }
@@ -166,11 +172,11 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
         if (route.auth.kind === 'optional') return next();
         ctx.state.responseStatus = 401;
         ctx.state.responseBody = {
-          success: false,
-          error: {
-            code: 'UNAUTHORIZED',
-            message: err instanceof Error ? err.message : 'Invalid credentials',
-          },
+          statusCode: 401,
+          code: 'UNAUTHORIZED',
+          message: err instanceof Error ? err.message : 'Invalid credentials',
+          severity: 'modal',
+          params: {},
         };
         return;
       }
@@ -219,8 +225,11 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
       if (!result.allowed) {
         ctx.state.responseStatus = 429;
         ctx.state.responseBody = {
-          success: false,
-          error: { code: 'RATE_LIMITED', message: 'Too many requests' },
+          statusCode: 429,
+          code: 'RATE_LIMITED',
+          message: 'Too many requests',
+          severity: 'toast',
+          params: {},
         };
         return;
       }
@@ -386,8 +395,12 @@ export function permissionGuardStage(
 
       ctx.state.responseStatus = 403;
       ctx.state.responseBody = {
-        success: false,
-        error: { code, message, missing },
+        statusCode: 403,
+        code,
+        message,
+        severity: 'modal',
+        params: { missing: missing.join(', ') },
+        fields: undefined,
       };
     },
   };

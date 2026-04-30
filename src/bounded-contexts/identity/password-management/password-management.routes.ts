@@ -20,7 +20,7 @@ const ForgotPasswordSchema = z.object({ email: z.string().email() });
 export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUseCases>> = [
   {
     method: 'POST',
-    path: '/auth/forgot-password',
+    path: '/v1/auth/forgot-password',
     auth: { kind: 'public' },
     body: ForgotPasswordSchema,
     statusCode: 200,
@@ -43,7 +43,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
   },
   {
     method: 'POST',
-    path: '/password/change',
+    path: '/v1/me/password/change',
     auth: { kind: 'jwt' },
     body: ChangePasswordSchema,
     openapi: {
@@ -68,7 +68,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
   },
   {
     method: 'POST',
-    path: '/auth/reset-password',
+    path: '/v1/auth/reset-password',
     auth: { kind: 'public' },
     body: ResetPasswordSchema,
     openapi: {

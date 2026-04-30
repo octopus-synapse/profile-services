@@ -36,7 +36,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const webhooks = await bc.listWebhooks.execute(ctx.user!.userId);
-      return { success: true, data: { webhooks } };
+      return { webhooks };
     },
   },
   {
@@ -54,7 +54,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     handler: async (ctx, bc) => {
       const body = ctx.body as z.infer<typeof CreateWebhookSchema>;
       const result = await bc.createWebhook.execute(ctx.user!.userId, body);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -74,7 +74,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpdateWebhookSchema>;
       const webhook = await bc.updateWebhook.execute(ctx.user!.userId, id, body);
-      return { success: true, data: { webhook } };
+      return { webhook };
     },
   },
   {
@@ -110,7 +110,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const deliveries = await bc.listWebhookDeliveries.execute(ctx.user!.userId, id);
-      return { success: true, data: { deliveries } };
+      return { deliveries };
     },
   },
 ];

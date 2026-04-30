@@ -39,7 +39,7 @@ const CreateCommentSchema = z.object({
 export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> = [
   {
     method: 'POST',
-    path: '/resumes/:resumeId/collaborators',
+    path: '/v1/resumes/:resumeId/collaborators',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
@@ -60,12 +60,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
         inviteeId: dto.userId,
         role: dto.role,
       });
-      return { success: true, data: { collaborator } };
+      return { collaborator };
     },
   },
   {
     method: 'GET',
-    path: '/resumes/:resumeId/collaborators',
+    path: '/v1/resumes/:resumeId/collaborators',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
@@ -81,12 +81,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
         resumeId,
         ctx.user!.userId,
       );
-      return { success: true, data: { collaborators } };
+      return { collaborators };
     },
   },
   {
     method: 'PATCH',
-    path: '/resumes/:resumeId/collaborators/:userId',
+    path: '/v1/resumes/:resumeId/collaborators/:userId',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeAndUserIdParams,
@@ -106,12 +106,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
         targetUserId: userId,
         newRole: dto.role,
       });
-      return { success: true, data: { collaborator } };
+      return { collaborator };
     },
   },
   {
     method: 'DELETE',
-    path: '/resumes/:resumeId/collaborators/:userId',
+    path: '/v1/resumes/:resumeId/collaborators/:userId',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeAndUserIdParams,
@@ -128,12 +128,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
         requesterId: ctx.user!.userId,
         targetUserId: userId,
       });
-      return { success: true, data: {} };
+      return {};
     },
   },
   {
     method: 'GET',
-    path: '/resumes/shared-with-me',
+    path: '/v1/resumes/shared-with-me',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     openapi: {
@@ -144,14 +144,14 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const sharedResumes = await bundle.collaboration.getSharedWithMe.execute(ctx.user!.userId);
-      return { success: true, data: { sharedResumes } };
+      return { sharedResumes };
     },
   },
 
   // ─── Comments ──────────────────────────────────────────────────────
   {
     method: 'GET',
-    path: '/resumes/:resumeId/comments',
+    path: '/v1/resumes/:resumeId/comments',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
@@ -164,12 +164,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const comments = await bundle.comments.listForResume(resumeId, ctx.user!.userId);
-      return { success: true, data: { comments } };
+      return { comments };
     },
   },
   {
     method: 'POST',
-    path: '/resumes/:resumeId/comments',
+    path: '/v1/resumes/:resumeId/comments',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
@@ -191,12 +191,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
         sectionId: dto.sectionId,
         itemId: dto.itemId,
       });
-      return { success: true, data: { comment } };
+      return { comment };
     },
   },
   {
     method: 'POST',
-    path: '/resumes/comments/:commentId/resolve',
+    path: '/v1/resumes/comments/:commentId/resolve',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: CommentIdParam,
@@ -209,12 +209,12 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { commentId } = ctx.params as { commentId: string };
       const comment = await bundle.comments.resolve(commentId, ctx.user!.userId);
-      return { success: true, data: { comment } };
+      return { comment };
     },
   },
   {
     method: 'DELETE',
-    path: '/resumes/comments/:commentId',
+    path: '/v1/resumes/comments/:commentId',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: CommentIdParam,
@@ -227,7 +227,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     handler: async (ctx, bundle) => {
       const { commentId } = ctx.params as { commentId: string };
       await bundle.comments.delete(commentId, ctx.user!.userId);
-      return { success: true, data: {} };
+      return {};
     },
   },
 ];

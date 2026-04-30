@@ -60,7 +60,7 @@ const parser = new JsonResumeParser();
 export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   {
     method: 'POST',
-    path: '/resume-import/linkedin',
+    path: '/v1/resumes/imports/linkedin',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     openapi: {
@@ -76,7 +76,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   },
   {
     method: 'POST',
-    path: '/resume-import/json',
+    path: '/v1/resumes/imports/json',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
@@ -111,7 +111,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   },
   {
     method: 'POST',
-    path: '/resume-import/parse',
+    path: '/v1/resumes/imports/parse',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,
@@ -124,12 +124,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx) => {
       const dto = ctx.body as { data: JsonResumeSchema };
       const parsed = parser.parse(dto.data);
-      return { success: true, data: toParsedResumeDataDto(parsed) };
+      return toParsedResumeDataDto(parsed);
     },
   },
   {
     method: 'GET',
-    path: '/resume-import/:importId',
+    path: '/v1/resumes/imports/:importId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
@@ -142,12 +142,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       const importJob = await bc.getImportStatus.execute(importId);
-      return { success: true, data: toImportJobDto(importJob) };
+      return toImportJobDto(importJob);
     },
   },
   {
     method: 'GET',
-    path: '/resume-import',
+    path: '/v1/resumes/imports',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     openapi: {
@@ -158,12 +158,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const jobs = await bc.listImportHistory.execute(ctx.user!.userId);
-      return { success: true, data: toImportJobDtoList(jobs) };
+      return toImportJobDtoList(jobs);
     },
   },
   {
     method: 'DELETE',
-    path: '/resume-import/:importId',
+    path: '/v1/resumes/imports/:importId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
@@ -176,12 +176,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       await bc.cancelImport.execute(importId);
-      return { success: true, data: null };
+      return null;
     },
   },
   {
     method: 'POST',
-    path: '/resume-import/:importId/retry',
+    path: '/v1/resumes/imports/:importId/retry',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
@@ -226,7 +226,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
         username: body.username,
         repoLimit: body.repoLimit,
       });
-      return { success: true, data: parsed };
+      return parsed;
     },
   },
   // ─── File-driven endpoints (multipart PDF + OAuth-backed GitHub) ─────
@@ -235,7 +235,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   // pure use-cases.
   {
     method: 'POST',
-    path: '/resume-import/pdf',
+    path: '/v1/resumes/imports/pdf',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     kind: 'multipart',
@@ -255,12 +255,12 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
         buffer: file.buffer,
         originalname: file.filename,
       });
-      return { success: true, data: { resumeId: result.resumeId } };
+      return { resumeId: result.resumeId };
     },
   },
   {
     method: 'POST',
-    path: '/resume-import/github',
+    path: '/v1/resumes/imports/github',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     openapi: {

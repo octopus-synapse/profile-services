@@ -3729,7 +3729,7 @@
         }
       }
     },
-    "/api/email-verification/verify": {
+    "/api/v1/auth/email-verification/verify": {
       "post": {
         "summary": "Verify email with token",
         "description": "Verifies the user email using the token received via email.",
@@ -3763,14 +3763,14 @@
         }
       }
     },
-    "/api/email-verification/send": {
+    "/api/v1/auth/email-verification/send": {
       "post": {
         "summary": "Send verification email",
         "description": "Sends a verification email to the authenticated user. No body required.",
         "tags": [
           "Email Verification"
         ],
-        "operationId": "post_email_verification_send",
+        "operationId": "post_v1_auth_email_verification_send",
         "parameters": [],
         "responses": {
           "200": {
@@ -3779,14 +3779,14 @@
         }
       }
     },
-    "/api/email-verification/resend-status": {
+    "/api/v1/auth/email-verification/resend-status": {
       "get": {
         "summary": "Get verification email resend cooldown",
         "description": "Returns how many seconds the authenticated user must wait before requesting another verification email. The UI uses this so the countdown survives page reloads.",
         "tags": [
           "Email Verification"
         ],
-        "operationId": "get_email_verification_resend_status",
+        "operationId": "get_v1_auth_email_verification_resend_status",
         "parameters": [],
         "responses": {
           "200": {
@@ -3795,7 +3795,7 @@
         }
       }
     },
-    "/api/accounts": {
+    "/api/v1/accounts": {
       "post": {
         "summary": "Create new account",
         "description": "Registers a new user account and returns auth tokens for auto-login.",
@@ -3852,7 +3852,7 @@
         "tags": [
           "Account Lifecycle"
         ],
-        "operationId": "delete_accounts",
+        "operationId": "delete_v1_accounts",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -3879,14 +3879,14 @@
         }
       }
     },
-    "/api/accounts/deactivate": {
+    "/api/v1/accounts/deactivate": {
       "delete": {
         "summary": "Deactivate account",
         "description": "Deactivates the authenticated user account (soft delete).",
         "tags": [
           "Account Lifecycle"
         ],
-        "operationId": "delete_accounts_deactivate",
+        "operationId": "delete_v1_accounts_deactivate",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -3909,14 +3909,14 @@
         }
       }
     },
-    "/api/gdpr/export": {
+    "/api/v1/me/gdpr-export": {
       "get": {
         "summary": "Export user data (GDPR Article 20)",
         "description": "Exports all user data in machine-readable JSON format.",
         "tags": [
           "GDPR"
         ],
-        "operationId": "get_gdpr_export",
+        "operationId": "get_v1_me_gdpr_export",
         "parameters": [],
         "responses": {
           "200": {
@@ -4002,14 +4002,14 @@
         }
       }
     },
-    "/api/auth/2fa/setup": {
+    "/api/v1/auth/2fa/setup": {
       "post": {
         "summary": "Setup 2FA",
         "description": "Generates TOTP secret and QR code. 2FA is not enabled until verified.",
         "tags": [
           "Two-Factor Auth"
         ],
-        "operationId": "post_auth_2fa_setup",
+        "operationId": "post_v1_auth_2fa_setup",
         "parameters": [],
         "responses": {
           "200": {
@@ -4018,14 +4018,14 @@
         }
       }
     },
-    "/api/auth/2fa/verify": {
+    "/api/v1/auth/2fa/verify": {
       "post": {
         "summary": "Verify token and enable 2FA",
         "description": "Verifies TOTP token and enables 2FA. Returns backup codes (shown only once).",
         "tags": [
           "Two-Factor Auth"
         ],
-        "operationId": "post_auth_2fa_verify",
+        "operationId": "post_v1_auth_2fa_verify",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -4053,14 +4053,14 @@
         }
       }
     },
-    "/api/auth/2fa/status": {
+    "/api/v1/auth/2fa/status": {
       "get": {
         "summary": "Get 2FA status",
         "description": "Returns 2FA status including enabled state and backup codes remaining.",
         "tags": [
           "Two-Factor Auth"
         ],
-        "operationId": "get_auth_2fa_status",
+        "operationId": "get_v1_auth_2fa_status",
         "parameters": [],
         "responses": {
           "200": {
@@ -4069,14 +4069,14 @@
         }
       }
     },
-    "/api/auth/2fa/backup-codes/regenerate": {
+    "/api/v1/auth/2fa/backup-codes/regenerate": {
       "post": {
         "summary": "Regenerate backup codes",
         "description": "Generates new backup codes, replacing existing ones. Shown only once.",
         "tags": [
           "Two-Factor Auth"
         ],
-        "operationId": "post_auth_2fa_backup_codes_regenerate",
+        "operationId": "post_v1_auth_2fa_backup_codes_regenerate",
         "parameters": [],
         "responses": {
           "200": {
@@ -4085,14 +4085,14 @@
         }
       }
     },
-    "/api/auth/2fa": {
+    "/api/v1/auth/2fa": {
       "delete": {
         "summary": "Disable 2FA",
         "description": "Disables 2FA and removes all backup codes.",
         "tags": [
           "Two-Factor Auth"
         ],
-        "operationId": "delete_auth_2fa",
+        "operationId": "delete_v1_auth_2fa",
         "parameters": [],
         "responses": {
           "200": {
@@ -4101,10 +4101,10 @@
         }
       }
     },
-    "/api/auth/refresh": {
+    "/api/v1/auth/refresh": {
       "post": {
         "summary": "Refresh access token",
-        "description": "Issues new access and refresh tokens using a valid refresh token.",
+        "description": "Rolls the session cookie. Body `refreshToken` is optional and used only by non-browser clients.",
         "tags": [
           "auth"
         ],
@@ -4120,10 +4120,7 @@
                     "type": "string",
                     "minLength": 1
                   }
-                },
-                "required": [
-                  "refreshToken"
-                ]
+                }
               }
             }
           }
@@ -4135,10 +4132,10 @@
         }
       }
     },
-    "/api/auth/login": {
+    "/api/v1/auth/login": {
       "post": {
         "summary": "Login",
-        "description": "Authenticates user with email and password. Returns twoFactorRequired when 2FA is enabled.",
+        "description": "Authenticates user with email and password. Sets the session cookie. Returns `{userId}` or `{userId, twoFactorRequired}` when 2FA is enabled.",
         "tags": [
           "auth"
         ],
@@ -4174,10 +4171,10 @@
         }
       }
     },
-    "/api/auth/login/verify-2fa": {
+    "/api/v1/auth/login/verify-2fa": {
       "post": {
         "summary": "Verify 2FA code during login",
-        "description": "Completes login by validating a TOTP or backup code.",
+        "description": "Completes login by validating a TOTP or backup code. Sets the session cookie.",
         "tags": [
           "auth"
         ],
@@ -4213,10 +4210,10 @@
         }
       }
     },
-    "/api/auth/logout": {
+    "/api/v1/auth/logout": {
       "post": {
         "summary": "Logout",
-        "description": "Logs out the user by invalidating refresh token(s) and clearing session cookie.",
+        "description": "Logs out the user by invalidating refresh token(s) and clearing the session cookie.",
         "tags": [
           "auth"
         ],
@@ -4247,7 +4244,7 @@
         }
       }
     },
-    "/api/auth/session": {
+    "/api/v1/auth/session": {
       "get": {
         "summary": "Get Session",
         "description": "Returns current user data if authenticated via session cookie or JWT bearer.",
@@ -4263,7 +4260,7 @@
         }
       }
     },
-    "/api/auth/sessions": {
+    "/api/v1/auth/sessions": {
       "get": {
         "summary": "List active sessions (devices) for the current user.",
         "tags": [
@@ -4278,7 +4275,7 @@
         }
       }
     },
-    "/api/auth/sessions/{id}": {
+    "/api/v1/auth/sessions/{id}": {
       "delete": {
         "summary": "Revoke a specific session (device) by refresh-token id.",
         "tags": [
@@ -4407,14 +4404,14 @@
         }
       }
     },
-    "/api/auth/forgot-password": {
+    "/api/v1/auth/forgot-password": {
       "post": {
         "summary": "Request password reset",
         "description": "Sends a password reset email if the account exists. Always returns success to prevent email enumeration.",
         "tags": [
           "Password Management"
         ],
-        "operationId": "post_auth_forgot_password",
+        "operationId": "post_v1_auth_forgot_password",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -4441,14 +4438,14 @@
         }
       }
     },
-    "/api/password/change": {
+    "/api/v1/me/password/change": {
       "post": {
         "summary": "Change password",
         "description": "Changes the password for the authenticated user after verifying the current password.",
         "tags": [
           "Password Management"
         ],
-        "operationId": "post_password_change",
+        "operationId": "post_v1_me_password_change",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -4480,14 +4477,14 @@
         }
       }
     },
-    "/api/auth/reset-password": {
+    "/api/v1/auth/reset-password": {
       "post": {
         "summary": "Reset password with token",
         "description": "Resets the user password using a valid reset token received via email.",
         "tags": [
           "Password Management"
         ],
-        "operationId": "post_auth_reset_password",
+        "operationId": "post_v1_auth_reset_password",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -4564,14 +4561,14 @@
         }
       }
     },
-    "/api/search": {
+    "/api/v1/search": {
       "get": {
         "summary": "Search public resumes",
         "description": "Resume Search API",
         "tags": [
           "search"
         ],
-        "operationId": "get_search",
+        "operationId": "get_v1_search",
         "parameters": [
           {
             "name": "q",
@@ -4855,14 +4852,14 @@
         }
       }
     },
-    "/api/search/suggestions": {
+    "/api/v1/search/suggestions": {
       "get": {
         "summary": "Get search autocomplete suggestions",
         "description": "Resume Search API",
         "tags": [
           "search"
         ],
-        "operationId": "get_search_suggestions",
+        "operationId": "get_v1_search_suggestions",
         "parameters": [
           {
             "name": "prefix",
@@ -4941,14 +4938,14 @@
         }
       }
     },
-    "/api/search/similar/{id}": {
+    "/api/v1/search/similar/{id}": {
       "get": {
         "summary": "Find similar resumes by resume id",
         "description": "Resume Search API",
         "tags": [
           "search"
         ],
-        "operationId": "get_search_similar_id",
+        "operationId": "get_v1_search_similar_id",
         "parameters": [
           {
             "name": "id",
@@ -5072,14 +5069,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/track-view": {
+    "/api/v1/resumes/{resumeId}/analytics/track-view": {
       "post": {
         "summary": "Track resume view (public endpoint)",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "post_resume_analytics_resumeId_track_view",
+        "operationId": "post_v1_resumes_resumeId_analytics_track_view",
         "parameters": [
           {
             "name": "resumeId",
@@ -5122,14 +5119,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/views": {
+    "/api/v1/resumes/{resumeId}/analytics/views": {
       "get": {
         "summary": "Get view statistics",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_views",
+        "operationId": "get_v1_resumes_resumeId_analytics_views",
         "parameters": [
           {
             "name": "resumeId",
@@ -5239,14 +5236,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/ats-score": {
+    "/api/v1/resumes/{resumeId}/analytics/ats-score": {
       "get": {
         "summary": "Calculate ATS compatibility score",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_ats_score",
+        "operationId": "get_v1_resumes_resumeId_analytics_ats_score",
         "parameters": [
           {
             "name": "resumeId",
@@ -5272,14 +5269,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/keywords": {
+    "/api/v1/resumes/{resumeId}/analytics/keywords": {
       "get": {
         "summary": "Get keyword optimization suggestions",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_keywords",
+        "operationId": "get_v1_resumes_resumeId_analytics_keywords",
         "parameters": [
           {
             "name": "resumeId",
@@ -5356,14 +5353,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/match-job": {
+    "/api/v1/resumes/{resumeId}/analytics/match-job": {
       "post": {
         "summary": "Match resume against job description",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "post_resume_analytics_resumeId_match_job",
+        "operationId": "post_v1_resumes_resumeId_analytics_match_job",
         "parameters": [
           {
             "name": "resumeId",
@@ -5407,14 +5404,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/benchmark": {
+    "/api/v1/resumes/{resumeId}/analytics/benchmark": {
       "get": {
         "summary": "Get industry benchmark comparison",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_benchmark",
+        "operationId": "get_v1_resumes_resumeId_analytics_benchmark",
         "parameters": [
           {
             "name": "resumeId",
@@ -5498,14 +5495,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/dashboard": {
+    "/api/v1/resumes/{resumeId}/analytics/dashboard": {
       "get": {
         "summary": "Get complete analytics dashboard",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_dashboard",
+        "operationId": "get_v1_resumes_resumeId_analytics_dashboard",
         "parameters": [
           {
             "name": "resumeId",
@@ -5531,14 +5528,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/snapshot": {
+    "/api/v1/resumes/{resumeId}/analytics/snapshot": {
       "post": {
         "summary": "Save analytics snapshot for tracking progress",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "post_resume_analytics_resumeId_snapshot",
+        "operationId": "post_v1_resumes_resumeId_analytics_snapshot",
         "parameters": [
           {
             "name": "resumeId",
@@ -5564,14 +5561,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/history": {
+    "/api/v1/resumes/{resumeId}/analytics/history": {
       "get": {
         "summary": "Get analytics history",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_history",
+        "operationId": "get_v1_resumes_resumeId_analytics_history",
         "parameters": [
           {
             "name": "resumeId",
@@ -5636,14 +5633,14 @@
         }
       }
     },
-    "/api/resume-analytics/{resumeId}/progression": {
+    "/api/v1/resumes/{resumeId}/analytics/progression": {
       "get": {
         "summary": "Get score progression over time",
         "description": "Resume Analytics API",
         "tags": [
           "resume-analytics"
         ],
-        "operationId": "get_resume_analytics_resumeId_progression",
+        "operationId": "get_v1_resumes_resumeId_analytics_progression",
         "parameters": [
           {
             "name": "resumeId",
@@ -9946,14 +9943,14 @@
         }
       }
     },
-    "/api/resume-import/linkedin": {
+    "/api/v1/resumes/imports/linkedin": {
       "post": {
         "summary": "Import profile data from LinkedIn (scaffold)",
         "description": "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_linkedin",
+        "operationId": "post_v1_resumes_imports_linkedin",
         "parameters": [],
         "responses": {
           "200": {
@@ -9962,14 +9959,14 @@
         }
       }
     },
-    "/api/resume-import/json": {
+    "/api/v1/resumes/imports/json": {
       "post": {
         "summary": "Import resume from JSON Resume format",
         "description": "Creates import job and processes JSON Resume data (jsonresume.org standard)",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_json",
+        "operationId": "post_v1_resumes_imports_json",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -9996,14 +9993,14 @@
         }
       }
     },
-    "/api/resume-import/parse": {
+    "/api/v1/resumes/imports/parse": {
       "post": {
         "summary": "Parse JSON Resume without importing",
         "description": "Validates and transforms JSON Resume to internal format without saving",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_parse",
+        "operationId": "post_v1_resumes_imports_parse",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -10030,14 +10027,14 @@
         }
       }
     },
-    "/api/resume-import/{importId}": {
+    "/api/v1/resumes/imports/{importId}": {
       "get": {
         "summary": "Get import job status",
         "description": "Returns current status, errors, and result of import job",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "get_resume_import_importId",
+        "operationId": "get_v1_resumes_imports_importId",
         "parameters": [
           {
             "name": "importId",
@@ -10068,7 +10065,7 @@
         "tags": [
           "Resume Import"
         ],
-        "operationId": "delete_resume_import_importId",
+        "operationId": "delete_v1_resumes_imports_importId",
         "parameters": [
           {
             "name": "importId",
@@ -10094,14 +10091,14 @@
         }
       }
     },
-    "/api/resume-import": {
+    "/api/v1/resumes/imports": {
       "get": {
         "summary": "Get import history",
         "description": "Returns all import jobs for authenticated user, ordered by creation date",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "get_resume_import",
+        "operationId": "get_v1_resumes_imports",
         "parameters": [],
         "responses": {
           "200": {
@@ -10110,14 +10107,14 @@
         }
       }
     },
-    "/api/resume-import/{importId}/retry": {
+    "/api/v1/resumes/imports/{importId}/retry": {
       "post": {
         "summary": "Retry failed import",
         "description": "Retries processing of failed import job with same data",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_importId_retry",
+        "operationId": "post_v1_resumes_imports_importId_retry",
         "parameters": [
           {
             "name": "importId",
@@ -10182,14 +10179,14 @@
         }
       }
     },
-    "/api/resume-import/pdf": {
+    "/api/v1/resumes/imports/pdf": {
       "post": {
         "summary": "Import resume from a PDF file",
         "description": "Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_pdf",
+        "operationId": "post_v1_resumes_imports_pdf",
         "parameters": [],
         "responses": {
           "200": {
@@ -10198,14 +10195,14 @@
         }
       }
     },
-    "/api/resume-import/github": {
+    "/api/v1/resumes/imports/github": {
       "post": {
         "summary": "Import profile data from GitHub",
         "description": "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
         "tags": [
           "Resume Import"
         ],
-        "operationId": "post_resume_import_github",
+        "operationId": "post_v1_resumes_imports_github",
         "parameters": [],
         "responses": {
           "200": {
@@ -17216,14 +17213,14 @@
         }
       }
     },
-    "/api/resumes/{resumeId}/collaborators": {
+    "/api/v1/resumes/{resumeId}/collaborators": {
       "post": {
         "summary": "Invite user to collaborate on resume",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "post_resumes_resumeId_collaborators",
+        "operationId": "post_v1_resumes_resumeId_collaborators",
         "parameters": [
           {
             "name": "resumeId",
@@ -17281,7 +17278,7 @@
         "tags": [
           "collaboration"
         ],
-        "operationId": "get_resumes_resumeId_collaborators",
+        "operationId": "get_v1_resumes_resumeId_collaborators",
         "parameters": [
           {
             "name": "resumeId",
@@ -17307,14 +17304,14 @@
         }
       }
     },
-    "/api/resumes/{resumeId}/collaborators/{userId}": {
+    "/api/v1/resumes/{resumeId}/collaborators/{userId}": {
       "patch": {
         "summary": "Update collaborator role",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "patch_resumes_resumeId_collaborators_userId",
+        "operationId": "patch_v1_resumes_resumeId_collaborators_userId",
         "parameters": [
           {
             "name": "resumeId",
@@ -17383,7 +17380,7 @@
         "tags": [
           "collaboration"
         ],
-        "operationId": "delete_resumes_resumeId_collaborators_userId",
+        "operationId": "delete_v1_resumes_resumeId_collaborators_userId",
         "parameters": [
           {
             "name": "resumeId",
@@ -17425,14 +17422,14 @@
         }
       }
     },
-    "/api/resumes/shared-with-me": {
+    "/api/v1/resumes/shared-with-me": {
       "get": {
         "summary": "Get resumes shared with current user",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "get_resumes_shared_with_me",
+        "operationId": "get_v1_resumes_shared_with_me",
         "parameters": [],
         "responses": {
           "200": {
@@ -17441,14 +17438,14 @@
         }
       }
     },
-    "/api/resumes/{resumeId}/comments": {
+    "/api/v1/resumes/{resumeId}/comments": {
       "get": {
         "summary": "List collaboration comments on a resume",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "get_resumes_resumeId_comments",
+        "operationId": "get_v1_resumes_resumeId_comments",
         "parameters": [
           {
             "name": "resumeId",
@@ -17479,7 +17476,7 @@
         "tags": [
           "collaboration"
         ],
-        "operationId": "post_resumes_resumeId_comments",
+        "operationId": "post_v1_resumes_resumeId_comments",
         "parameters": [
           {
             "name": "resumeId",
@@ -17533,14 +17530,14 @@
         }
       }
     },
-    "/api/resumes/comments/{commentId}/resolve": {
+    "/api/v1/resumes/comments/{commentId}/resolve": {
       "post": {
         "summary": "Mark a comment thread as resolved",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "post_resumes_comments_commentId_resolve",
+        "operationId": "post_v1_resumes_comments_commentId_resolve",
         "parameters": [
           {
             "name": "commentId",
@@ -17566,14 +17563,14 @@
         }
       }
     },
-    "/api/resumes/comments/{commentId}": {
+    "/api/v1/resumes/comments/{commentId}": {
       "delete": {
         "summary": "Delete a comment (author or resume owner)",
         "description": "Collaboration API",
         "tags": [
           "collaboration"
         ],
-        "operationId": "delete_resumes_comments_commentId",
+        "operationId": "delete_v1_resumes_comments_commentId",
         "parameters": [
           {
             "name": "commentId",
@@ -17599,14 +17596,14 @@
         }
       }
     },
-    "/api/chat/messages": {
+    "/api/v1/chat/messages": {
       "post": {
         "summary": "Send a message to a user",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "post_chat_messages",
+        "operationId": "post_v1_chat_messages",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -17639,14 +17636,14 @@
         }
       }
     },
-    "/api/chat/conversations/{conversationId}/messages": {
+    "/api/v1/chat/conversations/{conversationId}/messages": {
       "post": {
         "summary": "Send a message to an existing conversation",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "post_chat_conversations_conversationId_messages",
+        "operationId": "post_v1_chat_conversations_conversationId_messages",
         "parameters": [
           {
             "name": "conversationId",
@@ -17696,7 +17693,7 @@
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_conversations_conversationId_messages",
+        "operationId": "get_v1_chat_conversations_conversationId_messages",
         "parameters": [
           {
             "name": "conversationId",
@@ -17786,14 +17783,14 @@
         }
       }
     },
-    "/api/chat/conversations": {
+    "/api/v1/chat/conversations": {
       "get": {
         "summary": "Get all conversations for the current user",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_conversations",
+        "operationId": "get_v1_chat_conversations",
         "parameters": [
           {
             "name": "cursor",
@@ -17867,14 +17864,14 @@
         }
       }
     },
-    "/api/chat/conversations/{conversationId}": {
+    "/api/v1/chat/conversations/{conversationId}": {
       "get": {
         "summary": "Get a single conversation",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_conversations_conversationId",
+        "operationId": "get_v1_chat_conversations_conversationId",
         "parameters": [
           {
             "name": "conversationId",
@@ -17900,14 +17897,14 @@
         }
       }
     },
-    "/api/chat/conversations/{conversationId}/read": {
+    "/api/v1/chat/conversations/{conversationId}/read": {
       "post": {
         "summary": "Mark all messages in a conversation as read",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "post_chat_conversations_conversationId_read",
+        "operationId": "post_v1_chat_conversations_conversationId_read",
         "parameters": [
           {
             "name": "conversationId",
@@ -17933,14 +17930,14 @@
         }
       }
     },
-    "/api/chat/unread": {
+    "/api/v1/chat/unread": {
       "get": {
         "summary": "Get unread message count",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_unread",
+        "operationId": "get_v1_chat_unread",
         "parameters": [],
         "responses": {
           "200": {
@@ -17949,14 +17946,14 @@
         }
       }
     },
-    "/api/chat/conversation-with/{userId}": {
+    "/api/v1/chat/conversation-with/{userId}": {
       "get": {
         "summary": "Get or create conversation with a user",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_conversation_with_userId",
+        "operationId": "get_v1_chat_conversation_with_userId",
         "parameters": [
           {
             "name": "userId",
@@ -17982,14 +17979,14 @@
         }
       }
     },
-    "/api/chat/users/search": {
+    "/api/v1/chat/users/search": {
       "get": {
         "summary": "Search users to start a conversation",
         "description": "Chat API",
         "tags": [
           "chat"
         ],
-        "operationId": "get_chat_users_search",
+        "operationId": "get_v1_chat_users_search",
         "parameters": [
           {
             "name": "q",
@@ -18024,14 +18021,14 @@
         }
       }
     },
-    "/api/chat/conversations/{conversationId}/preferences/pin": {
+    "/api/v1/chat/conversations/{conversationId}/preferences/pin": {
       "post": {
         "summary": "Pin / unpin a conversation for the current user.",
         "description": "Conversation preferences",
         "tags": [
           "chat"
         ],
-        "operationId": "post_chat_conversations_conversationId_preferences_pin",
+        "operationId": "post_v1_chat_conversations_conversationId_preferences_pin",
         "parameters": [
           {
             "name": "conversationId",
@@ -18074,14 +18071,14 @@
         }
       }
     },
-    "/api/chat/conversations/{conversationId}/preferences/mute": {
+    "/api/v1/chat/conversations/{conversationId}/preferences/mute": {
       "post": {
         "summary": "Mute / unmute notifications for a conversation.",
         "description": "Conversation preferences",
         "tags": [
           "chat"
         ],
-        "operationId": "post_chat_conversations_conversationId_preferences_mute",
+        "operationId": "post_v1_chat_conversations_conversationId_preferences_mute",
         "parameters": [
           {
             "name": "conversationId",
@@ -18128,14 +18125,14 @@
         }
       }
     },
-    "/api/chat/blocked": {
+    "/api/v1/chat/blocked": {
       "post": {
         "summary": "Block a user",
         "description": "Chat Block Users API",
         "tags": [
           "chat---block-users"
         ],
-        "operationId": "post_chat_blocked",
+        "operationId": "post_v1_chat_blocked",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -18171,7 +18168,7 @@
         "tags": [
           "chat---block-users"
         ],
-        "operationId": "get_chat_blocked",
+        "operationId": "get_v1_chat_blocked",
         "parameters": [],
         "responses": {
           "200": {
@@ -18180,14 +18177,14 @@
         }
       }
     },
-    "/api/chat/blocked/{userId}": {
+    "/api/v1/chat/blocked/{userId}": {
       "delete": {
         "summary": "Unblock a user",
         "description": "Chat Block Users API",
         "tags": [
           "chat---block-users"
         ],
-        "operationId": "delete_chat_blocked_userId",
+        "operationId": "delete_v1_chat_blocked_userId",
         "parameters": [
           {
             "name": "userId",
@@ -18213,14 +18210,14 @@
         }
       }
     },
-    "/api/chat/blocked/{userId}/status": {
+    "/api/v1/chat/blocked/{userId}/status": {
       "get": {
         "summary": "Check if a user is blocked",
         "description": "Chat Block Users API",
         "tags": [
           "chat---block-users"
         ],
-        "operationId": "get_chat_blocked_userId_status",
+        "operationId": "get_v1_chat_blocked_userId_status",
         "parameters": [
           {
             "name": "userId",

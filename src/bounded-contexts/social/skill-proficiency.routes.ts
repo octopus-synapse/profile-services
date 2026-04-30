@@ -37,7 +37,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const proficiencies = await bundle.service.listForUser(ctx.user!.userId);
-      return { success: true, data: { proficiencies } };
+      return { proficiencies };
     },
   },
   {
@@ -62,7 +62,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
         body.proficiency,
         body.yearsOfExperience ?? null,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
