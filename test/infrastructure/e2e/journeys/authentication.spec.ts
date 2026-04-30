@@ -85,8 +85,10 @@ describe('E2E Journey 2: Authentication', () => {
     });
 
     it('should reject non-existent email', async () => {
+      // Use a unique email so prior runs' failed attempts don't push
+      // this account past the lockout threshold (which yields 423).
       const response = await app.request.post('/api/auth/login').send({
-        email: 'nonexistent@test.com',
+        email: `nonexistent-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
         password: testUser.password,
       });
 

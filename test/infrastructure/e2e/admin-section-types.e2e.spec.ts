@@ -223,6 +223,13 @@ describe('E2E: Admin Section Types CRUD', () => {
             placeholder: 'Adicionar teste...',
             addLabel: 'Adicionar Teste',
           },
+          es: {
+            title: 'Prueba E2E',
+            label: 'prueba',
+            noDataLabel: 'Sin datos de prueba',
+            placeholder: 'Agregar prueba...',
+            addLabel: 'Agregar Prueba',
+          },
         },
       };
 

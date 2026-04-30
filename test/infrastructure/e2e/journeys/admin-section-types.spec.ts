@@ -158,8 +158,16 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
     });
 
     it('should reject regular user create (403)', async () => {
-      // Send a payload that satisfies the create schema so Zod validation
-      // doesn't 400 before the auth/permission stage runs.
+      // Send a payload that satisfies the create schema (all 3
+      // SUPPORTED_LOCALES required) so Zod validation doesn't 400
+      // before the auth/permission stage runs.
+      const translation = {
+        title: 'Hacker',
+        label: 'hacker',
+        noDataLabel: 'no data',
+        placeholder: 'add...',
+        addLabel: 'Add',
+      };
       const res = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${regularUser.token}`)
@@ -173,6 +181,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
             kind: 'CUSTOM',
             fields: [{ key: 'name', type: 'string', required: true }],
           },
+          translations: { en: translation, 'pt-BR': translation, es: translation },
         });
 
       expect(res.status).toBe(403);
