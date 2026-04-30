@@ -117,20 +117,15 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
     await this.prisma.resumeStyle.delete({ where: { id } });
   }
 
-  async applyToResume(resumeId: string, styleId: string): Promise<boolean> {
-    try {
-      await this.prisma.resume.update({
-        where: { id: resumeId },
-        data: { styleId },
-        select: { id: true },
-      });
-      return true;
-    } catch (err) {
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-        return false;
-      }
-      throw err;
-    }
+  async applyToResume(resumeId: string, styleId: string, userId: string): Promise<boolean> {
+    // updateMany lets us scope the write by ownership in a single
+    // round-trip. count === 0 means either the resume doesn't exist or
+    // the caller isn't the owner — both 404 from the public API.
+    const result = await this.prisma.resume.updateMany({
+      where: { id: resumeId, userId },
+      data: { styleId },
+    });
+    return result.count > 0;
   }
 }
 

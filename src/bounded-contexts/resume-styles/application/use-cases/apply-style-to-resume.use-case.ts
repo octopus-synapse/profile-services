@@ -13,11 +13,11 @@ export interface ApplyStyleInput {
 }
 
 /**
- * Points a Resume at a `ResumeStyle`. Style existence is checked
- * up front so the FK update never silently fails. Resume ownership
- * enforcement lives at the controller layer (uses the existing
- * authorization patterns); this use case trusts that the caller
- * already validated `userId` owns `resumeId`.
+ * Points a Resume at a `ResumeStyle`. Style existence is checked up
+ * front so the FK update never silently fails. Ownership is enforced
+ * inside the repository's `applyToResume` (`updateMany` scoped to
+ * `userId = input.userId`) so a stranger trying to write someone
+ * else's resume gets the same 404 a missing resume would produce.
  */
 export class ApplyStyleToResumeUseCase {
   constructor(
@@ -30,7 +30,7 @@ export class ApplyStyleToResumeUseCase {
     const style = await this.repo.findById(input.styleId);
     if (!style) throw new StyleNotFoundError(input.styleId);
 
-    const ok = await this.repo.applyToResume(input.resumeId, input.styleId);
+    const ok = await this.repo.applyToResume(input.resumeId, input.styleId, input.userId);
     if (!ok) throw new ResumeNotFoundForStyleApplyError(input.resumeId);
 
     this.events.publish(

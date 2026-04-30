@@ -26,8 +26,9 @@ export abstract class ResumeStyleRepositoryPort {
   abstract delete(id: string): Promise<void>;
   /**
    * Atomically points `Resume.styleId` at the given style. Returns
-   * `false` when the resume id was not found so the caller can map
-   * to a 404. Caller is responsible for ownership/authorisation.
+   * `false` when no resume matches `(id = resumeId, userId = userId)`
+   * — covers both "resume doesn't exist" and "caller isn't the owner",
+   * which collapse to the same 404 from the user's perspective.
    */
-  abstract applyToResume(resumeId: string, styleId: string): Promise<boolean>;
+  abstract applyToResume(resumeId: string, styleId: string, userId: string): Promise<boolean>;
 }
