@@ -51,6 +51,10 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   }
 
   async create(data: CreateAccountData): Promise<AccountData> {
+    // New auth model: signup creates the bare user. The `user` role
+    // (with all domain permissions) is granted later by the
+    // onboarding-complete use case in a single transaction. The legacy
+    // `User.roles[]` column stays empty — the gate reads UserRoleAssignment.
     const user = await this.prisma.user.create({
       data: {
         email: data.email,
@@ -58,11 +62,6 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
         passwordHash: data.passwordHash,
         isActive: true,
         emailVerified: null,
-        // Seed default roles on the legacy `User.roles` column. The
-        // session validator and onboarding gate read `role_user_standard`
-        // from this array to know "this account is a job-seeker that
-        // must respect the onboarding/fit-profile invariants".
-        roles: ['role_user', 'role_user_standard'],
       },
       select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });

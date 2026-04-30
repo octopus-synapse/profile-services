@@ -78,5 +78,19 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
         website: data.professionalProfile.website ?? null,
       },
     });
+
+    // Grant the `user` role inside the same transaction so domain
+    // permissions (resume:create, social:use, etc.) become available
+    // atomically with onboarding completion. Idempotent: if the user
+    // already has the role (e.g., re-running after a partial failure),
+    // the upsert no-ops.
+    const userRole = await tx.role.findUnique({ where: { name: 'user' } });
+    if (userRole) {
+      await tx.userRoleAssignment.upsert({
+        where: { userId_roleId: { userId, roleId: userRole.id } },
+        create: { userId, roleId: userRole.id, assignedBy: 'onboarding-completion' },
+        update: {},
+      });
+    }
   }
 }

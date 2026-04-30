@@ -66,10 +66,8 @@ export class CreateSessionUseCase implements CreateSessionPort {
 
     // 6. Return user data with calculated fields
     const role = (userData.role ?? 'USER') as 'USER' | 'ADMIN';
-    const roles = userData.roles ?? ['role_user'];
-    // Admins/recruiters bypass onboarding — only `role_user_standard` accounts
-    // are job-seekers and therefore must respect the onboarding invariant.
-    const isStandardUser = roles.includes('role_user_standard');
+    const roles = userData.roles ?? [];
+    const isAdmin = role === 'ADMIN';
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
@@ -80,8 +78,8 @@ export class CreateSessionUseCase implements CreateSessionPort {
       role,
       roles,
       // Calculated fields - frontend should NOT calculate these
-      isAdmin: role === 'ADMIN',
-      needsOnboarding: isStandardUser && !userData.hasCompletedOnboarding,
+      isAdmin,
+      needsOnboarding: !isAdmin && !userData.hasCompletedOnboarding,
       needsEmailVerification: !userData.emailVerified,
     };
 
