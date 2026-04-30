@@ -94,6 +94,104 @@ function isZodSchema(value: unknown): value is ZodSchema<unknown> {
   return typeof value === 'object' && value !== null && '_def' in value;
 }
 
+interface JsonSchema {
+  type?: string;
+  format?: string;
+  enum?: ReadonlyArray<string | number | boolean>;
+  default?: unknown;
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  items?: JsonSchema;
+  description?: string;
+}
+
+/**
+ * Lossy Zod → JSON Schema converter for query/path parameters.
+ *
+ * `OpenApiGeneratorV3.generateDocument` unwraps Zod schemas in request
+ * bodies and responses, but **not** in `parameters[].schema`. Without
+ * this helper, the raw `_def` and `~standard` keys leak into the
+ * generated swagger and Orval rejects the spec.
+ */
+function zodToJsonSchema(schema: ZodSchema<unknown>): JsonSchema {
+  const def = (schema as unknown as { _def?: { typeName?: string; [k: string]: unknown } })._def;
+  const typeName = def?.typeName;
+
+  switch (typeName) {
+    case 'ZodOptional':
+    case 'ZodNullable':
+    case 'ZodDefault': {
+      const inner = (def as { innerType?: ZodSchema<unknown> }).innerType;
+      const child = inner ? zodToJsonSchema(inner) : { type: 'string' };
+      if (typeName === 'ZodDefault') {
+        const defaultValue = (def as { defaultValue?: () => unknown }).defaultValue?.();
+        if (defaultValue !== undefined) child.default = defaultValue;
+      }
+      return child;
+    }
+    case 'ZodEffects': {
+      const inner = (def as { schema?: ZodSchema<unknown> }).schema;
+      return inner ? zodToJsonSchema(inner) : { type: 'string' };
+    }
+    case 'ZodString': {
+      const out: JsonSchema = { type: 'string' };
+      const checks =
+        (def as { checks?: ReadonlyArray<{ kind: string; value?: unknown }> }).checks ?? [];
+      for (const c of checks) {
+        if (c.kind === 'min' && typeof c.value === 'number') out.minLength = c.value;
+        if (c.kind === 'max' && typeof c.value === 'number') out.maxLength = c.value;
+        if (c.kind === 'email') out.format = 'email';
+        if (c.kind === 'url') out.format = 'uri';
+        if (c.kind === 'uuid') out.format = 'uuid';
+        if (c.kind === 'cuid' || c.kind === 'cuid2') out.format = c.kind;
+        if (c.kind === 'datetime') out.format = 'date-time';
+        if (c.kind === 'regex' && c.value instanceof RegExp) out.pattern = c.value.source;
+      }
+      return out;
+    }
+    case 'ZodNumber': {
+      const out: JsonSchema = { type: 'number' };
+      const checks =
+        (def as { checks?: ReadonlyArray<{ kind: string; value?: number }> }).checks ?? [];
+      let isInt = false;
+      for (const c of checks) {
+        if (c.kind === 'int') isInt = true;
+        if (c.kind === 'min' && typeof c.value === 'number') out.minimum = c.value;
+        if (c.kind === 'max' && typeof c.value === 'number') out.maximum = c.value;
+      }
+      if (isInt) out.type = 'integer';
+      return out;
+    }
+    case 'ZodBoolean':
+      return { type: 'boolean' };
+    case 'ZodEnum': {
+      const values = (def as { values?: readonly string[] }).values ?? [];
+      return { type: 'string', enum: values };
+    }
+    case 'ZodNativeEnum': {
+      const values = Object.values((def as { values?: Record<string, unknown> }).values ?? {});
+      const stringValues = values.filter((v): v is string => typeof v === 'string');
+      return { type: 'string', enum: stringValues };
+    }
+    case 'ZodLiteral': {
+      const value = (def as { value?: unknown }).value;
+      if (typeof value === 'string') return { type: 'string', enum: [value] };
+      if (typeof value === 'number') return { type: 'number', enum: [value] };
+      if (typeof value === 'boolean') return { type: 'boolean', enum: [value] };
+      return { type: 'string' };
+    }
+    case 'ZodArray': {
+      const inner = (def as { type?: ZodSchema<unknown> }).type;
+      return { type: 'array', items: inner ? zodToJsonSchema(inner) : { type: 'string' } };
+    }
+    default:
+      return { type: 'string' };
+  }
+}
+
 function convertPath(input: string): { path: string; pathParams: string[] } {
   const pathParams: string[] = [];
   const path = input.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, (_match, name: string) => {
@@ -103,28 +201,114 @@ function convertPath(input: string): { path: string; pathParams: string[] } {
   return { path, pathParams };
 }
 
+/**
+ * Derive a camelCase operationId from the route metadata. Pattern:
+ *   `<tag><PathTailSegments>`     for GET-list (no path params)
+ *   `<tag>GetById`                for GET single by id
+ *   `<tag>Create / Update / Delete` for canonical CRUD
+ *   `<tag><PathTail>`             for everything else
+ *
+ * `sdk.name`, when explicitly set, wins. Anything else falls back to the
+ * legacy `<method>_<path>` form so we can still spot routes that should
+ * have a friendly name.
+ */
 function operationName(route: Route): string {
-  const base = route.sdk?.name ?? `${route.method.toLowerCase()}_${route.path}`;
-  return base.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const tag = route.openapi.tags[0] ?? 'misc';
+  const tagCamel = tag
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((seg, i) =>
+      i === 0 ? seg.toLowerCase() : seg[0].toUpperCase() + seg.slice(1).toLowerCase(),
+    )
+    .join('');
+
+  if (route.sdk?.name) {
+    // Prefix the explicit sdk.name with the BC tag so the generated
+    // function lands inside its bounded-context namespace (matches the
+    // old NestJS-derived `<tag>.<methodName>` pattern that the frontend
+    // hooks already consume).
+    const cleanName = route.sdk.name.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const tail = cleanName[0].toUpperCase() + cleanName.slice(1);
+    return `${tagCamel}${tail}`;
+  }
+
+  // Strip leading "/v1/" or "/" then drop any leading segments whose
+  // concatenation reproduces the tag — this handles multi-word tags
+  // (e.g. tag `admin-section-types` + path `/v1/admin/section-types/:id`
+  // would otherwise echo "AdminSectionTypes" twice).
+  const cleanPath = route.path.replace(/^\/+(v\d+\/)?/, '');
+  const segments = cleanPath.split('/').filter(Boolean);
+  const tagLower = tag.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const trimmed: string[] = [];
+  let consumed = '';
+  let stillEatingTag = true;
+  for (const seg of segments) {
+    if (stillEatingTag) {
+      const next = `${consumed}${seg.toLowerCase().replace(/[^a-z0-9]+/g, '')}`;
+      if (tagLower.startsWith(next) || next.startsWith(tagLower)) {
+        consumed = next;
+        if (consumed === tagLower || consumed.startsWith(tagLower)) {
+          stillEatingTag = false;
+        }
+        continue;
+      }
+      stillEatingTag = false;
+    }
+    trimmed.push(seg);
+  }
+  const verbal = trimmed
+    .filter((s) => !s.startsWith(':'))
+    .map((s) =>
+      s
+        .split(/[^A-Za-z0-9]+/)
+        .filter(Boolean)
+        .map((p) => p[0].toUpperCase() + p.slice(1).toLowerCase())
+        .join(''),
+    )
+    .join('');
+
+  const hasPathParam = segments.some((s) => s.startsWith(':'));
+  const method = route.method.toLowerCase();
+  const methodCap = method[0].toUpperCase() + method.slice(1);
+
+  let action = '';
+  // Bare resource (no path tail beyond the tag): emit canonical CRUD names.
+  if (verbal === '') {
+    if (hasPathParam && method === 'get') action = 'GetById';
+    else if (hasPathParam && (method === 'patch' || method === 'put')) action = 'Update';
+    else if (hasPathParam && method === 'delete') action = 'Delete';
+    else if (method === 'get') action = 'List';
+    else if (method === 'post') action = 'Create';
+    else action = methodCap;
+  } else {
+    // Path tail present: drop the method prefix; the collision-resolution
+    // pass adds it only when the same path tail produces clashing IDs.
+    action = verbal;
+  }
+
+  return `${tagCamel}${action}`;
 }
 
-function registerRoute(route: Route, registry: OpenAPIRegistry): void {
+function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: string): void {
   const { path, pathParams } = convertPath(route.path);
-  const opName = operationName(route);
+  const opName = overrideId ?? operationName(route);
 
   const parameters: Array<{
     name: string;
     in: 'path' | 'query';
     required: boolean;
-    schema: ZodSchema<unknown>;
+    schema: JsonSchema;
   }> = pathParams.map((name) => ({
     name,
     in: 'path',
     required: true,
-    schema: z.string(),
+    schema: { type: 'string' },
   }));
 
-  // Per-property query params from a ZodObject.
+  // Per-property query params from a ZodObject. Convert each Zod sub-schema
+  // to a plain JSON Schema fragment — `OpenApiGeneratorV3` does not unwrap
+  // Zod schemas inside `parameters[].schema`, so passing the raw object
+  // would leak `_def` / `~standard` into the generated swagger.
   if (isZodSchema(route.query)) {
     const def = (
       route.query as unknown as {
@@ -137,7 +321,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
           name,
           in: 'query',
           required: !(sub as ZodSchema<unknown>).isOptional?.(),
-          schema: sub,
+          schema: zodToJsonSchema(sub as ZodSchema<unknown>),
         });
       }
     }
@@ -156,7 +340,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
     summary: route.openapi.summary,
     description: route.openapi.description,
     tags: [...route.openapi.tags],
-    operationId: route.sdk?.name ?? opName,
+    operationId: opName,
     parameters: parameters as never,
     request:
       route.body && isZodSchema(route.body)
@@ -180,15 +364,19 @@ async function generate(): Promise<void> {
   const routes = await loadRoutes();
 
   // T12 — sdk.exported enforcement.
-  // Every JSON route is expected to opt into the SDK explicitly via
-  // `sdk: { exported: true }`. SSE / stream routes are always omitted
-  // from the client spec but stay in the server spec for documentation.
+  // Default: a JSON route is part of the client SDK. Opt-out with
+  // `sdk: { exported: false }` (used for legacy aliases and admin-only
+  // endpoints). SSE / stream routes are always omitted from the client
+  // spec but stay in the server spec for documentation.
   const omittedFromSdk: Array<{ method: string; path: string; reason: string }> = [];
   for (const route of routes) {
     if (isStreamingRoute(route)) continue;
-    if (route.sdk?.exported !== true) {
-      const reason = route.sdk?.exported === false ? 'sdk.exported=false' : 'sdk-missing';
-      omittedFromSdk.push({ method: route.method, path: route.path, reason });
+    if (route.sdk?.exported === false) {
+      omittedFromSdk.push({
+        method: route.method,
+        path: route.path,
+        reason: 'sdk.exported=false',
+      });
     }
   }
   if (omittedFromSdk.length > 0) {
@@ -204,12 +392,41 @@ async function generate(): Promise<void> {
     }
   }
 
+  // Pre-compute operationIds so we can disambiguate collisions before
+  // registering with the OpenAPI generator (Orval rejects duplicate IDs).
+  const idCounts = new Map<string, number>();
+  for (const route of routes) {
+    const id = operationName(route);
+    idCounts.set(id, (idCounts.get(id) ?? 0) + 1);
+  }
+  const colliding = new Set<string>();
+  for (const [id, count] of idCounts) {
+    if (count > 1) colliding.add(id);
+  }
+  const opIdByRoute = new WeakMap<Route, string>();
+  const seen = new Set<string>();
+  for (const route of routes) {
+    let id = operationName(route);
+    if (colliding.has(id)) {
+      const methodSuffix = route.method[0].toUpperCase() + route.method.slice(1).toLowerCase();
+      id = `${id}${methodSuffix}`;
+    }
+    let candidate = id;
+    let n = 2;
+    while (seen.has(candidate)) {
+      candidate = `${id}${n}`;
+      n += 1;
+    }
+    seen.add(candidate);
+    opIdByRoute.set(route, candidate);
+  }
+
   for (const route of routes) {
     try {
-      registerRoute(route, registry);
-      // Mirror to client registry only when SDK-eligible.
-      if (!isStreamingRoute(route) && route.sdk?.exported === true) {
-        registerRoute(route, clientRegistry);
+      registerRoute(route, registry, opIdByRoute.get(route));
+      // Mirror to client registry only when SDK-eligible (default: yes).
+      if (!isStreamingRoute(route) && route.sdk?.exported !== false) {
+        registerRoute(route, clientRegistry, opIdByRoute.get(route));
       }
     } catch (err) {
       console.warn(
