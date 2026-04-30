@@ -66,6 +66,9 @@ enum AuditAction {
   TWO_FACTOR_DISABLED
   // Admin toggled a feature flag (on/off).
   FEATURE_FLAG_TOGGLED
+  // Admin applied or revoked an AccessModifier (suspension/grant).
+  ACCESS_MODIFIER_APPLIED
+  ACCESS_MODIFIER_REVOKED
 }
 
 enum ConsentDocumentType {

@@ -25,16 +25,29 @@ import {
 } from './application/authorization-management.composition';
 import { AuthorizationService } from './application/services/authorization.service';
 import { AuthorizationManagementService } from './application/services/authorization-management.service';
+import { ApplyAccessModifierUseCase } from './application/use-cases/access-modifier/apply-access-modifier.use-case';
+import { ListActiveModifiersUseCase } from './application/use-cases/access-modifier/list-active-modifiers.use-case';
+import { RevokeAccessModifierUseCase } from './application/use-cases/access-modifier/revoke-access-modifier.use-case';
+import { AccessModifierAuditLogAdapter } from './infrastructure/adapters/audit-log.adapter';
+import { AccessModifierRepository } from './infrastructure/repositories/access-modifier.repository';
 import { GroupRepository } from './infrastructure/repositories/group.repository';
 import { PermissionRepository } from './infrastructure/repositories/permission.repository';
 import { RoleRepository } from './infrastructure/repositories/role.repository';
 import { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';
+
+export interface AccessModifierUseCases {
+  readonly apply: ApplyAccessModifierUseCase;
+  readonly revoke: RevokeAccessModifierUseCase;
+  readonly listActive: ListActiveModifiersUseCase;
+  readonly repository: AccessModifierRepository;
+}
 
 export interface AuthorizationUseCases {
   readonly authService: AuthorizationService;
   readonly managementService: AuthorizationManagementService;
   readonly checks: AuthorizationCheckUseCases;
   readonly management: AuthorizationManagementUseCases;
+  readonly accessModifier: AccessModifierUseCases;
   readonly permissionRepo: PermissionRepository;
   readonly roleRepo: RoleRepository;
   readonly groupRepo: GroupRepository;
@@ -63,11 +76,21 @@ export function buildAuthorizationUseCases(
   );
   const management = buildAuthorizationManagementUseCases(userAuthRepo, eventPublisher, logger);
 
+  const auditLog = new AccessModifierAuditLogAdapter(prisma, logger);
+  const accessModifierRepo = new AccessModifierRepository(prisma, logger);
+  const accessModifier: AccessModifierUseCases = {
+    apply: new ApplyAccessModifierUseCase(accessModifierRepo, auditLog, logger),
+    revoke: new RevokeAccessModifierUseCase(accessModifierRepo, auditLog, logger),
+    listActive: new ListActiveModifiersUseCase(accessModifierRepo),
+    repository: accessModifierRepo,
+  };
+
   return {
     authService,
     managementService,
     checks,
     management,
+    accessModifier,
     permissionRepo,
     roleRepo,
     groupRepo,

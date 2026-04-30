@@ -1283,6 +1283,10 @@ export const ERROR_DICTIONARY = {
     en: 'Route not found',
     'pt-BR': 'Rota não encontrada',
   },
+  SELF_DEMOTE_FORBIDDEN: {
+    en: 'An admin cannot suspend their own admin role.',
+    'pt-BR': 'Um admin não pode suspender o próprio papel de admin.',
+  },
   SESSION_NOT_FOUND: {
     en: 'Session not found or already revoked',
     'pt-BR': 'Sessão não encontrada ou já revogada',

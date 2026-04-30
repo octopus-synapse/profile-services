@@ -52,6 +52,14 @@ export const ENUM_DICTIONARY = {
     SUCCEEDED: { en: 'Succeeded', 'pt-BR': 'Concluído com sucesso' },
   },
   AuditAction: {
+    ACCESS_MODIFIER_APPLIED: {
+      en: 'Access modifier applied',
+      'pt-BR': 'Modificador de acesso aplicado',
+    },
+    ACCESS_MODIFIER_REVOKED: {
+      en: 'Access modifier revoked',
+      'pt-BR': 'Modificador de acesso revogado',
+    },
     ACCOUNT_DELETED: { en: 'Account deleted', 'pt-BR': 'Conta excluída' },
     DATA_EXPORT_DOWNLOADED: {
       en: 'Data export downloaded',

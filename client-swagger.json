@@ -2479,6 +2479,169 @@
         }
       }
     },
+    "/api/v1/admin/users/{userId}/access-modifiers": {
+      "post": {
+        "summary": "Apply an access modifier (suspension or grant) to a user",
+        "description": "Authorization Admin API",
+        "tags": [
+          "Admin - Access Modifiers"
+        ],
+        "operationId": "post_v1_admin_users_userId_access_modifiers",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "modifierType": {
+                    "type": "string",
+                    "enum": [
+                      "SUSPEND_EMAIL_VERIFIED",
+                      "SUSPEND_ONBOARDING",
+                      "SUSPEND_ROLE_USER",
+                      "SUSPEND_ROLE_ADMIN",
+                      "GRANT_PERMISSION"
+                    ]
+                  },
+                  "effect": {
+                    "type": "string",
+                    "enum": [
+                      "DENY",
+                      "GRANT"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "permissionId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "modifierType",
+                  "effect",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "get": {
+        "summary": "List currently active access modifiers for a user",
+        "description": "Authorization Admin API",
+        "tags": [
+          "Admin - Access Modifiers"
+        ],
+        "operationId": "get_v1_admin_users_userId_access_modifiers",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{userId}/access-modifiers/{modifierId}": {
+      "delete": {
+        "summary": "Revoke an active access modifier",
+        "description": "Authorization Admin API",
+        "tags": [
+          "Admin - Access Modifiers"
+        ],
+        "operationId": "delete_v1_admin_users_userId_access_modifiers_modifierId",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          },
+          {
+            "name": "modifierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "_def": {
+                "checks": [],
+                "typeName": "ZodString",
+                "coerce": false
+              },
+              "~standard": {
+                "version": 1,
+                "vendor": "zod"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/api/v1/shadow-profiles/github": {
       "post": {
         "summary": "Admin: build or refresh a GitHub-based shadow profile. Call once per login; idempotent.",
@@ -18145,6 +18308,9 @@
   "tags": [
     {
       "name": "Account Lifecycle"
+    },
+    {
+      "name": "Admin - Access Modifiers"
     },
     {
       "name": "Admin - Onboarding"

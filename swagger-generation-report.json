@@ -1,11 +1,12 @@
 {
   "success": true,
   "generatedBy": "route-descriptors",
-  "paths": 332,
-  "operations": 399,
+  "paths": 334,
+  "operations": 402,
   "schemas": 0,
   "tags": [
     "Account Lifecycle",
+    "Admin - Access Modifiers",
     "Admin - Onboarding",
     "Admin - Programming Languages",
     "Admin - Section Types",

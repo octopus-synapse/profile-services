@@ -41,6 +41,7 @@ import { buildAccountLifecycleUseCases } from '@/bounded-contexts/identity/accou
 import { accountLifecycleRoutes } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes';
 import { buildAuthenticationUseCases } from '@/bounded-contexts/identity/authentication/authentication.composition';
 import { authenticationRoutes } from '@/bounded-contexts/identity/authentication/authentication.routes';
+import { accessModifierRoutes } from '@/bounded-contexts/identity/authorization/access-modifier.routes';
 import { buildAuthorizationUseCases } from '@/bounded-contexts/identity/authorization/authorization.composition';
 import { buildEmailVerificationUseCases } from '@/bounded-contexts/identity/email-verification/email-verification.composition';
 import { emailVerificationRoutes } from '@/bounded-contexts/identity/email-verification/email-verification.routes';
@@ -692,6 +693,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: skillsCatalog.techSkills.useCases, routes: skillsCatalog.techSkills.routes },
     { bundle: skillsCatalog.techSkills.services.sync, routes: skillsCatalog.techSkills.syncRoutes },
+    {
+      bundle: (authorization as { accessModifier: unknown }).accessModifier,
+      routes: accessModifierRoutes,
+    },
   ];
   for (const e of extra) {
     mountRoutes(
