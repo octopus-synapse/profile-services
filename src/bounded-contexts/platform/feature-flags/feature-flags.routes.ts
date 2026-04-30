@@ -31,11 +31,16 @@ const ToggleFeatureFlagSchema = z
   })
   .strict();
 
+const ActiveFlagsResponseSchema = z.object({
+  flags: z.record(z.boolean()),
+});
+
 export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
   {
     method: 'GET',
     path: '/v1/feature-flags/active',
     auth: { kind: 'jwt' },
+    response: ActiveFlagsResponseSchema,
     openapi: {
       summary: 'Active flags for the current user',
       tags: ['feature-flags'],

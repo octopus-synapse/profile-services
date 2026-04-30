@@ -52,6 +52,51 @@ const SimilarQuerySchema = z.object({ limit: z.string().optional() });
 
 const TrackerQuerySchema = z.object({ silentDays: z.string().optional() });
 
+const FitDimensionSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  value: z.number(),
+  target: z.number(),
+  color: z.string(),
+  hint: z.string(),
+  weight: z.number(),
+});
+
+const JobFitResponseSchema = z.object({
+  score: z.number(),
+  dimensions: z.array(FitDimensionSchema),
+  matchedKeywords: z.array(z.string()),
+  missingKeywords: z.array(z.string()),
+});
+
+const ApplyRequirementSchema = z.object({
+  type: z.string(),
+  key: z.string(),
+  label: z.string(),
+  required: z.boolean(),
+  maxLength: z.number().int().optional(),
+  options: z.array(z.string()).optional(),
+});
+
+const ApplyBlockerSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+});
+
+const ApplyContextResponseSchema = z.object({
+  defaults: z.object({
+    coverLetter: z.string(),
+    resumeId: z.string().nullable(),
+  }),
+  requirements: z.array(ApplyRequirementSchema),
+  cta: z.object({
+    label: z.string(),
+    endpoint: z.object({ method: z.string(), path: z.string() }),
+  }),
+  oneClickAvailable: z.boolean(),
+  blockers: z.array(ApplyBlockerSchema).optional(),
+});
+
 function num(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const n = Number(value);
@@ -241,6 +286,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: JobFitResponseSchema,
     openapi: {
       summary: "Fit score breakdown for this job against the viewer's primary resume",
       tags: ['jobs'],
@@ -299,6 +345,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: ApplyContextResponseSchema,
     openapi: {
       summary: 'Apply-context: defaults + requirements + blockers for the apply modal',
       tags: ['jobs'],

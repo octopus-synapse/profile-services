@@ -61,6 +61,19 @@ const COMPOSER_CONFIG = {
   postTypes: Object.values(PostType),
 } as const;
 
+const ComposerConfigResponseSchema = z.object({
+  maxLength: z.number().int(),
+  mediaTypes: z.array(z.string()),
+  maxImages: z.number().int(),
+  maxImageBytes: z.number().int(),
+  pollEnabled: z.boolean(),
+  pollMaxOptions: z.number().int(),
+  pollMaxOptionLength: z.number().int(),
+  repostEnabled: z.boolean(),
+  mentionLimit: z.number().int(),
+  postTypes: z.array(z.nativeEnum(PostType)),
+});
+
 export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
   // ─── Composer config ──────────────────────────────────────────────
   {
@@ -68,6 +81,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     path: '/v1/posts/composer-config',
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
+    response: ComposerConfigResponseSchema,
     openapi: {
       summary: 'Composer configuration (server-driven UI)',
       tags: ['posts'],

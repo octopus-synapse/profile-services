@@ -126,12 +126,41 @@ const JOB_FORM_CONFIG = {
   },
 } as const;
 
+const FormFieldSchema = z.object({
+  key: z.string(),
+  type: z.string(),
+  label: z.string(),
+  required: z.boolean(),
+  maxLength: z.number().int().optional(),
+  optionsKey: z.string().optional(),
+  maxItems: z.number().int().optional(),
+  itemMaxLength: z.number().int().optional(),
+  min: z.number().optional(),
+});
+
+const JobFormConfigResponseSchema = z.object({
+  steps: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      fields: z.array(FormFieldSchema),
+    }),
+  ),
+  options: z.object({
+    jobTypes: z.array(z.string()),
+    remotePolicies: z.array(z.string()),
+    englishLevels: z.array(z.string()),
+    currencies: z.array(z.string()),
+  }),
+});
+
 export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> = [
   {
     method: 'GET',
     path: '/v1/recruiting/jobs/form-config',
     auth: { kind: 'jwt' },
     permission: Permission.JOB_CREATE,
+    response: JobFormConfigResponseSchema,
     openapi: {
       summary: 'Server-driven config for the create/edit-job wizard',
       tags: ['recruiting'],

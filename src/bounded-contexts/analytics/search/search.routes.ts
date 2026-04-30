@@ -60,6 +60,24 @@ interface GlobalSearchGroup {
   readonly items: readonly GlobalSearchItem[];
 }
 
+const GlobalSearchItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  snippet: z.string().optional(),
+  href: z.string(),
+  badge: z.string().optional(),
+});
+
+const GlobalSearchResponseSchema = z.object({
+  groups: z.array(
+    z.object({
+      type: z.enum(['users', 'jobs', 'resumes', 'posts']),
+      label: z.string(),
+      items: z.array(GlobalSearchItemSchema),
+    }),
+  ),
+});
+
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   {
     method: 'GET',
@@ -109,6 +127,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/v1/search/global',
     auth: { kind: 'public' },
     query: GlobalSearchQuerySchema as unknown as Route<SearchServicePort>['query'],
+    response: GlobalSearchResponseSchema,
     openapi: {
       summary: 'Global multi-type search (resumes, users, jobs, posts)',
       tags: ['search'],
