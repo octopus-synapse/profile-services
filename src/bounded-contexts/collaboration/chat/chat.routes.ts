@@ -67,6 +67,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   {
     method: 'POST',
     path: '/chat/conversations/:conversationId/messages',
+    statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,

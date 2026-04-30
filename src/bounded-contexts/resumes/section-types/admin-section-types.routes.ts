@@ -101,6 +101,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
   {
     method: 'DELETE',
     path: '/v1/admin/section-types/:key',
+    statusCode: 204,
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: KeyParam,
@@ -112,7 +113,6 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteSectionTypeUseCase.execute((ctx.params as { key: string }).key);
-      return { success: true };
     },
   },
 ];

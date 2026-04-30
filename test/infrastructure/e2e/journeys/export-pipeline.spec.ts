@@ -251,8 +251,10 @@ describe('E2E Journey 5: Export Pipeline', () => {
         .set('Authorization', `Bearer ${minimalResult.token}`)
         .set('x-e2e-bypass-rate-limit', 'true');
 
-      // Should either succeed with empty resume or return client error
-      expect([200, 400, 500]).toContain(response.status);
+      // Should either succeed with empty resume or return client error.
+      // 403 is also acceptable because the user has skipped onboarding
+      // and therefore lacks the `user` role's resume:export permission.
+      expect([200, 400, 403, 500]).toContain(response.status);
 
       // Cleanup minimal user
       await cleanupHelper.deleteUserByEmail(minimalUser.email);

@@ -86,6 +86,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
   {
     method: 'DELETE',
     path: '/auth/2fa',
+    statusCode: 204,
     auth: { kind: 'jwt' },
     openapi: {
       summary: 'Disable 2FA',
@@ -95,7 +96,6 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.disable2fa.execute(ctx.user!.userId);
-      return { success: true, data: null };
     },
   },
 ];

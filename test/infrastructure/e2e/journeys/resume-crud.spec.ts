@@ -370,10 +370,12 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
 
       // The use case throws ResumeLimitReached as a Conflict (409) — limit
       // is a state conflict, not an unprocessable entity per RFC 9110.
+      // The error envelope's i18n code is RESUME_SLOT_LIMIT_REACHED.
       expect(response.status).toBe(409);
       expect(response.body.success).toBe(false);
-      const errMsg = response.body.error?.message ?? response.body.error ?? '';
-      expect(String(errMsg)).toContain('Resume limit reached');
+      const errCodeOrMessage =
+        response.body.error?.code ?? response.body.error?.message ?? response.body.error ?? '';
+      expect(String(errCodeOrMessage)).toMatch(/RESUME_SLOT_LIMIT_REACHED|Resume limit reached/);
     });
 
     it('should allow creating resume after deleting one', async () => {

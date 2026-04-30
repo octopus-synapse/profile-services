@@ -248,6 +248,13 @@ describe('E2E: Admin Section Types CRUD', () => {
     });
 
     it('should reject duplicate key', async () => {
+      const translation = {
+        title: 'Dup',
+        label: 'dup',
+        noDataLabel: 'no data',
+        placeholder: 'add...',
+        addLabel: 'Add',
+      };
       const response = await app.request
         .post('/api/v1/admin/section-types')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -256,7 +263,12 @@ describe('E2E: Admin Section Types CRUD', () => {
           slug: 'duplicate',
           title: 'Duplicate',
           semanticKind: 'TEST',
-          definition: { fields: [] },
+          definition: {
+            schemaVersion: 1,
+            kind: 'CUSTOM',
+            fields: [{ key: 'name', type: 'string', required: true }],
+          },
+          translations: { en: translation, 'pt-BR': translation, es: translation },
         });
 
       expect(response.status).toBe(409);
