@@ -15,72 +15,57 @@ import type { RevokeRoleParams } from '../use-cases/authorization-management/rev
 // Injection Tokens
 // ============================================================================
 
-export const AUTHORIZATION_CHECK_USE_CASES = Symbol('AUTHORIZATION_CHECK_USE_CASES');
-export const AUTHORIZATION_MANAGEMENT_USE_CASES = Symbol('AUTHORIZATION_MANAGEMENT_USE_CASES');
-
 // ============================================================================
 // Use Cases Interfaces
 // ============================================================================
 
-export interface AuthorizationCheckUseCases {
-  getAuthContextUseCase: {
+export abstract class AuthorizationCheckUseCases {
+  abstract readonly getAuthContextUseCase: {
     execute: (userId: UserId) => Promise<UserAuthContext>;
   };
-  checkPermissionUseCase: {
+  abstract readonly checkPermissionUseCase: {
     execute: (userId: UserId, resource: string, action: string) => Promise<boolean>;
   };
-  checkAnyPermissionUseCase: {
+  abstract readonly checkAnyPermissionUseCase: {
     execute: (
       userId: UserId,
       permissions: Array<{ resource: string; action: string }>,
     ) => Promise<boolean>;
   };
-  checkAllPermissionsUseCase: {
+  abstract readonly checkAllPermissionsUseCase: {
     execute: (
       userId: UserId,
       permissions: Array<{ resource: string; action: string }>,
     ) => Promise<boolean>;
   };
-  getResourcePermissionsUseCase: {
+  abstract readonly getResourcePermissionsUseCase: {
     execute: (userId: UserId, resource: string) => Promise<string[]>;
   };
-  getAllPermissionsUseCase: {
-    execute: (userId: UserId) => Promise<string[]>;
-  };
-  checkRoleUseCase: {
+  abstract readonly getAllPermissionsUseCase: { execute: (userId: UserId) => Promise<string[]> };
+  abstract readonly checkRoleUseCase: {
     execute: (userId: UserId, roleIdOrName: string) => Promise<boolean>;
   };
-  checkGroupMembershipUseCase: {
+  abstract readonly checkGroupMembershipUseCase: {
     execute: (userId: UserId, groupIdOrName: string) => Promise<boolean>;
   };
-  countUsersWithRoleUseCase: {
-    execute: (roleName: string) => Promise<number>;
-  };
-  checkLastAdminUseCase: {
-    execute: (userId: UserId) => Promise<boolean>;
-  };
-  invalidateCache: (userId: UserId) => void;
-  invalidateAllCaches: () => void;
-  getCacheStats: () => { size: number; maxSize: number };
+  abstract readonly countUsersWithRoleUseCase: { execute: (roleName: string) => Promise<number> };
+  abstract readonly checkLastAdminUseCase: { execute: (userId: UserId) => Promise<boolean> };
+  abstract readonly invalidateCache: (userId: UserId) => void;
+  abstract readonly invalidateAllCaches: () => void;
+  abstract readonly getCacheStats: () => { size: number; maxSize: number };
 }
 
-export interface AuthorizationManagementUseCases {
-  assignRoleUseCase: {
-    execute: (params: AssignRoleParams) => Promise<void>;
-  };
-  revokeRoleUseCase: {
-    execute: (params: RevokeRoleParams) => Promise<void>;
-  };
-  grantPermissionUseCase: {
+export abstract class AuthorizationManagementUseCases {
+  abstract readonly assignRoleUseCase: { execute: (params: AssignRoleParams) => Promise<void> };
+  abstract readonly revokeRoleUseCase: { execute: (params: RevokeRoleParams) => Promise<void> };
+  abstract readonly grantPermissionUseCase: {
     execute: (params: GrantPermissionParams) => Promise<void>;
   };
-  denyPermissionUseCase: {
+  abstract readonly denyPermissionUseCase: {
     execute: (params: DenyPermissionParams) => Promise<void>;
   };
-  addToGroupUseCase: {
-    execute: (params: AddToGroupParams) => Promise<void>;
-  };
-  removeFromGroupUseCase: {
+  abstract readonly addToGroupUseCase: { execute: (params: AddToGroupParams) => Promise<void> };
+  abstract readonly removeFromGroupUseCase: {
     execute: (userId: string, groupId: string) => Promise<void>;
   };
 }

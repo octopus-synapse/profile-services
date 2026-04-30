@@ -96,8 +96,5 @@ export function createShareWithCustomSlug(resumeId: string, customSlug: string) 
     throw new Error('Slug must be lowercase alphanumeric with hyphens (3-50 chars)');
   }
 
-  return {
-    resumeId,
-    slug: customSlug,
-  };
+  return { resumeId, slug: customSlug };
 }

@@ -29,12 +29,7 @@ export class DocxHeaderBuilder {
       children: [
         new Paragraph({
           alignment: AlignmentType.RIGHT,
-          children: [
-            new TextRun({
-              children: ['Page ', PageNumber.CURRENT],
-              style: 'default',
-            }),
-          ],
+          children: [new TextRun({ children: ['Page ', PageNumber.CURRENT], style: 'default' })],
         }),
       ],
     });
@@ -74,11 +69,7 @@ export class DocxHeaderBuilder {
   }
 
   createSummaryParagraph(bio: string | null): Paragraph {
-    return new Paragraph({
-      text: bio ?? '',
-      style: 'default',
-      thematicBreak: true,
-    });
+    return new Paragraph({ text: bio ?? '', style: 'default', thematicBreak: true });
   }
 
   createSectionHeading(text: string): Paragraph {

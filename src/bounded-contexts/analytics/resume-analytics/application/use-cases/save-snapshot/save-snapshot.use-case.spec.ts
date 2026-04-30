@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemorySnapshotRepository } from '@/bounded-contexts/analytics/testing';
-import type { SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
+import { SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 describe('Snapshot Use Cases (via SnapshotRepositoryPort)', () => {
   let snapshotPort: SnapshotRepositoryPort;

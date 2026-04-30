@@ -8,22 +8,22 @@ describe('parseBundleFormats', () => {
   });
 
   it('parses canonical comma-separated values', () => {
-    expect(parseBundleFormats('pdf,docx,json')).toEqual(['pdf', 'docx', 'json']);
+    expect(parseBundleFormats('pdf, docx, json')).toEqual(['pdf', 'docx', 'json']);
   });
 
   it('is case-insensitive and trims spaces', () => {
-    expect(parseBundleFormats(' PDF , Docx ')).toEqual(['pdf', 'docx']);
+    expect(parseBundleFormats(' PDF, Docx ')).toEqual(['pdf', 'docx']);
   });
 
   it('drops unknown values', () => {
-    expect(parseBundleFormats('pdf,latex,docx')).toEqual(['pdf', 'docx']);
+    expect(parseBundleFormats('pdf, latex, docx')).toEqual(['pdf', 'docx']);
   });
 
   it('returns undefined when no values survive validation', () => {
-    expect(parseBundleFormats('mp4,xls')).toBeUndefined();
+    expect(parseBundleFormats('mp4, xls')).toBeUndefined();
   });
 
   it('deduplicates repeated formats', () => {
-    expect(parseBundleFormats('pdf,pdf,docx,pdf')).toEqual(['pdf', 'docx']);
+    expect(parseBundleFormats('pdf, pdf, docx, pdf')).toEqual(['pdf', 'docx']);
   });
 });

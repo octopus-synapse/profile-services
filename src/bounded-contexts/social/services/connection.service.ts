@@ -5,21 +5,27 @@
  * Delegates persistence to ConnectionRepositoryPort.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel/logger';
 import {
   ConnectionRepositoryPort,
   type ConnectionUser,
   type ConnectionWithUser,
 } from '../application/ports/connection.port';
 import type { PaginatedResult, PaginationParams } from '../application/ports/follow.port';
-import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { ConnectionAcceptedEvent, ConnectionRequestedEvent } from '../domain/events';
+import {
+  AlreadyConnectedException,
+  CannotConnectWithSelfException,
+  ConnectionNotAcceptedException,
+  ConnectionNotPendingException,
+  ConnectionRequestExistsException,
+  ConnectionRequestPendingException,
+  NotConnectionRequesterException,
+  NotConnectionTargetException,
+  NotPartOfConnectionException,
+} from '../domain/exceptions/social.exceptions';
 
 export type { ConnectionUser, ConnectionWithUser, PaginatedResult, PaginationParams };
 
@@ -30,20 +36,20 @@ export interface ConnectionSuggestion {
   photoURL: string | null;
   reason: string;
   score: number;
+  mutualCount: number;
+  commonSkills: string[];
 }
 
-@Injectable()
 export class ConnectionService {
   constructor(
     private readonly connectionRepo: ConnectionRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    @Inject(SOCIAL_LOGGER_PORT)
-    private readonly logger: SocialLoggerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async sendConnectionRequest(requesterId: string, targetId: string): Promise<ConnectionWithUser> {
     if (requesterId === targetId) {
-      throw new ValidationException('Cannot connect with yourself');
+      throw new CannotConnectWithSelfException();
     }
 
     const targetExists = await this.connectionRepo.userExists(targetId);
@@ -55,13 +61,13 @@ export class ConnectionService {
 
     if (existing) {
       if (existing.status === 'ACCEPTED') {
-        throw new ConflictException('Already connected with this user');
+        throw new AlreadyConnectedException();
       }
       if (existing.status === 'PENDING') {
-        throw new ConflictException('Connection request already pending');
+        throw new ConnectionRequestPendingException();
       }
       if (existing.status === 'REJECTED') {
-        throw new ConflictException('Connection request already exists');
+        throw new ConnectionRequestExistsException();
       }
     }
 
@@ -84,10 +90,10 @@ export class ConnectionService {
       throw new EntityNotFoundException('Connection');
     }
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
     if (connection.targetId !== currentUserId) {
-      throw new ValidationException('Only the target user can accept a connection request');
+      throw new NotConnectionTargetException('accept');
     }
 
     const updated = await this.connectionRepo.updateConnectionStatus(connectionId, 'ACCEPTED');
@@ -114,10 +120,10 @@ export class ConnectionService {
       throw new EntityNotFoundException('Connection');
     }
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
     if (connection.targetId !== currentUserId) {
-      throw new ValidationException('Only the target user can reject a connection request');
+      throw new NotConnectionTargetException('reject');
     }
 
     const updated = await this.connectionRepo.updateConnectionStatus(connectionId, 'REJECTED');
@@ -137,10 +143,10 @@ export class ConnectionService {
       throw new EntityNotFoundException('Connection');
     }
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
     if (connection.requesterId !== currentUserId) {
-      throw new ValidationException('Only the requester can withdraw a sent request');
+      throw new NotConnectionRequesterException();
     }
 
     await this.connectionRepo.deleteConnection(connectionId);
@@ -158,10 +164,10 @@ export class ConnectionService {
       throw new EntityNotFoundException('Connection');
     }
     if (connection.status !== 'ACCEPTED') {
-      throw new ValidationException('Connection is not accepted');
+      throw new ConnectionNotAcceptedException();
     }
     if (connection.requesterId !== currentUserId && connection.targetId !== currentUserId) {
-      throw new ValidationException('You are not part of this connection');
+      throw new NotPartOfConnectionException();
     }
 
     await this.connectionRepo.deleteConnection(connectionId);
@@ -199,10 +205,7 @@ export class ConnectionService {
     const { data, total } = await this.connectionRepo.findSentRequests(userId, pagination);
 
     return {
-      data: data.map((conn) => ({
-        ...conn,
-        user: conn.target,
-      })),
+      data: data.map((conn) => ({ ...conn, user: conn.target })),
       total,
       page,
       limit,
@@ -269,12 +272,6 @@ export class ConnectionService {
     const { page, limit } = pagination;
     const { data, total } = await this.connectionRepo.findRankedSuggestions(userId, pagination);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

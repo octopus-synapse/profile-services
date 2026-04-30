@@ -20,7 +20,7 @@ export * from './domain';
 export * from './domain/events';
 export * from './domain/value-objects';
 // Exceptions
-export * from './exceptions';
+export * from './exceptions/identity-shared.exceptions';
 // Infrastructure (guards, decorators, strategies)
 export * from './infrastructure';
 // Ports

@@ -4,13 +4,12 @@
  * Delegates to specialized services for implementation
  */
 
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { RedisConnectionService } from './redis-connection.service';
 import { CacheCoreService } from './services/cache-core.service';
 import { CachePatternsService } from './services/cache-patterns.service';
 
-@Injectable()
-export class CacheService implements OnModuleDestroy {
+export class CacheService implements Lifecycle {
   constructor(
     private readonly coreService: CacheCoreService,
     private readonly patternsService: CachePatternsService,
@@ -74,8 +73,12 @@ export class CacheService implements OnModuleDestroy {
     return this.patternsService.getOrSet(key, computeFn, ttl);
   }
 
-  async onModuleDestroy(): Promise<void> {
-    await this.redisConnection.onModuleDestroy();
+  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically
+  // post-Lifecycle migration. The Nest adapter's `nest-bootstrap.ts` should
+  // register a SIGTERM handler that walks all `Lifecycle` instances. Out of
+  // scope for the lifecycle sweep.
+  async dispose(): Promise<void> {
+    await this.redisConnection.dispose?.();
   }
 
   get isEnabled(): boolean {

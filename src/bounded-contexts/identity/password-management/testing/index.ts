@@ -8,13 +8,13 @@
  * - Email sender
  */
 
-import type {
+import type { UserWithPassword } from '../domain/ports';
+import {
   PasswordHasherPort,
   PasswordRepositoryPort,
   PasswordResetEmailPort,
   PasswordResetTokenPort,
   SessionInvalidationPort,
-  UserWithPassword,
 } from '../domain/ports';
 
 // ═══════════════════════════════════════════════════════════════
@@ -178,12 +178,7 @@ export class InMemoryEmailSender implements PasswordResetEmailPort {
   private sentEmails: EmailRecord[] = [];
 
   async sendResetEmail(email: string, userName: string | null, resetToken: string): Promise<void> {
-    this.sentEmails.push({
-      to: email,
-      userName,
-      resetToken,
-      sentAt: new Date(),
-    });
+    this.sentEmails.push({ to: email, userName, resetToken, sentAt: new Date() });
   }
 
   // Test helpers

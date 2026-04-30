@@ -7,8 +7,7 @@ import { TechPersona } from '@/bounded-contexts/platform/domain/enums';
  * including visual styling, relevant skills, and content priorities.
  */
 export interface PersonaConfig {
-  /** Unique persona identifier */
-  id: TechPersona;
+  /** Unique persona identifier */ id: TechPersona;
 
   /** Display name for the persona */
   name: string;

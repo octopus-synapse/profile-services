@@ -8,16 +8,16 @@
  * and session establishment (sets secure cookie).
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-
 /** Narrow view of ConfigService used by this use case (DIP). */
 export interface SessionConfigPort {
   get<T>(key: string, defaultValue: T): T;
 }
 
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { LoggerPort } from '@/shared-kernel';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { Session, SessionCreatedEvent } from '../../../domain';
-import type {
+import { SessionUserNotFoundException } from '../../../domain/exceptions/authentication.exceptions';
+import {
   AuthenticationRepositoryPort,
   SessionStoragePort,
   TokenGeneratorPort,
@@ -29,26 +29,16 @@ import type {
   SessionUserData,
 } from '../../ports';
 
-// Injection tokens
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const SESSION_STORAGE = Symbol('SessionStoragePort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class CreateSessionUseCase implements CreateSessionPort {
   private readonly sessionExpiryDays: number;
 
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(SESSION_STORAGE)
     private readonly sessionStorage: SessionStoragePort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
     private readonly configService: SessionConfigPort,
+    private readonly logger: LoggerPort,
   ) {
     this.sessionExpiryDays = this.configService.get<number>('SESSION_EXPIRY_DAYS', 7);
   }
@@ -65,10 +55,13 @@ export class CreateSessionUseCase implements CreateSessionPort {
     // 3. Set cookie (side effect via cookie writer abstraction)
     this.sessionStorage.setSessionCookie(cookieWriter, sessionToken, session.expiresAt);
 
-    // 4. Fetch user data for response
+    // 4. Fetch user data for response. Invalidate the session cache
+    // first so callers that just verified email / completed onboarding
+    // immediately see the fresh state on the next /auth/session call.
+    await this.repository.invalidateSessionCache(userId);
     const userData = await this.repository.findSessionUser(userId);
     if (!userData) {
-      throw new Error('User not found after session creation');
+      throw new SessionUserNotFoundException();
     }
 
     // 5. Publish event
@@ -76,7 +69,8 @@ export class CreateSessionUseCase implements CreateSessionPort {
 
     // 6. Return user data with calculated fields
     const role = (userData.role ?? 'USER') as 'USER' | 'ADMIN';
-    const roles = userData.roles ?? ['role_user'];
+    const roles = userData.roles ?? [];
+    const isAdmin = role === 'ADMIN';
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
@@ -87,8 +81,8 @@ export class CreateSessionUseCase implements CreateSessionPort {
       role,
       roles,
       // Calculated fields - frontend should NOT calculate these
-      isAdmin: role === 'ADMIN',
-      needsOnboarding: !userData.hasCompletedOnboarding,
+      isAdmin,
+      needsOnboarding: !isAdmin && !userData.hasCompletedOnboarding,
       needsEmailVerification: !userData.emailVerified,
     };
 
@@ -98,5 +92,3 @@ export class CreateSessionUseCase implements CreateSessionPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, EVENT_BUS, SESSION_STORAGE, TOKEN_GENERATOR };

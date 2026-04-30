@@ -1,5 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  CannotDeleteAnotherUsersCommentException,
+  NotACollaboratorException,
+} from '../../domain/exceptions/collaboration.exceptions';
 
 export interface CreateCommentInput {
   resumeId: string;
@@ -10,7 +14,6 @@ export interface CreateCommentInput {
   itemId?: string;
 }
 
-@Injectable()
 export class CollabCommentService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -33,7 +36,7 @@ export class CollabCommentService {
         select: { resumeId: true },
       });
       if (!parent || parent.resumeId !== input.resumeId) {
-        throw new NotFoundException('Parent comment not found');
+        throw new EntityNotFoundException('ParentComment', input.parentId);
       }
     }
     return this.prisma.collaborationComment.create({
@@ -56,15 +59,11 @@ export class CollabCommentService {
       where: { id: commentId },
       select: { resumeId: true, resolved: true },
     });
-    if (!comment) throw new NotFoundException('Comment not found');
+    if (!comment) throw new EntityNotFoundException('Comment', commentId);
     await this.assertViewer(comment.resumeId, viewerId);
     return this.prisma.collaborationComment.update({
       where: { id: commentId },
-      data: {
-        resolved: true,
-        resolvedAt: new Date(),
-        resolvedById: viewerId,
-      },
+      data: { resolved: true, resolvedAt: new Date(), resolvedById: viewerId },
     });
   }
 
@@ -73,7 +72,7 @@ export class CollabCommentService {
       where: { id: commentId },
       select: { authorId: true, resumeId: true },
     });
-    if (!comment) throw new NotFoundException('Comment not found');
+    if (!comment) throw new EntityNotFoundException('Comment', commentId);
     if (comment.authorId !== viewerId) {
       // Non-authors may only delete if they own the resume.
       const resume = await this.prisma.resume.findUnique({
@@ -81,7 +80,7 @@ export class CollabCommentService {
         select: { userId: true },
       });
       if (!resume || resume.userId !== viewerId) {
-        throw new ForbiddenException("Cannot delete another user's comment");
+        throw new CannotDeleteAnotherUsersCommentException();
       }
     }
     await this.prisma.collaborationComment.delete({ where: { id: commentId } });
@@ -93,7 +92,7 @@ export class CollabCommentService {
       where: { id: resumeId },
       select: { userId: true },
     });
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', resumeId);
     if (resume.userId === userId) return;
 
     const collab = await this.prisma.resumeCollaborator.findUnique({
@@ -101,7 +100,7 @@ export class CollabCommentService {
       select: { role: true },
     });
     if (!collab) {
-      throw new ForbiddenException('Not a collaborator on this resume');
+      throw new NotACollaboratorException();
     }
   }
 }

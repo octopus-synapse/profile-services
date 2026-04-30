@@ -16,19 +16,11 @@ describe('SectionDefinitionZodFactory', () => {
           required: true,
           meta: { minLength: 2 },
         },
-        {
-          key: 'employmentType',
-          type: 'enum',
-          required: false,
-          enum: ['Full-time', 'Part-time'],
-        },
+        { key: 'employmentType', type: 'enum', required: false, enum: ['Full-time', 'Part-time'] },
       ],
     });
 
-    const parsed = schema.parse({
-      company: 'ACME',
-      employmentType: 'Full-time',
-    });
+    const parsed = schema.parse({ company: 'ACME', employmentType: 'Full-time' });
 
     expect(parsed.company).toBe('ACME');
     expect(parsed.employmentType).toBe('Full-time');
@@ -43,11 +35,7 @@ describe('SectionDefinitionZodFactory', () => {
       schemaVersion: 1,
       kind: 'WORK_EXPERIENCE',
       fields: [
-        {
-          key: 'startDate',
-          type: 'date',
-          required: true,
-        },
+        { key: 'startDate', type: 'date', required: true },
         {
           key: 'achievements',
           type: 'array',
@@ -71,11 +59,7 @@ describe('SectionDefinitionZodFactory', () => {
       schemaVersion: 1,
       kind: 'WORK_EXPERIENCE',
       fields: [
-        {
-          key: 'company',
-          type: 'string',
-          required: true,
-        },
+        { key: 'company', type: 'string', required: true },
         {
           key: 'period',
           type: 'object',
@@ -102,10 +86,7 @@ describe('SectionDefinitionZodFactory', () => {
 
     const parsed = schema.parse({
       company: 'Octopus',
-      period: {
-        start: '2020-01-01',
-        end: null,
-      },
+      period: { start: '2020-01-01', end: null },
       highlights: [{ title: 'Latency -40%', impact: 'SRE gains' }],
     }) as Record<string, unknown>;
 

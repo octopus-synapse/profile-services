@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionCreatedEvent } from '../../../domain/events';
 import type { CookieWriter } from '../../../domain/ports/session-storage.port';
@@ -31,9 +32,7 @@ function createCookieWriter(): CookieWriter & {
   return writer;
 }
 
-const mockConfigService = {
-  get: <T>(_key: string, defaultValue: T) => defaultValue,
-};
+const mockConfigService = { get: <T>(_key: string, defaultValue: T) => defaultValue };
 
 describe('CreateSessionUseCase', () => {
   let useCase: CreateSessionUseCase;
@@ -53,6 +52,7 @@ describe('CreateSessionUseCase', () => {
       sessionStorage,
       eventBus,
       mockConfigService,
+      stubLogger,
     );
   });
 
@@ -109,11 +109,7 @@ describe('CreateSessionUseCase', () => {
 
     // Act & Assert
     await expect(
-      useCase.execute({
-        userId: 'nonexistent-user',
-        email: 'ghost@example.com',
-        cookieWriter,
-      }),
+      useCase.execute({ userId: 'nonexistent-user', email: 'ghost@example.com', cookieWriter }),
     ).rejects.toThrow('User not found after session creation');
   });
 
@@ -143,7 +139,11 @@ describe('CreateSessionUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.user.isAdmin).toBe(true);
-    expect(result.user.needsOnboarding).toBe(true);
+    // Admins bypass onboarding — only `role_user_standard` accounts carry that
+    // invariant. The seeded admin has roles [role_admin, role_user] but NOT
+    // role_user_standard, so needsOnboarding must be false regardless of
+    // the hasCompletedOnboarding flag on the row.
+    expect(result.user.needsOnboarding).toBe(false);
     expect(result.user.needsEmailVerification).toBe(true);
     expect(result.user.role).toBe('ADMIN');
     expect(result.user.roles).toEqual(['role_admin', 'role_user']);

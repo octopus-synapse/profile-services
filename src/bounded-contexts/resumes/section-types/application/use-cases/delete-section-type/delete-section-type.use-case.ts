@@ -1,7 +1,8 @@
 import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  SectionTypeInUseException,
+  SystemSectionTypeUndeletableException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 
 export class DeleteSectionTypeUseCase {
@@ -15,16 +16,13 @@ export class DeleteSectionTypeUseCase {
     }
 
     if (existing.isSystem) {
-      throw new ValidationException('Cannot delete system section types');
+      throw new SystemSectionTypeUndeletableException();
     }
 
     const usageCount = await this.repository.countResumeSectionsForType(existing.id);
 
     if (usageCount > 0) {
-      throw new ValidationException(
-        `Cannot delete section type '${key}' - it is used by ${usageCount} resume(s). ` +
-          'Deactivate it instead.',
-      );
+      throw new SectionTypeInUseException(key, usageCount);
     }
 
     await this.repository.delete(key);

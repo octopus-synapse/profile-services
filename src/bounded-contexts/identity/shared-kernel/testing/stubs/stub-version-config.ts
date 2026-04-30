@@ -5,7 +5,7 @@
  * Allows setting custom versions for different document types.
  */
 
-import type { VersionConfigPort } from '../../../account-lifecycle/domain/ports/version-config.port';
+import { VersionConfigPort } from '../../../account-lifecycle/domain/ports/version-config.port';
 
 export class StubVersionConfig implements VersionConfigPort {
   constructor(

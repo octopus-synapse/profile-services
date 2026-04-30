@@ -5,7 +5,6 @@
  * using the shared EventPublisher from the shared-kernel.
  */
 
-import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@/shared-kernel';
 import {
   ResumeCreatedEvent,
@@ -25,9 +24,8 @@ import {
   VersionRestoredEvent,
   type VersionRestoredPayload,
 } from '../../domain/events';
-import type { ResumeEventPublisher } from '../../domain/ports';
+import { ResumeEventPublisher } from '../../domain/ports';
 
-@Injectable()
 export class ResumeEventPublisherAdapter implements ResumeEventPublisher {
   constructor(private readonly eventPublisher: EventPublisher) {}
 

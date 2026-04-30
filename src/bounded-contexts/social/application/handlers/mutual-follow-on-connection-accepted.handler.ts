@@ -4,22 +4,18 @@
  * When a connection request is accepted, both users start following each other.
  */
 
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { LoggerPort } from '@/shared-kernel';
 import { ConnectionAcceptedEvent } from '../../domain/events';
 import { FollowRepositoryPort } from '../ports/follow.port';
 
-@Injectable()
 export class MutualFollowOnConnectionAcceptedHandler {
   constructor(
     private readonly followRepo: FollowRepositoryPort,
     private readonly idempotency: IdempotencyService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(ConnectionAcceptedEvent.TYPE)
   async handle(event: ConnectionAcceptedEvent): Promise<void> {
     const { requesterId, targetId } = event.payload;
 

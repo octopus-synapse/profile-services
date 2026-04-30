@@ -1,21 +1,13 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AccountData, AccountLifecycleRepositoryPort, CreateAccountData } from '../../domain/ports';
 
-@Injectable()
 export class PrismaAccountLifecycleRepository implements AccountLifecycleRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(userId: string): Promise<AccountData | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     if (!user) {
@@ -34,13 +26,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   async findByEmail(email: string): Promise<AccountData | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     if (!user) {
@@ -65,6 +51,10 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   }
 
   async create(data: CreateAccountData): Promise<AccountData> {
+    // New auth model: signup creates the bare user. The `user` role
+    // (with all domain permissions) is granted later by the
+    // onboarding-complete use case in a single transaction. The legacy
+    // `User.roles[]` column stays empty — the gate reads UserRoleAssignment.
     const user = await this.prisma.user.create({
       data: {
         email: data.email,
@@ -73,13 +63,7 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
         isActive: true,
         emailVerified: null,
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isActive: true,
-        createdAt: true,
-      },
+      select: { id: true, email: true, name: true, isActive: true, createdAt: true },
     });
 
     return {

@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 
 interface OnboardingStepSeed {
   key: string;
@@ -7,9 +7,9 @@ interface OnboardingStepSeed {
   icon: string;
   required: boolean;
   sectionTypeKey: string | null;
-  fields: unknown[];
-  translations: Record<string, unknown>;
-  validation: Record<string, unknown>;
+  fields: Prisma.InputJsonValue;
+  translations: Prisma.InputJsonValue;
+  validation: Prisma.InputJsonValue;
   strengthWeight: number;
 }
 

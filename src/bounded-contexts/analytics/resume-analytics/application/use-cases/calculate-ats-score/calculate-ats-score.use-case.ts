@@ -5,30 +5,23 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import { Inject } from '@nestjs/common';
-import { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { AtsScoreCalculatedEvent } from '../../../../shared-kernel/domain/events';
 import { generateRecommendations } from '../../../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
 import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../../../interfaces';
-import {
-  ANALYTICS_EVENT_BUS_PORT,
-  AnalyticsEventBusPort,
-} from '../../ports/analytics-event-bus.port';
+import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
 import { AtsScoringPort } from '../../ports/facade.ports';
-import type {
-  AtsScoreCatalogPort,
-  ResumeOwnershipPort,
-  SectionTypeAtsConfig,
-} from '../../ports/resume-analytics.port';
+import type { SectionTypeAtsConfig } from '../../ports/resume-analytics.port';
+import { AtsScoreCatalogPort, ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 
 export class CalculateAtsScoreUseCase extends AtsScoringPort {
   constructor(
     private readonly catalog: AtsScoreCatalogPort,
     private readonly ownership: ResumeOwnershipPort,
-    @Inject(ANALYTICS_EVENT_BUS_PORT)
     private readonly eventBus: AnalyticsEventBusPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -80,11 +73,11 @@ export class CalculateAtsScoreUseCase extends AtsScoringPort {
   private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
     const issues: ATSIssue[] = [];
 
-    if (!resume.emailContact && !resume.phone) {
+    if (!resume.phone) {
       issues.push({
         code: 'MISSING_CONTACT_INFO',
         severity: 'high',
-        message: 'Add your email address and phone number',
+        message: 'Add your phone number',
       });
     }
 
@@ -195,10 +188,7 @@ export class CalculateAtsScoreUseCase extends AtsScoringPort {
             code: 'MISSING_WEIGHTED_FIELDS',
             severity: missingRoles.length > 2 ? 'high' : 'medium',
             message: `Section ${section.semanticKind} item is missing fields: ${missingRoles.join(', ')}`,
-            context: {
-              sectionKind: section.semanticKind,
-              missingFields: missingRoles,
-            },
+            context: { sectionKind: section.semanticKind, missingFields: missingRoles },
           });
         }
       }

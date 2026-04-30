@@ -8,11 +8,7 @@
 /**
  * Item override configuration for DSL rendering.
  */
-export type ItemOverride = {
-  itemId: string;
-  visible?: boolean;
-  order?: number;
-};
+export type ItemOverride = { itemId: string; visible?: boolean; order?: number };
 
 /**
  * Apply overrides to a list of items.

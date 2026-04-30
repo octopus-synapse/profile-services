@@ -60,10 +60,7 @@ export class InMemoryResumeRepository {
       throw new Error(`Resume ${id} not found`);
     }
 
-    const updated: Resume = {
-      ...resume,
-      ...data,
-    };
+    const updated: Resume = { ...resume, ...data };
 
     this.resumes.set(id, updated);
     return updated;
@@ -125,11 +122,7 @@ export class InMemoryResumeSectionRepository {
     }
 
     const id = `resume-section-${this.idCounter++}`;
-    const resumeSection: ResumeSection = {
-      id,
-      resumeId,
-      sectionTypeId,
-    };
+    const resumeSection: ResumeSection = { id, resumeId, sectionTypeId };
     this.resumeSections.set(id, resumeSection);
     return { id };
   }

@@ -8,10 +8,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type {
   OnboardingProgressData,
-  OnboardingProgressRepositoryPort,
   ProgressRecord,
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 import { GetProgressUseCase, INITIAL_PROGRESS } from './get-progress.use-case';
 
 // ============================================================================
@@ -45,10 +45,7 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       updatedAt: new Date(),
     };
     this.progressMap.set(userId, record);
-    return {
-      currentStep: record.currentStep,
-      completedSteps: record.completedSteps,
-    };
+    return { currentStep: record.currentStep, completedSteps: record.completedSteps };
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -103,10 +100,7 @@ describe('GetProgressUseCase', () => {
 
   it('deletes and returns initial progress when expired', async () => {
     const expiredDate = new Date(Date.now() - 37 * 60 * 60 * 1000); // 37 hours ago
-    repository.setProgress('user-1', {
-      ...mockProgress,
-      updatedAt: expiredDate,
-    });
+    repository.setProgress('user-1', { ...mockProgress, updatedAt: expiredDate });
 
     const result = await useCase.execute('user-1');
 

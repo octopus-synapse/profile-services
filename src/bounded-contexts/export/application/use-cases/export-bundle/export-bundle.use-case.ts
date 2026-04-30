@@ -8,6 +8,7 @@
  */
 
 import JSZip from 'jszip';
+import type { LoggerPort } from '@/shared-kernel';
 
 export type BundleFormat = 'pdf' | 'docx' | 'json';
 
@@ -39,6 +40,7 @@ export class ExportBundleUseCase {
     private readonly pdfUseCase: PdfUseCase,
     private readonly docxUseCase: DocxUseCase,
     private readonly jsonUseCase: JsonUseCase,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: ExportBundleInput): Promise<Buffer> {

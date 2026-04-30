@@ -4,7 +4,7 @@
  * Retrieves all consent records for a user, ordered by most recent first.
  */
 
-import type { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
+import { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
 import type { GetConsentHistoryInput, GetConsentHistoryOutput } from './get-consent-history.dto';
 
 export class GetConsentHistoryUseCase {

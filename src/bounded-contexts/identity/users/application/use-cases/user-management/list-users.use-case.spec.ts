@@ -29,12 +29,7 @@ describe('ListUsersUseCase', () => {
     const result = await useCase.execute({ page: 1, limit: 2 });
 
     expect(result.users.length).toBe(2);
-    expect(result.pagination).toEqual({
-      page: 1,
-      limit: 2,
-      total: 10,
-      totalPages: 5,
-    });
+    expect(result.pagination).toEqual({ page: 1, limit: 2, total: 10, totalPages: 5 });
   });
 
   it('should calculate totalPages correctly', async () => {

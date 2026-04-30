@@ -4,6 +4,7 @@
  * Wires all authorization check use cases with their dependencies.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import type { AuthorizationCachePort } from '../domain/ports/authorization-cache.port';
 import type {
   IGroupRepository,
@@ -15,10 +16,7 @@ import type { GroupRepository } from '../infrastructure/repositories/group.repos
 import type { PermissionRepository } from '../infrastructure/repositories/permission.repository';
 import type { RoleRepository } from '../infrastructure/repositories/role.repository';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
-import {
-  AUTHORIZATION_CHECK_USE_CASES,
-  type AuthorizationCheckUseCases,
-} from './ports/authorization-use-cases.port';
+import { AuthorizationCheckUseCases } from './ports/authorization-use-cases.port';
 import { CheckAllPermissionsUseCase } from './use-cases/authorization-checks/check-all-permissions.use-case';
 import { CheckAnyPermissionUseCase } from './use-cases/authorization-checks/check-any-permission.use-case';
 import { CheckGroupMembershipUseCase } from './use-cases/authorization-checks/check-group-membership.use-case';
@@ -30,33 +28,40 @@ import { GetAllPermissionsUseCase } from './use-cases/authorization-checks/get-a
 import { GetAuthContextUseCase } from './use-cases/authorization-checks/get-auth-context.use-case';
 import { GetResourcePermissionsUseCase } from './use-cases/authorization-checks/get-resource-permissions.use-case';
 
-export { AUTHORIZATION_CHECK_USE_CASES };
+export { AuthorizationCheckUseCases };
 
 export function buildAuthorizationCheckUseCases(
   permissionRepo: PermissionRepository,
   roleRepo: RoleRepository,
   groupRepo: GroupRepository,
   userAuthRepo: UserAuthorizationRepository,
+  logger: LoggerPort,
 ): AuthorizationCheckUseCases {
   const resolver = new PermissionResolverService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
 
   const cache: AuthorizationCachePort = new InMemoryAuthorizationCache();
 
-  const getAuthContextUseCase = new GetAuthContextUseCase(resolver, cache);
+  const getAuthContextUseCase = new GetAuthContextUseCase(resolver, cache, logger);
   const checkPermissionUseCase = new CheckPermissionUseCase(getAuthContextUseCase);
   const checkAnyPermissionUseCase = new CheckAnyPermissionUseCase(getAuthContextUseCase);
   const checkAllPermissionsUseCase = new CheckAllPermissionsUseCase(getAuthContextUseCase);
   const getResourcePermissionsUseCase = new GetResourcePermissionsUseCase(getAuthContextUseCase);
   const getAllPermissionsUseCase = new GetAllPermissionsUseCase(getAuthContextUseCase);
-  const checkRoleUseCase = new CheckRoleUseCase(getAuthContextUseCase, roleRepo as IRoleRepository);
+  const checkRoleUseCase = new CheckRoleUseCase(
+    getAuthContextUseCase,
+    roleRepo as IRoleRepository,
+    logger,
+  );
   const checkGroupMembershipUseCase = new CheckGroupMembershipUseCase(
     getAuthContextUseCase,
     groupRepo as IGroupRepository,
+    logger,
   );
   const countUsersWithRoleUseCase = new CountUsersWithRoleUseCase(userAuthRepo);
   const checkLastAdminUseCase = new CheckLastAdminUseCase(
     checkRoleUseCase,
     countUsersWithRoleUseCase,
+    logger,
   );
 
   return {

@@ -1,4 +1,4 @@
-import type { ConnectionRepositoryPort } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class GetConnectionStatsUseCase {
   constructor(private readonly repository: ConnectionRepositoryPort) {}

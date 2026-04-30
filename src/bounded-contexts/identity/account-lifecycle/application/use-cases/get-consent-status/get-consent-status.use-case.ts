@@ -4,14 +4,16 @@
  * Returns which documents the user has accepted for the current versions.
  */
 
-import type { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
-import type { VersionConfigPort } from '../accept-consent/accept-consent.use-case';
+import { LoggerPort } from '@/shared-kernel';
+import { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
+import { VersionConfigPort } from '../accept-consent/accept-consent.use-case';
 import type { GetConsentStatusInput, GetConsentStatusOutput } from './get-consent-status.dto';
 
 export class GetConsentStatusUseCase {
   constructor(
     private readonly consentRepository: ConsentRepositoryPort,
     private readonly versionConfig: VersionConfigPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: GetConsentStatusInput): Promise<GetConsentStatusOutput> {

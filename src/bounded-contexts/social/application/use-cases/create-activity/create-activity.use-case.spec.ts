@@ -20,12 +20,7 @@ function createActivityRecord(overrides: Partial<ActivityWithUser> = {}): Activi
     entityId: null,
     entityType: null,
     createdAt: new Date(),
-    user: {
-      id: 'user-1',
-      name: 'Test User',
-      username: 'testuser',
-      photoURL: null,
-    },
+    user: { id: 'user-1', name: 'Test User', username: 'testuser', photoURL: null },
     ...overrides,
   };
 }
@@ -95,12 +90,12 @@ class StubFollowRepository implements FollowRepositoryPort {
 const stubEventPublisher = {
   publish: () => {},
   publishAsync: () => Promise.resolve(),
+  on: () => {},
 };
 
-const stubEventEmitter = {
-  emit: () => true,
-  emitAsync: () => Promise.resolve([]),
-};
+const stubEventEmitter = { emit: () => true, emitAsync: () => Promise.resolve([]) };
+
+import { stubLogger } from '@/shared-kernel/logger/testing';
 
 describe('CreateActivityUseCase', () => {
   let useCase: CreateActivityUseCase;
@@ -113,6 +108,7 @@ describe('CreateActivityUseCase', () => {
       new StubFollowRepository(),
       stubEventPublisher,
       stubEventEmitter,
+      stubLogger,
     );
   });
 
@@ -127,11 +123,7 @@ describe('CreateActivityUseCase', () => {
 
   it('should create activity with entityId and entityType', async () => {
     activityRepo.setCreateResult(
-      createActivityRecord({
-        id: 'activity-2',
-        entityId: 'res-123',
-        entityType: 'resume',
-      }),
+      createActivityRecord({ id: 'activity-2', entityId: 'res-123', entityType: 'resume' }),
     );
 
     const result = await useCase.execute(

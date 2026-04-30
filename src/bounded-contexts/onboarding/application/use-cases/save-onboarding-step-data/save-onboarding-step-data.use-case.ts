@@ -1,3 +1,4 @@
+import type { LoggerPort } from '@/shared-kernel';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { OnboardingStepDataMapper } from '../shared/onboarding-step-data.mapper';
@@ -8,6 +9,7 @@ export class SaveOnboardingStepDataUseCase {
   constructor(
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(

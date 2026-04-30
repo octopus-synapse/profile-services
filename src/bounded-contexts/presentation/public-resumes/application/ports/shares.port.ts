@@ -10,33 +10,26 @@ import type { ShareEntity, ShareWithResume } from '../../domain/ports/share.repo
 // Injection Token
 // ============================================================================
 
-export const SHARE_USE_CASES = Symbol('SHARE_USE_CASES');
-
 // ============================================================================
 // Use Cases Interface
 // ============================================================================
 
-export interface ShareUseCases {
-  createShareUseCase: {
+export abstract class ShareUseCases {
+  abstract readonly createShareUseCase: {
     execute: (
       userId: string,
-      dto: {
-        resumeId: string;
-        slug?: string;
-        password?: string;
-        expiresAt?: Date;
-      },
+      dto: { resumeId: string; slug?: string; password?: string; expiresAt?: Date },
     ) => Promise<ShareEntity>;
   };
-  getShareBySlugUseCase: {
+  abstract readonly getShareBySlugUseCase: {
     execute: (slug: string) => Promise<ShareWithResume | null>;
     getResumeWithCache: (resumeId: string) => Promise<unknown>;
     verifyPassword: (plaintext: string, hash: string) => Promise<boolean>;
   };
-  deleteShareUseCase: {
+  abstract readonly deleteShareUseCase: {
     execute: (userId: string, shareId: string) => Promise<ShareEntity>;
   };
-  listUserSharesUseCase: {
+  abstract readonly listUserSharesUseCase: {
     execute: (userId: string, resumeId: string) => Promise<ShareEntity[]>;
   };
 }

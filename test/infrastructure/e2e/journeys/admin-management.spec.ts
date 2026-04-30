@@ -15,18 +15,18 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+
+import type { PrismaClient } from '@prisma/client';
+import { stopTestApp, type TestApp } from '../../shared';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E Journey: Admin User Management', () => {
-  let app: INestApplication;
+  let app: TestApp; // was INestApplication
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let prisma: PrismaService;
+  let prisma: PrismaClient;
 
   // Admin user
   let adminUser: { email: string; password: string; name: string; token?: string; userId?: string };
@@ -64,7 +64,7 @@ describe('E2E Journey: Admin User Management', () => {
         // Ignore cleanup errors
       }
     }
-    await app.close();
+    await stopTestApp();
   });
 
   // =========================================================================
@@ -72,7 +72,7 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 1: Admin user setup', () => {
-    it('should create an admin user and assign admin role', async () => {
+    it.serial('should create an admin user and assign admin role', async () => {
       adminUser = authHelper.createTestUser('admin-mgmt');
       const result = await authHelper.registerAndLogin(adminUser);
       adminUser.token = result.token;
@@ -99,7 +99,7 @@ describe('E2E Journey: Admin User Management', () => {
       });
     });
 
-    it('should create a regular user for comparison', async () => {
+    it.serial('should create a regular user for comparison', async () => {
       regularUser = authHelper.createTestUser('regular-mgmt');
       const result = await authHelper.registerAndLogin(regularUser);
       regularUser.token = result.token;
@@ -115,8 +115,8 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 2: Admin lists users', () => {
-    it('should list all users with pagination', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should list all users with pagination', async () => {
+      const response = await app.request
         .get('/api/v1/users/manage')
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -133,8 +133,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(firstUser).toHaveProperty('createdAt');
     });
 
-    it('should filter users by search term', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should filter users by search term', async () => {
+      const response = await app.request
         .get(`/api/v1/users/manage?search=${encodeURIComponent('admin-mgmt')}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -148,11 +148,11 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 3: Admin creates a user', () => {
-    it('should create a new user via admin endpoint', async () => {
+    it.serial('should create a new user via admin endpoint', async () => {
       adminCreatedEmail = `e2e-admin-created-${Date.now()}@example.com`;
       cleanupEmails.push(adminCreatedEmail);
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/users/manage')
         .set('Authorization', `Bearer ${adminUser.token}`)
         .send({
@@ -170,8 +170,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(adminCreatedUserId).toBeDefined();
     });
 
-    it('should find the created user in user list', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should find the created user in user list', async () => {
+      const response = await app.request
         .get(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -185,8 +185,8 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 4: Admin updates user', () => {
-    it('should update user name', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should update user name', async () => {
+      const response = await app.request
         .patch(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`)
         .send({ name: 'Updated by Admin' });
@@ -195,8 +195,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should verify the update persisted', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should verify the update persisted', async () => {
+      const response = await app.request
         .get(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -212,8 +212,8 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 5: Admin resets user password', () => {
-    it('should reset password for the created user', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should reset password for the created user', async () => {
+      const response = await app.request
         .post(`/api/v1/users/manage/${adminCreatedUserId}/reset-password`)
         .set('Authorization', `Bearer ${adminUser.token}`)
         .send({ newPassword: 'ResetByAdmin123!' });
@@ -229,8 +229,8 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 6: Admin deactivates user', () => {
-    it('should deactivate the created user', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deactivate the created user', async () => {
+      const response = await app.request
         .patch(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`)
         .send({ isActive: false });
@@ -239,8 +239,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(response.body.success).toBe(true);
     });
 
-    it('should show user as inactive in details', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should show user as inactive in details', async () => {
+      const response = await app.request
         .get(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -256,14 +256,14 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 7: Deactivated user login attempt', () => {
-    it('should prevent deactivated user from logging in', async () => {
+    it.serial('should prevent deactivated user from logging in', async () => {
       // First verify email for the admin-created user so login would work if active
       await prisma.user.update({
         where: { id: adminCreatedUserId },
         data: { emailVerified: new Date() },
       });
 
-      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
+      const response = await app.request.post('/api/auth/login').send({
         email: adminCreatedEmail,
         password: 'ResetByAdmin123!',
       });
@@ -278,16 +278,16 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 8: Non-admin access denied', () => {
-    it('should deny listing users', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deny listing users', async () => {
+      const response = await app.request
         .get('/api/v1/users/manage')
         .set('Authorization', `Bearer ${regularUser.token}`);
 
       expect(response.status).toBe(403);
     });
 
-    it('should deny creating users', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deny creating users', async () => {
+      const response = await app.request
         .post('/api/v1/users/manage')
         .set('Authorization', `Bearer ${regularUser.token}`)
         .send({
@@ -298,8 +298,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(response.status).toBe(403);
     });
 
-    it('should deny updating users', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deny updating users', async () => {
+      const response = await app.request
         .patch(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${regularUser.token}`)
         .send({ name: 'Hacked' });
@@ -307,16 +307,16 @@ describe('E2E Journey: Admin User Management', () => {
       expect(response.status).toBe(403);
     });
 
-    it('should deny deleting users', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deny deleting users', async () => {
+      const response = await app.request
         .delete(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${regularUser.token}`);
 
       expect(response.status).toBe(403);
     });
 
-    it('should deny resetting passwords', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should deny resetting passwords', async () => {
+      const response = await app.request
         .post(`/api/v1/users/manage/${adminCreatedUserId}/reset-password`)
         .set('Authorization', `Bearer ${regularUser.token}`)
         .send({ newPassword: 'HackedPass123!' });
@@ -324,8 +324,8 @@ describe('E2E Journey: Admin User Management', () => {
       expect(response.status).toBe(403);
     });
 
-    it('should deny unauthenticated access', async () => {
-      const response = await request(app.getHttpServer()).get('/api/v1/users/manage');
+    it.serial('should deny unauthenticated access', async () => {
+      const response = await app.request.get('/api/v1/users/manage');
 
       expect(response.status).toBe(401);
     });
@@ -336,14 +336,14 @@ describe('E2E Journey: Admin User Management', () => {
   // =========================================================================
 
   describe('Step 9: Admin cleanup', () => {
-    it('should reactivate and then delete the test user', async () => {
+    it.serial('should reactivate and then delete the test user', async () => {
       // Reactivate first (in case delete checks active status)
-      await request(app.getHttpServer())
+      await app.request
         .patch(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`)
         .send({ isActive: true });
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .delete(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 
@@ -355,8 +355,8 @@ describe('E2E Journey: Admin User Management', () => {
       if (idx >= 0) cleanupEmails.splice(idx, 1);
     });
 
-    it('should no longer find the deleted user', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should no longer find the deleted user', async () => {
+      const response = await app.request
         .get(`/api/v1/users/manage/${adminCreatedUserId}`)
         .set('Authorization', `Bearer ${adminUser.token}`);
 

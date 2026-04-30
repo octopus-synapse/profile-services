@@ -3,16 +3,16 @@
  */
 
 import { randomBytes } from 'node:crypto';
+import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-import { EventPublisherPort } from '@/shared-kernel';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+  ResumeShareSlugInvalidException,
+  ResumeShareSlugTakenException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
-import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
+import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
+import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 interface CreateShareDto {
   resumeId: string;
@@ -26,20 +26,19 @@ export class CreateShareUseCase {
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, dto: CreateShareDto) {
     const slug = dto.slug ?? this.generateSlug();
 
     if (dto.slug && !this.isValidSlug(dto.slug)) {
-      throw new BadRequestException(
-        'Invalid slug format. Use alphanumeric characters and hyphens only.',
-      );
+      throw new ResumeShareSlugInvalidException();
     }
 
     const existing = await this.shareRepo.findBySlugOnly(slug);
     if (existing) {
-      throw new ConflictException('Slug already in use');
+      throw new ResumeShareSlugTakenException();
     }
 
     const hashedPassword = dto.password
@@ -48,10 +47,10 @@ export class CreateShareUseCase {
 
     const resume = await this.resumeRepo.findById(dto.resumeId);
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundException();
     }
     if (resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     const share = await this.shareRepo.create({
@@ -62,10 +61,7 @@ export class CreateShareUseCase {
     });
 
     this.eventPublisher.publish(
-      new ResumePublishedEvent(dto.resumeId, {
-        userId: resume.userId,
-        slug,
-      }),
+      new ResumePublishedEvent(dto.resumeId, { userId: resume.userId, slug }),
     );
 
     return share;

@@ -9,10 +9,10 @@
  * - Session endpoint to return current user
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import type {
+import { LoggerPort } from '@/shared-kernel';
+import type { SessionPayload } from '../../../domain/ports';
+import {
   AuthenticationRepositoryPort,
-  SessionPayload,
   SessionStoragePort,
   TokenGeneratorPort,
 } from '../../../domain/ports';
@@ -23,71 +23,87 @@ import type {
   ValidateSessionResult,
 } from '../../ports';
 
-// Injection tokens
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const SESSION_STORAGE = Symbol('SessionStoragePort');
-
-@Injectable()
 export class ValidateSessionUseCase implements ValidateSessionPort {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(SESSION_STORAGE)
     private readonly sessionStorage: SessionStoragePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: ValidateSessionCommand): Promise<ValidateSessionResult> {
-    const { cookieReader } = command;
+    const { cookieReader, userId: directUserId } = command;
 
-    // 1. Extract session token from cookie
-    const sessionToken = this.sessionStorage.getSessionCookie(cookieReader);
-    if (!sessionToken) {
-      return { success: false, user: null };
-    }
+    let resolvedUserId: string | undefined = directUserId;
 
-    // 2. Verify and decode JWT
-    let payload: SessionPayload;
-    try {
-      const decoded = await this.tokenGenerator.verifySessionToken(sessionToken);
-      if (!decoded) {
+    if (!resolvedUserId) {
+      // 1. Extract session token from cookie
+      const sessionToken = this.sessionStorage.getSessionCookie(cookieReader);
+      if (!sessionToken) {
         return { success: false, user: null };
       }
-      payload = decoded;
-    } catch {
-      return { success: false, user: null };
-    }
 
-    // 3. Check expiration (exp is in seconds, Date.now() is in milliseconds)
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    if (nowInSeconds > payload.exp) {
-      return { success: false, user: null };
+      // 2. Verify and decode JWT
+      let payload: SessionPayload;
+      try {
+        const decoded = await this.tokenGenerator.verifySessionToken(sessionToken);
+        if (!decoded) {
+          return { success: false, user: null };
+        }
+        payload = decoded;
+      } catch (err) {
+        // Token is malformed/expired/tampered. Don't surface the reason to the
+        // client (info leak about JWT secret state), but emit telemetry so a
+        // spike of failures is visible — investigation of "users keep getting
+        // logged out" starts here.
+        this.logger.debug(
+          `Session token verification failed: ${err instanceof Error ? err.message : 'unknown'}`,
+          'ValidateSessionUseCase',
+        );
+        return { success: false, user: null };
+      }
+
+      // 3. Check expiration (exp is in seconds, Date.now() is in milliseconds)
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      if (nowInSeconds > payload.exp) {
+        return { success: false, user: null };
+      }
+
+      resolvedUserId = payload.sub;
     }
 
     // 4. Fetch fresh user data
-    const userData = await this.repository.findSessionUser(payload.sub);
+    const userData = await this.repository.findSessionUser(resolvedUserId);
     if (!userData) {
       return { success: false, user: null };
     }
 
     // 5. Return validated session data with calculated fields
     const role = (userData.role ?? 'USER') as 'USER' | 'ADMIN';
-    const roles = userData.roles ?? ['role_user'];
+    const roles = userData.roles ?? [];
+    const isAdmin = role === 'ADMIN';
+    // E2E/dev hatch: when SKIP_EMAIL_VERIFICATION is enabled, the HTTP guard
+    // bypasses enforcement — keep the session payload consistent so the
+    // frontend's OnboardingGuard doesn't redirect to /identity/verify-email
+    // based on a flag the backend is ignoring.
+    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // Onboarding is a job-seeker invariant — admins always bypass it.
+    // For everyone else the truth is `User.onboardingCompletedAt`
+    // (mirrored on `hasCompletedOnboarding` while the legacy column
+    // sticks around).
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       username: userData.username,
       hasCompletedOnboarding: userData.hasCompletedOnboarding,
-      emailVerified: userData.emailVerified,
+      emailVerified: skipEmailVerification ? true : userData.emailVerified,
       role,
       roles,
       // Calculated fields - frontend should NOT calculate these
-      isAdmin: role === 'ADMIN',
-      needsOnboarding: !userData.hasCompletedOnboarding,
-      needsEmailVerification: !userData.emailVerified,
+      isAdmin,
+      needsOnboarding: !isAdmin && !userData.hasCompletedOnboarding,
+      needsEmailVerification: skipEmailVerification ? false : !userData.emailVerified,
     };
 
     return {
@@ -96,5 +112,3 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, SESSION_STORAGE, TOKEN_GENERATOR };

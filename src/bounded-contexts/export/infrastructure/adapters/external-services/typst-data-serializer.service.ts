@@ -5,7 +5,6 @@
  * Handles unit conversions (px → pt) and font family mapping.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import { FONT_FAMILIES } from '@/bounded-contexts/dsl/domain/value-objects/design-token-config';
 
@@ -15,7 +14,7 @@ import { FONT_FAMILIES } from '@/bounded-contexts/dsl/domain/value-objects/desig
  */
 const CSS_TO_TYPST_FONT: Record<string, string> = Object.fromEntries(
   Object.entries(FONT_FAMILIES).map(([, cssStack]) => {
-    const primaryFont = cssStack.split(',')[0].trim();
+    const primaryFont = cssStack.split(', ')[0].trim();
     return [cssStack, primaryFont];
   }),
 );
@@ -23,7 +22,6 @@ const CSS_TO_TYPST_FONT: Record<string, string> = Object.fromEntries(
 /** 1 CSS px = 0.75 pt at 96 DPI */
 const PX_TO_PT = 0.75;
 
-@Injectable()
 export class TypstDataSerializerService {
   /**
    * Serialize ResumeAst to JSON string for Typst templates.
@@ -90,7 +88,7 @@ export class TypstDataSerializerService {
   }
 
   private mapFont(cssFontFamily: string): string {
-    return CSS_TO_TYPST_FONT[cssFontFamily] ?? cssFontFamily.split(',')[0].trim();
+    return CSS_TO_TYPST_FONT[cssFontFamily] ?? cssFontFamily.split(', ')[0].trim();
   }
 
   private pxToPt(px: number): number {
@@ -116,12 +114,7 @@ export interface TypstResumeData {
   header: TypstResumeHeader | null;
   page: TypstPageLayout;
   sections: TypstPlacedSection[];
-  globalStyles: {
-    background: string;
-    textPrimary: string;
-    textSecondary: string;
-    accent: string;
-  };
+  globalStyles: { background: string; textPrimary: string; textSecondary: string; accent: string };
 }
 
 export interface TypstPageLayout {
@@ -140,11 +133,7 @@ export interface TypstPlacedSection {
   columnId: string;
   order: number;
   data: unknown;
-  styles: {
-    container: TypstBoxStyle;
-    title: TypstTypography;
-    content: TypstTypography;
-  };
+  styles: { container: TypstBoxStyle; title: TypstTypography; content: TypstTypography };
 }
 
 export interface TypstBoxStyle {

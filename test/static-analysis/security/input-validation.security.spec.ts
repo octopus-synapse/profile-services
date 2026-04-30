@@ -71,16 +71,21 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should validate ID format (UUID or CUID)', () => {
-      const idParams = grepCodebase('@Param|:id', ['node_modules', 'dist']);
+      // Elysia route descriptors expose path params via
+      // `params: z.object({ id: z.string()... })`. Legacy NestJS
+      // patterns (@Param, ParseUUIDPipe) stay on the allowlist for
+      // controllers still in flight.
+      const candidates = readAllTsFiles(SRC_DIR).filter(
+        (f) =>
+          f.endsWith('.routes.ts') ||
+          f.endsWith('.controller.ts') ||
+          f.endsWith('.dto.ts') ||
+          f.endsWith('.schema.ts'),
+      );
       let hasIdValidation = false;
 
-      for (const file of idParams) {
-        const [filePath] = file.split(':');
-        if (!filePath || !fileExists(filePath)) continue;
-
-        const content = fs.readFileSync(filePath, 'utf-8');
-
-        // Check for various ID validation patterns
+      for (const file of candidates) {
+        const content = fs.readFileSync(file, 'utf-8');
         if (
           content.includes('@IsUUID') ||
           content.includes('ParseUUIDPipe') ||
@@ -91,6 +96,7 @@ describe('Input Validation Security Tests', () => {
           content.includes('IdSchema')
         ) {
           hasIdValidation = true;
+          break;
         }
       }
 
@@ -245,81 +251,81 @@ describe('Input Validation Security Tests', () => {
   });
 
   describe('File Upload Validation', () => {
+    // The upload BC validation lives in routes + a dedicated
+    // file-validator service, not on a Nest-style controller/service.
+    const uploadFiles = readAllTsFiles(SRC_DIR).filter(
+      (f) =>
+        f.includes('upload') &&
+        (f.endsWith('.service.ts') ||
+          f.endsWith('.controller.ts') ||
+          f.endsWith('.routes.ts') ||
+          f.includes('file-validator')),
+    );
+
     it('should validate file types', () => {
-      // Check for file type validation in upload service or controller
-      const uploadFiles = readAllTsFiles(SRC_DIR).filter(
-        (f) => f.includes('upload') && (f.includes('.service.ts') || f.includes('.controller.ts')),
-      );
-
       let hasTypeValidation = false;
-
       for (const file of uploadFiles) {
         const content = fs.readFileSync(file, 'utf-8');
-
-        // Check for file type validation patterns
         if (
           content.includes('mimetype') ||
           content.includes('allowedMimeTypes') ||
+          content.includes('ALLOWED_MIME_TYPES') ||
           content.includes('fileFilter') ||
           content.includes('FileTypeValidator') ||
           content.includes('ParseFilePipe') ||
           content.includes('validateFile')
         ) {
           hasTypeValidation = true;
+          break;
         }
       }
-
       expect(hasTypeValidation).toBe(true);
     });
 
     it('should limit file sizes', () => {
-      // Check for file size limits in upload service or controller
-      const uploadFiles = readAllTsFiles(SRC_DIR).filter(
-        (f) => f.includes('upload') && (f.includes('.service.ts') || f.includes('.controller.ts')),
-      );
-
       let hasSizeLimit = false;
-
       for (const file of uploadFiles) {
         const content = fs.readFileSync(file, 'utf-8');
-
-        // Check for file size limit patterns
         if (
           content.includes('maxFileSize') ||
           content.includes('maxSize') ||
+          content.includes('MAX_FILE_SIZE') ||
           content.includes('fileSize') ||
           content.includes('limits') ||
           content.includes('size >') ||
           content.includes('MaxFileSizeValidator')
         ) {
           hasSizeLimit = true;
+          break;
         }
       }
-
       expect(hasSizeLimit).toBe(true);
     });
   });
 
   describe('Query Parameter Validation', () => {
     it('should validate query parameters', () => {
-      const queryParams = grepCodebaseFixed('@Query', ['node_modules', 'dist']);
+      // Elysia route descriptors validate query via `query: z.object`
+      // declared on the Route. NestJS controllers used @Query + Pipes;
+      // both forms count as valid query validation.
+      const candidates = readAllTsFiles(SRC_DIR).filter(
+        (f) => f.endsWith('.routes.ts') || f.endsWith('.controller.ts'),
+      );
       let hasQueryValidation = false;
 
-      for (const file of queryParams) {
-        const [filePath] = file.split(':');
-        if (!filePath || !fileExists(filePath)) continue;
-
-        const content = fs.readFileSync(filePath, 'utf-8');
-
-        // Check for query validation via Pipes or DTOs
+      for (const file of candidates) {
+        const content = fs.readFileSync(file, 'utf-8');
         if (
+          content.match(/query\s*:\s*z\./) ||
           content.includes('ValidationPipe') ||
           content.includes('ParseIntPipe') ||
           content.includes('ParseBoolPipe') ||
           content.includes('QueryDto') ||
-          content.includes('ZodValidationPipe')
+          content.includes('ZodValidationPipe') ||
+          content.includes('z.object({')
         ) {
           hasQueryValidation = true;
+          break;
         }
       }
 

@@ -29,11 +29,7 @@ export const ResumeDslV2Schema = z
   .object({
     version: z.string().regex(SEMVER_PATTERN, 'version must match semver (e.g. "2.0.0")'),
     sections: z.array(SectionEntrySchema),
-    headerOverrides: z
-      .object({
-        jobTitle: z.string().optional(),
-      })
-      .optional(),
+    headerOverrides: z.object({ jobTitle: z.string().optional() }).optional(),
   })
   .refine(
     (dsl) => {

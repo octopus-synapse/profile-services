@@ -14,4 +14,3 @@ export * from './infrastructure';
 // Testing (for use in tests)
 export * from './testing';
 // Module
-export * from './two-factor-auth.module';

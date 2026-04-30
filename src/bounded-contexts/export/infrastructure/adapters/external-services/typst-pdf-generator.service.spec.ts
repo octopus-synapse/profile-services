@@ -6,12 +6,12 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { DslUseCases } from '@/bounded-contexts/dsl';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { TypstCompilerService } from './typst-compiler.service';
-import { TypstDataSerializerService } from './typst-data-serializer.service';
+import { stubLogger } from '@/shared-kernel/logger/testing';
+import type { TypstCompilerService } from './typst-compiler.service';
+import type { TypstDataSerializerService } from './typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './typst-pdf-generator.service';
 
 const MOCK_AST = {
@@ -46,12 +46,12 @@ describe('TypstPdfGeneratorService', () => {
     },
   };
 
-  const mockDslRepository = {
-    render: mock().mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' }),
+  const mockRenderResumeDslUseCase = {
+    execute: mock().mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' }),
   };
 
   const mockSerializer = {
-    serialize: mock().mockReturnValue('{"mock":"data"}'),
+    serialize: mock().mockReturnValue('{ "mock":"data" }'),
   };
 
   const mockCompiler = {
@@ -62,21 +62,20 @@ describe('TypstPdfGeneratorService', () => {
   beforeEach(async () => {
     // Reset mocks
     mockPrisma.user.findUnique.mockResolvedValue({ primaryResumeId: 'resume-123' });
-    mockDslRepository.render.mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' });
-    mockSerializer.serialize.mockReturnValue('{"mock":"data"}');
+    mockRenderResumeDslUseCase.execute.mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' });
+    mockSerializer.serialize.mockReturnValue('{ "mock":"data" }');
     mockCompiler.compile.mockResolvedValue(MOCK_PDF_BUFFER);
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TypstPdfGeneratorService,
-        { provide: PrismaService, useValue: mockPrisma },
-        { provide: DslRepository, useValue: mockDslRepository },
-        { provide: TypstDataSerializerService, useValue: mockSerializer },
-        { provide: TypstCompilerService, useValue: mockCompiler },
-      ],
-    }).compile();
-
-    service = module.get<TypstPdfGeneratorService>(TypstPdfGeneratorService);
+    service = new TypstPdfGeneratorService(
+      mockPrisma as unknown as PrismaService,
+      { renderResumeDsl: mockRenderResumeDslUseCase } as unknown as Pick<
+        DslUseCases,
+        'renderResumeDsl'
+      >,
+      mockSerializer as unknown as TypstDataSerializerService,
+      mockCompiler as unknown as TypstCompilerService,
+      stubLogger,
+    );
   });
 
   describe('generate', () => {
@@ -111,42 +110,46 @@ describe('TypstPdfGeneratorService', () => {
     it('should compile DSL with correct locale', async () => {
       await service.generate({ userId: 'user-1', lang: 'en' });
 
-      expect(mockDslRepository.render).toHaveBeenCalledWith(
-        'resume-123',
-        'user-1',
-        'pdf',
-        'en',
-        undefined,
-      );
+      expect(mockRenderResumeDslUseCase.execute).toHaveBeenCalledWith({
+        resumeId: 'resume-123',
+        userId: 'user-1',
+        target: 'pdf',
+        locale: 'en',
+        themeStyleConfig: undefined,
+      });
     });
 
     it('should default locale to pt-br', async () => {
       await service.generate({ userId: 'user-1' });
 
-      expect(mockDslRepository.render).toHaveBeenCalledWith(
-        'resume-123',
-        'user-1',
-        'pdf',
-        'pt-BR',
-        undefined,
-      );
+      expect(mockRenderResumeDslUseCase.execute).toHaveBeenCalledWith({
+        resumeId: 'resume-123',
+        userId: 'user-1',
+        target: 'pdf',
+        locale: 'pt-BR',
+        themeStyleConfig: undefined,
+      });
     });
 
     it('should serialize AST and pass to compiler', async () => {
       await service.generate({ userId: 'user-1' });
 
       expect(mockSerializer.serialize).toHaveBeenCalledWith(MOCK_AST);
-      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
-        timeout: undefined,
-      });
+      expect(mockCompiler.compile).toHaveBeenCalledWith(
+        '{ "mock":"data" }',
+        '/app/templates/typst',
+        { timeout: undefined },
+      );
     });
 
     it('should pass timeout option to compiler', async () => {
       await service.generate({ userId: 'user-1', timeout: 15000 });
 
-      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
-        timeout: 15000,
-      });
+      expect(mockCompiler.compile).toHaveBeenCalledWith(
+        '{ "mock":"data" }',
+        '/app/templates/typst',
+        { timeout: 15000 },
+      );
     });
   });
 });

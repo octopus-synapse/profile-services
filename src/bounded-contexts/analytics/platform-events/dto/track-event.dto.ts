@@ -7,14 +7,10 @@ const PlatformEventSchema = z.object({
   occurredAt: z.string().datetime(),
 });
 
-const TrackEventsBodySchema = z.object({
-  events: z.array(PlatformEventSchema).min(1).max(100),
-});
+const TrackEventsBodySchema = z.object({ events: z.array(PlatformEventSchema).min(1).max(100) });
 
 export class TrackEventsBodyDto extends createZodDto(TrackEventsBodySchema) {}
 
-const TrackEventsDataSchema = z.object({
-  accepted: z.number().int().nonnegative(),
-});
+const TrackEventsDataSchema = z.object({ accepted: z.number().int().nonnegative() });
 
 export class TrackEventsDataDto extends createZodDto(TrackEventsDataSchema) {}

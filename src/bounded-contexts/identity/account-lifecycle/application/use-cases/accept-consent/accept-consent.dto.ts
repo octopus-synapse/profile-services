@@ -65,10 +65,7 @@ const ConsentRecordSchema = z.object({
 /**
  * Response schema for accept consent endpoint
  */
-const AcceptConsentResponseSchema = z.object({
-  message: z.string(),
-  consent: ConsentRecordSchema,
-});
+const AcceptConsentResponseSchema = z.object({ message: z.string(), consent: ConsentRecordSchema });
 
 /**
  * Request DTO for accepting user consent

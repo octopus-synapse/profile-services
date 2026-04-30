@@ -88,18 +88,14 @@ export type GroupWithAuthResponse = z.infer<typeof GroupWithAuthResponseSchema>;
 /**
  * Schema for assigning roles to a group.
  */
-export const AssignGroupRolesSchema = z.object({
-  roleIds: z.array(z.string().cuid()).min(1),
-});
+export const AssignGroupRolesSchema = z.object({ roleIds: z.array(z.string().cuid()).min(1) });
 
 export type AssignGroupRoles = z.infer<typeof AssignGroupRolesSchema>;
 
 /**
  * Schema for removing roles from a group.
  */
-export const RemoveGroupRolesSchema = z.object({
-  roleIds: z.array(z.string().cuid()).min(1),
-});
+export const RemoveGroupRolesSchema = z.object({ roleIds: z.array(z.string().cuid()).min(1) });
 
 export type RemoveGroupRoles = z.infer<typeof RemoveGroupRolesSchema>;
 

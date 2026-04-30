@@ -3,7 +3,6 @@
  * Handles batch translation operations
  */
 
-import { Injectable } from '@nestjs/common';
 import type {
   BatchTranslationResult,
   SourceLanguage,
@@ -14,7 +13,6 @@ import { TranslationCoreService } from './translation-core.service';
 
 const BATCH_SIZE = 5;
 
-@Injectable()
 export class TranslationBatchService {
   constructor(private readonly coreService: TranslationCoreService) {}
 
@@ -37,10 +35,7 @@ export class TranslationBatchService {
           translations.push(result.value);
         } else {
           const error = result.reason as Error | undefined;
-          failed.push({
-            text: batch[index],
-            error: error?.message ?? 'Unknown error',
-          });
+          failed.push({ text: batch[index], error: error?.message ?? 'Unknown error' });
         }
       });
     }

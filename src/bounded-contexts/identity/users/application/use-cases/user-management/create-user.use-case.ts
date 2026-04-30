@@ -1,14 +1,13 @@
-import { ConflictException } from '@/shared-kernel/exceptions';
-import type {
-  CreatedUser,
-  CreateUserData,
-  UserManagementRepositoryPort,
-} from '../../ports/user-management.port';
+import { LoggerPort } from '@/shared-kernel';
+import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions/identity-shared.exceptions';
+import type { CreatedUser, CreateUserData } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class CreateUserUseCase {
   constructor(
     private readonly repository: UserManagementRepositoryPort,
     private readonly hashPassword: (password: string) => Promise<string>,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(data: CreateUserData): Promise<CreatedUser> {
@@ -22,7 +21,7 @@ export class CreateUserUseCase {
       });
     } catch (error) {
       if (this.isUniqueConstraintViolation(error)) {
-        throw new ConflictException('Email already exists');
+        throw new EmailAlreadyExistsException();
       }
       throw error;
     }

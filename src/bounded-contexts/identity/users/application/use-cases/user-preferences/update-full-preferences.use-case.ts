@@ -2,8 +2,8 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type {
   FullUserPreferences,
   UpdateFullPreferencesData,
-  UserPreferencesRepositoryPort,
 } from '../../ports/user-preferences.port';
+import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 
 export class UpdateFullPreferencesUseCase {
   constructor(private readonly repository: UserPreferencesRepositoryPort) {}

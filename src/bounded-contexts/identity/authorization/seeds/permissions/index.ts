@@ -10,6 +10,7 @@ import {
   PERMISSION_PERMISSIONS,
   ROLE_PERMISSIONS,
 } from './authorization-permissions';
+import { FEATURE_FLAG_PERMISSIONS } from './feature-flag-permissions';
 import { RESUME_PERMISSIONS } from './resume-permissions';
 import { SECTION_TYPE_PERMISSIONS } from './section-type-permissions';
 import { SKILL_PERMISSIONS } from './skill-permissions';
@@ -42,6 +43,7 @@ export const SYSTEM_PERMISSIONS: CreatePermissionInput[] = [
   ...STATS_PERMISSIONS,
   ...SETTINGS_PERMISSIONS,
   ...COLLABORATION_PERMISSIONS,
+  ...FEATURE_FLAG_PERMISSIONS,
   ...SUPER_ADMIN_PERMISSIONS,
 ];
 
@@ -49,6 +51,7 @@ export {
   ANALYTICS_PERMISSIONS,
   AUDIT_LOG_PERMISSIONS,
   COLLABORATION_PERMISSIONS,
+  FEATURE_FLAG_PERMISSIONS,
   GROUP_PERMISSIONS,
   PERMISSION_PERMISSIONS,
   RESUME_PERMISSIONS,

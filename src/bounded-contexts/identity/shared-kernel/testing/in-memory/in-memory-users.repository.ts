@@ -141,10 +141,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     const user = this.users.get(userId);
     if (!user) return null;
 
-    return {
-      ...user,
-      preferences: this.preferences.get(userId) ?? null,
-    };
+    return { ...user, preferences: this.preferences.get(userId) ?? null };
   }
 
   async findUserByUsername(
@@ -157,10 +154,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
 
     if (!user) return null;
 
-    return {
-      ...user,
-      preferences: this.preferences.get(user.id) ?? null,
-    };
+    return { ...user, preferences: this.preferences.get(user.id) ?? null };
   }
 
   async findUserProfileById(userId: string): Promise<Partial<UserEntity> | null> {
@@ -268,11 +262,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       throw new Error(`User not found: ${userId}`);
     }
 
-    const updated: StoredUser = {
-      ...user,
-      ...userData,
-      updatedAt: new Date(),
-    };
+    const updated: StoredUser = { ...user, ...userData, updatedAt: new Date() };
     this.users.set(userId, updated);
     return updated;
   }
@@ -292,11 +282,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       throw new Error(`User not found: ${userId}`);
     }
 
-    const updated: StoredUser = {
-      ...user,
-      ...profile,
-      updatedAt: new Date(),
-    };
+    const updated: StoredUser = { ...user, ...profile, updatedAt: new Date() };
     this.users.set(userId, updated);
     return updated;
   }

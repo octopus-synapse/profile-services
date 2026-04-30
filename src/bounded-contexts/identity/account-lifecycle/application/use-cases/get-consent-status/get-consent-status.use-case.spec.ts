@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryConsentRepository, StubVersionConfig } from '../../../../shared-kernel/testing';
 import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 import { GetConsentStatusUseCase } from './get-consent-status.use-case';
@@ -18,7 +19,7 @@ describe('GetConsentStatusUseCase', () => {
     consentRepository = new InMemoryConsentRepository();
     versionConfig = new StubVersionConfig('1.0.0', '2.0.0', '1.0.0');
 
-    useCase = new GetConsentStatusUseCase(consentRepository, versionConfig);
+    useCase = new GetConsentStatusUseCase(consentRepository, versionConfig, stubLogger);
   });
 
   describe('execute', () => {

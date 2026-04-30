@@ -55,11 +55,7 @@ describe('ShareAnalyticsService', () => {
     });
 
     it('should track DOWNLOAD event', async () => {
-      const result = await service.trackEvent({
-        shareId,
-        event: 'DOWNLOAD',
-        ip: '192.168.1.1',
-      });
+      const result = await service.trackEvent({ shareId, event: 'DOWNLOAD', ip: '192.168.1.1' });
 
       expect(result.event).toBe('DOWNLOAD');
       expect(repository.getAll()).toHaveLength(1);
@@ -103,11 +99,7 @@ describe('ShareAnalyticsService', () => {
 
   describe('IP Anonymization (GDPR)', () => {
     it('should hash IP address with SHA-256', async () => {
-      const result = await service.trackEvent({
-        shareId,
-        event: 'VIEW',
-        ip: '192.168.1.1',
-      });
+      const result = await service.trackEvent({ shareId, event: 'VIEW', ip: '192.168.1.1' });
 
       // SHA-256 hash is 64 characters
       expect(result.ipHash).toHaveLength(64);
@@ -115,33 +107,17 @@ describe('ShareAnalyticsService', () => {
     });
 
     it('should generate different hashes for different IPs', async () => {
-      const result1 = await service.trackEvent({
-        shareId,
-        event: 'VIEW',
-        ip: '192.168.1.1',
-      });
+      const result1 = await service.trackEvent({ shareId, event: 'VIEW', ip: '192.168.1.1' });
 
-      const result2 = await service.trackEvent({
-        shareId,
-        event: 'VIEW',
-        ip: '192.168.1.2',
-      });
+      const result2 = await service.trackEvent({ shareId, event: 'VIEW', ip: '192.168.1.2' });
 
       expect(result1.ipHash).not.toBe(result2.ipHash);
     });
 
     it('should generate same hash for same IP (unique visitor tracking)', async () => {
-      const result1 = await service.trackEvent({
-        shareId,
-        event: 'VIEW',
-        ip: '192.168.1.1',
-      });
+      const result1 = await service.trackEvent({ shareId, event: 'VIEW', ip: '192.168.1.1' });
 
-      const result2 = await service.trackEvent({
-        shareId,
-        event: 'VIEW',
-        ip: '192.168.1.1',
-      });
+      const result2 = await service.trackEvent({ shareId, event: 'VIEW', ip: '192.168.1.1' });
 
       expect(result1.ipHash).toBe(result2.ipHash);
     });
@@ -185,24 +161,9 @@ describe('ShareAnalyticsService', () => {
     });
 
     it('should group analytics by country', async () => {
-      repository.seedAnalytics({
-        shareId,
-        event: 'VIEW',
-        ipHash: 'h1',
-        country: 'BR',
-      });
-      repository.seedAnalytics({
-        shareId,
-        event: 'VIEW',
-        ipHash: 'h2',
-        country: 'BR',
-      });
-      repository.seedAnalytics({
-        shareId,
-        event: 'VIEW',
-        ipHash: 'h3',
-        country: 'US',
-      });
+      repository.seedAnalytics({ shareId, event: 'VIEW', ipHash: 'h1', country: 'BR' });
+      repository.seedAnalytics({ shareId, event: 'VIEW', ipHash: 'h2', country: 'BR' });
+      repository.seedAnalytics({ shareId, event: 'VIEW', ipHash: 'h3', country: 'US' });
 
       const result = await service.getAnalytics(shareId, userId);
 
@@ -262,9 +223,7 @@ describe('ShareAnalyticsService', () => {
       repository.seedAnalytics({ shareId, event: 'VIEW', ipHash: 'h2' });
       repository.seedAnalytics({ shareId, event: 'DOWNLOAD', ipHash: 'h3' });
 
-      const events = await service.getEvents(shareId, userId, {
-        eventType: 'DOWNLOAD',
-      });
+      const events = await service.getEvents(shareId, userId, { eventType: 'DOWNLOAD' });
 
       expect(events).toHaveLength(1);
       expect(events[0].eventType).toBe('DOWNLOAD');

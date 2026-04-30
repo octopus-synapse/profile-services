@@ -5,16 +5,14 @@
  * Implemented by crypto adapters (bcrypt, argon2, etc).
  */
 
-export interface PasswordHasherPort {
+export abstract class PasswordHasherPort {
   /**
    * Hashes a plain text password
    */
-  hash(password: string): Promise<string>;
+  abstract hash(password: string): Promise<string>;
 
   /**
    * Compares a plain text password with a hash
    */
-  compare(password: string, hash: string): Promise<boolean>;
+  abstract compare(password: string, hash: string): Promise<boolean>;
 }
-
-export const PASSWORD_HASHER_PORT = Symbol('PasswordHasherPort');

@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { PasswordChangedEvent } from '../../../domain/events';
 import { WeakPasswordException } from '../../../domain/exceptions';
@@ -43,6 +44,7 @@ describe('ResetPasswordUseCase', () => {
       passwordHasher,
       sessionInvalidation,
       eventBus,
+      stubLogger,
     );
   });
 

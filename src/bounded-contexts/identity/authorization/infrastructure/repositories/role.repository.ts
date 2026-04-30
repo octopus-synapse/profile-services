@@ -4,13 +4,11 @@
  * Infrastructure layer implementation of IRoleRepository.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { PermissionId } from '../../domain/entities/permission.entity';
 import { Role, type RoleId } from '../../domain/entities/role.entity';
 import type { IRoleRepository } from '../../domain/ports/authorization-repositories.port';
 
-@Injectable()
 export class RoleRepository implements IRoleRepository {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -131,11 +129,7 @@ export class RoleRepository implements IRoleRepository {
       where: {
         roleId_permissionId: { roleId, permissionId },
       },
-      create: {
-        roleId,
-        permissionId,
-        assignedBy,
-      },
+      create: { roleId, permissionId, assignedBy },
       update: {},
     });
   }
@@ -158,11 +152,7 @@ export class RoleRepository implements IRoleRepository {
       }),
       // Add new permissions
       this.prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId,
-          permissionId,
-          assignedBy,
-        })),
+        data: permissionIds.map((permissionId) => ({ roleId, permissionId, assignedBy })),
       }),
     ]);
   }

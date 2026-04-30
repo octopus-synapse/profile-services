@@ -1,4 +1,4 @@
-import type { ConnectionRepositoryPort } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class CheckConnectedUseCase {
   constructor(private readonly repository: ConnectionRepositoryPort) {}

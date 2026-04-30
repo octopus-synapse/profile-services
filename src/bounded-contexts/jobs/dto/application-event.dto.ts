@@ -11,9 +11,11 @@ export const RecordApplicationEventSchema = z.object({
     'WITHDRAWN',
     'FOLLOW_UP_SENT',
   ]),
-  note: z.string().max(2000).optional(),
-  /** Optional override; defaults to now. Used when the user retroactively
-   *  records an interview they forgot to log. */
+  note: z
+    .string()
+    .max(2000)
+    .optional() /** Optional override; defaults to now. Used when the user retroactively
+   *  records an interview they forgot to log. */,
   occurredAt: z.string().datetime().optional(),
 });
 

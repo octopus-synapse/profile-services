@@ -1,20 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  LoginAttemptRecord,
-  LoginAttemptsPort,
-  LoginLockStatus,
-} from '../../domain/ports/login-attempts.port';
+import { ConfigPort } from '@/shared-kernel/config';
+import type { LoginAttemptRecord, LoginLockStatus } from '../../domain/ports/login-attempts.port';
+import { LoginAttemptsPort } from '../../domain/ports/login-attempts.port';
 
-@Injectable()
 export class PrismaLoginAttemptsAdapter implements LoginAttemptsPort {
   private readonly maxFailedAttempts: number;
   private readonly lockDurationMs: number;
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly config: ConfigService,
+    private readonly config: ConfigPort,
   ) {
     this.maxFailedAttempts = Number(this.config.get<number>('LOGIN_MAX_FAILED_ATTEMPTS') ?? 5);
     const lockMinutes = Number(this.config.get<number>('LOGIN_LOCK_DURATION_MINUTES') ?? 15);
@@ -57,12 +52,7 @@ export class PrismaLoginAttemptsAdapter implements LoginAttemptsPort {
     const lockUntil = new Date(oldestFailure.getTime() + this.lockDurationMs);
     const resetInSeconds = Math.max(0, Math.ceil((lockUntil.getTime() - Date.now()) / 1000));
 
-    return {
-      locked: resetInSeconds > 0,
-      failureCount,
-      lockUntil,
-      resetInSeconds,
-    };
+    return { locked: resetInSeconds > 0, failureCount, lockUntil, resetInSeconds };
   }
 
   async clearFailedAttempts(email: string): Promise<void> {

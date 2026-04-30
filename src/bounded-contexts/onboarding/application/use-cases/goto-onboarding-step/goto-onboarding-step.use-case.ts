@@ -1,7 +1,8 @@
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
+import { OnboardingUnknownStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
-import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
+import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 
 export class GotoOnboardingStepUseCase {
@@ -9,6 +10,7 @@ export class GotoOnboardingStepUseCase {
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
     private readonly sectionTypeDefinition: SectionTypeDefinitionPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, stepId: string): Promise<OnboardingProgressData> {
@@ -17,7 +19,7 @@ export class GotoOnboardingStepUseCase {
     const targetIndex = getStepIndex(stepId, steps);
 
     if (targetIndex < 0) {
-      throw new ValidationException(`Unknown step: ${stepId}`);
+      throw new OnboardingUnknownStepException(stepId);
     }
 
     await this.saveProgress(userId, {

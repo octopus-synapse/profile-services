@@ -89,14 +89,14 @@ describeIntegration('Export Integration Tests', () => {
       expect([200, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.headers['content-type']).toBe(
+        expect(response.headers.get('content-type')).toBe(
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         );
-        expect(response.headers['content-disposition']).toBeDefined();
-        expect(response.headers['content-disposition']).toContain('resume.docx');
+        expect(response.headers.get('content-disposition')).toBeDefined();
+        expect(response.headers.get('content-disposition')).toContain('resume.docx');
 
         // Verify non-empty response
-        const contentLength = Number(response.headers['content-length'] ?? 0);
+        const contentLength = Number(response.headers.get('content-length') ?? 0);
         const isBuffer = Buffer.isBuffer(response.body);
         const bodyLength = isBuffer
           ? response.body.length
@@ -133,9 +133,9 @@ describeIntegration('Export Integration Tests', () => {
       expect([200, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.headers['content-type']).toContain('application/pdf');
-        expect(response.headers['content-disposition']).toBeDefined();
-        expect(response.headers['content-disposition']).toContain('resume.pdf');
+        expect(response.headers.get('content-type')).toContain('application/pdf');
+        expect(response.headers.get('content-disposition')).toBeDefined();
+        expect(response.headers.get('content-disposition')).toContain('resume.pdf');
 
         // Validate non-empty response
         if (Buffer.isBuffer(response.body)) {

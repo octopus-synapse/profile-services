@@ -34,9 +34,7 @@ const ResolvedSectionTypeSchema = z.object({
   fieldStyles: z.unknown(),
 });
 
-const ResumeSectionTypesDataSchema = z.object({
-  sectionTypes: z.array(ResolvedSectionTypeSchema),
-});
+const ResumeSectionTypesDataSchema = z.object({ sectionTypes: z.array(ResolvedSectionTypeSchema) });
 
 const GenericSectionItemSchema = z.object({
   id: z.string(),
@@ -86,17 +84,11 @@ const GenericResumeSectionSchema = z.object({
   items: z.array(GenericSectionItemSchema),
 });
 
-const ResumeSectionsDataSchema = z.object({
-  sections: z.array(GenericResumeSectionSchema),
-});
+const ResumeSectionsDataSchema = z.object({ sections: z.array(GenericResumeSectionSchema) });
 
-const ResumeSectionItemDataSchema = z.object({
-  item: GenericSectionItemSchema,
-});
+const ResumeSectionItemDataSchema = z.object({ item: GenericSectionItemSchema });
 
-const ResumeSectionDeleteDataSchema = z.object({
-  deleted: z.boolean(),
-});
+const ResumeSectionDeleteDataSchema = z.object({ deleted: z.boolean() });
 
 // ============================================================================
 // DTOs

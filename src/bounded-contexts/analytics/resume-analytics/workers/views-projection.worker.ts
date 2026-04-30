@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
+
+const CTX = 'ViewsProjectionWorker';
 
 /**
  * Views Projection Worker
@@ -11,14 +12,17 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
  * GROUP BYs at request time.
  *
  * Runs at 00:30 UTC every day.
+ *
+ * Framework-free POJO. Wired by the resume-analytics module via
+ * `CronPort`. Public `refreshDay(...)` is exposed so admin tooling /
+ * backfill scripts can request a specific day.
  */
-@Injectable()
 export class ViewsProjectionWorker {
-  private readonly logger = new Logger(ViewsProjectionWorker.name);
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
-  constructor(private readonly prisma: PrismaService) {}
-
-  @Cron('30 0 * * *')
   async run(): Promise<void> {
     const now = new Date();
     // Target day = yesterday (00:00 UTC to 00:00 UTC today).
@@ -29,9 +33,9 @@ export class ViewsProjectionWorker {
       await this.refreshDay(startOfYesterday);
     } catch (err) {
       this.logger.error(
-        `Views projection failed for ${startOfYesterday.toISOString()}: ${
-          err instanceof Error ? err.message : 'unknown'
-        }`,
+        `Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`,
+        err instanceof Error ? err.stack : undefined,
+        CTX,
       );
     }
   }
@@ -77,16 +81,14 @@ export class ViewsProjectionWorker {
           viewCount: b.viewCount,
           uniqueVisitorCount: b.uniqueVisitors.size,
         },
-        update: {
-          viewCount: b.viewCount,
-          uniqueVisitorCount: b.uniqueVisitors.size,
-        },
+        update: { viewCount: b.viewCount, uniqueVisitorCount: b.uniqueVisitors.size },
       });
       upserted += 1;
     }
 
     this.logger.log(
       `Rolled up ${events.length} view events into ${upserted} rows for ${dayStart.toISOString().slice(0, 10)}`,
+      CTX,
     );
     return { rowsUpserted: upserted };
   }

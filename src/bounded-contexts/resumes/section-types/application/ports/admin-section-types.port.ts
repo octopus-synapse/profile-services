@@ -38,11 +38,7 @@ export type SectionTypeRecord = {
   updatedAt: Date;
 };
 
-export type SectionTypeFilter = {
-  isActive?: boolean;
-  semanticKind?: string;
-  search?: string;
-};
+export type SectionTypeFilter = { isActive?: boolean; semanticKind?: string; search?: string };
 
 export type CreateSectionTypeData = {
   key: string;
@@ -97,25 +93,19 @@ export abstract class AdminSectionTypesRepositoryPort {
   abstract findDistinctSemanticKinds(): Promise<string[]>;
 }
 
-export const ADMIN_SECTION_TYPES_USE_CASES = Symbol('ADMIN_SECTION_TYPES_USE_CASES');
-
-export interface AdminSectionTypesUseCases {
-  listSectionTypesAdminUseCase: {
+export abstract class AdminSectionTypesUseCases {
+  abstract readonly listSectionTypesAdminUseCase: {
     execute: (query: ListSectionTypesQueryDto) => Promise<SectionTypeListResponseDto>;
   };
-  getSectionTypeUseCase: {
+  abstract readonly getSectionTypeUseCase: {
     execute: (key: string) => Promise<SectionTypeResponseDto>;
   };
-  createSectionTypeUseCase: {
+  abstract readonly createSectionTypeUseCase: {
     execute: (dto: CreateSectionTypeDto) => Promise<SectionTypeResponseDto>;
   };
-  updateSectionTypeUseCase: {
+  abstract readonly updateSectionTypeUseCase: {
     execute: (key: string, dto: UpdateSectionTypeDto) => Promise<SectionTypeResponseDto>;
   };
-  deleteSectionTypeUseCase: {
-    execute: (key: string) => Promise<void>;
-  };
-  getSemanticKindsUseCase: {
-    execute: () => Promise<string[]>;
-  };
+  abstract readonly deleteSectionTypeUseCase: { execute: (key: string) => Promise<void> };
+  abstract readonly getSemanticKindsUseCase: { execute: () => Promise<string[]> };
 }

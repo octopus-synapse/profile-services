@@ -46,16 +46,8 @@ export interface JsonResumeSchema {
     phone?: string;
     url?: string;
     summary?: string;
-    location?: {
-      city?: string;
-      countryCode?: string;
-      region?: string;
-    };
-    profiles?: Array<{
-      network?: string;
-      url?: string;
-      username?: string;
-    }>;
+    location?: { city?: string; countryCode?: string; region?: string };
+    profiles?: Array<{ network?: string; url?: string; username?: string }>;
   };
   work?: Array<{
     name?: string;
@@ -74,27 +66,10 @@ export interface JsonResumeSchema {
     endDate?: string;
     score?: string;
   }>;
-  skills?: Array<{
-    name?: string;
-    level?: string;
-    keywords?: string[];
-  }>;
-  languages?: Array<{
-    language?: string;
-    fluency?: string;
-  }>;
-  certificates?: Array<{
-    name?: string;
-    date?: string;
-    issuer?: string;
-    url?: string;
-  }>;
-  projects?: Array<{
-    name?: string;
-    description?: string;
-    url?: string;
-    keywords?: string[];
-  }>;
+  skills?: Array<{ name?: string; level?: string; keywords?: string[] }>;
+  languages?: Array<{ language?: string; fluency?: string }>;
+  certificates?: Array<{ name?: string; date?: string; issuer?: string; url?: string }>;
+  projects?: Array<{ name?: string; description?: string; url?: string; keywords?: string[] }>;
 }
 
 export interface ImportJobData {

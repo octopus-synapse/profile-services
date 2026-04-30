@@ -5,10 +5,11 @@
  * Does NOT enable 2FA - user must verify with valid token first.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { TwoFactorAlreadyEnabledException } from '../../../domain/exceptions';
-import type { QrCodeServicePort } from '../../../domain/ports/qrcode-service.port';
-import type { TotpServicePort } from '../../../domain/ports/totp-service.port';
-import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
+import { QrCodeServicePort } from '../../../domain/ports/qrcode-service.port';
+import { TotpServicePort } from '../../../domain/ports/totp-service.port';
+import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 const APP_NAME = 'ProFile';
 
@@ -23,6 +24,7 @@ export class Setup2faUseCase {
     private readonly repository: TwoFactorRepositoryPort,
     private readonly totpService: TotpServicePort,
     private readonly qrCodeService: QrCodeServicePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<Setup2faResult> {
@@ -50,10 +52,6 @@ export class Setup2faUseCase {
       await this.repository.create(userId, secret.base32);
     }
 
-    return {
-      secret: secret.base32,
-      qrCode,
-      manualEntryKey: secret.base32,
-    };
+    return { secret: secret.base32, qrCode, manualEntryKey: secret.base32 };
   }
 }

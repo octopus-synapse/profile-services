@@ -18,40 +18,12 @@ export interface CreateAccountData {
   passwordHash: string;
 }
 
-export interface AccountLifecycleRepositoryPort {
-  /**
-   * Finds an account by ID
-   */
-  findById(userId: string): Promise<AccountData | null>;
-
-  /**
-   * Finds an account by email
-   */
-  findByEmail(email: string): Promise<AccountData | null>;
-
-  /**
-   * Checks if email is already registered
-   */
-  emailExists(email: string): Promise<boolean>;
-
-  /**
-   * Creates a new account
-   * @returns The created account
-   */
-  create(data: CreateAccountData): Promise<AccountData>;
-
-  /**
-   * Deactivates an account
-   */
-  deactivate(userId: string): Promise<void>;
-
-  /**
-   * Reactivates an account
-   */
-  reactivate(userId: string): Promise<void>;
-
-  /**
-   * Permanently deletes an account and all associated data
-   */
-  delete(userId: string): Promise<void>;
+export abstract class AccountLifecycleRepositoryPort {
+  abstract findById(userId: string): Promise<AccountData | null>;
+  abstract findByEmail(email: string): Promise<AccountData | null>;
+  abstract emailExists(email: string): Promise<boolean>;
+  abstract create(data: CreateAccountData): Promise<AccountData>;
+  abstract deactivate(userId: string): Promise<void>;
+  abstract reactivate(userId: string): Promise<void>;
+  abstract delete(userId: string): Promise<void>;
 }

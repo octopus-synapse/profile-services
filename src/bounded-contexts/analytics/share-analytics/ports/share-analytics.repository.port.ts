@@ -99,46 +99,16 @@ export interface DetailedEventResult {
 // Repository Port Interface
 // ============================================================================
 
-export const SHARE_ANALYTICS_REPOSITORY = Symbol('ShareAnalyticsRepositoryPort');
-
-export interface ShareAnalyticsRepositoryPort {
-  /**
-   * Creates a new analytics event record
-   */
-  create(data: CreateShareAnalyticsData): Promise<ShareAnalyticsRecord>;
-
-  /**
-   * Finds a share by ID with owner information
-   */
-  findShareWithOwner(shareId: string): Promise<ShareWithOwner | null>;
-
-  /**
-   * Groups analytics by event type and counts
-   */
-  groupByEvent(shareId: string): Promise<EventCountResult[]>;
-
-  /**
-   * Groups unique views by IP hash
-   */
-  groupByIpHash(shareId: string): Promise<UniqueViewResult[]>;
-
-  /**
-   * Groups analytics by country
-   */
-  groupByCountry(shareId: string, limit: number): Promise<CountryResult[]>;
-
-  /**
-   * Groups analytics by device type (mobile/tablet/desktop/bot/unknown)
-   */
-  groupByDeviceType(shareId: string): Promise<DeviceTypeResult[]>;
-
-  /**
-   * Gets recent events for a share
-   */
-  getRecentEvents(shareId: string, limit: number): Promise<RecentEventResult[]>;
-
-  /**
-   * Gets detailed events with filters
-   */
-  getDetailedEvents(shareId: string, filters?: EventFilters): Promise<DetailedEventResult[]>;
+export abstract class ShareAnalyticsRepositoryPort {
+  abstract create(data: CreateShareAnalyticsData): Promise<ShareAnalyticsRecord>;
+  abstract findShareWithOwner(shareId: string): Promise<ShareWithOwner | null>;
+  abstract groupByEvent(shareId: string): Promise<EventCountResult[]>;
+  abstract groupByIpHash(shareId: string): Promise<UniqueViewResult[]>;
+  abstract groupByCountry(shareId: string, limit: number): Promise<CountryResult[]>;
+  abstract groupByDeviceType(shareId: string): Promise<DeviceTypeResult[]>;
+  abstract getRecentEvents(shareId: string, limit: number): Promise<RecentEventResult[]>;
+  abstract getDetailedEvents(
+    shareId: string,
+    filters?: EventFilters,
+  ): Promise<DetailedEventResult[]>;
 }

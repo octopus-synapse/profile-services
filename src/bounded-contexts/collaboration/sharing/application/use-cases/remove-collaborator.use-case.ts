@@ -1,8 +1,6 @@
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { OnlyResumeOwnerOrSelfCanRemoveException } from '../../../domain/exceptions/collaboration.exceptions';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { RemoveCollaboratorParams } from '../../domain/types/collaboration.types';
 
 export class RemoveCollaboratorUseCase {
@@ -16,9 +14,7 @@ export class RemoveCollaboratorUseCase {
     const isSelf = params.requesterId === params.targetUserId;
 
     if (!isOwner && !isSelf) {
-      throw new ForbiddenException(
-        'Only owner can remove collaborators, or you can remove yourself',
-      );
+      throw new OnlyResumeOwnerOrSelfCanRemoveException();
     }
 
     const collaborator = await this.repo.findCollaborator(params.resumeId, params.targetUserId);

@@ -49,9 +49,7 @@ export const BlockUserSchema = z.object({
 
 export type BlockUser = z.infer<typeof BlockUserSchema>;
 
-export const UnblockUserSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-});
+export const UnblockUserSchema = z.object({ userId: z.string().min(1, 'User ID is required') });
 
 export type UnblockUser = z.infer<typeof UnblockUserSchema>;
 

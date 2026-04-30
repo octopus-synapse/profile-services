@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
+import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 import { UpdateFullPreferencesUseCase } from './update-full-preferences.use-case';
 
 describe('UpdateFullPreferencesUseCase', () => {
@@ -48,10 +48,7 @@ describe('UpdateFullPreferencesUseCase', () => {
   });
 
   it('updates full preferences and returns domain entity (not envelope)', async () => {
-    const result = await useCase.execute('user-1', {
-      theme: 'dark',
-      language: 'pt-BR',
-    });
+    const result = await useCase.execute('user-1', { theme: 'dark', language: 'pt-BR' });
 
     expect(repository.userExists).toHaveBeenCalledWith('user-1');
     expect(repository.upsertFullPreferences).toHaveBeenCalledWith('user-1', {

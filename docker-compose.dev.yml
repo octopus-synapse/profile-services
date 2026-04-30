@@ -61,6 +61,24 @@ services:
     networks:
       - profile-dev-network
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: profile-mailpit-dev
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - profile-dev-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -79,7 +97,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      EMAIL_FROM: ${EMAIL_FROM:-${SENDGRID_EMAIL_FROM}}
+      # Hardcode the mailpit service hostname — the host's `.env` may have
+      # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
+      # `${VAR:-default}` picks that up, but inside the docker network the
+      # only resolvable SMTP host is `mailpit`.
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@profile.local}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ProFile}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -92,7 +116,10 @@ services:
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
       RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-5}
       SKIP_EMAIL_VERIFICATION: ${SKIP_EMAIL_VERIFICATION:-false}
-      SKIP_TOS_CHECK: ${SKIP_TOS_CHECK:-false}
+      # Default ON in dev: lets users created before the consent gate landed
+      # keep working without a manual UserConsent backfill. Override to false
+      # to exercise the full LGPD flow.
+      SKIP_TOS_CHECK: ${SKIP_TOS_CHECK:-true}
     ports:
       - "${BACKEND_PORT:-3001}:3001"
       - "9229:9229"
@@ -105,18 +132,20 @@ services:
         condition: service_healthy
       libretranslate:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
     networks:
       - profile-dev-network
     volumes:
       - ./src:/app/src:delegated
+      - ./packages:/app/packages:delegated
       - ./test:/app/test:delegated
       - ./data:/app/data:delegated
       - ./prisma:/app/prisma:delegated
       - ./prisma.config.ts:/app/prisma.config.ts:delegated
       - ./tsconfig.json:/app/tsconfig.json:delegated
       - ./scripts:/app/scripts:delegated
-      - ./tsconfig.build.json:/app/tsconfig.build.json:delegated
-      - ./nest-cli.json:/app/nest-cli.json:delegated
+      - ./bunfig.toml:/app/bunfig.toml:delegated
       - ./package.json:/app/package.json:delegated
       - /app/node_modules
       - ./logs:/app/logs

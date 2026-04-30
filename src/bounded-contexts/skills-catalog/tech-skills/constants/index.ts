@@ -2,10 +2,7 @@
  * Tech Skills Constants - Barrel Export
  */
 
-export {
-  GITHUB_LINGUIST_URL,
-  LANGUAGE_METADATA,
-} from './language-metadata.const';
+export { GITHUB_LINGUIST_URL, LANGUAGE_METADATA } from './language-metadata.const';
 export { LANGUAGE_PARADIGMS } from './language-paradigms.const';
 export { POPULARITY_ORDER } from './language-popularity.const';
 

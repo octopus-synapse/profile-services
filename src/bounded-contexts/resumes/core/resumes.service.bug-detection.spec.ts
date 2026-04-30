@@ -5,11 +5,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { UnprocessableEntityException } from '@nestjs/common';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import type { CreateResume } from '@/shared-kernel';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { ResumeEventPublisher } from '../domain/ports';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeEventPublisher } from '../domain/ports';
 import { ResumesService } from './resumes.service';
 
 // ============================================================================
@@ -82,12 +82,7 @@ class StubResumesRepository {
 class StubResumeVersionService {
   async createSnapshot(): Promise<void> {}
   async getVersions(): Promise<
-    Array<{
-      id: string;
-      versionNumber: number;
-      label: string | null;
-      createdAt: Date;
-    }>
+    Array<{ id: string; versionNumber: number; label: string | null; createdAt: Date }>
   > {
     return [];
   }
@@ -131,12 +126,7 @@ function createTestService(
  * Creates valid CreateResume data with sensible defaults.
  */
 function createResumeDto(overrides: Partial<CreateResume> = {}): CreateResume {
-  return {
-    title: 'Test Resume',
-    template: 'PROFESSIONAL',
-    isPublic: false,
-    ...overrides,
-  };
+  return { title: 'Test Resume', isPublic: false, ...overrides };
 }
 
 describe('ResumesService - Bug Detection', () => {
@@ -168,7 +158,7 @@ describe('ResumesService - Bug Detection', () => {
    *                 - Clear message: 'The maximum resume limit is 4'"
    */
   describe('BUG #3: Resume limit should return HTTP 422', () => {
-    it('should throw UnprocessableEntityException (422) when limit reached', async () => {
+    it('should throw ResumeSlotLimitReachedException (422) when limit reached', async () => {
       // User already has 4 resumes
       stubRepository.setResumes([
         createMockResume({ id: '1', userId: 'user-123' }),
@@ -180,7 +170,7 @@ describe('ResumesService - Bug Detection', () => {
       // Trying to create 5th should throw 422
       await expect(
         service.createResumeForUser('user-123', createResumeDto({ title: 'Fifth Resume' })),
-      ).rejects.toThrow(UnprocessableEntityException);
+      ).rejects.toThrow(ResumeSlotLimitReachedException);
     });
 
     it('should NOT throw ValidationException (400) for limit error', async () => {
@@ -198,7 +188,7 @@ describe('ResumesService - Bug Detection', () => {
       } catch (error) {
         // Bug: this will fail because error IS ValidationException
         expect(error).not.toBeInstanceOf(ValidationException);
-        expect(error).toBeInstanceOf(UnprocessableEntityException);
+        expect(error).toBeInstanceOf(ResumeSlotLimitReachedException);
       }
     });
 

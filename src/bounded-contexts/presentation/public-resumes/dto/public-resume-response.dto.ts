@@ -9,10 +9,7 @@ import { z } from 'zod';
 // Schemas
 // ============================================================================
 
-const PublicShareInfoSchema = z.object({
-  slug: z.string(),
-  expiresAt: z.date().nullable(),
-});
+const PublicShareInfoSchema = z.object({ slug: z.string(), expiresAt: z.date().nullable() });
 
 const PublicResumeSectionSchema = z.object({
   semanticKind: z.string(),
@@ -30,14 +27,13 @@ const PublicResumeSchema = z.object({
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),
-  emailContact: z.string().nullable(),
   location: z.string().nullable(),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  activeThemeId: z.string().nullable(),
+  styleId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   sections: z.array(PublicResumeSectionSchema),

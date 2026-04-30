@@ -147,27 +147,13 @@ function buildFieldsFromStep(
 }
 
 function buildThemeOptions(systemThemes: OnboardingThemeOption[]) {
-  const out: Array<{
-    id: string;
-    name: string;
-    description: OnboardingThemeOption['description'];
-    category: OnboardingThemeOption['category'];
-    tags: OnboardingThemeOption['tags'];
-    atsScore: OnboardingThemeOption['atsScore'];
-    thumbnailUrl: OnboardingThemeOption['thumbnailUrl'];
-  }> = [];
-  for (const th of systemThemes) {
-    out.push({
-      id: th.id,
-      name: th.name,
-      description: th.description,
-      category: th.category,
-      tags: th.tags,
-      atsScore: th.atsScore,
-      thumbnailUrl: th.thumbnailUrl,
-    });
-  }
-  return out;
+  return systemThemes.map((th) => ({
+    id: th.id,
+    name: th.name,
+    description: th.description,
+    styleScore: th.styleScore,
+    thumbnailUrl: th.thumbnailUrl,
+  }));
 }
 
 export function resolveSteps(
@@ -215,11 +201,7 @@ export function resolveSteps(
 
 function buildSectionsView(sections: OnboardingProgressData['sections']) {
   if (!sections) return undefined;
-  const out: Array<{
-    sectionTypeKey: string;
-    items?: SectionItemDto[];
-    noData?: boolean;
-  }> = [];
+  const out: Array<{ sectionTypeKey: string; items?: SectionItemDto[]; noData?: boolean }> = [];
   for (const s of sections) {
     const itemsView: SectionItemDto[] | undefined = s.items ? [] : undefined;
     if (s.items && itemsView) {
@@ -247,10 +229,7 @@ export function buildSession(
   const personalInfo =
     rawPersonalInfo ??
     (userDefaults
-      ? {
-          fullName: userDefaults.name ?? '',
-          email: userDefaults.email ?? '',
-        }
+      ? { fullName: userDefaults.name ?? '', email: userDefaults.email ?? '' }
       : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
   const templateSelection = toTemplateSelection(data.templateSelection);

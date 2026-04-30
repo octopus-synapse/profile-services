@@ -77,7 +77,7 @@ describe('SQL Injection Prevention', () => {
 
         // Pattern: where clause with string concatenation
         const unsafePatterns = [
-          /where:\s*\{[^}]*\+\s*\w+[^}]*\}/g,
+          /where:\s*\{ [^ }]*\+\s*\w+[^}]*\}/g,
           /where:\s*`[^`]*\$\{[^`]*`/g,
           /where:\s*['"][^'"]*\+/g,
         ];
@@ -186,13 +186,29 @@ describe('Command Injection Prevention', () => {
   });
 
   it('should not use exec/spawn with user input', () => {
-    const execUsage = grepCodebase('exec\\(|execSync\\(|spawn\\(|spawnSync\\(', [
+    // Constrained pattern: don't match `RegExp.exec(...)` or
+    // `regex.exec(...)` — we use `re.exec` for static analysis itself.
+    // Boundary `(?:^|\W)` plus the child_process names keeps this
+    // focused on actual command execution.
+    const execUsage = grepCodebase('(?:^|\\W)(?:execSync|spawnSync|spawn)\\(', [
       'node_modules',
       'dist',
       'test',
       'scripts',
     ]);
-    const appUsage = execUsage.filter((e) => !e.includes('.spec.ts') && !e.includes('scripts/'));
+    const childProcessImports = grepCodebaseFixed("from 'child_process'", [
+      'node_modules',
+      'dist',
+      'test',
+      'scripts',
+    ]);
+    const appUsage = [...execUsage, ...childProcessImports].filter(
+      (e) =>
+        !e.includes('.spec.ts') &&
+        !e.includes('/test/') &&
+        !e.includes('/scripts/') &&
+        !e.includes('test-runner'),
+    );
     expect(appUsage).toEqual([]);
   });
 

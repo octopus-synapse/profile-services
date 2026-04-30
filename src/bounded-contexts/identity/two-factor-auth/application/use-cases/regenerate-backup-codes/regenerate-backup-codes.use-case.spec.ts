@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
 import {
   DEFAULT_BACKUP_CODES,
@@ -23,7 +24,7 @@ describe('RegenerateBackupCodesUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryTwoFactorRepository();
     hashService = new InMemoryHashService();
-    useCase = new RegenerateBackupCodesUseCase(repository, hashService);
+    useCase = new RegenerateBackupCodesUseCase(repository, hashService, stubLogger);
   });
 
   describe('execute', () => {

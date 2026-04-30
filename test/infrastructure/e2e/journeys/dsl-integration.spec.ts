@@ -20,8 +20,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import { stopTestApp, type TestApp } from '../../shared';
 import { createInvalidDsl, createValidDsl } from '../fixtures/dsl.fixture';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import { createShareData } from '../fixtures/shares.fixture';
@@ -30,16 +29,10 @@ import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E Journey 6: DSL Integration', () => {
-  let app: INestApplication;
+  let app: TestApp; // was INestApplication
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
   let resumeId: string;
   let shareSlug: string;
 
@@ -54,18 +47,18 @@ describe('E2E Journey 6: DSL Integration', () => {
     if (testUser?.email) {
       await cleanupHelper.deleteUserByEmail(testUser.email);
     }
-    await app.close();
+    await stopTestApp();
   });
 
   describe('Step 1: Setup', () => {
-    it('should create user and resume via onboarding', async () => {
+    it.serial('should create user and resume via onboarding', async () => {
       testUser = authHelper.createTestUser('dsl-integration');
-      const result = await authHelper.registerAndLogin(testUser);
+      const result = await authHelper.registerAndLogin(testUser, { skipOnboarding: true });
       testUser.token = result.token;
       testUser.userId = result.userId;
 
       const onboardingData = createFullOnboardingData('dsl-integration');
-      const onboardingResponse = await request(app.getHttpServer())
+      const onboardingResponse = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
@@ -78,12 +71,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 2: Validate Valid DSL', () => {
-    it('should validate complete DSL structure', async () => {
+    it.serial('should validate complete DSL structure', async () => {
       const validDsl = createValidDsl();
 
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/dsl/validate')
-        .send(validDsl);
+      const response = await app.request.post('/api/v1/dsl/validate').send(validDsl);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -93,12 +84,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 3: Validate Invalid DSL', () => {
-    it('should return validation errors for incomplete DSL', async () => {
+    it.serial('should return validation errors for incomplete DSL', async () => {
       const invalidDsl = createInvalidDsl();
 
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/dsl/validate')
-        .send(invalidDsl);
+      const response = await app.request.post('/api/v1/dsl/validate').send(invalidDsl);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -113,8 +102,8 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect(firstError.length).toBeGreaterThan(0);
     });
 
-    it('should handle empty payload gracefully', async () => {
-      const response = await request(app.getHttpServer()).post('/api/v1/dsl/validate').send({});
+    it.serial('should handle empty payload gracefully', async () => {
+      const response = await app.request.post('/api/v1/dsl/validate').send({});
 
       expect(response.status).toBe(200);
       expect(response.body.data.valid).toBe(false);
@@ -123,10 +112,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 4: Preview DSL for HTML Target', () => {
-    it('should compile DSL to AST for HTML', async () => {
+    it.serial('should compile DSL to AST for HTML', async () => {
       const validDsl = createValidDsl();
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/dsl/preview')
         .query({ target: 'html' })
         .send(validDsl);
@@ -145,12 +134,10 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect(Array.isArray(ast.sections)).toBe(true);
     });
 
-    it('should default to HTML target when not specified', async () => {
+    it.serial('should default to HTML target when not specified', async () => {
       const validDsl = createValidDsl();
 
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/dsl/preview')
-        .send(validDsl);
+      const response = await app.request.post('/api/v1/dsl/preview').send(validDsl);
 
       expect(response.status).toBe(200);
       expect(response.body.data.ast).toBeDefined();
@@ -158,10 +145,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 5: Preview DSL for PDF Target', () => {
-    it('should compile DSL to AST for PDF', async () => {
+    it.serial('should compile DSL to AST for PDF', async () => {
       const validDsl = createValidDsl();
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/dsl/preview')
         .query({ target: 'pdf' })
         .send(validDsl);
@@ -179,8 +166,8 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 6: Render with Resume Data', () => {
-    it('should render DSL with resume data (authenticated)', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should render DSL with resume data (authenticated)', async () => {
+      const response = await app.request
         .get(`/api/v1/dsl/render/${resumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`)
         .query({ target: 'html' });
@@ -200,16 +187,16 @@ describe('E2E Journey 6: DSL Integration', () => {
       }
     });
 
-    it('should require authentication for resume render', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should require authentication for resume render', async () => {
+      const response = await app.request
         .get(`/api/v1/dsl/render/${resumeId}`)
         .query({ target: 'html' });
 
       expect(response.status).toBe(401);
     });
 
-    it('should support PDF target in render', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should support PDF target in render', async () => {
+      const response = await app.request
         .get(`/api/v1/dsl/render/${resumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`)
         .query({ target: 'pdf' });
@@ -222,10 +209,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 7: Create Share for Public Render', () => {
-    it('should create share for public DSL render test', async () => {
+    it.serial('should create share for public DSL render test', async () => {
       const shareData = createShareData(resumeId, 'dsl-public');
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/shares')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(shareData);
@@ -238,8 +225,8 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 8: Render Public Resume', () => {
-    it('should render public resume DSL without authentication', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should render public resume DSL without authentication', async () => {
+      const response = await app.request
         .get(`/api/v1/dsl/render/public/${shareSlug}`)
         .query({ target: 'html' });
 
@@ -256,8 +243,8 @@ describe('E2E Journey 6: DSL Integration', () => {
       }
     });
 
-    it('should support PDF target for public render', async () => {
-      const response = await request(app.getHttpServer())
+    it.serial('should support PDF target for public render', async () => {
+      const response = await app.request
         .get(`/api/v1/dsl/render/public/${shareSlug}`)
         .query({ target: 'pdf' });
 
@@ -269,10 +256,10 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Step 9: Error Cases', () => {
-    it('should return error for non-existent resume in render', async () => {
+    it.serial('should return error for non-existent resume in render', async () => {
       const fakeResumeId = 'clhxxxxxxxxxxxxxxxxxx';
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get(`/api/v1/dsl/render/${fakeResumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -280,8 +267,8 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect([400, 404]).toContain(response.status);
     });
 
-    it('should return error for invalid public share slug', async () => {
-      const response = await request(app.getHttpServer()).get(
+    it.serial('should return error for invalid public share slug', async () => {
+      const response = await app.request.get(
         `/api/v1/dsl/render/public/invalid-slug-${Date.now()}`,
       );
 
@@ -289,13 +276,13 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect([400, 404]).toContain(response.status);
     });
 
-    it('should prevent accessing other users resume in render', async () => {
+    it.serial('should prevent accessing other users resume in render', async () => {
       // Create second user
       const otherUser = authHelper.createTestUser('other-dsl-user');
       const otherResult = await authHelper.registerAndLogin(otherUser);
 
       // Try to render first user's resume
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get(`/api/v1/dsl/render/${resumeId}`)
         .set('Authorization', `Bearer ${otherResult.token}`);
 
@@ -306,10 +293,10 @@ describe('E2E Journey 6: DSL Integration', () => {
       await cleanupHelper.deleteUserByEmail(otherUser.email);
     });
 
-    it('should reject invalid target parameter', async () => {
+    it.serial('should reject invalid target parameter', async () => {
       const validDsl = createValidDsl();
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/dsl/preview')
         .query({ target: 'invalid-target' })
         .send(validDsl);
@@ -320,18 +307,16 @@ describe('E2E Journey 6: DSL Integration', () => {
   });
 
   describe('Performance & Structure Validation', () => {
-    it('should have consistent AST structure across endpoints', async () => {
+    it.serial('should have consistent AST structure across endpoints', async () => {
       const validDsl = createValidDsl();
 
       // Preview AST
-      const previewResponse = await request(app.getHttpServer())
-        .post('/api/v1/dsl/preview')
-        .send(validDsl);
+      const previewResponse = await app.request.post('/api/v1/dsl/preview').send(validDsl);
 
       const previewAst = previewResponse.body.data.ast;
 
       // Render AST
-      const renderResponse = await request(app.getHttpServer())
+      const renderResponse = await app.request
         .get(`/api/v1/dsl/render/${resumeId}`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -352,7 +337,7 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect(renderAst).toHaveProperty('sections');
     });
 
-    it('should complete DSL operations within target time', () => {
+    it.serial('should complete DSL operations within target time', () => {
       // DSL validation/compilation should be fast (< 1s per operation)
       // Total journey: < 15s
       console.log('ℹ️  DSL performance notes:');

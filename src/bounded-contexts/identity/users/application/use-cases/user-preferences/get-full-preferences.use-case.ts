@@ -1,7 +1,5 @@
-import type {
-  FullUserPreferences,
-  UserPreferencesRepositoryPort,
-} from '../../ports/user-preferences.port';
+import type { FullUserPreferences } from '../../ports/user-preferences.port';
+import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 
 export class GetFullPreferencesUseCase {
   constructor(private readonly repository: UserPreferencesRepositoryPort) {}

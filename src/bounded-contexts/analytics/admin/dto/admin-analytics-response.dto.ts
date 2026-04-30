@@ -1,20 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-const UserGrowthEntrySchema = z.object({
-  date: z.string(),
-  count: z.number().int(),
-});
+const UserGrowthEntrySchema = z.object({ date: z.string(), count: z.number().int() });
 
-const ResumesByLanguageEntrySchema = z.object({
-  language: z.string(),
-  count: z.number().int(),
-});
+const ResumesByLanguageEntrySchema = z.object({ language: z.string(), count: z.number().int() });
 
-const AtsScoreDistributionEntrySchema = z.object({
-  bucket: z.string(),
-  count: z.number().int(),
-});
+const AtsScoreDistributionEntrySchema = z.object({ bucket: z.string(), count: z.number().int() });
 
 const MostUsedSectionEntrySchema = z.object({
   sectionTypeId: z.string(),
@@ -23,20 +14,11 @@ const MostUsedSectionEntrySchema = z.object({
   count: z.number().int(),
 });
 
-const ImportSourceEntrySchema = z.object({
-  source: z.string(),
-  count: z.number().int(),
-});
+const ImportSourceEntrySchema = z.object({ source: z.string(), count: z.number().int() });
 
-const ViewSourceEntrySchema = z.object({
-  source: z.string(),
-  count: z.number().int(),
-});
+const ViewSourceEntrySchema = z.object({ source: z.string(), count: z.number().int() });
 
-const ActiveUsersSchema = z.object({
-  dau: z.number().int(),
-  mau: z.number().int(),
-});
+const ActiveUsersSchema = z.object({ dau: z.number().int(), mau: z.number().int() });
 
 const ContentStatsSchema = z.object({
   posts: z.number().int(),

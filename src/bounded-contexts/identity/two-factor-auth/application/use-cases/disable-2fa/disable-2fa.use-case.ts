@@ -5,7 +5,7 @@
  */
 
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
-import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
+import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 export class Disable2faUseCase {
   constructor(private readonly repository: TwoFactorRepositoryPort) {}

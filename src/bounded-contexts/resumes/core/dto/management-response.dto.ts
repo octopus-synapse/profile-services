@@ -65,7 +65,6 @@ const MgmtResumeListItemSchema = z.object({
   id: z.string(),
   userId: z.string(),
   title: z.string().nullable(),
-  template: z.string(),
   language: z.string(),
   isPublic: z.boolean(),
   slug: z.string().nullable(),
@@ -73,13 +72,11 @@ const MgmtResumeListItemSchema = z.object({
   jobTitle: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  activeThemeId: z.string().nullable(),
+  styleId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   resumeSections: z.array(MgmtResumeSectionSchema),
-  _count: z.object({
-    resumeSections: z.number().int(),
-  }),
+  _count: z.object({ resumeSections: z.number().int() }),
 });
 
 // ============================================================================
@@ -96,21 +93,19 @@ const ResumeDetailsSchema = z.object({
   id: z.string(),
   userId: z.string(),
   title: z.string().nullable(),
-  template: z.string(),
   language: z.string(),
   isPublic: z.boolean(),
   slug: z.string().nullable(),
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),
-  emailContact: z.string().nullable(),
   location: z.string().nullable(),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  activeThemeId: z.string().nullable(),
+  styleId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   user: ResumeDetailsUserSchema,
@@ -121,17 +116,11 @@ const ResumeDetailsSchema = z.object({
 // Wrapper Schemas
 // ============================================================================
 
-const ResumeListDataSchema = z.object({
-  resumes: z.array(MgmtResumeListItemSchema),
-});
+const ResumeListDataSchema = z.object({ resumes: z.array(MgmtResumeListItemSchema) });
 
-const ResumeDetailsDataSchema = z.object({
-  resume: ResumeDetailsSchema,
-});
+const ResumeDetailsDataSchema = z.object({ resume: ResumeDetailsSchema });
 
-const ResumeOperationMessageDataSchema = z.object({
-  message: z.string(),
-});
+const ResumeOperationMessageDataSchema = z.object({ message: z.string() });
 
 // ============================================================================
 // DTOs

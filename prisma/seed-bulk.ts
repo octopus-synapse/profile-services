@@ -497,7 +497,7 @@ async function main() {
 
   // Pre-fetch dependencies
   const sectionTypes = await prisma.sectionType.findMany({ where: { isActive: true } });
-  const systemTheme = await prisma.resumeTheme.findFirst({ where: { isSystemTheme: true } });
+  const systemTheme = await prisma.resumeStyle.findFirst({ where: { isSystem: true } });
 
   if (sectionTypes.length === 0) {
     throw new Error('No active section types found. Run base seed first.');
@@ -584,7 +584,6 @@ async function main() {
           u.archetype.id === 'designer' || u.archetype.id === 'pm'
             ? null
             : `https://github.com/${u.username}`,
-        hasCompletedOnboarding: u.tier !== 'casual',
         onboardingCompletedAt: u.tier !== 'casual' ? weightedDate(60, 0.5) : null,
         lastLoginAt:
           u.tier === 'power'
@@ -594,7 +593,8 @@ async function main() {
               : weightedDate(60),
         createdAt,
         updatedAt: createdAt,
-        roles: ['role_user'],
+        // Bulk seed users are job-seekers — carry the marker role.
+        roles: ['role_user', 'role_user_standard'],
         isActive: true,
         preferences: {
           create: {
@@ -644,7 +644,6 @@ async function main() {
         primaryLanguage: 'pt-br',
         fullName: u.name,
         jobTitle: u.archetype.title(u.archetype.level),
-        emailContact: u.email,
         location: faker.location.city(),
         linkedin: `https://linkedin.com/in/${u.username}`,
         github: u.archetype.id === 'designer' ? null : `https://github.com/${u.username}`,
@@ -654,7 +653,7 @@ async function main() {
           .replace('{skill}', pick(u.archetype.skills))
           .replace('{years}', String(u.yearsExp)),
         experienceYears: u.yearsExp,
-        activeThemeId: systemTheme.id,
+        styleId: systemTheme.id,
       },
     });
 

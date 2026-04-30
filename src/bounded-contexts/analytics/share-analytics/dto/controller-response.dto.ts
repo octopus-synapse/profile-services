@@ -30,9 +30,7 @@ const ShareAnalyticsSummarySchema = z.object({
   recentEvents: z.array(RecentEventSchema),
 });
 
-const ShareAnalyticsSummaryDataSchema = z.object({
-  analytics: ShareAnalyticsSummarySchema,
-});
+const ShareAnalyticsSummaryDataSchema = z.object({ analytics: ShareAnalyticsSummarySchema });
 
 const AnalyticsEventItemSchema = z.object({
   eventType: z.enum(['VIEW', 'DOWNLOAD']),
@@ -44,9 +42,7 @@ const AnalyticsEventItemSchema = z.object({
   createdAt: z.date(),
 });
 
-const ShareAnalyticsEventsDataSchema = z.object({
-  events: z.array(AnalyticsEventItemSchema),
-});
+const ShareAnalyticsEventsDataSchema = z.object({ events: z.array(AnalyticsEventItemSchema) });
 
 // ============================================================================
 // DTOs

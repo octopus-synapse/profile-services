@@ -5,13 +5,9 @@
  * Delegates persistence to FollowRepositoryPort and ConnectionRepositoryPort.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionRepositoryPort } from '../application/ports/connection.port';
 import { FollowReaderPort } from '../application/ports/facade.ports';
 import {
@@ -20,26 +16,27 @@ import {
   type PaginatedResult,
   type PaginationParams,
 } from '../application/ports/follow.port';
-import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { UserFollowedEvent } from '../domain/events';
+import {
+  AlreadyFollowingException,
+  CannotFollowSelfException,
+} from '../domain/exceptions/social.exceptions';
 
 export type { FollowWithUser, PaginatedResult, PaginationParams };
 
-@Injectable()
 export class FollowService extends FollowReaderPort {
   constructor(
     private readonly followRepo: FollowRepositoryPort,
     private readonly connectionRepo: ConnectionRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    @Inject(SOCIAL_LOGGER_PORT)
-    private readonly logger: SocialLoggerPort,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
 
   async follow(followerId: string, followingId: string): Promise<FollowWithUser> {
     if (followerId === followingId) {
-      throw new ValidationException('Cannot follow yourself');
+      throw new CannotFollowSelfException();
     }
 
     const targetExists = await this.followRepo.userExists(followingId);
@@ -49,7 +46,7 @@ export class FollowService extends FollowReaderPort {
 
     const existingFollow = await this.followRepo.findFollow(followerId, followingId);
     if (existingFollow) {
-      throw new ConflictException('Already following this user');
+      throw new AlreadyFollowingException();
     }
 
     const follow = await this.followRepo.createFollow(followerId, followingId);

@@ -28,7 +28,6 @@ export interface AnalyticsSection {
  */
 export interface ResumeForAnalytics {
   readonly summary?: string | null;
-  readonly emailContact?: string | null;
   readonly phone?: string | null;
   readonly jobTitle?: string | null;
   readonly sections: readonly AnalyticsSection[];

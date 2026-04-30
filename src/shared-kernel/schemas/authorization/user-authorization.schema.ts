@@ -27,9 +27,7 @@ export type AssignUserRoles = z.infer<typeof AssignUserRolesSchema>;
 /**
  * Schema for removing roles from a user.
  */
-export const RemoveUserRolesSchema = z.object({
-  roleIds: z.array(z.string().cuid()).min(1),
-});
+export const RemoveUserRolesSchema = z.object({ roleIds: z.array(z.string().cuid()).min(1) });
 
 export type RemoveUserRoles = z.infer<typeof RemoveUserRolesSchema>;
 
@@ -65,9 +63,7 @@ export type AssignUserGroups = z.infer<typeof AssignUserGroupsSchema>;
 /**
  * Schema for removing user from groups.
  */
-export const RemoveUserGroupsSchema = z.object({
-  groupIds: z.array(z.string().cuid()).min(1),
-});
+export const RemoveUserGroupsSchema = z.object({ groupIds: z.array(z.string().cuid()).min(1) });
 
 export type RemoveUserGroups = z.infer<typeof RemoveUserGroupsSchema>;
 

@@ -79,15 +79,24 @@ const MODULES_WITHOUT_CONTROLLERS = [
 
 export function checkInfrastructureControllersDirectory(): RuleResult {
   return runRule(
-    'infrastructure MUST have controllers/ directory (except cross-cutting modules)',
+    'infrastructure MUST have controllers/ directory OR a *.routes.ts file (except cross-cutting modules)',
     'Module Structure',
     () => {
       const violations: string[] = [];
       for (const modulePath of HEXAGONAL_MODULES) {
         if (MODULES_WITHOUT_CONTROLLERS.includes(modulePath)) continue;
-        const fullPath = path.join(SOURCE_ROOT, modulePath, 'infrastructure', 'controllers');
-        if (!directoryExists(fullPath)) {
-          violations.push(`${modulePath}: MISSING infrastructure/controllers/ directory`);
+        const controllersDir = path.join(SOURCE_ROOT, modulePath, 'infrastructure', 'controllers');
+        const moduleDir = path.join(SOURCE_ROOT, modulePath);
+        const hasControllers = directoryExists(controllersDir);
+        const hasRoutesFile =
+          directoryExists(moduleDir) &&
+          require('node:fs')
+            .readdirSync(moduleDir)
+            .some((f: string) => f.endsWith('.routes.ts'));
+        if (!hasControllers && !hasRoutesFile) {
+          violations.push(
+            `${modulePath}: MISSING infrastructure/controllers/ directory or *.routes.ts file`,
+          );
         }
       }
       return violations;

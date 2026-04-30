@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { RepositoryNotInitializedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import type {
   SectionTypeRecord,
   SectionTypeWithDefinition,
@@ -18,10 +20,8 @@ import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
  * - Provides lookups by key, kind, slug
  * - Validates definitions on load
  */
-@Injectable()
-export class SectionTypeRepository implements OnModuleInit {
-  private readonly logger = new Logger(SectionTypeRepository.name);
 
+export class SectionTypeRepository implements Lifecycle {
   // In-memory cache of active section types with parsed definitions
   private sectionTypesCache: Map<string, SectionTypeWithDefinition> = new Map();
 
@@ -33,9 +33,12 @@ export class SectionTypeRepository implements OnModuleInit {
 
   private initialized = false;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
-  async onModuleInit(): Promise<void> {
+  async init(): Promise<void> {
     await this.loadAllActive();
   }
 
@@ -198,7 +201,10 @@ export class SectionTypeRepository implements OnModuleInit {
   private parseRecord(record: SectionTypeRecord): SectionTypeWithDefinition | null {
     const parsed = SectionDefinitionSchema.safeParse(record.definition);
     if (!parsed.success) {
-      this.logger.warn(`Failed to parse definition for ${record.key}: ${parsed.error.message}`);
+      this.logger.warn(
+        `Failed to parse definition for ${record.key}: ${parsed.error.message}`,
+        'SectionTypeRepository',
+      );
       return null;
     }
 
@@ -221,7 +227,7 @@ export class SectionTypeRepository implements OnModuleInit {
 
   private ensureInitialized(): void {
     if (!this.initialized) {
-      throw new Error('SectionTypeRepository not initialized. Ensure onModuleInit was called.');
+      throw new RepositoryNotInitializedException('SectionTypeRepository');
     }
   }
 }

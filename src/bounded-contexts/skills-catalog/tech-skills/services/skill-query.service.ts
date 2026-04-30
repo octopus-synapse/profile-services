@@ -3,13 +3,11 @@
  * Handles cached queries for tech skills.
  */
 
-import { Injectable } from '@nestjs/common';
 import { SkillQueryPort } from '../application/ports/query-facade.ports';
-import { CachePort, TechSkillRepositoryPort } from '../application/ports/tech-skills.port';
+import type { CachePort, TechSkillRepositoryPort } from '../application/ports/tech-skills.port';
 import type { TechSkill } from '../dto';
 import { type SkillType, TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 
-@Injectable()
 export class SkillQueryService extends SkillQueryPort {
   constructor(
     private readonly repository: TechSkillRepositoryPort,

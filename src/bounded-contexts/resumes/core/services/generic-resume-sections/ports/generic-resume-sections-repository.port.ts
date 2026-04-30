@@ -21,12 +21,9 @@ export abstract class GenericResumeSectionsRepositoryPort {
 
   abstract findResumeSections(resumeId: string): Promise<ResumeSectionDto[]>;
 
-  abstract findActiveSectionTypeByKey(sectionTypeKey: string): Promise<{
-    id: string;
-    key: string;
-    maxItems: number | null;
-    definition: unknown;
-  } | null>;
+  abstract findActiveSectionTypeByKey(
+    sectionTypeKey: string,
+  ): Promise<{ id: string; key: string; maxItems: number | null; definition: unknown } | null>;
 
   abstract findResumeSection(
     resumeId: string,
@@ -67,16 +64,12 @@ export abstract class GenericResumeSectionsRepositoryPort {
   ): Promise<{ _max: { order: number | null } }>;
 }
 
-export const GENERIC_RESUME_SECTIONS_USE_CASES = Symbol('GENERIC_RESUME_SECTIONS_USE_CASES');
-
-export interface GenericResumeSectionsUseCases {
-  listSectionTypesUseCase: {
-    execute: () => Promise<SectionTypeDto[]>;
-  };
-  listResumeSectionsUseCase: {
+export abstract class GenericResumeSectionsUseCases {
+  abstract readonly listSectionTypesUseCase: { execute: () => Promise<SectionTypeDto[]> };
+  abstract readonly listResumeSectionsUseCase: {
     execute: (resumeId: string, userId: string) => Promise<ResumeSectionDto[]>;
   };
-  createSectionItemUseCase: {
+  abstract readonly createSectionItemUseCase: {
     execute: (
       resumeId: string,
       sectionTypeKey: string,
@@ -84,7 +77,7 @@ export interface GenericResumeSectionsUseCases {
       content: Record<string, unknown>,
     ) => Promise<SectionItemDto>;
   };
-  updateSectionItemUseCase: {
+  abstract readonly updateSectionItemUseCase: {
     execute: (
       resumeId: string,
       sectionTypeKey: string,
@@ -93,7 +86,7 @@ export interface GenericResumeSectionsUseCases {
       content: Record<string, unknown>,
     ) => Promise<SectionItemDto>;
   };
-  deleteSectionItemUseCase: {
+  abstract readonly deleteSectionItemUseCase: {
     execute: (
       resumeId: string,
       sectionTypeKey: string,

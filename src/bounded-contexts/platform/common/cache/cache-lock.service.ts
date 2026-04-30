@@ -6,7 +6,6 @@
  * instead of silently allowing operations to proceed unprotected.
  */
 
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ERROR_MESSAGES } from '../constants/config';
 import { AppLoggerService } from '../logger/logger.service';
 import { RedisConnectionService } from './redis-connection.service';
@@ -20,7 +19,6 @@ export interface LockOptions {
   allowWithoutLock?: boolean;
 }
 
-@Injectable()
 export class CacheLockService {
   constructor(
     private readonly redisConnection: RedisConnectionService,
@@ -48,7 +46,7 @@ export class CacheLockService {
         undefined,
         'CacheLockService',
       );
-      throw new ServiceUnavailableException(ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE);
+      throw new Error(ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE);
     }
 
     try {

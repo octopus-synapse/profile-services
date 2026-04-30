@@ -1,4 +1,5 @@
-import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
+import type { ConnectionWithUser } from '../../ports/connection.port';
+import { ConnectionRepositoryPort } from '../../ports/connection.port';
 import type { PaginationParams } from '../../ports/follow.port';
 
 export class GetPendingRequestsUseCase {
@@ -17,12 +18,6 @@ export class GetPendingRequestsUseCase {
     const { page, limit } = pagination;
     const { data, total } = await this.repository.findPendingRequests(userId, pagination);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

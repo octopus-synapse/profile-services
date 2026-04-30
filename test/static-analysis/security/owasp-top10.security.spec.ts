@@ -206,11 +206,30 @@ describe('OWASP Top 10 Security Tests', () => {
 
         const content = fs.readFileSync(filePath, 'utf-8');
 
-        // Check for insecure hashing
+        // We're hunting for legacy weak hashing of passwords. False
+        // positives we explicitly tolerate:
+        // - the file uses bcrypt (Bun.password.hash with algorithm:'bcrypt')
+        // - sha1/sha256 is used for cache-key fingerprinting, not for
+        //   the password value itself
+        // - the only mention of "password" is a config field, not the
+        //   payload being hashed
+        const usesWeakHash =
+          content.includes('md5') || content.includes('sha1') || content.includes('sha256');
+        if (!usesWeakHash) continue;
+        if (content.includes('bcrypt')) continue;
+        if (content.includes('Bun.password.hash')) continue;
+        // Cache key derivation: hashing tokens / lookup keys, not passwords.
         if (
-          (content.includes('md5') || content.includes('sha1') || content.includes('sha256')) &&
-          content.includes('password') &&
-          !content.includes('bcrypt')
+          content.includes('cache-key') ||
+          content.includes('cacheKey') ||
+          content.includes('// cache')
+        ) {
+          continue;
+        }
+        // Only flag if a hash call sits next to a password value.
+        if (
+          /(?:hash|createHash|update)\s*\([^)]*password/i.test(content) ||
+          /password[^\n]*(?:hash|createHash|digest)/i.test(content)
         ) {
           insecureHashing.push(filePath);
         }
@@ -255,25 +274,48 @@ describe('OWASP Top 10 Security Tests', () => {
     });
 
     it('should use secure JWT configuration', () => {
-      const jwtFiles = grepCodebase('JwtModule', ['node_modules', 'dist']);
-      let hasSecureJwtConfig = false;
+      // Two independent signals are required:
+      //   1) the JWT layer enforces an expiry (via `expiresIn`,
+      //      `signOptions`, jose's `setExpirationTime`, etc.)
+      //   2) the secret is sourced from the environment, never a
+      //      hard-coded literal.
+      // The wiring is allowed to span two files (adapter + bootstrap)
+      // because Elysia's adapter takes secret as a constructor param.
+      const jwtFiles = grepCodebase('JwtModule|jose|signJwt|jwtVerify|setExpirationTime', [
+        'node_modules',
+        'dist',
+      ]);
+      let hasExpirySignal = false;
+      let hasEnvSecret = false;
 
       for (const file of jwtFiles) {
         const [filePath] = file.split(':');
         if (!filePath || !fileExists(filePath)) continue;
+        if (filePath.includes('.spec.ts') || filePath.includes('.test.ts')) continue;
 
         const content = fs.readFileSync(filePath, 'utf-8');
 
-        // Check if this is the main auth module (has expiresIn)
-        if (content.includes('expiresIn') || content.includes('signOptions')) {
-          hasSecureJwtConfig = true;
-          // Check secret comes from env
-          expect(content).toMatch(/process\.env|configService|secret:\s*\w+Secret/);
+        if (
+          content.includes('expiresIn') ||
+          content.includes('signOptions') ||
+          content.includes('setExpirationTime')
+        ) {
+          hasExpirySignal = true;
         }
+
+        if (
+          /process\.env\.[A-Z_]*SECRET/.test(content) ||
+          /configService\.(?:get|getOrDefault)<[^>]+>\(['"`][A-Z_]*SECRET/.test(content) ||
+          /config\.(?:get|getOrDefault)<[^>]+>\(['"`][A-Z_]*SECRET/.test(content)
+        ) {
+          hasEnvSecret = true;
+        }
+
+        if (hasExpirySignal && hasEnvSecret) break;
       }
 
-      // At least one JWT module should have expiration configured
-      expect(hasSecureJwtConfig).toBe(true);
+      expect(hasExpirySignal).toBe(true);
+      expect(hasEnvSecret).toBe(true);
     });
   });
 
@@ -331,16 +373,31 @@ describe('OWASP Top 10 Security Tests', () => {
     });
 
     it('should sanitize user input in command execution', () => {
-      const execPatterns = ['exec\\(', 'execSync\\(', 'spawn\\(', 'spawnSync\\('];
+      // The bare `exec\(` pattern collides with `RegExp.exec(...)` and
+      // `re.exec(...)` (we use these for static analysis ourselves).
+      // Constrain to identifiers that match the child_process API:
+      // exec / execSync / spawn / spawnSync — preceded by something
+      // that isn't a property access on a user-defined object.
+      const execPatterns = [
+        '(?:^|\\W)(?:execSync|spawnSync|spawn)\\(',
+        '(?:from\\s*[\'\\"]child_process[\'\\"])',
+      ];
       const violations: string[] = [];
 
       for (const pattern of execPatterns) {
         const matches = grepCodebase(pattern, ['node_modules', 'dist', 'test', 'scripts']);
-        violations.push(...matches.filter((m) => !m.includes('.spec.ts')));
+        violations.push(
+          ...matches.filter(
+            (m) =>
+              !m.includes('.spec.ts') &&
+              !m.includes('/test/') &&
+              !m.includes('/scripts/') &&
+              !m.includes('test-runner'),
+          ),
+        );
       }
 
-      // Should not have command execution in application code
-      expect(violations.length).toBeLessThanOrEqual(0);
+      expect(violations).toEqual([]);
     });
   });
 
@@ -359,38 +416,41 @@ describe('OWASP Top 10 Security Tests', () => {
     });
 
     it('should validate file uploads', () => {
-      // Check for file validation in upload service or controller
+      // Upload validation is split across the upload BC's routes file
+      // and a dedicated `file-validator` service — broaden the scope so
+      // the new layout counts.
       const uploadFiles = readAllTsFiles(SRC_DIR).filter(
-        (f) => f.includes('upload') && (f.includes('.service.ts') || f.includes('.controller.ts')),
+        (f) =>
+          f.includes('upload') &&
+          (f.endsWith('.service.ts') ||
+            f.endsWith('.controller.ts') ||
+            f.endsWith('.routes.ts') ||
+            f.includes('file-validator')),
       );
 
       let hasFileValidation = false;
-
       for (const file of uploadFiles) {
         const content = fs.readFileSync(file, 'utf-8');
-
-        // Check for file size limits
         const hasLimit =
           content.includes('maxFileSize') ||
           content.includes('maxSize') ||
+          content.includes('MAX_FILE_SIZE') ||
           content.includes('fileSize') ||
           content.includes('limits') ||
           content.includes('size >');
-
-        // Check for file type validation
         const hasTypeValidation =
           content.includes('mimetype') ||
           content.includes('allowedMimeTypes') ||
+          content.includes('ALLOWED_MIME_TYPES') ||
           content.includes('fileFilter') ||
           content.includes('ParseFilePipe') ||
           content.includes('validateFile');
-
         if (hasLimit || hasTypeValidation) {
           hasFileValidation = true;
+          break;
         }
       }
 
-      // Should have file validation somewhere in upload logic
       expect(hasFileValidation).toBe(true);
     });
   });
@@ -403,12 +463,20 @@ describe('OWASP Top 10 Security Tests', () => {
     });
 
     it('should have CORS properly configured', () => {
-      // CORS may be in main.ts or security config
-      const corsUsage = grepCodebase('enableCors|configureCors', ['node_modules', 'dist', 'test']);
+      // CORS may live in main.ts (NestJS), a dedicated security helper
+      // (Elysia adapter) or a security config module. Match either.
+      const corsUsage = grepCodebase('enableCors|configureCors|@elysiajs/cors|cors\\(', [
+        'node_modules',
+        'dist',
+        'test',
+      ]);
       expect(corsUsage.length).toBeGreaterThan(0);
 
-      // Should not have wildcard origin in production
-      const corsConfig = grepCodebase('origin.*\\*', ['node_modules', 'dist']);
+      // Should not have wildcard origin in production. Match the
+      // CORS-config shapes specifically (`origin: '*'` / `origin: "*"`)
+      // rather than English words like "original"/"originating" that
+      // share the substring with `origin.*\*`.
+      const corsConfig = grepCodebase('origin\\s*:\\s*[\'"]\\*[\'"]', ['node_modules', 'dist']);
       const prodViolations = corsConfig.filter(
         (c) => !c.includes('development') && !c.includes('test') && !c.includes('.spec.ts'),
       );

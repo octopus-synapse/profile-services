@@ -12,17 +12,9 @@ import { z } from 'zod';
  * Standard wrapper for successful API responses
  */
 export const ApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
-  z.object({
-    success: z.literal(true),
-    data: dataSchema,
-    message: z.string().optional(),
-  });
+  z.object({ success: z.literal(true), data: dataSchema, message: z.string().optional() });
 
-export type ApiResponse<T> = {
-  success: true;
-  data: T;
-  message?: string;
-};
+export type ApiResponse<T> = { success: true; data: T; message?: string };
 
 /**
  * Error Response Schema

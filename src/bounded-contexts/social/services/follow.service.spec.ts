@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ConflictException,
@@ -37,6 +37,7 @@ describe('FollowService', () => {
       publishAsync: mock(async <T>(event: DomainEvent<T>) => {
         publishedEvents.push(event);
       }),
+      on: mock(() => {}),
     };
     service = new FollowService(
       followRepo,

@@ -1,5 +1,6 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { UserDetails, UserManagementRepositoryPort } from '../../ports/user-management.port';
+import type { UserDetails } from '../../ports/user-management.port';
+import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class GetUserDetailsUseCase {
   constructor(private readonly repository: UserManagementRepositoryPort) {}

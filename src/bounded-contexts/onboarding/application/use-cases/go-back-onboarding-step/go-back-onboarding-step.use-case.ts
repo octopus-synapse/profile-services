@@ -1,7 +1,8 @@
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
+import { OnboardingAlreadyAtFirstStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
-import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
+import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 
 export class GoBackOnboardingStepUseCase {
@@ -9,6 +10,7 @@ export class GoBackOnboardingStepUseCase {
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
     private readonly sectionTypeDefinition: SectionTypeDefinitionPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<OnboardingProgressData> {
@@ -18,7 +20,7 @@ export class GoBackOnboardingStepUseCase {
     const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : null;
 
     if (!prevStep) {
-      throw new ValidationException('Already at the first step');
+      throw new OnboardingAlreadyAtFirstStepException();
     }
 
     await this.saveProgress(userId, {

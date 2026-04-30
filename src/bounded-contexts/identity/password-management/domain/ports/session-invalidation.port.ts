@@ -6,7 +6,7 @@
  * avoiding race conditions with async event handlers.
  */
 
-export interface SessionInvalidationPort {
+export abstract class SessionInvalidationPort {
   /**
    * Invalidates all sessions for a user.
    * - Sets the token_valid_after timestamp in Redis
@@ -15,7 +15,5 @@ export interface SessionInvalidationPort {
    * This operation must complete BEFORE returning to ensure
    * subsequent requests with old tokens are rejected.
    */
-  invalidateAllSessions(userId: string): Promise<void>;
+  abstract invalidateAllSessions(userId: string): Promise<void>;
 }
-
-export const SESSION_INVALIDATION_PORT = Symbol('SessionInvalidationPort');

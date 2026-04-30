@@ -154,22 +154,14 @@ describe('Group Validation', () => {
     });
 
     it('should return invalid result with name error', () => {
-      const result = validateGroup({
-        id: 'group-id',
-        name: '',
-        displayName: 'Developers',
-      });
+      const result = validateGroup({ id: 'group-id', name: '', displayName: 'Developers' });
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Group name cannot be empty');
     });
 
     it('should return invalid result with displayName error', () => {
-      const result = validateGroup({
-        id: 'group-id',
-        name: 'developers',
-        displayName: '',
-      });
+      const result = validateGroup({ id: 'group-id', name: 'developers', displayName: '' });
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('Group displayName cannot be empty');
@@ -215,33 +207,21 @@ describe('Group Validation', () => {
   describe('assertGroupValid', () => {
     it('should not throw for valid group', () => {
       expect(() =>
-        assertGroupValid({
-          id: 'group-id',
-          name: 'developers',
-          displayName: 'Developers',
-        }),
+        assertGroupValid({ id: 'group-id', name: 'developers', displayName: 'Developers' }),
       ).not.toThrow();
     });
 
     it('should throw first error for invalid group', () => {
       expect(() =>
-        assertGroupValid({
-          id: 'group-id',
-          name: '',
-          displayName: 'Developers',
-        }),
+        assertGroupValid({ id: 'group-id', name: '', displayName: 'Developers' }),
       ).toThrow('Group name cannot be empty');
     });
 
     it('should throw first error when multiple errors exist', () => {
       // First error should be name since it's validated first
-      expect(() =>
-        assertGroupValid({
-          id: 'group-id',
-          name: '',
-          displayName: '',
-        }),
-      ).toThrow('Group name cannot be empty');
+      expect(() => assertGroupValid({ id: 'group-id', name: '', displayName: '' })).toThrow(
+        'Group name cannot be empty',
+      );
     });
   });
 });

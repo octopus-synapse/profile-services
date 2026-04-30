@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
-@Injectable()
 export class ChatUserSearchService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -21,12 +19,7 @@ export class ChatUserSearchService {
           },
         ],
       },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        photoURL: true,
-      },
+      select: { id: true, name: true, username: true, photoURL: true },
       take: limit,
       orderBy: { createdAt: 'desc' },
     });

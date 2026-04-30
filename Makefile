@@ -42,10 +42,10 @@ help:
 # Development Environment
 # ==========================================
 dev:
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --remove-orphans
 
 dev-build:
-	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build --remove-orphans
 
 dev-down:
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down

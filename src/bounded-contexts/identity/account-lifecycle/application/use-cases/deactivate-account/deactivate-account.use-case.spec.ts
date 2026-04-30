@@ -5,7 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { AccountDeactivatedEvent } from '../../../domain/events';
 import { AccountDeactivatedException } from '../../../domain/exceptions';
@@ -21,7 +22,7 @@ describe('DeactivateAccountUseCase', () => {
     repository = new InMemoryAccountLifecycleRepository();
     eventBus = new InMemoryEventBus();
 
-    useCase = new DeactivateAccountUseCase(repository, eventBus);
+    useCase = new DeactivateAccountUseCase(repository, eventBus, stubLogger);
   });
 
   it('should deactivate an active account', async () => {

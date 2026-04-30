@@ -3,23 +3,22 @@
  * Factory function that wires use cases with their dependencies
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import { TranslationCoreService } from '../../domain/services/translation-core.service';
-import {
-  TRANSLATION_USE_CASES,
-  type TranslationUseCases,
-} from '../ports/translation-use-cases.port';
+import { TranslationUseCases } from '../ports/translation-use-cases.port';
 import { CheckTranslationHealthUseCase } from '../use-cases/check-translation-health/check-translation-health.use-case';
 import { TranslateBatchUseCase } from '../use-cases/translate-batch/translate-batch.use-case';
 import { TranslateResumeUseCase } from '../use-cases/translate-resume/translate-resume.use-case';
 import { TranslateTextUseCase } from '../use-cases/translate-text/translate-text.use-case';
 
-export { TRANSLATION_USE_CASES };
+export { TranslationUseCases };
 
 export async function buildTranslationUseCases(
   libreTranslateUrl?: string,
 ): Promise<TranslationUseCases> {
-  const logger = {
+  const logger: LoggerPort = {
     log: (msg: string) => console.log(`[Translation] ${msg}`),
+    debug: (msg: string) => console.debug(`[Translation] ${msg}`),
     warn: (msg: string) => console.warn(`[Translation] ${msg}`),
     error: (msg: string) => console.error(`[Translation] ${msg}`),
   };

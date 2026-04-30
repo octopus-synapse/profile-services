@@ -4,7 +4,6 @@
  * Prisma-based implementation of the TwoFactorRepositoryPort.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   BackupCodeRecord,
@@ -12,7 +11,6 @@ import type {
   TwoFactorRepositoryPort,
 } from '../../../domain/ports/two-factor.repository.port';
 
-@Injectable()
 export class TwoFactorRepository implements TwoFactorRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 

@@ -1,0 +1,123 @@
+// Scoring subsystem models.
+//
+// Owns the persistent state for the three-score taxonomy documented in
+// `docs/scoring/README.md`:
+//   - Resume Quality Score history (append-only, latest via materialized view)
+//   - User/Job fit profiles (vectors + expiry)
+//   - Fit questionnaire pool, answers, and 25-question sampled sets
+//   - Remap history (vector snapshots across the 3-month re-scoring cycle)
+//
+// See also:
+//   - `resume-style.prisma` for the Style Score subject (ResumeStyle)
+//   - `jobs.prisma` for `Job.embeddingVector` (Semantic Matcher input)
+
+// Append-only snapshots of per-resume Resume Quality Score computations.
+// A materialized view (created in the migration) exposes the latest row per
+// resumeId for fast reads; this table keeps the full audit trail.
+model ResumeQualityScoreHistory {
+  id                  String   @id @default(cuid())
+  resumeId            String
+  overallScore        Int
+  completenessScore   Int
+  contentQualityScore Int? // null while the AI call is pending / disabled by flag
+  issuesJson          Json // [{ code, severity, messageKey, messageArgs, context }]
+  scoringRulesVersion String // semver of the deterministic ruleset
+  aiPromptVersion     String? // semver + sha256 of the prompt used (when AI ran)
+  computedAt          DateTime @default(now())
+  aiCallsCount        Int      @default(0)
+  costUsdMicros       BigInt   @default(0)
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId, computedAt])
+}
+
+// One row per user — cached behavioural vector with a 90-day expiry.
+// Missing/expired vector triggers the fit-profile lockout (403) on gated
+// endpoints (Match, Auto-Apply, AI Tailor, apply-to-internal-jobs).
+model UserFitProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  vectorJson Json // { bigFive: [...], schwartz: [...], sdt: [...] }
+  version    Int
+  computedAt DateTime @default(now())
+  expiresAt  DateTime // computedAt + 90 days
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+// One row per job — recruiter-authored behavioural profile (sliders) used
+// as the "company side" of the Fit sub-score.
+model JobFitProfile {
+  id             String   @id @default(cuid())
+  jobId          String   @unique
+  vectorJson     Json
+  editedByUserId String // recruiter who last edited the sliders
+  computedAt     DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+// Pool of ~100 psychometric questions (stratified across FitDimension). The
+// 25-question questionnaire is sampled from active rows of this pool.
+model FitQuestion {
+  id        String       @id @default(cuid())
+  key       String       @unique
+  dimension FitDimension
+  textEn    String
+  textPtBr  String
+  scaleType String // likert5, binary, etc.
+  weight    Decimal
+  isActive  Boolean      @default(true)
+
+  answers FitAnswer[]
+}
+
+// Individual answers. `questionSetId` scopes an answer to the specific sampled
+// 25-question set so a user can re-answer on remap without overwriting history.
+model FitAnswer {
+  id            String   @id @default(cuid())
+  userId        String
+  questionId    String
+  rawValue      Int // 1-5 likert (or scale-specific encoded int)
+  answeredAt    DateTime @default(now())
+  questionSetId String
+
+  user        User           @relation("UserFitAnswers", fields: [userId], references: [id], onDelete: Cascade)
+  question    FitQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionSet FitQuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+
+  @@index([userId, answeredAt])
+  @@index([questionSetId])
+}
+
+// One 25-question sample drawn for a user. The `seed` makes sampling
+// idempotent — re-requesting the questionnaire before `completedAt` is set
+// returns the same 25 questions.
+model FitQuestionSet {
+  id          String    @id @default(cuid())
+  userId      String
+  seed        String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user    User        @relation("UserFitQuestionSets", fields: [userId], references: [id], onDelete: Cascade)
+  answers FitAnswer[]
+
+  @@index([userId, createdAt])
+}
+
+// Vector snapshots captured at every remap (initial compute + each 3-month
+// refresh). Lets us observe drift over time without touching UserFitProfile.
+model FitRemapHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  vectorJson Json
+  snapshotAt DateTime @default(now())
+
+  user User @relation("UserFitRemapHistory", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, snapshotAt])
+}

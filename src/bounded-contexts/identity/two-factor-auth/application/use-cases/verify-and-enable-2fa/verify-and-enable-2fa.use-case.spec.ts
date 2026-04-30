@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InvalidTotpTokenException, TwoFactorNotSetupException } from '../../../domain/exceptions';
 import {
   DEFAULT_TWO_FACTOR_RECORD,
@@ -36,7 +37,7 @@ describe('VerifyAndEnable2faUseCase', () => {
     // Seed a 2FA record that is not yet enabled (setup completed)
     repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
 
-    useCase = new VerifyAndEnable2faUseCase(repository, totpService, hashService);
+    useCase = new VerifyAndEnable2faUseCase(repository, totpService, hashService, stubLogger);
   });
 
   // ───────────────────────────────────────────────────────────────

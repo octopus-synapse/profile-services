@@ -4,9 +4,9 @@
  * Infrastructure adapter implementing ImportJobRepositoryPort using Prisma.
  */
 
-import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import type { ImportJobRepositoryPort } from '../../../domain/ports/import-job.repository.port';
 import type {
   CreateImportJobParams,
@@ -14,9 +14,11 @@ import type {
   ImportStatus,
 } from '../../../domain/types/import.types';
 
-@Injectable()
 export class PrismaImportJobRepository implements ImportJobRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async create(params: CreateImportJobParams): Promise<ImportJobData> {
     const record = await this.prisma.resumeImport.create({

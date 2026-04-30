@@ -131,3 +131,12 @@ generated/
 
 # pre-commit attestation metrics (temporary, per-run)
 .attestation-metrics.json
+
+# ===================================
+# Generated API artifacts (regenerated via `bun run swagger:generate` / `openapi:generate`)
+# If already tracked, run: git rm --cached swagger.json client-swagger.json openapi.json api-response-analysis.json
+# ===================================
+swagger.json
+client-swagger.json
+openapi.json
+api-response-analysis.json

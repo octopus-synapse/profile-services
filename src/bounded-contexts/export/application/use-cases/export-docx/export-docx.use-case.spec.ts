@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
+import { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
 import { ExportDocxUseCase } from './export-docx.use-case';
 
 describe('ExportDocxUseCase', () => {
   let useCase: ExportDocxUseCase;
 
-  const mockDocxBuilder: DocxBuilderPort = {
-    generate: mock(),
-  };
+  const mockDocxBuilder: DocxBuilderPort = { generate: mock() };
 
   beforeEach(() => {
     useCase = new ExportDocxUseCase(mockDocxBuilder);

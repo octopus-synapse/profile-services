@@ -3,11 +3,9 @@
  * Implements common cache patterns (locks, cache-aside, etc.)
  */
 
-import { Injectable } from '@nestjs/common';
 import { CacheLockService } from '../cache-lock.service';
 import { CacheCoreService } from './cache-core.service';
 
-@Injectable()
 export class CachePatternsService {
   constructor(
     private readonly lockService: CacheLockService,

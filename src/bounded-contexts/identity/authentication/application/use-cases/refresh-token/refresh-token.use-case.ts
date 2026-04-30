@@ -1,26 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { LoggerPort } from '@/shared-kernel';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { TokenRefreshedEvent } from '../../../domain/events';
 import { InvalidRefreshTokenException } from '../../../domain/exceptions';
-import type { AuthenticationRepositoryPort, TokenGeneratorPort } from '../../../domain/ports';
+import { AuthenticationRepositoryPort, TokenGeneratorPort } from '../../../domain/ports';
 import type { RefreshTokenCommand, RefreshTokenPort, RefreshTokenResult } from '../../ports';
-
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
-const EVENT_BUS = Symbol('EventBusPort');
 
 // Refresh token expiration: 7 days
 const REFRESH_TOKEN_DAYS = 7;
 
-@Injectable()
 export class RefreshTokenUseCase implements RefreshTokenPort {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly repository: AuthenticationRepositoryPort,
-    @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: TokenGeneratorPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: RefreshTokenCommand): Promise<RefreshTokenResult> {
@@ -58,7 +51,12 @@ export class RefreshTokenUseCase implements RefreshTokenPort {
     const refreshTokenExpiry = new Date();
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + REFRESH_TOKEN_DAYS);
 
-    await this.repository.createRefreshToken(user.id, tokenPair.refreshToken, refreshTokenExpiry);
+    await this.repository.createRefreshToken(
+      user.id,
+      tokenPair.refreshToken,
+      refreshTokenExpiry,
+      tokenData.authMethod ?? undefined,
+    );
 
     // Publish event
     this.eventBus.publish(new TokenRefreshedEvent(user.id));
@@ -70,5 +68,3 @@ export class RefreshTokenUseCase implements RefreshTokenPort {
     };
   }
 }
-
-export { AUTH_REPOSITORY, EVENT_BUS, TOKEN_GENERATOR };

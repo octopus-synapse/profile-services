@@ -1,4 +1,4 @@
-import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
+import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { SharedResume } from '../../domain/types/collaboration.types';
 
 export class GetSharedWithMeUseCase {

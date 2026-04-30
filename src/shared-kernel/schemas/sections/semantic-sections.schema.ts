@@ -107,12 +107,7 @@ export const ExportConfigSchema = z.object({
       fieldMapping: ExportFieldMappingSchema.default({}),
     })
     .optional(),
-  dsl: z
-    .object({
-      sectionId: z.string(),
-      astType: z.string(),
-    })
-    .optional(),
+  dsl: z.object({ sectionId: z.string(), astType: z.string() }).optional(),
   docx: DocxExportConfigSchema.optional(),
 });
 
@@ -133,10 +128,7 @@ export const SectionDefinitionSchema = z.object({
 
 export type SectionDefinition = z.infer<typeof SectionDefinitionSchema>;
 
-export const SemanticFieldValueSchema = z.object({
-  role: SemanticRoleSchema,
-  value: z.unknown(),
-});
+export const SemanticFieldValueSchema = z.object({ role: SemanticRoleSchema, value: z.unknown() });
 
 export type SemanticFieldValue = z.infer<typeof SemanticFieldValueSchema>;
 

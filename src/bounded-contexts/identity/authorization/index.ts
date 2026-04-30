@@ -9,7 +9,6 @@ export { AuthorizationServicePort } from './application/ports/authorization-serv
 export { AuthorizationService } from './application/services/authorization.service';
 export { AuthorizationManagementService } from './application/services/authorization-management.service';
 // Module
-export * from './authorization.module';
 export {
   type CreateGroupInput,
   Group,
@@ -41,21 +40,6 @@ export {
   UserAuthContext,
   type UserId,
 } from './domain/entities/user-auth-context.entity';
-// Guards & Decorators
-export {
-  AdminOnly,
-  AdminOrApprover,
-  ApproverOnly,
-  CanManage,
-  PermissionGuard,
-  type PermissionRequirement,
-  type PermissionStrategy,
-  Protected,
-  RequirePermission,
-  RequirePermissions,
-  RequireRole,
-  RequireRoles,
-} from './infrastructure/guards/permission.guard';
 export { GroupRepository } from './infrastructure/repositories/group.repository';
 // Repositories (for admin use)
 export { PermissionRepository } from './infrastructure/repositories/permission.repository';

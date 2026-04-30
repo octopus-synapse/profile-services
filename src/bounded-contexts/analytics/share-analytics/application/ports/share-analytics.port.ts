@@ -4,15 +4,10 @@
  * Defines the use cases interface and injection token for Share Analytics.
  */
 
-export const AnalyticsEvent = {
-  VIEW: 'VIEW',
-  DOWNLOAD: 'DOWNLOAD',
-} as const;
+export const AnalyticsEvent = { VIEW: 'VIEW', DOWNLOAD: 'DOWNLOAD' } as const;
 export type AnalyticsEvent = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
 
 export type { ShareAnalyticsRepositoryPort } from '../../ports';
-
-export const SHARE_ANALYTICS_USE_CASES = Symbol('SHARE_ANALYTICS_USE_CASES');
 
 interface TrackEvent {
   shareId: string;
@@ -27,8 +22,8 @@ interface TrackEvent {
   os?: string;
 }
 
-export interface ShareAnalyticsUseCases {
-  trackShareEventUseCase: {
+export abstract class ShareAnalyticsUseCases {
+  abstract readonly trackShareEventUseCase: {
     execute: (dto: TrackEvent) => Promise<{
       id: string;
       shareId: string;
@@ -44,7 +39,7 @@ export interface ShareAnalyticsUseCases {
       createdAt: Date;
     }>;
   };
-  getShareAnalyticsUseCase: {
+  abstract readonly getShareAnalyticsUseCase: {
     execute: (
       shareId: string,
       userId: string,
@@ -63,15 +58,11 @@ export interface ShareAnalyticsUseCases {
       }>;
     }>;
   };
-  getShareEventsUseCase: {
+  abstract readonly getShareEventsUseCase: {
     execute: (
       shareId: string,
       userId: string,
-      filters?: {
-        startDate?: Date;
-        endDate?: Date;
-        eventType?: 'VIEW' | 'DOWNLOAD';
-      },
+      filters?: { startDate?: Date; endDate?: Date; eventType?: 'VIEW' | 'DOWNLOAD' },
     ) => Promise<
       Array<{
         eventType: AnalyticsEvent;

@@ -12,10 +12,7 @@ describe('CreateImportJobUseCase', () => {
   });
 
   it('should create an import job with PENDING status', async () => {
-    const result = await useCase.execute({
-      userId: 'user-123',
-      source: 'JSON',
-    });
+    const result = await useCase.execute({ userId: 'user-123', source: 'JSON' });
 
     expect(result.id).toBeDefined();
     expect(result.status).toBe('PENDING');
@@ -26,11 +23,7 @@ describe('CreateImportJobUseCase', () => {
   it('should store raw data when provided', async () => {
     const rawData = { basics: { name: 'Test User' } };
 
-    const result = await useCase.execute({
-      userId: 'user-123',
-      source: 'JSON',
-      rawData,
-    });
+    const result = await useCase.execute({ userId: 'user-123', source: 'JSON', rawData });
 
     const saved = await repository.findById(result.id);
     expect(saved?.rawData).toEqual(rawData);

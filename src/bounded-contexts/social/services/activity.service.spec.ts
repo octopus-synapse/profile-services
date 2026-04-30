@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityType } from '../application/ports/activity.port';
 import {
@@ -28,6 +28,7 @@ describe('ActivityService', () => {
     eventPublisher = {
       publish: mock(<T>(_event: DomainEvent<T>) => {}),
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
+      on: mock(() => {}),
     };
     service = new ActivityService(
       activityRepo,

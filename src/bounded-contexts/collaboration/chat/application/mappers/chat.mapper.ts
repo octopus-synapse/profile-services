@@ -22,11 +22,7 @@ export function mapMessageToResponse(message: MessageWithSender): MessageRespons
     isRead: message.isRead,
     readAt: message.readAt?.toISOString() ?? null,
     createdAt: message.createdAt.toISOString(),
-    sender: {
-      id: message.sender.id,
-      name: message.sender.name,
-      photoURL: message.sender.photoURL,
-    },
+    sender: { id: message.sender.id, name: message.sender.name, photoURL: message.sender.photoURL },
   };
 }
 

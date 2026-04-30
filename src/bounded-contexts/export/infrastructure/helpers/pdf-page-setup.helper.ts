@@ -3,9 +3,9 @@
  * Handles Puppeteer page configuration and navigation
  */
 
-import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Page } from 'puppeteer';
+import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
 import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
 export interface ResumePDFOptions {
@@ -17,9 +17,10 @@ export interface ResumePDFOptions {
 }
 
 export class PdfPageSetup {
-  private readonly logger = new Logger(PdfPageSetup.name);
-
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigPort,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async setupPage(page: Page): Promise<void> {
     await page.setViewport({
@@ -46,21 +47,20 @@ export class PdfPageSetup {
 
   async navigateToPage(page: Page, url: string): Promise<void> {
     try {
-      await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: TIMEOUT.PAGE_LOAD,
-      });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.RESUME_GOTO_ERROR });
-      this.logger.error('[ResumePDF] Error during page.goto:', err);
+      this.logger.error(
+        '[ResumePDF] Error during page.goto:',
+        err instanceof Error ? err.stack : String(err),
+        'PdfPageSetup',
+      );
       throw err;
     }
   }
 
   async waitForResumeReady(page: Page): Promise<void> {
     await page.waitForSelector('#resume', { timeout: TIMEOUT.SELECTOR_WAIT });
-    await page.waitForSelector('#resume[data-ready="1"]', {
-      timeout: TIMEOUT.SELECTOR_WAIT,
-    });
+    await page.waitForSelector('#resume[data-ready="1"]', { timeout: TIMEOUT.SELECTOR_WAIT });
   }
 }

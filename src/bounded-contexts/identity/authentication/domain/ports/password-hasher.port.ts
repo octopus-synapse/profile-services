@@ -1,10 +1,9 @@
 /**
- * Password Hasher Port
+ * Password Hasher Port (authentication-side)
+ *
+ * Authentication only needs to compare passwords, not hash them.
  */
 
-export interface PasswordHasherPort {
-  /**
-   * Compares a password with its hash
-   */
-  compare(password: string, hash: string): Promise<boolean>;
+export abstract class PasswordHasherPort {
+  abstract compare(password: string, hash: string): Promise<boolean>;
 }

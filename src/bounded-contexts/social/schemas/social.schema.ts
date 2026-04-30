@@ -27,9 +27,7 @@ export type SocialUserSummary = z.infer<typeof SocialUserSummarySchema>;
 // Follow System
 // ============================================================================
 
-export const FollowResultSchema = z.object({
-  id: z.string().cuid(),
-});
+export const FollowResultSchema = z.object({ id: z.string().cuid() });
 
 export type FollowResult = z.infer<typeof FollowResultSchema>;
 

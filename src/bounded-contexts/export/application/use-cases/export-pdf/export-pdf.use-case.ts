@@ -4,10 +4,8 @@
  * Generates a PDF document for a user's resume.
  */
 
-import type {
-  PdfGeneratorOptions,
-  PdfGeneratorPort,
-} from '../../../domain/ports/pdf-generator.port';
+import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
+import { PdfGeneratorPort } from '../../../domain/ports/pdf-generator.port';
 
 export interface ExportPdfDto {
   palette?: string;

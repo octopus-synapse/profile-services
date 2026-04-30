@@ -3,10 +3,7 @@ import { buildShareOgSvg, OgImageService } from './og-image.service';
 
 describe('buildShareOgSvg', () => {
   it('escapes XML-special characters in name and title', () => {
-    const svg = buildShareOgSvg({
-      name: 'Enzo & "Friends"',
-      title: 'Backend <Engineer> @ Patch',
-    });
+    const svg = buildShareOgSvg({ name: 'Enzo & "Friends"', title: 'Backend <Engineer> @ Patch' });
 
     expect(svg).toContain('Enzo &amp; &quot;Friends&quot;');
     expect(svg).toContain('Backend &lt;Engineer&gt; @ Patch');

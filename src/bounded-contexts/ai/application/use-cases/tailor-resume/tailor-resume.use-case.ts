@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
-  LLM_PORT,
-  type LlmPort,
+  LlmPort,
   type TailorResumeInput,
   type TailorResumeOutput,
 } from '../../../domain/ports/llm.port';
@@ -12,9 +10,8 @@ import {
  * (e.g. the resume-versions tailor service) depend on a domain use-case rather
  * than directly on the LLM adapter.
  */
-@Injectable()
 export class TailorResumeUseCase {
-  constructor(@Inject(LLM_PORT) private readonly llm: LlmPort) {}
+  constructor(private readonly llm: LlmPort) {}
 
   async execute(input: TailorResumeInput): Promise<TailorResumeOutput> {
     return this.llm.tailorResume(input);

@@ -1,9 +1,12 @@
-import { ConflictException, ERROR_MESSAGES, ValidationException } from '@/shared-kernel';
+import {
+  OnboardingInvalidSectionTypeException,
+  OnboardingUsernameTakenException,
+} from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type {
   OnboardingProgressData,
-  OnboardingProgressRepositoryPort,
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
 /**
  * Save Progress Use Case
@@ -44,7 +47,7 @@ export class SaveProgressUseCase {
     }
 
     if (existingUser) {
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+      throw new OnboardingUsernameTakenException();
     }
   }
 
@@ -57,10 +60,7 @@ export class SaveProgressUseCase {
 
     for (const section of data.sections) {
       if (section.noData && section.items && section.items.length > 0) {
-        throw new ValidationException(
-          `Cannot have items for section "${section.sectionTypeKey}" when noData is true. ` +
-            'Either set noData to false or provide an empty items array.',
-        );
+        throw new OnboardingInvalidSectionTypeException(section.sectionTypeKey);
       }
     }
   }

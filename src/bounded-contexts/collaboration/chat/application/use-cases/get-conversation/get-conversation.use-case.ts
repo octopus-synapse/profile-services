@@ -1,15 +1,15 @@
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
 import { mapConversationToResponse } from '../../mappers/chat.mapper';
-import type { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
+import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationUseCase {
   constructor(
     private readonly conversationRepo: ConversationRepositoryPort,
     private readonly messageRepo: MessageRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, conversationId: string): Promise<ConversationResponse> {
@@ -21,7 +21,7 @@ export class GetConversationUseCase {
     const isParticipant =
       conversation.participant1Id === userId || conversation.participant2Id === userId;
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new NotConversationParticipantException();
     }
 
     const unreadCount = await this.messageRepo.getUnreadCountByConversation(conversationId, userId);

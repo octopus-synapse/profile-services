@@ -22,15 +22,10 @@ export class ResumeManagementRepository extends ResumeManagementRepositoryPort {
       where: { userId },
       include: {
         resumeSections: {
-          include: {
-            sectionType: true,
-            items: true,
-          },
+          include: { sectionType: true, items: true },
         },
         _count: {
-          select: {
-            resumeSections: true,
-          },
+          select: { resumeSections: true },
         },
       },
       orderBy: { updatedAt: 'desc' },
@@ -42,11 +37,7 @@ export class ResumeManagementRepository extends ResumeManagementRepositoryPort {
       where: { id: resumeId },
       include: {
         user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
+          select: { id: true, email: true, name: true },
         },
         resumeSections: {
           orderBy: { order: 'asc' },

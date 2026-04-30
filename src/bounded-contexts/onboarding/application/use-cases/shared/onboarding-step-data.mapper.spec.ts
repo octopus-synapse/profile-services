@@ -8,11 +8,7 @@ describe('OnboardingStepDataMapper', () => {
 
   beforeEach(() => {
     mapper = new OnboardingStepDataMapper();
-    baseProgress = {
-      currentStep: 'welcome',
-      completedSteps: [],
-      sections: [],
-    };
+    baseProgress = { currentStep: 'welcome', completedSteps: [], sections: [] };
   });
 
   describe('personal-info step', () => {
@@ -33,11 +29,7 @@ describe('OnboardingStepDataMapper', () => {
 
     it('should merge personalInfo when provided as root-level keys', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = {
-        fullName: 'Jane Doe',
-        email: 'jane@example.com',
-        location: 'NYC',
-      };
+      const stepData = { fullName: 'Jane Doe', email: 'jane@example.com', location: 'NYC' };
 
       mapper.mergeStepData(update, 'personal-info', stepData, baseProgress);
 
@@ -109,11 +101,7 @@ describe('OnboardingStepDataMapper', () => {
 
     it('should merge professionalProfile from root-level keys', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = {
-        jobTitle: 'Designer',
-        github: 'github.com/jane',
-        website: 'jane.dev',
-      };
+      const stepData = { jobTitle: 'Designer', github: 'github.com/jane', website: 'jane.dev' };
 
       mapper.mergeStepData(update, 'professional-profile', stepData, baseProgress);
 
@@ -221,11 +209,7 @@ describe('OnboardingStepDataMapper', () => {
       mapper.mergeStepData(update, 'section:education_v1', stepData, baseProgress);
 
       expect(update.sections).toEqual([
-        {
-          sectionTypeKey: 'education_v1',
-          items: [],
-          noData: true,
-        },
+        { sectionTypeKey: 'education_v1', items: [], noData: true },
       ]);
     });
 
@@ -234,19 +218,12 @@ describe('OnboardingStepDataMapper', () => {
       mapper.mergeStepData(update, 'section:skill_set_v1', {}, baseProgress);
 
       expect(update.sections).toEqual([
-        {
-          sectionTypeKey: 'skill_set_v1',
-          items: [],
-          noData: false,
-        },
+        { sectionTypeKey: 'skill_set_v1', items: [], noData: false },
       ]);
     });
 
     it('should handle progress with null sections', () => {
-      const progressNullSections: OnboardingProgressData = {
-        ...baseProgress,
-        sections: undefined,
-      };
+      const progressNullSections: OnboardingProgressData = { ...baseProgress, sections: undefined };
 
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
       mapper.mergeStepData(

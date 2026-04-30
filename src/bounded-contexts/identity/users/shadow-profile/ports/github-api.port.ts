@@ -3,11 +3,9 @@
  * builder. Declared here (instead of importing from the `import` BC) so
  * this module stays independent — architectural rules forbid cross-BC
  * type imports. The concrete adapter is still the one registered under
- * GITHUB_API_PORT by the ImportModule at runtime; DI will resolve it
+ * GithubApiPort by the ImportModule at runtime; DI will resolve it
  * via an inter-module provider registration.
  */
-
-export const SHADOW_GITHUB_API = Symbol('ShadowGithubApi');
 
 export interface ShadowGithubUser {
   login: string;
@@ -34,9 +32,9 @@ export interface ShadowGithubRepo {
   isArchived: boolean;
 }
 
-export interface ShadowGithubApi {
-  getUser(token: string, username?: string): Promise<ShadowGithubUser>;
-  listRepositories(
+export abstract class ShadowGithubApi {
+  abstract getUser(token: string, username?: string): Promise<ShadowGithubUser>;
+  abstract listRepositories(
     token: string,
     username: string,
     options?: { limit?: number },

@@ -37,10 +37,6 @@ export abstract class ShareAnalyticsReaderPort {
   abstract getEvents(
     shareId: string,
     userId: string,
-    filters?: {
-      startDate?: Date;
-      endDate?: Date;
-      eventType?: 'VIEW' | 'DOWNLOAD';
-    },
+    filters?: { startDate?: Date; endDate?: Date; eventType?: 'VIEW' | 'DOWNLOAD' },
   ): Promise<ShareAnalyticsEventItem[]>;
 }

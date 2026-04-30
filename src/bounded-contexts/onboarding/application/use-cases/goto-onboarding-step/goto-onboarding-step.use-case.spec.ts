@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   createOnboardingProgress,
   DEFAULT_SECTION_TYPES,
@@ -30,7 +31,12 @@ describe('GotoOnboardingStepUseCase', () => {
     saveProgressFn = (userId, data) => saveUseCase.execute(userId, data);
     getProgressFn = (userId) => getUseCase.execute(userId);
 
-    useCase = new GotoOnboardingStepUseCase(saveProgressFn, getProgressFn, sectionTypeDef);
+    useCase = new GotoOnboardingStepUseCase(
+      saveProgressFn,
+      getProgressFn,
+      sectionTypeDef,
+      stubLogger,
+    );
   });
 
   it('navigates to a completed step', async () => {
@@ -88,11 +94,7 @@ describe('GotoOnboardingStepUseCase', () => {
   it('throws for an unknown step', async () => {
     // Arrange
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     // Act & Assert
@@ -104,11 +106,7 @@ describe('GotoOnboardingStepUseCase', () => {
 
   it('allows jumping to any step (non-linear flow)', async () => {
     progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'welcome',
-        completedSteps: [],
-      }),
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
     const result = await useCase.execute(USER_ID, 'professional-profile');

@@ -58,11 +58,7 @@ describe('parseUserAgent', () => {
   it('should return unknown for empty or null UA', () => {
     expect(parseUserAgent('')).toEqual({ deviceType: 'unknown', os: null, browser: null });
     expect(parseUserAgent(null)).toEqual({ deviceType: 'unknown', os: null, browser: null });
-    expect(parseUserAgent(undefined)).toEqual({
-      deviceType: 'unknown',
-      os: null,
-      browser: null,
-    });
+    expect(parseUserAgent(undefined)).toEqual({ deviceType: 'unknown', os: null, browser: null });
   });
 
   it('should detect Edge browser', () => {

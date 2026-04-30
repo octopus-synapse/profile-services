@@ -4,12 +4,10 @@
  * Infrastructure adapter implementing ResumeCreatorPort using Prisma.
  */
 
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
 import type { ParsedResumeData } from '../../../domain/types/import.types';
 
-@Injectable()
 export class PrismaResumeCreatorAdapter implements ResumeCreatorPort {
   constructor(private readonly prisma: PrismaService) {}
 

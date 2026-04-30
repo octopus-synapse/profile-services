@@ -10,19 +10,16 @@ import type { ScoreProgressionPoint, ViewStats, ViewStatsOptions } from '../inte
 /**
  * Symbol for dependency injection
  */
-export const VIEW_TRACKING_PORT = Symbol('VIEW_TRACKING_PORT');
-export const SNAPSHOT_PORT = Symbol('SNAPSHOT_PORT');
-
 /**
  * Port for view tracking operations
  */
-export interface ViewTrackingPort {
-  getViewStats(resumeId: string, options: ViewStatsOptions): Promise<ViewStats>;
+export abstract class ViewTrackingPort {
+  abstract getViewStats(resumeId: string, options: ViewStatsOptions): Promise<ViewStats>;
 }
 
 /**
  * Port for analytics snapshot operations
  */
-export interface SnapshotPort {
-  getScoreProgression(resumeId: string, days: number): Promise<ScoreProgressionPoint[]>;
+export abstract class SnapshotPort {
+  abstract getScoreProgression(resumeId: string, days: number): Promise<ScoreProgressionPoint[]>;
 }

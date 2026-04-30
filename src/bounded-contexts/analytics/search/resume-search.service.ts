@@ -9,9 +9,8 @@
  * - Similar: finds related resumes
  */
 
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
  * Search query parameters
@@ -55,7 +54,6 @@ export interface SearchResult {
   totalPages: number;
 }
 
-@Injectable()
 export class ResumeSearchService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -146,13 +144,7 @@ export class ResumeSearchService {
 
     const total = countResult[0].count;
 
-    return {
-      data: filteredResults,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data: filteredResults, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   /**
@@ -193,9 +185,7 @@ export class ResumeSearchService {
           },
           include: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -235,9 +225,7 @@ export class ResumeSearchService {
           },
           include: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },

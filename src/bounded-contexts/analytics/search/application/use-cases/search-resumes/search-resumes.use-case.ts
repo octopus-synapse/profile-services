@@ -98,13 +98,7 @@ export class SearchResumesUseCase {
 
     const total = countResult[0].count;
 
-    return {
-      data: filteredResults,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data: filteredResults, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async suggest(prefix: string, limit = 10): Promise<string[]> {

@@ -7,9 +7,12 @@
  * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
 import { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  InvalidUserRoleException,
+  LastAdminCannotBeRemovedException,
+  LastManagerCannotBeDeletedException,
+} from '../../domain/exceptions/users.exceptions';
 import type {
   AdminCreateUserDto,
   AdminResetPasswordDto,
@@ -18,17 +21,14 @@ import type {
 import {
   type CreatedUser,
   type UpdatedUser,
-  USER_MANAGEMENT_USE_CASES,
   type UserDetails,
   type UserListOptions,
   type UserListResult,
-  type UserManagementUseCases,
+  UserManagementUseCases,
 } from '../ports/user-management.port';
 
-@Injectable()
 export class UserManagementService {
   constructor(
-    @Inject(USER_MANAGEMENT_USE_CASES)
     private readonly useCases: UserManagementUseCases,
     private readonly authService: AuthorizationServicePort,
   ) {}
@@ -95,7 +95,7 @@ export class UserManagementService {
     const validRoles = ['role_user', 'role_admin'];
     for (const role of roles) {
       if (!validRoles.includes(role)) {
-        throw new ValidationException(`Invalid role: ${role}`);
+        throw new InvalidUserRoleException(role);
       }
     }
 
@@ -108,7 +108,7 @@ export class UserManagementService {
       ) {
         const adminCount = await this.authService.countUsersWithRole('admin');
         if (adminCount <= 1) {
-          throw new ValidationException('Cannot remove admin role from the last admin user');
+          throw new LastAdminCannotBeRemovedException();
         }
       }
     }
@@ -129,7 +129,7 @@ export class UserManagementService {
     const usersWithManage = await this.authService.countUsersWithRole('admin');
 
     if (usersWithManage <= 1) {
-      throw new ValidationException('Cannot delete the last user with management permissions');
+      throw new LastManagerCannotBeDeletedException();
     }
   }
 }

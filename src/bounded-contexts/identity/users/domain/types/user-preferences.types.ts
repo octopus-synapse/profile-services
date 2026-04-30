@@ -4,11 +4,7 @@
  * Domain types for user preferences operations.
  */
 
-export type UserPreferences = {
-  theme?: string;
-  language?: string;
-  emailNotifications?: boolean;
-};
+export type UserPreferences = { theme?: string; language?: string; emailNotifications?: boolean };
 
 export type ApplyMode = 'ONE_CLICK' | 'WEEKLY_CURATED' | 'AUTO_APPLY';
 
@@ -59,24 +55,20 @@ export type UpdatePreferencesData = {
 
 export type UpdateFullPreferencesData = Partial<
   Omit<FullUserPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'applyCriteria'>
-> & {
-  applyCriteria?: Partial<UserApplyCriteriaData>;
-};
+> & { applyCriteria?: Partial<UserApplyCriteriaData> };
 
 // Use Cases Interface Symbol
-export const USER_PREFERENCES_USE_CASES = Symbol('USER_PREFERENCES_USE_CASES');
-
-export interface UserPreferencesUseCases {
-  getPreferencesUseCase: {
+export abstract class UserPreferencesUseCases {
+  abstract readonly getPreferencesUseCase: {
     execute: (userId: string) => Promise<UserPreferences>;
   };
-  updatePreferencesUseCase: {
+  abstract readonly updatePreferencesUseCase: {
     execute: (userId: string, data: UpdatePreferencesData) => Promise<void>;
   };
-  getFullPreferencesUseCase: {
+  abstract readonly getFullPreferencesUseCase: {
     execute: (userId: string) => Promise<FullUserPreferences | Record<string, never>>;
   };
-  updateFullPreferencesUseCase: {
+  abstract readonly updateFullPreferencesUseCase: {
     execute: (userId: string, data: UpdateFullPreferencesData) => Promise<FullUserPreferences>;
   };
 }

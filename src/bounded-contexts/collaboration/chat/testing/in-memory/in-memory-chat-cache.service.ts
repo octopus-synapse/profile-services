@@ -55,10 +55,7 @@ export class InMemoryChatCacheService {
   }
 
   async setOnlineStatus(userId: string, isOnline: boolean): Promise<void> {
-    this.onlineStatusCache.set(userId, {
-      isOnline,
-      lastSeen: new Date().toISOString(),
-    });
+    this.onlineStatusCache.set(userId, { isOnline, lastSeen: new Date().toISOString() });
   }
 
   async getOnlineStatus(userId: string): Promise<OnlineStatus | null> {

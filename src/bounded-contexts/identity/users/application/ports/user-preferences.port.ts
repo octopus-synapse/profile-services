@@ -9,11 +9,7 @@
 // Domain Types
 // ============================================================================
 
-export type UserPreferences = {
-  theme?: string;
-  language?: string;
-  emailNotifications?: boolean;
-};
+export type UserPreferences = { theme?: string; language?: string; emailNotifications?: boolean };
 
 export type ApplyMode = 'ONE_CLICK' | 'WEEKLY_CURATED' | 'AUTO_APPLY';
 
@@ -92,19 +88,17 @@ export abstract class UserPreferencesRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const USER_PREFERENCES_USE_CASES = Symbol('USER_PREFERENCES_USE_CASES');
-
-export interface UserPreferencesUseCases {
-  getPreferencesUseCase: {
+export abstract class UserPreferencesUseCases {
+  abstract readonly getPreferencesUseCase: {
     execute: (userId: string) => Promise<UserPreferences>;
   };
-  updatePreferencesUseCase: {
+  abstract readonly updatePreferencesUseCase: {
     execute: (userId: string, data: UpdatePreferencesData) => Promise<void>;
   };
-  getFullPreferencesUseCase: {
+  abstract readonly getFullPreferencesUseCase: {
     execute: (userId: string) => Promise<FullUserPreferences | Record<string, never>>;
   };
-  updateFullPreferencesUseCase: {
+  abstract readonly updateFullPreferencesUseCase: {
     execute: (userId: string, data: UpdateFullPreferencesData) => Promise<FullUserPreferences>;
   };
 }

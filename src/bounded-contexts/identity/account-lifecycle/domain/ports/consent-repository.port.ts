@@ -28,14 +28,12 @@ export interface CreateConsentData {
   userAgent?: string;
 }
 
-export const CONSENT_REPOSITORY_PORT = Symbol('ConsentRepositoryPort');
-
-export interface ConsentRepositoryPort {
-  create(data: CreateConsentData): Promise<ConsentRecord>;
-  findByUserAndDocumentType(
+export abstract class ConsentRepositoryPort {
+  abstract create(data: CreateConsentData): Promise<ConsentRecord>;
+  abstract findByUserAndDocumentType(
     userId: string,
     documentType: ConsentDocumentType,
     version: string,
   ): Promise<ConsentRecord | null>;
-  findAllByUser(userId: string): Promise<ConsentRecord[]>;
+  abstract findAllByUser(userId: string): Promise<ConsentRecord[]>;
 }

@@ -1,9 +1,5 @@
-import type {
-  FollowRepositoryPort,
-  FollowWithUser,
-  PaginatedResult,
-  PaginationParams,
-} from '../../ports/follow.port';
+import type { FollowWithUser, PaginatedResult, PaginationParams } from '../../ports/follow.port';
+import { FollowRepositoryPort } from '../../ports/follow.port';
 
 export class GetFollowingUseCase {
   constructor(private readonly repository: FollowRepositoryPort) {}
@@ -15,12 +11,6 @@ export class GetFollowingUseCase {
     const { page, limit } = pagination;
     const { data, total } = await this.repository.findFollowing(userId, pagination);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

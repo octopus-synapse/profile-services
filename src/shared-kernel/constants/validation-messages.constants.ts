@@ -54,10 +54,7 @@ export const VALIDATION_MESSAGES = {
   },
 
   // Generic messages
-  GENERIC: {
-    UNKNOWN_ERROR: 'An unknown error occurred',
-    VALIDATION_FAILED: 'Validation failed',
-  },
+  GENERIC: { UNKNOWN_ERROR: 'An unknown error occurred', VALIDATION_FAILED: 'Validation failed' },
 } as const;
 
 /**

@@ -12,5 +12,3 @@ export interface DocxRenderOptions {
 export abstract class DocxRendererPort {
   abstract render(astJson: string, options?: DocxRenderOptions): Promise<Buffer>;
 }
-
-export const DOCX_RENDERER = Symbol('DOCX_RENDERER');

@@ -76,9 +76,7 @@ export type CheckUsernameResponse = z.infer<typeof CheckUsernameResponseSchema>;
 /**
  * Update Username Request Schema
  */
-export const UpdateUsernameRequestSchema = z.object({
-  username: UsernameSchema,
-});
+export const UpdateUsernameRequestSchema = z.object({ username: UsernameSchema });
 
 export type UpdateUsernameRequest = z.infer<typeof UpdateUsernameRequestSchema>;
 
@@ -96,9 +94,7 @@ export type UpdateUsernameResponse = z.infer<typeof UpdateUsernameResponseSchema
 /**
  * Validate Username Request Schema
  */
-export const ValidateUsernameRequestSchema = z.object({
-  username: z.string().trim(),
-});
+export const ValidateUsernameRequestSchema = z.object({ username: z.string().trim() });
 
 export type ValidateUsernameRequest = z.infer<typeof ValidateUsernameRequestSchema>;
 
@@ -137,9 +133,7 @@ export type ValidateUsernameResponse = z.infer<typeof ValidateUsernameResponseSc
 /**
  * Upload Image Response Schema
  */
-export const UploadImageResponseSchema = z.object({
-  url: z.string().url(),
-});
+export const UploadImageResponseSchema = z.object({ url: z.string().url() });
 
 export type UploadImageResponse = z.infer<typeof UploadImageResponseSchema>;
 
@@ -147,8 +141,6 @@ export type UploadImageResponse = z.infer<typeof UploadImageResponseSchema>;
  * Upload Image Response Wrapper Schema
  * Standard API wrapper for upload endpoint
  */
-export const UploadImageResponseWrapperSchema = z.object({
-  data: UploadImageResponseSchema,
-});
+export const UploadImageResponseWrapperSchema = z.object({ data: UploadImageResponseSchema });
 
 export type UploadImageResponseEnvelope = z.infer<typeof UploadImageResponseWrapperSchema>;

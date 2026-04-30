@@ -14,10 +14,7 @@ import type {
 } from '../../domain/types';
 
 export abstract class UserManagementRepositoryPort {
-  abstract findUsers(options: UserListOptions): Promise<{
-    users: UserListItem[];
-    total: number;
-  }>;
+  abstract findUsers(options: UserListOptions): Promise<{ users: UserListItem[]; total: number }>;
 
   abstract findUserById(userId: string): Promise<{ id: string } | null>;
 

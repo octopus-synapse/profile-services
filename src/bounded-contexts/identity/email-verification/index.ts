@@ -9,7 +9,6 @@ export * from './application';
 // Domain Layer
 export * from './domain';
 // NestJS Module
-export { EmailVerificationModule } from './email-verification.module';
 // Infrastructure Layer
 export * from './infrastructure';
 // Testing

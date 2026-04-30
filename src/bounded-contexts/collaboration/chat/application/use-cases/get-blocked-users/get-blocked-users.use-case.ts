@@ -1,6 +1,6 @@
 import type { BlockedUserResponse } from '../../../schemas/chat.schema';
 import { mapBlockedUserToResponse } from '../../mappers/chat.mapper';
-import type { BlockRepositoryPort } from '../../ports/block.port';
+import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class GetBlockedUsersUseCase {
   constructor(private readonly repository: BlockRepositoryPort) {}

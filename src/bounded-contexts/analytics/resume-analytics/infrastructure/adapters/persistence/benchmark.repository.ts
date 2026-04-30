@@ -1,19 +1,20 @@
 /**
- * Prisma Benchmark Repository
+ * Prisma Benchmark Repository — STUB
  *
- * Loads ATS scores from the database for benchmarking.
+ * The ATS score columns were dropped from ResumeAnalytics as part of the
+ * scoring subsystem refactor. Benchmark data will be sourced from
+ * `ResumeQualityScoreHistory` in a follow-up task (see
+ * docs/scoring/SCORES_TODO.md). For now this returns an empty array so
+ * dependents still boot.
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { BenchmarkRepositoryPort } from '../../../application/ports/resume-analytics.port';
+import { BenchmarkRepositoryPort } from '../../../application/ports/resume-analytics.port';
 
 export class PrismaBenchmarkRepository implements BenchmarkRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly _prisma: PrismaService) {}
 
   async getAllAtsScores(): Promise<number[]> {
-    const snapshots = await this.prisma.resumeAnalytics.findMany({
-      select: { atsScore: true },
-    });
-    return snapshots.map((s) => s.atsScore);
+    return [];
   }
 }

@@ -3,16 +3,14 @@
  * Single Responsibility: Sync tech niches to database
  */
 
-import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { TECH_NICHES } from '../data';
 
-@Injectable()
 export class TechNichesSyncService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async syncNiches(): Promise<number> {

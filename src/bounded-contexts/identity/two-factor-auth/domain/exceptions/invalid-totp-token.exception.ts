@@ -1,4 +1,4 @@
-import { DomainException } from '@/bounded-contexts/identity/shared-kernel/exceptions';
+import { DomainException } from '@/shared-kernel/exceptions';
 
 export class InvalidTotpTokenException extends DomainException {
   readonly code = 'INVALID_TOTP_TOKEN';

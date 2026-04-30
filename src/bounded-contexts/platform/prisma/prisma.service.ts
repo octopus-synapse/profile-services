@@ -1,5 +1,5 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { createPrismaClientOptions } from './prisma-client-options';
 
 // Type-safe model accessor for cleanup operations
@@ -18,11 +18,8 @@ type PrismaModelKey = keyof Omit<
   | '$queryRawUnsafe'
 >;
 
-@Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(PrismaService.name);
-
-  constructor() {
+export class PrismaService extends PrismaClient {
+  constructor(private readonly logger: LoggerPort) {
     super(
       createPrismaClientOptions({
         log: [
@@ -36,18 +33,23 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     );
   }
 
-  async onModuleInit() {
+  // Lifecycle hooks (init/dispose) — bootstrap registers them on the
+  // Lifecycle queue. Names match the framework-free `Lifecycle`
+  // interface from `@/shared-kernel/lifecycle`.
+  async init(): Promise<void> {
     await this.$connect();
-    this.logger.log('Successfully connected to database');
+    this.logger.log('Successfully connected to database', 'PrismaService');
   }
 
-  async onModuleDestroy() {
+  async dispose(): Promise<void> {
     await this.$disconnect();
-    this.logger.log('Disconnected from database');
+    this.logger.log('Disconnected from database', 'PrismaService');
   }
 
   async cleanDatabase(): Promise<void> {
     if (process.env.NODE_ENV === 'production') {
+      // Test-only safety guard. Not user-facing — prevents catastrophic misuse
+      // by failing loud if invoked outside dev/test environments.
       throw new Error('Cannot clean database in production!');
     }
 
@@ -89,7 +91,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       'techSkill',
       'techNiche',
       'techArea',
-      'resumeTheme',
+      'resumeStyle',
       'session',
       'account',
       'verificationToken',

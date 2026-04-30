@@ -5,9 +5,10 @@
  * Requires 2FA to be enabled.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
-import type { HashServicePort } from '../../../domain/ports/hash-service.port';
-import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
+import { HashServicePort } from '../../../domain/ports/hash-service.port';
+import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 const BACKUP_CODE_COUNT = 10;
 
@@ -19,6 +20,7 @@ export class RegenerateBackupCodesUseCase {
   constructor(
     private readonly repository: TwoFactorRepositoryPort,
     private readonly hashService: HashServicePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string): Promise<RegenerateBackupCodesResult> {

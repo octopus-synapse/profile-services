@@ -4,26 +4,22 @@
  * Retrieves ATS score progression over time for a resume.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { ScoreProgression, ScoreProgressionPoint } from '../../../interfaces';
-import type {
-  ResumeOwnershipPort,
-  SnapshotRepositoryPort,
-} from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 export class GetScoreProgressionUseCase {
   constructor(
     private readonly ownership: ResumeOwnershipPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(resumeId: string, userId: string, days?: number): Promise<ScoreProgression> {
     await this.ownership.verifyOwnership(resumeId, userId);
     const points = await this.snapshotRepo.getScoreProgression(resumeId, days);
     return {
-      snapshots: points.map((p) => ({
-        date: new Date(p.date),
-        score: p.score,
-      })),
+      snapshots: points.map((p) => ({ date: new Date(p.date), score: p.score })),
       trend: this.calculateTrend(points),
       changePercent: this.calculateChangePercent(points),
     };

@@ -10,16 +10,14 @@ export interface TotpSecret {
   otpauthUrl: string;
 }
 
-export interface TotpServicePort {
+export abstract class TotpServicePort {
   /**
    * Generate a new TOTP secret
    */
-  generateSecret(label: string, issuer: string): TotpSecret;
+  abstract generateSecret(label: string, issuer: string): TotpSecret;
 
   /**
    * Verify a TOTP token against a secret
    */
-  verifyToken(secret: string, token: string, window?: number): boolean;
+  abstract verifyToken(secret: string, token: string, window?: number): boolean;
 }
-
-export const TOTP_SERVICE_PORT = Symbol('TotpServicePort');

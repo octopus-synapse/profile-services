@@ -5,14 +5,15 @@
  * Definition-driven - field extraction done generically from section item content.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   GenericSectionContent,
   GenericSectionWithMeta,
-  ResumeDataRepositoryPort,
   ResumeForLatexExport,
 } from '../../../domain/ports/resume-data.repository.port';
-import type { SectionOrderingPort } from '../../../domain/ports/section-ordering.port';
+import { ResumeDataRepositoryPort } from '../../../domain/ports/resume-data.repository.port';
+import { SectionOrderingPort } from '../../../domain/ports/section-ordering.port';
 
 // ============================================================================
 // DTOs & Types
@@ -31,6 +32,7 @@ export interface ExportLatexDto {
 export class ExportLatexUseCase {
   constructor(
     private readonly resumeDataRepository: ResumeDataRepositoryPort,
+    private readonly logger: LoggerPort,
     private readonly sectionOrdering?: SectionOrderingPort,
   ) {}
 
@@ -66,29 +68,29 @@ export class ExportLatexUseCase {
 
   private generateSimpleTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
-    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
+    const email = this.escapeLatex(resume.user.email ?? '');
     const phone = this.escapeLatex(resume.user.phone ?? resume.phone ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
-    let latex = `\\documentclass[11pt,a4paper]{article}
-\\usepackage[utf8]{inputenc}
-\\usepackage[T1]{fontenc}
-\\usepackage{geometry}
-\\usepackage{hyperref}
-\\usepackage{enumitem}
+    let latex = `\\documentclass[11pt,a4paper]{ article }
+\\usepackage[utf8]{ inputenc }
+\\usepackage[T1]{ fontenc }
+\\usepackage{ geometry }
+\\usepackage{ hyperref }
+\\usepackage{ enumitem }
 
-\\geometry{margin=1in}
+\\geometry{ margin=1in }
 
-\\begin{document}
+\\begin{ document }
 
 % Header
-\\begin{center}
+\\begin{ center }
 {\\LARGE \\textbf{${name}}}\\\\[0.3em]
 {\\large ${title}}\\\\[0.5em]
-${email}${phone ? ` \\textbar{} ${phone}` : ''}
-\\end{center}
+${email}${phone ? ` \\textbar{  } ${phone}` : ''}
+\\end{ center }
 
-\\vspace{1em}
+\\vspace{ 1em }
 `;
 
     // Render each section generically
@@ -98,7 +100,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
     }
 
     latex += `
-\\end{document}
+\\end{ document }
 `;
 
     return latex;
@@ -154,22 +156,22 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
 
   private generateModerncvTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
-    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
+    const email = this.escapeLatex(resume.user.email ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
     const nameParts = name.split(' ');
 
-    let latex = `\\documentclass[11pt,a4paper,sans]{moderncv}
-\\moderncvstyle{classic}
-\\moderncvcolor{blue}
+    let latex = `\\documentclass[11pt,a4paper,sans]{ moderncv }
+\\moderncvstyle{ classic }
+\\moderncvcolor{ blue }
 
-\\usepackage[utf8]{inputenc}
-\\usepackage[scale=0.75]{geometry}
+\\usepackage[utf8]{ inputenc }
+\\usepackage[scale=0.75]{ geometry }
 
 \\name{${nameParts[0]}}{${nameParts.slice(1).join(' ')}}
 \\title{${title}}
 \\email{${email}}
 
-\\begin{document}
+\\begin{ document }
 \\makecvtitle
 
 `;
@@ -181,7 +183,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
     }
 
     latex += `
-\\end{document}
+\\end{ document }
 `;
 
     return latex;
@@ -205,7 +207,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
 
       if (titleField && subtitleField) {
         // Entry format for experience/education style items
-        latex += `\\cventry{${startDate}--${endDate}}{${this.escapeLatex(titleField)}}{${this.escapeLatex(subtitleField)}}{}{}{${description}}
+        latex += `\\cventry{${startDate}--${endDate}}{${this.escapeLatex(titleField)}}{${this.escapeLatex(subtitleField)}}{  }{  }{${description}}
 `;
       } else if (titleField) {
         // Item format for simpler entries
@@ -216,7 +218,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
         const itemName = this.extractField(item, ['name', 'skill', 'language']);
         const level = this.extractField(item, ['level', 'proficiency']);
         if (itemName) {
-          latex += `\\cvitem{}{${this.escapeLatex(itemName)}${level ? ` (${this.escapeLatex(level)})` : ''}}
+          latex += `\\cvitem{  }{${this.escapeLatex(itemName)}${level ? ` (${this.escapeLatex(level)})` : ''}}
 `;
         }
       }
@@ -241,16 +243,16 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
   private escapeLatex(text: string): string {
     if (!text) return '';
     return text
-      .replace(/\\/g, '\\textbackslash{}')
+      .replace(/\\/g, '\\textbackslash{  }')
       .replace(/&/g, '\\&')
       .replace(/%/g, '\\%')
       .replace(/\$/g, '\\$')
       .replace(/#/g, '\\#')
       .replace(/_/g, '\\_')
-      .replace(/\{/g, '\\{')
-      .replace(/\}/g, '\\}')
-      .replace(/~/g, '\\textasciitilde{}')
-      .replace(/\^/g, '\\textasciicircum{}');
+      .replace(/\{/g, '\\{ ')
+      .replace(/ }/g, '\\}')
+      .replace(/~/g, '\\textasciitilde{  }')
+      .replace(/\^/g, '\\textasciicircum{  }');
   }
 
   private formatDate(date: Date | null | undefined): string {

@@ -65,11 +65,7 @@ export const PERMISSION_GROUPS = {
   },
 
   // User can use social features
-  SOCIAL: {
-    id: 'grp_social',
-    displayName: 'Social',
-    permissions: [Permission.SOCIAL_USE],
-  },
+  SOCIAL: { id: 'grp_social', displayName: 'Social', permissions: [Permission.SOCIAL_USE] },
 
   // User can use feed and jobs
   FEED_USER: {
@@ -136,6 +132,15 @@ export const PERMISSION_GROUPS = {
     id: 'grp_super_admin',
     displayName: 'Super Admin',
     permissions: [Permission.ADMIN_FULL_ACCESS],
+  },
+
+  // Beta automation access: rage-apply and auto-apply worker.
+  // Kept as a dedicated group so we can grant it to individual users from the
+  // admin UI without handing out broader admin privileges.
+  AUTOMATION_BETA: {
+    id: 'grp_automation_beta',
+    displayName: 'Automation Beta',
+    permissions: [Permission.RAGE_APPLY, Permission.AUTO_APPLY],
   },
 } as const satisfies Record<string, PermissionGroup>;
 

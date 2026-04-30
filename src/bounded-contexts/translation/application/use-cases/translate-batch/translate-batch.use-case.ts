@@ -37,10 +37,7 @@ export class TranslateBatchUseCase {
           translations.push(result.value);
         } else {
           const error = result.reason as Error | undefined;
-          failed.push({
-            text: batch[index],
-            error: error?.message ?? 'Unknown error',
-          });
+          failed.push({ text: batch[index], error: error?.message ?? 'Unknown error' });
         }
       });
     }

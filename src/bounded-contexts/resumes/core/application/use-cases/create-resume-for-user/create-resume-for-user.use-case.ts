@@ -1,5 +1,6 @@
-import type { CreateResume } from '@/shared-kernel';
-import type { ResumeEventPublisher } from '../../../../domain/ports';
+import type { CreateResume, LoggerPort } from '@/shared-kernel';
+import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions/resumes.exceptions';
+import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';
 
@@ -15,6 +16,7 @@ export class CreateResumeForUserUseCase {
   constructor(
     private readonly repository: ResumesRepositoryPort,
     private readonly eventPublisher: ResumeEventPublisher,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(userId: string, data: CreateResume): Promise<ResumeResult> {
@@ -23,18 +25,11 @@ export class CreateResumeForUserUseCase {
     const sanitizedTitle = sanitizeContent(data.title);
     const sanitizedSummary = sanitizeContent(data.summary);
 
-    const sanitizedData = {
-      ...data,
-      title: sanitizedTitle ?? '',
-      summary: sanitizedSummary,
-    };
+    const sanitizedData = { ...data, title: sanitizedTitle ?? '', summary: sanitizedSummary };
 
     const resume = await this.repository.createResumeForUser(userId, sanitizedData);
 
-    this.eventPublisher.publishResumeCreated(resume.id, {
-      userId,
-      title: resume.title ?? '',
-    });
+    this.eventPublisher.publishResumeCreated(resume.id, { userId, title: resume.title ?? '' });
 
     return resume;
   }
@@ -42,10 +37,7 @@ export class CreateResumeForUserUseCase {
   private async ensureUserHasSlots(userId: string): Promise<void> {
     const existing = await this.repository.findAllUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
-      const { UnprocessableEntityException } = await import('@nestjs/common');
-      throw new UnprocessableEntityException(
-        `Resume limit reached. Maximum ${MAX_RESUMES_PER_USER} resumes allowed.`,
-      );
+      throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
     }
   }
 }

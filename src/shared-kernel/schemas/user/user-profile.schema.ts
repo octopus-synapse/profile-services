@@ -78,28 +78,23 @@ export const UpdateFullPreferencesSchema = z.object({
   palette: z.string().optional(),
   bannerColor: z.string().optional(),
   name: z.string().max(100).optional(),
-  photoURL: UrlSchema.optional(),
-  // Localization
+  photoURL: UrlSchema.optional(), // Localization
   language: z.string().max(10).optional(),
   dateFormat: z.string().optional(),
-  timezone: z.string().max(50).optional(),
-  // Notifications
+  timezone: z.string().max(50).optional(), // Notifications
   emailNotifications: z.boolean().optional(),
   resumeExpiryAlerts: z.boolean().optional(),
   weeklyDigest: z.boolean().optional(),
   marketingEmails: z.boolean().optional(),
   emailMilestones: z.boolean().optional(),
   emailShareExpiring: z.boolean().optional(),
-  digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
-  // Privacy
+  digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(), // Privacy
   profileVisibility: z.string().optional(),
   showEmail: z.boolean().optional(),
   showPhone: z.boolean().optional(),
-  allowSearchEngineIndex: z.boolean().optional(),
-  // Export defaults
+  allowSearchEngineIndex: z.boolean().optional(), // Export defaults
   defaultExportFormat: z.string().optional(),
-  includePhotoInExport: z.boolean().optional(),
-  // Apply mode
+  includePhotoInExport: z.boolean().optional(), // Apply mode
   applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']).optional(),
   applyCriteria: UpdateApplyCriteriaSchema.optional(),
 });
@@ -113,9 +108,7 @@ export class UpdateFullPreferencesDto extends createZodDto(UpdateFullPreferences
  * Update Username Schema
  * Used for changing user's username.
  */
-export const UpdateUsernameSchema = z.object({
-  username: UsernameSchema,
-});
+export const UpdateUsernameSchema = z.object({ username: UsernameSchema });
 
 export type UpdateUsername = z.infer<typeof UpdateUsernameSchema>;
 

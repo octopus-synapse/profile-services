@@ -38,32 +38,34 @@ export interface SessionCookieOptions {
   domain?: string;
 }
 
-export interface SessionStoragePort {
+export abstract class SessionStoragePort {
   /**
    * Set session cookie with security options (httpOnly, secure, sameSite)
    * @param cookieWriter - Abstraction for writing cookies
    * @param sessionToken - JWT session token to store
    * @param expiresAt - Cookie expiration date
    */
-  setSessionCookie(cookieWriter: CookieWriter, sessionToken: string, expiresAt: Date): void;
+  abstract setSessionCookie(
+    cookieWriter: CookieWriter,
+    sessionToken: string,
+    expiresAt: Date,
+  ): void;
 
   /**
    * Read session cookie from request
    * @param cookieReader - Abstraction for reading cookies
    * @returns Session token string or null if not found
    */
-  getSessionCookie(cookieReader: CookieReader): string | null;
+  abstract getSessionCookie(cookieReader: CookieReader): string | null;
 
   /**
    * Clear session cookie (logout)
    * @param cookieWriter - Abstraction for writing cookies
    */
-  clearSessionCookie(cookieWriter: CookieWriter): void;
+  abstract clearSessionCookie(cookieWriter: CookieWriter): void;
 
   /**
    * Get cookie options for configuration/testing
    */
-  getCookieOptions(): SessionCookieOptions;
+  abstract getCookieOptions(): SessionCookieOptions;
 }
-
-export const SESSION_STORAGE_PORT = Symbol('SessionStoragePort');

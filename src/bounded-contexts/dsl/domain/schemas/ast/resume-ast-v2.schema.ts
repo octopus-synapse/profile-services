@@ -114,9 +114,7 @@ const EntrySubtitleTokensSchema = z.object({
   color: z.string(),
 });
 
-const EmploymentTypeTokensSchema = z.object({
-  separator: z.string(),
-});
+const EmploymentTypeTokensSchema = z.object({ separator: z.string() });
 
 const LinkTokensSchema = z.object({
   fontSize: z.number(),

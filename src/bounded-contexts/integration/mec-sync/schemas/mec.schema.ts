@@ -58,17 +58,11 @@ export const CourseSchema = z.object({
 export type Course = z.infer<typeof CourseSchema>;
 
 // Stats
-export const GrauCountSchema = z.object({
-  grau: z.string(),
-  count: z.number(),
-});
+export const GrauCountSchema = z.object({ grau: z.string(), count: z.number() });
 
 export type GrauCount = z.infer<typeof GrauCountSchema>;
 
-export const UfCountSchema = z.object({
-  uf: z.string(),
-  count: z.number(),
-});
+export const UfCountSchema = z.object({ uf: z.string(), count: z.number() });
 
 export type UfCount = z.infer<typeof UfCountSchema>;
 

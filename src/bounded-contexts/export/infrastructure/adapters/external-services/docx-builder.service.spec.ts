@@ -5,24 +5,19 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { createMockResume } from '@test/shared/factories/resume.factory';
-import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { UserDataPort } from '../../../domain/ports/user-data.port';
+import type { UserDataPort } from '../../../domain/ports/user-data.port';
 import { DocxBuilderService } from './docx-builder.service';
-import { DocxSectionsService } from './docx-sections.service';
-import { DocxStylesService } from './docx-styles.service';
+import type { DocxSectionsService } from './docx-sections.service';
+import type { DocxStylesService } from './docx-styles.service';
 
 describe('DocxBuilderService', () => {
   let service: DocxBuilderService;
 
-  const mockUser = {
-    id: 'user-1',
-    name: 'John Doe',
-    email: 'john@example.com',
-  };
+  const mockUser = { id: 'user-1', name: 'John Doe', email: 'john@example.com' };
 
   const mockResume = {
     ...createMockResume({
@@ -39,17 +34,11 @@ describe('DocxBuilderService', () => {
     children: [],
   };
 
-  const stubResumesRepository = {
-    findResumeByUserId: mock().mockResolvedValue(mockResume),
-  };
+  const stubResumesRepository = { findResumeByUserId: mock().mockResolvedValue(mockResume) };
 
-  const stubUsersRepository = {
-    findById: mock().mockResolvedValue(mockUser),
-  };
+  const stubUsersRepository = { findById: mock().mockResolvedValue(mockUser) };
 
-  const stubSectionsService = {
-    createMainSection: mock().mockReturnValue(mockSection),
-  };
+  const stubSectionsService = { createMainSection: mock().mockReturnValue(mockSection) };
 
   const stubStylesService = {
     getDocumentStyles: mock().mockReturnValue({
@@ -66,19 +55,14 @@ describe('DocxBuilderService', () => {
     }),
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DocxBuilderService,
-        { provide: ResumesRepository, useValue: stubResumesRepository },
-        { provide: UserDataPort, useValue: stubUsersRepository },
-        { provide: DocxSectionsService, useValue: stubSectionsService },
-        { provide: DocxStylesService, useValue: stubStylesService },
-        { provide: SectionTypeRepository, useValue: stubSectionTypeRepository },
-      ],
-    }).compile();
-
-    service = module.get<DocxBuilderService>(DocxBuilderService);
+  beforeEach(() => {
+    service = new DocxBuilderService(
+      stubResumesRepository as unknown as ResumesRepository,
+      stubUsersRepository as unknown as UserDataPort,
+      stubSectionsService as unknown as DocxSectionsService,
+      stubStylesService as unknown as DocxStylesService,
+      stubSectionTypeRepository as unknown as SectionTypeRepository,
+    );
   });
 
   describe('generate', () => {
@@ -108,10 +92,7 @@ describe('DocxBuilderService', () => {
 
       // Now uses generic sections instead of typed DocxResumeData
       expect(stubSectionsService.createMainSection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'John Doe',
-          email: 'john@example.com',
-        }),
+        expect.objectContaining({ name: 'John Doe', email: 'john@example.com' }),
         // Sections array is empty because mockResume.resumeSections is empty
         expect.arrayContaining([]),
       );

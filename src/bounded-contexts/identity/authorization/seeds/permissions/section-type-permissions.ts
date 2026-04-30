@@ -8,37 +8,27 @@ import type { CreatePermissionInput } from '../../domain/entities/permission.ent
 
 export const SECTION_TYPE_PERMISSIONS: CreatePermissionInput[] = [
   {
-    resource: 'section_types',
+    resource: 'section_type',
     action: 'create',
     description: 'Create section types',
     isSystem: true,
   },
+  { resource: 'section_type', action: 'read', description: 'View section types', isSystem: true },
   {
-    resource: 'section_types',
-    action: 'read',
-    description: 'View section types',
-    isSystem: true,
-  },
-  {
-    resource: 'section_types',
+    resource: 'section_type',
     action: 'update',
     description: 'Update section types',
     isSystem: true,
   },
   {
-    resource: 'section_types',
+    resource: 'section_type',
     action: 'delete',
     description: 'Delete section types',
     isSystem: true,
   },
+  { resource: 'section_type', action: 'list', description: 'List section types', isSystem: true },
   {
-    resource: 'section_types',
-    action: 'list',
-    description: 'List section types',
-    isSystem: true,
-  },
-  {
-    resource: 'section_types',
+    resource: 'section_type',
     action: 'manage',
     description: 'Full control over section types',
     isSystem: true,

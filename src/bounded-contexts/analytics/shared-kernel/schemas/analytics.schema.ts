@@ -45,9 +45,7 @@ export const KeywordOptionsSchema = z.object({
   targetRole: z.string().optional(),
 });
 
-export const JobMatchSchema = z.object({
-  jobDescription: z.string().min(10),
-});
+export const JobMatchSchema = z.object({ jobDescription: z.string().min(10) });
 
 export const BenchmarkOptionsSchema = z.object({
   industry: IndustryEnum,
@@ -65,12 +63,7 @@ export const HistoryQuerySchema = z.object({
 export const ViewStatsResponseSchema = z.object({
   totalViews: z.number().int().nonnegative(),
   uniqueVisitors: z.number().int().nonnegative(),
-  viewsByDay: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  viewsByDay: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
   topSources: z.array(
     z.object({
       source: z.string(),
@@ -116,11 +109,7 @@ export const KeywordSuggestionsResponseSchema = z.object({
   missingKeywords: z.array(z.string()),
   keywordDensity: z.number().min(0).max(1),
   warnings: z.array(
-    z.object({
-      type: z.string(),
-      message: z.string(),
-      affectedKeywords: z.array(z.string()),
-    }),
+    z.object({ type: z.string(), message: z.string(), affectedKeywords: z.array(z.string()) }),
   ),
   recommendations: z.array(z.string()),
 });
@@ -152,12 +141,7 @@ export const BenchmarkResponseSchema = z.object({
     commonCredentials: z.array(z.string()),
   }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-      action: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string(), action: z.string() }),
   ),
 });
 
@@ -170,33 +154,16 @@ export const DashboardResponseSchema = z.object({
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),
-  viewTrend: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
-  topSources: z.array(
-    z.object({
-      source: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  viewTrend: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
+  topSources: z.array(z.object({ source: z.string(), count: z.number().int().nonnegative() })),
   keywordHealth: z.object({
     score: z.number().min(0).max(100),
     topKeywords: z.array(z.string()),
     missingCritical: z.array(z.string()),
   }),
-  industryPosition: z.object({
-    percentile: z.number().min(0).max(100),
-    trend: TrendEnum,
-  }),
+  industryPosition: z.object({ percentile: z.number().min(0).max(100), trend: TrendEnum }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string() }),
   ),
 });
 
@@ -212,12 +179,7 @@ export const SnapshotResponseSchema = z.object({
 });
 
 export const ScoreProgressionResponseSchema = z.object({
-  snapshots: z.array(
-    z.object({
-      date: z.date(),
-      score: z.number().min(0).max(100),
-    }),
-  ),
+  snapshots: z.array(z.object({ date: z.date(), score: z.number().min(0).max(100) })),
   trend: TrendEnum,
   changePercent: z.number(),
 });
@@ -276,18 +238,8 @@ export const ShareAnalyticsSchema = z.object({
   totalViews: z.number().int().nonnegative(),
   uniqueVisitors: z.number().int().nonnegative(),
   downloads: z.number().int().nonnegative(),
-  topReferrers: z.array(
-    z.object({
-      referer: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
-  viewsByDate: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  topReferrers: z.array(z.object({ referer: z.string(), count: z.number().int().nonnegative() })),
+  viewsByDate: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
   lastViewedAt: z.string().datetime().nullable(),
 });
 
@@ -311,11 +263,7 @@ export const UserAnalyticsSummarySchema = z.object({
   totalDownloads: z.number().int().nonnegative(),
   totalShares: z.number().int().nonnegative(),
   mostViewedResume: z
-    .object({
-      id: z.string(),
-      title: z.string(),
-      views: z.number().int().nonnegative(),
-    })
+    .object({ id: z.string(), title: z.string(), views: z.number().int().nonnegative() })
     .nullable(),
 });
 

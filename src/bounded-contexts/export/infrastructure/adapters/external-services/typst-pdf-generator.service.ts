@@ -7,14 +7,15 @@
  * Pipeline: userId → load resume + DSL → compile ResumeAst → serialize JSON → Typst compile → PDF
  */
 
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { DslUseCases } from '@/bounded-contexts/dsl';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
-import { TypstCompilerService } from './typst-compiler.service';
-import { TypstDataSerializerService } from './typst-data-serializer.service';
+import type { TypstCompilerService } from './typst-compiler.service';
+import type { TypstDataSerializerService } from './typst-data-serializer.service';
 
 /** Map lang query param to SupportedLocale */
 function resolveLocale(lang?: string): SupportedLocale {
@@ -24,16 +25,13 @@ function resolveLocale(lang?: string): SupportedLocale {
   return 'pt-BR';
 }
 
-@Injectable()
 export class TypstPdfGeneratorService {
-  private readonly logger = new Logger(TypstPdfGeneratorService.name);
-
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => DslRepository))
-    private readonly dslRepository: DslRepository,
+    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -43,24 +41,28 @@ export class TypstPdfGeneratorService {
   async generate(options: PdfGeneratorOptions = {}): Promise<Buffer> {
     const userId = options.userId;
     if (!userId) {
-      throw new Error('userId is required for Typst PDF generation');
+      throw new TypstUserIdRequiredException();
     }
 
     const locale = resolveLocale(options.lang);
 
-    this.logger.log(`Generating Typst PDF for user ${userId} with locale ${locale}`);
+    this.logger.log(
+      `Generating Typst PDF for user ${userId} with locale ${locale}`,
+      'TypstPdfGeneratorService',
+    );
 
     // 1. Find resume: use explicit resumeId or fall back to user's primary
     const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
 
-    // 2. Use DslRepository to load resume + theme + compile AST
-    const { ast } = await this.dslRepository.render(
+    // 2. Render the resume DSL to AST via the use case (loads resume +
+    //    theme, validates, compiles)
+    const { ast } = await this.dsl.renderResumeDsl.execute({
       resumeId,
       userId,
-      'pdf',
+      target: 'pdf',
       locale,
-      options.themeStyleConfig,
-    );
+      themeStyleConfig: options.themeStyleConfig,
+    });
 
     // 3. Serialize AST to JSON for Typst templates
     const jsonData = this.serializer.serialize(ast);
@@ -74,7 +76,10 @@ export class TypstPdfGeneratorService {
       timeout: options.timeout,
     });
 
-    this.logger.log(`Typst PDF generated successfully (${buffer.length} bytes)`);
+    this.logger.log(
+      `Typst PDF generated successfully (${buffer.length} bytes)`,
+      'TypstPdfGeneratorService',
+    );
     return buffer;
   }
 

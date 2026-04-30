@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 import {
   type CreatedUser,
   type UpdatedUser,
@@ -15,7 +16,7 @@ const USER_LIST_SELECT = {
   email: true,
   name: true,
   username: true,
-  hasCompletedOnboarding: true,
+  onboardingCompletedAt: true,
   createdAt: true,
   updatedAt: true,
   image: true,
@@ -24,21 +25,19 @@ const USER_LIST_SELECT = {
   isActive: true,
   lastLoginAt: true,
   _count: {
-    select: {
-      resumes: true,
-    },
+    select: { resumes: true },
   },
 } as const;
 
 export class UserManagementRepository extends UserManagementRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
-  async findUsers(options: UserListOptions): Promise<{
-    users: UserListItem[];
-    total: number;
-  }> {
+  async findUsers(options: UserListOptions): Promise<{ users: UserListItem[]; total: number }> {
     const { page, limit, search } = options;
     const skip = (page - 1) * limit;
 
@@ -60,7 +59,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       email: user.email,
       name: user.name,
       username: user.username,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       image: user.image,
@@ -86,14 +85,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       where: { id: userId },
       include: {
         resumes: {
-          select: {
-            id: true,
-            title: true,
-            template: true,
-            isPublic: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+          select: { id: true, title: true, isPublic: true, createdAt: true, updatedAt: true },
         },
         preferences: true,
         _count: {
@@ -109,7 +101,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       email: user.email,
       name: user.name,
       username: user.username,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       image: user.image,
@@ -129,22 +121,13 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
     name?: string;
   }): Promise<CreatedUser> {
     return this.prisma.user.create({
-      data: {
-        email: data.email,
-        passwordHash: data.hashedPassword,
-        name: data.name,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-      },
+      data: { email: data.email, passwordHash: data.hashedPassword, name: data.name },
+      select: { id: true, email: true, name: true, createdAt: true },
     });
   }
 
   async updateUser(userId: string, data: UpdateUserData): Promise<UpdatedUser> {
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data,
       select: {
@@ -152,10 +135,18 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
         email: true,
         name: true,
         username: true,
-        hasCompletedOnboarding: true,
+        onboardingCompletedAt: true,
         updatedAt: true,
       },
     });
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      hasCompletedOnboarding: user.onboardingCompletedAt !== null,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async deleteUser(userId: string): Promise<void> {

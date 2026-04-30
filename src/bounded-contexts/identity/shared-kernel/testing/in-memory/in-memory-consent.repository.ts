@@ -8,9 +8,9 @@
 import type {
   ConsentDocumentType,
   ConsentRecord,
-  ConsentRepositoryPort,
   CreateConsentData,
 } from '../../../account-lifecycle/domain/ports/consent-repository.port';
+import { ConsentRepositoryPort } from '../../../account-lifecycle/domain/ports/consent-repository.port';
 
 export class InMemoryConsentRepository implements ConsentRepositoryPort {
   private consents: Map<string, ConsentRecord> = new Map();

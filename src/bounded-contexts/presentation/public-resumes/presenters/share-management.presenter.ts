@@ -38,11 +38,7 @@ export function toSharePayloadList(shares: ShareRow[]): SharePayload[] {
   return out;
 }
 
-export type AliasPayload = {
-  id: string;
-  slug: string;
-  shareId: string;
-};
+export type AliasPayload = { id: string; slug: string; shareId: string };
 
 interface AliasRow {
   id: string;

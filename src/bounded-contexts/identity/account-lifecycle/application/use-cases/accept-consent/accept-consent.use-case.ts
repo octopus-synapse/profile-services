@@ -5,17 +5,16 @@
  * with audit trail including IP and user agent.
  */
 
+import { LoggerPort } from '@/shared-kernel';
 import type { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import { AuditAction } from '../../../domain/ports/audit-logger.port';
 import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.dto';
 import type { ConsentRepositoryPort } from './accept-consent.port';
 
-export const VERSION_CONFIG_PORT = Symbol('VersionConfigPort');
-
-export interface VersionConfigPort {
-  getTosVersion(): string;
-  getPrivacyPolicyVersion(): string;
-  getMarketingConsentVersion(): string;
+export abstract class VersionConfigPort {
+  abstract getTosVersion(): string;
+  abstract getPrivacyPolicyVersion(): string;
+  abstract getMarketingConsentVersion(): string;
 }
 
 export class AcceptConsentUseCase {
@@ -23,6 +22,7 @@ export class AcceptConsentUseCase {
     private readonly consentRepository: ConsentRepositoryPort,
     private readonly versionConfig: VersionConfigPort,
     private readonly auditLogger: AuditLoggerPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: AcceptConsentInput): Promise<AcceptConsentOutput> {

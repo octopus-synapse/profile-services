@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { RESUME_EVENT_PUBLISHER, type ResumeEventPublisher } from '../domain/ports';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeEventPublisher } from '../domain/ports';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 import { ResumesServicePort, type UserResumesPaginatedResult } from './ports/resumes-service.port';
@@ -19,12 +19,10 @@ function sanitizeContent(text: string | undefined | null): string | undefined {
   return text.replace(/<[^>]*>/g, '');
 }
 
-@Injectable()
 export class ResumesService extends ResumesServicePort {
   constructor(
     private readonly repository: ResumesRepositoryPort,
     private readonly versionService: ResumeVersionServicePort,
-    @Inject(RESUME_EVENT_PUBLISHER)
     private readonly eventPublisher: ResumeEventPublisher,
   ) {
     super();
@@ -144,10 +142,7 @@ export class ResumesService extends ResumesServicePort {
   private async ensureUserHasSlots(userId: string): Promise<void> {
     const existing = await this.repository.findAllUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
-      const { UnprocessableEntityException } = await import('@nestjs/common');
-      throw new UnprocessableEntityException(
-        `Resume limit reached. Maximum ${MAX_RESUMES_PER_USER} resumes allowed.`,
-      );
+      throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
     }
   }
 

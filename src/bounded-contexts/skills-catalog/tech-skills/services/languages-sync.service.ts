@@ -3,11 +3,9 @@
  * Single Responsibility: Sync programming languages to database
  */
 
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ParsedLanguage } from '../interfaces';
 
-@Injectable()
 export class LanguagesSyncService {
   constructor(private readonly prisma: PrismaService) {}
 

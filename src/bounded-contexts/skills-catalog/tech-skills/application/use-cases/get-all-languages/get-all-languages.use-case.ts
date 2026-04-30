@@ -1,11 +1,13 @@
+import type { LoggerPort } from '@/shared-kernel';
 import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../../../interfaces';
-import type { CachePort, ProgrammingLanguageRepositoryPort } from '../../ports/tech-skills.port';
+import { CachePort, ProgrammingLanguageRepositoryPort } from '../../ports/tech-skills.port';
 
 export class GetAllLanguagesUseCase {
   constructor(
     private readonly repository: ProgrammingLanguageRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(): Promise<ProgrammingLanguage[]> {

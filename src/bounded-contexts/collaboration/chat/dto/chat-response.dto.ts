@@ -71,25 +71,15 @@ const PaginatedConversationsSchema = z.object({
 // Response Wrapper Schemas
 // ============================================================================
 
-const ChatMessageDataSchema = z.object({
-  message: MessageSchema,
-});
+const ChatMessageDataSchema = z.object({ message: MessageSchema });
 
-const ConversationsListDataSchema = z.object({
-  conversations: PaginatedConversationsSchema,
-});
+const ConversationsListDataSchema = z.object({ conversations: PaginatedConversationsSchema });
 
-const ConversationDataSchema = z.object({
-  conversation: ConversationSchema,
-});
+const ConversationDataSchema = z.object({ conversation: ConversationSchema });
 
-const MessagesListDataSchema = z.object({
-  messages: PaginatedMessagesSchema,
-});
+const MessagesListDataSchema = z.object({ messages: PaginatedMessagesSchema });
 
-const MarkAsReadDataSchema = z.object({
-  count: z.number().int(),
-});
+const MarkAsReadDataSchema = z.object({ count: z.number().int() });
 
 const UnreadCountDataSchema = z.object({
   totalUnread: z.number().int(),
@@ -131,8 +121,6 @@ const ChatUserSearchItemSchema = z.object({
   photoURL: z.string().nullable(),
 });
 
-const ChatUserSearchDataSchema = z.object({
-  users: z.array(ChatUserSearchItemSchema),
-});
+const ChatUserSearchDataSchema = z.object({ users: z.array(ChatUserSearchItemSchema) });
 
 export class ChatUserSearchDataDto extends createZodDto(ChatUserSearchDataSchema) {}

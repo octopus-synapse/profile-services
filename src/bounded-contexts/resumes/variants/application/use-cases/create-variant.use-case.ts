@@ -1,23 +1,20 @@
+import { LoggerPort } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/resumes.exceptions';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
 
-export interface BaseResumeReader {
-  findById(id: string): Promise<{ id: string; userId: string; isBase: boolean } | null>;
+export abstract class BaseResumeReader {
+  abstract findById(id: string): Promise<{ id: string; userId: string; isBase: boolean } | null>;
 }
-
-export const BASE_RESUME_READER = Symbol('BASE_RESUME_READER');
 
 export class CreateVariantUseCase {
   constructor(
     private readonly variantRepo: VariantRepositoryPort,
     private readonly resumeReader: BaseResumeReader,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: {
@@ -29,9 +26,9 @@ export class CreateVariantUseCase {
     orderOverrides?: Record<string, number>;
   }): Promise<VariantData> {
     const baseResume = await this.resumeReader.findById(input.baseResumeId);
-    if (!baseResume) throw new EntityNotFoundException('Resume', input.baseResumeId);
+    if (!baseResume) throw new ResumeNotFoundException();
 
-    if (baseResume.userId !== input.userId) throw new ForbiddenException();
+    if (baseResume.userId !== input.userId) throw new ResumeAccessDeniedException();
 
     const createInput: CreateVariantInput = {
       baseResumeId: input.baseResumeId,

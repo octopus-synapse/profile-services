@@ -1,25 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import {
+  type SessionDevicePort,
+  type SessionDeviceView,
+} from '../../application/ports/session-device.port';
 
-export interface SessionDeviceView {
-  id: string;
-  createdAt: string;
-  lastUsedAt: string | null;
-  expiresAt: string;
-  ipAddress: string | null;
-  userAgent: string | null;
-  deviceName: string | null;
-  revoked: boolean;
-}
+export type { SessionDeviceView };
 
 /**
  * Adapter service that reads/revokes refresh-token records tied to a user's
  * sessions. Kept as an infrastructure adapter (not a domain use-case) because
  * it's a thin persistence facade over RefreshToken rows — the authentication
  * domain owns its own ports/use-cases separately.
+ *
+ * Implements `SessionDevicePort` so framework-free route descriptors can
+ * depend on the abstract port via the BC's HTTP bundle.
  */
-@Injectable()
-export class SessionDeviceService {
+export class SessionDeviceService implements SessionDevicePort {
   constructor(private readonly prisma: PrismaService) {}
 
   async listActiveForUser(userId: string): Promise<SessionDeviceView[]> {
@@ -34,6 +31,7 @@ export class SessionDeviceService {
         ipAddress: true,
         userAgent: true,
         deviceName: true,
+        authMethod: true,
         revokedAt: true,
       },
     });
@@ -46,7 +44,7 @@ export class SessionDeviceService {
       data: { revokedAt: new Date() },
     });
     if (result.count === 0) {
-      throw new NotFoundException('Session not found or already revoked');
+      throw new EntityNotFoundException('Session', id);
     }
   }
 
@@ -58,6 +56,7 @@ export class SessionDeviceService {
     ipAddress: string | null;
     userAgent: string | null;
     deviceName: string | null;
+    authMethod: string | null;
     revokedAt: Date | null;
   }): SessionDeviceView {
     return {
@@ -68,6 +67,7 @@ export class SessionDeviceService {
       ipAddress: t.ipAddress,
       userAgent: t.userAgent,
       deviceName: t.deviceName,
+      authMethod: t.authMethod,
       revoked: t.revokedAt !== null,
     };
   }

@@ -2,9 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 // Request Schema
-const VerifyAndEnable2faRequestSchema = z.object({
-  code: z.string().length(6),
-});
+const VerifyAndEnable2faRequestSchema = z.object({ code: z.string().length(6) });
 
 // Response Schema
 const VerifyAndEnable2faResponseSchema = z.object({

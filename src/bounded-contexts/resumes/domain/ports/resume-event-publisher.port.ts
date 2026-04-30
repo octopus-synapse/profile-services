@@ -18,15 +18,13 @@ import type {
   VersionRestoredPayload,
 } from '../events';
 
-export interface ResumeEventPublisher {
-  publishResumeCreated(resumeId: string, payload: ResumeCreatedPayload): void;
-  publishResumeUpdated(resumeId: string, payload: ResumeUpdatedPayload): void;
-  publishResumeDeleted(resumeId: string, payload: ResumeDeletedPayload): void;
-  publishSectionAdded(resumeId: string, payload: SectionAddedPayload): void;
-  publishSectionUpdated(resumeId: string, payload: SectionUpdatedPayload): void;
-  publishSectionRemoved(resumeId: string, payload: SectionRemovedPayload): void;
-  publishVersionCreated(resumeId: string, payload: VersionCreatedPayload): void;
-  publishVersionRestored(resumeId: string, payload: VersionRestoredPayload): void;
+export abstract class ResumeEventPublisher {
+  abstract publishResumeCreated(resumeId: string, payload: ResumeCreatedPayload): void;
+  abstract publishResumeUpdated(resumeId: string, payload: ResumeUpdatedPayload): void;
+  abstract publishResumeDeleted(resumeId: string, payload: ResumeDeletedPayload): void;
+  abstract publishSectionAdded(resumeId: string, payload: SectionAddedPayload): void;
+  abstract publishSectionUpdated(resumeId: string, payload: SectionUpdatedPayload): void;
+  abstract publishSectionRemoved(resumeId: string, payload: SectionRemovedPayload): void;
+  abstract publishVersionCreated(resumeId: string, payload: VersionCreatedPayload): void;
+  abstract publishVersionRestored(resumeId: string, payload: VersionRestoredPayload): void;
 }
-
-export const RESUME_EVENT_PUBLISHER = Symbol('RESUME_EVENT_PUBLISHER');

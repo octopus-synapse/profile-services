@@ -9,30 +9,26 @@ import type {
   TranslationResult,
 } from '../../domain/types/translation.types';
 
-export const TRANSLATION_USE_CASES = Symbol('TRANSLATION_USE_CASES');
-
-export interface TranslationUseCases {
-  translateTextUseCase: {
+export abstract class TranslationUseCases {
+  abstract readonly translateTextUseCase: {
     execute: (
       text: string,
       sourceLanguage: TranslationLanguage,
       targetLanguage: TranslationLanguage,
     ) => Promise<TranslationResult>;
   };
-  translateBatchUseCase: {
+  abstract readonly translateBatchUseCase: {
     execute: (
       texts: string[],
       sourceLanguage: TranslationLanguage,
       targetLanguage: TranslationLanguage,
     ) => Promise<BatchTranslationResult>;
   };
-  translateResumeUseCase: {
+  abstract readonly translateResumeUseCase: {
     execute: (
       resumeData: Record<string, unknown>,
       direction: 'pt-to-en' | 'en-to-pt',
     ) => Promise<Record<string, unknown>>;
   };
-  checkTranslationHealthUseCase: {
-    execute: () => Promise<boolean>;
-  };
+  abstract readonly checkTranslationHealthUseCase: { execute: () => Promise<boolean> };
 }

@@ -1,4 +1,4 @@
-import type { ConversationRepositoryPort } from '../../ports/chat.port';
+import { ConversationRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationIdUseCase {
   constructor(private readonly conversationRepo: ConversationRepositoryPort) {}

@@ -1,7 +1,5 @@
-import type {
-  SpokenLanguage,
-  SpokenLanguagesRepositoryPort,
-} from '../../ports/spoken-languages.port';
+import type { SpokenLanguage } from '../../ports/spoken-languages.port';
+import { SpokenLanguagesRepositoryPort } from '../../ports/spoken-languages.port';
 
 export class GetActiveSpokenLanguagesUseCase {
   constructor(private readonly repository: SpokenLanguagesRepositoryPort) {}

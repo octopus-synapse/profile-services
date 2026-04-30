@@ -76,16 +76,16 @@ export function validateGroup(props: GroupPropsForValidation): GroupValidationRe
   const parentError = validateParentId(props.parentId, props.id);
   if (parentError) errors.push(parentError);
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
+  return { isValid: errors.length === 0, errors };
 }
 
 /** Throws if validation fails */
 export function assertGroupValid(props: GroupPropsForValidation): void {
   const result = validateGroup(props);
   if (!result.isValid) {
+    // Construction-time domain assertion (same pattern as Role/Permission entities).
+    // Not user-facing: callers must use validateGroup() and surface errors via
+    // their own domain exceptions when handling user input.
     throw new Error(result.errors[0]);
   }
 }

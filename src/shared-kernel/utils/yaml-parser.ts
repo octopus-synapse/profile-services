@@ -84,7 +84,7 @@ function parseScalar(value: string): YamlValue {
   if (value.startsWith('[') && value.endsWith(']')) {
     const inner = value.slice(1, -1).trim();
     if (inner === '') return [];
-    return inner.split(',').map((s) => parseScalar(s.trim()));
+    return inner.split(', ').map((s) => parseScalar(s.trim()));
   }
 
   const num = Number(value);

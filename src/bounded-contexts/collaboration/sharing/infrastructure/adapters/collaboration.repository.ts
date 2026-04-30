@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser, SharedResume } from '../../domain/types/collaboration.types';
 
-@Injectable()
 export class PrismaCollaborationRepository extends CollaborationRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
     super();

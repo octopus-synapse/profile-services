@@ -13,9 +13,7 @@ import { TranslateBatchUseCase } from './translate-batch.use-case';
 
 describe('TranslateBatchUseCase', () => {
   let useCase: TranslateBatchUseCase;
-  let fakeTranslationService: {
-    translate: ReturnType<typeof mock>;
-  };
+  let fakeTranslationService: { translate: ReturnType<typeof mock> };
 
   beforeEach(() => {
     fakeTranslationService = {

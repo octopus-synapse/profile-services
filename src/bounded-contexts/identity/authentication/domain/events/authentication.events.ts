@@ -58,10 +58,7 @@ export class UserLoggedOutEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      logoutType: this.logoutType,
-    };
+    return { userId: this.userId, logoutType: this.logoutType };
   }
 }
 
@@ -92,11 +89,7 @@ export class LoginFailedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      email: this.email,
-      reason: this.reason,
-      ipAddress: this.ipAddress,
-    };
+    return { email: this.email, reason: this.reason, ipAddress: this.ipAddress };
   }
 }
 
@@ -119,9 +112,7 @@ export class TokenRefreshedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-    };
+    return { userId: this.userId };
   }
 }
 
@@ -181,10 +172,6 @@ export class SessionTerminatedEvent extends DomainEvent {
   }
 
   protected getPayload(): Record<string, unknown> {
-    return {
-      sessionId: this.sessionId,
-      userId: this.userId,
-      reason: this.reason,
-    };
+    return { sessionId: this.sessionId, userId: this.userId, reason: this.reason };
   }
 }

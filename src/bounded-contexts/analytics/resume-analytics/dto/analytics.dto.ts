@@ -60,18 +60,14 @@ const KeywordOptionsSchema = z.object({
   targetRole: z.string().optional(),
 });
 
-const JobMatchRequestSchema = z.object({
-  jobDescription: z.string().min(10),
-});
+const JobMatchRequestSchema = z.object({ jobDescription: z.string().min(10) });
 
 const BenchmarkOptionsSchema = z.object({
   industry: IndustryEnum,
   experienceLevel: ExperienceLevelEnum.optional(),
 });
 
-const HistoryQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-});
+const HistoryQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(100).default(10) });
 
 const CreateSnapshotRequestSchema = z.object({
   label: z.string().optional(),
@@ -85,12 +81,7 @@ const CreateSnapshotRequestSchema = z.object({
 const ViewStatsResponseSchema = z.object({
   totalViews: z.number().int().nonnegative(),
   uniqueVisitors: z.number().int().nonnegative(),
-  viewsByDay: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  viewsByDay: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
   topSources: z.array(
     z.object({
       source: z.string(),
@@ -136,11 +127,7 @@ const KeywordSuggestionsResponseSchema = z.object({
   missingKeywords: z.array(z.string()),
   keywordDensity: z.number().min(0).max(1),
   warnings: z.array(
-    z.object({
-      type: z.string(),
-      message: z.string(),
-      affectedKeywords: z.array(z.string()),
-    }),
+    z.object({ type: z.string(), message: z.string(), affectedKeywords: z.array(z.string()) }),
   ),
   recommendations: z.array(z.string()),
 });
@@ -172,12 +159,7 @@ const BenchmarkResponseSchema = z.object({
     commonCredentials: z.array(z.string()),
   }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-      action: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string(), action: z.string() }),
   ),
 });
 
@@ -190,33 +172,16 @@ const DashboardResponseSchema = z.object({
     keywordScore: z.number().min(0).max(100),
     industryPercentile: z.number().min(0).max(100),
   }),
-  viewTrend: z.array(
-    z.object({
-      date: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
-  topSources: z.array(
-    z.object({
-      source: z.string(),
-      count: z.number().int().nonnegative(),
-    }),
-  ),
+  viewTrend: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
+  topSources: z.array(z.object({ source: z.string(), count: z.number().int().nonnegative() })),
   keywordHealth: z.object({
     score: z.number().min(0).max(100),
     topKeywords: z.array(z.string()),
     missingCritical: z.array(z.string()),
   }),
-  industryPosition: z.object({
-    percentile: z.number().min(0).max(100),
-    trend: TrendEnum,
-  }),
+  industryPosition: z.object({ percentile: z.number().min(0).max(100), trend: TrendEnum }),
   recommendations: z.array(
-    z.object({
-      type: z.string(),
-      priority: PriorityEnum,
-      message: z.string(),
-    }),
+    z.object({ type: z.string(), priority: PriorityEnum, message: z.string() }),
   ),
 });
 
@@ -232,12 +197,7 @@ const SnapshotResponseSchema = z.object({
 });
 
 const ScoreProgressionResponseSchema = z.object({
-  snapshots: z.array(
-    z.object({
-      date: z.date(),
-      score: z.number().min(0).max(100),
-    }),
-  ),
+  snapshots: z.array(z.object({ date: z.date(), score: z.number().min(0).max(100) })),
   trend: TrendEnum,
   changePercent: z.number(),
 });
@@ -264,9 +224,7 @@ export class CreateSnapshotRequestDto extends createZodDto(CreateSnapshotRequest
 // COMMON RESPONSE SCHEMAS
 // ============================================================================
 
-const MessageResponseSchema = z.object({
-  message: z.string(),
-});
+const MessageResponseSchema = z.object({ message: z.string() });
 
 // ============================================================================
 // RESPONSE DTOs (using createZodDto)

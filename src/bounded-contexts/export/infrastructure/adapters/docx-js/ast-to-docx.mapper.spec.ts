@@ -95,9 +95,7 @@ describe('mapAstToDocxDocument', () => {
           title: 'Summary',
           order: 0,
           semanticKind: 'summary',
-          data: {
-            content: 'Experienced software engineer with 5 years of practice.',
-          },
+          data: { content: 'Experienced software engineer with 5 years of practice.' },
         },
       ],
     });

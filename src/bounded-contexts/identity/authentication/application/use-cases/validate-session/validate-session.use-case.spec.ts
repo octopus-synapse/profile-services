@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {
   createSessionAuthUser,
@@ -22,11 +23,20 @@ describe('ValidateSessionUseCase', () => {
   let tokenGenerator: InMemoryTokenGenerator;
   let sessionStorage: InMemorySessionStorage;
 
+  // SKIP_EMAIL_VERIFICATION=true in the dev .env flips needsEmailVerification
+  // to false regardless of the user. Force it off so tests are deterministic.
+  let previousSkipEnv: string | undefined;
   beforeEach(() => {
+    previousSkipEnv = process.env.SKIP_EMAIL_VERIFICATION;
+    process.env.SKIP_EMAIL_VERIFICATION = 'false';
     repository = new InMemoryAuthenticationRepository();
     tokenGenerator = new InMemoryTokenGenerator();
     sessionStorage = new InMemorySessionStorage();
-    useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
+    useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage, stubLogger);
+  });
+  afterEach(() => {
+    if (previousSkipEnv === undefined) delete process.env.SKIP_EMAIL_VERIFICATION;
+    else process.env.SKIP_EMAIL_VERIFICATION = previousSkipEnv;
   });
 
   it('returns success with user data for a valid session', async () => {
@@ -171,7 +181,10 @@ describe('ValidateSessionUseCase', () => {
     expect(result.success).toBe(true);
     expect(result.user).not.toBeNull();
     expect(result.user?.isAdmin).toBe(true);
-    expect(result.user?.needsOnboarding).toBe(true);
+    // Admins bypass onboarding — the invariant is only enforced on accounts
+    // that carry `role_user_standard`. This admin has roles
+    // [role_admin, role_user] and must not be flagged as needing onboarding.
+    expect(result.user?.needsOnboarding).toBe(false);
     expect(result.user?.needsEmailVerification).toBe(true);
     expect(result.user?.role).toBe('ADMIN');
     expect(result.user?.roles).toEqual(['role_admin', 'role_user']);

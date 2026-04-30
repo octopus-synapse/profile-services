@@ -4,7 +4,7 @@
  * Pure test implementation following clean architecture.
  */
 
-import type { SearchServicePort } from '../ports';
+import { SearchServicePort } from '../ports';
 import type { SearchParams, SearchResult, SearchResultItem } from '../resume-search.service';
 
 export class InMemorySearchService implements SearchServicePort {
@@ -45,13 +45,7 @@ export class InMemorySearchService implements SearchServicePort {
     const start = (page - 1) * limit;
     const data = filtered.slice(start, start + limit);
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async suggest(prefix: string, limit = 10): Promise<string[]> {

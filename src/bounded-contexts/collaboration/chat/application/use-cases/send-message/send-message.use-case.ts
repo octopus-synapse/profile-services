@@ -1,12 +1,13 @@
+import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
-  ForbiddenException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  CannotMessageSelfException,
+  CannotSendMessageToUserException,
+} from '../../../../domain/exceptions/collaboration.exceptions';
 import { MessageSentEvent } from '../../../../shared-kernel/domain/events';
 import type { MessageResponse, SendMessage } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
-import type {
+import {
   BlockedUserRepositoryPort,
   ChatCachePort,
   ConversationRepositoryPort,
@@ -20,16 +21,17 @@ export class SendMessageUseCase {
     private readonly blockedUserRepo: BlockedUserRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
     private readonly chatCache: ChatCachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(senderId: string, dto: SendMessage): Promise<MessageResponse> {
     const isBlocked = await this.blockedUserRepo.isBlockedBetween(senderId, dto.recipientId);
     if (isBlocked) {
-      throw new ForbiddenException('Cannot send message to this user');
+      throw new CannotSendMessageToUserException();
     }
 
     if (senderId === dto.recipientId) {
-      throw new ValidationException('Cannot send message to yourself');
+      throw new CannotMessageSelfException();
     }
 
     const conversation = await this.conversationRepo.findOrCreate(senderId, dto.recipientId);

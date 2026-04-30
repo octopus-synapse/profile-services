@@ -1,20 +1,14 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { PasswordRepositoryPort, UserWithPassword } from '../../../domain/ports';
+import type { UserWithPassword } from '../../../domain/ports';
+import { PasswordRepositoryPort } from '../../../domain/ports';
 
-@Injectable()
 export class PrismaPasswordRepository implements PasswordRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<UserWithPassword | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        passwordHash: true,
-      },
+      select: { id: true, email: true, name: true, passwordHash: true },
     });
 
     if (!user?.passwordHash) {
@@ -32,12 +26,7 @@ export class PrismaPasswordRepository implements PasswordRepositoryPort {
   async findById(userId: string): Promise<UserWithPassword | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        passwordHash: true,
-      },
+      select: { id: true, email: true, name: true, passwordHash: true },
     });
 
     if (!user?.passwordHash) {

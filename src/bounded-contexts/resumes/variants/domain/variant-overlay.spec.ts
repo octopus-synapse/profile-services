@@ -127,12 +127,7 @@ describe('applyVariantOverlay', () => {
         order: 0,
         items: [{ id: 'item-1', content: { title: 'Engineer' }, isVisible: true, order: 0 }],
       }),
-      makeSection({
-        id: 'section-skills',
-        title: 'Skills',
-        order: 1,
-        items: [],
-      }),
+      makeSection({ id: 'section-skills', title: 'Skills', order: 1, items: [] }),
     ];
 
     const overrides: VariantOverrides = {

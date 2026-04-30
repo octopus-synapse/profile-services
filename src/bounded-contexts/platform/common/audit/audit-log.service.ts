@@ -3,15 +3,14 @@
  * Single Responsibility: Track security-critical and compliance-related actions
  *
  * Usage:
- *   constructor(private auditLog: AuditLogService) {}
+ *   constructor(private auditLog: AuditLogService) {  }
  *   await this.auditLog.log(userId, AuditAction.USERNAME_CHANGED, 'User', userId, { before, after }, request);
  */
 
-import { Injectable } from '@nestjs/common';
 import { AuditAction, Prisma } from '@prisma/client';
 import type { Request } from 'express';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../logger/logger.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
 export interface AuditMetadata {
   ipAddress?: string;
@@ -27,16 +26,13 @@ export interface RequestMetadataSource {
   method?: string;
   originalUrl?: string;
   path?: string;
-  socket?: {
-    remoteAddress?: string;
-  };
+  socket?: { remoteAddress?: string };
 }
 
-@Injectable()
 export class AuditLogService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -53,10 +49,7 @@ export class AuditLogService {
     action: AuditAction,
     entityType: string,
     entityId: string,
-    changes?: {
-      before?: Prisma.InputJsonValue;
-      after?: Prisma.InputJsonValue;
-    },
+    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
     request?: RequestMetadataSource,
   ): Promise<void> {
     try {
@@ -135,9 +128,7 @@ export class AuditLogService {
       AuditAction.RESUME_DELETED,
       'Resume',
       resumeId,
-      {
-        before: resumeData,
-      },
+      { before: resumeData },
       request,
     );
   }
@@ -219,10 +210,7 @@ export class AuditLogService {
       AuditAction.PREFERENCES_UPDATED,
       'UserPreferences',
       userId,
-      {
-        before: oldPreferences,
-        after: newPreferences,
-      },
+      { before: oldPreferences, after: newPreferences },
       request,
     );
   }
@@ -258,11 +246,7 @@ export class AuditLogService {
       take: limit,
       include: {
         user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
+          select: { id: true, username: true, email: true },
         },
       },
     });
@@ -316,9 +300,7 @@ export class AuditLogService {
 
     const result = await this.prisma.auditLog.deleteMany({
       where: {
-        createdAt: {
-          lt: cutoffDate,
-        },
+        createdAt: { lt: cutoffDate },
       },
     });
 

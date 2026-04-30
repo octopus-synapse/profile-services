@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class ConversationRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   /**
    * Find or create a conversation between two users.
@@ -19,20 +21,10 @@ export class ConversationRepository {
       },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -43,20 +35,10 @@ export class ConversationRepository {
       data: { participant1Id, participant2Id },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -70,20 +52,10 @@ export class ConversationRepository {
       where: { id: conversationId },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });
@@ -107,20 +79,10 @@ export class ConversationRepository {
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
         participant1: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
         participant2: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-            username: true,
-          },
+          select: { id: true, name: true, photoURL: true, username: true },
         },
       },
     });

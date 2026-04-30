@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export type Proficiency = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
@@ -10,7 +9,6 @@ export interface UserSkillProficiency {
   updatedAt: Date;
 }
 
-@Injectable()
 export class SkillProficiencyService {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -18,12 +16,7 @@ export class SkillProficiencyService {
     return this.prisma.userSkillProficiency.findMany({
       where: { userId },
       orderBy: { skillName: 'asc' },
-      select: {
-        skillName: true,
-        proficiency: true,
-        yearsOfExperience: true,
-        updatedAt: true,
-      },
+      select: { skillName: true, proficiency: true, yearsOfExperience: true, updatedAt: true },
     });
   }
 

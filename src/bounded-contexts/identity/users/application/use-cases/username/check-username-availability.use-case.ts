@@ -1,4 +1,5 @@
-import type { UsernameAvailability, UsernameRepositoryPort } from '../../ports/username.port';
+import type { UsernameAvailability } from '../../ports/username.port';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 
 /**
  * Check Username Availability Use Case
@@ -13,9 +14,6 @@ export class CheckUsernameAvailabilityUseCase {
     const normalizedUsername = username.toLowerCase();
     const isTaken = await this.repository.isUsernameTaken(normalizedUsername, userId);
 
-    return {
-      username: normalizedUsername,
-      available: !isTaken,
-    };
+    return { username: normalizedUsername, available: !isTaken };
   }
 }

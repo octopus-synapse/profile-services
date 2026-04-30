@@ -11,10 +11,11 @@ import {
   InMemoryATSScoreRepository,
 } from '@/bounded-contexts/analytics/testing';
 import { EventPublisherPort } from '@/shared-kernel';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
-import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { CalculateAtsScoreUseCase } from './calculate-ats-score.use-case';
 
 class StubEventBus extends AnalyticsEventBusPort {
@@ -40,7 +41,6 @@ describe('CalculateAtsScoreUseCase', () => {
 
   const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Experienced full-stack developer with 5 years of experience',
-    emailContact: 'test@example.com',
     phone: '+1234567890',
     jobTitle: 'Software Engineer',
     sections: [
@@ -79,9 +79,16 @@ describe('CalculateAtsScoreUseCase', () => {
     const eventPublisher: EventPublisherPort = {
       publish: mock(<T>(_event: DomainEvent<T>) => {}),
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
+      on: mock(() => {}),
     };
 
-    useCase = new CalculateAtsScoreUseCase(atsScoreRepo, ownership, eventBus, eventPublisher);
+    useCase = new CalculateAtsScoreUseCase(
+      atsScoreRepo,
+      ownership,
+      eventBus,
+      eventPublisher,
+      stubLogger,
+    );
   });
 
   describe('calculate', () => {
@@ -105,22 +112,16 @@ describe('CalculateAtsScoreUseCase', () => {
     });
 
     it('should detect missing contact info', async () => {
-      const result = await useCase.calculate(createResume({ emailContact: null, phone: null }));
+      const result = await useCase.calculate(createResume({ phone: null }));
       expect(result.issues).toContainEqual(
-        expect.objectContaining({
-          code: 'MISSING_CONTACT_INFO',
-          severity: 'high',
-        }),
+        expect.objectContaining({ code: 'MISSING_CONTACT_INFO', severity: 'high' }),
       );
     });
 
     it('should detect short summary', async () => {
       const result = await useCase.calculate(createResume({ summary: 'Short' }));
       expect(result.issues).toContainEqual(
-        expect.objectContaining({
-          code: 'SHORT_SUMMARY',
-          severity: 'medium',
-        }),
+        expect.objectContaining({ code: 'SHORT_SUMMARY', severity: 'medium' }),
       );
     });
 
@@ -140,12 +141,7 @@ describe('CalculateAtsScoreUseCase', () => {
       const fullExperience = createResume({
         sections: [
           createSection('WORK_EXPERIENCE', [
-            {
-              company: 'Acme',
-              role: 'Dev',
-              startDate: '2020-01-01',
-              description: 'Built things',
-            },
+            { company: 'Acme', role: 'Dev', startDate: '2020-01-01', description: 'Built things' },
           ]),
           createSection('SKILL_SET', [{ name: 'JS', category: 'FE' }]),
         ],
@@ -192,13 +188,7 @@ describe('CalculateAtsScoreUseCase', () => {
     });
 
     it('should generate recommendations from issues', async () => {
-      const result = await useCase.calculate(
-        createResume({
-          summary: 'Too short',
-          emailContact: null,
-          phone: null,
-        }),
-      );
+      const result = await useCase.calculate(createResume({ summary: 'Too short', phone: null }));
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
 
@@ -206,10 +196,7 @@ describe('CalculateAtsScoreUseCase', () => {
       await useCase.calculate(createResume(), 'resume-123');
       expect(eventBus.emit).toHaveBeenCalledWith(
         'analytics:resume-123:ats_score',
-        expect.objectContaining({
-          type: 'ats_score',
-          resumeId: 'resume-123',
-        }),
+        expect.objectContaining({ type: 'ats_score', resumeId: 'resume-123' }),
       );
     });
 
@@ -252,12 +239,7 @@ describe('CalculateAtsScoreUseCase', () => {
 
     it('should return zero score for empty resume', async () => {
       const result = await useCase.calculate(
-        createResume({
-          summary: '',
-          emailContact: null,
-          phone: null,
-          sections: [],
-        }),
+        createResume({ summary: '', phone: null, sections: [] }),
       );
       expect(result.score).toBe(0);
     });

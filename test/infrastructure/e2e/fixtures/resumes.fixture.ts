@@ -15,10 +15,7 @@ export function createMinimalOnboardingData(suffix?: string) {
   const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
   return {
     username: `e2e_${sanitizedSuffix}`,
-    personalInfo: {
-      fullName: 'E2E Test User',
-      email: 'e2e@example.com',
-    },
+    personalInfo: { fullName: 'E2E Test User', email: 'e2e@example.com' },
     professionalProfile: {
       jobTitle: 'Software Developer',
       summary: 'Experienced developer with modern web technologies.',
@@ -43,10 +40,7 @@ export function createFullOnboardingData(suffix?: string) {
   const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
   return {
     username: `e2e_full_${sanitizedSuffix}`,
-    personalInfo: {
-      fullName: 'E2E Full Profile User',
-      email: 'e2e-full@example.com',
-    },
+    personalInfo: { fullName: 'E2E Full Profile User', email: 'e2e-full@example.com' },
     professionalProfile: {
       jobTitle: 'Lead Engineer',
       summary: 'Full-stack engineer with 10+ years building scalable applications.',
@@ -126,10 +120,7 @@ export const createEducationData = (institution: string) => ({
   endDate: '2020-05',
 });
 
-export const createSkillData = (name: string, category = 'Programming') => ({
-  name,
-  category,
-});
+export const createSkillData = (name: string, category = 'Programming') => ({ name, category });
 
 /**
  * Creates resume data with full contact information for CRUD testing.
@@ -146,7 +137,6 @@ export function createResumeWithSections(suffix?: string) {
       'Experienced software engineer with expertise in full-stack development and modern web technologies.',
     fullName: 'E2E Test User',
     jobTitle: 'Senior Software Engineer',
-    emailContact: `test-${uniqueSuffix}@example.com`,
     phone: '+1234567890',
     location: 'San Francisco, CA',
     linkedin: 'https://linkedin.com/in/test-user',
@@ -203,15 +193,10 @@ export function createSectionItemContent(sectionTypeKey: string) {
       credentialId: 'AWS-12345',
       url: 'https://aws.amazon.com/verification',
     },
-    language_v1: {
-      name: 'English',
-      level: 'NATIVE',
-    },
+    language_v1: { name: 'English', level: 'NATIVE' },
   };
 
   return {
-    content: contentMap[sectionTypeKey] || {
-      description: 'Generic section item content',
-    },
+    content: contentMap[sectionTypeKey] || { description: 'Generic section item content' },
   };
 }

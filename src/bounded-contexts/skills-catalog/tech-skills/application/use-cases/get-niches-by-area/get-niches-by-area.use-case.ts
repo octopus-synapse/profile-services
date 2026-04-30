@@ -1,15 +1,17 @@
+import type { LoggerPort } from '@/shared-kernel';
 import type { TechNiche } from '../../../dto/tech-niche.dto';
 import {
   TECH_SKILLS_CACHE_KEYS,
   TECH_SKILLS_CACHE_TTL,
   type TechAreaType,
 } from '../../../interfaces';
-import type { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
+import { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
 
 export class GetNichesByAreaUseCase {
   constructor(
     private readonly repository: TechNicheRepositoryPort,
     private readonly cache: CachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(areaType: TechAreaType): Promise<TechNiche[]> {

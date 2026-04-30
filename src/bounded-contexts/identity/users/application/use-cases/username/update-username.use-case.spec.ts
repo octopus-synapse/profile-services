@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions';
-import type { UsernameRepositoryPort } from '../../ports/username.port';
+  UsernameCooldownActiveException,
+  UsernameMustBeLowercaseException,
+  UsernameReservedException,
+  UsernameTakenException,
+} from '../../../domain/exceptions/users.exceptions';
+import { UsernameRepositoryPort } from '../../ports/username.port';
 import { UpdateUsernameUseCase } from './update-username.use-case';
 
 describe('UpdateUsernameUseCase', () => {
@@ -49,23 +51,27 @@ describe('UpdateUsernameUseCase', () => {
     );
   });
 
-  it('throws ValidationException for uppercase username', async () => {
-    await expect(useCase.execute('user-1', 'NewUser')).rejects.toThrow(ValidationException);
+  it('throws UsernameMustBeLowercaseException for uppercase username', async () => {
+    await expect(useCase.execute('user-1', 'NewUser')).rejects.toThrow(
+      UsernameMustBeLowercaseException,
+    );
   });
 
-  it('throws ValidationException for reserved username', async () => {
-    await expect(useCase.execute('user-1', 'admin')).rejects.toThrow(ValidationException);
+  it('throws UsernameReservedException for reserved username', async () => {
+    await expect(useCase.execute('user-1', 'admin')).rejects.toThrow(UsernameReservedException);
   });
 
-  it('throws ValidationException during cooldown period', async () => {
+  it('throws UsernameCooldownActiveException during cooldown period', async () => {
     repository.findLastUsernameUpdateByUserId = mock(async () => new Date());
 
-    await expect(useCase.execute('user-1', 'newuser')).rejects.toThrow(ValidationException);
+    await expect(useCase.execute('user-1', 'newuser')).rejects.toThrow(
+      UsernameCooldownActiveException,
+    );
   });
 
-  it('throws ConflictException when username is taken', async () => {
+  it('throws UsernameTakenException when username is taken', async () => {
     repository.isUsernameTaken = mock(async () => true);
 
-    await expect(useCase.execute('user-1', 'takenuser')).rejects.toThrow(ConflictException);
+    await expect(useCase.execute('user-1', 'takenuser')).rejects.toThrow(UsernameTakenException);
   });
 });

@@ -13,23 +13,16 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import type { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import { stopTestApp, type TestApp } from '../../shared';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E: Skills and Languages Catalog Journey', () => {
-  let app: INestApplication;
+  let app: TestApp; // was INestApplication
   let authHelper: AuthHelper;
   let cleanupHelper: CleanupHelper;
-  let testUser: {
-    email: string;
-    password: string;
-    name: string;
-    token?: string;
-    userId?: string;
-  };
+  let testUser: { email: string; password: string; name: string; token?: string; userId?: string };
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -47,15 +40,15 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
     if (testUser?.email) {
       await cleanupHelper.deleteUserByEmail(testUser.email);
     }
-    await app.close();
+    await stopTestApp();
   });
 
   // ---------------------------------------------------------------------------
   // Step 1: Browse Tech Skills Catalog
   // ---------------------------------------------------------------------------
   describe('Step 1: Browse Tech Skills Catalog', () => {
-    it('should list all tech skills', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should list all tech skills', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -66,8 +59,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.skills.length).toBeGreaterThan(0);
     });
 
-    it('should list tech areas', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should list tech areas', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/areas')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -77,8 +70,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.areas.length).toBeGreaterThan(0);
     });
 
-    it('should list tech niches', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should list tech niches', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/niches')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -88,8 +81,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.niches.length).toBeGreaterThan(0);
     });
 
-    it('should list programming languages', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should list programming languages', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -99,9 +92,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.languages.length).toBeGreaterThan(0);
     });
 
-    it('should drill down: area -> niches', async () => {
+    it.serial('should drill down: area -> niches', async () => {
       // Get areas first
-      const areasRes = await request(app.getHttpServer())
+      const areasRes = await app.request
         .get('/api/v1/tech-skills/areas')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -111,7 +104,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
 
       // Pick first area and get its niches
       const areaType = areas[0].type || areas[0].areaType || areas[0].slug;
-      const nichesRes = await request(app.getHttpServer())
+      const nichesRes = await app.request
         .get(`/api/v1/tech-skills/areas/${areaType}/niches`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -120,9 +113,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(Array.isArray(nichesRes.body.data.niches)).toBe(true);
     });
 
-    it('should drill down: niche -> skills', async () => {
+    it.serial('should drill down: niche -> skills', async () => {
       // Get niches first
-      const nichesRes = await request(app.getHttpServer())
+      const nichesRes = await app.request
         .get('/api/v1/tech-skills/niches')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -132,7 +125,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
 
       // Pick first niche and get its skills
       const nicheSlug = niches[0].slug || niches[0].id;
-      const skillsRes = await request(app.getHttpServer())
+      const skillsRes = await app.request
         .get(`/api/v1/tech-skills/niches/${nicheSlug}/skills`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -146,8 +139,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Step 2: Search for Specific Skills
   // ---------------------------------------------------------------------------
   describe('Step 2: Search for Specific Skills', () => {
-    it('should find skills via combined search', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should find skills via combined search', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/search?q=java')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -156,8 +149,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.results).toBeDefined();
     });
 
-    it('should find skills via skills-specific search', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should find skills via skills-specific search', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/skills/search?q=react')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -165,8 +158,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.skills).toBeDefined();
     });
 
-    it('should search programming languages', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should search programming languages', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/languages/search?q=python')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -174,8 +167,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.languages).toBeDefined();
     });
 
-    it('should filter skills by type', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should filter skills by type', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/skills/type/FRAMEWORK')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -184,8 +177,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(Array.isArray(res.body.data.skills)).toBe(true);
     });
 
-    it('should handle search with no results gracefully', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should handle search with no results gracefully', async () => {
+      const res = await app.request
         .get('/api/v1/tech-skills/search?q=zzzznotarealskill')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -198,8 +191,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Step 3: Browse Spoken Languages
   // ---------------------------------------------------------------------------
   describe('Step 3: Browse Spoken Languages', () => {
-    it('should list all spoken languages', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should list all spoken languages', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -211,8 +204,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.languages.length).toBeGreaterThanOrEqual(30);
     });
 
-    it('should return languages with multilingual names', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should return languages with multilingual names', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -231,8 +224,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Step 4: Search Spoken Languages
   // ---------------------------------------------------------------------------
   describe('Step 4: Search Spoken Languages', () => {
-    it('should search by English name', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should search by English name', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=spanish')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -243,8 +236,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(found).toBeDefined();
     });
 
-    it('should search with partial match', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should search with partial match', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=ger')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -252,8 +245,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.languages.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('should return empty for nonexistent language', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should return empty for nonexistent language', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/search?q=klingon')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -266,8 +259,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Step 5: Get Language Details
   // ---------------------------------------------------------------------------
   describe('Step 5: Get Language Details', () => {
-    it('should get English by code', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should get English by code', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/en')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -278,8 +271,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.language.nativeName).toBe('English');
     });
 
-    it('should get Japanese by code (non-Latin script)', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should get Japanese by code (non-Latin script)', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/ja')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -289,8 +282,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.language.nativeName).toBe('日本語');
     });
 
-    it('should get Arabic by code (RTL script)', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should get Arabic by code (RTL script)', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/ar')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -300,8 +293,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(res.body.data.language.nativeName).toBe('العربية');
     });
 
-    it('should return 404 for invalid code', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should return 404 for invalid code', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages/xx')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -313,8 +306,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Step 6: Verify Seeded Data Integrity
   // ---------------------------------------------------------------------------
   describe('Step 6: Verify Seeded Data Integrity', () => {
-    it('should have all expected spoken language codes', async () => {
-      const res = await request(app.getHttpServer())
+    it.serial('should have all expected spoken language codes', async () => {
+      const res = await app.request
         .get('/api/v1/spoken-languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -361,9 +354,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       }
     });
 
-    it('should have consistent data across list and detail endpoints', async () => {
+    it.serial('should have consistent data across list and detail endpoints', async () => {
       // Get from list
-      const listRes = await request(app.getHttpServer())
+      const listRes = await app.request
         .get('/api/v1/spoken-languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -371,7 +364,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       const enFromList = listRes.body.data.languages.find((l: { code: string }) => l.code === 'en');
 
       // Get from detail
-      const detailRes = await request(app.getHttpServer())
+      const detailRes = await app.request
         .get('/api/v1/spoken-languages/en')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -385,9 +378,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(enFromList.code).toBe(enFromDetail.code);
     });
 
-    it('should have tech areas, niches, and skills forming a valid hierarchy', async () => {
+    it.serial('should have tech areas, niches, and skills forming a valid hierarchy', async () => {
       // Get areas
-      const areasRes = await request(app.getHttpServer())
+      const areasRes = await app.request
         .get('/api/v1/tech-skills/areas')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -395,7 +388,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(areasRes.body.data.areas.length).toBeGreaterThan(0);
 
       // Get niches
-      const nichesRes = await request(app.getHttpServer())
+      const nichesRes = await app.request
         .get('/api/v1/tech-skills/niches')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -403,7 +396,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       expect(nichesRes.body.data.niches.length).toBeGreaterThan(0);
 
       // Get skills
-      const skillsRes = await request(app.getHttpServer())
+      const skillsRes = await app.request
         .get('/api/v1/tech-skills/skills')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -416,8 +409,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
       );
     });
 
-    it('should have programming languages as a subset of skills catalog', async () => {
-      const langRes = await request(app.getHttpServer())
+    it.serial('should have programming languages as a subset of skills catalog', async () => {
+      const langRes = await app.request
         .get('/api/v1/tech-skills/languages')
         .set('Authorization', `Bearer ${testUser.token}`);
 
@@ -444,20 +437,20 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
   // Authentication boundary
   // ---------------------------------------------------------------------------
   describe('Authentication Boundary', () => {
-    it('should reject unauthenticated tech skills request', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/tech-skills');
+    it.serial('should reject unauthenticated tech skills request', async () => {
+      const res = await app.request.get('/api/v1/tech-skills');
 
       expect(res.status).toBe(401);
     });
 
-    it('should reject unauthenticated spoken languages request', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/spoken-languages');
+    it.serial('should reject unauthenticated spoken languages request', async () => {
+      const res = await app.request.get('/api/v1/spoken-languages');
 
       expect(res.status).toBe(401);
     });
 
-    it('should reject unauthenticated language detail request', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/spoken-languages/en');
+    it.serial('should reject unauthenticated language detail request', async () => {
+      const res = await app.request.get('/api/v1/spoken-languages/en');
 
       expect(res.status).toBe(401);
     });

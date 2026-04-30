@@ -409,11 +409,11 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
 
       if (response.status === 200) {
         // Check content-type header
-        expect(response.headers['content-type']).toContain('application/pdf');
+        expect(response.headers.get('content-type')).toContain('application/pdf');
 
         // Check content-disposition header
-        expect(response.headers['content-disposition']).toContain('attachment');
-        expect(response.headers['content-disposition']).toContain('filename=');
+        expect(response.headers.get('content-disposition')).toContain('attachment');
+        expect(response.headers.get('content-disposition')).toContain('filename=');
 
         // Check PDF magic bytes (if buffer available)
         if (response.body && Buffer.isBuffer(response.body)) {

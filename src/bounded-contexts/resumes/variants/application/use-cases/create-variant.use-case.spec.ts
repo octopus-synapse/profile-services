@@ -1,15 +1,12 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
-import type {
-  CreateVariantInput,
-  VariantData,
-  VariantRepositoryPort,
-} from '../ports/variant-repository.port';
-import type { BaseResumeReader } from './create-variant.use-case';
-import { CreateVariantUseCase } from './create-variant.use-case';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/resumes.exceptions';
+import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
+import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import { BaseResumeReader, CreateVariantUseCase } from './create-variant.use-case';
 
 class InMemoryVariantRepository implements VariantRepositoryPort {
   private variants: VariantData[] = [];
@@ -72,7 +69,7 @@ describe('CreateVariantUseCase', () => {
   beforeEach(() => {
     variantRepo = new InMemoryVariantRepository();
     resumeReader = new StubResumeReader();
-    useCase = new CreateVariantUseCase(variantRepo, resumeReader);
+    useCase = new CreateVariantUseCase(variantRepo, resumeReader, stubLogger);
   });
 
   it('creates variant when base resume exists and user owns it', async () => {
@@ -99,24 +96,16 @@ describe('CreateVariantUseCase', () => {
 
   it('throws when base resume not found', async () => {
     await expect(
-      useCase.execute({
-        baseResumeId: 'nonexistent',
-        userId: 'user-1',
-        name: 'My Variant',
-      }),
-    ).rejects.toThrow(EntityNotFoundException);
+      useCase.execute({ baseResumeId: 'nonexistent', userId: 'user-1', name: 'My Variant' }),
+    ).rejects.toThrow(ResumeNotFoundException);
   });
 
   it('throws when user does not own base resume', async () => {
     resumeReader.seed({ id: 'resume-1', userId: 'user-1', isBase: true });
 
     await expect(
-      useCase.execute({
-        baseResumeId: 'resume-1',
-        userId: 'user-2',
-        name: 'Unauthorized Variant',
-      }),
-    ).rejects.toThrow(ForbiddenException);
+      useCase.execute({ baseResumeId: 'resume-1', userId: 'user-2', name: 'Unauthorized Variant' }),
+    ).rejects.toThrow(ResumeAccessDeniedException);
   });
 
   it('defaults empty overrides when not provided', async () => {

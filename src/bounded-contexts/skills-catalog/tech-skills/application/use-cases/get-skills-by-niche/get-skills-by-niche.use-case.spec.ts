@@ -3,6 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   createTechSkill,
   DEFAULT_TECH_SKILLS,
@@ -22,7 +23,7 @@ describe('GetSkillsByNicheUseCase', () => {
     techSkillRepo = new InMemoryTechSkillRepository();
     techSkillRepo.seed(DEFAULT_TECH_SKILLS);
     cacheService = new InMemoryCacheService();
-    useCase = new GetSkillsByNicheUseCase(techSkillRepo, cacheService);
+    useCase = new GetSkillsByNicheUseCase(techSkillRepo, cacheService, stubLogger);
   });
 
   it('should filter skills by niche slug', async () => {

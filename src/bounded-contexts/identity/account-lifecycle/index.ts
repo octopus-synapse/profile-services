@@ -1,5 +1,4 @@
 // NestJS Module
-export { AccountLifecycleModule } from './account-lifecycle.module';
 // Application
 export * from './application';
 // Domain

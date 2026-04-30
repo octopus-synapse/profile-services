@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
-@Injectable()
 export class MessageRepository {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -10,11 +8,7 @@ export class MessageRepository {
    */
   async create(data: { conversationId: string; senderId: string; content: string }) {
     return this.prisma.message.create({
-      data: {
-        conversationId: data.conversationId,
-        senderId: data.senderId,
-        content: data.content,
-      },
+      data: { conversationId: data.conversationId, senderId: data.senderId, content: data.content },
       include: {
         sender: {
           select: { id: true, name: true, photoURL: true },
@@ -28,10 +22,7 @@ export class MessageRepository {
    */
   async findByConversationId(conversationId: string, options: { cursor?: string; limit: number }) {
     const messages = await this.prisma.message.findMany({
-      where: {
-        conversationId,
-        isDeleted: false,
-      },
+      where: { conversationId, isDeleted: false },
       take: options.limit + 1,
       ...(options.cursor && {
         cursor: { id: options.cursor },
@@ -51,11 +42,7 @@ export class MessageRepository {
     // Reverse to get chronological order
     messages.reverse();
 
-    return {
-      messages,
-      nextCursor: hasMore ? messages[0]?.id : null,
-      hasMore,
-    };
+    return { messages, nextCursor: hasMore ? messages[0]?.id : null, hasMore };
   }
 
   /**
@@ -68,10 +55,7 @@ export class MessageRepository {
         senderId: { not: userId },
         isRead: false,
       },
-      data: {
-        isRead: true,
-        readAt: new Date(),
-      },
+      data: { isRead: true, readAt: new Date() },
     });
   }
 
@@ -85,10 +69,7 @@ export class MessageRepository {
         senderId: { not: userId },
         isRead: false,
       },
-      data: {
-        isRead: true,
-        readAt: new Date(),
-      },
+      data: { isRead: true, readAt: new Date() },
     });
   }
 
@@ -139,14 +120,8 @@ export class MessageRepository {
    */
   async softDelete(messageId: string, userId: string) {
     return this.prisma.message.updateMany({
-      where: {
-        id: messageId,
-        senderId: userId,
-      },
-      data: {
-        isDeleted: true,
-        deletedAt: new Date(),
-      },
+      where: { id: messageId, senderId: userId },
+      data: { isDeleted: true, deletedAt: new Date() },
     });
   }
 

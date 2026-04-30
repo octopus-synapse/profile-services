@@ -1,5 +1,12 @@
 name: _infrastructure-integration
 
+# Phase-2 cutover (Nest → Elysia + Bun) replaced AppModule + supertest
+# with the framework-free `bootstrap()` + the supertest-shaped fetch
+# wrapper under `test/infrastructure/shared/`. Only the migrated
+# suites (`test/infrastructure/integration/*.spec.ts`) run here; the
+# legacy tree under `test/infrastructure/_legacy/integration/` is
+# opt-in via a manual run only and gets converted suite-by-suite.
+
 on:
   workflow_call:
 

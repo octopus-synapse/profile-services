@@ -49,20 +49,13 @@ export type ShareResponse = z.infer<typeof ShareResponseSchema>;
 // Public Resume Access
 // ============================================================================
 
-export const PublicResumeOptionsSchema = z.object({
-  password: z.string().optional(),
-});
+export const PublicResumeOptionsSchema = z.object({ password: z.string().optional() });
 
 export type PublicResumeOptions = z.infer<typeof PublicResumeOptionsSchema>;
 
 export const PublicResumeResponseSchema = z.object({
-  resume: ResumeSchema.extend({
-    resumeSections: ResumeSchema.shape.resumeSections.default([]),
-  }),
-  share: z.object({
-    slug: z.string(),
-    expiresAt: z.string().datetime().nullable(),
-  }),
+  resume: ResumeSchema.extend({ resumeSections: ResumeSchema.shape.resumeSections.default([]) }),
+  share: z.object({ slug: z.string(), expiresAt: z.string().datetime().nullable() }),
 });
 
 export type PublicResumeResponse = z.infer<typeof PublicResumeResponseSchema>;

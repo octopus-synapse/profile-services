@@ -10,28 +10,28 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
+import { DslUseCases } from '@/bounded-contexts/dsl';
 import { TypstCompilerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from '@/bounded-contexts/export/infrastructure/adapters/external-services/typst-data-serializer.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
+import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 
-@Injectable()
-export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnModuleInit {
-  private readonly logger = new Logger(OnboardingPreviewAdapter.name);
+export class OnboardingPreviewAdapter extends PreviewRendererPort implements Lifecycle {
   private workDir: string | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly dslRepository: DslRepository,
+    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
 
-  async onModuleInit() {
+  async init(): Promise<void> {
     try {
       this.workDir = join('/tmp', 'typst-onboarding-preview');
       await mkdir(this.workDir, { recursive: true });
@@ -48,9 +48,12 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
         }),
       );
 
-      this.logger.log('Preview worker initialized — templates cached');
+      this.logger.log('Preview worker initialized — templates cached', 'OnboardingPreviewAdapter');
     } catch (err) {
-      this.logger.warn(`Preview worker init failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `Preview worker init failed: ${(err as Error).message}`,
+        'OnboardingPreviewAdapter',
+      );
       this.workDir = null;
     }
   }
@@ -67,7 +70,12 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
     if (!resume) return null;
 
     try {
-      const { ast } = await this.dslRepository.render(resume.id, resume.userId, 'pdf', 'pt-BR');
+      const { ast } = await this.dsl.renderResumeDsl.execute({
+        resumeId: resume.id,
+        userId: resume.userId,
+        target: 'pdf',
+        locale: 'pt-BR',
+      });
 
       const jsonData = this.serializer.serialize(ast);
 
@@ -78,7 +86,10 @@ export class OnboardingPreviewAdapter extends PreviewRendererPort implements OnM
         timeout: 10_000,
       });
     } catch (err) {
-      this.logger.debug(`Preview render failed for user ${userId}: ${(err as Error).message}`);
+      this.logger.debug(
+        `Preview render failed for user ${userId}: ${(err as Error).message}`,
+        'OnboardingPreviewAdapter',
+      );
       return null;
     }
   }

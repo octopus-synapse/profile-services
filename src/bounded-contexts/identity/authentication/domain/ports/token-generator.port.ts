@@ -17,32 +17,30 @@ export interface TokenPair {
   expiresIn: number;
 }
 
-export interface TokenGeneratorPort {
+export abstract class TokenGeneratorPort {
   /**
    * Generates access and refresh tokens
    */
-  generateTokenPair(payload: TokenPayload): Promise<TokenPair>;
+  abstract generateTokenPair(payload: TokenPayload): Promise<TokenPair>;
 
   /**
    * Generates a session token (for cookie-based auth)
    * Session tokens include sessionId and have longer expiry
    */
-  generateSessionToken(payload: SessionPayload): Promise<string>;
+  abstract generateSessionToken(payload: SessionPayload): Promise<string>;
 
   /**
    * Verifies and decodes an access token
    */
-  verifyAccessToken(token: string): Promise<TokenPayload>;
+  abstract verifyAccessToken(token: string): Promise<TokenPayload>;
 
   /**
    * Verifies and decodes a session token
    */
-  verifySessionToken(token: string): Promise<SessionPayload>;
+  abstract verifySessionToken(token: string): Promise<SessionPayload>;
 
   /**
    * Generates a random refresh token
    */
-  generateRefreshToken(): string;
+  abstract generateRefreshToken(): string;
 }
-
-export const TOKEN_GENERATOR_PORT = Symbol('TokenGeneratorPort');

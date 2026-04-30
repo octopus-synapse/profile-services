@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type {
   ResumeDetails,
   ResumeListItem,
-  ResumeManagementUseCases,
 } from './resume-management/ports/resume-management.port';
+import { ResumeManagementUseCases } from './resume-management/ports/resume-management.port';
 import { ResumeManagementService } from './resume-management.service';
 
 /**
@@ -20,9 +20,7 @@ function createMockResumeListItem(overrides: Partial<ResumeListItem> = {}): Resu
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
     resumeSections: [],
-    _count: {
-      resumeSections: 0,
-    },
+    _count: { resumeSections: 0 },
     ...overrides,
   } as ResumeListItem;
 }
@@ -40,11 +38,7 @@ function createMockResumeDetails(overrides: Partial<ResumeDetails> = {}): Resume
     userId: 'user-1',
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
-    user: {
-      id: 'user-1',
-      email: 'joao@email.com',
-      name: 'João Silva',
-    },
+    user: { id: 'user-1', email: 'joao@email.com', name: 'João Silva' },
     resumeSections: [],
     ...overrides,
   } as ResumeDetails;

@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   DEFAULT_ENABLED_TWO_FACTOR_RECORD,
   DEFAULT_TWO_FACTOR_RECORD,
@@ -39,7 +40,13 @@ describe('Validate2faUseCase', () => {
     // Seed an enabled 2FA record
     repository.seedTwoFactor(DEFAULT_ENABLED_TWO_FACTOR_RECORD);
 
-    useCase = new Validate2faUseCase(repository, totpService, hashService, cacheService);
+    useCase = new Validate2faUseCase(
+      repository,
+      totpService,
+      hashService,
+      cacheService,
+      stubLogger,
+    );
   });
 
   // ───────────────────────────────────────────────────────────────
@@ -102,7 +109,13 @@ describe('Validate2faUseCase', () => {
     });
 
     it('should skip replay check gracefully when cache is not provided', async () => {
-      const useCaseNoCache = new Validate2faUseCase(repository, totpService, hashService);
+      const useCaseNoCache = new Validate2faUseCase(
+        repository,
+        totpService,
+        hashService,
+        undefined,
+        stubLogger,
+      );
 
       const first = await useCaseNoCache.validateToken(userId, validToken);
       expect(first).toBe(true);

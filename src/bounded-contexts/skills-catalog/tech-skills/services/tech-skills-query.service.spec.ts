@@ -81,9 +81,7 @@ function createTechSkill(overrides: Partial<TechSkill> = {}): TechSkill {
 
 describe('TechSkillsQueryService', () => {
   let service: TechSkillsQueryService;
-  let mockAreaQuery: {
-    getAllAreas: ReturnType<typeof mock>;
-  };
+  let mockAreaQuery: { getAllAreas: ReturnType<typeof mock> };
   let mockNicheQuery: {
     getAllNiches: ReturnType<typeof mock>;
     getNichesByArea: ReturnType<typeof mock>;
@@ -97,9 +95,7 @@ describe('TechSkillsQueryService', () => {
     getSkillsByNiche: ReturnType<typeof mock>;
     getSkillsByType: ReturnType<typeof mock>;
   };
-  let mockSkillSearch: {
-    searchSkills: ReturnType<typeof mock>;
-  };
+  let mockSkillSearch: { searchSkills: ReturnType<typeof mock> };
 
   const mockAreas: TechArea[] = [createTechArea()];
   const mockNiches: TechNiche[] = [createTechNiche()];
@@ -107,9 +103,7 @@ describe('TechSkillsQueryService', () => {
   const mockSkills: TechSkill[] = [createTechSkill()];
 
   beforeEach(() => {
-    mockAreaQuery = {
-      getAllAreas: mock(() => Promise.resolve(mockAreas)),
-    };
+    mockAreaQuery = { getAllAreas: mock(() => Promise.resolve(mockAreas)) };
     mockNicheQuery = {
       getAllNiches: mock(() => Promise.resolve(mockNiches)),
       getNichesByArea: mock(() => Promise.resolve(mockNiches)),
@@ -123,9 +117,7 @@ describe('TechSkillsQueryService', () => {
       getSkillsByNiche: mock(() => Promise.resolve(mockSkills)),
       getSkillsByType: mock(() => Promise.resolve(mockSkills)),
     };
-    mockSkillSearch = {
-      searchSkills: mock(() => Promise.resolve(mockSkills)),
-    };
+    mockSkillSearch = { searchSkills: mock(() => Promise.resolve(mockSkills)) };
 
     service = new TechSkillsQueryService(
       mockAreaQuery,

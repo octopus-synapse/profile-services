@@ -7,7 +7,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
-import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
+import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { AnalyzeKeywordsUseCase } from './analyze-keywords.use-case';
 
 describe('AnalyzeKeywordsUseCase', () => {
@@ -28,7 +28,6 @@ describe('AnalyzeKeywordsUseCase', () => {
   const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Full-stack developer with expertise in React and Node.js',
     jobTitle: 'Senior Software Engineer',
-    emailContact: 'test@example.com',
     phone: '+1234567890',
     sections: [
       createSection('SKILL', [
@@ -60,9 +59,7 @@ describe('AnalyzeKeywordsUseCase', () => {
   describe('getKeywordSuggestions', () => {
     it('should find existing keywords', () => {
       const resume = createResume();
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       expect(result.existingKeywords.length).toBeGreaterThan(0);
     });
@@ -71,18 +68,14 @@ describe('AnalyzeKeywordsUseCase', () => {
       const resume = createResume({
         sections: [createSection('SKILL', [{ name: 'JavaScript' }])],
       });
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       expect(result.missingKeywords.length).toBeGreaterThan(0);
     });
 
     it('should calculate keyword density', () => {
       const resume = createResume();
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       expect(typeof result.keywordDensity).toBe('number');
       expect(result.keywordDensity).toBeGreaterThanOrEqual(0);
@@ -101,9 +94,7 @@ describe('AnalyzeKeywordsUseCase', () => {
           ]),
         ],
       });
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       const stuffingWarning = result.warnings.find((w) => w.type === 'keyword_stuffing');
       if (result.warnings.length > 0) {
@@ -112,23 +103,15 @@ describe('AnalyzeKeywordsUseCase', () => {
     });
 
     it('should generate recommendations for missing keywords', () => {
-      const resume = createResume({
-        sections: [],
-      });
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const resume = createResume({ sections: [] });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
 
     it('should count keyword occurrences', () => {
-      const resume = createResume({
-        summary: 'React developer with React experience in React',
-      });
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const resume = createResume({ summary: 'React developer with React experience in React' });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       const reactKeyword = result.existingKeywords.find((k) => k.keyword.toLowerCase() === 'react');
       if (reactKeyword) {
@@ -138,9 +121,7 @@ describe('AnalyzeKeywordsUseCase', () => {
 
     it('should sort existing keywords by count descending', () => {
       const resume = createResume();
-      const result = useCase.getKeywordSuggestions(resume, {
-        industry: 'software_engineering',
-      });
+      const result = useCase.getKeywordSuggestions(resume, { industry: 'software_engineering' });
 
       for (let i = 0; i < result.existingKeywords.length - 1; i++) {
         expect(result.existingKeywords[i].count).toBeGreaterThanOrEqual(
@@ -185,9 +166,7 @@ describe('AnalyzeKeywordsUseCase', () => {
     });
 
     it('should generate match recommendations', () => {
-      const resume = createResume({
-        sections: [],
-      });
+      const resume = createResume({ sections: [] });
       const result = useCase.matchJob(resume, jobDescription);
 
       expect(result.recommendations.length).toBeGreaterThan(0);

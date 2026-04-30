@@ -7,9 +7,7 @@ const SectionTypeSchema = z.object({
   title: z.string(),
 });
 
-const SectionTypesDataSchema = z.object({
-  types: z.array(SectionTypeSchema),
-});
+const SectionTypesDataSchema = z.object({ types: z.array(SectionTypeSchema) });
 
 export class SectionTypeResponseDto extends createZodDto(SectionTypeSchema) {}
 export class SectionTypesDataDto extends createZodDto(SectionTypesDataSchema) {}

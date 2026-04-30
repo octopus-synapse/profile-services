@@ -18,18 +18,12 @@ const SkillSchema = z.object({
   order: z.number().int(),
 });
 
-const SkillDataSchema = z.object({
-  skill: SkillSchema,
-});
+const SkillDataSchema = z.object({ skill: SkillSchema });
 
-const SkillsDataSchema = z.object({
-  skills: z.array(SkillSchema),
-});
+const SkillsDataSchema = z.object({ skills: z.array(SkillSchema) });
 
 const DeleteSkillDataSchema = z.object({
-  result: z.object({
-    deleted: z.boolean(),
-  }),
+  result: z.object({ deleted: z.boolean() }),
 });
 
 // ============================================================================

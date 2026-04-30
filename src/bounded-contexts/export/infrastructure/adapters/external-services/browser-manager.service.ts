@@ -9,20 +9,20 @@
  * Uncle Bob: "A class should have only one reason to change"
  */
 
-import { Injectable, Logger } from '@nestjs/common';
 import puppeteer, { Browser } from 'puppeteer';
+import type { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class BrowserManagerService {
-  private readonly logger = new Logger(BrowserManagerService.name);
   private browser: Browser | null = null;
+
+  constructor(private readonly logger: LoggerPort) {}
 
   /**
    * Gets existing browser or creates new one
    */
   async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      this.logger.log('Launching new browser instance...');
+      this.logger.log('Launching new browser instance...', 'BrowserManagerService');
       this.browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -36,7 +36,7 @@ export class BrowserManagerService {
    */
   async closeBrowser(): Promise<void> {
     if (this.browser) {
-      this.logger.log('Closing browser instance...');
+      this.logger.log('Closing browser instance...', 'BrowserManagerService');
       await this.browser.close();
       this.browser = null;
     }

@@ -1,31 +1,25 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
 // pdf-parse v2 ships a class-based API (`PDFParse`), not a callable default.
 import { PDFParse } from 'pdf-parse';
-import {
-  type ExtractedResume,
-  LLM_PORT,
-  type LlmPort,
-} from '@/bounded-contexts/ai/domain/ports/llm.port';
+import { type ExtractedResume, LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LoggerPort } from '@/shared-kernel';
+import {
+  PdfBufferRequiredException,
+  PdfNoTextException,
+  PdfTooLargeException,
+} from '../../domain/exceptions/import.exceptions';
 
-export type PdfImportResult = {
-  userId: string;
-  resumeId: string;
-  extracted: ExtractedResume;
-};
+export type PdfImportResult = { userId: string; resumeId: string; extracted: ExtractedResume };
 
 /** Hard cap so a malicious upload can't blow up memory. 5MB fits virtually
  * every text-based CV; visually heavy PDFs get rejected. */
 const MAX_BYTES = 5 * 1024 * 1024;
 
-@Injectable()
 export class PdfImportService {
-  private readonly logger = new Logger(PdfImportService.name);
-
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(LLM_PORT) private readonly llm: LlmPort,
+    private readonly llm: LlmPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async import(
@@ -33,10 +27,10 @@ export class PdfImportService {
     file: { buffer: Buffer; originalname?: string },
   ): Promise<PdfImportResult> {
     if (!file?.buffer) {
-      throw new ConflictException('PDF_BUFFER_REQUIRED');
+      throw new PdfBufferRequiredException();
     }
     if (file.buffer.byteLength > MAX_BYTES) {
-      throw new ConflictException('PDF_TOO_LARGE');
+      throw new PdfTooLargeException();
     }
 
     const parser = new PDFParse({ data: new Uint8Array(file.buffer) });
@@ -45,14 +39,14 @@ export class PdfImportService {
     if (text.length < 100) {
       // Too short to be a real CV — usually means the PDF is image-based and
       // pdf-parse couldn't OCR it. Fail loudly so the UI prompts upload again.
-      throw new ConflictException('PDF_NO_TEXT');
+      throw new PdfNoTextException();
     }
 
     const extracted = await this.llm.extractResumeFromText(text);
 
     const resumeId = await this.persistResume(userId, extracted);
 
-    this.logger.log(`PDF import for ${userId} → resume ${resumeId}`);
+    this.logger.log(`PDF import for ${userId} → resume ${resumeId}`, 'PdfImportService');
     return { userId, resumeId, extracted };
   }
 
@@ -70,7 +64,6 @@ export class PdfImportService {
         fullName: extracted.fullName,
         jobTitle: extracted.jobTitle,
         summary: extracted.summary,
-        emailContact: extracted.email,
         phone: extracted.phone,
         location: extracted.location,
         linkedin: extracted.linkedin,

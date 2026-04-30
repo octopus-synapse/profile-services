@@ -1,10 +1,12 @@
+import { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  CannotSendMessageToUserException,
+  NotConversationParticipantException,
+} from '../../../../domain/exceptions/collaboration.exceptions';
 import type { MessageResponse } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
-import type {
+import {
   BlockedUserRepositoryPort,
   ChatCachePort,
   ConversationRepositoryPort,
@@ -17,6 +19,7 @@ export class SendMessageToConversationUseCase {
     private readonly messageRepo: MessageRepositoryPort,
     private readonly blockedUserRepo: BlockedUserRepositoryPort,
     private readonly chatCache: ChatCachePort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(
@@ -26,7 +29,7 @@ export class SendMessageToConversationUseCase {
   ): Promise<MessageResponse> {
     const isParticipant = await this.conversationRepo.isParticipant(conversationId, senderId);
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new NotConversationParticipantException();
     }
 
     const otherParticipant = await this.conversationRepo.getOtherParticipant(
@@ -39,14 +42,10 @@ export class SendMessageToConversationUseCase {
 
     const isBlocked = await this.blockedUserRepo.isBlockedBetween(senderId, otherParticipant.id);
     if (isBlocked) {
-      throw new ForbiddenException('Cannot send message to this user');
+      throw new CannotSendMessageToUserException();
     }
 
-    const message = await this.messageRepo.create({
-      conversationId,
-      senderId,
-      content,
-    });
+    const message = await this.messageRepo.create({ conversationId, senderId, content });
 
     await this.conversationRepo.updateLastMessage(conversationId, {
       content,

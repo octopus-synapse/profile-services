@@ -29,10 +29,7 @@ export const LocaleContentSchema = z.object({
 
 export type LocaleContent = z.infer<typeof LocaleContentSchema>;
 
-export type ResolvedLocaleContent = {
-  locale: string;
-  sections: Record<string, LocalizedSection>;
-};
+export type ResolvedLocaleContent = { locale: string; sections: Record<string, LocalizedSection> };
 
 export function resolveForLocale(
   content: LocaleContent,
@@ -72,17 +69,11 @@ export function migrateFromLegacy(contentPtBr: unknown, contentEn: unknown): Loc
   const localeMap: Record<string, LocalizedSection> = {};
 
   if (hasPtBr) {
-    localeMap['pt-BR'] = {
-      title: 'Content',
-      items: [contentPtBr as Record<string, unknown>],
-    };
+    localeMap['pt-BR'] = { title: 'Content', items: [contentPtBr as Record<string, unknown>] };
   }
 
   if (hasEn) {
-    localeMap.en = {
-      title: 'Content',
-      items: [contentEn as Record<string, unknown>],
-    };
+    localeMap.en = { title: 'Content', items: [contentEn as Record<string, unknown>] };
   }
 
   const sections: LocaleContent['sections'] = { [legacySectionKey]: localeMap };
@@ -106,10 +97,7 @@ export function addLocale(
   }
 
   for (const [sectionKey, section] of Object.entries(sectionData)) {
-    updatedSections[sectionKey] = {
-      ...updatedSections[sectionKey],
-      [locale]: section,
-    };
+    updatedSections[sectionKey] = { ...updatedSections[sectionKey], [locale]: section };
   }
 
   return {

@@ -3,13 +3,15 @@
  * Single Responsibility: Read operations for user data
  */
 
-import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { LoggerPort } from '@/shared-kernel';
 
-@Injectable()
 export class UserQueryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async findUserById(userId: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
@@ -44,10 +46,7 @@ export class UserQueryRepository {
   async findUserPreferencesById(userId: string): Promise<Partial<User> | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        name: true,
-        photoURL: true,
-      },
+      select: { name: true, photoURL: true },
     });
   }
 

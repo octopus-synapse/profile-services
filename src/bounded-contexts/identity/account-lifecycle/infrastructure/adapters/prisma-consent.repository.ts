@@ -4,27 +4,41 @@
  * Adapter implementation of ConsentRepositoryPort using Prisma
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { ConsentDocumentType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  ConsentRecord,
-  ConsentRepositoryPort,
-  CreateConsentData,
-} from '../../domain/ports/consent-repository.port';
-import type { VersionConfigPort } from '../../domain/ports/version-config.port';
+import { LoggerPort } from '@/shared-kernel';
+import { ConfigPort } from '@/shared-kernel/config';
+import type { ConsentRecord, CreateConsentData } from '../../domain/ports/consent-repository.port';
+import { ConsentRepositoryPort } from '../../domain/ports/consent-repository.port';
+import { VersionConfigPort } from '../../domain/ports/version-config.port';
 
-@Injectable()
 export class PrismaConsentRepository implements ConsentRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {}
 
   async create(data: CreateConsentData): Promise<ConsentRecord> {
-    return this.prisma.userConsent.create({
-      data: {
+    // Idempotent: signup pre-creates consent rows for the current
+    // versions of every document, so a subsequent `/accept-consent`
+    // call (e.g. user re-confirming) would otherwise blow up on the
+    // unique (userId, documentType, version) constraint.
+    return this.prisma.userConsent.upsert({
+      where: {
+        userId_documentType_version: {
+          userId: data.userId,
+          documentType: data.documentType,
+          version: data.version,
+        },
+      },
+      create: {
         userId: data.userId,
         documentType: data.documentType,
         version: data.version,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+      },
+      update: {
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
       },
@@ -37,11 +51,7 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
     version: string,
   ): Promise<ConsentRecord | null> {
     return this.prisma.userConsent.findFirst({
-      where: {
-        userId,
-        documentType,
-        version,
-      },
+      where: { userId, documentType, version },
     });
   }
 
@@ -53,19 +63,18 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
   }
 }
 
-@Injectable()
 export class ConfigVersionAdapter implements VersionConfigPort {
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigPort) {}
 
   getTosVersion(): string {
-    return this.config.get<string>('TOS_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('TOS_VERSION', '1.0.0');
   }
 
   getPrivacyPolicyVersion(): string {
-    return this.config.get<string>('PRIVACY_POLICY_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('PRIVACY_POLICY_VERSION', '1.0.0');
   }
 
   getMarketingConsentVersion(): string {
-    return this.config.get<string>('MARKETING_CONSENT_VERSION', '1.0.0');
+    return this.config.getOrDefault<string>('MARKETING_CONSENT_VERSION', '1.0.0');
   }
 }

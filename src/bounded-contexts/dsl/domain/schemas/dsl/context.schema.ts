@@ -105,28 +105,19 @@ export type MinimalContext = z.infer<typeof MinimalContextSchema>;
  * Create a default render context for initial theme compilation.
  */
 export function createDefaultContext(): RenderContext {
-  return {
-    media: 'screen',
-    colorScheme: 'light',
-  };
+  return { media: 'screen', colorScheme: 'light' };
 }
 
 /**
  * Create a print context for PDF export.
  */
 export function createPrintContext(): RenderContext {
-  return {
-    media: 'print',
-    colorScheme: 'light',
-  };
+  return { media: 'print', colorScheme: 'light' };
 }
 
 /**
  * Merge partial context with defaults.
  */
 export function mergeContext(partial: Partial<RenderContext>): RenderContext {
-  return {
-    ...createDefaultContext(),
-    ...partial,
-  };
+  return { ...createDefaultContext(), ...partial };
 }

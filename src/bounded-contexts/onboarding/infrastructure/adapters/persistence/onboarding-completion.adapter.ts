@@ -7,6 +7,7 @@
 
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoggerPort } from '@/shared-kernel';
 import {
   type CompletionResult,
   OnboardingCompletionPort,
@@ -22,6 +23,7 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     private readonly prisma: PrismaService,
     private readonly resumeAdapter: ResumeOnboardingAdapter,
     private readonly sectionAdapter: ResumeSectionOnboardingAdapter,
+    private readonly logger: LoggerPort,
   ) {
     super();
   }
@@ -64,7 +66,6 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     await tx.user.update({
       where: { id: userId },
       data: {
-        hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
         username: data.username,
         name: data.personalInfo.fullName,
@@ -76,5 +77,19 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
         website: data.professionalProfile.website ?? null,
       },
     });
+
+    // Grant the `user` role inside the same transaction so domain
+    // permissions (resume:create, social:use, etc.) become available
+    // atomically with onboarding completion. Idempotent: if the user
+    // already has the role (e.g., re-running after a partial failure),
+    // the upsert no-ops.
+    const userRole = await tx.role.findUnique({ where: { name: 'user' } });
+    if (userRole) {
+      await tx.userRoleAssignment.upsert({
+        where: { userId_roleId: { userId, roleId: userRole.id } },
+        create: { userId, roleId: userRole.id, assignedBy: 'onboarding-completion' },
+        update: {},
+      });
+    }
   }
 }

@@ -14,14 +14,12 @@ export interface ChangePasswordResult {
   success: true;
 }
 
-export interface ChangePasswordPort {
+export abstract class ChangePasswordPort {
   /**
    * Changes user password by verifying current password first.
    * @throws InvalidCurrentPasswordException if current password is wrong
    * @throws WeakPasswordException if new password doesn't meet requirements
    * @throws SamePasswordException if new password equals current password
    */
-  execute(command: ChangePasswordCommand): Promise<ChangePasswordResult>;
+  abstract execute(command: ChangePasswordCommand): Promise<ChangePasswordResult>;
 }
-
-export const CHANGE_PASSWORD_PORT = Symbol('ChangePasswordPort');

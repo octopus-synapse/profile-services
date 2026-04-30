@@ -34,10 +34,7 @@ export interface SectionTypeAtsConfig {
   ats: {
     isMandatory: boolean;
     recommendedPosition: number;
-    scoring: {
-      baseScore: number;
-      fieldWeights: Record<string, number>;
-    };
+    scoring: { baseScore: number; fieldWeights: Record<string, number> };
   };
   roleToFieldKey: Record<string, string>;
 }
@@ -86,23 +83,21 @@ export abstract class ResumeOwnershipPort {
 // Use Cases Interface
 // ============================================================================
 
-export const RESUME_ANALYTICS_USE_CASES = Symbol('RESUME_ANALYTICS_USE_CASES');
-
-export interface ResumeAnalyticsUseCases {
-  calculateAtsScoreUseCase: {
+export abstract class ResumeAnalyticsUseCases {
+  abstract readonly calculateAtsScoreUseCase: {
     execute: (resumeId: string, userId: string) => Promise<ATSScoreResult>;
   };
-  getIndustryBenchmarkUseCase: {
+  abstract readonly getIndustryBenchmarkUseCase: {
     execute: (
       resumeId: string,
       userId: string,
       options: IndustryBenchmarkOptions,
     ) => Promise<IndustryBenchmark>;
   };
-  buildAnalyticsDashboardUseCase: {
+  abstract readonly buildAnalyticsDashboardUseCase: {
     execute: (resumeId: string, userId: string) => Promise<AnalyticsDashboard>;
   };
-  analyzeKeywordsUseCase: {
+  abstract readonly analyzeKeywordsUseCase: {
     execute: (
       resumeId: string,
       userId: string,
@@ -114,27 +109,25 @@ export interface ResumeAnalyticsUseCases {
       jobDescription: string,
     ) => Promise<JobMatchResult>;
   };
-  saveSnapshotUseCase: {
+  abstract readonly saveSnapshotUseCase: {
     execute: (resumeId: string, userId: string) => Promise<AnalyticsSnapshot>;
   };
-  getSnapshotHistoryUseCase: {
+  abstract readonly getSnapshotHistoryUseCase: {
     execute: (
       resumeId: string,
       userId: string,
       query?: { limit?: number },
     ) => Promise<AnalyticsSnapshot[]>;
   };
-  getScoreProgressionUseCase: {
+  abstract readonly getScoreProgressionUseCase: {
     execute: (resumeId: string, userId: string, days?: number) => Promise<ScoreProgression>;
   };
-  trackViewUseCase: {
-    execute: (input: TrackView) => Promise<void>;
-  };
-  getViewStatsUseCase: {
+  abstract readonly trackViewUseCase: { execute: (input: TrackView) => Promise<void> };
+  abstract readonly getViewStatsUseCase: {
     execute: (resumeId: string, userId: string, options: ViewStatsOptions) => Promise<ViewStats>;
   };
   /** @deprecated Used by BenchmarkService for GraphQL — kept for backward compat */
-  getIndustryBenchmarks: (industry?: string) => Array<{
+  abstract readonly getIndustryBenchmarks: (industry?: string) => Array<{
     industry: string;
     averageScore: number;
     sampleSize: number;

@@ -1,8 +1,8 @@
 /**
  * Infrastructure Layer
  *
- * Adapters and controllers for the two-factor-auth bounded context.
+ * Adapters for the two-factor-auth BC. Routes have moved to
+ * `two-factor-auth.routes.ts`.
  */
 
 export * from './adapters';
-export * from './controllers';

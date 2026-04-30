@@ -7,23 +7,15 @@
  * Kent Beck: "Integration tests are the safety net for refactoring"
  */
 
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
-import { AppModule } from '@/app.module';
-import {
-  configureExceptionHandling,
-  configureValidation,
-} from '@/bounded-contexts/platform/common/config/validation.config';
-import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { acceptTosWithPrisma, uniqueTestId, uniqueTestUsername } from './setup';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+
+import type { PrismaClient } from '@prisma/client';
+import { stopTestApp, type TestApp } from '../shared';
+import { getApp, uniqueTestId, uniqueTestUsername } from './setup';
 
 describe('Onboarding Flow Integration', () => {
-  let app: INestApplication;
-  let prisma: PrismaService;
+  let app: TestApp;
+  let prisma: PrismaClient;
   let accessToken: string;
   let userId: string;
 
@@ -34,55 +26,42 @@ describe('Onboarding Flow Integration', () => {
   };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(EmailSenderService)
-      .useValue({
-        sendEmail: mock().mockResolvedValue(true),
-        isConfigured: true,
-      })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
-    const logger = app.get(AppLoggerService);
-    configureValidation(app);
-    configureExceptionHandling(app, logger);
-    prisma = app.get<PrismaService>(PrismaService);
-
-    await app.init();
+    app = await getApp();
+    prisma = app.prisma;
   });
 
   afterAll(async () => {
-    await app.close();
+    await stopTestApp();
   });
 
   beforeEach(async () => {
-    // Create fresh test user for each test
-    const signupResponse = await request(app.getHttpServer())
+    // Create fresh test user for each test. /api/accounts requires
+    // the consent versions in the body (LGPD) and creates the
+    // matching `UserConsent` rows itself, so we don't double-write.
+    const email = `onboarding-${uniqueTestId()}@test.com`;
+    const signupResponse = await app.request
       .post('/api/accounts')
       .send({
         ...testUser,
-        email: `onboarding-${uniqueTestId()}@test.com`,
+        email,
+        acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
+        acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
       })
       .expect(201);
 
     userId = signupResponse.body.data.userId;
 
-    // Verify email for protected route access
+    // Verify email so the email-verified guard lets the test through.
+    // Onboarding completion stays `false` since this suite exercises
+    // that flow itself.
     await prisma.user.update({
       where: { id: userId },
       data: { emailVerified: new Date() },
     });
 
-    // Accept ToS (GDPR compliance)
-    await acceptTosWithPrisma(prisma, userId);
-
-    const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
-      email: signupResponse.body.data.email,
-      password: testUser.password,
-    });
+    const loginResponse = await app.request
+      .post('/api/auth/login')
+      .send({ email, password: testUser.password });
     accessToken = loginResponse.body.data.accessToken;
   });
 
@@ -99,7 +78,7 @@ describe('Onboarding Flow Integration', () => {
 
   describe('Onboarding Status', () => {
     it('should return onboarding status for new user', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get('/api/v1/onboarding/status')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
@@ -109,13 +88,13 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject unauthenticated requests', async () => {
-      await request(app.getHttpServer()).get('/api/v1/onboarding/status').expect(401);
+      await app.request.get('/api/v1/onboarding/status').expect(401);
     });
   });
 
   describe('Onboarding Progress', () => {
     it('should get initial progress for new user', async () => {
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .get('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
@@ -135,7 +114,7 @@ describe('Onboarding Flow Integration', () => {
         },
       };
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .put('/api/v1/onboarding/progress')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(progressData)
@@ -147,7 +126,7 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject unauthenticated progress save', async () => {
-      await request(app.getHttpServer())
+      await app.request
         .put('/api/v1/onboarding/progress')
         .send({ currentStep: 'personalInfo' })
         .expect(401);
@@ -179,7 +158,7 @@ describe('Onboarding Flow Integration', () => {
         },
       };
 
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(onboardingData);
@@ -188,15 +167,12 @@ describe('Onboarding Flow Integration', () => {
     });
 
     it('should reject onboarding without authentication', async () => {
-      await request(app.getHttpServer())
-        .post('/api/v1/onboarding')
-        .send({ personalInfo: {} })
-        .expect(401);
+      await app.request.post('/api/v1/onboarding').send({ personalInfo: {} }).expect(401);
     });
 
     it('should reject invalid onboarding data', async () => {
       // Send invalid data (missing required fields)
-      const response = await request(app.getHttpServer())
+      const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({

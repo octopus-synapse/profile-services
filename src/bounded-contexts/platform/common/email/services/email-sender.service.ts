@@ -4,12 +4,14 @@
  * Pure nodemailer SMTP. Configure via env vars:
  *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE
  *   EMAIL_FROM, EMAIL_FROM_NAME
+ *
+ * Framework-free POJO. Constructed via `buildEmailComposition` from
+ * either the Nest module shell (`useFactory`) or the Elysia bootstrap.
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { createTransport, type Transporter } from 'nodemailer';
-import { AppLoggerService } from '../../logger/logger.service';
+import type { ConfigPort } from '@/shared-kernel/config';
+import type { LoggerPort } from '@/shared-kernel/logger';
 
 export interface SendEmailOptions {
   to: string;
@@ -18,18 +20,17 @@ export interface SendEmailOptions {
   text?: string;
 }
 
-@Injectable()
 export class EmailSenderService {
   private readonly fromEmail: string;
   private readonly fromName: string;
   private readonly transporter: Transporter | null = null;
 
   constructor(
-    private readonly configService: ConfigService,
-    private readonly logger: AppLoggerService,
+    private readonly configService: ConfigPort,
+    private readonly logger: LoggerPort,
   ) {
-    this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@profile.com';
-    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@patchcareers.com';
+    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'Patch Careers';
 
     const host = this.configService.get<string>('SMTP_HOST');
     if (!host) {
@@ -75,7 +76,8 @@ export class EmailSenderService {
     });
   }
 
-  private stripHtml(html: string): string {
+  private stripHtml(html: string | undefined): string {
+    if (!html) return '';
     return html
       .replace(/<style[^>]*>.*<\/style>/gm, '')
       .replace(/<script[^>]*>.*<\/script>/gm, '')

@@ -4,10 +4,8 @@
  * Fake implementation for testing password operations.
  */
 
-import type {
-  PasswordRepositoryPort,
-  UserWithPassword,
-} from '../../../password-management/domain/ports';
+import type { UserWithPassword } from '../../../password-management/domain/ports';
+import { PasswordRepositoryPort } from '../../../password-management/domain/ports';
 
 export class InMemoryPasswordRepository implements PasswordRepositoryPort {
   private users: Map<string, UserWithPassword> = new Map();

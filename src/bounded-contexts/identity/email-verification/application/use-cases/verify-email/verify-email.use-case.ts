@@ -1,24 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
-import type { EventBusPort } from '../../../../shared-kernel/ports';
+import { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { EmailVerifiedEvent } from '../../../domain/events';
 import {
   EmailAlreadyVerifiedException,
   InvalidVerificationTokenException,
 } from '../../../domain/exceptions';
-import type { EmailVerificationRepositoryPort } from '../../../domain/ports';
+import { EmailVerificationRepositoryPort } from '../../../domain/ports';
 import type { VerifyEmailCommand, VerifyEmailPort, VerifyEmailResult } from '../../ports';
 
-const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');
-const EVENT_BUS = Symbol('EventBusPort');
-
-@Injectable()
 export class VerifyEmailUseCase implements VerifyEmailPort {
   constructor(
-    @Inject(EMAIL_VERIFICATION_REPOSITORY)
     private readonly repository: EmailVerificationRepositoryPort,
-    @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(command: VerifyEmailCommand): Promise<VerifyEmailResult> {

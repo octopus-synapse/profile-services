@@ -1,28 +1,22 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeDeletedEvent } from '@/bounded-contexts/resumes';
-import {
-  ANALYTICS_PROJECTION_PORT,
-  AnalyticsProjectionPort,
-} from '../ports/analytics-projection.port';
+import { LoggerPort } from '@/shared-kernel';
+import { AnalyticsProjectionPort } from '../ports/analytics-projection.port';
 
-@Injectable()
+const CTX = 'SyncProjectionOnResumeDeletedHandler';
+
 export class SyncProjectionOnResumeDeletedHandler {
-  private readonly logger = new Logger(SyncProjectionOnResumeDeletedHandler.name);
-
   constructor(
-    @Inject(ANALYTICS_PROJECTION_PORT)
     private readonly projection: AnalyticsProjectionPort,
+    private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent(ResumeDeletedEvent.TYPE)
   async handle(event: ResumeDeletedEvent): Promise<void> {
     const resumeId = event.aggregateId;
 
-    this.logger.log(`Deleting analytics projection for resume: ${resumeId}`);
+    this.logger.log(`Deleting analytics projection for resume: ${resumeId}`, CTX);
 
     await this.projection.deleteProjection(resumeId);
 
-    this.logger.log(`Analytics projection deleted for resume: ${resumeId}`);
+    this.logger.log(`Analytics projection deleted for resume: ${resumeId}`, CTX);
   }
 }

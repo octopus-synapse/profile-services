@@ -5,33 +5,35 @@
  * This ensures that compromised sessions are invalidated when credentials are reset.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { LoggerPort } from '@/shared-kernel';
 import { PasswordChangedEvent } from '../../../password-management/domain/events';
-import { JwtStrategy } from '../../../shared-kernel/infrastructure/strategies';
-import type { AuthenticationRepositoryPort } from '../../domain/ports';
-import { AUTHENTICATION_REPOSITORY_PORT } from '../../domain/ports';
+import { AuthenticationRepositoryPort } from '../../domain/ports';
 
 // Token invalidation TTL: 24 hours (refresh tokens typically last this long)
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
 
-@Injectable()
 export class InvalidateSessionsOnCredentialChangeHandler {
   constructor(
-    @Inject(AUTHENTICATION_REPOSITORY_PORT)
     private readonly authRepository: AuthenticationRepositoryPort,
     private readonly cacheService: CacheService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
-  @OnEvent('auth.session.invalidate')
   async handleSessionInvalidate(event: { userId: string }): Promise<void> {
     await this.authRepository.invalidateSessionCache(event.userId);
   }
 
-  @OnEvent('password.changed')
+  /**
+   * Refresh the cached session snapshot as soon as a user verifies their
+   * email. Without this the `validate-session` cache keeps serving
+   * `emailVerified: false` for up to 10 minutes, and the `/identity/verify-email`
+   * screen doesn't redirect even after verification succeeds.
+   */
+  async handleEmailVerified(event: { userId: string }): Promise<void> {
+    await this.authRepository.invalidateSessionCache(event.userId);
+  }
+
   async handle(event: PasswordChangedEvent): Promise<void> {
     const { userId, changedVia } = event;
 
@@ -49,8 +51,11 @@ export class InvalidateSessionsOnCredentialChangeHandler {
 
       // Set token invalidation timestamp - any JWT issued before this time is invalid
       const now = Math.floor(Date.now() / 1000);
+      // Inlined from the deleted Nest `JwtStrategy.getTokenValidAfterKey(userId)`.
+      // The auth-extractor pipeline stage compares each JWT's `iat` against
+      // this timestamp and rejects tokens issued before it.
       await this.cacheService.set(
-        JwtStrategy.getTokenValidAfterKey(userId),
+        `auth:token-valid-after:${userId}`,
         now,
         TOKEN_INVALIDATION_TTL_SECONDS,
       );

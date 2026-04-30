@@ -20,11 +20,16 @@ export class EmailVerificationToken {
   }
 
   /**
-   * Generates a new random token with default expiration (24 hours)
+   * Generates a new verification code — 6 numeric digits, suited for an OTP
+   * input (e.g. `123456`). Uses crypto.getRandomValues (CSPRNG) for uniform
+   * distribution over 10^6. Brute-force protection relies on rate limiting +
+   * short TTL. Default is 15 minutes.
    */
-  static generateNew(expirationHours: number = 24): EmailVerificationToken {
-    const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + expirationHours * 60 * 60 * 1000);
+  static generateNew(expirationMinutes: number = 15): EmailVerificationToken {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const token = (buf[0] % 1_000_000).toString().padStart(6, '0');
+    const expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000);
     return new EmailVerificationToken(token, expiresAt);
   }
 

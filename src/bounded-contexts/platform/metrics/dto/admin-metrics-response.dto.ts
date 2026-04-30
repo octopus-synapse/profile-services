@@ -7,10 +7,7 @@ const AdminMetricsCountersSchema = z.object({
   exportCompleted: z.number(),
 });
 
-const AdminMetricsGaugesSchema = z.object({
-  activeUsers: z.number(),
-  pendingExports: z.number(),
-});
+const AdminMetricsGaugesSchema = z.object({ activeUsers: z.number(), pendingExports: z.number() });
 
 const AdminMetricsProcessSchema = z.object({
   uptimeSeconds: z.number(),

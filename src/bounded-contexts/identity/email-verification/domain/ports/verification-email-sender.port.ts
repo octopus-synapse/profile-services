@@ -4,11 +4,8 @@
  * Outbound port for sending verification emails.
  */
 
-export interface VerificationEmailSenderPort {
-  /**
-   * Sends a verification email
-   */
-  sendVerificationEmail(
+export abstract class VerificationEmailSenderPort {
+  abstract sendVerificationEmail(
     email: string,
     userName: string | null,
     verificationToken: string,

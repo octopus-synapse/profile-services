@@ -4,7 +4,7 @@
  * Generates a DOCX document for a user's resume.
  */
 
-import type { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
+import { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
 
 export interface ExportDocxDto {
   userId: string;

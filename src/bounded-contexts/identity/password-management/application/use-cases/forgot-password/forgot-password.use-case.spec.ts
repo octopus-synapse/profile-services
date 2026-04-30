@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { PasswordResetRequestedEvent } from '../../../domain/events';
 import {
@@ -30,7 +31,13 @@ describe('ForgotPasswordUseCase', () => {
 
     passwordRepository.seedUser(DEFAULT_USER);
 
-    useCase = new ForgotPasswordUseCase(passwordRepository, tokenService, emailSender, eventBus);
+    useCase = new ForgotPasswordUseCase(
+      passwordRepository,
+      tokenService,
+      emailSender,
+      eventBus,
+      stubLogger,
+    );
   });
 
   // ───────────────────────────────────────────────────────────────

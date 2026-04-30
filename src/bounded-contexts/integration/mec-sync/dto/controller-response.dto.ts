@@ -16,37 +16,21 @@ import {
 // Schemas
 // ============================================================================
 
-const MecCourseListDataSchema = z.object({
-  courses: z.array(CourseSchema),
-});
+const MecCourseListDataSchema = z.object({ courses: z.array(CourseSchema) });
 
-const MecCourseDataSchema = z.object({
-  course: CourseSchema.nullable(),
-});
+const MecCourseDataSchema = z.object({ course: CourseSchema.nullable() });
 
-const MecInstitutionListDataSchema = z.object({
-  institutions: z.array(InstitutionSchema),
-});
+const MecInstitutionListDataSchema = z.object({ institutions: z.array(InstitutionSchema) });
 
-const MecInstitutionDataSchema = z.object({
-  institution: InstitutionWithCoursesSchema.nullable(),
-});
+const MecInstitutionDataSchema = z.object({ institution: InstitutionWithCoursesSchema.nullable() });
 
-const MecInstitutionCoursesDataSchema = z.object({
-  courses: z.array(CourseSchema),
-});
+const MecInstitutionCoursesDataSchema = z.object({ courses: z.array(CourseSchema) });
 
-const MecStateCodesDataSchema = z.object({
-  states: z.array(z.string()),
-});
+const MecStateCodesDataSchema = z.object({ states: z.array(z.string()) });
 
-const MecKnowledgeAreasDataSchema = z.object({
-  areas: z.array(z.string()),
-});
+const MecKnowledgeAreasDataSchema = z.object({ areas: z.array(z.string()) });
 
-const MecStatisticsDataSchema = z.object({
-  stats: MecStatsSchema,
-});
+const MecStatisticsDataSchema = z.object({ stats: MecStatsSchema });
 
 const MecSyncExecutionDataSchema = z.object({
   institutionsInserted: z.number().int(),
@@ -64,9 +48,7 @@ const MecSyncStatusDataSchema = z.object({
   lastSync: MecSyncLogFlexibleSchema.nullable(),
 });
 
-const MecSyncHistoryDataSchema = z.object({
-  history: z.array(MecSyncLogFlexibleSchema),
-});
+const MecSyncHistoryDataSchema = z.object({ history: z.array(MecSyncLogFlexibleSchema) });
 
 // ============================================================================
 // DTOs

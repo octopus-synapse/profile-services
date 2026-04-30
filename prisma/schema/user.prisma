@@ -4,16 +4,18 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  /// Timestamp when the email was verified. `null` = unverified.
+  /// (Historically named `emailVerified`; kept for code-base churn.)
   emailVerified DateTime?
   image         String?
   passwordHash  String?
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
 
-  // Simplified RBAC: roles stored as array
-  // Values: 'role_user', 'role_creator', 'role_approver', 'role_admin', etc.
-  // Permissions resolved at runtime via permission-resolver.ts
-  roles String[] @default(["role_user"])
+  // Legacy roles column. The new authorization model uses
+  // `UserRoleAssignment` rows; this array is kept as a denormalized
+  // shadow for code paths still reading it during migration.
+  roles String[] @default([])
 
   accounts Account[]
   sessions Session[]
@@ -33,9 +35,11 @@ model User {
   primaryResumeId String?
   primaryResume   Resume? @relation("UserPrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
 
-  // Onboarding tracking
-  hasCompletedOnboarding Boolean   @default(false)
-  onboardingCompletedAt  DateTime?
+  // Onboarding tracking — `onboardingCompletedAt != null` is the
+  // single source of truth. The legacy denormalized boolean
+  // (`hasCompletedOnboarding`) was dropped: code that exposes the
+  // boolean to clients now derives it from this column.
+  onboardingCompletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,9 +50,14 @@ model User {
   auditLogs          AuditLog[]
   consents           UserConsent[]       @relation("UserConsents")
 
-  // Theme system
-  createdThemes  ResumeTheme[] @relation("ThemeAuthor")
-  approvedThemes ResumeTheme[] @relation("ThemeApprover")
+  // Resume style system
+  authoredStyles ResumeStyle[] @relation("StyleAuthor")
+
+  // Scoring subsystem: fit profile + per-user answers/question sets
+  fitProfile        UserFitProfile?
+  fitAnswers        FitAnswer[]       @relation("UserFitAnswers")
+  fitQuestionSets   FitQuestionSet[]  @relation("UserFitQuestionSets")
+  fitRemapHistory   FitRemapHistory[] @relation("UserFitRemapHistory")
 
   // Chat system
   conversationsAsParticipant1 Conversation[]            @relation("ConversationParticipant1")
@@ -82,10 +91,10 @@ model User {
   authoredCollabComments CollaborationComment[] @relation("AuthoredCollabComments")
   skillProficiencies   UserSkillProficiency[]  @relation("UserSkillProficiencies")
 
-  // Legacy RBAC (to be deprecated - use roles[] instead)
+  // RBAC: roles assigned via UserRoleAssignment, plus per-user
+  // grants/suspensions via AccessModifier (see authorization.prisma).
   userRoles       UserRoleAssignment[]
-  userGroups      UserGroup[]
-  userPermissions UserPermission[]
+  accessModifiers AccessModifier[]
 
   // Feed
   posts              Post[]           @relation("UserPosts")
@@ -119,7 +128,8 @@ model User {
 
   @@index([username])
   @@index([email])
-  @@index([hasCompletedOnboarding])
+  @@index([emailVerified])
+  @@index([onboardingCompletedAt])
   @@index([primaryResumeId])
   @@index([isActive])
 }

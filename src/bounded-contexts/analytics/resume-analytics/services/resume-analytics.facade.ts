@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -26,7 +25,6 @@ import { KeywordAnalysisService } from './keyword-analysis.service';
 import { SnapshotService } from './snapshot.service';
 import { ViewTrackingService } from './view-tracking.service';
 
-@Injectable()
 export class ResumeAnalyticsFacade {
   constructor(
     private readonly prisma: PrismaService,
@@ -141,10 +139,7 @@ export class ResumeAnalyticsFacade {
     await this.verifyOwnership(resumeId, userId);
     const points = await this.snapshot.getScoreProgression(resumeId, days);
     return {
-      snapshots: points.map((p) => ({
-        date: new Date(p.date),
-        score: p.score,
-      })),
+      snapshots: points.map((p) => ({ date: new Date(p.date), score: p.score })),
       trend: this.calculateTrend(points),
       changePercent: this.calculateChangePercent(points),
     };
@@ -190,16 +185,11 @@ export class ResumeAnalyticsFacade {
         resumeSections: {
           include: {
             sectionType: {
-              select: {
-                semanticKind: true,
-              },
+              select: { semanticKind: true },
             },
             items: {
               orderBy: { order: 'asc' },
-              select: {
-                id: true,
-                content: true,
-              },
+              select: { id: true, content: true },
             },
           },
         },
@@ -218,7 +208,6 @@ export class ResumeAnalyticsFacade {
 
     return {
       summary: resume.summary,
-      emailContact: resume.emailContact,
       phone: resume.phone,
       jobTitle: resume.jobTitle,
       sections,

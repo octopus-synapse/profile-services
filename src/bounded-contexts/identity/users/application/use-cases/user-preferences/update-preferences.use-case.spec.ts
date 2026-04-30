@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
+import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 import { UpdatePreferencesUseCase } from './update-preferences.use-case';
 
 describe('UpdatePreferencesUseCase', () => {
@@ -49,9 +49,7 @@ describe('UpdatePreferencesUseCase', () => {
     const result = await useCase.execute('user-1', { palette: 'ocean' });
 
     expect(repository.userExists).toHaveBeenCalledWith('user-1');
-    expect(repository.updatePreferences).toHaveBeenCalledWith('user-1', {
-      palette: 'ocean',
-    });
+    expect(repository.updatePreferences).toHaveBeenCalledWith('user-1', { palette: 'ocean' });
 
     // CRITICAL: Returns void, not envelope
     expect(result).toBeUndefined();

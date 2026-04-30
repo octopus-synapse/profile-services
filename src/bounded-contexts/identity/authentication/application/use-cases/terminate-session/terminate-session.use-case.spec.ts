@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionTerminatedEvent } from '../../../domain/events';
 import type { CookieReader, CookieWriter } from '../../../domain/ports/session-storage.port';
@@ -40,7 +41,7 @@ describe('TerminateSessionUseCase', () => {
     tokenGenerator = new InMemoryTokenGenerator();
     sessionStorage = new InMemorySessionStorage();
     eventBus = new InMemoryEventBus();
-    useCase = new TerminateSessionUseCase(tokenGenerator, sessionStorage, eventBus);
+    useCase = new TerminateSessionUseCase(tokenGenerator, sessionStorage, eventBus, stubLogger);
   });
 
   it('clears cookie and publishes SessionTerminatedEvent with reason logout', async () => {

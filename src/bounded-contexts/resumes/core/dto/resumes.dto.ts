@@ -47,12 +47,10 @@ const ThemeSchema = z.object({
 const CreateResumeRequestSchema = z.object({
   title: z.string().min(1).max(100),
   summary: z.string().max(2000).optional(),
-  template: z.string().optional(),
   isPublic: z.boolean().optional(),
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
   phone: z.string().max(20).optional(),
-  emailContact: z.string().email().optional(),
   location: z.string().max(100).optional(),
   linkedin: z.string().url().optional(),
   github: z.string().url().optional(),
@@ -90,8 +88,8 @@ const ResumeSlotsResponseSchema = z.object({
 
 const ResumeFullResponseSchema = ResumeResponseSchema.extend({
   resumeSections: z.array(SectionSchema),
-  activeThemeId: z.string().optional(),
-  activeTheme: ThemeSchema.optional(),
+  styleId: z.string().optional(),
+  style: ThemeSchema.optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
@@ -99,10 +97,7 @@ const ResumeFullResponseSchema = ResumeResponseSchema.extend({
   summary: z.string().optional(),
 });
 
-const DeleteResponseSchema = z.object({
-  deleted: z.boolean(),
-  id: z.string(),
-});
+const DeleteResponseSchema = z.object({ deleted: z.boolean(), id: z.string() });
 
 const PaginationMetaSchema = z.object({
   total: z.number().int(),
@@ -138,4 +133,4 @@ export class PaginatedResumesDataDto extends createZodDto(PaginatedResumesDataSc
 export class ResumeSectionTypeResponseDto extends createZodDto(SectionTypeSchema) {}
 export class ResumeSectionItemResponseDto extends createZodDto(SectionItemSchema) {}
 export class ResumeSectionResponseDto extends createZodDto(SectionSchema) {}
-export class ResumeThemeResponseDto extends createZodDto(ThemeSchema) {}
+export class ResumeStyleResponseDto extends createZodDto(ThemeSchema) {}

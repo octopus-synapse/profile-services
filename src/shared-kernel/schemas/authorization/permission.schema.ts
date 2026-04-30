@@ -74,9 +74,7 @@ export type CreatePermission = z.infer<typeof CreatePermissionSchema>;
 /**
  * Schema for updating a permission.
  */
-export const UpdatePermissionSchema = z.object({
-  description: z.string().max(255).optional(),
-});
+export const UpdatePermissionSchema = z.object({ description: z.string().max(255).optional() });
 
 export type UpdatePermission = z.infer<typeof UpdatePermissionSchema>;
 

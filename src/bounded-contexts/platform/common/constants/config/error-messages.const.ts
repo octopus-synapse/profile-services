@@ -21,24 +21,18 @@ export const ERROR_MESSAGES = {
     'Username cannot have consecutive underscores or end with an underscore',
   CANNOT_DELETE_LAST_ADMIN: 'Cannot delete the last admin account',
   CANNOT_REMOVE_LAST_ADMIN_ROLE: 'Cannot remove admin role from the last admin account',
-  INVALID_INTERNAL_TOKEN: 'Invalid internal token',
-
-  // Tokens
+  INVALID_INTERNAL_TOKEN: 'Invalid internal token', // Tokens
   INVALID_VERIFICATION_TOKEN: 'Invalid or expired verification token',
   INVALID_RESET_TOKEN: 'Invalid or expired reset token',
   TOKEN_EXPIRED: 'Token has expired',
   TOKEN_REVOKED: 'Token has been revoked',
-  EMAIL_NOT_VERIFIED: 'Please verify your email address before continuing',
-
-  // Validation
+  EMAIL_NOT_VERIFIED: 'Please verify your email address before continuing', // Validation
   INVALID_EMAIL: 'Invalid email format',
   INVALID_PASSWORD: 'Password must be at least 8 characters',
   INVALID_DATE: 'Invalid date format',
   ID_REQUIRED: 'ID is required',
   ID_MUST_BE_STRING: 'ID must be a string',
-  NO_FILE_PROVIDED: 'No file provided',
-
-  // Resources
+  NO_FILE_PROVIDED: 'No file provided', // Resources
   RESUME_NOT_FOUND: 'Resume not found',
   RESUME_NOT_FOUND_FOR_USER: 'Resume not found for this user',
   RESUME_ACCESS_DENIED: 'Resume not found or access denied',
@@ -47,49 +41,23 @@ export const ERROR_MESSAGES = {
   RESOURCE_NOT_FOUND: 'Resource not found',
   ACCESS_DENIED: 'Access denied to this resource',
   PUBLIC_PROFILE_NOT_FOUND: 'Public profile not found',
-
-  // Themes
-  THEME_NOT_FOUND: 'Theme not found',
-  THEME_ACCESS_DENIED: 'Theme not found or access denied',
-  CANNOT_DELETE_SYSTEM_THEMES: 'Cannot delete system themes',
-  CAN_ONLY_DELETE_OWN_THEMES: 'Can only delete own themes',
-  CAN_ONLY_EDIT_OWN_THEMES: 'Can only edit own themes',
   ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES: 'Only admins can edit system themes',
   ONLY_ADMINS_CAN_DO_THIS: 'Only administrators can perform this action',
-  CAN_ONLY_SUBMIT_OWN_THEMES: 'Can only submit own themes',
-  THEME_MUST_BE_PRIVATE_OR_REJECTED: 'Theme must be private or rejected',
-  THEME_NOT_PENDING_APPROVAL: 'Theme is not pending approval',
-  CANNOT_APPROVE_OWN_THEMES: 'Cannot approve own themes',
-  REJECTION_REASON_REQUIRED: 'Rejection reason is required',
-  CANNOT_FORK_THEME: 'Cannot fork this theme',
-
-  // Config Validation
+  REJECTION_REASON_REQUIRED: 'Rejection reason is required', // Config Validation
   LAYOUT_CONFIG_REQUIRED: 'Layout config is required',
   SECTIONS_MUST_BE_ARRAY: 'Sections must be an array',
-  ITEM_OVERRIDES_MUST_BE_OBJECT: 'Item overrides must be an object',
-
-  // Upload
-  FILE_UPLOAD_UNAVAILABLE: 'File upload service unavailable',
-
-  // Export
+  ITEM_OVERRIDES_MUST_BE_OBJECT: 'Item overrides must be an object', // Upload
+  FILE_UPLOAD_UNAVAILABLE: 'File upload service unavailable', // Export
   EXPORT_FAILED: 'Failed to export document',
-  INVALID_EXPORT_FORMAT: 'Invalid export format',
-
-  // Server
+  INVALID_EXPORT_FORMAT: 'Invalid export format', // Server
   INTERNAL_SERVER_ERROR: 'Internal server error',
-  SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
-
-  // Distributed Lock (BUG-004)
+  SERVICE_UNAVAILABLE: 'Service temporarily unavailable', // Distributed Lock (BUG-004)
   DISTRIBUTED_LOCK_UNAVAILABLE:
     'Distributed locking is unavailable. Critical operations cannot proceed.',
-  LOCK_ACQUISITION_FAILED: 'Could not acquire lock for operation',
-
-  // Rate Limiting
+  LOCK_ACQUISITION_FAILED: 'Could not acquire lock for operation', // Rate Limiting
   TOO_MANY_LOGIN_ATTEMPTS: 'Too many login attempts. Please try again later.',
   TOO_MANY_PASSWORD_RESET_REQUESTS: 'Too many password reset requests. Please try again later.',
-  TOO_MANY_SYNC_REQUESTS: 'Daily sync limit reached. Please try again tomorrow.',
-
-  // Business Limits
+  TOO_MANY_SYNC_REQUESTS: 'Daily sync limit reached. Please try again tomorrow.', // Business Limits
   THEME_LIMIT_REACHED: 'Maximum number of themes reached (5)',
   SESSION_LIMIT_REACHED: 'Maximum number of active sessions reached (5)',
   THEME_RESUBMISSION_LIMIT_REACHED:

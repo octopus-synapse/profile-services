@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { ImportNotFoundException } from '../../../domain/exceptions/import.exceptions';
 import { sampleJsonResume } from '../../../testing/fixtures/import-job.fixtures';
 import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
@@ -13,7 +14,7 @@ describe('ProcessImportUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryImportJobRepository();
     resumeCreator = new StubResumeCreator();
-    useCase = new ProcessImportUseCase(repository, resumeCreator);
+    useCase = new ProcessImportUseCase(repository, resumeCreator, stubLogger);
   });
 
   it('should process JSON import and create resume', async () => {
@@ -51,10 +52,7 @@ describe('ProcessImportUseCase', () => {
   });
 
   it('should fail when no raw data', async () => {
-    const job = await repository.create({
-      userId: 'user-123',
-      source: 'JSON',
-    });
+    const job = await repository.create({ userId: 'user-123', source: 'JSON' });
 
     const result = await useCase.execute(job.id);
 

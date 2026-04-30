@@ -10,23 +10,25 @@
  * - sameSite: 'lax' (CSRF protection)
  */
 
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigPort } from '@/shared-kernel/config';
 import type {
   CookieReader,
   CookieWriter,
   SessionCookieOptions,
-  SessionStoragePort,
 } from '../../domain/ports/session-storage.port';
+import { SessionStoragePort } from '../../domain/ports/session-storage.port';
 
-@Injectable()
 export class CookieSessionStorage implements SessionStoragePort {
-  private readonly COOKIE_NAME = 'session';
+  // Renamed from 'session' so the JWT-based AuthExtractorPort
+  // (`JoseAuthExtractorAdapter`) reads from the same cookie this
+  // adapter writes — without that, cookie-only auth (no Bearer
+  // header) falls through to 401.
+  private readonly COOKIE_NAME = 'access_token';
   private readonly cookieOptions: SessionCookieOptions;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly configService: ConfigPort) {
     const isProduction = this.configService.get('NODE_ENV') === 'production';
-    const sessionExpiryDays = this.configService.get<number>('SESSION_EXPIRY_DAYS', 7);
+    const sessionExpiryDays = this.configService.getOrDefault<number>('SESSION_EXPIRY_DAYS', 7);
 
     this.cookieOptions = {
       httpOnly: true,

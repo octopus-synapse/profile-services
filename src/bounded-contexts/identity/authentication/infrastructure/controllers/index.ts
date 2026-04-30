@@ -1,4 +1,8 @@
-export { LoginController } from './login.controller';
-export { LogoutController } from './logout.controller';
-export { RefreshTokenController } from './refresh-token.controller';
-export { SessionController } from './session.controller';
+/**
+ * All HTTP endpoints for the authentication BC are now declared in
+ * `authentication.routes.ts` and synthesized into Nest controllers by
+ * `synthesizeRouteControllers`. Kept as an empty barrel so callers
+ * that did `import {} from './controllers'` keep type-checking.
+ */
+
+export {};

@@ -5,7 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { VerificationEmailSentEvent } from '../../../domain/events';
 import {
@@ -33,7 +34,7 @@ describe('SendVerificationEmailUseCase', () => {
 
     repository.seedUser(DEFAULT_USER.id, DEFAULT_USER.email, DEFAULT_USER.emailVerified);
 
-    useCase = new SendVerificationEmailUseCase(repository, emailSender, eventBus);
+    useCase = new SendVerificationEmailUseCase(repository, emailSender, eventBus, stubLogger);
   });
 
   // ───────────────────────────────────────────────────────────────

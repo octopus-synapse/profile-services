@@ -9,8 +9,10 @@ model JobApplicationEvent {
   application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   type JobApplicationEventType
-  /** Optional note the user or recruiter can attach (interview notes, etc.). */
-  note String? @db.Text
+  /**
+   * Optional note the user or recruiter can attach (interview notes, etc.).
+   */
+  note String?                 @db.Text
 
   occurredAt DateTime @default(now())
 
@@ -19,14 +21,14 @@ model JobApplicationEvent {
 }
 
 enum JobApplicationEventType {
-  SUBMITTED            // Auto-emitted when user applies.
-  VIEWED               // Recruiter opened the application.
-  INTERVIEW_SCHEDULED  // User self-reports an interview booked.
-  INTERVIEW_COMPLETED  // User self-reports the interview happened.
-  OFFER_RECEIVED       // Offer came in.
-  REJECTED             // Application declined.
-  WITHDRAWN            // User pulled out.
-  FOLLOW_UP_SENT       // User sent a follow-up — unblocks the silence detector.
+  SUBMITTED // Auto-emitted when user applies.
+  VIEWED // Recruiter opened the application.
+  INTERVIEW_SCHEDULED // User self-reports an interview booked.
+  INTERVIEW_COMPLETED // User self-reports the interview happened.
+  OFFER_RECEIVED // Offer came in.
+  REJECTED // Application declined.
+  WITHDRAWN // User pulled out.
+  FOLLOW_UP_SENT // User sent a follow-up — unblocks the silence detector.
 }
 
 // Tracks which silence thresholds (7/14/21 days) have been reminded per
