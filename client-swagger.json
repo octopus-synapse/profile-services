@@ -3232,7 +3232,83 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authenticated": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "username": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "hasCompletedOnboarding": {
+                          "type": "boolean"
+                        },
+                        "emailVerified": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "USER",
+                            "ADMIN"
+                          ]
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "isAdmin": {
+                          "type": "boolean"
+                        },
+                        "needsOnboarding": {
+                          "type": "boolean"
+                        },
+                        "needsEmailVerification": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "name",
+                        "username",
+                        "hasCompletedOnboarding",
+                        "role",
+                        "roles",
+                        "isAdmin",
+                        "needsOnboarding",
+                        "needsEmailVerification"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "authenticated"
+                  ]
+                }
+              }
+            }
           }
         }
       }

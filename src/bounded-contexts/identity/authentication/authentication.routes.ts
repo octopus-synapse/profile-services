@@ -34,6 +34,25 @@ const LogoutSchema = z.object({
 });
 const RevokeSessionParams = z.object({ id: z.string() });
 
+const SessionUserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  emailVerified: z.boolean().nullable().optional(),
+  role: z.enum(['USER', 'ADMIN']),
+  roles: z.array(z.string()),
+  isAdmin: z.boolean(),
+  needsOnboarding: z.boolean(),
+  needsEmailVerification: z.boolean(),
+});
+
+const SessionResponseSchema = z.object({
+  authenticated: z.boolean(),
+  user: SessionUserSchema.nullable().optional(),
+});
+
 export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>> = [
   {
     method: 'POST',
@@ -180,6 +199,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     method: 'GET',
     path: '/v1/auth/session',
     auth: { kind: 'optional' },
+    response: SessionResponseSchema,
     openapi: {
       summary: 'Get Session',
       tags: ['auth'],
