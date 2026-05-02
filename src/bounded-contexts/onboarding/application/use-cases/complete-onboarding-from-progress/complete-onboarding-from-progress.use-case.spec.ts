@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { OnboardingValidationException } from '../../../domain/exceptions/onboarding.exceptions';
+import {
+  OnboardingStepNotCompletedException,
+  OnboardingValidationException,
+} from '../../../domain/exceptions/onboarding.exceptions';
 import {
   createOnboardingProgress,
   InMemoryOnboardingCompletion,
@@ -111,13 +114,29 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     expect(stored?.data.sections).toHaveLength(2);
   });
 
+  it('throws OnboardingStepNotCompletedException when a required step is not in completedSteps', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'review',
+        // missing 'username' on purpose
+        completedSteps: ['welcome', 'personal-info', 'professional-profile'],
+        username: 'johndoe',
+        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        professionalProfile: { jobTitle: 'Engineer' },
+      }),
+    );
+
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingStepNotCompletedException);
+  });
+
   it('throws when username is missing', async () => {
     // Arrange
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: null,
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { jobTitle: 'Engineer' },
@@ -134,7 +153,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: null,
         professionalProfile: { jobTitle: 'Engineer' },
@@ -151,7 +170,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: null,
@@ -168,7 +187,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { email: 'john@example.com' }, // missing fullName
         professionalProfile: { jobTitle: 'Engineer' },
@@ -185,7 +204,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'not-an-email' }, // invalid email
         professionalProfile: { jobTitle: 'Engineer' },
@@ -202,7 +221,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { summary: 'No job title' }, // missing jobTitle
@@ -219,7 +238,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { jobTitle: 'Engineer' },
@@ -242,7 +261,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { jobTitle: 'Engineer' },

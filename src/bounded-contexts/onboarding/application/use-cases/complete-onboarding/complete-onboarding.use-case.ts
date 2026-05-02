@@ -2,6 +2,9 @@ import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   OnboardingDataValidationFailedException,
+  OnboardingInvalidPersonalInfoException,
+  OnboardingInvalidProfessionalProfileException,
+  OnboardingInvalidUsernameException,
   type OnboardingValidationError,
 } from '../../../domain/exceptions/onboarding.exceptions';
 import {
@@ -46,6 +49,25 @@ export class CompleteOnboardingUseCase {
       field: err.path.join('.'),
       message: err.message,
     }));
+
+    // Pick the most specific exception based on which subtree failed first;
+    // catalog-parity tests expect granular codes when only one section is
+    // malformed (e.g. the SDK validates each step independently).
+    const root = parseResult.error.errors[0]?.path[0];
+    if (root === 'username') {
+      throw new OnboardingInvalidUsernameException(
+        parseResult.error.errors[0]?.message ?? 'Invalid username',
+      );
+    }
+    if (root === 'personalInfo' && errors.every((e) => e.field.startsWith('personalInfo'))) {
+      throw new OnboardingInvalidPersonalInfoException(errors);
+    }
+    if (
+      root === 'professionalProfile' &&
+      errors.every((e) => e.field.startsWith('professionalProfile'))
+    ) {
+      throw new OnboardingInvalidProfessionalProfileException(errors);
+    }
     throw new OnboardingDataValidationFailedException(errors);
   }
 

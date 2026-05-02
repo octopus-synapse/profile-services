@@ -104,6 +104,12 @@ export class OnboardingInvalidUsernameException extends OnboardingValidationExce
   }
 }
 
+// Reservado: redundante com OnboardingUsernameTakenException (-extra), que já é
+// throwed por save-progress + complete-onboarding. Mantido para o factory
+// `OnboardingValidationException.usernameAlreadyTaken(...)` que retorna a
+// versão validation-style com payload structured (`{field, message}` para o
+// SDK). Será throwed por uma camada futura caso a UI passe a precisar da
+// listagem `details[]` no envelope de validação.
 export class OnboardingUsernameAlreadyTakenException extends OnboardingValidationException {
   readonly code = 'USERNAME_TAKEN';
   constructor(username: string) {

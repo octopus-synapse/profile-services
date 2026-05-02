@@ -2,6 +2,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import {
   OnboardingGenericValidationException,
   OnboardingMissingRequiredDataException,
+  OnboardingStepNotCompletedException,
   type OnboardingValidationError,
 } from '../../../domain/exceptions/onboarding.exceptions';
 import type { CompletionResult } from '../../../domain/ports/onboarding-completion.port';
@@ -19,10 +20,33 @@ export class CompleteOnboardingFromProgressUseCase {
     private readonly logger: LoggerPort,
   ) {}
 
+  /**
+   * Onboarding steps whose completion is mandatory before the user can
+   * trigger the final completion from saved progress. Mirrors the
+   * `requiredSteps` config in `onboarding-steps.config.ts`. Kept inline
+   * (rather than imported) to avoid coupling the use-case to the steps
+   * registry — these three are stable foundational steps.
+   */
+  private static readonly REQUIRED_PROGRESS_STEPS = [
+    'personal-info',
+    'username',
+    'professional-profile',
+  ];
+
   async execute(userId: string): Promise<CompletionResult> {
     const progress = await this.getProgress(userId);
+    this.assertRequiredStepsCompleted(progress);
     const onboardingData = this.buildOnboardingDataFromProgress(progress);
     return this.completeOnboarding.execute(userId, onboardingData);
+  }
+
+  private assertRequiredStepsCompleted(progress: OnboardingProgressData): void {
+    const completed = new Set(progress.completedSteps);
+    for (const step of CompleteOnboardingFromProgressUseCase.REQUIRED_PROGRESS_STEPS) {
+      if (!completed.has(step)) {
+        throw new OnboardingStepNotCompletedException(step);
+      }
+    }
   }
 
   private buildOnboardingDataFromProgress(progress: OnboardingProgressData) {

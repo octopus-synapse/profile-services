@@ -4,6 +4,11 @@ import {
   ConflictException,
   EntityNotFoundException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  OnboardingInvalidPersonalInfoException,
+  OnboardingInvalidProfessionalProfileException,
+  OnboardingInvalidUsernameException,
+} from '../../../domain/exceptions/onboarding.exceptions';
 import { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   createOnboardingData,
@@ -132,6 +137,34 @@ describe('CompleteOnboardingUseCase', () => {
       const invalidData = {};
 
       await expect(useCase.execute(userId, invalidData)).rejects.toThrow();
+    });
+
+    it('throws OnboardingInvalidUsernameException when only username is bad', async () => {
+      const userId = 'user-123';
+      const data = createOnboardingData({ username: 'a' });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidUsernameException,
+      );
+    });
+
+    it('throws OnboardingInvalidPersonalInfoException when only personalInfo is bad', async () => {
+      const userId = 'user-123';
+      const data = createOnboardingData({
+        personalInfo: { fullName: 'A', email: 'not-an-email' as unknown as string },
+      });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidPersonalInfoException,
+      );
+    });
+
+    it('throws OnboardingInvalidProfessionalProfileException when only professionalProfile is bad', async () => {
+      const userId = 'user-123';
+      const data = createOnboardingData({
+        professionalProfile: { jobTitle: '', summary: 'short' },
+      });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidProfessionalProfileException,
+      );
     });
 
     it('should handle username conflict (P2002) during transaction', async () => {
