@@ -71,12 +71,16 @@ import { buildNotificationsComposition } from '@/bounded-contexts/notifications/
 import { buildOnboardingComposition } from '@/bounded-contexts/onboarding/onboarding.composition';
 import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.routes';
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
+import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
 import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platform.composition';
 import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
+import { buildFeatureFlagsComposition } from '@/bounded-contexts/platform/feature-flags/feature-flags.composition';
+import { RedisFlagCache } from '@/bounded-contexts/platform/feature-flags/infrastructure/cache/redis-flag-cache.service';
+import { SseFlagStream } from '@/bounded-contexts/platform/feature-flags/infrastructure/sse/sse-flag-stream.service';
 import { buildHealthComposition } from '@/bounded-contexts/platform/health/health.composition';
 import { buildI18nComposition } from '@/bounded-contexts/platform/i18n/i18n.composition';
 import { buildMetricsComposition } from '@/bounded-contexts/platform/metrics/metrics.composition';
@@ -117,7 +121,6 @@ import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
-import { NullFeatureFlagsAdapter } from './null-feature-flags.adapter';
 import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
@@ -402,6 +405,30 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const fitProfileBundle = buildFitProfileBundle(prisma as never, eventBus, logger);
   void rateLimit;
 
+  // Feature-flags BC. Replaces `NullFeatureFlagsAdapter` when Redis is
+  // available — FF needs `RedisFlagCache` (uses subscribe/publish for
+  // cross-instance invalidation) and `SseFlagStream` (fans out
+  // invalidate broadcasts to connected clients via `/v1/feature-flags/stream`).
+  // When `REDIS_HOST` is unset, RedisConnectionService runs in
+  // disabled mode and the cache no-ops, but the BC still serves
+  // ListFlags / Toggle / Impact via Prisma. Construction order:
+  // FF after auditLog (dep) and before realtime BC (translators
+  // subscribe to FlagToggled events; subscriptions are durable so the
+  // order is observability-only — clearer to read FF first here).
+  const redisConnection = new RedisConnectionService(logger as never);
+  lifecycles.push(redisConnection);
+  const featureFlagsCache = new RedisFlagCache(redisConnection, logger as never);
+  const featureFlagsSse = new SseFlagStream(featureFlagsCache);
+  const featureFlags = buildFeatureFlagsComposition({
+    prisma: prisma as never,
+    cache: featureFlagsCache,
+    sse: featureFlagsSse,
+    auditLog,
+    eventBus,
+    logger,
+  });
+  for (const l of featureFlags.lifecycles ?? []) lifecycles.push(l);
+
   // Identity sub-BCs.
   const twoFactorAuth = buildTwoFactorAuthComposition(prisma as never, cache as never, logger);
   const twoFaUseCases = buildTwoFactorAuthUseCases(prisma as never, cache as never, logger);
@@ -482,10 +509,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;
   // `cacheInvalidation` is a thin POJO over CachePort + LoggerPort.
-  // `flags` defaults to off until Redis-backed feature-flags lands;
-  // shared with resume-quality + job-match below.
+  // `flags` is the real `FeatureFlagService` from the feature-flags
+  // BC (see construction above). Shared with resume-quality + job-match.
   const cacheInvalidation = new CacheInvalidationService(cache, logger);
-  const flags = new NullFeatureFlagsAdapter();
+  const flags = featureFlags.useCases.featureFlagService;
   // resumes-core's use-cases consume `ResumeEventPublisher` (typed
   // `publishResumeCreated/Updated/Deleted/...`), not the raw EventBus.
   // Reuse the adapter built above for resume-versions so handlers'
@@ -646,6 +673,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     careerGraph,
     uiMetadata,
     realtime,
+    featureFlags,
     dsl,
     oauth,
     importBc,
@@ -751,6 +779,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // SSE bundles use a different bundle type than the BC's main
   // useCases — mount them separately.
+  mountRoutes(
+    app,
+    { bundle: featureFlags.sseBundle, routes: featureFlags.sseRoutes },
+    { prefix: '/api', pipeline },
+  );
   mountRoutes(
     app,
     { bundle: notifications.sseBundle, routes: notifications.sseRoutes },
