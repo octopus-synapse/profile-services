@@ -129,6 +129,14 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
     return { count: r.count };
   }
 
+  async findOwnerById(notificationId: string): Promise<string | null> {
+    const row = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: { userId: true },
+    });
+    return row?.userId ?? null;
+  }
+
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {
     const r = await this.prisma.notification.deleteMany({
       where: { createdAt: { lt: cutoff } },

@@ -139,6 +139,10 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
     return { count };
   }
 
+  async findOwnerById(notificationId: string): Promise<string | null> {
+    return this.notifications.find((n) => n.id === notificationId)?.userId ?? null;
+  }
+
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {
     let count = 0;
     for (let i = this.notifications.length - 1; i >= 0; i--) {
