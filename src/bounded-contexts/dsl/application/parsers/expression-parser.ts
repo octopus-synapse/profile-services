@@ -8,6 +8,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 import {
   DslExpectedTokenException,
+  DslParseErrorException,
   DslUnexpectedTokenException,
 } from '../../domain/exceptions/dsl.exceptions';
 import { ExpressionLexer, type Token, TokenType } from './expression-lexer';
@@ -73,6 +74,17 @@ export class ExpressionParser {
     const lexer = new ExpressionLexer(this.input);
     this.tokens = lexer.tokenize();
     this.current = 0;
+
+    // Lexer surfaced an unrecognized character (or unclosed string).
+    // The parser can't make sense of an ERROR token stream — fail
+    // fast with a single domain exception so the caller doesn't end
+    // up with a half-parsed AST that silently drops content.
+    const lexErr = this.tokens.find((t) => t.type === TokenType.ERROR);
+    if (lexErr) {
+      throw new DslParseErrorException(
+        `unrecognized token at position ${lexErr.position}: "${lexErr.value}"`,
+      );
+    }
 
     try {
       return this.parseTemplate();

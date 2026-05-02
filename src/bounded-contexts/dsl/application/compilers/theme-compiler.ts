@@ -6,6 +6,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { DslCyclicReferenceException } from '../../domain/exceptions/dsl.exceptions';
 import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import type {
   BorderRadius,
@@ -350,11 +351,56 @@ export class ThemeCompiler {
       return undefined;
     }
 
-    const evaluator = new TokenEvaluator(evalContext);
+    // Derived tokens may reference one another via `${derived.X}`. We
+    // resolve them lazily with a visiting set so a cycle (X → Y → X)
+    // throws `DslCyclicReferenceException` instead of recursing
+    // forever or blowing the stack.
+    const expressions = theme.derived;
     const resolved: Record<string, unknown> = {};
+    const visiting = new Set<string>();
+    const path: string[] = [];
 
-    for (const [key, value] of Object.entries(theme.derived)) {
-      resolved[key] = evaluator.evaluateString(value);
+    const referenceDerivedRegex = /\$\{\s*derived\.([a-zA-Z_][a-zA-Z0-9_]*)\s*\}/g;
+
+    const resolveOne = (key: string): unknown => {
+      if (key in resolved) return resolved[key];
+      if (visiting.has(key)) {
+        throw new DslCyclicReferenceException([...path, key]);
+      }
+      const expr = expressions[key];
+      if (expr === undefined) return undefined;
+      visiting.add(key);
+      path.push(key);
+      try {
+        // Force resolution of any nested `derived.*` references first
+        // so the evaluator sees concrete strings rather than holes.
+        let materialized = expr;
+        const seenRefs = new Set<string>();
+        let match: RegExpExecArray | null;
+        referenceDerivedRegex.lastIndex = 0;
+        // biome-ignore lint/suspicious/noAssignInExpressions: standard regex iter
+        while ((match = referenceDerivedRegex.exec(expr)) !== null) {
+          const refKey = match[1];
+          if (seenRefs.has(refKey)) continue;
+          seenRefs.add(refKey);
+          const refValue = resolveOne(refKey);
+          materialized = materialized.replaceAll(match[0], String(refValue ?? ''));
+        }
+        const evaluator = new TokenEvaluator({
+          ...evalContext,
+          derived: { ...resolved },
+        });
+        const value = evaluator.evaluateString(materialized);
+        resolved[key] = value;
+        return value;
+      } finally {
+        visiting.delete(key);
+        path.pop();
+      }
+    };
+
+    for (const key of Object.keys(expressions)) {
+      resolveOne(key);
     }
 
     return resolved;

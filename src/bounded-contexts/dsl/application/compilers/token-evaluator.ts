@@ -6,6 +6,8 @@
 
 import {
   DslErrorExpressionException,
+  DslEvaluationLimitExceededException,
+  DslTypeMismatchException,
   DslUnknownFunctionException,
   DslUnknownOperatorException,
 } from '../../domain/exceptions/dsl.exceptions';
@@ -22,7 +24,14 @@ import { colorFunctions } from './color-functions';
 
 type EvalResult = string | number | boolean | undefined | unknown[];
 
+/** Hard cap on the number of `evaluate()` recursions per top-level
+ *  call. Bounded to keep an attacker-supplied expression (or a
+ *  pathologically nested template) from running indefinitely. */
+const EVALUATION_INSTRUCTION_LIMIT = 5_000;
+
 export class TokenEvaluator {
+  private instructionsRemaining = EVALUATION_INSTRUCTION_LIMIT;
+
   constructor(private readonly context: Record<string, unknown>) {}
 
   /**
@@ -30,6 +39,7 @@ export class TokenEvaluator {
    * Returns the resolved value as a string.
    */
   evaluateString(input: string): string {
+    this.instructionsRemaining = EVALUATION_INSTRUCTION_LIMIT;
     const parser = new ExpressionParser(input);
     const expr = parser.parse();
     const result = this.evaluate(expr);
@@ -40,6 +50,9 @@ export class TokenEvaluator {
    * Evaluate an expression AST against the context.
    */
   evaluate(expr: Expression): EvalResult {
+    if (--this.instructionsRemaining <= 0) {
+      throw new DslEvaluationLimitExceededException();
+    }
     switch (expr.type) {
       case ExpressionType.LITERAL:
         return expr.value;
@@ -89,15 +102,19 @@ export class TokenEvaluator {
         if (typeof left === 'string' || typeof right === 'string') {
           return String(left ?? '') + String(right ?? '');
         }
+        this.assertNumeric(left, right, '+');
         return (left as number) + (right as number);
 
       case '-':
+        this.assertNumeric(left, right, '-');
         return (left as number) - (right as number);
 
       case '*':
+        this.assertNumeric(left, right, '*');
         return (left as number) * (right as number);
 
       case '/':
+        this.assertNumeric(left, right, '/');
         return (left as number) / (right as number);
 
       case '==':
@@ -106,6 +123,16 @@ export class TokenEvaluator {
       default:
         throw new DslUnknownOperatorException(expr.operator);
     }
+  }
+
+  private assertNumeric(left: EvalResult, right: EvalResult, operator: string): void {
+    // Booleans are intentionally rejected here — `true - 1` coerces
+    // to `0`, which is almost never what the theme author meant.
+    const leftOk = typeof left === 'number';
+    const rightOk = typeof right === 'number';
+    if (leftOk && rightOk) return;
+    const got = leftOk ? typeof right : typeof left;
+    throw new DslTypeMismatchException(`number on both sides of "${operator}"`, got);
   }
 
   private evaluateFunction(expr: FunctionCallExpr): EvalResult {

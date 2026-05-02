@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, it } from 'bun:test';
+import { DslCyclicReferenceException } from '../../domain/exceptions/dsl.exceptions';
 import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import type { ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
 import { ThemeCompiler } from './theme-compiler';
@@ -452,6 +453,20 @@ describe('ThemeCompiler', () => {
       const result2 = compiler.compile(theme2);
 
       expect(result1.meta.sourceHash).not.toBe(result2.meta.sourceHash);
+    });
+  });
+
+  describe('derived token cycles', () => {
+    it('throws DslCyclicReferenceException when two derived tokens reference each other', () => {
+      const theme: ThemeDefinition = {
+        ...createMinimalTheme(),
+        derived: {
+          a: '${derived.b}',
+          b: '${derived.a}',
+        },
+      };
+      const compiler = new ThemeCompiler();
+      expect(() => compiler.compile(theme)).toThrow(DslCyclicReferenceException);
     });
   });
 });
