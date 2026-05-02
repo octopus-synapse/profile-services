@@ -62,6 +62,8 @@ import { uiStateRoutes } from '@/bounded-contexts/identity/users/ui-state/ui-sta
 import { buildUsersUseCases } from '@/bounded-contexts/identity/users/users.composition';
 import { usersRoutes } from '@/bounded-contexts/identity/users/users.routes';
 import { buildImportComposition } from '@/bounded-contexts/import/import.composition';
+import { buildGitHubIntegrationUseCases } from '@/bounded-contexts/integration/github/github.composition';
+import { githubRoutes } from '@/bounded-contexts/integration/github/github.routes';
 import { buildMecSyncUseCases } from '@/bounded-contexts/integration/mec-sync/mec-sync.composition';
 import { mecSyncRoutes } from '@/bounded-contexts/integration/mec-sync/mec-sync.routes';
 import { buildUploadComposition } from '@/bounded-contexts/integration/upload/upload.composition';
@@ -429,6 +431,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   });
   for (const l of featureFlags.lifecycles ?? []) lifecycles.push(l);
 
+  // GitHub integration BC. Reads `GITHUB_TOKEN` from config (server-side
+  // sync) — for per-user auth flows the import BC reuses
+  // `oauthUseCases.getOAuthAccessToken` declared below. The 4 routes
+  // (summary/sync/auto-sync/sync-status) are mounted via the standard
+  // route mounter loop. Achievement/Contribution services stay internal
+  // (consumed by SyncGitHubService during sync, not as REST endpoints).
+  const githubIntegration = buildGitHubIntegrationUseCases(prisma as never, logger, config);
+
   // Identity sub-BCs.
   const twoFactorAuth = buildTwoFactorAuthComposition(prisma as never, cache as never, logger);
   const twoFaUseCases = buildTwoFactorAuthUseCases(prisma as never, cache as never, logger);
@@ -713,6 +723,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // `{ useCases, routes }`. We import the route arrays directly and
   // mount them against the bundle the route file expects.
   const extra: ReadonlyArray<{ bundle: unknown; routes: unknown }> = [
+    { bundle: githubIntegration, routes: githubRoutes },
     { bundle: accountLifecycle, routes: accountLifecycleRoutes },
     {
       bundle: (authenticationUseCases as { bundle: unknown }).bundle,
