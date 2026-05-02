@@ -94,7 +94,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     response: AccessModifierShape,
     openapi: {
       summary: 'Apply an access modifier (suspension or grant) to a user',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },
@@ -136,7 +136,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     params: ModifierIdParam,
     openapi: {
       summary: 'Revoke an active access modifier',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },
@@ -155,7 +155,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     response: ListAccessModifiersResponseSchema,
     openapi: {
       summary: 'List currently active access modifiers for a user',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },

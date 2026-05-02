@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { CreatePostSchema } from './create-post-request.dto';
+import { CreatePostSchema } from './create-post-request.schema';
 
 describe('CreatePostSchema blind-mode refinement', () => {
   it('accepts a regular non-anonymous post', () => {

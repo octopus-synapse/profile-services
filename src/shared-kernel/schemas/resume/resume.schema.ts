@@ -52,3 +52,13 @@ export type ResumeRelationKey = (typeof RESUME_RELATION_KEYS)[number];
 
 export type CreateResumeData = Omit<CreateResume, ResumeRelationKey>;
 export type UpdateResumeData = Omit<UpdateResume, ResumeRelationKey>;
+
+export type CreateResumeDto = z.infer<typeof CreateResumeSchema>;
+
+export type UpdateResumeDto = z.infer<typeof UpdateResumeSchema>;
+
+export type ResumeSectionTypeRefDto = z.infer<typeof ResumeSectionTypeRefSchema>;
+
+export type ResumeSectionItemPayloadDto = z.infer<typeof ResumeSectionItemPayloadSchema>;
+
+export type UpsertResumeSectionDto = z.infer<typeof UpsertResumeSectionSchema>;

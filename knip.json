@@ -1,0 +1,66 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+
+  "entry": [
+    "src/main.ts",
+    "src/scripts/*.ts",
+    "scripts/*.ts",
+    "prisma/seeds/*.ts",
+    "prisma/scripts/*.ts",
+    "test/infrastructure/e2e/**/*.spec.ts",
+    "test/infrastructure/integration/**/*.spec.ts",
+    "test/static-analysis/**/*.spec.ts",
+    "test/static-analysis/**/*.ts",
+    "test/infrastructure/contract/dredd-hooks.js",
+    ".husky/pre-commit"
+  ],
+
+  "project": [
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "prisma/**/*.ts",
+    "test/**/*.ts",
+    "!**/__tests__/**",
+    "!**/node_modules/**",
+    "!**/dist/**",
+    "!**/.claude/**"
+  ],
+
+  "ignore": [
+    "src/scripts/_*.ts",
+    "scripts/_*.ts",
+    "scripts/fix-*.ts",
+    "scripts/migrate-*.ts",
+    "scripts/inject-*.ts",
+    "scripts/list-*.ts",
+    "scripts/thread-*.ts",
+    "scripts/extract-*.ts",
+    "scripts/seed-i18n-*.ts",
+    "scripts/mec-download.ts",
+    "scripts/diff-swagger.ts"
+  ],
+
+  "ignoreDependencies": [
+    "@octopus-synapse/biome-config",
+    "@octopus-synapse/precommit",
+    "@octopus-synapse/commitlint-config",
+    "@octopus-synapse/release-cli",
+    "@types/bun",
+    "dotenv",
+    "hooks"
+  ],
+
+  "ignoreExportsUsedInFile": true,
+
+  "rules": {
+    "files": "warn",
+    "dependencies": "warn",
+    "devDependencies": "warn",
+    "exports": "off",
+    "types": "off",
+    "enumMembers": "off",
+    "duplicates": "off",
+    "binaries": "warn",
+    "unlisted": "warn"
+  }
+}

@@ -9,7 +9,7 @@ import type {
   UserDetailsDataDto,
   UserListItemDto,
   UserManagementListDataDto,
-} from '../../dto/controller-response.dto';
+} from '../../dto/controller-response.schema';
 
 type UserListItemPayload = UserListItemDto;
 

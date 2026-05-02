@@ -3,8 +3,8 @@ import type { FitQuestionRecord } from '../../domain/ports/fit-question.reposito
 import type {
   FitQuestionListResponseDto,
   FitQuestionResponseDto,
-} from '../../dto/admin-fit-question.dto';
-import type { FitQuestionsResponseDto } from '../../dto/fit-questions-response.dto';
+} from '../../dto/admin-fit-question.schema';
+import type { FitQuestionsResponseDto } from '../../dto/fit-questions-response.schema';
 
 export function presentFitQuestions(view: QuestionSetView): FitQuestionsResponseDto {
   return {

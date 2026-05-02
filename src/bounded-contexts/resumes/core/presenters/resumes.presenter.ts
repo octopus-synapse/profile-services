@@ -3,7 +3,7 @@ import type {
   ResumeFullResponseDto,
   ResumeListItemDto,
   ResumeResponseDto,
-} from '../dto/resumes.dto';
+} from '../dto/resumes.schema';
 import type { ResumeResult, UserResumesPaginatedResult } from '../ports/resumes-service.port';
 
 export function toResumeResponseDto(resume: ResumeResult): ResumeResponseDto {

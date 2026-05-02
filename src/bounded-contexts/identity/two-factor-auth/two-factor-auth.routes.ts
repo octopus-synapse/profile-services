@@ -47,8 +47,8 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     auth: { kind: 'jwt' },
     response: Setup2faResponseSchema,
     openapi: {
-      summary: 'Setup 2FA',
-      tags: ['Two-Factor Auth'],
+      summary: 'Setup two-factor authentication for the current user',
+      tags: ['two-factor-auth'],
       description: 'Generates TOTP secret and QR code. 2FA is not enabled until verified.',
     },
     sdk: { exported: true },
@@ -65,7 +65,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     response: VerifyAndEnable2faResponseSchema,
     openapi: {
       summary: 'Verify token and enable 2FA',
-      tags: ['Two-Factor Auth'],
+      tags: ['two-factor-auth'],
       description: 'Verifies TOTP token and enables 2FA. Returns backup codes (shown only once).',
     },
     sdk: { exported: true },
@@ -82,7 +82,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     response: TwoFactorStatusResponseSchema,
     openapi: {
       summary: 'Get 2FA status',
-      tags: ['Two-Factor Auth'],
+      tags: ['two-factor-auth'],
       description: 'Returns 2FA status including enabled state and backup codes remaining.',
     },
     sdk: { exported: true },
@@ -98,7 +98,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     response: RegenerateBackupCodesResponseSchema,
     openapi: {
       summary: 'Regenerate backup codes',
-      tags: ['Two-Factor Auth'],
+      tags: ['two-factor-auth'],
       description: 'Generates new backup codes, replacing existing ones. Shown only once.',
     },
     sdk: { exported: true },
@@ -114,7 +114,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     auth: { kind: 'jwt' },
     openapi: {
       summary: 'Disable 2FA',
-      tags: ['Two-Factor Auth'],
+      tags: ['two-factor-auth'],
       description: 'Disables 2FA and removes all backup codes.',
     },
     sdk: { exported: true },

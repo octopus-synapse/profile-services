@@ -5,7 +5,7 @@
  */
 
 import { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
-import type { GetConsentHistoryInput, GetConsentHistoryOutput } from './get-consent-history.dto';
+import type { GetConsentHistoryInput, GetConsentHistoryOutput } from './get-consent-history.schema';
 
 export class GetConsentHistoryUseCase {
   constructor(private readonly consentRepository: ConsentRepositoryPort) {}

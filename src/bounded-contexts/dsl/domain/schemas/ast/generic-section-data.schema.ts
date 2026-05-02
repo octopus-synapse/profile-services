@@ -81,3 +81,15 @@ export const LocationV2Schema = z.object({
 });
 
 export type LocationV2 = z.infer<typeof LocationV2Schema>;
+
+export type GenericItemDto = z.infer<typeof GenericItemSchema>;
+
+export type GenericSectionDataDto = z.infer<typeof GenericSectionDataSchema>;
+
+export type GenericTextSectionDataDto = z.infer<typeof GenericTextSectionDataSchema>;
+
+export type SectionDataV2Dto = z.infer<typeof SectionDataV2Schema>;
+
+export type DateRangeV2Dto = z.infer<typeof DateRangeV2Schema>;
+
+export type LocationV2Dto = z.infer<typeof LocationV2Schema>;

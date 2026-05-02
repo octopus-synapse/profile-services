@@ -18,13 +18,13 @@
  */
 
 import { z } from 'zod';
-import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import type { Route } from '@/shared-kernel/http/route';
+import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import { ctxCookieWriter } from '../authentication/application/services/ctx-cookie-bridge';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
-import { CreateAccountSchema } from './application/use-cases/create-account/create-account.dto';
-import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.dto';
-import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.dto';
+import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
+import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
+import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.schema';
 import { toConsentHistoryResponse } from './infrastructure/presenters/get-consent-history.presenter';
 
 const AcceptConsentRequestSchema = z.object({
@@ -59,7 +59,6 @@ const ExportedResumePersonalInfoSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
 });
-
 
 const GdprExportResponseSchema = z.object({
   exportedAt: z.string().datetime(),
@@ -205,7 +204,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: MessageResponseSchema,
     openapi: {
       summary: 'Deactivate account',
-      tags: ['Account Lifecycle'],
+      tags: ['account-lifecycle'],
       description: 'Deactivates the authenticated user account (soft delete).',
     },
     sdk: { exported: true },
@@ -229,7 +228,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: MessageResponseSchema,
     openapi: {
       summary: 'Delete account permanently',
-      tags: ['Account Lifecycle'],
+      tags: ['account-lifecycle'],
       description:
         'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT".',
     },
@@ -254,7 +253,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: GdprExportResponseSchema,
     openapi: {
       summary: 'Export user data (GDPR Article 20)',
-      tags: ['GDPR'],
+      tags: ['gdpr'],
       description: 'Exports all user data in machine-readable JSON format.',
     },
     sdk: { exported: true },
@@ -276,7 +275,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: AcceptConsentResponseSchema,
     openapi: {
       summary: 'Accept Terms of Service or Privacy Policy',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description:
         'Records user acceptance of legal documents with IP and user agent for audit trail. ' +
         'Required before accessing protected API endpoints.',
@@ -324,7 +323,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: ConsentStatusResponseSchema,
     openapi: {
       summary: 'Check consent acceptance status',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description: 'Returns which documents the user has accepted for the current versions',
     },
     sdk: { exported: true, name: 'getConsentStatus' },
@@ -341,7 +340,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     response: ConsentHistoryResponseSchema,
     openapi: {
       summary: 'Get consent acceptance history',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description: 'Retrieves all consent records for the authenticated user',
     },
     sdk: { exported: true, name: 'getConsentHistory' },

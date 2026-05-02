@@ -112,3 +112,19 @@ export const ListGroupsQuerySchema = z.object({
 });
 
 export type ListGroupsQuery = z.infer<typeof ListGroupsQuerySchema>;
+
+export type CreateGroupDto = z.infer<typeof CreateGroupSchema>;
+
+export type UpdateGroupDto = z.infer<typeof UpdateGroupSchema>;
+
+export type GroupResponseDto = z.infer<typeof GroupResponseSchema>;
+
+export type GroupWithHierarchyResponseDto = z.infer<typeof GroupWithHierarchyResponseSchema>;
+
+export type GroupWithAuthResponseDto = z.infer<typeof GroupWithAuthResponseSchema>;
+
+export type AssignGroupRolesDto = z.infer<typeof AssignGroupRolesSchema>;
+
+export type RemoveGroupRolesDto = z.infer<typeof RemoveGroupRolesSchema>;
+
+export type ListGroupsQueryDto = z.infer<typeof ListGroupsQuerySchema>;

@@ -162,9 +162,9 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     },
     sdk: { exported: true },
     handler: async (_ctx, bundle) => ({
-      providers: PROVIDER_CATALOG.filter(
-        (p) => bundle.availability.execute(p.id).available,
-      ).map((p) => ({ id: p.id, label: p.label, startUrl: p.startUrl })),
+      providers: PROVIDER_CATALOG.filter((p) => bundle.availability.execute(p.id).available).map(
+        (p) => ({ id: p.id, label: p.label, startUrl: p.startUrl }),
+      ),
     }),
   },
 ];

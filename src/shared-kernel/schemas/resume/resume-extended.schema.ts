@@ -235,3 +235,39 @@ export type UpdateInterest = z.infer<typeof UpdateInterestSchema>;
 
 export const UpdateAchievementSchema = CreateAchievementSchema.partial();
 export type UpdateAchievement = z.infer<typeof UpdateAchievementSchema>;
+
+export type CreatePublicationDto = z.infer<typeof CreatePublicationSchema>;
+
+export type CreateRecommendationDto = z.infer<typeof CreateRecommendationSchema>;
+
+export type CreateHackathonDto = z.infer<typeof CreateHackathonSchema>;
+
+export type CreateBugBountyDto = z.infer<typeof CreateBugBountySchema>;
+
+export type CreateOpenSourceDto = z.infer<typeof CreateOpenSourceSchema>;
+
+export type CreateTalkDto = z.infer<typeof CreateTalkSchema>;
+
+export type CreateAwardDto = z.infer<typeof CreateAwardSchema>;
+
+export type CreateInterestDto = z.infer<typeof CreateInterestSchema>;
+
+export type CreateAchievementDto = z.infer<typeof CreateAchievementSchema>;
+
+export type UpdatePublicationDto = z.infer<typeof UpdatePublicationSchema>;
+
+export type UpdateRecommendationDto = z.infer<typeof UpdateRecommendationSchema>;
+
+export type UpdateHackathonDto = z.infer<typeof UpdateHackathonSchema>;
+
+export type UpdateBugBountyDto = z.infer<typeof UpdateBugBountySchema>;
+
+export type UpdateOpenSourceDto = z.infer<typeof UpdateOpenSourceSchema>;
+
+export type UpdateTalkDto = z.infer<typeof UpdateTalkSchema>;
+
+export type UpdateAwardDto = z.infer<typeof UpdateAwardSchema>;
+
+export type UpdateInterestDto = z.infer<typeof UpdateInterestSchema>;
+
+export type UpdateAchievementDto = z.infer<typeof UpdateAchievementSchema>;

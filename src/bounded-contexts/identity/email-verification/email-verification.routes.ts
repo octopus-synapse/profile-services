@@ -12,7 +12,7 @@
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
-import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.dto';
+import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.schema';
 
 // ─── Response schemas ────────────────────────────────────────────────
 const VerifyEmailResponseSchema = z.object({
@@ -42,7 +42,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     response: VerifyEmailResponseSchema,
     openapi: {
       summary: 'Verify email with token',
-      tags: ['Email Verification'],
+      tags: ['email-verification'],
       description: 'Verifies the user email using the token received via email.',
     },
     sdk: { exported: true, name: 'verify' },
@@ -61,7 +61,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Send verification email',
-      tags: ['Email Verification'],
+      tags: ['email-verification'],
       description: 'Sends a verification email to the authenticated user. No body required.',
     },
     sdk: { exported: true },
@@ -78,7 +78,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Get verification email resend cooldown',
-      tags: ['Email Verification'],
+      tags: ['email-verification'],
       description:
         'Returns how many seconds the authenticated user must wait before requesting another verification email. The UI uses this so the countdown survives page reloads.',
     },

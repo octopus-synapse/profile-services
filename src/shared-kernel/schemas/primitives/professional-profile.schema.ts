@@ -60,3 +60,13 @@ export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
 export const UpdateProfessionalProfileSchema = ProfessionalProfileSchema.partial();
 
 export type UpdateProfessionalProfile = z.infer<typeof UpdateProfessionalProfileSchema>;
+
+export type JobTitleDto = z.infer<typeof JobTitleSchema>;
+
+export type ProfessionalSummaryDto = z.infer<typeof ProfessionalSummarySchema>;
+
+export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;
+
+export type UpdateProfessionalProfileDto = z.infer<typeof UpdateProfessionalProfileSchema>;
+
+export type OptionalUrlDto = z.infer<typeof OptionalUrlSchema>;

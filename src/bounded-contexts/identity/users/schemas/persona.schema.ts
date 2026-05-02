@@ -77,3 +77,9 @@ export const PersonaDetectionResultSchema = z.object({
 });
 
 export type PersonaDetectionResult = z.infer<typeof PersonaDetectionResultSchema>;
+
+export type PersonaConfigDto = z.infer<typeof PersonaConfigSchema>;
+
+export type PersonaSuggestionDto = z.infer<typeof PersonaSuggestionSchema>;
+
+export type PersonaDetectionResultDto = z.infer<typeof PersonaDetectionResultSchema>;

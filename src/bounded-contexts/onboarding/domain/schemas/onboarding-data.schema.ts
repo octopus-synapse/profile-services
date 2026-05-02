@@ -115,3 +115,13 @@ export const OnboardingDataSchema = z.object({
 });
 
 export type OnboardingData = z.infer<typeof OnboardingDataSchema>;
+
+export type PersonalInfoDto = z.infer<typeof PersonalInfoSchema>;
+
+export type TemplateSelectionDto = z.infer<typeof TemplateSelectionSchema>;
+
+export type OnboardingSectionItemDto = z.infer<typeof OnboardingSectionItemSchema>;
+
+export type OnboardingSectionDto = z.infer<typeof OnboardingSectionSchema>;
+
+export type OnboardingDataDto = z.infer<typeof OnboardingDataSchema>;

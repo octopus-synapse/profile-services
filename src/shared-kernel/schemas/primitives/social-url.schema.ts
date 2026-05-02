@@ -55,3 +55,9 @@ export const GitHubUrlSchema = z
   .optional();
 
 export type GitHubUrl = z.infer<typeof GitHubUrlSchema>;
+
+export type SocialUrlDto = z.infer<typeof SocialUrlSchema>;
+
+export type LinkedInUrlDto = z.infer<typeof LinkedInUrlSchema>;
+
+export type GitHubUrlDto = z.infer<typeof GitHubUrlSchema>;

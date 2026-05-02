@@ -50,7 +50,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     response: ListProficiencyResponseSchema,
     openapi: {
       summary: 'List my declared skill proficiencies.',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },
@@ -69,7 +69,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     response: SetProficiencyResponseSchema,
     openapi: {
       summary: 'Set proficiency for a skill (creates if missing).',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },
@@ -94,7 +94,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     response: ClearProficiencyResponseSchema,
     openapi: {
       summary: 'Clear proficiency for a skill.',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },

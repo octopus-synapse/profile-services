@@ -202,3 +202,51 @@ export type ResumeAstV2 = z.infer<typeof ResumeAstV2Schema>;
 export type ResumeMetadata = z.infer<typeof ResumeMetadataSchema>;
 export type AtsConfig = z.infer<typeof AtsConfigSchema>;
 export type AstDesignTokens = z.infer<typeof AstDesignTokensSchema>;
+
+export type ResumeMetadataDto = z.infer<typeof ResumeMetadataSchema>;
+
+export type AtsConfigDto = z.infer<typeof AtsConfigSchema>;
+
+export type AstDesignTokensDto = z.infer<typeof AstDesignTokensSchema>;
+
+export type ResumeAstV2Dto = z.infer<typeof ResumeAstV2Schema>;
+
+export type PageTokensDto = z.infer<typeof PageTokensSchema>;
+
+export type NameTokensDto = z.infer<typeof NameTokensSchema>;
+
+export type JobTitleTokensDto = z.infer<typeof JobTitleTokensSchema>;
+
+export type ContactTokensDto = z.infer<typeof ContactTokensSchema>;
+
+export type DividerTokensDto = z.infer<typeof DividerTokensSchema>;
+
+export type HeaderTokensDto = z.infer<typeof HeaderTokensSchema>;
+
+export type AccentBarTokensDto = z.infer<typeof AccentBarTokensSchema>;
+
+export type SectionDividerTokensDto = z.infer<typeof SectionDividerTokensSchema>;
+
+export type SectionHeaderTokensDto = z.infer<typeof SectionHeaderTokensSchema>;
+
+export type EntryTitleTokensDto = z.infer<typeof EntryTitleTokensSchema>;
+
+export type EntryDateTokensDto = z.infer<typeof EntryDateTokensSchema>;
+
+export type EntrySubtitleTokensDto = z.infer<typeof EntrySubtitleTokensSchema>;
+
+export type EmploymentTypeTokensDto = z.infer<typeof EmploymentTypeTokensSchema>;
+
+export type LinkTokensDto = z.infer<typeof LinkTokensSchema>;
+
+export type EntryTokensDto = z.infer<typeof EntryTokensSchema>;
+
+export type BulletsTokensDto = z.infer<typeof BulletsTokensSchema>;
+
+export type TechnologiesTokensDto = z.infer<typeof TechnologiesTokensSchema>;
+
+export type SkillsListTokensDto = z.infer<typeof SkillsListTokensSchema>;
+
+export type TextSectionTokensDto = z.infer<typeof TextSectionTokensSchema>;
+
+export type GlobalTokensDto = z.infer<typeof GlobalTokensSchema>;

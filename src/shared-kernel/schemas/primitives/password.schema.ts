@@ -57,3 +57,7 @@ export const PasswordInputSchema = z
   .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength);
 
 export type PasswordInput = z.infer<typeof PasswordInputSchema>;
+
+export type PasswordDto = z.infer<typeof PasswordSchema>;
+
+export type PasswordInputDto = z.infer<typeof PasswordInputSchema>;

@@ -72,3 +72,27 @@ export const DesignTokensSchema = z.object({
 });
 
 export type DesignTokens = z.infer<typeof DesignTokensSchema>;
+
+export type FontFamilyDto = z.infer<typeof FontFamilySchema>;
+
+export type FontSizeDto = z.infer<typeof FontSizeSchema>;
+
+export type HeadingStyleDto = z.infer<typeof HeadingStyleSchema>;
+
+export type TypographyTokensDto = z.infer<typeof TypographyTokensSchema>;
+
+export type ColorPaletteDto = z.infer<typeof ColorPaletteSchema>;
+
+export type BorderRadiusDto = z.infer<typeof BorderRadiusSchema>;
+
+export type ShadowDto = z.infer<typeof ShadowSchema>;
+
+export type ColorTokensDto = z.infer<typeof ColorTokensSchema>;
+
+export type SpacingDensityDto = z.infer<typeof SpacingDensitySchema>;
+
+export type SpacingSizeDto = z.infer<typeof SpacingSizeSchema>;
+
+export type SpacingTokensDto = z.infer<typeof SpacingTokensSchema>;
+
+export type DesignTokensDto = z.infer<typeof DesignTokensSchema>;

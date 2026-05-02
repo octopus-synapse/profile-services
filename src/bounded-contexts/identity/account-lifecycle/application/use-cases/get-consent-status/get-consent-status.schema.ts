@@ -1,0 +1,24 @@
+import { z } from 'zod';
+
+export interface GetConsentStatusInput {
+  userId: string;
+}
+
+export interface GetConsentStatusOutput {
+  tosAccepted: boolean;
+  privacyPolicyAccepted: boolean;
+  marketingConsentAccepted: boolean;
+  latestTosVersion: string;
+  latestPrivacyPolicyVersion: string;
+}
+
+// Response DTO for Swagger
+const ConsentStatusResponseSchema = z.object({
+  tosAccepted: z.boolean(),
+  privacyPolicyAccepted: z.boolean(),
+  marketingConsentAccepted: z.boolean(),
+  latestTosVersion: z.string(),
+  latestPrivacyPolicyVersion: z.string(),
+});
+
+export type ConsentStatusResponseDto = z.infer<typeof ConsentStatusResponseSchema>;

@@ -1,6 +1,6 @@
 import type { LoggerPort } from '@/shared-kernel';
-import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
-import type { TechSkill } from '../../../dto/tech-skill.dto';
+import type { ProgrammingLanguage } from '../../../dto/programming-language.schema';
+import type { TechSkill } from '../../../dto/tech-skill.schema';
 import type { SearchLanguagesUseCase } from '../search-languages/search-languages.use-case';
 import type { SearchSkillsUseCase } from '../search-skills/search-skills.use-case';
 

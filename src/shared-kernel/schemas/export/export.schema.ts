@@ -53,3 +53,9 @@ export const ExportJobSchema = z.object({
 });
 
 export type ExportJob = z.infer<typeof ExportJobSchema>;
+
+export type ExportBannerOptionsDto = z.infer<typeof ExportBannerOptionsSchema>;
+
+export type ExportResumeOptionsDto = z.infer<typeof ExportResumeOptionsSchema>;
+
+export type ExportJobDto = z.infer<typeof ExportJobSchema>;

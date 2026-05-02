@@ -42,3 +42,9 @@ export const DslRenderResultSchema = z.object({
 });
 
 export type DslRenderResult = z.infer<typeof DslRenderResultSchema>;
+
+export type DslValidationResultDto = z.infer<typeof DslValidationResultSchema>;
+
+export type DslPreviewResultDto = z.infer<typeof DslPreviewResultSchema>;
+
+export type DslRenderResultDto = z.infer<typeof DslRenderResultSchema>;

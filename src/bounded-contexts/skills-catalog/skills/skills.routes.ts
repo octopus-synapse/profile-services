@@ -54,7 +54,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     response: SkillResponseSchema,
     openapi: {
       summary: 'Add a skill to a resume',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill created',
     },
     sdk: { exported: true },
@@ -73,7 +73,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     response: SkillsListResponseSchema,
     openapi: {
       summary: 'List skills for a resume',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skills returned',
     },
     sdk: { exported: true },
@@ -93,7 +93,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     response: SkillResponseSchema,
     openapi: {
       summary: 'Update a resume skill',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill updated',
     },
     sdk: { exported: true },
@@ -112,7 +112,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     response: DeleteSkillResponseSchema,
     openapi: {
       summary: 'Delete a resume skill',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill deleted',
     },
     sdk: { exported: true },

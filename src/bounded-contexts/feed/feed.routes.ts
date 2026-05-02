@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { FeedUseCases } from './application/ports/feed.port';
-import { CreatePostSchema } from './dto/create-post-request.dto';
+import { CreatePostSchema } from './dto/create-post-request.schema';
 
 const IdParam = z.object({ id: z.string() });
 const UserIdParam = z.object({ userId: z.string() });

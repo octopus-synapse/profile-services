@@ -42,3 +42,7 @@ export const TemporaryUserResponseSchema = z.object({
 });
 
 export type TemporaryUserResponse = z.infer<typeof TemporaryUserResponseSchema>;
+
+export type CreateTemporaryUserDto = z.infer<typeof CreateTemporaryUserSchema>;
+
+export type TemporaryUserResponseDto = z.infer<typeof TemporaryUserResponseSchema>;

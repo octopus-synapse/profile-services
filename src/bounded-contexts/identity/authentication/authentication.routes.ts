@@ -25,7 +25,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
-import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.dto';
+import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.schema';
 
 const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() });
 const LogoutSchema = z.object({
@@ -128,7 +128,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     statusCode: 200,
     response: LoginResponseSchema,
     openapi: {
-      summary: 'Login',
+      summary: 'Authenticate user with email + password',
       tags: ['auth'],
       description:
         'Authenticates user with email and password. Sets the session cookie. Returns `{userId}` or `{userId, twoFactorRequired}` when 2FA is enabled.',
@@ -207,7 +207,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     response: LogoutResponseSchema,
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
-      summary: 'Logout',
+      summary: 'Invalidate the current session cookie',
       tags: ['auth'],
       description:
         'Logs out the user by invalidating refresh token(s) and clearing the session cookie.',

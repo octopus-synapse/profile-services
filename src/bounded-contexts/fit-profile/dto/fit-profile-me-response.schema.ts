@@ -1,0 +1,25 @@
+import { z } from 'zod';
+import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from '../domain/types';
+
+/** Per-dimension [0,1] score map; missing dimensions are absent. */
+const DimensionScoreMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
+
+const FitVectorSchema = z.object({
+  bigFive: DimensionScoreMapSchema,
+  schwartz: DimensionScoreMapSchema,
+  sdt: DimensionScoreMapSchema,
+});
+
+const FitProfileMeSchema = z.object({
+  status: z.enum(['never', 'responded', 'expired']),
+  vector: FitVectorSchema.nullable(),
+  answeredAt: z.string().datetime().nullable(),
+  expiresAt: z.string().datetime().nullable(),
+  remainingQuestions: z.union([z.literal(0), z.literal(QUESTION_SET_SIZE)]),
+});
+
+export type DimensionScoreMapDto = z.infer<typeof DimensionScoreMapSchema>;
+
+export type FitVectorDto = z.infer<typeof FitVectorSchema>;
+
+export type FitProfileMeDto = z.infer<typeof FitProfileMeSchema>;

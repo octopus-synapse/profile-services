@@ -1,10 +1,15 @@
 # E2E + integration suite migration
 
+> **Status: complete.** The `test/infrastructure/_legacy/` tree has been
+> removed (F5.G). This document is kept as historical reference for the
+> Nest → Elysia + Bun cutover patterns; consult git history if you need
+> to inspect an old spec.
+
 The Phase-2 cutover (Nest → Elysia + Bun) replaced the
 `Test.createTestingModule({ imports: [AppModule] })` + `supertest`
-combo that the original e2e + integration suites depended on. The
-spec files survive under `test/infrastructure/_legacy/` and need to
-be converted one-by-one to the new harness in `shared/`.
+combo that the original e2e + integration suites depended on. Spec
+files have been migrated to the new `TestApp` harness in `shared/`
+(or, when no longer relevant, removed entirely).
 
 ## What changed
 

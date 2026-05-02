@@ -54,3 +54,11 @@ export const SearchQuerySchema = z.object({
 });
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+
+export type ReorderItemsDto = z.infer<typeof ReorderItemsSchema>;
+
+export type DateStringDto = z.infer<typeof DateStringSchema>;
+
+export type IdParamDto = z.infer<typeof IdParamSchema>;
+
+export type SearchQueryDto = z.infer<typeof SearchQuerySchema>;

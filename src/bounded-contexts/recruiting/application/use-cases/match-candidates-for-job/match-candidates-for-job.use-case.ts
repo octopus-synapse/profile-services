@@ -3,7 +3,7 @@ import type {
   MatchCandidatesForJobInput,
   MatchCandidatesForJobOutput,
   MatchCandidatesForJobOutputItem,
-} from './match-candidates-for-job.dto';
+} from './match-candidates-for-job.schema';
 
 /**
  * MatchCandidatesForJobUseCase.

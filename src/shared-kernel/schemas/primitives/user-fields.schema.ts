@@ -40,3 +40,9 @@ export const UserLocationSchema = z
   .optional();
 
 export type UserLocation = z.infer<typeof UserLocationSchema>;
+
+export type FullNameDto = z.infer<typeof FullNameSchema>;
+
+export type PhoneDto = z.infer<typeof PhoneSchema>;
+
+export type UserLocationDto = z.infer<typeof UserLocationSchema>;

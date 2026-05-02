@@ -24,6 +24,7 @@ import {
 } from '@asteasolutions/zod-to-openapi';
 import { type ZodSchema, z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
+import { ErrorResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 
 extendZodWithOpenApi(z);
 
@@ -46,10 +47,6 @@ interface SwaggerReport {
 
 const ENFORCEMENT_MODE: 'warn' | 'error' =
   (process.env.SDK_ENFORCEMENT as 'warn' | 'error' | undefined) ?? 'warn';
-
-function isStreamingRoute(route: Route): boolean {
-  return route.kind === 'sse' || route.kind === 'stream';
-}
 
 /** Routes that the client SDK should not generate a callable for.
  *  SSE/stream stay in the server doc but not in client-swagger.json.
@@ -338,6 +335,31 @@ function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: str
     }
   }
 
+  // Compute the auto-injected 4xx responses for this route. All JSON
+  // routes get a 400 (validation). JWT-required routes also get a 401.
+  // Routes with a `permission` requirement get 403. Routes with a path
+  // param that looks like an entity id (`/:userId`, `/:resumeId`, etc.)
+  // get a 404. SSE/redirect/binary routes don't carry a JSON error body.
+  const errorContent = { 'application/json': { schema: ErrorResponseSchema } };
+  function errorResponses(): Record<string, unknown> {
+    // Redirect routes can't return a JSON error body — the browser is
+    // following the Location header and never parses the body.
+    if (route.kind === 'redirect') return {};
+    const out: Record<string, unknown> = {
+      400: { description: 'Bad Request — validation failure', content: errorContent },
+    };
+    if (route.auth.kind === 'jwt') {
+      out['401'] = { description: 'Unauthorized', content: errorContent };
+    }
+    if (route.permission) {
+      out['403'] = { description: 'Forbidden', content: errorContent };
+    }
+    if (/:[A-Za-z][A-Za-z0-9]*Id\b/.test(route.path)) {
+      out['404'] = { description: 'Not Found', content: errorContent };
+    }
+    return out;
+  }
+
   // Build the responses object based on route shape:
   //  - `kind: 'redirect'` → 302 Found with Location header.
   //  - `route.binary` set → 200 with binary content type.
@@ -372,6 +394,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: str
         },
         ...(contentDispHeader ? { headers: contentDispHeader } : {}),
       },
+      ...errorResponses(),
     };
   } else {
     responses = {
@@ -382,6 +405,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: str
               content: { 'application/json': { schema: route.response } },
             }
           : { description: 'Successful response' },
+      ...errorResponses(),
     };
   }
 
@@ -517,8 +541,7 @@ async function generate(): Promise<void> {
     schemas: Object.keys(document.components?.schemas ?? {}).length,
     tags: [...tagSet].sort(),
     clientPaths: Object.keys(clientDocument.paths ?? {}).length,
-    clientOperations:
-      routes.length - omittedFromSdk.length - routes.filter(excludedFromSdk).length,
+    clientOperations: routes.length - omittedFromSdk.length - routes.filter(excludedFromSdk).length,
     omittedFromSdk,
   };
 

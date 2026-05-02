@@ -32,3 +32,9 @@ export const ProfessionalProfileSchema = z.object({
   github: GitHubUrlSchema,
   website: SocialUrlSchema,
 });
+
+export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;
+
+export type JobTitleDto = z.infer<typeof JobTitleSchema>;
+
+export type SummaryDto = z.infer<typeof SummarySchema>;

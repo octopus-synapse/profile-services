@@ -1,11 +1,3 @@
-/**
- * User Profile DTOs
- *
- * Data Transfer Objects for user profile operations.
- * Single source of truth for profile updates.
- */
-
-import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 
@@ -48,10 +40,6 @@ export const UpdatePreferencesSchema = z.object({
 });
 
 export type UpdatePreferences = z.infer<typeof UpdatePreferencesSchema>;
-
-/** DTO class so controllers can accept typed bodies and Orval infers them. */
-export class UpdatePreferencesDto extends createZodDto(UpdatePreferencesSchema) {}
-
 /**
  * User apply criteria — defaults consumed by Auto-Apply and Weekly Curated.
  * Kept optional at every level so clients can update one field at a time.
@@ -100,10 +88,6 @@ export const UpdateFullPreferencesSchema = z.object({
 });
 
 export type UpdateFullPreferences = z.infer<typeof UpdateFullPreferencesSchema>;
-
-/** Orval-friendly DTO for the PATCH /users/preferences/full body. */
-export class UpdateFullPreferencesDto extends createZodDto(UpdateFullPreferencesSchema) {}
-
 /**
  * Update Username Schema
  * Used for changing user's username.
@@ -126,3 +110,17 @@ export const UserSettingsSchema = z.object({
 });
 
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
+
+export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>;
+
+export type UpdatePreferencesDto = z.infer<typeof UpdatePreferencesSchema>;
+
+export type UpdateApplyCriteriaDto = z.infer<typeof UpdateApplyCriteriaSchema>;
+
+export type UpdateFullPreferencesDto = z.infer<typeof UpdateFullPreferencesSchema>;
+
+export type UpdateUsernameDto = z.infer<typeof UpdateUsernameSchema>;
+
+export type UserSettingsDto = z.infer<typeof UserSettingsSchema>;
+
+export type UrlDto = z.infer<typeof UrlSchema>;

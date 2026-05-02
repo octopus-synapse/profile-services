@@ -9,12 +9,13 @@
  * shape: declare `eventType = SomeEvent.EVENT_TYPE`, return one or
  * more `(topic, effects)` pairs.
  */
+
+import { FeatureFlagToggledEvent } from '@/bounded-contexts/platform/feature-flags/domain/events/feature-flag-toggled.event';
 import {
   EffectTranslator,
   type TranslatedEvent,
 } from '../../application/ports/effect-translator.port';
 import { FEATURE_FLAGS_GLOBAL_TOPIC } from '../../domain/topic';
-import { FeatureFlagToggledEvent } from '@/bounded-contexts/platform/feature-flags/domain/events/feature-flag-toggled.event';
 
 export class FeatureFlagToggledTranslator extends EffectTranslator<FeatureFlagToggledEvent> {
   readonly eventType = FeatureFlagToggledEvent.EVENT_TYPE;

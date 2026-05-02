@@ -1,7 +1,7 @@
 import type {
   ConsentHistoryResponseDto,
   GetConsentHistoryOutput,
-} from '../../application/use-cases/get-consent-history/get-consent-history.dto';
+} from '../../application/use-cases/get-consent-history/get-consent-history.schema';
 
 export function toConsentHistoryResponse(
   records: GetConsentHistoryOutput,

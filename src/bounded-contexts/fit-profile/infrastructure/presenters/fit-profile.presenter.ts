@@ -1,9 +1,9 @@
 import type { FitProfileStatusView } from '../../application/use-cases/get-fit-profile-status.use-case';
 import type { SavedUserFitProfile } from '../../domain/ports/user-fit-profile.repository.port';
-import type { FitProfileMeResponseDto } from '../../dto/fit-profile-me-response.dto';
-import type { SubmittedFitProfileResponseDto } from '../../dto/submit-fit-answers.dto';
+import type { FitProfileMeDto } from '../../dto/fit-profile-me-response.schema';
+import type { SubmittedFitProfileDto } from '../../dto/submit-fit-answers.schema';
 
-export function presentFitProfileMe(view: FitProfileStatusView): FitProfileMeResponseDto {
+export function presentFitProfileMe(view: FitProfileStatusView): FitProfileMeDto {
   return {
     status: view.status,
     vector: view.profile?.vector ?? null,
@@ -13,9 +13,7 @@ export function presentFitProfileMe(view: FitProfileStatusView): FitProfileMeRes
   };
 }
 
-export function presentSubmittedFitProfile(
-  profile: SavedUserFitProfile,
-): SubmittedFitProfileResponseDto {
+export function presentSubmittedFitProfile(profile: SavedUserFitProfile): SubmittedFitProfileDto {
   return {
     profileId: profile.id,
     version: profile.version,

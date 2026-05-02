@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { toVersionIsoList } from './infrastructure/presenters/resume-version.presenter';
@@ -70,12 +71,8 @@ const TailorBulletSchema = z.object({
 
 const TailoredVersionDiffResponseSchema = z.object({
   versionId: z.string(),
-  summary: z
-    .object({ before: z.string().nullable(), after: z.string().nullable() })
-    .nullable(),
-  jobTitle: z
-    .object({ before: z.string().nullable(), after: z.string().nullable() })
-    .nullable(),
+  summary: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
+  jobTitle: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
   bullets: z.array(
     z.object({
       id: z.string(),
@@ -173,8 +170,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
       const version = versions.find((v) => v.id === versionId);
       if (!version) {
-        const { NotFoundException } = await import('@nestjs/common');
-        throw new NotFoundException('Version not found');
+        throw new EntityNotFoundException('ResumeVersion', versionId);
       }
       return {
         version: { ...version, createdAt: version.createdAt.toISOString() },

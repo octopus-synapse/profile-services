@@ -178,7 +178,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechAreaListResponseSchema,
     openapi: {
       summary: 'List all tech areas',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -194,7 +194,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechAreaRowSchema,
     openapi: {
       summary: 'Get tech area by ID',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -209,7 +209,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechAreaRowSchema,
     openapi: {
       summary: 'Create tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -225,7 +225,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechAreaRowSchema,
     openapi: {
       summary: 'Update tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -244,7 +244,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -264,7 +264,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechNicheListResponseSchema,
     openapi: {
       summary: 'List all tech niches',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -282,7 +282,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechNicheRowSchema,
     openapi: {
       summary: 'Get tech niche by ID',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -297,7 +297,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechNicheRowSchema,
     openapi: {
       summary: 'Create tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -314,7 +314,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechNicheRowSchema,
     openapi: {
       summary: 'Update tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -333,7 +333,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -353,7 +353,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechSkillListResponseSchema,
     openapi: {
       summary: 'List all tech skills',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -375,7 +375,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechSkillRowSchema,
     openapi: {
       summary: 'Get tech skill by ID',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -390,7 +390,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechSkillRowSchema,
     openapi: {
       summary: 'Create tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -407,7 +407,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: TechSkillRowSchema,
     openapi: {
       summary: 'Update tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -426,7 +426,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -446,7 +446,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: SpokenLanguageListResponseSchema,
     openapi: {
       summary: 'List all spoken languages',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -462,7 +462,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Get spoken language by code',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -478,7 +478,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Create spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -495,7 +495,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Update spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -514,7 +514,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -534,7 +534,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: ProgrammingLanguageListResponseSchema,
     openapi: {
       summary: 'List all programming languages',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -550,7 +550,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Get programming language by slug',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -566,7 +566,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Create programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -583,7 +583,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Update programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -602,7 +602,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },

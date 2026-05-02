@@ -1,6 +1,6 @@
 // Export DTOs from local bounded-context
 
-export * from './dto/analytics.dto';
+export * from './dto/analytics.schema';
 export type {
   AnalyticsDashboard,
   AnalyticsSnapshot,

@@ -27,3 +27,9 @@ export const ChangePasswordSchema = z.object({
 });
 
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
+
+export type ResetPasswordRequestDto = z.infer<typeof ResetPasswordRequestSchema>;
+
+export type NewPasswordDto = z.infer<typeof NewPasswordSchema>;
+
+export type ChangePasswordDto = z.infer<typeof ChangePasswordSchema>;

@@ -59,3 +59,11 @@ export const PublicResumeResponseSchema = z.object({
 });
 
 export type PublicResumeResponse = z.infer<typeof PublicResumeResponseSchema>;
+
+export type CreateShareDto = z.infer<typeof CreateShareSchema>;
+
+export type ShareResponseDto = z.infer<typeof ShareResponseSchema>;
+
+export type PublicResumeOptionsDto = z.infer<typeof PublicResumeOptionsSchema>;
+
+export type PublicResumeResponseDto = z.infer<typeof PublicResumeResponseSchema>;

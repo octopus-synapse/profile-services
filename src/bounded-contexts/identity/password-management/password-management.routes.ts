@@ -12,8 +12,8 @@
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
-import { ChangePasswordSchema } from './infrastructure/controllers/change-password.dto';
-import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.dto';
+import { ChangePasswordSchema } from './infrastructure/controllers/change-password.schema';
+import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.schema';
 
 const ForgotPasswordSchema = z.object({ email: z.string().email() });
 
@@ -32,7 +32,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     guards: [{ id: 'throttle', metadata: { default: { limit: 5, ttl: 60000 } } }],
     openapi: {
       summary: 'Request password reset',
-      tags: ['Password Management'],
+      tags: ['password-management'],
       description:
         'Sends a password reset email if the account exists. Always returns success to prevent email enumeration.',
     },
@@ -51,7 +51,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     response: PasswordMessageResponseSchema,
     openapi: {
       summary: 'Change password',
-      tags: ['Password Management'],
+      tags: ['password-management'],
       description:
         'Changes the password for the authenticated user after verifying the current password.',
     },
@@ -74,7 +74,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     response: PasswordMessageResponseSchema,
     openapi: {
       summary: 'Reset password with token',
-      tags: ['Password Management'],
+      tags: ['password-management'],
       description: 'Resets the user password using a valid reset token received via email.',
     },
     sdk: { exported: true },

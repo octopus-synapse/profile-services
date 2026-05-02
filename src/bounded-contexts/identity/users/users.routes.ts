@@ -23,7 +23,7 @@ import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
   PublicProfileDataSchema,
   UserFullPreferencesDataSchema,
-} from './dto/controller-response.dto';
+} from './dto/controller-response.schema';
 import {
   toCreatedUserMutation,
   toUpdatedUserMutation,

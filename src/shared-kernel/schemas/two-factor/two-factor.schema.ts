@@ -41,3 +41,9 @@ export const TwoFactorStatusSchema = z.object({
 });
 
 export type TwoFactorStatus = z.infer<typeof TwoFactorStatusSchema>;
+
+export type SetupTwoFactorResponseDto = z.infer<typeof SetupTwoFactorResponseSchema>;
+
+export type VerifyTwoFactorTokenDto = z.infer<typeof VerifyTwoFactorTokenSchema>;
+
+export type TwoFactorStatusDto = z.infer<typeof TwoFactorStatusSchema>;

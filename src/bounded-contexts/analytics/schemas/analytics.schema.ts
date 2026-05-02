@@ -268,3 +268,39 @@ export const UserAnalyticsSummarySchema = z.object({
 });
 
 export type UserAnalyticsSummary = z.infer<typeof UserAnalyticsSummarySchema>;
+
+export type TrackViewDto = z.infer<typeof TrackViewSchema>;
+
+export type ViewStatsQueryDto = z.infer<typeof ViewStatsQuerySchema>;
+
+export type KeywordOptionsDto = z.infer<typeof KeywordOptionsSchema>;
+
+export type JobMatchDto = z.infer<typeof JobMatchSchema>;
+
+export type BenchmarkOptionsDto = z.infer<typeof BenchmarkOptionsSchema>;
+
+export type HistoryQueryDto = z.infer<typeof HistoryQuerySchema>;
+
+export type ViewStatsResponseDto = z.infer<typeof ViewStatsResponseSchema>;
+
+export type ATSScoreResponseDto = z.infer<typeof ATSScoreResponseSchema>;
+
+export type KeywordSuggestionsResponseDto = z.infer<typeof KeywordSuggestionsResponseSchema>;
+
+export type JobMatchResponseDto = z.infer<typeof JobMatchResponseSchema>;
+
+export type BenchmarkResponseDto = z.infer<typeof BenchmarkResponseSchema>;
+
+export type DashboardResponseDto = z.infer<typeof DashboardResponseSchema>;
+
+export type SnapshotResponseDto = z.infer<typeof SnapshotResponseSchema>;
+
+export type ScoreProgressionResponseDto = z.infer<typeof ScoreProgressionResponseSchema>;
+
+export type ResumeAnalyticsDto = z.infer<typeof ResumeAnalyticsSchema>;
+
+export type ShareAnalyticsDto = z.infer<typeof ShareAnalyticsSchema>;
+
+export type AnalyticsTimeRangeDto = z.infer<typeof AnalyticsTimeRangeSchema>;
+
+export type UserAnalyticsSummaryDto = z.infer<typeof UserAnalyticsSummarySchema>;

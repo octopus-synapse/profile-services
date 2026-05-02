@@ -9,12 +9,7 @@
  */
 import { z } from 'zod';
 
-export const JsonPrimitiveSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.null(),
-]);
+export const JsonPrimitiveSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
 export const JsonValueSchema = z.union([
   JsonPrimitiveSchema,
@@ -24,3 +19,7 @@ export const JsonValueSchema = z.union([
 
 export type JsonPrimitive = z.infer<typeof JsonPrimitiveSchema>;
 export type JsonValue = JsonPrimitive | unknown[] | Record<string, unknown>;
+
+export type JsonPrimitiveDto = z.infer<typeof JsonPrimitiveSchema>;
+
+export type JsonValueDto = z.infer<typeof JsonValueSchema>;

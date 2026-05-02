@@ -13,7 +13,7 @@
  * (`FeatureFlagToggledTranslator`) — the remaining 12 are added
  * incrementally by following the same pattern.
  */
-import type { EventBusPort } from '@/shared-kernel';
+import type { EventBusPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { EffectTranslator } from './application/ports/effect-translator.port';
@@ -34,6 +34,7 @@ export interface RealtimeUseCases extends RealtimeBundle {
 
 export interface RealtimeCompositionDeps {
   readonly eventBus: EventBusPort;
+  readonly logger: LoggerPort;
 }
 
 function buildTranslators(): EffectTranslator[] {
@@ -45,7 +46,12 @@ export function buildRealtimeComposition(
 ): BoundedContextComposition<RealtimeUseCases> {
   const hub: SseHubPort = new InMemorySseHubAdapter();
   const translators = buildTranslators();
-  const translateAndPublish = new TranslateAndPublishUseCase(deps.eventBus, hub, translators);
+  const translateAndPublish = new TranslateAndPublishUseCase(
+    deps.eventBus,
+    hub,
+    translators,
+    deps.logger,
+  );
 
   const useCases: RealtimeUseCases = {
     hub,

@@ -178,7 +178,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   // ─── Multi-format (JSON / LaTeX) ───────────────────────────────────
   {
     method: 'GET',
-    path: '/api/v1/export/:resumeId/json',
+    path: '/v1/export/:resumeId/json',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
@@ -186,7 +186,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     binary: { mediaType: 'application/json', filename: 'resume.json' },
     openapi: {
       summary: 'Export resume as JSON',
-      tags: ['Export'],
+      tags: ['export'],
       description: 'Export API',
     },
     sdk: { exported: true },
@@ -212,7 +212,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   },
   {
     method: 'GET',
-    path: '/api/v1/export/:resumeId/latex',
+    path: '/v1/export/:resumeId/latex',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
@@ -220,7 +220,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     binary: { mediaType: 'application/x-tex', filename: 'resume.tex' },
     openapi: {
       summary: 'Export resume as LaTeX',
-      tags: ['Export'],
+      tags: ['export'],
       description: 'Export API',
     },
     sdk: { exported: true },

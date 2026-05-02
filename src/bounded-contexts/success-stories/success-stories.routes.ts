@@ -10,7 +10,7 @@ import { SuccessStoriesUseCases } from './application/ports/success-stories.port
 import {
   CreateSuccessStorySchema,
   UpdateSuccessStorySchema,
-} from './dto/success-story-request.dto';
+} from './dto/success-story-request.schema';
 
 const IdParam = z.object({ id: z.string() });
 const LimitQuery = z.object({ limit: z.string().optional() });

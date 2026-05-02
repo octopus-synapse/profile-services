@@ -17,7 +17,7 @@ import type {
   AdminCreateUserDto,
   AdminResetPasswordDto,
   AdminUpdateUserDto,
-} from '../../dto/controller-request.dto';
+} from '../../dto/controller-request.schema';
 import {
   type CreatedUser,
   type UpdatedUser,

@@ -14,7 +14,6 @@
  */
 
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 extendZodWithOpenApi(z);
@@ -36,9 +35,6 @@ export const GenericSectionItemSchema = z.object({
     },
   }),
 });
-
-export class GenericSectionItemDto extends createZodDto(GenericSectionItemSchema) {}
-
 export const GenericSectionDataSchema = z.object({
   sectionTypeKey: z.string().openapi({ example: 'section_type_v1' }),
   semanticKind: z.string().optional().openapi({ example: 'custom_section' }),
@@ -54,16 +50,11 @@ export const GenericSectionDataSchema = z.object({
       example: { variant: 'timeline' },
     }),
 });
-
-export class GenericSectionDataDto extends createZodDto(GenericSectionDataSchema) {}
-
 // ============================================================================
 // Section Data Types
 // ============================================================================
 
 export const SectionDataSchema = GenericSectionDataSchema;
-export class SectionDataDto extends createZodDto(SectionDataSchema) {}
-
 // ============================================================================
 // Style Types
 // ============================================================================
@@ -78,9 +69,6 @@ export const ResolvedTypographySchema = z.object({
     .openapi({ example: 'none' }),
   textDecoration: z.enum(['none', 'underline', 'line-through']).openapi({ example: 'none' }),
 });
-
-export class ResolvedTypographyDto extends createZodDto(ResolvedTypographySchema) {}
-
 export const ResolvedBoxStyleSchema = z.object({
   backgroundColor: z.string().openapi({ example: '#ffffff' }),
   borderColor: z.string().openapi({ example: '#e5e5e5' }),
@@ -90,17 +78,11 @@ export const ResolvedBoxStyleSchema = z.object({
   marginBottomPx: z.number().openapi({ example: 24 }),
   shadow: z.string().optional().openapi({ example: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
 });
-
-export class ResolvedBoxStyleDto extends createZodDto(ResolvedBoxStyleSchema) {}
-
 export const SectionStylesSchema = z.object({
   container: ResolvedBoxStyleSchema,
   title: ResolvedTypographySchema,
   content: ResolvedTypographySchema,
 });
-
-export class SectionStylesDto extends createZodDto(SectionStylesSchema) {}
-
 // ============================================================================
 // Layout Types
 // ============================================================================
@@ -110,9 +92,6 @@ export const ColumnDefinitionSchema = z.object({
   widthPercentage: z.number().openapi({ example: 66.67 }),
   order: z.number().openapi({ example: 0 }),
 });
-
-export class ColumnDefinitionDto extends createZodDto(ColumnDefinitionSchema) {}
-
 export const PageLayoutSchema = z.object({
   widthMm: z.number().describe('Page width in mm (A4 = 210)').openapi({ example: 210 }),
   heightMm: z.number().describe('Page height in mm (A4 = 297)').openapi({ example: 297 }),
@@ -123,25 +102,16 @@ export const PageLayoutSchema = z.object({
   columns: z.array(ColumnDefinitionSchema),
   columnGapMm: z.number().openapi({ example: 10 }),
 });
-
-export class PageLayoutDto extends createZodDto(PageLayoutSchema) {}
-
 export const GlobalStylesSchema = z.object({
   background: z.string().openapi({ example: '#ffffff' }),
   textPrimary: z.string().openapi({ example: '#1a1a1a' }),
   textSecondary: z.string().openapi({ example: '#666666' }),
   accent: z.string().openapi({ example: '#0066cc' }),
 });
-
-export class GlobalStylesDto extends createZodDto(GlobalStylesSchema) {}
-
 export const AstMetaSchema = z.object({
   version: z.string().openapi({ example: '1.0.0' }),
   generatedAt: z.string().openapi({ example: '2026-02-15T12:00:00.000Z' }),
 });
-
-export class AstMetaDto extends createZodDto(AstMetaSchema) {}
-
 // ============================================================================
 // Placed Section (combines data + styles + position)
 // ============================================================================
@@ -175,9 +145,6 @@ export const PlacedSectionSchema = z.object({
   }),
   styles: SectionStylesSchema,
 });
-
-export class PlacedSectionDto extends createZodDto(PlacedSectionSchema) {}
-
 // ============================================================================
 // Resume AST (top-level structure)
 // ============================================================================
@@ -188,9 +155,6 @@ export const ResumeAstSchema = z.object({
   sections: z.array(PlacedSectionSchema),
   globalStyles: GlobalStylesSchema,
 });
-
-export class ResumeAstDto extends createZodDto(ResumeAstSchema) {}
-
 // ============================================================================
 // Response DTOs for endpoints
 // ============================================================================
@@ -200,5 +164,28 @@ export const DslAstResponseSchema = z.object({
   resumeId: z.string().optional().openapi({ example: 'clxxx...' }),
   slug: z.string().optional().openapi({ example: 'john-doe-resume' }),
 });
+export type GenericSectionItemDto = z.infer<typeof GenericSectionItemSchema>;
 
-export class DslAstResponseDto extends createZodDto(DslAstResponseSchema) {}
+export type GenericSectionDataDto = z.infer<typeof GenericSectionDataSchema>;
+
+export type SectionDataDto = z.infer<typeof SectionDataSchema>;
+
+export type ResolvedTypographyDto = z.infer<typeof ResolvedTypographySchema>;
+
+export type ResolvedBoxStyleDto = z.infer<typeof ResolvedBoxStyleSchema>;
+
+export type SectionStylesDto = z.infer<typeof SectionStylesSchema>;
+
+export type ColumnDefinitionDto = z.infer<typeof ColumnDefinitionSchema>;
+
+export type PageLayoutDto = z.infer<typeof PageLayoutSchema>;
+
+export type GlobalStylesDto = z.infer<typeof GlobalStylesSchema>;
+
+export type AstMetaDto = z.infer<typeof AstMetaSchema>;
+
+export type PlacedSectionDto = z.infer<typeof PlacedSectionSchema>;
+
+export type ResumeAstDto = z.infer<typeof ResumeAstSchema>;
+
+export type DslAstResponseDto = z.infer<typeof DslAstResponseSchema>;

@@ -70,7 +70,7 @@ export const metricsRoutes: ReadonlyArray<Route<MetricsUseCases>> = [
     // format (`text/plain`), not JSON.
     openapi: {
       summary: 'Get Prometheus metrics',
-      tags: ['Metrics'],
+      tags: ['metrics'],
       description: 'Returns service metrics in Prometheus exposition format.',
     },
     sdk: { exported: true },

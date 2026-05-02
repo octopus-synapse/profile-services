@@ -99,3 +99,5 @@ export const UsernameSchema = z
 export const validateUsernameFormat = (username: string) => {
   return UsernameSchema.safeParse(username);
 };
+
+export type UsernameDto = z.infer<typeof UsernameSchema>;

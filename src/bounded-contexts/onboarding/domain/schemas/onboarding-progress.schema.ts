@@ -174,3 +174,35 @@ export const OnboardingCompleteResponseSchema = z.object({
 });
 
 export type OnboardingCompleteResponseEnvelope = z.infer<typeof OnboardingCompleteResponseSchema>;
+
+export type OnboardingStepDto = z.infer<typeof OnboardingStepSchema>;
+
+export type OnboardingProgressDto = z.infer<typeof OnboardingProgressSchema>;
+
+export type OnboardingStatusDto = z.infer<typeof OnboardingStatusSchema>;
+
+export type OnboardingResultDto = z.infer<typeof OnboardingResultSchema>;
+
+export type SaveProgressResultDto = z.infer<typeof SaveProgressResultSchema>;
+
+export type SubmitOnboardingDtoDto = z.infer<typeof SubmitOnboardingDtoSchema>;
+
+export type OnboardingStatusResponseDto = z.infer<typeof OnboardingStatusResponseSchema>;
+
+export type OnboardingProgressResponseDto = z.infer<typeof OnboardingProgressResponseSchema>;
+
+export type OnboardingCompleteResponseDto = z.infer<typeof OnboardingCompleteResponseSchema>;
+
+export type StaticOnboardingStepDto = z.infer<typeof StaticOnboardingStepSchema>;
+
+export type DynamicSectionOnboardingStepDto = z.infer<typeof DynamicSectionOnboardingStepSchema>;
+
+export type PartialSectionItemDto = z.infer<typeof PartialSectionItemSchema>;
+
+export type PartialPersonalInfoDto = z.infer<typeof PartialPersonalInfoSchema>;
+
+export type PartialProfessionalProfileDto = z.infer<typeof PartialProfessionalProfileSchema>;
+
+export type PartialTemplateSelectionDto = z.infer<typeof PartialTemplateSelectionSchema>;
+
+export type SectionProgressDto = z.infer<typeof SectionProgressSchema>;

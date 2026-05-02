@@ -14,13 +14,13 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { JobsUseCases } from './application/ports/jobs.port';
-import { RecordApplicationEventSchema } from './dto/application-event.dto';
+import { RecordApplicationEventSchema } from './dto/application-event.schema';
 import {
   ApplyToJobSchema,
   CreateJobSchema,
   ImportJobFromUrlSchema,
   UpdateJobSchema,
-} from './dto/job.dto';
+} from './dto/job.schema';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,
@@ -376,7 +376,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     permission: Permission.FEED_USE,
     query: JobListQuerySchema,
     response: JobsListResponseSchema,
-    openapi: { summary: 'List jobs', tags: ['jobs'], description: 'Jobs API' },
+    openapi: { summary: 'List paginated job postings', tags: ['jobs'], description: 'Jobs API' },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof JobListQuerySchema>;

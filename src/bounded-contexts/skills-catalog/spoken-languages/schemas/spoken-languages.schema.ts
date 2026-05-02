@@ -24,3 +24,7 @@ export type SpokenLanguageCatalog = z.infer<typeof SpokenLanguageCatalogSchema>;
 
 export const SpokenLanguagesListSchema = z.array(SpokenLanguageCatalogSchema);
 export type SpokenLanguagesList = z.infer<typeof SpokenLanguagesListSchema>;
+
+export type SpokenLanguageCatalogDto = z.infer<typeof SpokenLanguageCatalogSchema>;
+
+export type SpokenLanguagesListDto = z.infer<typeof SpokenLanguagesListSchema>;

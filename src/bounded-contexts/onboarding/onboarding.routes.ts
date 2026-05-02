@@ -16,7 +16,7 @@ import {
   type OnboardingProgress,
   OnboardingProgressSchema,
 } from './domain/schemas/onboarding-progress.schema';
-import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.dto';
+import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.schema';
 import { buildSession } from './infrastructure/presenters/onboarding.presenter';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
@@ -435,7 +435,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingStepsResponseSchema,
     openapi: {
       summary: 'List all onboarding steps',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -451,7 +451,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingStatsResponseSchema,
     openapi: {
       summary: 'Get onboarding funnel statistics',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -468,7 +468,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingStepResponseSchema,
     openapi: {
       summary: 'Get onboarding step by key',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -487,7 +487,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Create onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -506,7 +506,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Update onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -525,7 +525,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: EmptyResponseSchema,
     openapi: {
       summary: 'Delete onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -542,7 +542,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingConfigResponseSchema,
     openapi: {
       summary: 'Get onboarding config (strength levels)',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -559,7 +559,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     response: OnboardingConfigUpdatedResponseSchema,
     openapi: {
       summary: 'Update onboarding config',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -577,7 +577,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     kind: 'sse',
     openapi: {
       summary: 'Subscribe to live resume preview updates',
-      tags: ['Onboarding Preview'],
+      tags: ['onboarding-preview'],
       description: 'Streams PNG preview as base64 when onboarding data changes.',
     },
     handler: async (ctx, bundle) => {

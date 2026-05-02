@@ -22,6 +22,8 @@ checks:
     cmd: bun run lint:fast
   - name: route-coverage
     cmd: SDK_COVERAGE_MODE=error bun run src/scripts/validate-swagger-coverage.ts
+  - name: spectral
+    cmd: bun run lint:spec
   - name: unit
     cmd: bun test src
     runner: bun

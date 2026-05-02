@@ -46,3 +46,9 @@ export const PublicProfileResponseSchema = z.object({
 });
 
 export type PublicProfileResponseEnvelope = z.infer<typeof PublicProfileResponseSchema>;
+
+export type PublicUserDto = z.infer<typeof PublicUserSchema>;
+
+export type PublicProfileDto = z.infer<typeof PublicProfileSchema>;
+
+export type PublicProfileResponseDto = z.infer<typeof PublicProfileResponseSchema>;

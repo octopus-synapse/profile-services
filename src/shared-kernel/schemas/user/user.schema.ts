@@ -144,3 +144,25 @@ export type UploadImageResponse = z.infer<typeof UploadImageResponseSchema>;
 export const UploadImageResponseWrapperSchema = z.object({ data: UploadImageResponseSchema });
 
 export type UploadImageResponseEnvelope = z.infer<typeof UploadImageResponseWrapperSchema>;
+
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+
+export type AdminUserFiltersDto = z.infer<typeof AdminUserFiltersSchema>;
+
+export type UserStatsDto = z.infer<typeof UserStatsSchema>;
+
+export type CheckUsernameResponseDto = z.infer<typeof CheckUsernameResponseSchema>;
+
+export type UpdateUsernameRequestDto = z.infer<typeof UpdateUsernameRequestSchema>;
+
+export type UpdateUsernameResponseDto = z.infer<typeof UpdateUsernameResponseSchema>;
+
+export type ValidateUsernameRequestDto = z.infer<typeof ValidateUsernameRequestSchema>;
+
+export type UsernameValidationErrorDto = z.infer<typeof UsernameValidationErrorSchema>;
+
+export type ValidateUsernameResponseDto = z.infer<typeof ValidateUsernameResponseSchema>;
+
+export type UploadImageResponseDto = z.infer<typeof UploadImageResponseSchema>;
+
+export type UploadImageResponseWrapperDto = z.infer<typeof UploadImageResponseWrapperSchema>;

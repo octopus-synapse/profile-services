@@ -40,7 +40,7 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     response: TestResultsResponseSchema,
     openapi: {
       summary: 'Run a test suite',
-      tags: ['Admin - Test Runner'],
+      tags: ['admin-test-runner'],
     },
     handler: async (ctx, bc) => {
       const { suite } = ctx.body as { suite: string };
@@ -56,7 +56,7 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     response: ListSuitesResponseSchema,
     openapi: {
       summary: 'List available test suites',
-      tags: ['Admin - Test Runner'],
+      tags: ['admin-test-runner'],
     },
     handler: async (_ctx, bc) => {
       return { suites: bc.listTestSuites.execute() };

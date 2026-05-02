@@ -4,7 +4,7 @@ import type {
   StyleDetailDto,
   StyleListResponseDto,
   StyleSummaryDto,
-} from '../dto/resume-style.dto';
+} from '../dto/resume-style.schema';
 
 export function presentSummary(s: StyleSummary): StyleSummaryDto {
   return {

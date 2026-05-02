@@ -1,25 +1,25 @@
 // Request DTOs
 
-export * from './block-user.dto';
+export * from './block-user.schema';
 // Response DTOs — wrapper data
-export * from './chat-message-data.dto';
-export * from './conversation.dto';
-export * from './conversation-data.dto';
-export * from './conversation-nullable-data.dto';
-export * from './conversation-participant.dto';
-export * from './conversations-list-data.dto';
-export * from './get-conversations-query.dto';
-export * from './get-messages-query.dto';
-export * from './last-message.dto';
-export * from './mark-as-read-data.dto';
+export * from './chat-message-data.schema';
+export * from './conversation.schema';
+export * from './conversation-data.schema';
+export * from './conversation-nullable-data.schema';
+export * from './conversation-participant.schema';
+export * from './conversations-list-data.schema';
+export * from './get-conversations-query.schema';
+export * from './get-messages-query.schema';
+export * from './last-message.schema';
+export * from './mark-as-read-data.schema';
 // Response DTOs — composed schemas
-export * from './message.dto';
+export * from './message.schema';
 // Response DTOs — base schemas
-export * from './message-sender.dto';
-export * from './messages-list-data.dto';
-export * from './paginated-conversations.dto';
-export * from './paginated-messages.dto';
-export * from './send-message.dto';
-export * from './send-message-to-conversation.dto';
-export * from './unblock-user.dto';
-export * from './unread-count-data.dto';
+export * from './message-sender.schema';
+export * from './messages-list-data.schema';
+export * from './paginated-conversations.schema';
+export * from './paginated-messages.schema';
+export * from './send-message.schema';
+export * from './send-message-to-conversation.schema';
+export * from './unblock-user.schema';
+export * from './unread-count-data.schema';

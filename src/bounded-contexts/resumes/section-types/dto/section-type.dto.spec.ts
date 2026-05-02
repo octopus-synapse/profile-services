@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { CreateSectionTypeSchema, UpdateSectionTypeSchema } from './section-type.dto';
+import { CreateSectionTypeSchema, UpdateSectionTypeSchema } from './section-type.schema';
 
 const validTranslations = {
   en: { title: 'Work Experience', label: 'work' },

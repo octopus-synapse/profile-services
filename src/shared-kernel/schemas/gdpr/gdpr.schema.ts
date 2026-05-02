@@ -35,3 +35,7 @@ export const AccountDeletionResultSchema = z.object({
 });
 
 export type AccountDeletionResult = z.infer<typeof AccountDeletionResultSchema>;
+
+export type UserDataExportDto = z.infer<typeof UserDataExportSchema>;
+
+export type AccountDeletionResultDto = z.infer<typeof AccountDeletionResultSchema>;

@@ -1,2 +1,2 @@
-export * from './invite-collaborator.dto';
-export * from './update-role.dto';
+export * from './invite-collaborator.schema';
+export * from './update-role.schema';

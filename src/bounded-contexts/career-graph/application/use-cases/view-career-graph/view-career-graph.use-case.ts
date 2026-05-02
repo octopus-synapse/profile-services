@@ -4,7 +4,7 @@ import type {
   CareerGraphProjectionOutput,
   ViewCareerGraphInput,
   ViewCareerGraphOutput,
-} from './view-career-graph.dto';
+} from './view-career-graph.schema';
 
 /**
  * ViewCareerGraphUseCase — produces the data backing the "Career graph"

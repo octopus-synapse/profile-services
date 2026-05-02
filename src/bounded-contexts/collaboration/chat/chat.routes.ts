@@ -20,7 +20,7 @@ import {
   GetMessagesQuerySchema as GetMessagesRequestQuerySchema,
   SendMessageSchema,
   SendMessageToConversationSchema,
-} from './dto/chat-request.dto';
+} from './dto/chat-request.schema';
 import {
   BlockedUserResponseSchema,
   BlockUserSchema,
@@ -361,7 +361,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     response: BlockUserResponseSchemaWrapped,
     openapi: {
       summary: 'Block a user',
-      tags: ['chat---block-users'],
+      tags: ['chat-block-users'],
       description: 'Chat Block Users API',
     },
     sdk: { exported: true },
@@ -381,7 +381,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     response: z.null(),
     openapi: {
       summary: 'Unblock a user',
-      tags: ['chat---block-users'],
+      tags: ['chat-block-users'],
       description: 'Chat Block Users API',
     },
     sdk: { exported: true },
@@ -398,7 +398,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     response: BlockedUsersResponseSchema,
     openapi: {
       summary: 'Get all blocked users',
-      tags: ['chat---block-users'],
+      tags: ['chat-block-users'],
       description: 'Chat Block Users API',
     },
     sdk: { exported: true },
@@ -416,7 +416,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     response: BlockStatusResponseSchema,
     openapi: {
       summary: 'Check if a user is blocked',
-      tags: ['chat---block-users'],
+      tags: ['chat-block-users'],
       description: 'Chat Block Users API',
     },
     sdk: { exported: true },

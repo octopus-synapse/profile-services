@@ -181,7 +181,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import profile data from LinkedIn (scaffold)',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
     },
@@ -200,7 +200,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import resume from JSON Resume format',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Creates import job and processes JSON Resume data (jsonresume.org standard)',
     },
     sdk: { exported: true },
@@ -232,7 +232,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ParsedResumeDataResponseSchema,
     openapi: {
       summary: 'Parse JSON Resume without importing',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Validates and transforms JSON Resume to internal format without saving',
     },
     sdk: { exported: true },
@@ -251,7 +251,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportJobResponseSchema,
     openapi: {
       summary: 'Get import job status',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Returns current status, errors, and result of import job',
     },
     sdk: { exported: true },
@@ -269,7 +269,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportJobListResponseSchema,
     openapi: {
       summary: 'Get import history',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Returns all import jobs for authenticated user, ordered by creation date',
     },
     sdk: { exported: true },
@@ -287,7 +287,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportEmptyResponseSchema,
     openapi: {
       summary: 'Cancel import job',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Cancels pending or processing import. Cannot cancel completed imports.',
     },
     sdk: { exported: true },
@@ -306,7 +306,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: ImportResultResponseSchema,
     openapi: {
       summary: 'Retry failed import',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Retries processing of failed import job with same data',
     },
     sdk: { exported: true },
@@ -360,7 +360,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: PdfImportResponseSchema,
     openapi: {
       summary: 'Import resume from a PDF file',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         'Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.',
     },
@@ -384,7 +384,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     response: GithubImportResponseSchema,
     openapi: {
       summary: 'Import profile data from GitHub',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
     },

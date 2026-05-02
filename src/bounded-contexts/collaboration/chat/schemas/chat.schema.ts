@@ -1,4 +1,3 @@
-import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 export const SendMessageSchema = z.object({
@@ -180,8 +179,40 @@ export const UnreadCountResponseSchema = z.object({
 });
 
 export type UnreadCountResponse = z.infer<typeof UnreadCountResponseSchema>;
+export type SendMessageDto = z.infer<typeof SendMessageSchema>;
 
-/**
- * DTOs for Swagger documentation
- */
-export class BlockUserRequestDto extends createZodDto(BlockUserSchema) {}
+export type SendMessageToConversationDto = z.infer<typeof SendMessageToConversationSchema>;
+
+export type MarkMessageReadDto = z.infer<typeof MarkMessageReadSchema>;
+
+export type MarkConversationReadDto = z.infer<typeof MarkConversationReadSchema>;
+
+export type GetMessagesQueryDto = z.infer<typeof GetMessagesQuerySchema>;
+
+export type GetConversationsQueryDto = z.infer<typeof GetConversationsQuerySchema>;
+
+export type BlockUserDto = z.infer<typeof BlockUserSchema>;
+
+export type UnblockUserDto = z.infer<typeof UnblockUserSchema>;
+
+export type WsMessageEventDto = z.infer<typeof WsMessageEventSchema>;
+
+export type WsTypingEventDto = z.infer<typeof WsTypingEventSchema>;
+
+export type WsReadReceiptEventDto = z.infer<typeof WsReadReceiptEventSchema>;
+
+export type WsUserStatusEventDto = z.infer<typeof WsUserStatusEventSchema>;
+
+export type MessageResponseDto = z.infer<typeof MessageResponseSchema>;
+
+export type ConversationResponseDto = z.infer<typeof ConversationResponseSchema>;
+
+export type PaginatedMessagesResponseDto = z.infer<typeof PaginatedMessagesResponseSchema>;
+
+export type PaginatedConversationsResponseDto = z.infer<
+  typeof PaginatedConversationsResponseSchema
+>;
+
+export type BlockedUserResponseDto = z.infer<typeof BlockedUserResponseSchema>;
+
+export type UnreadCountResponseDto = z.infer<typeof UnreadCountResponseSchema>;

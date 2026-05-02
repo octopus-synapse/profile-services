@@ -9,7 +9,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
-import { ComputeMatchRequestDto } from './dto/match-breakdown.dto';
+import { ComputeMatchRequestDto } from './dto/match-breakdown.schema';
 import { presentMatchBreakdown } from './infrastructure/presenters/match-breakdown.presenter';
 
 const ScoreField = z.number().int().min(0).max(100).nullable();

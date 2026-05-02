@@ -236,3 +236,31 @@ export const StackOverflowResponseSchema = z.object({
 });
 
 export type StackOverflowResponse = z.infer<typeof StackOverflowResponseSchema>;
+
+export type TechAreaDto = z.infer<typeof TechAreaSchema>;
+
+export type TechNicheDto = z.infer<typeof TechNicheSchema>;
+
+export type TechSkillNicheDto = z.infer<typeof TechSkillNicheSchema>;
+
+export type TechSkillDto = z.infer<typeof TechSkillSchema>;
+
+export type ProgrammingLanguageDto = z.infer<typeof ProgrammingLanguageSchema>;
+
+export type TechSkillsSearchResultDto = z.infer<typeof TechSkillsSearchResultSchema>;
+
+export type TechSkillsSyncResultDto = z.infer<typeof TechSkillsSyncResultSchema>;
+
+export type ParsedLanguageDto = z.infer<typeof ParsedLanguageSchema>;
+
+export type ParsedSkillDto = z.infer<typeof ParsedSkillSchema>;
+
+export type GithubLanguageTypeDto = z.infer<typeof GithubLanguageTypeSchema>;
+
+export type GithubLanguageDto = z.infer<typeof GithubLanguageSchema>;
+
+export type GithubLanguagesYmlDto = z.infer<typeof GithubLanguagesYmlSchema>;
+
+export type StackOverflowTagDto = z.infer<typeof StackOverflowTagSchema>;
+
+export type StackOverflowResponseDto = z.infer<typeof StackOverflowResponseSchema>;

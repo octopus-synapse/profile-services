@@ -89,7 +89,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: SectionTypeListResponseSchema,
     openapi: {
       summary: 'List all section types with pagination',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -104,7 +104,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: SemanticKindsResponseSchema,
     openapi: {
       summary: 'Get all unique semantic kinds',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -119,7 +119,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Get a section type by key',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -136,7 +136,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Create a new section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -153,7 +153,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Update a section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -173,7 +173,7 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     response: z.null(),
     openapi: {
       summary: 'Delete a section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },

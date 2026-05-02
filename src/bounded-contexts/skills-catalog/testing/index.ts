@@ -12,7 +12,7 @@ import {
   CachePort,
   TechSkillRepositoryPort,
 } from '../tech-skills/application/ports/tech-skills.port';
-import type { TechSkill } from '../tech-skills/dto/tech-skill.dto';
+import type { TechSkill } from '../tech-skills/dto/tech-skill.schema';
 import type { SkillType } from '../tech-skills/interfaces';
 
 // ═══════════════════════════════════════════════════════════════

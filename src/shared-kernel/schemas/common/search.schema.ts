@@ -100,3 +100,21 @@ export type SimilarProfile = z.infer<typeof SimilarProfileSchema>;
 export const SimilarProfilesResponseSchema = z.object({ profiles: z.array(SimilarProfileSchema) });
 
 export type SimilarProfilesResponse = z.infer<typeof SimilarProfilesResponseSchema>;
+
+export type SearchSortByDto = z.infer<typeof SearchSortBySchema>;
+
+export type SuggestionTypeDto = z.infer<typeof SuggestionTypeSchema>;
+
+export type SearchQueryDto = z.infer<typeof SearchQuerySchema>;
+
+export type SearchResultItemDto = z.infer<typeof SearchResultItemSchema>;
+
+export type SearchResponseDto = z.infer<typeof SearchResponseSchema>;
+
+export type SuggestionDto = z.infer<typeof SuggestionSchema>;
+
+export type SuggestionsResponseDto = z.infer<typeof SuggestionsResponseSchema>;
+
+export type SimilarProfileDto = z.infer<typeof SimilarProfileSchema>;
+
+export type SimilarProfilesResponseDto = z.infer<typeof SimilarProfilesResponseSchema>;

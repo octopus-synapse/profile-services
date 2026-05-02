@@ -13,7 +13,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { PlatformEvent } from '../../../domain/entities/platform-event';
 import { PlatformEventsRepositoryPort } from '../../../domain/ports/platform-events.repository.port';
 import { ProductAnalyticsForwarderPort } from '../../../domain/ports/product-analytics-forwarder.port';
-import type { TrackEventsBodyDto } from '../../../dto/track-event.dto';
+import type { TrackEventsBodyDto } from '../../../dto/track-event.schema';
 
 const CTX = 'TrackPlatformEventsUseCase';
 

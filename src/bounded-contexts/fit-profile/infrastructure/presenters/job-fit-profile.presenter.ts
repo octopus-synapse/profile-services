@@ -1,5 +1,5 @@
 import type { SavedJobFitProfile } from '../../domain/ports/job-fit-profile.repository.port';
-import type { JobFitProfileResponseDto } from '../../dto/job-fit-profile.dto';
+import type { JobFitProfileResponseDto } from '../../dto/job-fit-profile.schema';
 
 export function presentJobFitProfile(profile: SavedJobFitProfile): JobFitProfileResponseDto {
   return {
