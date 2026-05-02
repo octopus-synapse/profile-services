@@ -13,6 +13,7 @@ import { DomainException } from '@/shared-kernel/exceptions';
 import {
   GitHubSyncFailedException,
   GitHubUsernameMissingException,
+  SyncCooldownActiveException,
 } from '../../../domain/exceptions/integration.exceptions';
 import { GitHubApiPort } from '../../domain/ports/github-api.port';
 import { GitHubResumeRepositoryPort } from '../../domain/ports/github-resume.repository.port';
@@ -35,6 +36,12 @@ export interface GitHubSyncResult {
   };
 }
 
+/** Minimum elapsed time before re-syncing a resume's GitHub stats.
+ *  GitHub data changes slowly enough that a 15-minute window catches
+ *  accidental double-clicks while still letting users resync after
+ *  fixing a profile. */
+const SYNC_COOLDOWN_MINUTES = 15;
+
 export class GitHubSyncService {
   constructor(
     private readonly api: GitHubApiPort,
@@ -49,6 +56,19 @@ export class GitHubSyncService {
     resumeId: string,
   ): Promise<GitHubSyncResult> {
     await this.resumes.verifyResumeOwnership(userId, resumeId);
+
+    // Cooldown gate: refuse a fresh sync within 15 minutes of the last
+    // success. Skipped silently when the resume was never synced.
+    const status = await this.resumes.getSyncStatus(userId, resumeId);
+    if (status.hasSynced) {
+      const elapsedMinutes =
+        (Date.now() - status.lastSyncedAt.getTime()) / (60 * 1000);
+      if (elapsedMinutes < SYNC_COOLDOWN_MINUTES) {
+        throw new SyncCooldownActiveException(
+          Math.max(1, Math.ceil(SYNC_COOLDOWN_MINUTES - elapsedMinutes)),
+        );
+      }
+    }
 
     try {
       const profile = await this.api.getUserProfile(githubUsername);
