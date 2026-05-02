@@ -2,6 +2,7 @@ import { EventBusPort, LoggerPort } from '@/shared-kernel';
 import { FeatureFlagToggledEvent } from '../../domain/events/feature-flag-toggled.event';
 import {
   FeatureFlagDeprecatedException,
+  FeatureFlagInvalidInputException,
   FeatureFlagNotFoundException,
   FeatureFlagParentDisabledException,
 } from '../../domain/exceptions/feature-flag.exceptions';
@@ -35,6 +36,8 @@ export class ToggleFlagUseCase {
   }
 
   async execute(input: ToggleFlagInput): Promise<FlagRecord> {
+    this.assertValidInput(input);
+
     const current = await this.repo.findByKey(input.key);
     if (!current) throw new FeatureFlagNotFoundException(input.key);
     if (current.deprecated) {
@@ -67,6 +70,26 @@ export class ToggleFlagUseCase {
     );
 
     return updated;
+  }
+
+  /**
+   * Reject zero-information toggle calls before we hit the repository.
+   * The route layer also validates with zod, but ports are exposed
+   * outside HTTP (CLI bootstrap, integration tests) so we keep the
+   * domain guard.
+   */
+  private assertValidInput(input: ToggleFlagInput): void {
+    if (!input.key || input.key.trim().length === 0) {
+      throw new FeatureFlagInvalidInputException('key must be a non-empty string');
+    }
+    if (!input.actorId || input.actorId.trim().length === 0) {
+      throw new FeatureFlagInvalidInputException('actorId must be a non-empty string');
+    }
+    if (input.enabled === undefined && input.enabledForRoles === undefined) {
+      throw new FeatureFlagInvalidInputException(
+        'at least one of "enabled" or "enabledForRoles" must be provided',
+      );
+    }
   }
 
   /**
