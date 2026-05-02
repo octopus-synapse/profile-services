@@ -27,6 +27,22 @@ const UpdateSkillBody = z.object({
   level: z.number().int().optional(),
 });
 
+// ─── Response schemas (mirror Skill domain interface) ────────────────
+const SkillSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  name: z.string(),
+  category: z.string(),
+  level: z.number().int().optional(),
+  order: z.number().int(),
+});
+
+const SkillResponseSchema = z.object({ skill: SkillSchema });
+const SkillsListResponseSchema = z.object({ skills: z.array(SkillSchema) });
+const DeleteSkillResponseSchema = z.object({
+  result: z.object({ deleted: z.boolean() }),
+});
+
 export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
   {
     method: 'POST',
@@ -35,6 +51,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: ResumeIdParams,
     body: CreateSkillBody,
+    response: SkillResponseSchema,
     openapi: {
       summary: 'Add a skill to a resume',
       tags: ['Resume Skills'],
@@ -53,6 +70,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParams,
+    response: SkillsListResponseSchema,
     openapi: {
       summary: 'List skills for a resume',
       tags: ['Resume Skills'],
@@ -72,6 +90,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: SkillRefParams,
     body: UpdateSkillBody,
+    response: SkillResponseSchema,
     openapi: {
       summary: 'Update a resume skill',
       tags: ['Resume Skills'],
@@ -90,6 +109,7 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: SkillRefParams,
+    response: DeleteSkillResponseSchema,
     openapi: {
       summary: 'Delete a resume skill',
       tags: ['Resume Skills'],

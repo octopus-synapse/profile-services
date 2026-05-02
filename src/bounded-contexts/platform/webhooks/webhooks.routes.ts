@@ -22,12 +22,52 @@ const UpdateWebhookSchema = z.object({
   enabled: z.boolean().optional(),
 });
 
+// ─── Response schemas ────────────────────────────────────────────────
+const WebhookViewSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  events: z.array(z.enum(SUPPORTED_EVENTS)),
+  enabled: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+const WebhookDeliveryViewSchema = z.object({
+  id: z.string(),
+  eventType: z.string(),
+  attempt: z.number().int(),
+  success: z.boolean(),
+  statusCode: z.number().int().nullable(),
+  errorMessage: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const ListWebhooksResponseSchema = z.object({
+  webhooks: z.array(WebhookViewSchema),
+});
+
+const CreateWebhookResponseSchema = z.object({
+  webhook: WebhookViewSchema,
+  secret: z.string(),
+});
+
+const UpdateWebhookResponseSchema = z.object({
+  webhook: WebhookViewSchema,
+});
+
+const DeleteWebhookResponseSchema = z.object({}).strict();
+
+const ListDeliveriesResponseSchema = z.object({
+  deliveries: z.array(WebhookDeliveryViewSchema),
+});
+
 export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
   {
     method: 'GET',
     path: '/v1/webhooks',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
+    response: ListWebhooksResponseSchema,
     openapi: {
       summary: 'List webhooks registered by the current user.',
       tags: ['webhooks'],
@@ -45,6 +85,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     body: CreateWebhookSchema,
+    response: CreateWebhookResponseSchema,
     openapi: {
       summary: 'Register a new webhook subscription.',
       tags: ['webhooks'],
@@ -64,6 +105,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: IdParam,
     body: UpdateWebhookSchema,
+    response: UpdateWebhookResponseSchema,
     openapi: {
       summary: 'Update a webhook subscription.',
       tags: ['webhooks'],
@@ -83,6 +125,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: IdParam,
+    response: DeleteWebhookResponseSchema,
     openapi: {
       summary: 'Delete a webhook subscription.',
       tags: ['webhooks'],
@@ -92,7 +135,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteWebhook.execute(ctx.user!.userId, id);
-      return undefined;
+      return {};
     },
   },
   {
@@ -101,6 +144,7 @@ export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: IdParam,
+    response: ListDeliveriesResponseSchema,
     openapi: {
       summary: 'List recent delivery attempts for a webhook.',
       tags: ['webhooks'],

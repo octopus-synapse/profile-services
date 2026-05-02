@@ -23,6 +23,22 @@ const SearchQuery = z.object({
 
 const CodeParams = z.object({ code: z.string() });
 
+const SpokenLanguageSchema = z.object({
+  code: z.string(),
+  nameEn: z.string(),
+  namePtBr: z.string(),
+  nameEs: z.string(),
+  nativeName: z.string().nullable(),
+});
+
+const LanguagesListResponseSchema = z.object({
+  languages: z.array(SpokenLanguageSchema),
+});
+
+const LanguageResponseSchema = z.object({
+  language: SpokenLanguageSchema,
+});
+
 function parseLimit(raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw === null || raw === '') return fallback;
   const parsed = parseInt(raw, 10);
@@ -38,6 +54,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     path: '/v1/spoken-languages',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: LanguagesListResponseSchema,
     openapi: {
       summary: 'Get all active spoken languages',
       tags: ['spoken-languages'],
@@ -55,6 +72,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     query: SearchQuery,
+    response: LanguagesListResponseSchema,
     openapi: {
       summary: 'Search spoken languages by name',
       tags: ['spoken-languages'],
@@ -74,6 +92,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: CodeParams,
+    response: LanguageResponseSchema,
     openapi: {
       summary: 'Get spoken language by code',
       tags: ['spoken-languages'],

@@ -7,6 +7,7 @@
  * per-request `Content-Language` is emitted via `withHeaders(...)`.
  */
 
+import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import { withHeaders } from '@/shared-kernel/http/route';
 import { negotiateLocale } from './application/locale-negotiator';
@@ -17,12 +18,35 @@ const STATIC_HEADERS = {
   Vary: 'Accept-Language',
 } as const;
 
+// ─── Response schemas ──────────────────────────────────────────────────
+const ErrorsDictionaryResponseSchema = z.object({
+  locale: z.string(),
+  entries: z.record(z.string()),
+});
+
+const EnumsDictionaryResponseSchema = z.object({
+  locale: z.string(),
+  entries: z.record(z.record(z.string())),
+});
+
+const NotificationsDictionaryResponseSchema = z.object({
+  locale: z.string(),
+  entries: z.record(
+    z.object({
+      title: z.string(),
+      body: z.string(),
+      params: z.array(z.string()),
+    }),
+  ),
+});
+
 export const i18nRoutes: ReadonlyArray<Route<I18nUseCases>> = [
   {
     method: 'GET',
     path: '/v1/i18n/dictionary/errors',
     auth: { kind: 'public' },
     headers: STATIC_HEADERS,
+    response: ErrorsDictionaryResponseSchema,
     openapi: {
       summary: 'Error-message dictionary in the negotiated locale',
       tags: ['i18n'],
@@ -47,6 +71,7 @@ export const i18nRoutes: ReadonlyArray<Route<I18nUseCases>> = [
     path: '/v1/i18n/dictionary/enums',
     auth: { kind: 'public' },
     headers: STATIC_HEADERS,
+    response: EnumsDictionaryResponseSchema,
     openapi: {
       summary: 'Prisma enum label dictionary in the negotiated locale',
       tags: ['i18n'],
@@ -71,6 +96,7 @@ export const i18nRoutes: ReadonlyArray<Route<I18nUseCases>> = [
     path: '/v1/i18n/dictionary/notifications',
     auth: { kind: 'public' },
     headers: STATIC_HEADERS,
+    response: NotificationsDictionaryResponseSchema,
     openapi: {
       summary: 'Notification-template dictionary in the negotiated locale',
       tags: ['i18n'],

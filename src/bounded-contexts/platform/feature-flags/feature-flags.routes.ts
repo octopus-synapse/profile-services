@@ -35,6 +35,65 @@ const ActiveFlagsResponseSchema = z.object({
   flags: z.record(z.boolean()),
 });
 
+// ─── Admin response schemas ────────────────────────────────────────
+const FlagAdminRowSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  enabled: z.boolean(),
+  enabledForRoles: z.array(z.string()),
+  deprecated: z.boolean(),
+  dependsOn: z.array(z.string()),
+  effectiveGlobal: z.boolean(),
+  blockedBy: z.array(z.string()),
+});
+
+const ListFlagsResponseSchema = z.object({
+  flags: z.array(FlagAdminRowSchema),
+});
+
+// `FlagImpactTree` is genuinely recursive (a key plus children of the same
+// shape). Swagger's `zod-to-openapi` generator doesn't handle `z.lazy`, so
+// we serialise the recursion explicitly with bounded depth. Production
+// trees are dependency DAGs of feature flags — the seeded set is two
+// layers deep, so 5 levels is roomy.
+const ImpactTreeLeafSchema = z.object({
+  key: z.string(),
+  children: z.array(z.object({ key: z.string(), children: z.array(z.never()) })),
+});
+const ImpactTreeDepth3Schema = z.object({
+  key: z.string(),
+  children: z.array(ImpactTreeLeafSchema),
+});
+const ImpactTreeDepth4Schema = z.object({
+  key: z.string(),
+  children: z.array(ImpactTreeDepth3Schema),
+});
+const ImpactTreeDepth5Schema = z.object({
+  key: z.string(),
+  children: z.array(ImpactTreeDepth4Schema),
+});
+const ImpactTreeSchema = z.object({
+  key: z.string(),
+  children: z.array(ImpactTreeDepth5Schema),
+});
+
+const ImpactResponseSchema = z.object({ tree: ImpactTreeSchema });
+
+const ToggleFlagResponseSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  enabled: z.boolean(),
+  enabledForRoles: z.array(z.string()),
+  deprecated: z.boolean(),
+  dependsOn: z.array(z.string()),
+  blockedBy: z.array(z.string()),
+  effectiveGlobal: z.boolean(),
+});
+
+const BroadcastRefreshResponseSchema = z.object({}).strict();
+
 export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
   {
     method: 'GET',
@@ -58,6 +117,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     method: 'GET',
     path: '/v1/feature-flags/evaluate',
     auth: { kind: 'jwt' },
+    response: ActiveFlagsResponseSchema,
     openapi: {
       summary: '[Deprecated] Use /v1/feature-flags/active',
       tags: ['feature-flags'],
@@ -75,6 +135,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     path: '/v1/admin/feature-flags',
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_READ,
+    response: ListFlagsResponseSchema,
     openapi: {
       summary: 'List all feature flags with metadata and blocking info',
       tags: ['admin-feature-flags'],
@@ -92,6 +153,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_READ,
     params: KeyParam,
+    response: ImpactResponseSchema,
     openapi: {
       summary: 'Preview transitive descendants affected when a flag is turned OFF',
       tags: ['admin-feature-flags'],
@@ -110,6 +172,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     permission: Permission.FEATURE_FLAG_MANAGE,
     params: KeyParam,
     body: ToggleFeatureFlagSchema,
+    response: ToggleFlagResponseSchema,
     openapi: {
       summary: 'Toggle a flag or update its role restriction',
       tags: ['admin-feature-flags'],
@@ -134,6 +197,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     path: '/v1/admin/feature-flags/broadcast-refresh',
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_MANAGE,
+    response: BroadcastRefreshResponseSchema,
     openapi: {
       summary: 'Invalidate all client flag snapshots',
       tags: ['admin-feature-flags'],
@@ -143,7 +207,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       await bc.broadcastRefresh.execute();
-      return undefined;
+      return {};
     },
   },
 ];
