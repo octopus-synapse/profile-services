@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { UrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
 import { buildShareOgSvg, OgImageService } from './og-image.service';
 
 describe('buildShareOgSvg', () => {
@@ -61,5 +62,17 @@ describe('OgImageService', () => {
     const a = await service.generatePng({ name: 'Enzo', title: 'Backend' });
     const b = await service.generatePng({ name: 'Maria', title: 'Designer' });
     expect(a.equals(b)).toBe(false);
+  });
+
+  it('throws UrlRequiredException when generatePngForUrl receives empty URL', async () => {
+    await expect(service.generatePngForUrl('', { name: 'Enzo', title: 'Backend' })).rejects.toThrow(
+      UrlRequiredException,
+    );
+  });
+
+  it('throws UrlRequiredException when URL is whitespace only', async () => {
+    await expect(
+      service.generatePngForUrl('   ', { name: 'Enzo', title: 'Backend' }),
+    ).rejects.toThrow(UrlRequiredException);
   });
 });

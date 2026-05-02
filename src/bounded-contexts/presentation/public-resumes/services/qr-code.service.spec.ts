@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { QrUrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
 import { QrCodeService } from './qr-code.service';
 
 describe('QrCodeService', () => {
@@ -37,8 +38,12 @@ describe('QrCodeService', () => {
     expect(large.length).toBeGreaterThan(small.length);
   });
 
-  it('should reject empty URL', async () => {
-    await expect(service.generatePng('')).rejects.toThrow();
+  it('should reject empty URL with QrUrlRequiredException', async () => {
+    await expect(service.generatePng('')).rejects.toThrow(QrUrlRequiredException);
+  });
+
+  it('throws QrUrlRequiredException for SVG path too', async () => {
+    await expect(service.generateSvg('')).rejects.toThrow(QrUrlRequiredException);
   });
 
   it('should produce an SVG string including the target URL data', async () => {

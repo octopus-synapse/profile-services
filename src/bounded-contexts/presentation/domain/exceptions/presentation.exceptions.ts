@@ -9,6 +9,12 @@ import {
   ValidationException,
 } from '@/shared-kernel/exceptions';
 
+/**
+ * F5.I.3 SKIP — Server-Driven UI infrastructure (`screen registry` /
+ * `event tracking catalogue` / `screen renderer`) is not yet wired in
+ * the codebase. Once the SDU bootstrap lands the throws will live in
+ * the screen-registry / event-registry / screen-renderer composition.
+ */
 export class UnknownScreenException extends DomainException {
   readonly code: string = 'UNKNOWN_SCREEN';
   readonly statusHint = 404;
@@ -17,6 +23,7 @@ export class UnknownScreenException extends DomainException {
   }
 }
 
+/** F5.I.3 SKIP — same SDU surface as `UnknownScreenException`. */
 export class UnknownEventException extends ValidationException {
   readonly code: string = 'UNKNOWN_EVENT';
   constructor(eventName: string) {
@@ -24,6 +31,7 @@ export class UnknownEventException extends ValidationException {
   }
 }
 
+/** F5.I.3 SKIP — same SDU surface as `UnknownScreenException`. */
 export class ScreenRenderFailedException extends DomainException {
   readonly code: string = 'SCREEN_RENDER_FAILED';
   readonly statusHint = 500;
@@ -32,6 +40,12 @@ export class ScreenRenderFailedException extends DomainException {
   }
 }
 
+/**
+ * F5.I.3 SKIP — redundant with `analytics.exceptions.ts ›
+ * AnalyticsConsentRequiredException` (same `ANALYTICS_CONSENT_REQUIRED`
+ * code). The analytics BC owns the consent envelope; this presentation
+ * shadow is a leftover from the pre-split layout.
+ */
 export class AnalyticsForbiddenException extends ForbiddenException {
   readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
   constructor() {

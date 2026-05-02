@@ -1,5 +1,5 @@
 import * as QRCode from 'qrcode';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { QrUrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
 
 export interface QrCodeOptions {
   size?: number;
@@ -8,7 +8,7 @@ export interface QrCodeOptions {
 export class QrCodeService {
   async generatePng(url: string, options: QrCodeOptions = {}): Promise<Buffer> {
     if (!url) {
-      throw new ValidationException('URL is required');
+      throw new QrUrlRequiredException();
     }
 
     return QRCode.toBuffer(url, {
@@ -21,7 +21,7 @@ export class QrCodeService {
 
   async generateSvg(url: string, options: QrCodeOptions = {}): Promise<string> {
     if (!url) {
-      throw new ValidationException('URL is required');
+      throw new QrUrlRequiredException();
     }
 
     return QRCode.toString(url, {
