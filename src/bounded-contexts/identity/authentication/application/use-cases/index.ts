@@ -13,3 +13,4 @@ export { RefreshTokenUseCase } from './refresh-token';
 export * from './session';
 export { TerminateSessionUseCase } from './terminate-session';
 export { ValidateSessionUseCase } from './validate-session';
+export { VerifySessionStrictUseCase } from './verify-session-strict/verify-session-strict.use-case';
