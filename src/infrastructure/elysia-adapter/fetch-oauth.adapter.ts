@@ -97,7 +97,10 @@ export class FetchOAuthAdapter extends OAuthPort {
       }).toString(),
     });
     if (!tokenRes.ok) throw new Error(`OAuth token exchange failed: ${tokenRes.status}`);
-    const tokenJson = (await tokenRes.json()) as { access_token?: string };
+    const tokenJson = (await tokenRes.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+    };
     const accessToken = tokenJson.access_token;
     if (!accessToken) throw new Error('OAuth token response missing access_token');
 
@@ -106,11 +109,16 @@ export class FetchOAuthAdapter extends OAuthPort {
     });
     if (!profileRes.ok) throw new Error(`OAuth profile fetch failed: ${profileRes.status}`);
     const raw = (await profileRes.json()) as Record<string, unknown>;
-    return normalizeProfile(provider, raw);
+    return normalizeProfile(provider, raw, accessToken, tokenJson.refresh_token ?? null);
   }
 }
 
-function normalizeProfile(provider: OAuthProvider, raw: Record<string, unknown>): OAuthProfile {
+function normalizeProfile(
+  provider: OAuthProvider,
+  raw: Record<string, unknown>,
+  accessToken: string,
+  refreshToken: string | null,
+): OAuthProfile {
   const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
   switch (provider) {
     case 'google': {
@@ -120,6 +128,8 @@ function normalizeProfile(provider: OAuthProvider, raw: Record<string, unknown>)
         emailVerified: Boolean(raw.email_verified),
         displayName: str(raw.name),
         avatarUrl: str(raw.picture),
+        accessToken,
+        refreshToken,
         raw,
       };
     }
@@ -130,6 +140,8 @@ function normalizeProfile(provider: OAuthProvider, raw: Record<string, unknown>)
         emailVerified: Boolean(raw.email_verified),
         displayName: str(raw.name),
         avatarUrl: str(raw.picture),
+        accessToken,
+        refreshToken,
         raw,
       };
     }
@@ -140,6 +152,8 @@ function normalizeProfile(provider: OAuthProvider, raw: Record<string, unknown>)
         emailVerified: Boolean(raw.email),
         displayName: str(raw.name) ?? str(raw.login),
         avatarUrl: str(raw.avatar_url),
+        accessToken,
+        refreshToken,
         raw,
       };
     }

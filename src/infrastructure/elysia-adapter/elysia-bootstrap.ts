@@ -118,6 +118,7 @@ import { CacheRateLimiter } from './cache-rate-limit.adapter';
 import { CronerCronAdapter } from './croner-cron.adapter';
 import { buildDefaultPipeline } from './elysia-pipeline';
 import { mountRoutes } from './elysia-route-mounter';
+import { FetchOAuthAdapter } from './fetch-oauth.adapter';
 import { InMemoryCacheAdapter } from './in-memory-cache.adapter';
 import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
@@ -253,8 +254,34 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const realtime = buildRealtimeComposition({ eventBus, logger });
   for (const l of realtime.lifecycles ?? []) lifecycles.push(l);
   const dsl = buildDslComposition(prisma as never, logger);
-  const oauth = buildOAuthComposition(prisma as never, logger, config);
-  const oauthUseCases = buildOAuthUseCases(prisma as never, logger, config);
+  // OAuth: framework-free `FetchOAuthAdapter` (replaces passport-* deps).
+  // Provider credentials read from env via ConfigPort: each provider only
+  // appears in availability/providers list when both id+secret are set.
+  const oauthAdapter = new FetchOAuthAdapter({
+    github:
+      config.get<string>('GITHUB_OAUTH_CLIENT_ID') && config.get<string>('GITHUB_OAUTH_SECRET')
+        ? {
+            clientId: config.get<string>('GITHUB_OAUTH_CLIENT_ID') as string,
+            clientSecret: config.get<string>('GITHUB_OAUTH_SECRET') as string,
+          }
+        : undefined,
+    linkedin:
+      config.get<string>('LINKEDIN_OAUTH_CLIENT_ID') && config.get<string>('LINKEDIN_OAUTH_SECRET')
+        ? {
+            clientId: config.get<string>('LINKEDIN_OAUTH_CLIENT_ID') as string,
+            clientSecret: config.get<string>('LINKEDIN_OAUTH_SECRET') as string,
+          }
+        : undefined,
+    google:
+      config.get<string>('GOOGLE_OAUTH_CLIENT_ID') && config.get<string>('GOOGLE_OAUTH_SECRET')
+        ? {
+            clientId: config.get<string>('GOOGLE_OAUTH_CLIENT_ID') as string,
+            clientSecret: config.get<string>('GOOGLE_OAUTH_SECRET') as string,
+          }
+        : undefined,
+  });
+  const oauth = buildOAuthComposition(prisma as never, logger, config, oauthAdapter);
+  const oauthUseCases = buildOAuthUseCases(prisma as never, logger, config, oauthAdapter);
   const importBc = buildImportComposition({
     prisma: prisma as never,
     logger,

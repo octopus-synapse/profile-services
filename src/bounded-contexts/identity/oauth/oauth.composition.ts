@@ -14,6 +14,7 @@
  */
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { OAuthPort } from '@/shared-kernel/auth/oauth.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
 import { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
@@ -37,6 +38,7 @@ export function buildOAuthUseCases(
   prisma: PrismaService,
   logger: LoggerPort,
   config: ConfigPort,
+  oauth: OAuthPort,
 ): OAuthUseCases {
   const accounts = new PrismaOAuthAccountsRepository(prisma, logger);
   const providerConfig = new ConfigServiceOAuthProviderConfig(config);
@@ -45,7 +47,7 @@ export function buildOAuthUseCases(
   const availability = new CheckOAuthProviderAvailabilityUseCase(providerConfig);
   const getOAuthAccessToken = new GetOAuthAccessTokenUseCase(accounts);
 
-  const bundle: OAuthHttpBundle = { upsert, availability, config };
+  const bundle: OAuthHttpBundle = { upsert, availability, config, oauth };
 
   return { bundle, upsert, availability, getOAuthAccessToken };
 }
@@ -54,8 +56,9 @@ export function buildOAuthComposition(
   prisma: PrismaService,
   logger: LoggerPort,
   config: ConfigPort,
+  oauth: OAuthPort,
 ): BoundedContextComposition<OAuthHttpBundle> {
-  const useCases = buildOAuthUseCases(prisma, logger, config);
+  const useCases = buildOAuthUseCases(prisma, logger, config, oauth);
 
   return {
     useCases: useCases.bundle,

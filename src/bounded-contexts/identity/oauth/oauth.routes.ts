@@ -1,21 +1,18 @@
 /**
  * OAuth route descriptors. The four `{github,linkedin}/{start,callback}`
- * endpoints rely on Passport strategy guards declared on the BC's
- * module via the synthesizer's `guards:` registry. The `start` handlers
- * are intercepted by the Passport guard which redirects to the OAuth
- * provider; the `callback` handlers issue an HTTP redirect via
- * `withRedirect(...)`. Both flows are flagged `kind: 'redirect'` so the
- * swagger generator emits a 302 response and Orval skips them in the
- * client SDK — the frontend uses `window.location.href` directly via
- * the catalog returned by `/v1/auth/oauth/providers`.
+ * endpoints use `OAuthPort` (`FetchOAuthAdapter`) directly — the Nest
+ * Passport strategies were dropped in F5.H. `start` redirects to the
+ * provider's authorize URL; `callback` exchanges the code for a profile,
+ * upserts the user, and redirects to the UI. Both are `kind: 'redirect'`
+ * so the SDK skips them and the swagger generator emits 302 responses.
  */
 
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import type { Route } from '@/shared-kernel/http/route';
 import { withRedirect } from '@/shared-kernel/http/route';
 import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
-import type { OAuthProfile } from './application/use-cases/upsert-user-from-oauth-profile/upsert-user-from-oauth-profile.use-case';
 
 const ProviderParam = z.object({ provider: z.enum(['github', 'linkedin']) });
 
@@ -48,16 +45,47 @@ const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
   { id: 'linkedin', label: 'LinkedIn', startUrl: '/v1/auth/oauth/linkedin/start' },
 ];
 
+function callbackUri(bundle: OAuthHttpBundle, provider: Provider): string {
+  const base = bundle.config.get<string>('API_BASE_URL') ?? '';
+  return `${base}/api/v1/auth/oauth/${provider}/callback`;
+}
+
+function handleStart(bundle: OAuthHttpBundle, provider: Provider) {
+  if (!bundle.availability.execute(provider).available) {
+    throw new Error(`${provider} OAuth is not configured`);
+  }
+  const state = randomBytes(16).toString('hex');
+  const url = bundle.oauth.buildAuthorizeUrl(provider, {
+    redirectUri: callbackUri(bundle, provider),
+    state,
+  });
+  return withRedirect(url);
+}
+
 async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, provider: Provider) {
   if (!bundle.availability.execute(provider).available) {
     throw new Error(`${provider} OAuth is not configured`);
   }
-  // Passport's strategy populates `req.user` with the OAuth profile,
-  // which `buildCtx` surfaces as `ctx.user`. Cast through `unknown` to
-  // the OAuth profile shape — at this point in the flow it's not yet a
-  // `UserPayload`.
-  const profile = ctx.user as unknown as OAuthProfile | undefined;
-  if (!profile) throw new Error('OAuth did not return a profile');
+  const code = (ctx.query as { code?: string }).code;
+  if (!code) throw new Error('OAuth callback missing code');
+
+  const portProfile = await bundle.oauth.exchangeCode(provider, {
+    code,
+    redirectUri: callbackUri(bundle, provider),
+  });
+
+  // Bridge between the framework-free `OAuthPort.OAuthProfile` (port shape)
+  // and the BC's domain `OAuthProfile` (carries the upsert-relevant fields).
+  const profile = {
+    provider,
+    providerAccountId: portProfile.providerId,
+    email: portProfile.email,
+    displayName: portProfile.displayName,
+    photoURL: portProfile.avatarUrl,
+    accessToken: portProfile.accessToken,
+    refreshToken: portProfile.refreshToken,
+    raw: portProfile.raw,
+  };
 
   const { userId, created } = await bundle.upsert.execute(profile);
 
@@ -80,7 +108,6 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/github/start',
     auth: { kind: 'public' },
-    guards: [{ id: 'oauth-github' }],
     kind: 'redirect' as const,
     openapi: {
       summary: 'Start GitHub OAuth sign-in.',
@@ -88,13 +115,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
       description: 'OAuth login endpoints',
     },
     sdk: { exported: false },
-    handler: async () => undefined,
+    handler: async (_ctx, bundle) => handleStart(bundle, 'github'),
   },
   {
     method: 'GET',
     path: '/v1/auth/oauth/github/callback',
     auth: { kind: 'public' },
-    guards: [{ id: 'oauth-github' }],
     kind: 'redirect' as const,
     openapi: {
       summary: 'GitHub OAuth callback.',
@@ -108,7 +134,6 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/linkedin/start',
     auth: { kind: 'public' },
-    guards: [{ id: 'oauth-linkedin' }],
     kind: 'redirect' as const,
     openapi: {
       summary: 'Start LinkedIn OAuth sign-in.',
@@ -116,13 +141,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
       description: 'OAuth login endpoints',
     },
     sdk: { exported: false },
-    handler: async () => undefined,
+    handler: async (_ctx, bundle) => handleStart(bundle, 'linkedin'),
   },
   {
     method: 'GET',
     path: '/v1/auth/oauth/linkedin/callback',
     auth: { kind: 'public' },
-    guards: [{ id: 'oauth-linkedin' }],
     kind: 'redirect' as const,
     openapi: {
       summary: 'LinkedIn OAuth callback.',
