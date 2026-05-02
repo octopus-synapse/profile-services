@@ -1,4 +1,4 @@
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { BlockNotFoundException } from '@/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions';
 import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class UnblockUserUseCase {
@@ -7,7 +7,7 @@ export class UnblockUserUseCase {
   async execute(blockerId: string, blockedId: string): Promise<void> {
     const isBlocked = await this.repository.isBlocked(blockerId, blockedId);
     if (!isBlocked) {
-      throw new EntityNotFoundException('User', blockedId);
+      throw new BlockNotFoundException();
     }
 
     await this.repository.unblock(blockerId, blockedId);

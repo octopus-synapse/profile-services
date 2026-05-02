@@ -2,8 +2,13 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   CannotDeleteAnotherUsersCommentException,
+  CommentThreadClosedException,
   NotACollaboratorException,
 } from '../../domain/exceptions/collaboration.exceptions';
+import {
+  CollaboratorCommentNotFoundException,
+  CollaboratorParentCommentNotFoundException,
+} from '../domain/exceptions/sharing.exceptions';
 
 export interface CreateCommentInput {
   resumeId: string;
@@ -33,10 +38,16 @@ export class CollabCommentService {
     if (input.parentId) {
       const parent = await this.prisma.collaborationComment.findUnique({
         where: { id: input.parentId },
-        select: { resumeId: true },
+        select: { resumeId: true, resolved: true },
       });
       if (!parent || parent.resumeId !== input.resumeId) {
-        throw new EntityNotFoundException('ParentComment', input.parentId);
+        throw new CollaboratorParentCommentNotFoundException(input.parentId);
+      }
+      // Once a thread is resolved we treat it as read-only — replying would
+      // resurrect a discussion the author/owner explicitly closed. The SDK
+      // surfaces this as a banner asking the user to start a new thread.
+      if (parent.resolved) {
+        throw new CommentThreadClosedException();
       }
     }
     return this.prisma.collaborationComment.create({
@@ -59,7 +70,7 @@ export class CollabCommentService {
       where: { id: commentId },
       select: { resumeId: true, resolved: true },
     });
-    if (!comment) throw new EntityNotFoundException('Comment', commentId);
+    if (!comment) throw new CollaboratorCommentNotFoundException(commentId);
     await this.assertViewer(comment.resumeId, viewerId);
     return this.prisma.collaborationComment.update({
       where: { id: commentId },
@@ -72,7 +83,7 @@ export class CollabCommentService {
       where: { id: commentId },
       select: { authorId: true, resumeId: true },
     });
-    if (!comment) throw new EntityNotFoundException('Comment', commentId);
+    if (!comment) throw new CollaboratorCommentNotFoundException(commentId);
     if (comment.authorId !== viewerId) {
       // Non-authors may only delete if they own the resume.
       const resume = await this.prisma.resume.findUnique({

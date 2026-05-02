@@ -4,6 +4,7 @@ import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   CannotInviteSelfAsCollaboratorException,
   CollaboratorAlreadyInvitedException,
+  CollaboratorLimitReachedException,
   OnlyResumeOwnerCanInviteException,
   ResumeNotFoundForCollaborationException,
 } from '../../../domain/exceptions/collaboration.exceptions';
@@ -12,6 +13,14 @@ import type {
   CollaboratorWithUser,
   InviteCollaboratorParams,
 } from '../../domain/types/collaboration.types';
+
+/**
+ * Hard cap on collaborators per resume. Mirrors the product spec: a single
+ * resume can be shared with at most this many distinct collaborators (the
+ * owner is not counted). Tweak with care — the SDK quota dialog reads
+ * `CollaboratorLimitReachedException.message` to render the limit number.
+ */
+export const MAX_COLLABORATORS_PER_RESUME = 25;
 
 export class InviteCollaboratorUseCase {
   constructor(
@@ -28,6 +37,11 @@ export class InviteCollaboratorUseCase {
 
     const existing = await this.repo.findCollaborator(params.resumeId, params.inviteeId);
     if (existing) throw new CollaboratorAlreadyInvitedException();
+
+    const currentCollaborators = await this.repo.findCollaborators(params.resumeId);
+    if (currentCollaborators.length >= MAX_COLLABORATORS_PER_RESUME) {
+      throw new CollaboratorLimitReachedException(MAX_COLLABORATORS_PER_RESUME);
+    }
 
     const collaborator = await this.repo.createCollaborator({
       resumeId: params.resumeId,

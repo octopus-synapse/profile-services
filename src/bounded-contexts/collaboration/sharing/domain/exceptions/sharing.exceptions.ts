@@ -1,6 +1,15 @@
 import { EntityNotFoundException, ValidationException } from '@/shared-kernel/exceptions';
 
-/** Owner tried to invite themselves as a collaborator. */
+/**
+ * Owner tried to invite themselves as a collaborator.
+ *
+ * Reservado: redundante com `CannotInviteSelfAsCollaboratorException` da
+ * pasta domain/exceptions do BC pai (já throwed por
+ * `invite-collaborator.use-case`). Mantida aqui como exemplo do padrão
+ * "exception local da subdomain sharing"; será throwed por uma camada
+ * futura caso sharing precise divergir do BC pai (ex.: link público
+ * compartilhado em commit/issue futuro).
+ */
 export class CollaboratorSelfInviteException extends ValidationException {
   readonly code: string = 'COLLABORATOR_SELF_INVITE';
   constructor() {
