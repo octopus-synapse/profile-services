@@ -47,6 +47,54 @@ const UpdateStyleBodySchema = z.object({
   sectionStyles: SectionStylesSchema.optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+// Bounded-depth JSON value: leaf | object | array. Two levels deep is
+// enough for the style configuration shapes admins use today.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const JsonNodeLevel2Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonLeafSchema),
+  z.record(z.string(), JsonLeafSchema),
+]);
+const JsonNodeLevel1Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonNodeLevel2Schema),
+  z.record(z.string(), JsonNodeLevel2Schema),
+]);
+const StyleConfigSchema = z.record(z.string(), JsonNodeLevel1Schema);
+
+const StyleSummaryResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  styleScore: z.number().int().min(0).max(100),
+  layoutKind: LayoutKindSchema,
+  typstTemplate: z.string(),
+  isSystem: z.boolean(),
+  thumbnailUrl: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({
+  version: z.number().int(),
+  styleConfig: StyleConfigSchema,
+  sectionStyles: StyleConfigSchema,
+  atsSafetyBreakdown: z.record(z.string(), z.number()),
+  previewImages: z.array(z.string()),
+  authorId: z.string(),
+});
+
+const StyleListResponseSchema = z.object({
+  items: z.array(StyleSummaryResponseSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
+});
+
+const ApplyStyleResponseSchema = z.null();
+const DeleteStyleResponseSchema = z.null();
+
 export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
   // ─── Public catalog ────────────────────────────────────────────────
   {
@@ -54,6 +102,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles',
     auth: { kind: 'jwt' },
     query: ListQuerySchema,
+    response: StyleListResponseSchema,
     openapi: {
       summary: 'List published resume styles',
       tags: ['resume-styles'],
@@ -74,6 +123,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles/:id',
     auth: { kind: 'jwt' },
     params: IdParams,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Get one ResumeStyle by id',
       tags: ['resume-styles'],
@@ -92,6 +142,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     params: ResumeIdParams,
     body: ApplyStyleBodySchema,
+    response: ApplyStyleResponseSchema,
     openapi: {
       summary: 'Apply a ResumeStyle to a resume',
       tags: ['resume-styles'],
@@ -116,6 +167,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: CreateStyleBodySchema,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Create a new ResumeStyle (validates ATS threshold)',
       tags: ['admin-resume-styles'],
@@ -143,6 +195,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParams,
     body: UpdateStyleBodySchema,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Update a non-system ResumeStyle',
       tags: ['admin-resume-styles'],
@@ -169,6 +222,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParams,
+    response: DeleteStyleResponseSchema,
     openapi: {
       summary: 'Delete a non-system ResumeStyle',
       tags: ['admin-resume-styles'],

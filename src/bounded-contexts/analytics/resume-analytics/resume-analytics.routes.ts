@@ -85,6 +85,189 @@ const HistoryQuery = z.object({
 });
 type HistoryQueryT = z.infer<typeof HistoryQuery>;
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const TrackViewResponseSchema = z.object({ message: z.string() });
+
+const ViewStatsResponseSchema = z.object({
+  totalViews: z.number().int().min(0),
+  uniqueVisitors: z.number().int().min(0),
+  viewsByDay: z.array(
+    z.object({
+      date: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  topSources: z.array(
+    z.object({
+      source: z.string(),
+      count: z.number().int().min(0),
+      percentage: z.number(),
+    }),
+  ),
+});
+
+const SectionScoreBreakdownSchema = z.object({
+  sectionKind: z.string(),
+  sectionTypeKey: z.string(),
+  score: z.number().int(),
+});
+
+const ATSIssueSchema = z.object({
+  code: z.string(),
+  severity: z.enum(['low', 'medium', 'high']),
+  message: z.string(),
+  context: z
+    .object({
+      sectionKind: z.string().optional(),
+      missingFields: z.array(z.string()).optional(),
+    })
+    .optional(),
+});
+
+const ATSScoreResponseSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  sectionBreakdown: z.array(SectionScoreBreakdownSchema),
+  issues: z.array(ATSIssueSchema),
+  recommendations: z.array(z.string()),
+});
+
+const KeywordWarningSchema = z.object({
+  type: z.enum(['keyword_stuffing', 'low_density', 'irrelevant_keywords']),
+  message: z.string(),
+  affectedKeywords: z.array(z.string()),
+});
+
+const KeywordSuggestionsResponseSchema = z.object({
+  existingKeywords: z.array(
+    z.object({
+      keyword: z.string(),
+      count: z.number().int().min(0),
+      relevance: z.number(),
+    }),
+  ),
+  missingKeywords: z.array(z.string()),
+  keywordDensity: z.number(),
+  warnings: z.array(KeywordWarningSchema),
+  recommendations: z.array(z.string()),
+});
+
+const JobMatchDimensionsSchema = z.object({
+  hardSkills: z.number().optional(),
+  softSkills: z.number().optional(),
+  experience: z.number().optional(),
+  languages: z.number().optional(),
+  location: z.number().optional(),
+});
+
+const JobMatchResponseSchema = z.object({
+  matchScore: z.number(),
+  matchedKeywords: z.array(z.string()),
+  missingKeywords: z.array(z.string()),
+  partialMatches: z.array(
+    z.object({
+      resumeKeyword: z.string(),
+      jobKeyword: z.string(),
+      similarity: z.number(),
+    }),
+  ),
+  recommendations: z.array(z.string()),
+  dimensions: JobMatchDimensionsSchema.optional(),
+});
+
+const BenchmarkRecommendationSchema = z.object({
+  type: z.enum(['content', 'career', 'credential', 'keyword']),
+  priority: z.enum(['high', 'medium', 'low']),
+  message: z.string(),
+  action: z.string(),
+});
+
+const IndustryBenchmarkResponseSchema = z.object({
+  percentile: z.number(),
+  totalInIndustry: z.number().int().min(0),
+  comparison: z.object({
+    avgATSScore: z.number(),
+    yourATSScore: z.number(),
+    avgViews: z.number(),
+    yourViews: z.number(),
+    avgStructuredItemCount: z.number(),
+    yourStructuredItemCount: z.number(),
+    avgCareerDepthYears: z.number(),
+    yourCareerDepthYears: z.number(),
+  }),
+  topPerformers: z.object({
+    commonKeywords: z.array(z.string()),
+    avgCareerDepthYears: z.number(),
+    avgStructuredItemCount: z.number(),
+    commonCredentials: z.array(z.string()),
+  }),
+  recommendations: z.array(BenchmarkRecommendationSchema),
+});
+
+const DashboardRecommendationSchema = z.object({
+  type: z.enum(['add_section', 'improve_content', 'add_keywords', 'optimize_format']),
+  priority: z.enum(['high', 'medium', 'low']),
+  message: z.string(),
+});
+
+const AnalyticsDashboardResponseSchema = z.object({
+  resumeId: z.string(),
+  overview: z.object({
+    totalViews: z.number().int().min(0),
+    uniqueVisitors: z.number().int().min(0),
+    atsScore: z.number().int(),
+    keywordScore: z.number().int(),
+    industryPercentile: z.number(),
+  }),
+  viewTrend: z.array(
+    z.object({
+      date: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  topSources: z.array(
+    z.object({
+      source: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  keywordHealth: z.object({
+    score: z.number(),
+    topKeywords: z.array(z.string()),
+    missingCritical: z.array(z.string()),
+  }),
+  industryPosition: z.object({
+    percentile: z.number(),
+    trend: z.enum(['improving', 'stable', 'declining']),
+  }),
+  recommendations: z.array(DashboardRecommendationSchema),
+});
+
+const AnalyticsSnapshotResponseSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  atsScore: z.number().int(),
+  keywordScore: z.number().int(),
+  completenessScore: z.number().int(),
+  industryRank: z.number().int().optional(),
+  totalInIndustry: z.number().int().optional(),
+  topKeywords: z.array(z.string()),
+  missingKeywords: z.array(z.string()),
+  createdAt: z.string().datetime(),
+});
+
+const AnalyticsHistoryResponseSchema = z.array(AnalyticsSnapshotResponseSchema);
+
+const ScoreProgressionResponseSchema = z.object({
+  snapshots: z.array(
+    z.object({
+      date: z.string().datetime(),
+      score: z.number().int(),
+    }),
+  ),
+  trend: z.enum(['improving', 'stable', 'declining']),
+  changePercent: z.number(),
+});
+
 export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> = [
   {
     method: 'POST',
@@ -93,6 +276,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'public' },
     params: ResumeIdParam,
     body: TrackViewBody,
+    response: TrackViewResponseSchema,
     openapi: {
       summary: 'Track resume view (public endpoint)',
       tags: ['resume-analytics'],
@@ -122,6 +306,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: ViewStatsQuery,
+    response: ViewStatsResponseSchema,
     openapi: {
       summary: 'Get view statistics',
       tags: ['resume-analytics'],
@@ -145,6 +330,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: ATSScoreResponseSchema,
     openapi: {
       summary: 'Calculate ATS compatibility score',
       tags: ['resume-analytics'],
@@ -164,6 +350,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: KeywordOptionsQuery,
+    response: KeywordSuggestionsResponseSchema,
     openapi: {
       summary: 'Get keyword optimization suggestions',
       tags: ['resume-analytics'],
@@ -184,6 +371,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     body: JobMatchBody,
+    response: JobMatchResponseSchema,
     openapi: {
       summary: 'Match resume against job description',
       tags: ['resume-analytics'],
@@ -208,6 +396,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: BenchmarkOptionsQuery,
+    response: IndustryBenchmarkResponseSchema,
     openapi: {
       summary: 'Get industry benchmark comparison',
       tags: ['resume-analytics'],
@@ -227,6 +416,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: AnalyticsDashboardResponseSchema,
     openapi: {
       summary: 'Get complete analytics dashboard',
       tags: ['resume-analytics'],
@@ -246,6 +436,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: AnalyticsSnapshotResponseSchema,
     openapi: {
       summary: 'Save analytics snapshot for tracking progress',
       tags: ['resume-analytics'],
@@ -265,6 +456,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: HistoryQuery as unknown as Route<ResumeAnalyticsFacade>['query'],
+    response: AnalyticsHistoryResponseSchema,
     openapi: {
       summary: 'Get analytics history',
       tags: ['resume-analytics'],
@@ -284,6 +476,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: ScoreProgressionResponseSchema,
     openapi: {
       summary: 'Get score progression over time',
       tags: ['resume-analytics'],

@@ -378,6 +378,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
+    response: z.null(),
     openapi: {
       summary: 'Unblock a user',
       tags: ['chat---block-users'],

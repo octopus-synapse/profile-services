@@ -18,6 +18,48 @@ const EventsQuerySchema = z.object({
   eventType: z.enum(['VIEW', 'DOWNLOAD']).optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const ShareEventTypeSchema = z.enum(['VIEW', 'DOWNLOAD']);
+
+const ShareAnalyticsRecentEventSchema = z.object({
+  event: ShareEventTypeSchema,
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const ShareAnalyticsSummarySchema = z.object({
+  shareId: z.string(),
+  totalViews: z.number().int().min(0),
+  totalDownloads: z.number().int().min(0),
+  uniqueVisitors: z.number().int().min(0),
+  byCountry: z.array(
+    z.object({
+      country: z.string().nullable(),
+      count: z.number().int().min(0),
+    }),
+  ),
+  recentEvents: z.array(ShareAnalyticsRecentEventSchema),
+});
+
+const ShareAnalyticsResponseSchema = z.object({
+  analytics: ShareAnalyticsSummarySchema,
+});
+
+const ShareAnalyticsEventItemSchema = z.object({
+  eventType: ShareEventTypeSchema,
+  ipAddress: z.string(),
+  userAgent: z.string().nullable(),
+  referrer: z.string().nullable(),
+  country: z.string().nullable(),
+  city: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const ShareAnalyticsEventsResponseSchema = z.object({
+  events: z.array(ShareAnalyticsEventItemSchema),
+});
+
 export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>> = [
   {
     method: 'GET',
@@ -25,6 +67,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeShareParams,
+    response: ShareAnalyticsResponseSchema,
     openapi: {
       summary: 'Get analytics for a shared resume (nested route)',
       tags: ['share-analytics'],
@@ -43,6 +86,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ShareIdParam,
+    response: ShareAnalyticsResponseSchema,
     openapi: {
       summary: 'Get analytics for a share id',
       tags: ['share-analytics'],
@@ -62,6 +106,7 @@ export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>
     permission: Permission.ANALYTICS_READ_OWN,
     params: ShareIdParam,
     query: EventsQuerySchema,
+    response: ShareAnalyticsEventsResponseSchema,
     openapi: {
       summary: 'Get analytics events for a share id',
       tags: ['share-analytics'],

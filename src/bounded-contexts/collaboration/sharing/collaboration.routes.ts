@@ -36,6 +36,71 @@ const CreateCommentSchema = z.object({
   itemId: z.string().optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const CollaboratorUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+});
+
+const CollaboratorWithUserSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  userId: z.string(),
+  role: z.string(),
+  invitedBy: z.string(),
+  invitedAt: z.string().datetime(),
+  joinedAt: z.string().datetime().nullable(),
+  user: CollaboratorUserSchema,
+});
+
+const InviteCollaboratorResponseSchema = z.object({ collaborator: CollaboratorWithUserSchema });
+const ListCollaboratorsResponseSchema = z.object({
+  collaborators: z.array(CollaboratorWithUserSchema),
+});
+const UpdateCollaboratorResponseSchema = z.object({ collaborator: CollaboratorWithUserSchema });
+const RemoveCollaboratorResponseSchema = z.object({}).strict();
+
+const SharedResumeSchema = z.object({
+  role: z.string(),
+  invitedAt: z.string().datetime(),
+  resume: z.object({
+    id: z.string(),
+    title: z.string().nullable(),
+  }),
+});
+
+const SharedWithMeResponseSchema = z.object({
+  sharedResumes: z.array(SharedResumeSchema),
+});
+
+const CommentAuthorSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const CommentSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  authorId: z.string(),
+  content: z.string(),
+  parentId: z.string().nullable(),
+  sectionId: z.string().nullable(),
+  itemId: z.string().nullable(),
+  resolved: z.boolean(),
+  resolvedAt: z.string().datetime().nullable(),
+  resolvedById: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  author: CommentAuthorSchema,
+});
+
+const CommentsListResponseSchema = z.object({ comments: z.array(CommentSchema) });
+const CommentResponseSchema = z.object({ comment: CommentSchema });
+const CommentDeleteResponseSchema = z.object({}).strict();
+
 export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> = [
   {
     method: 'POST',
@@ -45,6 +110,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
     body: InviteCollaboratorSchema,
+    response: InviteCollaboratorResponseSchema,
     openapi: {
       summary: 'Invite user to collaborate on resume',
       tags: ['collaboration'],
@@ -69,6 +135,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
+    response: ListCollaboratorsResponseSchema,
     openapi: {
       summary: 'Get collaborators for a resume',
       tags: ['collaboration'],
@@ -91,6 +158,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     permission: Permission.COLLABORATION_USE,
     params: ResumeAndUserIdParams,
     body: UpdateRoleSchema,
+    response: UpdateCollaboratorResponseSchema,
     openapi: {
       summary: 'Update collaborator role',
       tags: ['collaboration'],
@@ -115,6 +183,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeAndUserIdParams,
+    response: RemoveCollaboratorResponseSchema,
     openapi: {
       summary: 'Remove collaborator from resume',
       tags: ['collaboration'],
@@ -136,6 +205,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     path: '/v1/resumes/shared-with-me',
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
+    response: SharedWithMeResponseSchema,
     openapi: {
       summary: 'Get resumes shared with current user',
       tags: ['collaboration'],
@@ -155,6 +225,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
+    response: CommentsListResponseSchema,
     openapi: {
       summary: 'List collaboration comments on a resume',
       tags: ['collaboration'],
@@ -174,6 +245,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     permission: Permission.COLLABORATION_USE,
     params: ResumeIdParam,
     body: CreateCommentSchema,
+    response: CommentResponseSchema,
     openapi: {
       summary: 'Add a comment / reply to a resume',
       tags: ['collaboration'],
@@ -200,6 +272,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: CommentIdParam,
+    response: CommentResponseSchema,
     openapi: {
       summary: 'Mark a comment thread as resolved',
       tags: ['collaboration'],
@@ -218,6 +291,7 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.COLLABORATION_USE,
     params: CommentIdParam,
+    response: CommentDeleteResponseSchema,
     openapi: {
       summary: 'Delete a comment (author or resume owner)',
       tags: ['collaboration'],

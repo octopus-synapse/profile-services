@@ -71,6 +71,258 @@ const SectionItemBody = z.object({
   content: z.record(z.unknown()).optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+// Bounded-depth JSON value: leaf | array of leaves | object of leaves.
+// Two levels deep covers the section item content shapes.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const JsonNodeLevel2Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonLeafSchema),
+  z.record(z.string(), JsonLeafSchema),
+]);
+const JsonNodeLevel1Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonNodeLevel2Schema),
+  z.record(z.string(), JsonNodeLevel2Schema),
+]);
+const JsonObjectSchema = z.record(z.string(), JsonNodeLevel1Schema);
+
+const ResumeBaseSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  language: z.string().optional(),
+  targetRole: z.string().optional(),
+  isPublic: z.boolean(),
+  slug: z.string().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const ResumeListItemSchema = ResumeBaseSchema;
+
+const PaginatedResumesResponseSchema = z.object({
+  items: z.array(ResumeListItemSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
+  totalPages: z.number().int(),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
+});
+
+const ResumeSlotsResponseSchema = z.object({
+  used: z.number().int(),
+  limit: z.number().int(),
+  remaining: z.number().int(),
+});
+
+const ResumeSectionItemSchema = z.object({
+  id: z.string(),
+  order: z.number().int(),
+  content: JsonObjectSchema.optional(),
+});
+
+const ResumeSectionTypeRefSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  semanticKind: z.string().optional(),
+  title: z.string().optional(),
+  version: z.number().int().optional(),
+});
+
+const ResumeSectionSchema = z.object({
+  id: z.string(),
+  order: z.number().int(),
+  visible: z.boolean(),
+  sectionType: ResumeSectionTypeRefSchema,
+  items: z.array(ResumeSectionItemSchema),
+});
+
+const ResumeStyleRefSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+const ResumeFullResponseSchema = ResumeBaseSchema.extend({
+  resumeSections: z.array(ResumeSectionSchema),
+  styleId: z.string().optional(),
+  style: ResumeStyleRefSchema.optional(),
+  fullName: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  summary: z.string().optional(),
+});
+
+const DeleteResumeResponseSchema = z.object({
+  deleted: z.boolean(),
+  id: z.string(),
+});
+
+// Resume management responses (use Prisma-shaped data).
+// Date fields are serialized to ISO strings by the response serializer.
+const MgmtSectionTypeSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  semanticKind: z.string(),
+  version: z.number().int(),
+  isActive: z.boolean(),
+  isSystem: z.boolean(),
+  isRepeatable: z.boolean(),
+  minItems: z.number().int(),
+  maxItems: z.number().int().nullable(),
+  definition: JsonObjectSchema.nullable(),
+  uiSchema: JsonObjectSchema.nullable(),
+  renderHints: JsonObjectSchema.nullable(),
+  fieldStyles: JsonObjectSchema.nullable(),
+  iconType: z.string(),
+  icon: z.string(),
+  translations: JsonObjectSchema.nullable(),
+  examples: JsonObjectSchema.nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const MgmtSectionItemSchema = z.object({
+  id: z.string(),
+  resumeSectionId: z.string(),
+  content: JsonObjectSchema.nullable(),
+  isVisible: z.boolean(),
+  order: z.number().int(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const MgmtResumeSectionSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  sectionTypeId: z.string(),
+  titleOverride: z.string().nullable(),
+  isVisible: z.boolean(),
+  order: z.number().int(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  sectionType: MgmtSectionTypeSchema,
+  items: z.array(MgmtSectionItemSchema),
+});
+
+const MgmtResumeListItemSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  title: z.string().nullable(),
+  language: z.string(),
+  isPublic: z.boolean(),
+  slug: z.string().nullable(),
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  summary: z.string().nullable(),
+  accentColor: z.string().nullable(),
+  styleId: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  resumeSections: z.array(MgmtResumeSectionSchema),
+  _count: z.object({ resumeSections: z.number().int() }),
+});
+
+const MgmtResumeListResponseSchema = z.object({
+  resumes: z.array(MgmtResumeListItemSchema),
+});
+
+const MgmtResumeDetailsSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  title: z.string().nullable(),
+  language: z.string(),
+  isPublic: z.boolean(),
+  slug: z.string().nullable(),
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  phone: z.string().nullable(),
+  location: z.string().nullable(),
+  linkedin: z.string().nullable(),
+  github: z.string().nullable(),
+  website: z.string().nullable(),
+  summary: z.string().nullable(),
+  accentColor: z.string().nullable(),
+  styleId: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  user: z.object({
+    id: z.string(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
+  }),
+  resumeSections: z.array(MgmtResumeSectionSchema),
+});
+
+const MgmtResumeDetailsResponseSchema = z.object({
+  resume: MgmtResumeDetailsSchema,
+});
+
+const MgmtResumeMessageResponseSchema = z.object({
+  message: z.string(),
+});
+
+// Generic resume sections responses
+const ResolvedSectionTypeSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  slug: z.string(),
+  semanticKind: z.string(),
+  version: z.number().int(),
+  title: z.string(),
+  description: z.string(),
+  label: z.string(),
+  noDataLabel: z.string(),
+  placeholder: z.string(),
+  addLabel: z.string(),
+  iconType: z.string(),
+  icon: z.string(),
+  isActive: z.boolean(),
+  isSystem: z.boolean(),
+  isRepeatable: z.boolean(),
+  minItems: z.number().int().nullable(),
+  maxItems: z.number().int().nullable(),
+  definition: JsonObjectSchema,
+  uiSchema: JsonObjectSchema.nullable(),
+  renderHints: JsonObjectSchema,
+  fieldStyles: JsonObjectSchema,
+});
+
+const ResumeSectionTypesDataSchema = z.object({
+  sectionTypes: z.array(ResolvedSectionTypeSchema),
+});
+
+// Generic sections list (used by /v1/resumes/:resumeId/sections)
+const GenericResumeSectionSchema = z.object({
+  id: z.string(),
+  resumeId: z.string(),
+  sectionTypeId: z.string(),
+  titleOverride: z.string().nullable(),
+  isVisible: z.boolean(),
+  order: z.number().int(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  sectionType: MgmtSectionTypeSchema.nullable(),
+  items: z.array(MgmtSectionItemSchema),
+});
+
+const ResumeSectionsListResponseSchema = z.object({
+  sections: z.array(GenericResumeSectionSchema),
+});
+
+const ResumeSectionItemDataResponseSchema = z.object({
+  item: MgmtSectionItemSchema,
+});
+
+const ResumeSectionItemDeletedResponseSchema = z.object({
+  deleted: z.boolean(),
+});
+
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const n = parseInt(value, 10);
@@ -88,6 +340,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     query: PageLimitQuery,
+    response: PaginatedResumesResponseSchema,
     openapi: {
       summary: 'Get all resumes for current user',
       tags: ['resumes'],
@@ -107,6 +360,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     path: '/v1/resumes/slots',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
+    response: ResumeSlotsResponseSchema,
     openapi: {
       summary: 'Get remaining resume slots for current user',
       tags: ['resumes'],
@@ -124,6 +378,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: ResumeFullResponseSchema,
     openapi: {
       summary: 'Get a resume with all sections',
       tags: ['resumes'],
@@ -142,6 +397,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: ResumeFullResponseSchema,
     openapi: {
       summary: 'Get a specific resume',
       tags: ['resumes'],
@@ -161,6 +417,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_CREATE,
     body: CreateResumeBody,
+    response: ResumeBaseSchema,
     openapi: {
       summary: 'Create a new resume',
       tags: ['resumes'],
@@ -180,6 +437,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: ResumeIdParam,
     body: UpdateResumeBody,
+    response: ResumeBaseSchema,
     openapi: {
       summary: 'Update a resume',
       tags: ['resumes'],
@@ -199,6 +457,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
     params: ResumeIdParam,
+    response: DeleteResumeResponseSchema,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -290,6 +549,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: UserIdParam,
+    response: MgmtResumeListResponseSchema,
     openapi: {
       summary: 'List all resumes for a specific user',
       tags: ['resumes'],
@@ -308,6 +568,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: MgmtResumeDetailsResponseSchema,
     openapi: {
       summary: 'Get full resume details',
       tags: ['resumes'],
@@ -326,6 +587,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
     params: ResumeIdParam,
+    response: MgmtResumeMessageResponseSchema,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -352,6 +614,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     permission: Permission.SECTION_TYPE_READ,
     params: ResumeIdParam,
     query: LocaleQuery,
+    response: ResumeSectionTypesDataSchema,
     openapi: {
       summary: 'List active dynamic section types with resolved translations',
       tags: ['resumes'],
@@ -373,6 +636,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     path: '/v1/resumes/:resumeId/sections',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeSectionsListResponseSchema,
     openapi: {
       summary: 'List sections and items for a resume',
       tags: ['resumes'],
@@ -392,6 +656,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     auth: { kind: 'jwt' },
     params: ResumeIdAndTypeKeyParam,
     body: SectionItemBody,
+    response: ResumeSectionItemDataResponseSchema,
     openapi: {
       summary: 'Create section item in a dynamic section type',
       tags: ['resumes'],
@@ -419,6 +684,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     auth: { kind: 'jwt' },
     params: ResumeIdAndTypeKeyAndItemIdParam,
     body: SectionItemBody,
+    response: ResumeSectionItemDataResponseSchema,
     openapi: {
       summary: 'Update section item in a dynamic section type',
       tags: ['resumes'],
@@ -447,6 +713,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId',
     auth: { kind: 'jwt' },
     params: ResumeIdAndTypeKeyAndItemIdParam,
+    response: ResumeSectionItemDeletedResponseSchema,
     openapi: {
       summary: 'Delete section item from a dynamic section type',
       tags: ['resumes'],

@@ -78,12 +78,43 @@ const GlobalSearchResponseSchema = z.object({
   ),
 });
 
+const SearchResultItemSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  summary: z.string().nullable(),
+  slug: z.string().nullable(),
+  location: z.string().nullable(),
+  profileViews: z.number().int().min(0),
+  createdAt: z.string().datetime(),
+  skills: z.array(z.string()).optional(),
+  rank: z.number().optional(),
+});
+
+const SearchResponseSchema = z.object({
+  data: z.array(SearchResultItemSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+});
+
+const SuggestionsResponseSchema = z.object({
+  suggestions: z.array(z.string()),
+});
+
+const SimilarResumesResponseSchema = z.object({
+  resumes: z.array(SearchResultItemSchema),
+});
+
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   {
     method: 'GET',
     path: '/v1/search',
     auth: { kind: 'public' },
     query: SearchQuerySchema as unknown as Route<SearchServicePort>['query'],
+    response: SearchResponseSchema,
     openapi: {
       summary: 'Search public resumes',
       tags: ['search'],
@@ -110,6 +141,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     path: '/v1/search/suggestions',
     auth: { kind: 'public' },
     query: SuggestionsQuerySchema as unknown as Route<SearchServicePort>['query'],
+    response: SuggestionsResponseSchema,
     openapi: {
       summary: 'Get search autocomplete suggestions',
       tags: ['search'],
@@ -169,6 +201,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     auth: { kind: 'public' },
     params: IdParam,
     query: SimilarQuerySchema as unknown as Route<SearchServicePort>['query'],
+    response: SimilarResumesResponseSchema,
     openapi: {
       summary: 'Find similar resumes by resume id',
       tags: ['search'],

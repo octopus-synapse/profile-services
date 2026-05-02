@@ -19,6 +19,37 @@ const TrackEventsBodySchema = z.object({
   events: z.array(PlatformEventSchema).min(1).max(100),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+// JSON Schema fragment for an event's `propsSchema`. Bounded-depth so the
+// OpenAPI generator can serialize it.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const PropsSchemaPropertySchema = z.object({
+  type: z.string().optional(),
+  description: z.string().optional(),
+  enum: z.array(JsonLeafSchema).optional(),
+});
+const PropsSchemaSchema = z.object({
+  type: z.string(),
+  properties: z.record(z.string(), PropsSchemaPropertySchema).optional(),
+  required: z.array(z.string()).optional(),
+});
+
+const PlatformEventCatalogEntrySchema = z.object({
+  name: z.string(),
+  version: z.number().int(),
+  propsSchema: PropsSchemaSchema,
+  requiredContext: z.array(z.string()).optional(),
+  piiFields: z.array(z.string()).optional(),
+});
+
+const PlatformEventCatalogResponseSchema = z.object({
+  events: z.array(PlatformEventCatalogEntrySchema),
+});
+
+const TrackEventsResponseSchema = z.object({
+  accepted: z.number().int().min(0),
+});
+
 /**
  * Static catalog of analytics events the frontend may emit.
  *
@@ -120,6 +151,7 @@ export const platformEventsRoutes: ReadonlyArray<Route<TrackPlatformEventsUseCas
     method: 'GET',
     path: '/v1/events/schemas',
     auth: { kind: 'jwt' },
+    response: PlatformEventCatalogResponseSchema,
     openapi: {
       summary: 'Catalog of allowed analytics events',
       tags: ['platform-events'],
@@ -136,6 +168,7 @@ export const platformEventsRoutes: ReadonlyArray<Route<TrackPlatformEventsUseCas
     path: '/v1/events',
     auth: { kind: 'jwt' },
     body: TrackEventsBodySchema,
+    response: TrackEventsResponseSchema,
     openapi: {
       summary: 'Ingest a batch of product events',
       tags: ['platform-events'],

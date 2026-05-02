@@ -29,6 +29,81 @@ const TailorResumeBody = z.object({
   jobCompany: z.string().max(200).optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const ResumeVersionListItemSchema = z.object({
+  id: z.string(),
+  versionNumber: z.number().int(),
+  label: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const ResumeVersionsResponseSchema = z.object({
+  versions: z.array(ResumeVersionListItemSchema),
+});
+
+const TailoredVersionSummarySchema = ResumeVersionListItemSchema.extend({
+  tailoredJobId: z.string().nullable(),
+});
+
+const TailoredVersionsResponseSchema = z.object({
+  versions: z.array(TailoredVersionSummarySchema),
+});
+
+const ResumeVersionRestoreResponseSchema = z.object({
+  restoredFrom: z.string().datetime(),
+});
+
+const ResumeVersionDetailSchema = ResumeVersionListItemSchema.extend({
+  resumeId: z.string().optional(),
+});
+
+const ResumeVersionResponseSchema = z.object({
+  version: ResumeVersionDetailSchema,
+});
+
+const TailorBulletSchema = z.object({
+  id: z.string(),
+  original: z.string(),
+  tailored: z.string(),
+  highlights: z.array(z.string()),
+});
+
+const TailoredVersionDiffResponseSchema = z.object({
+  versionId: z.string(),
+  summary: z
+    .object({ before: z.string().nullable(), after: z.string().nullable() })
+    .nullable(),
+  jobTitle: z
+    .object({ before: z.string().nullable(), after: z.string().nullable() })
+    .nullable(),
+  bullets: z.array(
+    z.object({
+      id: z.string(),
+      before: z.string(),
+      after: z.string(),
+      highlights: z.array(z.string()),
+    }),
+  ),
+});
+
+const TailorChangeSchema = z.object({
+  path: z.array(z.union([z.string(), z.number()])),
+  op: z.enum(['add', 'remove', 'replace']),
+  before: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
+  after: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
+  highlights: z.array(z.string()).optional(),
+});
+
+const TailorResumeResponseSchema = z.object({
+  versionId: z.string(),
+  versionNumber: z.number().int(),
+  label: z.string(),
+  summary: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  bullets: z.array(TailorBulletSchema),
+  changes: z.array(TailorChangeSchema),
+});
+
 export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> = [
   // ─── Resume versions (nested + flat routes) ───────────────────────
   {
@@ -36,6 +111,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/versions',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeVersionsResponseSchema,
     openapi: {
       summary: 'List resume versions (nested route)',
       tags: ['resume-versions'],
@@ -52,6 +128,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/versions/:versionId/restore',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionRestoreResponseSchema,
     openapi: {
       summary: 'Restore resume version (nested route)',
       tags: ['resume-versions'],
@@ -68,6 +145,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeVersionsResponseSchema,
     openapi: {
       summary: 'List resume versions',
       tags: ['resume-versions'],
@@ -84,6 +162,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId/:versionId',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionResponseSchema,
     openapi: {
       summary: 'Get a specific resume version',
       tags: ['resume-versions'],
@@ -107,6 +186,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId/restore/:versionId',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionRestoreResponseSchema,
     openapi: {
       summary: 'Restore resume version',
       tags: ['resume-versions'],
@@ -127,6 +207,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/tailored-versions',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: TailoredVersionsResponseSchema,
     openapi: {
       summary: 'List tailored resume variants produced by the AI.',
       tags: ['resume-tailor'],
@@ -145,6 +226,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
     query: VersionIdQuery,
+    response: TailoredVersionDiffResponseSchema,
     openapi: {
       summary: 'Structured diff between the master resume and a tailored version.',
       tags: ['resume-tailor'],
@@ -169,6 +251,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       { id: 'fit-profile' },
       { id: 'min-quality', metadata: { min: 50, resumeParam: 'resumeId' } },
     ],
+    response: TailorResumeResponseSchema,
     openapi: {
       summary: 'Rewrite this resume for a specific job using the AI pipeline.',
       tags: ['resume-tailor'],

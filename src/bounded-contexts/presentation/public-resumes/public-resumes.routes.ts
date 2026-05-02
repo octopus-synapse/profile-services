@@ -61,6 +61,81 @@ const PNG_HEADERS = {
   'Cache-Control': 'public, max-age=86400',
 } as const;
 
+// ─── Response schemas ─────────────────────────────────────────────────
+// Bounded-depth JSON value for free-form section item content shapes.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const JsonNodeLevel2Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonLeafSchema),
+  z.record(z.string(), JsonLeafSchema),
+]);
+const JsonNodeLevel1Schema = z.union([
+  JsonLeafSchema,
+  z.array(JsonNodeLevel2Schema),
+  z.record(z.string(), JsonNodeLevel2Schema),
+]);
+
+const PublicResumeSectionSchema = z.object({
+  semanticKind: z.string(),
+  items: z.array(JsonNodeLevel1Schema),
+});
+
+const PublicResumeSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  title: z.string().nullable(),
+  language: z.string(),
+  isPublic: z.boolean(),
+  slug: z.string().nullable(),
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  phone: z.string().nullable(),
+  location: z.string().nullable(),
+  linkedin: z.string().nullable(),
+  github: z.string().nullable(),
+  website: z.string().nullable(),
+  summary: z.string().nullable(),
+  accentColor: z.string().nullable(),
+  styleId: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  sections: z.array(PublicResumeSectionSchema),
+});
+
+const PublicShareInfoSchema = z.object({
+  slug: z.string(),
+  expiresAt: z.string().datetime().nullable(),
+});
+
+const PublicResumeResponseSchema = z.object({
+  resume: PublicResumeSchema.nullable(),
+  share: PublicShareInfoSchema,
+});
+
+const SharePayloadSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  resumeId: z.string(),
+  isActive: z.boolean(),
+  hasPassword: z.boolean(),
+  expiresAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+  publicUrl: z.string(),
+});
+
+const ShareCreateResponseSchema = z.object({ share: SharePayloadSchema });
+const ShareListResponseSchema = z.object({ shares: z.array(SharePayloadSchema) });
+const ShareDeleteResponseSchema = z.object({ deleted: z.boolean() });
+
+const AliasPayloadSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  shareId: z.string(),
+});
+
+const AliasCreateResponseSchema = z.object({ alias: AliasPayloadSchema });
+const AliasListResponseSchema = z.object({ aliases: z.array(AliasPayloadSchema) });
+
 function pickIp(headers: Record<string, string | string[] | undefined>): string {
   const forwarded = headers['x-forwarded-for'];
   if (typeof forwarded === 'string') return forwarded.split(',')[0]?.trim() || 'unknown';
@@ -85,6 +160,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     path: '/v1/public/resumes/:slug',
     auth: { kind: 'public' },
     params: SlugParam,
+    response: PublicResumeResponseSchema,
     openapi: {
       summary: 'Get public resume by share slug',
       tags: ['public-resumes'],
@@ -110,6 +186,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     path: '/v1/public/resumes/:slug/download',
     auth: { kind: 'public' },
     params: SlugParam,
+    response: PublicResumeResponseSchema,
     openapi: {
       summary: 'Download public resume by share slug',
       tags: ['public-resumes'],
@@ -139,6 +216,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     body: CreateShareSchema,
+    response: ShareCreateResponseSchema,
     openapi: {
       summary: 'Create share link for a resume',
       tags: ['shares'],
@@ -157,6 +235,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: ShareListResponseSchema,
     openapi: {
       summary: 'List share links for a resume',
       tags: ['shares'],
@@ -175,6 +254,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: ShareIdParam,
+    response: ShareDeleteResponseSchema,
     openapi: {
       summary: 'Delete a share link',
       tags: ['shares'],
@@ -195,6 +275,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     permission: Permission.RESUME_UPDATE,
     params: ShareIdParam,
     body: AddAliasSchema,
+    response: AliasCreateResponseSchema,
     openapi: {
       summary: 'Add a slug alias to a share',
       tags: ['shares'],
@@ -214,6 +295,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ShareIdParam,
+    response: AliasListResponseSchema,
     openapi: {
       summary: 'List slug aliases for a share',
       tags: ['shares'],
@@ -232,6 +314,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: AliasIdParam,
+    response: ShareDeleteResponseSchema,
     openapi: {
       summary: 'Remove a slug alias',
       tags: ['shares'],
