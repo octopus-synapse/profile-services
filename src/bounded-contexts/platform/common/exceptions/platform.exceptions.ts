@@ -67,6 +67,11 @@ export class ConfigurationMissingException extends DomainException {
   }
 }
 
+/**
+ * F5.I.3 SKIP — owned by `platform/metrics` BC (not part of the
+ * `platform/common` lot 2 surface). Throws live in
+ * `src/bounded-contexts/platform/metrics/*` and are tracked separately.
+ */
 export class MetricsNotConfiguredException extends DomainException {
   readonly code: string = 'METRICS_NOT_CONFIGURED';
   readonly statusHint = 503;
@@ -75,6 +80,10 @@ export class MetricsNotConfiguredException extends DomainException {
   }
 }
 
+/**
+ * F5.I.3 SKIP — same scope as `MetricsNotConfiguredException`; lives in
+ * `platform/metrics`, out of lot 2.
+ */
 export class InvalidMetricsApiKeyException extends DomainException {
   readonly code: string = 'INVALID_METRICS_API_KEY';
   readonly statusHint = 403;
@@ -94,6 +103,7 @@ export class InvalidTestSuiteException extends ValidationException {
 }
 
 /**
+ * F5.I.3 SKIP — owned by `platform/webhooks` BC (out of lot 2 scope).
  * Terminal webhook delivery error — raised inside the retry loop so the outer
  * catch can log it with structured detail. If it ever escapes the retry, the
  * envelope carries a stable code instead of leaking HTTP status text.

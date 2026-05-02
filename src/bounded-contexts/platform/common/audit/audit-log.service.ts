@@ -11,6 +11,7 @@ import { AuditAction, Prisma } from '@prisma/client';
 import type { Request } from 'express';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { AuditLogFailedException } from '../exceptions/platform.exceptions';
 
 export interface AuditMetadata {
   ipAddress?: string;
@@ -89,6 +90,47 @@ export class AuditLogService {
           error: error instanceof Error ? error.message : 'Unknown error',
         },
       );
+    }
+  }
+
+  /**
+   * Strict variant of `log` for compliance-critical operations that
+   * must NOT silently swallow audit failures (e.g. financial events,
+   * GDPR deletions). Surfaces the typed `AuditLogFailedException` so
+   * the caller can decide whether to roll back or retry.
+   */
+  async logStrict(
+    userId: string,
+    action: AuditAction,
+    entityType: string,
+    entityId: string,
+    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
+    request?: RequestMetadataSource,
+  ): Promise<void> {
+    try {
+      const metadata = this.extractMetadata(request);
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action,
+          entityType,
+          entityId,
+          changesBefore: changes?.before ?? Prisma.JsonNull,
+          changesAfter: changes?.after ?? Prisma.JsonNull,
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          metadata: metadata.metadata ?? Prisma.JsonNull,
+        },
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'unknown error';
+      this.logger.error(
+        'Strict audit log failed — propagating to caller',
+        error instanceof Error ? error.stack : 'Unknown error',
+        'AuditLogService',
+        { userId, action, entityType, entityId, reason },
+      );
+      throw new AuditLogFailedException(reason);
     }
   }
 

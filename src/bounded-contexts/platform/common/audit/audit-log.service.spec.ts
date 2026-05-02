@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { AuditAction } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { AuditLogFailedException } from '../exceptions/platform.exceptions';
 import type { RequestMetadataSource } from './audit-log.service';
 import { AuditLogService } from './audit-log.service';
 
@@ -102,6 +103,26 @@ describe('AuditLogService', () => {
       ).resolves.toBeUndefined();
 
       expect(stubLogger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('logStrict', () => {
+    it('throws AuditLogFailedException when prisma rejects', async () => {
+      stubPrisma.auditLog.create.mockRejectedValueOnce(new Error('DB outage'));
+
+      await expect(
+        service.logStrict('user-1', AuditAction.USERNAME_CHANGED, 'User', 'user-1'),
+      ).rejects.toThrow(AuditLogFailedException);
+    });
+
+    it('persists audit row when prisma succeeds', async () => {
+      await service.logStrict('user-2', AuditAction.RESUME_DELETED, 'Resume', 'r-9');
+
+      expect(auditLogs).toHaveLength(1);
+      expect(auditLogs[0]).toMatchObject({
+        userId: 'user-2',
+        action: AuditAction.RESUME_DELETED,
+      });
     });
   });
 

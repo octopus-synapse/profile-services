@@ -10,6 +10,7 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { CacheService } from '../cache/cache.service';
+import { RateLimitedException } from '../exceptions/platform.exceptions';
 import { RateLimitService } from './rate-limit.service';
 import type { RateLimitResult } from './rate-limit.types';
 
@@ -202,6 +203,24 @@ describe('RateLimitService', () => {
         expect.objectContaining({ count: 0 }),
         expect.any(Number),
       );
+    });
+  });
+
+  describe('consumeOrThrow', () => {
+    it('throws RateLimitedException when bucket is exhausted', async () => {
+      mockCacheService.get.mockResolvedValue({ count: 100, expiresAt: Date.now() + 30000 });
+
+      await expect(
+        service.consumeOrThrow('test-key', { points: 100, duration: 60 }),
+      ).rejects.toThrow(RateLimitedException);
+    });
+
+    it('returns result when under limit', async () => {
+      mockCacheService.get.mockResolvedValue(null);
+
+      const result = await service.consumeOrThrow('test-key', { points: 100, duration: 60 });
+
+      expect(result.isBlocked).toBe(false);
     });
   });
 });

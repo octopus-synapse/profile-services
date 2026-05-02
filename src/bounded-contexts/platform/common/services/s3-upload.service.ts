@@ -9,6 +9,11 @@ import {
 import { z } from 'zod';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { LoggerPort } from '@/shared-kernel/logger';
+import {
+  StorageConfigurationException,
+  StorageObjectNotFoundException,
+  StorageUploadFailedException,
+} from '../exceptions/platform.exceptions';
 
 const MinioConfigSchema = z.object({
   MINIO_ENDPOINT: z.string().url().optional(),
@@ -176,6 +181,50 @@ export class S3UploadService {
    */
   get isEnabled(): boolean {
     return this._isEnabled;
+  }
+
+  /**
+   * Strict variant of `uploadFile` that throws typed domain exceptions
+   * instead of returning `null`. Callers that have no graceful fallback
+   * (e.g. PDF render persistence) should prefer this so the envelope
+   * carries a stable `STORAGE_*` code instead of a generic 500.
+   */
+  async uploadFileStrict(
+    file: Buffer,
+    key: string,
+    contentType: string,
+  ): Promise<{ url: string; key: string }> {
+    if (!this._isEnabled || !this.client || !this.bucket) {
+      throw new StorageConfigurationException();
+    }
+
+    try {
+      const result = await this.uploadFile(file, key, contentType);
+      if (!result) {
+        throw new StorageUploadFailedException('upload returned null');
+      }
+      return result;
+    } catch (error) {
+      if (error instanceof StorageConfigurationException) throw error;
+      if (error instanceof StorageUploadFailedException) throw error;
+      const reason = error instanceof Error ? error.message : 'unknown error';
+      throw new StorageUploadFailedException(reason);
+    }
+  }
+
+  /**
+   * Strict variant of `downloadFile` that throws when the object is
+   * missing or storage is offline.
+   */
+  async downloadFileStrict(key: string): Promise<Buffer> {
+    if (!this._isEnabled || !this.client || !this.bucket) {
+      throw new StorageConfigurationException();
+    }
+    const buffer = await this.downloadFile(key);
+    if (!buffer) {
+      throw new StorageObjectNotFoundException(key);
+    }
+    return buffer;
   }
 
   /**
