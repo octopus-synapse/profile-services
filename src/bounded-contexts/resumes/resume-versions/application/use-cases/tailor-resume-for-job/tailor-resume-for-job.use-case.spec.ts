@@ -3,6 +3,7 @@ import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
+  TailorEngineUnavailableException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
@@ -115,6 +116,29 @@ describe('TailorResumeForJobUseCase', () => {
     const tailored = await repository.findTailoredVersions(resumeId);
     expect(tailored).toHaveLength(1);
     expect(tailored[0].tailoredJobId).toBe('job-1');
+  });
+
+  it('wraps LLM failures in TailorEngineUnavailableException', async () => {
+    repository.seedTailorResume({
+      id: resumeId,
+      userId,
+      summary: null,
+      jobTitle: null,
+      primaryStack: [],
+      resumeSections: [],
+    });
+    const failingLlm = new StubResumeTailorLlm(() => {
+      throw new Error('rate limited');
+    });
+    const failingUseCase = new TailorResumeForJobUseCase(repository, failingLlm, stubLogger);
+
+    await expect(
+      failingUseCase.execute({
+        resumeId,
+        userId,
+        jobDescription: 'this is a long enough job description for the use case',
+      }),
+    ).rejects.toBeInstanceOf(TailorEngineUnavailableException);
   });
 
   it('accepts a free-text job description with title/company defaults', async () => {

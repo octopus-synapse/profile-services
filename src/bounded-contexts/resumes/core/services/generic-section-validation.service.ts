@@ -1,5 +1,7 @@
 import {
+  ResumeSectionInvalidException,
   SectionItemContentInvalidException,
+  SectionTypeInvalidException,
   UnknownSectionTypeException,
 } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
@@ -69,6 +71,48 @@ export class GenericSectionValidationService {
     }
 
     return result.data;
+  }
+
+  /**
+   * Validate a section and throw a typed domain exception when the
+   * section-level constraints (item count, item content) fail. Distinct
+   * from `validateItemOrThrow` because it wraps the section-level
+   * `sectionErrors` array as a single `ResumeSectionInvalidException`
+   * instead of fighting the per-item Zod errors. Useful for callers
+   * (e.g. resume-publish flow) that want a single, translatable error
+   * for the gating UX.
+   */
+  validateSectionOrThrow(
+    sectionTypeKey: string,
+    sectionId: string,
+    items: Array<{ id?: string; content: Record<string, unknown> }>,
+  ): void {
+    const result = this.validateSection(sectionTypeKey, sectionId, items);
+    if (result.isValid) return;
+    if (result.sectionErrors.length > 0) {
+      throw new ResumeSectionInvalidException(result.sectionErrors.join('; '));
+    }
+    throw new SectionItemContentInvalidException(sectionTypeKey);
+  }
+
+  /**
+   * Validate a SectionType definition shape itself — used by admin tooling
+   * before persisting custom section types. Surfaces a single typed
+   * `SectionTypeInvalidException` carrying the offending reason so the
+   * admin UI can render it without parsing Zod issue paths.
+   */
+  static validateSectionTypeDefinition(definition: unknown): void {
+    if (!definition || typeof definition !== 'object') {
+      throw new SectionTypeInvalidException(
+        'Definition must be a non-null object',
+      );
+    }
+    const fields = (definition as { fields?: unknown }).fields;
+    if (!Array.isArray(fields) || fields.length === 0) {
+      throw new SectionTypeInvalidException(
+        'Definition must declare a non-empty `fields` array',
+      );
+    }
   }
 
   /**
