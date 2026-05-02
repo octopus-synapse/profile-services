@@ -13,6 +13,51 @@ import { z } from 'zod';
 import { APP_CONFIG, ValidationException } from '@/shared-kernel';
 import type { Route } from '@/shared-kernel/http/route';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
+import {
+  CourseSchema,
+  InstitutionSchema,
+  InstitutionWithCoursesSchema,
+  MecStatsSchema,
+  SyncMetadataSchema,
+} from './schemas/mec.schema';
+
+// ─── Response schemas ────────────────────────────────────────────────
+const CoursesListResponseSchema = z.object({ courses: z.array(CourseSchema) });
+const CourseResponseSchema = z.object({ course: CourseSchema.nullable() });
+
+const InstitutionsListResponseSchema = z.object({
+  institutions: z.array(InstitutionSchema),
+});
+const InstitutionResponseSchema = z.object({
+  institution: InstitutionWithCoursesSchema.nullable(),
+});
+
+const StatesResponseSchema = z.object({ states: z.array(z.string()) });
+const AreasResponseSchema = z.object({ areas: z.array(z.string()) });
+const StatsResponseSchema = z.object({ stats: MecStatsSchema });
+
+const SyncTriggerResponseSchema = z.object({
+  institutionsInserted: z.number().int().min(0),
+  coursesInserted: z.number().int().min(0),
+  totalRowsProcessed: z.number().int().min(0),
+  errorsCount: z.number().int().min(0),
+});
+
+// `SyncLogRow` is `{ id: string; [k: string]: unknown }` — Prisma's row
+// shape varies and we already serialize through `JSON.stringify` (Date →
+// ISO string). Use a passthrough record so we stay schema-driven without
+// `z.unknown()` at the leaves.
+const SyncLogRowSchema = z.object({ id: z.string() }).passthrough();
+
+const SyncStatusResponseSchema = z.object({
+  isRunning: z.boolean(),
+  metadata: SyncMetadataSchema.nullable(),
+  lastSync: SyncLogRowSchema.nullable(),
+});
+
+const SyncHistoryResponseSchema = z.object({
+  history: z.array(SyncLogRowSchema),
+});
 
 function parseLimitOrThrow(raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw === null || raw === '') return fallback;
@@ -55,6 +100,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/courses/search',
     auth: { kind: 'public' },
     query: SearchQuery,
+    response: CoursesListResponseSchema,
     openapi: {
       summary: 'Search courses',
       tags: ['mec-courses'],
@@ -73,6 +119,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/courses/:codigoCurso',
     auth: { kind: 'public' },
     params: CourseCodeParams,
+    response: CourseResponseSchema,
     openapi: {
       summary: 'Get course by MEC code',
       tags: ['mec-courses'],
@@ -92,6 +139,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/institutions',
     auth: { kind: 'public' },
     query: ListInstitutionsQuery,
+    response: InstitutionsListResponseSchema,
     openapi: {
       summary: 'List institutions',
       tags: ['mec-institutions'],
@@ -109,6 +157,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/institutions/search',
     auth: { kind: 'public' },
     query: SearchQuery,
+    response: InstitutionsListResponseSchema,
     openapi: {
       summary: 'Search institutions',
       tags: ['mec-institutions'],
@@ -127,6 +176,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/institutions/:codigoIes',
     auth: { kind: 'public' },
     params: InstitutionCodeParams,
+    response: InstitutionResponseSchema,
     openapi: {
       summary: 'Get institution by MEC code',
       tags: ['mec-institutions'],
@@ -144,6 +194,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/institutions/:codigoIes/courses',
     auth: { kind: 'public' },
     params: InstitutionCodeParams,
+    response: CoursesListResponseSchema,
     openapi: {
       summary: 'Get courses by institution',
       tags: ['mec-institutions'],
@@ -162,6 +213,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/ufs',
     auth: { kind: 'public' },
+    response: StatesResponseSchema,
     openapi: {
       summary: 'List all states (UFs)',
       tags: ['mec-metadata'],
@@ -177,6 +229,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/areas',
     auth: { kind: 'public' },
+    response: AreasResponseSchema,
     openapi: {
       summary: 'List knowledge areas',
       tags: ['mec-metadata'],
@@ -192,6 +245,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/stats',
     auth: { kind: 'public' },
+    response: StatsResponseSchema,
     openapi: {
       summary: 'Get MEC statistics',
       tags: ['mec-metadata'],
@@ -213,6 +267,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
     statusCode: 200,
+    response: SyncTriggerResponseSchema,
     openapi: {
       summary: 'Trigger MEC data synchronization',
       tags: ['mec-internal'],
@@ -234,6 +289,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/internal/sync/status',
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
+    response: SyncStatusResponseSchema,
     openapi: {
       summary: 'Get sync status',
       tags: ['mec-internal'],
@@ -255,6 +311,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
     query: z.object({ limit: z.string().optional() }),
+    response: SyncHistoryResponseSchema,
     openapi: {
       summary: 'Get sync history',
       tags: ['mec-internal'],

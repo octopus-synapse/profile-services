@@ -20,6 +20,23 @@ const FindCandidatesQuery = z.object({
 
 const ShadowProfileIdParam = z.object({ id: z.string() });
 
+// ─── Response schemas ────────────────────────────────────────────────
+// `payload` is the Prisma Json column carrying the shadow-payload
+// produced by `buildShadowPayload`. Modelled as `passthrough()` so we
+// stay schema-driven without falling back to `z.unknown()`.
+const ShadowProfileSnapshotSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  externalHandle: z.string(),
+  contactEmail: z.string().nullable(),
+  payload: z.object({}).passthrough().nullable(),
+  claimedByUserId: z.string().nullable(),
+});
+
+const FindCandidatesResponseSchema = z.object({
+  candidates: z.array(ShadowProfileSnapshotSchema),
+});
+
 export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
   {
     method: 'POST',
@@ -27,6 +44,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_MANAGE,
     body: UpsertGithubBody,
+    response: ShadowProfileSnapshotSchema,
     openapi: {
       summary:
         'Admin: build or refresh a GitHub-based shadow profile. Call once per login; idempotent.',
@@ -49,6 +67,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
     query: FindCandidatesQuery,
+    response: FindCandidatesResponseSchema,
     openapi: {
       summary:
         'Find unclaimed shadow profiles matching an email and/or github login. Used by the signup flow.',
@@ -68,6 +87,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     params: ShadowProfileIdParam,
+    response: ShadowProfileSnapshotSchema,
     openapi: {
       summary: 'Claim a shadow profile as the authenticated user. One-shot — cannot be undone.',
       tags: ['shadow-profile'],

@@ -17,11 +17,35 @@ import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port'
 
 const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) });
 
+// ─── Response schemas ────────────────────────────────────────────────
+const Setup2faResponseSchema = z.object({
+  secret: z.string(),
+  qrCode: z.string(),
+  manualEntryKey: z.string(),
+});
+
+const VerifyAndEnable2faResponseSchema = z.object({
+  enabled: z.boolean(),
+  backupCodes: z.array(z.string()),
+});
+
+// `lastUsedAt` is mapped to ISO string in the handler.
+const TwoFactorStatusResponseSchema = z.object({
+  enabled: z.boolean(),
+  lastUsedAt: z.string().datetime().nullable(),
+  backupCodesRemaining: z.number().int().min(0),
+});
+
+const RegenerateBackupCodesResponseSchema = z.object({
+  backupCodes: z.array(z.string()),
+});
+
 export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = [
   {
     method: 'POST',
     path: '/v1/auth/2fa/setup',
     auth: { kind: 'jwt' },
+    response: Setup2faResponseSchema,
     openapi: {
       summary: 'Setup 2FA',
       tags: ['Two-Factor Auth'],
@@ -38,6 +62,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     path: '/v1/auth/2fa/verify',
     auth: { kind: 'jwt' },
     body: VerifyAndEnable2faSchema,
+    response: VerifyAndEnable2faResponseSchema,
     openapi: {
       summary: 'Verify token and enable 2FA',
       tags: ['Two-Factor Auth'],
@@ -54,6 +79,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     method: 'GET',
     path: '/v1/auth/2fa/status',
     auth: { kind: 'jwt' },
+    response: TwoFactorStatusResponseSchema,
     openapi: {
       summary: 'Get 2FA status',
       tags: ['Two-Factor Auth'],
@@ -69,6 +95,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     method: 'POST',
     path: '/v1/auth/2fa/backup-codes/regenerate',
     auth: { kind: 'jwt' },
+    response: RegenerateBackupCodesResponseSchema,
     openapi: {
       summary: 'Regenerate backup codes',
       tags: ['Two-Factor Auth'],

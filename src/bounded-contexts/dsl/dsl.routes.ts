@@ -11,6 +11,15 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import { DslUseCases } from './application/ports/dsl.port';
+import { ResumeAstSchema } from './domain/schemas/ast/resume-ast.schema';
+
+// ─── Response schemas ────────────────────────────────────────────────
+const ValidateDslResponseSchema = z.object({
+  valid: z.boolean(),
+  errors: z.array(z.string()).nullable(),
+});
+
+const AstResponseSchema = z.object({ ast: ResumeAstSchema });
 
 const RenderTargetSchema = z.enum(['html', 'pdf']);
 
@@ -31,6 +40,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     method: 'POST',
     path: '/v1/dsl/validate',
     auth: { kind: 'public' },
+    response: ValidateDslResponseSchema,
     openapi: {
       summary: 'Validate DSL schema',
       tags: ['dsl'],
@@ -47,6 +57,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     path: '/v1/dsl/preview',
     auth: { kind: 'public' },
     query: PreviewQuerySchema,
+    response: AstResponseSchema,
     openapi: {
       summary: 'Compile DSL to AST (preview, no persistence)',
       tags: ['dsl'],
@@ -66,6 +77,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     permission: Permission.RESUME_READ,
     params: ResumeIdParams,
     query: RenderQuerySchema,
+    response: AstResponseSchema,
     openapi: {
       summary: 'Get compiled AST for a resume',
       tags: ['dsl'],
@@ -90,6 +102,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     auth: { kind: 'public' },
     params: SlugParams,
     query: RenderQuerySchema,
+    response: AstResponseSchema,
     openapi: {
       summary: 'Get compiled AST for a public resume',
       tags: ['dsl'],

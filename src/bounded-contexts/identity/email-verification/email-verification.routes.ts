@@ -9,9 +9,29 @@
  * registry lives in `email-verification.module.ts`.
  */
 
+import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
 import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.dto';
+
+// ─── Response schemas ────────────────────────────────────────────────
+const VerifyEmailResponseSchema = z.object({
+  email: z.string(),
+  message: z.string(),
+});
+
+// `cooldown` is the `ResendCooldown` shape from the send/resend ports.
+const ResendCooldownShape = z.object({
+  secondsUntilResendAllowed: z.number().int().min(0),
+  cooldownSeconds: z.number().int().min(0),
+});
+
+const SendVerificationResponseSchema = z.object({
+  message: z.string(),
+  cooldown: ResendCooldownShape,
+});
+
+const ResendCooldownResponseSchema = ResendCooldownShape;
 
 export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCases>> = [
   {
@@ -19,6 +39,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     path: '/v1/auth/email-verification/verify',
     auth: { kind: 'public' },
     body: VerifyEmailSchema,
+    response: VerifyEmailResponseSchema,
     openapi: {
       summary: 'Verify email with token',
       tags: ['Email Verification'],
@@ -36,6 +57,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     path: '/v1/auth/email-verification/send',
     auth: { kind: 'jwt' },
     statusCode: 200,
+    response: SendVerificationResponseSchema,
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Send verification email',
@@ -52,6 +74,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     method: 'GET',
     path: '/v1/auth/email-verification/resend-status',
     auth: { kind: 'jwt' },
+    response: ResendCooldownResponseSchema,
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Get verification email resend cooldown',

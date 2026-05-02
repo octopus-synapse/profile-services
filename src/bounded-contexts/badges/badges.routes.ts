@@ -14,11 +14,24 @@ import { BadgesUseCases } from './application/ports/badges.port';
 
 const ListForUserParams = z.object({ userId: z.string() });
 
+// ─── Response schemas ────────────────────────────────────────────────
+// Mirrors `AwardedBadgeView` — `awardedAt` is already pre-serialized
+// (the use case calls `.toISOString()`).
+const AwardedBadgeViewSchema = z.object({
+  kind: z.string(),
+  awardedAt: z.string().datetime(),
+});
+
+const ListBadgesResponseSchema = z.object({
+  badges: z.array(AwardedBadgeViewSchema),
+});
+
 export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
   {
     method: 'GET',
     path: '/v1/badges/me',
     auth: { kind: 'jwt' },
+    response: ListBadgesResponseSchema,
     openapi: {
       summary: 'Badges awarded to the viewer.',
       tags: ['badges'],
@@ -35,6 +48,7 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     path: '/v1/badges/user/:userId',
     auth: { kind: 'public' },
     params: ListForUserParams,
+    response: ListBadgesResponseSchema,
     openapi: {
       summary: 'Public list of badges for a given user.',
       tags: ['badges'],

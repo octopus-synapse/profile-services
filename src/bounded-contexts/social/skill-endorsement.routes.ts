@@ -19,6 +19,38 @@ const PageQuery = z.object({
   limit: z.string().optional(),
 });
 
+// ─── Response schemas ────────────────────────────────────────────────
+const UserSkillSummarySchema = z.object({
+  skill: z.string(),
+  endorsementCount: z.number().int().min(0),
+  endorsedByMe: z.boolean(),
+});
+
+const UserSkillsResponseSchema = z.object({
+  skills: z.array(UserSkillSummarySchema),
+});
+
+// `endorse` and `withdraw` return the same `UserSkillSummary` shape.
+const EndorsementMutationResponseSchema = UserSkillSummarySchema;
+
+const EndorserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  endorsedAt: z.string().datetime(),
+});
+
+// Legacy `{ data, total, page, limit, totalPages }` shape (matches the
+// existing `ActivityPaginatedSchema` envelope used by the social BC).
+const EndorsersListResponseSchema = z.object({
+  data: z.array(EndorserSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+});
+
 export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesBundle>> = [
   {
     method: 'GET',
@@ -26,6 +58,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: UserSkillsResponseSchema,
     openapi: {
       summary: 'List a user’s skills with endorsement counts',
       tags: ['skill-endorsements'],
@@ -44,6 +77,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
+    response: EndorsementMutationResponseSchema,
     openapi: {
       summary: 'Endorse a user for a skill',
       tags: ['skill-endorsements'],
@@ -61,6 +95,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
+    response: EndorsementMutationResponseSchema,
     openapi: {
       summary: 'Withdraw a previously given endorsement',
       tags: ['skill-endorsements'],
@@ -79,6 +114,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
     query: PageQuery,
+    response: EndorsersListResponseSchema,
     openapi: {
       summary: 'List endorsers for a specific skill',
       tags: ['skill-endorsements'],

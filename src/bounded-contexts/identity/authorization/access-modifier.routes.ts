@@ -59,6 +59,28 @@ export class SelfDemoteForbiddenException extends DomainException {
   }
 }
 
+// ─── Response schemas ────────────────────────────────────────────────
+// `AccessModifierProps` (toJSON output) — Date fields become ISO strings
+// once serialized through `JSON.stringify`. Mirrors the entity props.
+const AccessModifierShape = z.object({
+  id: z.string(),
+  userId: z.string(),
+  modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
+  effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
+  permissionId: z.string().nullable(),
+  reason: z.string(),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime().nullable(),
+  createdBy: z.string(),
+  revokedAt: z.string().datetime().nullable(),
+  revokedBy: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const ListAccessModifiersResponseSchema = z.object({
+  modifiers: z.array(AccessModifierShape),
+});
+
 export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> = [
   // POST /api/v1/admin/users/:userId/access-modifiers
   {
@@ -69,6 +91,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     permission: Permission.USER_MANAGE,
     params: UserIdParam,
     body: ApplyModifierBody,
+    response: AccessModifierShape,
     openapi: {
       summary: 'Apply an access modifier (suspension or grant) to a user',
       tags: ['Admin - Access Modifiers'],
@@ -129,6 +152,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.USER_MANAGE,
     params: UserIdParam,
+    response: ListAccessModifiersResponseSchema,
     openapi: {
       summary: 'List currently active access modifiers for a user',
       tags: ['Admin - Access Modifiers'],

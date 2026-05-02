@@ -15,6 +15,13 @@ import type { OAuthProfile } from './application/use-cases/upsert-user-from-oaut
 
 const ProviderParam = z.object({ provider: z.enum(['github', 'linkedin']) });
 
+// ─── Response schemas ────────────────────────────────────────────────
+// `start` endpoints are intercepted upstream by the Passport guard;
+// `callback` endpoints emit `withRedirect(...)` which the adapter
+// resolves to a 302 — neither path emits a JSON body, so they SKIP a
+// `response:` declaration the way SSE/stream routes do.
+const OAuthAvailabilityResponseSchema = z.object({ available: z.boolean() });
+
 type Provider = 'github' | 'linkedin';
 
 async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, provider: Provider) {
@@ -102,6 +109,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     path: '/v1/auth/oauth/available/:provider',
     auth: { kind: 'public' },
     params: ProviderParam,
+    response: OAuthAvailabilityResponseSchema,
     openapi: {
       summary: 'Whether a given OAuth provider is configured.',
       tags: ['auth-oauth'],

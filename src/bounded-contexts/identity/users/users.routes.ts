@@ -31,6 +31,145 @@ import {
   toUserManagementListData,
 } from './infrastructure/presenters/user-management.presenter';
 
+// ─── Response schemas ────────────────────────────────────────────────
+// `UserProfile` from `application/ports/user-profile.port`. JSON-serialized
+// `Date` becomes ISO string.
+const UserProfileResponseSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  username: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  photoURL: z.string().nullable().optional(),
+  bio: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  website: z.string().nullable().optional(),
+  linkedin: z.string().nullable().optional(),
+  github: z.string().nullable().optional(),
+  twitter: z.string().nullable().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+// PATCH /v1/users/profile flattens the profile then nests it under `profile`
+// (handler returns `{ ...result, profile: result }`).
+const UpdateUserProfileResponseSchema = UserProfileResponseSchema.extend({
+  profile: UserProfileResponseSchema,
+});
+
+const UpdateUsernameResponseSchema = z.object({
+  username: z.string(),
+  message: z.string(),
+});
+
+const CheckUsernameResponseSchema = z.object({
+  username: z.string(),
+  available: z.boolean(),
+  reason: z.enum(['taken', 'reserved', 'invalid_format']).optional(),
+});
+
+const BasicPreferencesShape = z.object({
+  theme: z.string().optional(),
+  language: z.string().optional(),
+  emailNotifications: z.boolean().optional(),
+});
+const GetBasicPreferencesResponseSchema = z.object({ preferences: BasicPreferencesShape });
+
+const UpdateBasicPreferencesResponseSchema = z.object({ message: z.string() });
+
+const PermissionsListResponseSchema = z.object({ permissions: z.array(z.string()) });
+
+const MessageOnlyResponseSchema = z.object({ message: z.string() });
+
+// View-model emitted by `toUserManagementListData` — Dates pre-serialized.
+const ManagedUserListItemSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  image: z.string().nullable(),
+  emailVerified: z.string().datetime().nullable(),
+  resumeCount: z.number().int(),
+  role: z.enum(['USER', 'ADMIN']),
+  isActive: z.boolean(),
+  lastLoginAt: z.string().datetime().nullable(),
+});
+
+const ManagedUserListResponseSchema = z.object({
+  users: z.array(ManagedUserListItemSchema),
+  pagination: z.object({
+    page: z.number().int(),
+    limit: z.number().int(),
+    total: z.number().int(),
+    totalPages: z.number().int(),
+  }),
+});
+
+const ManagedUserResumeItemSchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  isPublic: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+// `UserDetails.preferences` is `unknown | null` in the port; the FullUserPreferences
+// shape is what we serialize on the read path. Express it as a permissive
+// passthrough record so we stay schema-driven without falling back to
+// `z.unknown()`.
+const ManagedUserDetailsResponseSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
+    username: z.string().nullable(),
+    hasCompletedOnboarding: z.boolean(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+    image: z.string().nullable(),
+    emailVerified: z.string().datetime().nullable(),
+    isActive: z.boolean(),
+    lastLoginAt: z.string().datetime().nullable(),
+    roles: z.array(z.string()),
+    resumes: z.array(ManagedUserResumeItemSchema),
+    preferences: z.object({}).passthrough().nullable(),
+    counts: z.object({
+      accounts: z.number().int(),
+      sessions: z.number().int(),
+      resumes: z.number().int(),
+    }),
+  }),
+});
+
+const CreatedUserSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+const UpdatedManagedUserSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  updatedAt: z.string().datetime(),
+});
+
+const CreatedUserResponseSchema = z.object({
+  user: CreatedUserSchema,
+  message: z.string(),
+});
+
+const UpdatedUserResponseSchema = z.object({
+  user: UpdatedManagedUserSchema,
+  message: z.string(),
+});
+
 const UsernameParam = z.object({ username: z.string() });
 const CheckUsernameQuery = z.object({ username: z.string() });
 
@@ -74,6 +213,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/profiles/:username',
     auth: { kind: 'public' },
     params: UsernameParam,
+    response: PublicProfileDataSchema,
     openapi: {
       summary: "Get a user's public profile by username",
       tags: ['users'],
@@ -91,6 +231,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/profile',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: UserProfileResponseSchema,
     openapi: {
       summary: 'Get current user profile',
       tags: ['users'],
@@ -108,6 +249,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateUserSchema,
+    response: UpdateUserProfileResponseSchema,
     openapi: {
       summary: 'Update current user profile',
       tags: ['users'],
@@ -127,6 +269,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateUsernameSchema,
+    response: UpdateUsernameResponseSchema,
     openapi: {
       summary: 'Update username (once every 30 days)',
       tags: ['users'],
@@ -145,6 +288,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
     query: CheckUsernameQuery,
+    response: CheckUsernameResponseSchema,
     openapi: {
       summary: 'Check if a username is available',
       tags: ['users'],
@@ -170,6 +314,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/preferences',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: GetBasicPreferencesResponseSchema,
     openapi: {
       summary: 'Get user preferences (basic)',
       tags: ['users'],
@@ -187,6 +332,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdatePreferencesSchema,
+    response: UpdateBasicPreferencesResponseSchema,
     openapi: {
       summary: 'Update user preferences (basic)',
       tags: ['users'],
@@ -204,6 +350,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/preferences/full',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: UserFullPreferencesDataSchema,
     openapi: {
       summary: 'Get all user preferences',
       tags: ['users'],
@@ -223,6 +370,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateFullPreferencesSchema,
+    response: UserFullPreferencesDataSchema,
     openapi: {
       summary: 'Update all user preferences',
       tags: ['users'],
@@ -244,6 +392,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/me/permissions',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: PermissionsListResponseSchema,
     openapi: {
       summary: 'List permission keys granted to the current user (for UI gating)',
       tags: ['users'],
@@ -265,6 +414,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'read' },
     query: ListUsersQuery,
+    response: ManagedUserListResponseSchema,
     openapi: {
       summary: 'List all users with pagination',
       tags: ['users'],
@@ -288,6 +438,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'read' },
     params: UserIdParam,
+    response: ManagedUserDetailsResponseSchema,
     openapi: {
       summary: 'Get user details by ID',
       tags: ['users'],
@@ -307,6 +458,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'create' },
     body: AdminCreateUserSchema,
     statusCode: 201,
+    response: CreatedUserResponseSchema,
     openapi: {
       summary: 'Create a new user',
       tags: ['users'],
@@ -326,6 +478,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'update' },
     params: UserIdParam,
     body: AdminUpdateUserSchema,
+    response: UpdatedUserResponseSchema,
     openapi: {
       summary: 'Update user information',
       tags: ['users'],
@@ -345,6 +498,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'delete' },
     params: UserIdParam,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Delete a user',
       tags: ['users'],
@@ -365,6 +519,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     params: UserIdParam,
     body: AdminResetPasswordSchema,
     statusCode: 200,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Reset user password',
       tags: ['users'],
@@ -385,6 +540,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'role_assign' },
     params: UserIdParam,
     body: AssignRolesSchema,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Assign roles to a user',
       tags: ['users'],

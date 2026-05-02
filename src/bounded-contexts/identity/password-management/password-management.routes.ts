@@ -17,6 +17,10 @@ import { ResetPasswordSchema } from './infrastructure/controllers/reset-password
 
 const ForgotPasswordSchema = z.object({ email: z.string().email() });
 
+// ─── Response schemas ────────────────────────────────────────────────
+// All three endpoints return the same `{ message }` envelope.
+const PasswordMessageResponseSchema = z.object({ message: z.string() });
+
 export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUseCases>> = [
   {
     method: 'POST',
@@ -24,6 +28,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     auth: { kind: 'public' },
     body: ForgotPasswordSchema,
     statusCode: 200,
+    response: PasswordMessageResponseSchema,
     guards: [{ id: 'throttle', metadata: { default: { limit: 5, ttl: 60000 } } }],
     openapi: {
       summary: 'Request password reset',
@@ -43,6 +48,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     path: '/v1/me/password/change',
     auth: { kind: 'jwt' },
     body: ChangePasswordSchema,
+    response: PasswordMessageResponseSchema,
     openapi: {
       summary: 'Change password',
       tags: ['Password Management'],
@@ -65,6 +71,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     path: '/v1/auth/reset-password',
     auth: { kind: 'public' },
     body: ResetPasswordSchema,
+    response: PasswordMessageResponseSchema,
     openapi: {
       summary: 'Reset password with token',
       tags: ['Password Management'],

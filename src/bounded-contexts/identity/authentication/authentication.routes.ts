@@ -53,12 +53,49 @@ const SessionResponseSchema = z.object({
   user: SessionUserSchema.nullable().optional(),
 });
 
+// Server-to-server clients with explicit `refreshToken` body get the legacy
+// token shape; browser clients get `{ ok: true }`. Either is acceptable.
+const RefreshResponseSchema = z.union([
+  z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number(),
+  }),
+  z.object({ ok: z.literal(true) }),
+]);
+
+const LoginResponseSchema = z.union([
+  z.object({ userId: z.string(), twoFactorRequired: z.literal(true) }),
+  z.object({ userId: z.string() }),
+]);
+
+const Verify2faResponseSchema = z.object({ userId: z.string() });
+
+const LogoutResponseSchema = z.object({ message: z.string() });
+
+const SessionDeviceSchema = z.object({
+  id: z.string(),
+  createdAt: z.string(),
+  lastUsedAt: z.string().nullable(),
+  expiresAt: z.string(),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  deviceName: z.string().nullable(),
+  authMethod: z.string().nullable(),
+  revoked: z.boolean(),
+});
+
+const ListSessionsResponseSchema = z.object({ sessions: z.array(SessionDeviceSchema) });
+
+const RevokeSessionResponseSchema = z.object({ revoked: z.literal(true) });
+
 export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>> = [
   {
     method: 'POST',
     path: '/v1/auth/refresh',
     auth: { kind: 'public' },
     body: RefreshTokenSchema,
+    response: RefreshResponseSchema,
     openapi: {
       summary: 'Refresh access token',
       tags: ['auth'],
@@ -89,6 +126,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'public' },
     body: LoginSchema,
     statusCode: 200,
+    response: LoginResponseSchema,
     openapi: {
       summary: 'Login',
       tags: ['auth'],
@@ -127,6 +165,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'public' },
     body: LoginVerify2faSchema,
     statusCode: 200,
+    response: Verify2faResponseSchema,
     guards: [
       {
         id: 'rate-limit',
@@ -165,6 +204,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'jwt' },
     body: LogoutSchema,
     statusCode: 200,
+    response: LogoutResponseSchema,
     guards: [{ id: 'allow-unverified-email' }],
     openapi: {
       summary: 'Logout',
@@ -219,6 +259,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     path: '/v1/auth/sessions',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
+    response: ListSessionsResponseSchema,
     openapi: {
       summary: 'List active sessions (devices) for the current user.',
       tags: ['auth'],
@@ -236,6 +277,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     permission: Permission.RESUME_READ,
     params: RevokeSessionParams,
     statusCode: 200,
+    response: RevokeSessionResponseSchema,
     openapi: {
       summary: 'Revoke a specific session (device) by refresh-token id.',
       tags: ['auth'],
