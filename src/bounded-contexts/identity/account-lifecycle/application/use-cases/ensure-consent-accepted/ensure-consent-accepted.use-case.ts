@@ -13,6 +13,7 @@
  * `ConsentGuard` adapter can delegate to.
  */
 
+import type { LoggerPort } from '@/shared-kernel';
 import { ConsentRequiredException } from '../../../domain/exceptions';
 import { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
 import { VersionConfigPort } from '../accept-consent/accept-consent.use-case';
@@ -25,6 +26,7 @@ export class EnsureConsentAcceptedUseCase {
   constructor(
     private readonly consentRepository: ConsentRepositoryPort,
     private readonly versionConfig: VersionConfigPort,
+    private readonly logger: LoggerPort,
   ) {}
 
   async execute(input: EnsureConsentAcceptedInput): Promise<void> {
@@ -45,6 +47,11 @@ export class EnsureConsentAcceptedUseCase {
     ]);
 
     if (!tos || !privacy) {
+      this.logger.warn('Consent missing for user', 'EnsureConsentAcceptedUseCase', {
+        userId: input.userId,
+        tos: !!tos,
+        privacy: !!privacy,
+      });
       throw new ConsentRequiredException();
     }
   }

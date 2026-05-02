@@ -11,7 +11,7 @@ import {
   InvalidDateRangeException,
   ShareAnalyticsNotAuthorizedException,
 } from '../../../../domain/exceptions/analytics.exceptions';
-import type { ShareAnalyticsRepositoryPort } from '../../../ports';
+import type { DetailedEventResult, ShareAnalyticsRepositoryPort } from '../../../ports';
 
 /** Hard cap for ad-hoc share-event scans — anything broader should hit
  *  the materialized aggregations BC instead of the raw event table. */
@@ -46,7 +46,7 @@ export class GetShareEventsUseCase {
       throw new ShareAnalyticsNotAuthorizedException();
     }
 
-    let events: Awaited<ReturnType<typeof this.repository.getDetailedEvents>>;
+    let events: DetailedEventResult[];
     try {
       events = await this.repository.getDetailedEvents(shareId, filters);
     } catch {

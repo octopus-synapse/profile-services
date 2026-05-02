@@ -20,7 +20,11 @@ class FailingQueue extends JobQueuePort {
   async enqueue<T>(_queue: string, _data: T, _opts?: JobOpts): Promise<void> {
     throw new Error('Connection refused');
   }
-  async schedule<T>(_queue: string, _data: T, _delayMs: number, _opts?: JobOpts): Promise<void> {}
+  async schedule<T>(
+    _queue: string,
+    _data: T,
+    _opts: JobOpts & { repeat: { pattern: string; tz?: string } },
+  ): Promise<void> {}
 }
 
 describe('AutoApplyWorker', () => {

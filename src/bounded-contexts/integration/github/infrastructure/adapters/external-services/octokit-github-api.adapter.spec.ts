@@ -11,9 +11,9 @@ const stubConfig = {
   get: <T = string>(_key: string): T | undefined => undefined,
 };
 
-function buildAdapterWithFetch(impl: typeof fetch) {
+function buildAdapterWithFetch(impl: () => Promise<Response>) {
   const original = globalThis.fetch;
-  globalThis.fetch = impl;
+  globalThis.fetch = impl as unknown as typeof fetch;
   const adapter = new OctokitGitHubApiAdapter(stubConfig, stubLogger);
   return {
     adapter,

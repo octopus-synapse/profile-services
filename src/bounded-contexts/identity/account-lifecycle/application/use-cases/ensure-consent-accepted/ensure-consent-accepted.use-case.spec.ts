@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   InMemoryConsentRepository,
   StubVersionConfig,
@@ -14,7 +15,7 @@ describe('EnsureConsentAcceptedUseCase', () => {
   beforeEach(() => {
     consentRepository = new InMemoryConsentRepository();
     versionConfig = new StubVersionConfig('1.0.0', '2.0.0', '1.0.0');
-    useCase = new EnsureConsentAcceptedUseCase(consentRepository, versionConfig);
+    useCase = new EnsureConsentAcceptedUseCase(consentRepository, versionConfig, stubLogger);
   });
 
   it('passes silently when both TOS and Privacy Policy were accepted at the current versions', async () => {
