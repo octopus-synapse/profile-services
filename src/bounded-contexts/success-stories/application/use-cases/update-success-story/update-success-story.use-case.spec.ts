@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { SuccessStoryAlreadyPublishedException } from '../../../domain/exceptions/success-stories.exceptions';
 import { InMemorySuccessStoriesRepository } from '../../../testing';
 import { UpdateSuccessStoryUseCase } from './update-success-story.use-case';
 
@@ -30,6 +31,23 @@ describe('UpdateSuccessStoryUseCase', () => {
     expect(result.status).toBe('PUBLISHED');
     const row = repo.rows.find((r) => r.id === created.id);
     expect(row?.publishedAt).toBeInstanceOf(Date);
+  });
+
+  it('throws SuccessStoryAlreadyPublishedException when publishing an already-published story', async () => {
+    const repo = new InMemorySuccessStoriesRepository();
+    const created = await repo.create({
+      userId: 'u-1',
+      headline: 'h',
+      beforeText: 'b',
+      afterText: 'a',
+      quote: 'q',
+      status: 'PUBLISHED',
+    });
+
+    const useCase = new UpdateSuccessStoryUseCase(repo);
+    await expect(
+      useCase.execute(created.id, { status: 'PUBLISHED' }, { publish: true }),
+    ).rejects.toThrow(SuccessStoryAlreadyPublishedException);
   });
 
   it('does not re-stamp publishedAt when story was already published', async () => {
