@@ -59,7 +59,7 @@ const ListFlagsResponseSchema = z.object({
 // layers deep, so 5 levels is roomy.
 const ImpactTreeLeafSchema = z.object({
   key: z.string(),
-  children: z.array(z.object({ key: z.string(), children: z.array(z.never()) })),
+  children: z.array(z.object({ key: z.string() })),
 });
 const ImpactTreeDepth3Schema = z.object({
   key: z.string(),

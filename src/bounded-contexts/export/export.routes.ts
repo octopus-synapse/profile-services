@@ -63,6 +63,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     query: BannerQuery,
     headers: BANNER_HEADERS,
+    binary: { mediaType: 'image/png', filename: 'linkedin-banner.png' },
     openapi: {
       summary: 'Export LinkedIn banner image',
       tags: ['export'],
@@ -86,6 +87,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     query: ResumePdfQuery,
     headers: PDF_HEADERS,
+    binary: { mediaType: 'application/pdf', filename: 'resume.pdf' },
     guards: [{ id: 'feature-flag', metadata: { key: 'resumes.export.pdf' } }],
     openapi: {
       summary: 'Export resume as PDF document',
@@ -154,6 +156,10 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
     headers: DOCX_HEADERS,
+    binary: {
+      mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      filename: 'resume.docx',
+    },
     openapi: {
       summary: 'Export resume as DOCX document',
       tags: ['export'],
@@ -177,6 +183,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
     query: JsonExportQuery,
+    binary: { mediaType: 'application/json', filename: 'resume.json' },
     openapi: {
       summary: 'Export resume as JSON',
       tags: ['Export'],
@@ -210,6 +217,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
     query: LatexExportQuery,
+    binary: { mediaType: 'application/x-tex', filename: 'resume.tex' },
     openapi: {
       summary: 'Export resume as LaTeX',
       tags: ['Export'],

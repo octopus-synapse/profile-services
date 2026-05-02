@@ -1,8 +1,8 @@
 {
   "success": true,
   "generatedBy": "route-descriptors",
-  "paths": 342,
-  "operations": 410,
+  "paths": 344,
+  "operations": 412,
   "schemas": 0,
   "tags": [
     "Account Lifecycle",
@@ -71,6 +71,7 @@
     "platform-events",
     "posts",
     "public-resumes",
+    "realtime",
     "recruiting",
     "resume-analytics",
     "resume-quality",
@@ -102,8 +103,8 @@
     "users",
     "webhooks"
   ],
-  "clientPaths": 330,
-  "clientOperations": 398,
+  "clientPaths": 327,
+  "clientOperations": 395,
   "omittedFromSdk": [
     {
       "method": "GET",

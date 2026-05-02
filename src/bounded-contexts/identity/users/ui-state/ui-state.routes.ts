@@ -4,25 +4,11 @@
 
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
+import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import { UiStateService } from './ui-state.service';
 
 const KeyParam = z.object({ key: z.string() });
 const SetKeyBody = z.object({ value: z.unknown() });
-
-// ─── Response schemas ────────────────────────────────────────────────
-// JsonValue covers any value the user can persist (Prisma `Json` column).
-// Recursive lazy schema avoids `z.unknown()`/`z.any()` at every leaf.
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
-  z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.null(),
-    z.array(JsonValueSchema),
-    z.record(z.string(), JsonValueSchema),
-  ]),
-);
 
 const UiStateGetAllResponseSchema = z.object({
   state: z.record(z.string(), JsonValueSchema),

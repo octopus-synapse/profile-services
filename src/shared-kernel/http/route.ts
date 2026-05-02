@@ -48,8 +48,32 @@ export type StatusOverride = number;
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
 /** How the adapter parses the incoming body and shapes the outgoing
- *  response. Defaults to `'json'` when omitted. */
-export type RouteKind = 'json' | 'sse' | 'multipart' | 'stream';
+ *  response. Defaults to `'json'` when omitted.
+ *
+ *  - `json`: standard JSON request/response.
+ *  - `sse`: Server-Sent Events stream (handler returns Observable).
+ *  - `multipart`: multipart/form-data body parsing.
+ *  - `stream`: raw text/octet streaming (Prometheus /metrics, etc.). For
+ *    downloadable files prefer `route.binary` instead — it adds a media
+ *    type + filename to the OpenAPI doc so Orval generates `Promise<Blob>`.
+ *  - `redirect`: handler returns `withRedirect(url)`. Generator emits a
+ *    302 response with `Location` header; SDK skips body parsing.
+ */
+export type RouteKind = 'json' | 'sse' | 'multipart' | 'stream' | 'redirect';
+
+/**
+ * Binary response declaration. Routes that stream a file (PDF/DOCX/PNG…)
+ * declare the response media type + suggested filename here instead of
+ * a Zod `response` schema. The swagger generator emits
+ * `responses[200].content[mediaType] = { schema: { type: 'string', format: 'binary' } }`
+ * and Orval generates `Promise<Blob>` for the operation.
+ *
+ * Mutually exclusive with `response` and `kind: 'sse' | 'redirect'`.
+ */
+export interface BinaryResponseSpec {
+  readonly mediaType: string;
+  readonly filename?: string;
+}
 
 export interface AuthSpec {
   /**
@@ -150,6 +174,11 @@ export interface Route<
   /** Used by the SDK generator + OpenAPI doc. Optional — routes that
    *  return raw text/streams (Prometheus metrics, SSE) leave it off. */
   readonly response?: ZodSchema<unknown>;
+
+  /** Binary file response (PDF/DOCX/PNG…). Mutually exclusive with
+   *  `response`. Generator emits OpenAPI binary content type so Orval
+   *  produces `Promise<Blob>`. */
+  readonly binary?: BinaryResponseSpec;
 
   readonly openapi: OpenApiMeta;
   readonly sdk?: SdkMeta;

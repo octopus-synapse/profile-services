@@ -13,6 +13,11 @@ import { UploadUseCases } from './application/ports/upload.port';
 const ResumeIdParams = z.object({ resumeId: z.string() });
 const KeyParams = z.object({ key: z.string() });
 
+const UploadResponseSchema = z.object({
+  url: z.string().url(),
+  key: z.string(),
+});
+
 const DeleteUploadResponseSchema = z.object({ deleted: z.boolean() });
 
 export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
@@ -23,6 +28,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     kind: 'multipart',
     statusCode: 200,
+    response: UploadResponseSchema,
     openapi: {
       summary: 'Upload user profile image',
       tags: ['upload'],
@@ -48,6 +54,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     params: ResumeIdParams,
     kind: 'multipart',
     statusCode: 200,
+    response: UploadResponseSchema,
     openapi: {
       summary: 'Upload company logo for resume',
       tags: ['upload'],

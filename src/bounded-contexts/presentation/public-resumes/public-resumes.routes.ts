@@ -335,6 +335,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     auth: { kind: 'public' },
     params: SlugParam,
     headers: PNG_HEADERS,
+    binary: { mediaType: 'image/png', filename: 'og.png' },
     openapi: {
       summary: 'OpenGraph preview image for a public share slug',
       tags: ['public-resumes'],
@@ -357,6 +358,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     params: ShareIdParam,
     query: QrSizeSchema,
     headers: PNG_HEADERS,
+    binary: { mediaType: 'image/png', filename: 'qr.png' },
     openapi: {
       summary: 'Render a QR code PNG pointing to the share public URL',
       tags: ['shares'],

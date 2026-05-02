@@ -51,6 +51,17 @@ function isStreamingRoute(route: Route): boolean {
   return route.kind === 'sse' || route.kind === 'stream';
 }
 
+/** Routes that the client SDK should not generate a callable for.
+ *  SSE/stream stay in the server doc but not in client-swagger.json.
+ *  Redirect routes (OAuth start/callback) are meant for browser
+ *  navigation — clients use a `window.location.href` helper, not Orval. */
+function excludedFromSdk(route: Route): boolean {
+  if (route.kind === 'sse' || route.kind === 'redirect') return true;
+  // `stream` without `binary` is raw text (e.g. Prometheus /metrics).
+  if (route.kind === 'stream' && !route.binary) return true;
+  return false;
+}
+
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
     if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
@@ -327,6 +338,53 @@ function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: str
     }
   }
 
+  // Build the responses object based on route shape:
+  //  - `kind: 'redirect'` → 302 Found with Location header.
+  //  - `route.binary` set → 200 with binary content type.
+  //  - `route.response` set → 200 with JSON schema.
+  //  - otherwise → 200 with no schema (used by SSE/stream routes).
+  let responses: Record<string, unknown>;
+  if (route.kind === 'redirect') {
+    responses = {
+      302: {
+        description: 'Redirect',
+        headers: {
+          Location: { description: 'Target URL', schema: { type: 'string' } },
+        },
+      },
+    };
+  } else if (route.binary) {
+    const contentDispHeader = route.binary.filename
+      ? {
+          'Content-Disposition': {
+            description: `attachment; filename="${route.binary.filename}"`,
+            schema: { type: 'string' },
+          },
+        }
+      : undefined;
+    responses = {
+      200: {
+        description: 'Binary file response',
+        content: {
+          [route.binary.mediaType]: {
+            schema: { type: 'string', format: 'binary' },
+          },
+        },
+        ...(contentDispHeader ? { headers: contentDispHeader } : {}),
+      },
+    };
+  } else {
+    responses = {
+      200:
+        route.response && isZodSchema(route.response)
+          ? {
+              description: 'Successful response',
+              content: { 'application/json': { schema: route.response } },
+            }
+          : { description: 'Successful response' },
+    };
+  }
+
   registry.registerPath({
     method: route.method.toLowerCase() as
       | 'get'
@@ -346,15 +404,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry, overrideId?: str
       route.body && isZodSchema(route.body)
         ? { body: { content: { 'application/json': { schema: route.body } } } }
         : undefined,
-    responses: {
-      200:
-        route.response && isZodSchema(route.response)
-          ? {
-              description: 'Successful response',
-              content: { 'application/json': { schema: route.response } },
-            }
-          : { description: 'Successful response' },
-    },
+    responses: responses as never,
   });
 }
 
@@ -366,11 +416,11 @@ async function generate(): Promise<void> {
   // T12 — sdk.exported enforcement.
   // Default: a JSON route is part of the client SDK. Opt-out with
   // `sdk: { exported: false }` (used for legacy aliases and admin-only
-  // endpoints). SSE / stream routes are always omitted from the client
-  // spec but stay in the server spec for documentation.
+  // endpoints). SSE / stream / redirect routes are always omitted from
+  // the client spec but stay in the server spec for documentation.
   const omittedFromSdk: Array<{ method: string; path: string; reason: string }> = [];
   for (const route of routes) {
-    if (isStreamingRoute(route)) continue;
+    if (excludedFromSdk(route)) continue;
     if (route.sdk?.exported === false) {
       omittedFromSdk.push({
         method: route.method,
@@ -425,7 +475,7 @@ async function generate(): Promise<void> {
     try {
       registerRoute(route, registry, opIdByRoute.get(route));
       // Mirror to client registry only when SDK-eligible (default: yes).
-      if (!isStreamingRoute(route) && route.sdk?.exported !== false) {
+      if (!excludedFromSdk(route) && route.sdk?.exported !== false) {
         registerRoute(route, clientRegistry, opIdByRoute.get(route));
       }
     } catch (err) {
@@ -468,7 +518,7 @@ async function generate(): Promise<void> {
     tags: [...tagSet].sort(),
     clientPaths: Object.keys(clientDocument.paths ?? {}).length,
     clientOperations:
-      routes.length - omittedFromSdk.length - routes.filter(isStreamingRoute).length,
+      routes.length - omittedFromSdk.length - routes.filter(excludedFromSdk).length,
     omittedFromSdk,
   };
 

@@ -18,6 +18,7 @@
  */
 
 import { z } from 'zod';
+import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import type { Route } from '@/shared-kernel/http/route';
 import { ctxCookieWriter } from '../authentication/application/services/ctx-cookie-bridge';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
@@ -59,19 +60,6 @@ const ExportedResumePersonalInfoSchema = z.object({
   github: z.string().nullable(),
 });
 
-// Resume-section item content is Prisma `Json` — recursive lazy schema
-// matches every JSON value without resorting to `z.unknown()`/`z.any()`.
-type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
-const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
-  z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.null(),
-    z.array(JsonValueSchema),
-    z.record(z.string(), JsonValueSchema),
-  ]),
-);
 
 const GdprExportResponseSchema = z.object({
   exportedAt: z.string().datetime(),

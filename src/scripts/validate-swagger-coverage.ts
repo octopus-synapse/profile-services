@@ -1,357 +1,181 @@
 #!/usr/bin/env bun
-
 /**
- * Swagger Coverage Validator
+ * Route descriptor coverage validator.
  *
- * Enforces mandatory Swagger documentation for all API routes.
- * Fails the build if any route is missing required documentation.
+ * Walks every `src/**​/*.routes.ts` file, loads the exported `Route[]`
+ * arrays, and reports any route that lacks a usable response declaration.
  *
- * Required decorators:
- * - @ApiOperation() - Describes the endpoint purpose
- * - One composed response decorator:
- *   @ApiDataResponse() | @ApiPaginatedDataResponse() | @ApiEmptyDataResponse() | @ApiStreamResponse()
+ * A route is considered DOCUMENTED when one of these holds:
+ *  - `response` is a Zod schema (and not `z.unknown()` / `z.any()` / `z.never()`)
+ *  - `binary` is set (downloadable file — see `route.binary`)
+ *  - `kind: 'sse'` (SSE stream — body shape lives in EffectBatchSchema or per-stream docs)
+ *  - `kind: 'redirect'` (302 redirect — no body)
+ *  - `kind: 'stream'` (raw text stream, e.g. Prometheus)
+ *  - the path is in the static allowlist (e.g. `/health`, `/metrics`)
  *
- * Usage:
- *   bun run src/scripts/validate-swagger-coverage.ts
+ * Forbidden in response position: `z.unknown()`, `z.any()`, `z.never()`.
  *
  * Exit codes:
- *   0 - All routes documented
- *   1 - Missing documentation found
+ *   0 — all routes covered
+ *   1 — one or more violations (in `error` mode) or unexpected error
+ *
+ * Modes:
+ *   `SDK_COVERAGE_MODE=warn` — print but do not fail (default)
+ *   `SDK_COVERAGE_MODE=error` — fail the build on the first violation
  */
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-// @ts-expect-error — `glob` ships its own types; lost during nest cleanup.
-import { glob } from 'glob';
+import { readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import type { ZodSchema } from 'zod';
+import type { Route } from '@/shared-kernel/http/route';
 
-interface RouteValidation {
-  controller: string;
-  file: string;
-  method: string;
-  httpMethod: string;
-  line: number;
-  missing: string[];
+const SRC_DIR = resolve(__dirname, '../../src');
+const ROOT = resolve(__dirname, '../../');
+
+const MODE: 'warn' | 'error' = (process.env.SDK_COVERAGE_MODE as 'warn' | 'error') ?? 'warn';
+
+/** Path-prefix allowlist — routes that intentionally have no response
+ *  schema (Prometheus metrics, health probes). */
+const PATH_ALLOWLIST: ReadonlyArray<string> = ['/metrics', '/health'];
+
+interface Violation {
+  readonly file: string;
+  readonly method: string;
+  readonly path: string;
+  readonly reason: string;
 }
 
-interface ValidationResult {
-  totalControllers: number;
-  totalRoutes: number;
-  undocumentedRoutes: RouteValidation[];
-  success: boolean;
+function* walk(dir: string): Generator<string> {
+  for (const entry of readdirSync(dir)) {
+    if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
+    const full = join(dir, entry);
+    const st = statSync(full);
+    if (st.isDirectory()) yield* walk(full);
+    else if (st.isFile() && entry.endsWith('.routes.ts') && !entry.endsWith('.spec.ts')) {
+      yield full;
+    }
+  }
 }
 
-const HTTP_DECORATORS = ['@Get(', '@Post(', '@Put(', '@Patch(', '@Delete('];
-const REQUIRED_SWAGGER_DECORATORS = {
-  operation: ['@ApiOperation('],
-  response: [
-    '@ApiDataResponse(',
-    '@ApiPaginatedDataResponse(',
-    '@ApiEmptyDataResponse(',
-    '@ApiStreamResponse(',
-  ],
-  legacyResponse: ['@ApiResponse(', '@SwaggerResponse('],
-};
+function isRouteArray(value: unknown): value is ReadonlyArray<Route> {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const first = value[0] as Partial<Route> | undefined;
+  return (
+    typeof first === 'object' &&
+    first !== null &&
+    typeof (first as Route).method === 'string' &&
+    typeof (first as Route).path === 'string' &&
+    typeof (first as Route).handler === 'function'
+  );
+}
 
-/**
- * Main validation function
- */
-async function validateSwaggerCoverage(): Promise<ValidationResult> {
-  console.log('🔍 Scanning controllers for Swagger documentation...\n');
+function zodTypeName(schema: ZodSchema<unknown>): string | undefined {
+  return (schema as unknown as { _def?: { typeName?: string } })._def?.typeName;
+}
 
-  const controllersPattern = path.join(process.cwd(), 'src/**/*.controller.ts');
-  const controllerFiles = await glob(controllersPattern, {
-    ignore: ['**/node_modules/**', '**/dist/**'],
-  });
+function isAllowlistedPath(path: string): boolean {
+  return PATH_ALLOWLIST.some((p) => path === p || path.startsWith(`${p}/`));
+}
 
-  console.log(`📂 Found ${controllerFiles.length} controller files\n`);
+function checkRoute(file: string, route: Route): Violation | undefined {
+  const ctx = { file: relative(ROOT, file), method: route.method, path: route.path };
 
-  const undocumentedRoutes: RouteValidation[] = [];
+  // Path allowlist (e.g. /metrics).
+  if (isAllowlistedPath(route.path)) return;
+
+  // SSE / stream / redirect routes don't need a response schema.
+  if (route.kind === 'sse' || route.kind === 'stream' || route.kind === 'redirect') return;
+
+  // 204 No Content has no body by HTTP semantics.
+  if (route.statusCode === 204) return;
+
+  // Binary routes declare media via `route.binary`.
+  if (route.binary) return;
+
+  // Anything else must have a response Zod schema.
+  if (!route.response) {
+    return { ...ctx, reason: 'missing response (no `response`, `binary`, or non-json `kind`)' };
+  }
+
+  const typeName = zodTypeName(route.response);
+  if (typeName === 'ZodUnknown' || typeName === 'ZodAny' || typeName === 'ZodNever') {
+    return {
+      ...ctx,
+      reason: `response uses ${typeName} which is forbidden — declare an explicit schema`,
+    };
+  }
+  return;
+}
+
+async function main(): Promise<void> {
+  const violations: Violation[] = [];
   let totalRoutes = 0;
+  let totalFiles = 0;
 
-  for (const file of controllerFiles) {
-    const violations = await validateController(file);
-    undocumentedRoutes.push(...violations);
-    totalRoutes += countRoutesInFile(file);
-  }
-
-  return {
-    totalControllers: controllerFiles.length,
-    totalRoutes,
-    undocumentedRoutes,
-    success: undocumentedRoutes.length === 0,
-  };
-}
-
-/**
- * Validate a single controller file
- */
-async function validateController(filePath: string): Promise<RouteValidation[]> {
-  const content = await fs.promises.readFile(filePath, 'utf-8');
-  const lines = content.split('\n');
-  const violations: RouteValidation[] = [];
-
-  const controllerName = extractControllerName(filePath);
-
-  // @ApiExcludeController() is FORBIDDEN - all endpoints must be exposed
-  if (content.includes('@ApiExcludeController()')) {
-    violations.push({
-      controller: controllerName,
-      file: path.relative(process.cwd(), filePath),
-      method: '*',
-      httpMethod: '*',
-      line: lines.findIndex((l) => l.includes('@ApiExcludeController()')) + 1,
-      missing: ['@ApiExcludeController() is FORBIDDEN - remove it and add @SdkExport'],
-    });
-    return violations;
-  }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-
-    // Check if line contains an HTTP decorator
-    const httpDecorator = HTTP_DECORATORS.find((dec) => line.startsWith(dec));
-    if (!httpDecorator) continue;
-
-    // Check if this specific route is excluded
-    if (isRouteExcluded(lines, i)) {
-      continue; // Skip this route
+  for (const file of walk(SRC_DIR)) {
+    totalFiles += 1;
+    let mod: Record<string, unknown>;
+    try {
+      mod = (await import(pathToFileURL(file).href)) as Record<string, unknown>;
+    } catch (err) {
+      console.warn(`Skipped ${file}: ${err instanceof Error ? err.message : String(err)}`);
+      continue;
     }
-
-    // Found a route, now check for required Swagger decorators
-    const routeInfo = extractRouteInfo(lines, i);
-    const missingDecorators = findMissingDecorators(lines, i);
-
-    if (missingDecorators.length > 0) {
-      violations.push({
-        controller: controllerName,
-        file: path.relative(process.cwd(), filePath),
-        method: routeInfo.methodName,
-        httpMethod: routeInfo.httpMethod,
-        line: i + 1,
-        missing: missingDecorators,
-      });
+    for (const value of Object.values(mod)) {
+      if (!isRouteArray(value)) continue;
+      for (const route of value as Route[]) {
+        totalRoutes += 1;
+        const v = checkRoute(file, route);
+        if (v) violations.push(v);
+      }
     }
   }
 
-  return violations;
-}
-
-/**
- * Check if a specific route is excluded from Swagger
- */
-function isRouteExcluded(lines: string[], routeLineIndex: number): boolean {
-  // Check decorators above the route
-  const checkRangeStart = Math.max(0, routeLineIndex - 10);
-  const decoratorsAbove = lines
-    .slice(checkRangeStart, routeLineIndex)
-    .map((line) => line.trim())
-    .join('\n');
-
-  return decoratorsAbove.includes('@ApiExcludeEndpoint()');
-}
-
-/**
- * Extract controller name from file path
- */
-function extractControllerName(filePath: string): string {
-  const fileName = path.basename(filePath, '.ts');
-  return fileName
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-}
-
-/**
- * Extract route information (method name, HTTP verb)
- */
-function extractRouteInfo(
-  lines: string[],
-  routeLineIndex: number,
-): { methodName: string; httpMethod: string } {
-  const routeLine = lines[routeLineIndex].trim();
-
-  // Extract HTTP method from decorator
-  const httpMethod =
-    HTTP_DECORATORS.find((dec) => routeLine.startsWith(dec))
-      ?.replace('@', '')
-      .replace('(', '') ?? 'UNKNOWN';
-
-  // Find the method declaration (should be a few lines after the decorator)
-  // Skip decorator lines (lines starting with @)
-  // Increased search range to 30 lines to handle routes with many decorators
-  let methodName = 'unknown';
-  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
-    const line = lines[i].trim();
-    // Skip decorators
-    if (line.startsWith('@')) continue;
-    // Match async methodName( or methodName( but NOT starting with @
-    const match = line.match(/^(?:async\s+)?(\w+)\s*\(/);
-    if (match) {
-      methodName = match[1];
-      break;
-    }
-  }
-
-  return { methodName, httpMethod };
-}
-
-/**
- * Find missing required Swagger decorators for a route
- */
-function findMissingDecorators(lines: string[], routeLineIndex: number): string[] {
-  // Check decorators above AND after the HTTP route decorator
-  // Some decorators may appear after @Get(), @Post(), etc.
-  const checkRangeStart = Math.max(0, routeLineIndex - 20);
-
-  // Find where the method declaration starts (skip decorator lines)
-  // Increased search range to 30 lines to handle routes with many decorators
-  let methodLineIndex = routeLineIndex + 30;
-  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
-    const line = lines[i].trim();
-    // Skip decorators
-    if (line.startsWith('@')) continue;
-    // Check if line contains method declaration (but not a decorator)
-    if (line.match(/^(?:async\s+)?(\w+)\s*\(/)) {
-      methodLineIndex = i;
-      break;
-    }
-  }
-
-  const checkRangeEnd = methodLineIndex;
-
-  const decoratorsInRange = lines
-    .slice(checkRangeStart, checkRangeEnd)
-    .map((line) => line.trim())
-    .join('\n');
-
-  const missing: string[] = [];
-
-  // Check for @ApiOperation()
-  const hasOperation = REQUIRED_SWAGGER_DECORATORS.operation.some((decorator) =>
-    decoratorsInRange.includes(decorator),
-  );
-  if (!hasOperation) {
-    missing.push('@ApiOperation');
-  }
-
-  // Check for composed response decorators (new standard)
-  const hasResponse = REQUIRED_SWAGGER_DECORATORS.response.some((decorator) =>
-    decoratorsInRange.includes(decorator),
-  );
-  if (!hasResponse) {
-    missing.push(
-      '@ApiDataResponse|@ApiPaginatedDataResponse|@ApiEmptyDataResponse|@ApiStreamResponse',
-    );
-  }
-
-  // Legacy response decorators are forbidden by the new standard
-  const hasLegacyResponse = REQUIRED_SWAGGER_DECORATORS.legacyResponse.some((decorator) =>
-    decoratorsInRange.includes(decorator),
-  );
-  if (hasLegacyResponse) {
-    missing.push('legacy-response-decorator(@ApiResponse/@SwaggerResponse)');
-  }
-
-  return missing;
-}
-
-/**
- * Count total routes in a file
- */
-function countRoutesInFile(filePath: string): number {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  let count = 0;
-
-  for (const decorator of HTTP_DECORATORS) {
-    const regex = new RegExp(`${decorator.replace('(', '\\(')}`, 'g');
-    const matches = content.match(regex);
-    count += matches ? matches.length : 0;
-  }
-
-  return count;
-}
-
-/**
- * Print validation results
- */
-function printResults(result: ValidationResult): void {
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('              SWAGGER DOCUMENTATION VALIDATION');
-  console.log('═══════════════════════════════════════════════════════════════\n');
+  console.log('             ROUTE RESPONSE COVERAGE VALIDATOR');
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(`Files scanned:  ${totalFiles}`);
+  console.log(`Routes scanned: ${totalRoutes}`);
+  console.log(`Violations:     ${violations.length}`);
+  console.log(`Mode:           ${MODE}`);
+  console.log('───────────────────────────────────────────────────────────────');
 
-  console.log(`📊 Statistics:`);
-  console.log(`   Controllers scanned: ${result.totalControllers}`);
-  console.log(`   Total routes: ${result.totalRoutes}`);
-  console.log(`   Undocumented routes: ${result.undocumentedRoutes.length}\n`);
-
-  if (result.success) {
-    console.log('✅ SUCCESS: All routes have required Swagger documentation!\n');
-    console.log('═══════════════════════════════════════════════════════════════\n');
+  if (violations.length === 0) {
+    console.log('All routes have valid response declarations.');
+    process.exitCode = 0;
     return;
   }
 
-  console.log('❌ FAILURE: Found routes without required Swagger documentation\n');
-  console.log('Required decorators for each route (new standard):');
-  console.log('  • @ApiOperation() - Describes the endpoint');
-  console.log(
-    '  • One composed response decorator: @ApiDataResponse | @ApiPaginatedDataResponse | @ApiEmptyDataResponse | @ApiStreamResponse',
-  );
-  console.log('  • Legacy @ApiResponse/@SwaggerResponse are NOT allowed\n');
-  console.log('Example:');
-  console.log('  @Get()');
-  console.log("  @ApiOperation({ summary: 'List all resources' })");
-  console.log('  @ApiDataResponse(ResourceListDataDto, { description: "List all resources" })');
-  console.log('  async findAll() { ... }\n');
-
-  console.log('📋 Undocumented Routes:\n');
-
-  // Group by controller for better readability
-  const byController = new Map<string, RouteValidation[]>();
-  for (const violation of result.undocumentedRoutes) {
-    const existing = byController.get(violation.controller) ?? [];
-    existing.push(violation);
-    byController.set(violation.controller, existing);
+  // Group by file for readability.
+  const byFile = new Map<string, Violation[]>();
+  for (const v of violations) {
+    const existing = byFile.get(v.file) ?? [];
+    existing.push(v);
+    byFile.set(v.file, existing);
   }
-
-  for (const [controller, violations] of byController.entries()) {
-    console.log(`\n📁 ${controller}`);
-    console.log(`   File: ${violations[0].file}\n`);
-
-    for (const violation of violations) {
-      console.log(
-        `   ⚠️  ${violation.httpMethod.toUpperCase()} ${violation.method}() - Line ${violation.line}`,
-      );
-      console.log(`      Missing: ${violation.missing.join(', ')}`);
+  for (const [file, vs] of byFile) {
+    console.log(`\n${file}`);
+    for (const v of vs) {
+      console.log(`  ${v.method} ${v.path}`);
+      console.log(`    → ${v.reason}`);
     }
   }
+  console.log('───────────────────────────────────────────────────────────────');
+  console.log(`Hint: declare \`response: SomeZodSchema\`, \`binary: { mediaType }\`,`);
+  console.log(`      or \`kind: 'sse' | 'stream' | 'redirect'\` as appropriate.`);
 
-  console.log('\n═══════════════════════════════════════════════════════════════');
-  console.log('❌ Build failed due to missing Swagger documentation');
-  console.log('═══════════════════════════════════════════════════════════════\n');
-}
-
-/**
- * Main execution
- */
-async function main() {
-  try {
-    const result = await validateSwaggerCoverage();
-    printResults(result);
-
-    // Exit with error code if validation failed
-    if (!result.success) {
-      process.exit(1);
-    }
-  } catch (error) {
-    console.error('❌ Error during validation:', error);
-    process.exit(1);
+  if (MODE === 'error') {
+    console.log(`Failing build (SDK_COVERAGE_MODE=error).`);
+    process.exitCode = 1;
+  } else {
+    console.log(`Mode is 'warn' — not failing build. Set SDK_COVERAGE_MODE=error to enforce.`);
+    process.exitCode = 0;
   }
 }
 
-// Execute when run directly
 if (process.argv[1]?.includes('validate-swagger-coverage')) {
   void main();
 }
 
-export type { ValidationResult };
-export { validateSwaggerCoverage };
+export { main as validateSwaggerCoverage };

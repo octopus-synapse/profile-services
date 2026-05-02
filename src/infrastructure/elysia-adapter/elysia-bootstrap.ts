@@ -80,6 +80,7 @@ import { buildS3UploadService } from '@/bounded-contexts/platform/common/service
 import { buildHealthComposition } from '@/bounded-contexts/platform/health/health.composition';
 import { buildI18nComposition } from '@/bounded-contexts/platform/i18n/i18n.composition';
 import { buildMetricsComposition } from '@/bounded-contexts/platform/metrics/metrics.composition';
+import { buildRealtimeComposition } from '@/bounded-contexts/platform/realtime/realtime.composition';
 import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-runner/test-runner.composition';
 import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
@@ -244,6 +245,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const successStories = buildSuccessStoriesComposition(prisma as never, logger);
   const careerGraph = buildCareerGraphComposition(prisma as never);
   const uiMetadata = buildUiMetadataComposition(prisma as never, logger);
+  const realtime = buildRealtimeComposition({ eventBus });
+  for (const l of realtime.lifecycles ?? []) lifecycles.push(l);
   const dsl = buildDslComposition(prisma as never, logger);
   const oauth = buildOAuthComposition(prisma as never, logger, config);
   const oauthUseCases = buildOAuthUseCases(prisma as never, logger, config);
@@ -642,6 +645,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     successStories,
     careerGraph,
     uiMetadata,
+    realtime,
     dsl,
     oauth,
     importBc,

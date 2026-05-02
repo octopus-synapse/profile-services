@@ -124,6 +124,10 @@ const ImportResultResponseSchema = z.object({
 
 const ImportEmptyResponseSchema = z.null();
 
+const PdfImportResponseSchema = z.object({
+  resumeId: z.string(),
+});
+
 // GitHub-import responses (parse-from-token + connected-OAuth import).
 const GithubProjectBulletSchema = z.object({
   name: z.string(),
@@ -353,6 +357,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     permission: Permission.RESUME_IMPORT,
     kind: 'multipart',
     statusCode: 201,
+    response: PdfImportResponseSchema,
     openapi: {
       summary: 'Import resume from a PDF file',
       tags: ['Resume Import'],

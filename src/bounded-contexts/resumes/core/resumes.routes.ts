@@ -476,6 +476,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    binary: { mediaType: 'image/svg+xml', filename: 'thumbnail.svg' },
     headers: {
       'Content-Type': 'image/svg+xml; charset=utf-8',
       'Cache-Control': 'private, max-age=300',

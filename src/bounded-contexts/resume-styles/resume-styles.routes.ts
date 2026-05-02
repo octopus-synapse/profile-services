@@ -242,6 +242,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles/:id/preview.pdf',
     auth: { kind: 'jwt' },
     params: IdParams,
+    binary: { mediaType: 'application/pdf', filename: 'style-preview.pdf' },
     openapi: {
       summary: 'Render a generic preview PDF for the style',
       tags: ['resume-styles'],
