@@ -52,6 +52,62 @@ function paginate(q: { page?: string; limit?: string }): { page: number; limit: 
   };
 }
 
+// ─── Response schemas ─────────────────────────────────────────────────
+//
+// `metadata` is a Prisma JSON column whose shape varies per `ActivityType`
+// (e.g. `{followedUserId, followedUserName}` for `FOLLOWED_USER`). We
+// model it as a permissive `passthrough()` object — the same pattern
+// `feed/dto/create-post-request.dto.ts` uses for similarly-typed JSON
+// payloads.
+const ActivityMetadataSchema = z.object({}).passthrough().nullable();
+
+const ActivityUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const ActivityWithUserSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  type: z.enum([
+    'RESUME_CREATED',
+    'RESUME_UPDATED',
+    'RESUME_SHARED',
+    'RESUME_PUBLISHED',
+    'THEME_PUBLISHED',
+    'ACHIEVEMENT_EARNED',
+    'SKILL_ADDED',
+    'PROFILE_UPDATED',
+    'FOLLOWED_USER',
+    'CONNECTED_USER',
+  ]),
+  metadata: ActivityMetadataSchema,
+  entityId: z.string().nullable(),
+  entityType: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  user: ActivityUserSchema.optional(),
+});
+
+/**
+ * Legacy paginated shape returned by `ActivityService` —
+ * `{data, total, page, limit, totalPages}`. Distinct from the canonical
+ * `{items, total, ..., hasNext, hasPrev}` envelope; mirrors the actual
+ * JSON the handler emits (no migration scheduled yet).
+ */
+const ActivityPaginatedSchema = z.object({
+  data: z.array(ActivityWithUserSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+});
+
+const ActivityFeedResponseSchema = z.object({ feed: ActivityPaginatedSchema });
+
+const UserActivitiesResponseSchema = z.object({ activities: ActivityPaginatedSchema });
+
 export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
   {
     method: 'GET',
@@ -60,6 +116,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
     query: PageQuery,
+    response: ActivityFeedResponseSchema,
     openapi: {
       summary: 'Get authenticated user activity feed',
       tags: ['social-activity'],
@@ -77,6 +134,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     auth: { kind: 'jwt' },
     params: UserIdParam,
     query: PageQuery,
+    response: UserActivitiesResponseSchema,
     openapi: {
       summary: 'Get public activities for a user',
       tags: ['social-activity'],
@@ -94,6 +152,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     auth: { kind: 'jwt' },
     params: UserIdAndTypeParam,
     query: PageQuery,
+    response: UserActivitiesResponseSchema,
     openapi: {
       summary: 'Get user activities filtered by type',
       tags: ['social-activity'],

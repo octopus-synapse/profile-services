@@ -14,6 +14,18 @@ export abstract class ConnectionRecsRoutesBundle {
 
 const LimitQuery = z.object({ limit: z.string().optional() });
 
+const ConnectionRecommendationSchema = z.object({
+  userId: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  sharedSkills: z.array(z.string()),
+  overlapScore: z.number(),
+});
+
+const ConnectionRecommendationsResponseSchema = z.object({
+  recommendations: z.array(ConnectionRecommendationSchema),
+});
+
 export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundle>> = [
   {
     method: 'GET',
@@ -21,6 +33,7 @@ export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundl
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: LimitQuery,
+    response: ConnectionRecommendationsResponseSchema,
     openapi: {
       summary: 'Users sharing the most skills with you',
       tags: ['social'],

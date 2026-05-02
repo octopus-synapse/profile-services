@@ -32,6 +32,138 @@ const AcceptConsentRequestSchema = z.object({
   userAgent: z.string().optional(),
 });
 
+// ─── Response schemas ────────────────────────────────────────────────
+const MessageResponseSchema = z.object({ message: z.string() });
+
+// POST /v1/accounts handler returns userId/email + auth tokens for auto-login.
+const CreateAccountResponseSchema = z.object({
+  userId: z.string(),
+  email: z.string(),
+  message: z.string(),
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  expiresIn: z.number().int(),
+});
+
+// Mirrors `GdprExportData` from export-data.use-case.ts. The two
+// inherently polymorphic JSON fields (`personalInfo`, item `content`)
+// are modelled with explicit shapes pulled from the data-export port.
+const ExportedResumePersonalInfoSchema = z.object({
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  summary: z.string().nullable(),
+  phone: z.string().nullable(),
+  location: z.string().nullable(),
+  website: z.string().nullable(),
+  linkedin: z.string().nullable(),
+  github: z.string().nullable(),
+});
+
+// Resume-section item content is Prisma `Json` — recursive lazy schema
+// matches every JSON value without resorting to `z.unknown()`/`z.any()`.
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(JsonValueSchema),
+    z.record(z.string(), JsonValueSchema),
+  ]),
+);
+
+const GdprExportResponseSchema = z.object({
+  exportedAt: z.string().datetime(),
+  dataRetentionPolicy: z.string(),
+  user: z.object({
+    id: z.string(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
+    username: z.string().nullable(),
+    hasCompletedOnboarding: z.boolean(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  }),
+  consents: z.array(
+    z.object({
+      documentType: z.string(),
+      version: z.string(),
+      acceptedAt: z.string().datetime(),
+      ipAddress: z.string().nullable(),
+      userAgent: z.string().nullable(),
+    }),
+  ),
+  resumes: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string().nullable(),
+      slug: z.string().nullable(),
+      isPublic: z.boolean(),
+      createdAt: z.string().datetime(),
+      updatedAt: z.string().datetime(),
+      personalInfo: ExportedResumePersonalInfoSchema,
+      sections: z.array(
+        z.object({
+          sectionTypeKey: z.string(),
+          semanticKind: z.string(),
+          items: z.array(
+            z.object({
+              id: z.string(),
+              order: z.number().int(),
+              content: JsonValueSchema,
+              createdAt: z.string().datetime(),
+              updatedAt: z.string().datetime(),
+            }),
+          ),
+        }),
+      ),
+    }),
+  ),
+  auditLogs: z.array(
+    z.object({
+      action: z.string(),
+      entityType: z.string(),
+      entityId: z.string(),
+      createdAt: z.string().datetime(),
+      ipAddress: z.string().nullable(),
+    }),
+  ),
+});
+
+const AcceptConsentResponseSchema = z.object({
+  message: z.string(),
+  consent: z.object({
+    id: z.string(),
+    userId: z.string(),
+    documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
+    version: z.string(),
+    acceptedAt: z.string().datetime(),
+    ipAddress: z.string(),
+    userAgent: z.string(),
+  }),
+});
+
+const ConsentStatusResponseSchema = z.object({
+  tosAccepted: z.boolean(),
+  privacyPolicyAccepted: z.boolean(),
+  marketingConsentAccepted: z.boolean(),
+  latestTosVersion: z.string(),
+  latestPrivacyPolicyVersion: z.string(),
+});
+
+// `toConsentHistoryResponse` returns an array of records — see presenter.
+const ConsentHistoryResponseSchema = z.array(
+  z.object({
+    id: z.string(),
+    documentType: z.string(),
+    version: z.string(),
+    acceptedAt: z.string().datetime(),
+    ipAddress: z.string(),
+    userAgent: z.string(),
+  }),
+);
+
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
   {
     method: 'POST',
@@ -39,6 +171,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     statusCode: 201,
     auth: { kind: 'public' },
     body: CreateAccountSchema,
+    response: CreateAccountResponseSchema,
     openapi: {
       summary: 'Create new account',
       tags: ['accounts'],
@@ -81,6 +214,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     path: '/v1/accounts/deactivate',
     auth: { kind: 'jwt' },
     body: DeactivateAccountSchema,
+    response: MessageResponseSchema,
     openapi: {
       summary: 'Deactivate account',
       tags: ['Account Lifecycle'],
@@ -104,6 +238,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     // SkipTosCheck — the user can't be forced to accept new TOS before
     // deleting their account (LGPD parity).
     guards: [{ id: 'skip-tos-check' }],
+    response: MessageResponseSchema,
     openapi: {
       summary: 'Delete account permanently',
       tags: ['Account Lifecycle'],
@@ -128,6 +263,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     // the latest TOS revision — they're exercising their right to
     // their own data, not consenting to processing.
     guards: [{ id: 'skip-tos-check' }],
+    response: GdprExportResponseSchema,
     openapi: {
       summary: 'Export user data (GDPR Article 20)',
       tags: ['GDPR'],
@@ -149,6 +285,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     body: AcceptConsentRequestSchema,
     statusCode: 201,
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: AcceptConsentResponseSchema,
     openapi: {
       summary: 'Accept Terms of Service or Privacy Policy',
       tags: ['User Consent'],
@@ -196,6 +333,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     path: '/v1/users/me/consent-status',
     auth: { kind: 'jwt' },
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: ConsentStatusResponseSchema,
     openapi: {
       summary: 'Check consent acceptance status',
       tags: ['User Consent'],
@@ -212,6 +350,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     path: '/v1/users/me/consent-history',
     auth: { kind: 'jwt' },
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: ConsentHistoryResponseSchema,
     openapi: {
       summary: 'Get consent acceptance history',
       tags: ['User Consent'],

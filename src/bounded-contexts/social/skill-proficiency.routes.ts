@@ -23,12 +23,31 @@ const SetProficiencyBody = z.object({
   yearsOfExperience: z.number().int().min(0).max(80).optional(),
 });
 
+const SkillProficiencyEntrySchema = z.object({
+  skillName: z.string(),
+  proficiency: z.string(),
+  yearsOfExperience: z.number().int().nullable(),
+  updatedAt: z.string().datetime(),
+});
+
+const ListProficiencyResponseSchema = z.object({
+  proficiencies: z.array(SkillProficiencyEntrySchema),
+});
+
+const SetProficiencyResponseSchema = z.object({
+  skillName: z.string(),
+  proficiency: z.string(),
+});
+
+const ClearProficiencyResponseSchema = z.null();
+
 export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesBundle>> = [
   {
     method: 'GET',
     path: '/v1/me/skill-proficiency',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
+    response: ListProficiencyResponseSchema,
     openapi: {
       summary: 'List my declared skill proficiencies.',
       tags: ['Skills'],
@@ -47,6 +66,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     permission: Permission.USER_PROFILE_UPDATE,
     params: SkillNameParam,
     body: SetProficiencyBody,
+    response: SetProficiencyResponseSchema,
     openapi: {
       summary: 'Set proficiency for a skill (creates if missing).',
       tags: ['Skills'],
@@ -71,6 +91,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     params: SkillNameParam,
+    response: ClearProficiencyResponseSchema,
     openapi: {
       summary: 'Clear proficiency for a skill.',
       tags: ['Skills'],

@@ -39,12 +39,98 @@ function paginate(
   };
 }
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const ConnectionUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const ConnectionWithUserSchema = z.object({
+  id: z.string(),
+  requesterId: z.string(),
+  targetId: z.string(),
+  status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  requester: ConnectionUserSchema.optional(),
+  target: ConnectionUserSchema.optional(),
+  user: ConnectionUserSchema.optional(),
+});
+
+const ConnectionSuggestionSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  reason: z.string(),
+  score: z.number(),
+  mutualCount: z.number().int(),
+  commonSkills: z.array(z.string()),
+});
+
+/**
+ * Legacy paginated shape returned by `ConnectionService` —
+ * `{data, total, page, limit, totalPages}`. Distinct from the canonical
+ * `{items, total, page, limit, totalPages, hasNext, hasPrev}` response
+ * because the service hasn't been migrated yet; the schema mirrors the
+ * actual JSON the handler emits.
+ */
+const ConnectionPaginatedSchema = z.object({
+  data: z.array(ConnectionWithUserSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+});
+
+const SuggestionsPaginatedSchema = z.object({
+  data: z.array(ConnectionSuggestionSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+});
+
+const NetworkSummaryResponseSchema = z.object({
+  stats: z.object({
+    connections: z.number().int(),
+    followers: z.number().int(),
+    following: z.number().int(),
+    pendingInvitations: z.number().int(),
+  }),
+  pendingRequests: ConnectionPaginatedSchema,
+  connections: ConnectionPaginatedSchema,
+  suggestions: SuggestionsPaginatedSchema,
+});
+
+const ConnectionIdResponseSchema = z.object({ id: z.string() });
+
+const ConnectionRemovedResponseSchema = z.object({ removed: z.literal(true) });
+
+const ConnectionsListResponseSchema = z.object({ connections: ConnectionPaginatedSchema });
+
+const PendingRequestsListResponseSchema = z.object({
+  pendingRequests: ConnectionPaginatedSchema,
+});
+
+const SuggestionsListResponseSchema = z.object({ suggestions: SuggestionsPaginatedSchema });
+
+const ConnectionStatsResponseSchema = z.object({ connections: z.number().int() });
+
+const ConnectionStatusResponseSchema = z.object({
+  isConnected: z.boolean(),
+  pendingSentConnectionId: z.string().nullable(),
+});
+
 export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
   {
     method: 'GET',
     path: '/v1/users/me/network-summary',
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
+    response: NetworkSummaryResponseSchema,
     openapi: {
       summary: 'Get network summary for authenticated user',
       tags: ['social-connections'],
@@ -81,6 +167,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Send a connection request',
       tags: ['social-connections'],
@@ -100,6 +187,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Accept a connection request',
       tags: ['social-connections'],
@@ -119,6 +207,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Reject a connection request',
       tags: ['social-connections'],
@@ -138,6 +227,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Withdraw a sent (pending) connection request',
       tags: ['social-connections'],
@@ -154,6 +244,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionRemovedResponseSchema,
     openapi: {
       summary: 'Remove a connection',
       tags: ['social-connections'],
@@ -170,6 +261,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: ConnectionsListResponseSchema,
     openapi: {
       summary: 'Get accepted connections',
       tags: ['social-connections'],
@@ -186,6 +278,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get pending connection requests',
       tags: ['social-connections'],
@@ -205,6 +298,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get sent (pending) connection requests',
       tags: ['social-connections'],
@@ -221,6 +315,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: SuggestionsListResponseSchema,
     openapi: {
       summary: 'Get connection suggestions',
       tags: ['social-connections'],
@@ -242,6 +337,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     path: '/v1/users/:userId/connection-stats',
     auth: { kind: 'public' },
     params: UserIdParam,
+    response: ConnectionStatsResponseSchema,
     openapi: {
       summary: 'Get connection stats for a user',
       tags: ['social-connections'],
@@ -258,6 +354,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: ConnectionStatusResponseSchema,
     openapi: {
       summary: 'Check connection status',
       tags: ['social-connections'],

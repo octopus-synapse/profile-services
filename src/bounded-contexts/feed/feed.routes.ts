@@ -8,7 +8,7 @@
  * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
-import { PostType, type ReactionType } from '@prisma/client';
+import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
@@ -74,6 +74,232 @@ const ComposerConfigResponseSchema = z.object({
   postTypes: z.array(z.nativeEnum(PostType)),
 });
 
+// ─── Shared post-shape schemas ────────────────────────────────────────
+//
+// These mirror the domain entities from `domain/entities/*`. The post
+// `data`, `linkPreview`, and `codeSnippet` columns are persisted as
+// JSON; we expose them as permissive `passthrough()` objects so
+// arbitrary structured payloads round-trip without losing fields.
+
+const PostAuthorSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  bio: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+});
+
+const LinkPreviewDataSchema = z
+  .object({
+    title: z.string().nullable(),
+    description: z.string().nullable(),
+    image: z.string().nullable(),
+    domain: z.string(),
+  })
+  .nullable();
+
+const CodeSnippetSchema = z
+  .object({
+    language: z.string(),
+    code: z.string(),
+    filename: z.string().optional(),
+  })
+  .nullable();
+
+const PostDataSchema = z.object({}).passthrough().nullable();
+
+const BasePostSchema = z.object({
+  id: z.string(),
+  authorId: z.string(),
+  type: z.nativeEnum(PostType),
+  subtype: z.string().nullable(),
+  content: z.string().nullable(),
+  hardSkills: z.array(z.string()),
+  softSkills: z.array(z.string()),
+  hashtags: z.array(z.string()),
+  data: PostDataSchema,
+  imageUrl: z.string().nullable(),
+  linkUrl: z.string().nullable(),
+  linkPreview: LinkPreviewDataSchema,
+  originalPostId: z.string().nullable(),
+  coAuthors: z.array(z.string()),
+  scheduledAt: z.string().datetime().nullable(),
+  isPublished: z.boolean(),
+  threadId: z.string().nullable(),
+  pollDeadline: z.string().datetime().nullable(),
+  votesCount: z.number().int(),
+  codeSnippet: CodeSnippetSchema,
+  likesCount: z.number().int(),
+  commentsCount: z.number().int(),
+  repostsCount: z.number().int(),
+  bookmarksCount: z.number().int(),
+  isDeleted: z.boolean(),
+  deletedAt: z.string().datetime().nullable(),
+  isAnonymous: z.boolean(),
+  anonymousCategory: z.nativeEnum(AnonymousCategory).nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const PostWithAuthorSchema = BasePostSchema.extend({
+  author: PostAuthorSchema,
+});
+
+const PostWithRelationsSchema = PostWithAuthorSchema.extend({
+  originalPost: PostWithAuthorSchema.nullable().optional(),
+});
+
+const FeedItemSchema = PostWithRelationsSchema.extend({
+  isLiked: z.boolean(),
+  reactionType: z.nativeEnum(ReactionType).nullable(),
+  isBookmarked: z.boolean(),
+  isReposted: z.boolean(),
+  hasVoted: z.boolean(),
+  myVoteIndex: z.number().int().nullable(),
+  threadPosts: z.array(PostWithRelationsSchema),
+});
+
+const BookmarkedFeedItemSchema = PostWithRelationsSchema.extend({
+  bookmarkedAt: z.string().datetime(),
+  isLiked: z.boolean(),
+  isBookmarked: z.boolean(),
+});
+
+const FeedTimelineResponseSchema = z.object({
+  posts: z.array(FeedItemSchema),
+  nextCursor: z.string().nullable(),
+});
+
+const FeedBookmarksResponseSchema = z.object({
+  posts: z.array(BookmarkedFeedItemSchema),
+  nextCursor: z.string().nullable(),
+});
+
+const UserPostsResponseSchema = z.object({
+  posts: z.array(PostWithRelationsSchema),
+  nextCursor: z.string().nullable(),
+});
+
+// ─── Comments ───────────────────────────────────────────────────────
+const CommentBaseSchema = z.object({
+  id: z.string(),
+  postId: z.string(),
+  authorId: z.string(),
+  content: z.string(),
+  parentId: z.string().nullable(),
+  isDeleted: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const CommentWithAuthorSchema = CommentBaseSchema.extend({
+  author: PostAuthorSchema,
+});
+
+const CommentWithRepliesSchema = CommentWithAuthorSchema.extend({
+  replies: z.array(CommentWithAuthorSchema),
+});
+
+const CommentWithPostSchema = CommentWithAuthorSchema.extend({
+  post: z.object({
+    id: z.string(),
+    type: z.string(),
+    content: z.string().nullable(),
+    authorId: z.string(),
+    author: PostAuthorSchema,
+  }),
+});
+
+const CommentsListResponseSchema = z.object({
+  comments: z.array(CommentWithRepliesSchema),
+  nextCursor: z.string().nullable(),
+});
+
+const UserCommentsResponseSchema = z.object({
+  comments: z.array(CommentWithPostSchema),
+  nextCursor: z.string().nullable(),
+});
+
+// ─── Engagement ─────────────────────────────────────────────────────
+const LikePostResponseSchema = z.object({
+  postId: z.string(),
+  userId: z.string(),
+  reactionType: z.nativeEnum(ReactionType),
+  postAuthorId: z.string().optional(),
+  alreadyLiked: z.boolean(),
+  updated: z.boolean().optional(),
+});
+
+const UnlikePostResponseSchema = z.object({
+  postId: z.string(),
+  userId: z.string(),
+});
+
+const BookmarkPostResponseSchema = z.object({
+  postId: z.string(),
+  userId: z.string(),
+  alreadyBookmarked: z.boolean(),
+});
+
+const UnbookmarkPostResponseSchema = z.object({
+  postId: z.string(),
+  userId: z.string(),
+});
+
+const RepostPostResponseSchema = z.union([
+  PostWithAuthorSchema,
+  z.object({
+    postId: z.string(),
+    userId: z.string(),
+    reposted: z.boolean(),
+  }),
+]);
+
+const ReportPostResponseSchema = z.object({
+  id: z.string(),
+  postId: z.string(),
+  userId: z.string(),
+  reason: z.string(),
+  status: z.string(),
+  createdAt: z.string().datetime(),
+});
+
+const PollVoteResponseSchema = z.object({
+  id: z.string(),
+  postId: z.string(),
+  userId: z.string(),
+  optionIndex: z.number().int(),
+  createdAt: z.string().datetime(),
+});
+
+const ReactionWithPostSchema = z.object({
+  postId: z.string(),
+  userId: z.string(),
+  reactionType: z.nativeEnum(ReactionType),
+  createdAt: z.string().datetime(),
+  post: z.object({
+    id: z.string(),
+    type: z.string(),
+    content: z.string().nullable(),
+    authorId: z.string(),
+    author: PostAuthorSchema,
+  }),
+});
+
+const UserReactionsResponseSchema = z.object({
+  reactions: z.array(ReactionWithPostSchema),
+  nextCursor: z.string().nullable(),
+});
+
+// ─── Misc ───────────────────────────────────────────────────────────
+const DeletedResponseSchema = z.object({ deleted: z.literal(true) });
+
+const PostImageUploadResponseSchema = z.object({
+  url: z.string(),
+  key: z.string(),
+});
+
 export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
   // ─── Composer config ──────────────────────────────────────────────
   {
@@ -99,6 +325,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     body: CreatePostSchema,
+    response: PostWithAuthorSchema,
     openapi: {
       summary: 'Create a new post',
       tags: ['posts'],
@@ -118,6 +345,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: PostWithRelationsSchema,
     openapi: {
       summary: 'Get a post by ID',
       tags: ['posts'],
@@ -135,6 +363,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: DeletedResponseSchema,
     openapi: {
       summary: 'Delete a post',
       tags: ['posts'],
@@ -155,6 +384,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     query: TimelineQuery,
+    response: FeedTimelineResponseSchema,
     openapi: {
       summary: 'Get feed timeline',
       tags: ['feed'],
@@ -178,6 +408,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     query: PaginationQuery,
+    response: FeedBookmarksResponseSchema,
     openapi: {
       summary: 'Get bookmarked posts',
       tags: ['feed'],
@@ -196,6 +427,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserPostsResponseSchema,
     openapi: {
       summary: 'Get posts by user',
       tags: ['feed'],
@@ -217,6 +449,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     query: PaginationQuery,
+    response: CommentsListResponseSchema,
     openapi: {
       summary: 'Get comments for a post',
       tags: ['comments'],
@@ -236,6 +469,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: CreateCommentBodySchema,
+    response: CommentWithAuthorSchema,
     openapi: {
       summary: 'Create a comment',
       tags: ['comments'],
@@ -254,6 +488,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: DeletedResponseSchema,
     openapi: {
       summary: 'Delete a comment',
       tags: ['comments'],
@@ -275,6 +510,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: LikeBodySchema,
+    response: LikePostResponseSchema,
     openapi: {
       summary: 'Like a post',
       tags: ['engagement'],
@@ -293,6 +529,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: UnlikePostResponseSchema,
     openapi: {
       summary: 'Unlike a post',
       tags: ['engagement'],
@@ -310,6 +547,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: BookmarkPostResponseSchema,
     openapi: {
       summary: 'Bookmark a post',
       tags: ['engagement'],
@@ -327,6 +565,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: UnbookmarkPostResponseSchema,
     openapi: {
       summary: 'Remove bookmark from a post',
       tags: ['engagement'],
@@ -345,6 +584,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: RepostBodySchema,
+    response: RepostPostResponseSchema,
     openapi: {
       summary: 'Repost a post',
       tags: ['engagement'],
@@ -364,6 +604,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: ReportBodySchema,
+    response: ReportPostResponseSchema,
     openapi: {
       summary: 'Report a post',
       tags: ['engagement'],
@@ -383,6 +624,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: VoteBodySchema,
+    response: PollVoteResponseSchema,
     openapi: {
       summary: 'Vote on a poll',
       tags: ['engagement'],
@@ -404,6 +646,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserCommentsResponseSchema,
     openapi: {
       summary: 'List comments authored by a user',
       tags: ['user-engagement'],
@@ -423,6 +666,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserReactionsResponseSchema,
     openapi: {
       summary: 'List reactions given by a user',
       tags: ['user-engagement'],
@@ -444,6 +688,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     kind: 'multipart',
     statusCode: 200,
+    response: PostImageUploadResponseSchema,
     openapi: {
       summary: 'Upload post image',
       tags: ['posts'],

@@ -56,6 +56,143 @@ interface SettingsSectionPayload {
   readonly info: readonly SettingsInfoLine[];
 }
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const LocalizedLabelsSchema = z.object({
+  'pt-BR': z.string(),
+  en: z.string(),
+});
+
+const EnumKeysResponseSchema = z.object({ keys: z.array(z.string()) });
+
+const EnumValueDescriptorSchema = z.object({
+  value: z.string(),
+  icon: z.string(),
+  group: z.string().optional(),
+  tone: z.enum(['neutral', 'info', 'success', 'warning', 'danger']).optional(),
+  labels: LocalizedLabelsSchema,
+});
+
+const EnumDescriptorResponseSchema = z.object({
+  key: z.string(),
+  values: z.array(EnumValueDescriptorSchema),
+});
+
+// Menu tree is bounded at two levels by `application/services/menu-builder.ts`
+// (root nodes + a single layer of children). The schema mirrors that
+// invariant explicitly instead of using `z.lazy`, which the swagger generator
+// (`@asteasolutions/zod-to-openapi`) cannot serialise without an explicit
+// `.openapi({ refId })` ceremony per recursive node.
+const MenuLeafSchema = z.object({
+  id: z.string(),
+  path: z.string(),
+  icon: z.string(),
+  labels: LocalizedLabelsSchema,
+  requires: z.array(z.string()).optional(),
+});
+
+const MenuNodeSchema = MenuLeafSchema.extend({
+  children: z.array(MenuLeafSchema).optional(),
+});
+
+const UserMenuResponseSchema = z.object({ menu: z.array(MenuNodeSchema) });
+
+const DashboardCounterSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  value: z.number().int(),
+});
+
+const DashboardNotificationSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  message: z.string(),
+  messageKey: z.string().nullable(),
+  // `messageParams` is a Prisma JSON column whose shape varies per
+  // notification type — passthrough so arbitrary structured payloads
+  // round-trip without losing fields.
+  messageParams: z.object({}).passthrough().nullable(),
+  read: z.boolean(),
+  createdAt: z.string().datetime(),
+});
+
+const DashboardViewerSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string().nullable(),
+});
+
+const DashboardCtaSchema = z.object({ label: z.string(), href: z.string() });
+
+const DashboardWidgetSchema = z.discriminatedUnion('type', [
+  z.object({
+    id: z.literal('greeting'),
+    type: z.literal('greeting-hero'),
+    title: z.string(),
+    size: z.literal('wide'),
+    data: z.object({ viewer: DashboardViewerSchema }),
+  }),
+  z.object({
+    id: z.literal('counters'),
+    type: z.literal('counter-grid'),
+    title: z.string(),
+    size: z.literal('wide'),
+    data: z.object({ counters: z.array(DashboardCounterSchema) }),
+  }),
+  z.object({
+    id: z.literal('recent-notifications'),
+    type: z.literal('list'),
+    title: z.string(),
+    size: z.literal('half'),
+    data: z.object({ items: z.array(DashboardNotificationSchema) }),
+    cta: DashboardCtaSchema,
+  }),
+  z.object({
+    id: z.literal('follow-ups'),
+    type: z.literal('counter'),
+    title: z.string(),
+    size: z.literal('half'),
+    data: z.object({ count: z.number().int() }),
+    cta: DashboardCtaSchema,
+  }),
+]);
+
+const MeDashboardResponseSchema = z.object({
+  widgets: z.array(DashboardWidgetSchema),
+});
+
+const SettingsFieldSchema = z.object({
+  key: z.string(),
+  type: z.enum(['text', 'longtext', 'email', 'password', 'enum', 'boolean', 'number']),
+  label: z.string(),
+  required: z.boolean(),
+  placeholder: z.string().optional(),
+  helpText: z.string().optional(),
+  maxLength: z.number().int().optional(),
+  minLength: z.number().int().optional(),
+  options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+});
+
+const SettingsActionSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  intent: z.enum(['primary', 'danger', 'secondary']),
+  confirmRequired: z.boolean().optional(),
+  endpoint: z.object({ method: z.string(), path: z.string() }),
+});
+
+const SettingsInfoLineSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  value: z.string(),
+});
+
+const SettingsSectionResponseSchema = z.object({
+  section: z.string(),
+  fields: z.array(SettingsFieldSchema),
+  actions: z.array(SettingsActionSchema),
+  info: z.array(SettingsInfoLineSchema),
+});
+
 function buildSettingsSection(
   section: string,
   user: { userId: string; email?: string | null },
@@ -250,6 +387,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     method: 'GET',
     path: '/v1/enums',
     auth: { kind: 'public' },
+    response: EnumKeysResponseSchema,
     openapi: {
       summary: 'List all enum keys exposed by the catalog.',
       tags: ['ui-metadata'],
@@ -265,6 +403,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     path: '/v1/enums/:key',
     auth: { kind: 'public' },
     params: EnumKeyParams,
+    response: EnumDescriptorResponseSchema,
     openapi: {
       summary:
         'Full descriptor for a UI enum (notification-types, job-application-event-types, etc.) with localized labels + icon hints.',
@@ -285,6 +424,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     method: 'GET',
     path: '/v1/me/menu',
     auth: { kind: 'jwt' },
+    response: UserMenuResponseSchema,
     openapi: {
       summary:
         'Permission-aware navigation tree for the current user with labels in the request locale.',
@@ -301,6 +441,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     method: 'GET',
     path: '/v1/pages/me-dashboard',
     auth: { kind: 'jwt' },
+    response: MeDashboardResponseSchema,
     openapi: {
       summary: 'Composite dashboard widgets (server-driven)',
       tags: ['pages'],
@@ -363,6 +504,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     path: '/v1/pages/settings/:section',
     auth: { kind: 'jwt' },
     params: SettingsSectionParams,
+    response: SettingsSectionResponseSchema,
     openapi: {
       summary: 'Server-driven settings section (fields + actions + info)',
       tags: ['pages'],

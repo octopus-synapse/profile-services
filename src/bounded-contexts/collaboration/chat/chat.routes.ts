@@ -21,7 +21,15 @@ import {
   SendMessageSchema,
   SendMessageToConversationSchema,
 } from './dto/chat-request.dto';
-import { BlockUserSchema } from './schemas/chat.schema';
+import {
+  BlockedUserResponseSchema,
+  BlockUserSchema,
+  ConversationResponseSchema,
+  MessageResponseSchema,
+  PaginatedConversationsResponseSchema,
+  PaginatedMessagesResponseSchema,
+  UnreadCountResponseSchema,
+} from './schemas/chat.schema';
 import type { ChatPreferenceService } from './services/chat-preference.service';
 import type { ChatUserSearchService } from './services/user-search.service';
 
@@ -47,6 +55,50 @@ const SetMuteSchema = z.object({
   mutedUntil: z.string().datetime().optional(),
 });
 
+// ─── Response schemas ──────────────────────────────────────────────
+const SendMessageResponseSchema = z.object({ message: MessageResponseSchema });
+
+const GetConversationsResponseSchema = z.object({
+  conversations: PaginatedConversationsResponseSchema,
+});
+
+const GetConversationResponseSchema = z.object({ conversation: ConversationResponseSchema });
+
+const GetMessagesResponseSchema = z.object({ messages: PaginatedMessagesResponseSchema });
+
+const MarkConversationReadResponseSchema = z.object({ count: z.number().int() });
+
+const ConversationWithUserResponseSchema = z.union([
+  z.object({ conversationId: z.null() }),
+  z.object({ conversationId: z.string(), conversation: ConversationResponseSchema }),
+]);
+
+const UserSearchResultSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const ChatUsersSearchResponseSchema = z.object({
+  users: z.array(UserSearchResultSchema),
+});
+
+const SetPinResponseSchema = z.object({ pinned: z.boolean() });
+
+const SetMuteResponseSchema = z.object({
+  muted: z.boolean(),
+  mutedUntil: z.string().datetime().nullable(),
+});
+
+const BlockUserResponseSchemaWrapped = z.object({ block: BlockedUserResponseSchema });
+
+const BlockedUsersResponseSchema = z.object({
+  blockedUsers: z.array(BlockedUserResponseSchema),
+});
+
+const BlockStatusResponseSchema = z.object({ isBlocked: z.boolean() });
+
 export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   // ─── Chat: messaging + conversations ───────────────────────────────
   {
@@ -56,6 +108,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     body: SendMessageSchema,
+    response: SendMessageResponseSchema,
     openapi: { summary: 'Send a message to a user', tags: ['chat'], description: 'Chat API' },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
@@ -72,6 +125,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
     body: SendMessageToConversationSchema,
+    response: SendMessageResponseSchema,
     openapi: {
       summary: 'Send a message to an existing conversation',
       tags: ['chat'],
@@ -95,6 +149,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     query: GetConversationsRequestQuerySchema,
+    response: GetConversationsResponseSchema,
     openapi: {
       summary: 'Get all conversations for the current user',
       tags: ['chat'],
@@ -116,6 +171,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
+    response: GetConversationResponseSchema,
     openapi: {
       summary: 'Get a single conversation',
       tags: ['chat'],
@@ -138,6 +194,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
     query: GetMessagesRequestQuerySchema,
+    response: GetMessagesResponseSchema,
     openapi: {
       summary: 'Get messages for a conversation',
       tags: ['chat'],
@@ -162,6 +219,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
+    response: MarkConversationReadResponseSchema,
     openapi: {
       summary: 'Mark all messages in a conversation as read',
       tags: ['chat'],
@@ -182,6 +240,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     path: '/v1/chat/unread',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
+    response: UnreadCountResponseSchema,
     openapi: {
       summary: 'Get unread message count',
       tags: ['chat'],
@@ -199,6 +258,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
+    response: ConversationWithUserResponseSchema,
     openapi: {
       summary: 'Get or create conversation with a user',
       tags: ['chat'],
@@ -227,6 +287,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     query: SearchQuerySchema,
+    response: ChatUsersSearchResponseSchema,
     openapi: {
       summary: 'Search users to start a conversation',
       tags: ['chat'],
@@ -248,6 +309,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
     body: SetPinSchema,
+    response: SetPinResponseSchema,
     openapi: {
       summary: 'Pin / unpin a conversation for the current user.',
       tags: ['chat'],
@@ -268,6 +330,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     permission: Permission.CHAT_USE,
     params: ConversationIdParam,
     body: SetMuteSchema,
+    response: SetMuteResponseSchema,
     openapi: {
       summary: 'Mute / unmute notifications for a conversation.',
       tags: ['chat'],
@@ -295,6 +358,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     body: BlockUserSchema,
+    response: BlockUserResponseSchemaWrapped,
     openapi: {
       summary: 'Block a user',
       tags: ['chat---block-users'],
@@ -330,6 +394,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     path: '/v1/chat/blocked',
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
+    response: BlockedUsersResponseSchema,
     openapi: {
       summary: 'Get all blocked users',
       tags: ['chat---block-users'],
@@ -347,6 +412,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.CHAT_USE,
     params: UserIdParam,
+    response: BlockStatusResponseSchema,
     openapi: {
       summary: 'Check if a user is blocked',
       tags: ['chat---block-users'],
