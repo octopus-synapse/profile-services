@@ -15,6 +15,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
+import type { SessionPayload } from '../../../domain/entities/session.entity';
 import {
   InvalidTokenException,
   SessionExpiredException,
@@ -48,7 +49,7 @@ export class VerifySessionStrictUseCase {
       throw new SessionNotFoundException();
     }
 
-    let payload;
+    let payload: SessionPayload;
     try {
       payload = await this.tokenGenerator.verifySessionToken(token);
     } catch (err) {
@@ -59,9 +60,7 @@ export class VerifySessionStrictUseCase {
         `Session token verification failed: ${err instanceof Error ? err.message : 'unknown'}`,
         'VerifySessionStrictUseCase',
       );
-      throw new InvalidTokenException(
-        err instanceof Error ? err.message : undefined,
-      );
+      throw new InvalidTokenException(err instanceof Error ? err.message : undefined);
     }
 
     if (!payload) {
@@ -93,9 +92,7 @@ export class VerifySessionStrictUseCase {
       // JWT is well-formed but the user behind `sub` no longer exists
       // (deletion, hard ban). Distinct code so the frontend can decide
       // whether to clear local state or prompt for re-login.
-      throw new TokenInvalidException(
-        `User ${payload.sub} no longer exists`,
-      );
+      throw new TokenInvalidException(`User ${payload.sub} no longer exists`);
     }
 
     return userData;

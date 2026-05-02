@@ -14,17 +14,13 @@ describe('CheckExportEngineAvailableUseCase', () => {
     const useCase = new CheckExportEngineAvailableUseCase({
       isAvailable: () => false,
     });
-    await expect(useCase.execute('docx')).rejects.toBeInstanceOf(
-      ExportEngineUnavailableException,
-    );
+    await expect(useCase.execute('docx')).rejects.toBeInstanceOf(ExportEngineUnavailableException);
   });
 
   it('awaits async probes', async () => {
     const useCase = new CheckExportEngineAvailableUseCase({
       isAvailable: () => Promise.resolve(false),
     });
-    await expect(useCase.execute('json')).rejects.toBeInstanceOf(
-      ExportEngineUnavailableException,
-    );
+    await expect(useCase.execute('json')).rejects.toBeInstanceOf(ExportEngineUnavailableException);
   });
 });

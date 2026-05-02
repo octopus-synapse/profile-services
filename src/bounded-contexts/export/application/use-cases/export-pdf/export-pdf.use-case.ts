@@ -48,15 +48,10 @@ export class ExportPdfUseCase {
       // Preserve known domain exceptions (e.g. EntityNotFoundException) and
       // wrap the rest so the global filter emits a translated 502.
       if (err instanceof ExportThemeInvalidException) throw err;
-      if (
-        err instanceof Error &&
-        err.constructor.name.endsWith('Exception')
-      ) {
+      if (err instanceof Error && err.constructor.name.endsWith('Exception')) {
         throw err;
       }
-      throw new ExportPdfGenerationFailedException(
-        err instanceof Error ? err.message : 'unknown',
-      );
+      throw new ExportPdfGenerationFailedException(err instanceof Error ? err.message : 'unknown');
     }
   }
 }

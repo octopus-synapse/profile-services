@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
-import {
-  type ResumeEntity,
-  ResumesRepositoryPort,
-} from '../../core/ports/resumes-repository.port';
+import { type ResumeEntity, ResumesRepositoryPort } from '../../core/ports/resumes-repository.port';
 import { PrimaryResumeRequiredException } from '../../domain/exceptions/resumes.exceptions';
 import { EnsurePrimaryResumeUseCase } from './ensure-primary-resume.use-case';
 
@@ -57,8 +54,6 @@ describe('EnsurePrimaryResumeUseCase', () => {
 
   it('throws PrimaryResumeRequiredException when the user has no resumes', async () => {
     const useCase = new EnsurePrimaryResumeUseCase(new StubRepo([]));
-    await expect(useCase.execute('u1')).rejects.toBeInstanceOf(
-      PrimaryResumeRequiredException,
-    );
+    await expect(useCase.execute('u1')).rejects.toBeInstanceOf(PrimaryResumeRequiredException);
   });
 });

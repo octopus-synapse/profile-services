@@ -21,7 +21,6 @@ import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '.
 import {
   ExportBannerGenerationFailedException,
   ExportEngineFailedException,
-  ExportPipelineFailedException,
 } from '../../domain/exceptions/export.exceptions';
 
 export type ExportFormat = 'pdf' | 'docx' | 'json' | 'bundle' | 'banner' | 'latex';

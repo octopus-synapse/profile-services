@@ -34,10 +34,7 @@ export class TranslateTextUseCase {
     sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
-    if (
-      !SUPPORTED_LANGUAGES.has(sourceLanguage) ||
-      !SUPPORTED_TARGETS.has(targetLanguage)
-    ) {
+    if (!SUPPORTED_LANGUAGES.has(sourceLanguage) || !SUPPORTED_TARGETS.has(targetLanguage)) {
       throw new UnsupportedLocalePairException(sourceLanguage, targetLanguage);
     }
 
@@ -47,7 +44,7 @@ export class TranslateTextUseCase {
 
     try {
       return await this.translationService.translate(text, sourceLanguage, targetLanguage);
-    } catch (err) {
+    } catch (_err) {
       // The core service itself swallows fetch errors and degrades gracefully,
       // but if a future implementation surfaces one we wrap it as a domain
       // exception so the global filter emits 503 rather than a raw 500.

@@ -9,10 +9,11 @@ describe('AssertEmailVerifiedUseCase', () => {
     expect(() => useCase.execute(true)).not.toThrow();
   });
 
-  it.each([false, null, undefined])(
-    'throws EmailNotVerifiedException when emailVerified is %p',
-    (value) => {
-      expect(() => useCase.execute(value)).toThrow(EmailNotVerifiedException);
-    },
-  );
+  it.each([
+    false,
+    null,
+    undefined,
+  ])('throws EmailNotVerifiedException when emailVerified is %p', (value) => {
+    expect(() => useCase.execute(value)).toThrow(EmailNotVerifiedException);
+  });
 });

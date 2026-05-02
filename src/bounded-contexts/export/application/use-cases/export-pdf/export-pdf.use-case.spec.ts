@@ -129,15 +129,13 @@ describe('ExportPdfUseCase', () => {
     it('should wrap raw generator errors in ExportPdfGenerationFailedException', async () => {
       pdfGenerator.setFailure(new Error('boom'));
 
-      await expect(async () => await useCase.execute()).toThrow(
-        ExportPdfGenerationFailedException,
-      );
+      await expect(async () => await useCase.execute()).toThrow(ExportPdfGenerationFailedException);
     });
 
     it('should reject palette values that fail the safety pattern', async () => {
-      await expect(
-        async () => await useCase.execute({ palette: '../../etc/passwd' }),
-      ).toThrow(ExportThemeInvalidException);
+      await expect(async () => await useCase.execute({ palette: '../../etc/passwd' })).toThrow(
+        ExportThemeInvalidException,
+      );
     });
   });
 });

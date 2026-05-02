@@ -40,10 +40,7 @@ export class EnforceQualityThresholdUseCase {
     }
 
     if (snapshot.overallScore < input.threshold) {
-      throw new ResumeQualityBelowThresholdException(
-        snapshot.overallScore,
-        input.threshold,
-      );
+      throw new ResumeQualityBelowThresholdException(snapshot.overallScore, input.threshold);
     }
   }
 }

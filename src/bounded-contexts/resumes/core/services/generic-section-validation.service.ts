@@ -103,15 +103,11 @@ export class GenericSectionValidationService {
    */
   static validateSectionTypeDefinition(definition: unknown): void {
     if (!definition || typeof definition !== 'object') {
-      throw new SectionTypeInvalidException(
-        'Definition must be a non-null object',
-      );
+      throw new SectionTypeInvalidException('Definition must be a non-null object');
     }
     const fields = (definition as { fields?: unknown }).fields;
     if (!Array.isArray(fields) || fields.length === 0) {
-      throw new SectionTypeInvalidException(
-        'Definition must declare a non-empty `fields` array',
-      );
+      throw new SectionTypeInvalidException('Definition must declare a non-empty `fields` array');
     }
   }
 

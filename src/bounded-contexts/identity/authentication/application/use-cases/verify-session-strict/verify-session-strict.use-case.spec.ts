@@ -7,20 +7,13 @@ import {
   TokenInvalidException,
   TokenVerificationFailedException,
 } from '../../../domain/exceptions';
-import {
-  InMemoryAuthenticationRepository,
-  InMemoryTokenGenerator,
-} from '../../../testing';
+import { InMemoryAuthenticationRepository, InMemoryTokenGenerator } from '../../../testing';
 import { VerifySessionStrictUseCase } from './verify-session-strict.use-case';
 
 function build() {
   const repository = new InMemoryAuthenticationRepository();
   const tokenGenerator = new InMemoryTokenGenerator();
-  const useCase = new VerifySessionStrictUseCase(
-    repository,
-    tokenGenerator,
-    stubLogger,
-  );
+  const useCase = new VerifySessionStrictUseCase(repository, tokenGenerator, stubLogger);
   return { repository, tokenGenerator, useCase };
 }
 
@@ -30,9 +23,7 @@ describe('VerifySessionStrictUseCase', () => {
     await expect(useCase.execute({ token: undefined })).rejects.toBeInstanceOf(
       SessionNotFoundException,
     );
-    await expect(useCase.execute({ token: '' })).rejects.toBeInstanceOf(
-      SessionNotFoundException,
-    );
+    await expect(useCase.execute({ token: '' })).rejects.toBeInstanceOf(SessionNotFoundException);
   });
 
   it('throws InvalidTokenException when verifySessionToken throws', async () => {
@@ -53,9 +44,9 @@ describe('VerifySessionStrictUseCase', () => {
       iat: past - 3600,
       exp: past,
     });
-    await expect(
-      useCase.execute({ token: 'expired-token' }),
-    ).rejects.toBeInstanceOf(SessionExpiredException);
+    await expect(useCase.execute({ token: 'expired-token' })).rejects.toBeInstanceOf(
+      SessionExpiredException,
+    );
   });
 
   it('throws TokenInvalidException when the token user no longer exists', async () => {
@@ -68,9 +59,9 @@ describe('VerifySessionStrictUseCase', () => {
       iat: now,
       exp: now + 3600,
     });
-    await expect(
-      useCase.execute({ token: 'orphan-token' }),
-    ).rejects.toBeInstanceOf(TokenInvalidException);
+    await expect(useCase.execute({ token: 'orphan-token' })).rejects.toBeInstanceOf(
+      TokenInvalidException,
+    );
   });
 
   it('throws TokenVerificationFailedException when the repository lookup throws', async () => {
@@ -87,9 +78,9 @@ describe('VerifySessionStrictUseCase', () => {
     repository.findSessionUser = async () => {
       throw new Error('redis unreachable');
     };
-    await expect(
-      useCase.execute({ token: 'cache-down-token' }),
-    ).rejects.toBeInstanceOf(TokenVerificationFailedException);
+    await expect(useCase.execute({ token: 'cache-down-token' })).rejects.toBeInstanceOf(
+      TokenVerificationFailedException,
+    );
   });
 
   it('returns the session user for a valid, fresh token', async () => {

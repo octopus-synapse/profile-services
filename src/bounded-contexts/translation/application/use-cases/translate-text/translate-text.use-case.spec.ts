@@ -49,15 +49,15 @@ describe('TranslateTextUseCase', () => {
   });
 
   it('throws UnsupportedLocalePairException for an unknown source language', async () => {
-    await expect(
-      useCase.execute('Hello', 'fr' as never, 'pt'),
-    ).rejects.toBeInstanceOf(UnsupportedLocalePairException);
+    await expect(useCase.execute('Hello', 'fr' as never, 'pt')).rejects.toBeInstanceOf(
+      UnsupportedLocalePairException,
+    );
   });
 
   it('throws UnsupportedLocalePairException for an unknown target language', async () => {
-    await expect(
-      useCase.execute('Hello', 'en', 'es' as never),
-    ).rejects.toBeInstanceOf(UnsupportedLocalePairException);
+    await expect(useCase.execute('Hello', 'en', 'es' as never)).rejects.toBeInstanceOf(
+      UnsupportedLocalePairException,
+    );
   });
 
   it('throws TranslationPayloadTooLargeException when text is over the cap', async () => {

@@ -11,9 +11,9 @@
  * once `wasm/` artefacts are available.
  */
 
+import { TypstWasmRendererNotImplementedException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
 import { PdfGeneratorPort } from '../../../domain/ports/pdf-generator.port';
-import { TypstWasmRendererNotImplementedException } from '../../../domain/exceptions/export.exceptions';
 
 export class TypstWasmPdfRenderer extends PdfGeneratorPort {
   generate(_options?: PdfGeneratorOptions): Promise<Buffer> {

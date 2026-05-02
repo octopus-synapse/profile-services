@@ -24,9 +24,7 @@ export class ExportDocxUseCase {
       if (err instanceof Error && err.constructor.name.endsWith('Exception')) {
         throw err;
       }
-      throw new ExportDocxGenerationFailedException(
-        err instanceof Error ? err.message : 'unknown',
-      );
+      throw new ExportDocxGenerationFailedException(err instanceof Error ? err.message : 'unknown');
     }
   }
 }
