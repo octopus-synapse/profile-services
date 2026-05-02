@@ -1,4 +1,4 @@
 export {
-  EnsureConsentAcceptedUseCase,
   type EnsureConsentAcceptedInput,
+  EnsureConsentAcceptedUseCase,
 } from './ensure-consent-accepted.use-case';

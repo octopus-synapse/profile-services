@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import {
-  InMemoryConsentRepository,
-  StubVersionConfig,
-} from '../../../../shared-kernel/testing';
+import { InMemoryConsentRepository, StubVersionConfig } from '../../../../shared-kernel/testing';
 import { ConsentRequiredException } from '../../../domain/exceptions';
 import { EnsureConsentAcceptedUseCase } from './ensure-consent-accepted.use-case';
 

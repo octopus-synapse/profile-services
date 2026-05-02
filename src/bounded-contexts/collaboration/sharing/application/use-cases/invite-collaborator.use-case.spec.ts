@@ -6,8 +6,8 @@ import {
   OnlyResumeOwnerCanInviteException,
   ResumeNotFoundForCollaborationException,
 } from '@/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions';
-import { stubLogger } from '@/shared-kernel/logger/testing';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryCollaborationRepository } from '../../testing/in-memory-collaboration.service';
 import {
   InviteCollaboratorUseCase,

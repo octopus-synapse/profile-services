@@ -61,8 +61,7 @@ export class GitHubSyncService {
     // success. Skipped silently when the resume was never synced.
     const status = await this.resumes.getSyncStatus(userId, resumeId);
     if (status.hasSynced) {
-      const elapsedMinutes =
-        (Date.now() - status.lastSyncedAt.getTime()) / (60 * 1000);
+      const elapsedMinutes = (Date.now() - status.lastSyncedAt.getTime()) / (60 * 1000);
       if (elapsedMinutes < SYNC_COOLDOWN_MINUTES) {
         throw new SyncCooldownActiveException(
           Math.max(1, Math.ceil(SYNC_COOLDOWN_MINUTES - elapsedMinutes)),
