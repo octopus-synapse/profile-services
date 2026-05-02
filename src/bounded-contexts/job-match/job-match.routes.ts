@@ -12,6 +12,60 @@ import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/j
 import { ComputeMatchRequestDto } from './dto/match-breakdown.dto';
 import { presentMatchBreakdown } from './infrastructure/presenters/match-breakdown.presenter';
 
+const ScoreField = z.number().int().min(0).max(100).nullable();
+
+const KeywordSubScoreSchema = z.object({
+  score: ScoreField,
+  detail: z
+    .object({
+      matched: z.array(z.string()),
+      missing: z.array(z.string()),
+    })
+    .optional(),
+});
+
+const RequirementsSubScoreSchema = z.object({
+  score: ScoreField,
+  detail: z
+    .object({
+      matchedSlots: z.array(z.string()),
+      missingSlots: z.array(z.string()),
+    })
+    .optional(),
+});
+
+const SemanticSubScoreSchema = z.object({
+  score: ScoreField,
+});
+
+const FitSubScoreSchema = z.object({
+  score: ScoreField,
+  detail: z
+    .object({
+      culture: z.number().nullable().optional(),
+      role: z.number().nullable().optional(),
+    })
+    .optional(),
+});
+
+const MatchBreakdownResponseSchema = z.object({
+  overallScore: z.number().int().min(0).max(100),
+  subScores: z.object({
+    keyword: KeywordSubScoreSchema,
+    requirements: RequirementsSubScoreSchema,
+    semantic: SemanticSubScoreSchema,
+    fit: FitSubScoreSchema,
+  }),
+  effectiveWeights: z.object({
+    keyword: z.number().min(0).max(1),
+    requirements: z.number().min(0).max(1),
+    semantic: z.number().min(0).max(1),
+    fit: z.number().min(0).max(1),
+  }),
+  rulesVersion: z.string(),
+  computedAt: z.string().datetime(),
+});
+
 const ResumeJobParams = z.object({
   resumeId: z.string(),
   jobId: z.string(),
@@ -35,6 +89,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: ComputeMatchSchema,
+    response: MatchBreakdownResponseSchema,
     openapi: {
       summary: 'Compute the Match Score for a (resume, job) pair',
       tags: ['job-match'],
@@ -57,6 +112,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeJobParams,
+    response: MatchBreakdownResponseSchema,
     openapi: {
       summary: 'Read the Match Score for a (resume, job) pair (cached)',
       tags: ['job-match'],

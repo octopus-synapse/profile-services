@@ -15,12 +15,38 @@ import {
 const IdParam = z.object({ id: z.string() });
 const LimitQuery = z.object({ limit: z.string().optional() });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const SuccessStoryAuthorSchema = z.object({
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const SuccessStorySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  headline: z.string(),
+  beforeText: z.string(),
+  afterText: z.string(),
+  quote: z.string(),
+  timeframeDays: z.number().int().nullable(),
+  publishedAt: z.string().datetime().nullable(),
+  user: SuccessStoryAuthorSchema,
+});
+
+const SuccessStoriesListResponseSchema = z.object({
+  stories: z.array(SuccessStorySchema),
+});
+
+const SuccessStoryIdResponseSchema = z.object({ id: z.string() });
+
 export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> = [
   {
     method: 'GET',
     path: '/v1/success-stories',
     auth: { kind: 'public' },
     query: LimitQuery,
+    response: SuccessStoriesListResponseSchema,
     openapi: {
       summary: 'Published success stories for the landing carousel.',
       tags: ['success-stories'],
@@ -39,6 +65,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: CreateSuccessStorySchema,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Create a success story (admin).',
       tags: ['success-stories'],
@@ -58,6 +85,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
     body: UpdateSuccessStorySchema,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Update a success story (admin).',
       tags: ['success-stories'],
@@ -77,6 +105,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Delete a success story (admin).',
       tags: ['success-stories'],

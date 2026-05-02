@@ -47,6 +47,13 @@ const BANNER_HEADERS = {
   'Content-Disposition': 'attachment; filename="linkedin-banner.png"',
 } as const;
 
+// Base64 PDF JSON envelope used by the admin "fetch another user's
+// resume" endpoint where streaming the PDF directly is not viable.
+const PdfBase64ResponseSchema = z.object({
+  pdf: z.string(),
+  filename: z.string(),
+});
+
 export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   // ─── Banner ────────────────────────────────────────────────────────
   {
@@ -122,6 +129,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     path: '/v1/export/user/:userId/resume/pdf',
     auth: { kind: 'jwt' },
     params: UserIdParams,
+    response: PdfBase64ResponseSchema,
     openapi: {
       summary: "Generate another user's resume as PDF (base64)",
       tags: ['export'],

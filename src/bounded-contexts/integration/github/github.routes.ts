@@ -18,6 +18,36 @@ const SyncBody = z.object({
   resumeId: z.string(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const PinnedRepoSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  url: z.string(),
+});
+
+const GitHubSummaryResponseSchema = z.object({
+  username: z.string(),
+  name: z.string().optional(),
+  bio: z.string().optional(),
+  publicRepos: z.number().int(),
+  followers: z.number().int(),
+  following: z.number().int(),
+  topLanguages: z.array(z.string()),
+  pinnedRepos: z.array(PinnedRepoSchema),
+});
+
+const GitHubSyncResponseSchema = z.object({
+  synced: z.boolean(),
+  message: z.string(),
+});
+
+const GitHubSyncStatusResponseSchema = z.object({
+  status: z.enum(['IDLE', 'COMPLETED']),
+  progress: z.number().int(),
+  startedAt: z.string().datetime().optional(),
+  currentTask: z.string().optional(),
+});
+
 function toGitHubSummaryDto(result: GitHubSummaryResult) {
   return {
     username: result.username,
@@ -50,6 +80,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     path: '/v1/integrations/github/summary/:username',
     auth: { kind: 'public' },
     params: SummaryParams,
+    response: GitHubSummaryResponseSchema,
     openapi: {
       summary: 'Get GitHub profile summary for a username',
       tags: ['github'],
@@ -67,6 +98,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     path: '/v1/integrations/github/sync',
     auth: { kind: 'jwt' },
     body: SyncBody,
+    response: GitHubSyncResponseSchema,
     openapi: {
       summary: 'Sync GitHub data to user resume',
       tags: ['github'],
@@ -88,6 +120,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     path: '/v1/integrations/github/sync/:resumeId/auto',
     auth: { kind: 'jwt' },
     params: ResumeIdParams,
+    response: GitHubSyncResponseSchema,
     openapi: {
       summary: 'Auto-sync GitHub from resume GitHub link',
       tags: ['github'],
@@ -105,6 +138,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     path: '/v1/integrations/github/sync-status/:resumeId',
     auth: { kind: 'jwt' },
     params: ResumeIdParams,
+    response: GitHubSyncStatusResponseSchema,
     openapi: {
       summary: 'Get GitHub sync status for a resume',
       tags: ['github'],

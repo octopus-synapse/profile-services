@@ -13,6 +13,8 @@ import { UploadUseCases } from './application/ports/upload.port';
 const ResumeIdParams = z.object({ resumeId: z.string() });
 const KeyParams = z.object({ key: z.string() });
 
+const DeleteUploadResponseSchema = z.object({ deleted: z.boolean() });
+
 export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
   {
     method: 'POST',
@@ -71,6 +73,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: KeyParams,
     statusCode: 200,
+    response: DeleteUploadResponseSchema,
     openapi: {
       summary: 'Delete uploaded file',
       tags: ['upload'],

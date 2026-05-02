@@ -46,6 +46,117 @@ const GithubImportBodySchema = z.object({
   repoLimit: z.number().optional(),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const ImportSourceEnumSchema = z.enum(['LINKEDIN', 'PDF', 'DOCX', 'JSON', 'GITHUB']);
+
+const ImportStatusEnumSchema = z.enum([
+  'PENDING',
+  'PROCESSING',
+  'MAPPING',
+  'VALIDATING',
+  'IMPORTING',
+  'COMPLETED',
+  'FAILED',
+  'PARTIAL',
+]);
+
+// Bounded JSON-leaf type used by the free-form `data` blob and the
+// per-section `items[]` payload. No `z.lazy()` so the OpenAPI
+// generator can serialize the whole tree, but deep enough to
+// represent typical JSON Resume / parsed-section payloads.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const JsonValueDepth1Schema = z.union([JsonLeafSchema, z.array(JsonLeafSchema)]);
+const JsonValueDepth2Schema = z.union([
+  JsonValueDepth1Schema,
+  z.record(z.string(), JsonValueDepth1Schema),
+  z.array(z.union([JsonLeafSchema, z.record(z.string(), JsonValueDepth1Schema)])),
+]);
+const JsonValueSchema = z.union([
+  JsonValueDepth2Schema,
+  z.record(z.string(), JsonValueDepth2Schema),
+  z.array(JsonValueDepth2Schema),
+]);
+
+const ParsedPersonalInfoSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  website: z.string().optional(),
+  linkedin: z.string().optional(),
+  github: z.string().optional(),
+});
+
+const ParsedSectionItemSchema = z.record(z.string(), JsonValueSchema);
+
+const ParsedSectionResponseSchema = z.object({
+  sectionTypeKey: z.string(),
+  items: z.array(ParsedSectionItemSchema),
+});
+
+const ParsedResumeDataResponseSchema = z.object({
+  personalInfo: ParsedPersonalInfoSchema,
+  summary: z.string().optional(),
+  sections: z.array(ParsedSectionResponseSchema),
+});
+
+const ImportJobResponseSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  source: ImportSourceEnumSchema,
+  status: ImportStatusEnumSchema,
+  data: z.record(z.string(), JsonValueSchema).optional(),
+  parsedData: ParsedResumeDataResponseSchema.optional(),
+  resumeId: z.string().optional(),
+  errors: z.array(z.string()).optional(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
+});
+
+const ImportJobListResponseSchema = z.array(ImportJobResponseSchema);
+
+const ImportResultResponseSchema = z.object({
+  importId: z.string(),
+  status: ImportStatusEnumSchema,
+  resumeId: z.string().optional(),
+  errors: z.array(z.string()).optional(),
+});
+
+const ImportEmptyResponseSchema = z.null();
+
+// GitHub-import responses (parse-from-token + connected-OAuth import).
+const GithubProjectBulletSchema = z.object({
+  name: z.string(),
+  url: z.string(),
+  description: z.string().nullable(),
+  languages: z.array(z.string()),
+  bullet: z.string(),
+});
+
+const GithubParsedProfileResponseSchema = z.object({
+  suggestedHeadline: z.string().nullable(),
+  suggestedSummary: z.string().nullable(),
+  primaryStack: z.array(z.string()),
+  projectBullets: z.array(GithubProjectBulletSchema),
+  stats: z.object({
+    totalRepos: z.number().int(),
+    nonForkRepos: z.number().int(),
+    totalStars: z.number().int(),
+    languagesByBytes: z.array(
+      z.object({
+        language: z.string(),
+        bytes: z.number(),
+      }),
+    ),
+  }),
+});
+
+const GithubImportResponseSchema = z.object({
+  primaryStack: z.array(z.string()),
+  buildPostsCreated: z.number().int(),
+  profileUpdated: z.boolean(),
+});
+
 function validateJsonResume(data: JsonResumeSchema): void {
   if (!data.basics || typeof data.basics !== 'object') {
     throw new JsonResumeBasicsMissingException();
@@ -63,6 +174,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     path: '/v1/resumes/imports/linkedin',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import profile data from LinkedIn (scaffold)',
       tags: ['Resume Import'],
@@ -81,6 +193,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import resume from JSON Resume format',
       tags: ['Resume Import'],
@@ -112,6 +225,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,
+    response: ParsedResumeDataResponseSchema,
     openapi: {
       summary: 'Parse JSON Resume without importing',
       tags: ['Resume Import'],
@@ -130,6 +244,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportJobResponseSchema,
     openapi: {
       summary: 'Get import job status',
       tags: ['Resume Import'],
@@ -147,6 +262,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     path: '/v1/resumes/imports',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: ImportJobListResponseSchema,
     openapi: {
       summary: 'Get import history',
       tags: ['Resume Import'],
@@ -164,6 +280,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportEmptyResponseSchema,
     openapi: {
       summary: 'Cancel import job',
       tags: ['Resume Import'],
@@ -182,6 +299,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Retry failed import',
       tags: ['Resume Import'],
@@ -206,6 +324,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     body: GithubImportBodySchema,
+    response: GithubParsedProfileResponseSchema,
     openapi: {
       summary:
         'Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.',
@@ -257,6 +376,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     path: '/v1/resumes/imports/github',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: GithubImportResponseSchema,
     openapi: {
       summary: 'Import profile data from GitHub',
       tags: ['Resume Import'],

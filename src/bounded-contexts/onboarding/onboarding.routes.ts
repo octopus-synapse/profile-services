@@ -16,6 +16,7 @@ import {
   type OnboardingProgress,
   OnboardingProgressSchema,
 } from './domain/schemas/onboarding-progress.schema';
+import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.dto';
 import { buildSession } from './infrastructure/presenters/onboarding.presenter';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
@@ -25,6 +26,90 @@ const StepDataBody = z.record(z.unknown());
 const GotoStepBody = z.object({ stepId: z.string() });
 
 type LocaleQuery = z.infer<typeof LocaleQuery>;
+
+// ─── Response schemas ─────────────────────────────────────────────────
+// Bounded JSON-leaf type used for free-form Prisma JSON columns
+// (`fields`, `translations`, `validation`, `strengthLevels`). Two
+// levels of nesting cover every realistic shape without `z.lazy()`.
+const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const JsonValueDepth1Schema = z.union([JsonLeafSchema, z.array(JsonLeafSchema)]);
+const JsonValueDepth2Schema = z.union([
+  JsonValueDepth1Schema,
+  z.record(z.string(), JsonValueDepth1Schema),
+  z.array(z.union([JsonLeafSchema, z.record(z.string(), JsonValueDepth1Schema)])),
+]);
+const JsonValueSchema = z.union([
+  JsonValueDepth2Schema,
+  z.record(z.string(), JsonValueDepth2Schema),
+  z.array(JsonValueDepth2Schema),
+]);
+
+const OnboardingStepRowSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  order: z.number().int(),
+  component: z.string(),
+  icon: z.string(),
+  required: z.boolean(),
+  sectionTypeKey: z.string().nullable(),
+  fields: JsonValueSchema,
+  translations: JsonValueSchema,
+  validation: JsonValueSchema,
+  strengthWeight: z.number().int(),
+  isActive: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const OnboardingStepsResponseSchema = z.object({ steps: z.array(OnboardingStepRowSchema) });
+
+// `getStep` returns either `{ step }` or a fallback `{ success, message }`
+// when the step is missing — model both branches in a single union.
+const OnboardingStepResponseSchema = z.union([
+  z.object({ step: OnboardingStepRowSchema }),
+  z.object({ success: z.literal(false), message: z.string() }),
+]);
+
+const OnboardingStatsResponseSchema = z.object({
+  stats: z.object({
+    totalStarted: z.number().int(),
+    totalCompleted: z.number().int(),
+    completionRate: z.number().int(),
+    dropOffByStep: z.record(z.string(), z.number()),
+  }),
+});
+
+const OnboardingConfigRowSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  strengthLevels: JsonValueSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+const OnboardingConfigResponseSchema = z.object({
+  config: OnboardingConfigRowSchema.nullable(),
+});
+
+const OnboardingConfigUpdatedResponseSchema = z.object({
+  config: OnboardingConfigRowSchema,
+});
+
+const OnboardingStepCreatedResponseSchema = z.object({ step: OnboardingStepRowSchema });
+
+const OnboardingStatusResponseSchema = z.object({
+  hasCompletedOnboarding: z.boolean(),
+  onboardingCompletedAt: z.string().datetime().nullable(),
+});
+
+const SaveProgressResponseSchema = z.object({
+  currentStep: z.string(),
+  completedSteps: z.array(z.string()),
+});
+
+const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string() });
+
+const EmptyResponseSchema = z.null();
 
 // Helper to fetch system themes through the bundle.
 async function getSystemThemes(bundle: OnboardingHttpBundle) {
@@ -40,6 +125,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session',
     auth: { kind: 'jwt' },
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Get onboarding session with field definitions and navigation',
       tags: ['onboarding'],
@@ -74,6 +160,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: StepDataBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Save current step data and advance to next step',
       tags: ['onboarding'],
@@ -102,6 +189,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session/previous',
     auth: { kind: 'jwt' },
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Go back to previous step',
       tags: ['onboarding'],
@@ -127,6 +215,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: GotoStepBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Jump to an accessible step',
       tags: ['onboarding'],
@@ -156,6 +245,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: StepDataBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Save current step data without advancing',
       tags: ['onboarding'],
@@ -184,6 +274,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'POST',
     path: '/v1/onboarding/session/complete',
     auth: { kind: 'jwt' },
+    response: CompleteOnboardingResponseSchema,
     openapi: {
       summary: 'Complete onboarding — backend builds payload from saved progress',
       tags: ['onboarding'],
@@ -213,6 +304,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session/restart',
     auth: { kind: 'jwt' },
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Restart onboarding with existing profile data',
       tags: ['onboarding'],
@@ -251,6 +343,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'GET',
     path: '/v1/onboarding/progress',
     auth: { kind: 'jwt' },
+    response: OnboardingSessionSchema,
     openapi: {
       summary: '[Legacy] Get onboarding progress',
       tags: ['onboarding'],
@@ -271,6 +364,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'GET',
     path: '/v1/onboarding/status',
     auth: { kind: 'jwt' },
+    response: OnboardingStatusResponseSchema,
     openapi: {
       summary: '[Legacy] Get onboarding completion status',
       tags: ['onboarding'],
@@ -288,6 +382,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/progress',
     auth: { kind: 'jwt' },
     body: OnboardingProgressSchema,
+    response: SaveProgressResponseSchema,
     openapi: {
       summary: '[Legacy] Save onboarding progress',
       tags: ['onboarding'],
@@ -306,6 +401,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding',
     auth: { kind: 'jwt' },
     body: OnboardingDataSchema,
+    response: CompleteOnboardingResponseSchema,
     openapi: {
       summary: '[Legacy] Complete onboarding with explicit payload',
       tags: ['onboarding'],
@@ -336,6 +432,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/steps',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingStepsResponseSchema,
     openapi: {
       summary: 'List all onboarding steps',
       tags: ['Admin - Onboarding'],
@@ -351,6 +448,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/stats',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingStatsResponseSchema,
     openapi: {
       summary: 'Get onboarding funnel statistics',
       tags: ['Admin - Onboarding'],
@@ -367,6 +465,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
+    response: OnboardingStepResponseSchema,
     openapi: {
       summary: 'Get onboarding step by key',
       tags: ['Admin - Onboarding'],
@@ -385,6 +484,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     body: z.record(z.unknown()),
+    response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Create onboarding step',
       tags: ['Admin - Onboarding'],
@@ -403,6 +503,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
     body: z.record(z.unknown()),
+    response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Update onboarding step',
       tags: ['Admin - Onboarding'],
@@ -421,6 +522,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
+    response: EmptyResponseSchema,
     openapi: {
       summary: 'Delete onboarding step',
       tags: ['Admin - Onboarding'],
@@ -429,7 +531,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       await bundle.admin.deleteStep(key);
-      return undefined;
+      return null;
     },
   },
   {
@@ -437,6 +539,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/config',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingConfigResponseSchema,
     openapi: {
       summary: 'Get onboarding config (strength levels)',
       tags: ['Admin - Onboarding'],
@@ -453,6 +556,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     body: z.record(z.unknown()),
+    response: OnboardingConfigUpdatedResponseSchema,
     openapi: {
       summary: 'Update onboarding config',
       tags: ['Admin - Onboarding'],

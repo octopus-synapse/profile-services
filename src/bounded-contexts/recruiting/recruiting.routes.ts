@@ -154,6 +154,33 @@ const JobFormConfigResponseSchema = z.object({
   }),
 });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const FitBreakdownSchema = z.object({
+  skillOverlap: z.number(),
+  englishMatch: z.number(),
+  remoteMatch: z.number(),
+  matchedSkills: z.array(z.string()),
+  missingSkills: z.array(z.string()),
+});
+
+const MatchCandidateItemSchema = z.object({
+  userId: z.string(),
+  username: z.string().nullable(),
+  name: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  bio: z.string().nullable(),
+  primaryStack: z.array(z.string()),
+  fit: z.object({
+    score: z.number(),
+    breakdown: FitBreakdownSchema,
+  }),
+});
+
+const MatchCandidatesResponseSchema = z.object({
+  candidates: z.array(MatchCandidateItemSchema),
+  poolSize: z.number().int().min(0),
+});
+
 export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> = [
   {
     method: 'GET',
@@ -181,6 +208,7 @@ export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> =
     permission: Permission.JOB_CREATE,
     body: MatchCandidatesRequestSchema,
     statusCode: 200,
+    response: MatchCandidatesResponseSchema,
     guards: [
       {
         id: 'rate-limit',

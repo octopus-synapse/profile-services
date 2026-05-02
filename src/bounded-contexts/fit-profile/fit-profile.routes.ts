@@ -65,12 +65,80 @@ const SliderMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1
 
 const UpsertJobFitProfileSchema = z.object({ sliders: SliderMapSchema });
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const DimensionScoreMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
+
+const FitVectorSchema = z.object({
+  bigFive: DimensionScoreMapSchema,
+  schwartz: DimensionScoreMapSchema,
+  sdt: DimensionScoreMapSchema,
+});
+
+const FitProfileMeResponseSchema = z.object({
+  status: z.enum(['never', 'responded', 'expired']),
+  vector: FitVectorSchema.nullable(),
+  answeredAt: z.string().datetime().nullable(),
+  expiresAt: z.string().datetime().nullable(),
+  remainingQuestions: z.union([z.literal(0), z.literal(QUESTION_SET_SIZE)]),
+});
+
+const FitQuestionItemSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  dimension: z.enum(FIT_DIMENSIONS),
+  textEn: z.string(),
+  textPtBr: z.string(),
+  scaleType: z.enum(['likert5', 'binary']),
+  weight: z.number(),
+});
+
+const FitQuestionsResponseSchema = z.object({
+  questionSetId: z.string(),
+  seed: z.string(),
+  createdAt: z.string().datetime(),
+  questions: z.array(FitQuestionItemSchema),
+});
+
+const SubmittedFitProfileResponseSchema = z.object({
+  profileId: z.string(),
+  version: z.number().int().min(1),
+  computedAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+});
+
+const JobFitProfileResponseSchema = z.object({
+  id: z.string(),
+  jobId: z.string(),
+  editedByUserId: z.string(),
+  computedAt: z.string().datetime(),
+  vector: FitVectorSchema,
+});
+
+const FitQuestionResponseSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  dimension: z.enum(FIT_DIMENSIONS),
+  textEn: z.string(),
+  textPtBr: z.string(),
+  scaleType: z.enum(['likert5', 'binary']),
+  weight: z.number(),
+  isActive: z.boolean(),
+  reverseScored: z.boolean(),
+});
+
+const FitQuestionListResponseSchema = z.object({
+  items: z.array(FitQuestionResponseSchema),
+});
+
+const EmptyResponseSchema = z.null();
+
 export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
   // ─── User-facing fit-profile ─────────────────────────────────────
   {
     method: 'GET',
     path: '/v1/fit-profile/me',
     auth: { kind: 'jwt' },
+    response: FitProfileMeResponseSchema,
     openapi: {
       summary: "Get the caller's Fit Profile lifecycle state",
       tags: ['fit-profile'],
@@ -86,6 +154,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     method: 'GET',
     path: '/v1/fit-profile/questions',
     auth: { kind: 'jwt' },
+    response: FitQuestionsResponseSchema,
     openapi: {
       summary: "Get or create the caller's 25-question set",
       tags: ['fit-profile'],
@@ -102,6 +171,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     path: '/v1/fit-profile/answers',
     auth: { kind: 'jwt' },
     body: SubmitFitAnswersSchema,
+    response: SubmittedFitProfileResponseSchema,
     openapi: {
       summary: 'Commit the 25 Fit Answers; compute and persist vector',
       tags: ['fit-profile'],
@@ -122,6 +192,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     method: 'DELETE',
     path: '/v1/fit-profile/me',
     auth: { kind: 'jwt' },
+    response: EmptyResponseSchema,
     openapi: {
       summary: "LGPD - wipe the caller's Fit Answers and anonymize the vector",
       tags: ['fit-profile'],
@@ -130,7 +201,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteFitProfile.execute(ctx.user!.userId);
-      return undefined;
+      return null;
     },
   },
 
@@ -141,6 +212,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.JOB_MANAGE,
     params: JobIdParam,
+    response: JobFitProfileResponseSchema,
     openapi: {
       summary: 'Get the recruiter-authored Fit Profile for a job',
       tags: ['fit-profile'],
@@ -161,6 +233,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     permission: Permission.JOB_MANAGE,
     params: JobIdParam,
     body: UpsertJobFitProfileSchema,
+    response: JobFitProfileResponseSchema,
     openapi: {
       summary: 'Upsert the recruiter-authored Fit Profile for a job',
       tags: ['fit-profile'],
@@ -185,6 +258,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     path: '/v1/admin/fit-questions',
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
+    response: FitQuestionListResponseSchema,
     openapi: {
       summary: 'List every FitQuestion in the pool',
       tags: ['admin-fit-questions'],
@@ -202,6 +276,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
+    response: FitQuestionResponseSchema,
     openapi: {
       summary: 'Get one FitQuestion by id',
       tags: ['admin-fit-questions'],
@@ -221,6 +296,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: CreateFitQuestionSchema,
+    response: FitQuestionResponseSchema,
     openapi: {
       summary: 'Create a new FitQuestion',
       tags: ['admin-fit-questions'],
@@ -249,6 +325,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
     body: UpdateFitQuestionSchema,
+    response: FitQuestionResponseSchema,
     openapi: {
       summary: 'Update an existing FitQuestion',
       tags: ['admin-fit-questions'],
@@ -268,6 +345,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
+    response: EmptyResponseSchema,
     openapi: {
       summary: 'Delete a FitQuestion',
       tags: ['admin-fit-questions'],
@@ -277,7 +355,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteFitQuestion.execute(id);
-      return undefined;
+      return null;
     },
   },
 ];

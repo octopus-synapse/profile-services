@@ -25,11 +25,54 @@ const RageApplyBodySchema = z.object({
 
 type RageApplyBody = z.infer<typeof RageApplyBodySchema>;
 
+// ─── Response schemas ─────────────────────────────────────────────────
+const WeeklyCuratedItemSchema = z.object({
+  id: z.string(),
+  jobId: z.string(),
+  matchScore: z.number(),
+  status: z.string(),
+  decidedAt: z.string().datetime().nullable(),
+});
+
+const WeeklyCuratedBatchSchema = z.object({
+  id: z.string(),
+  weekOf: z.string().datetime(),
+  sentAt: z.string().datetime().nullable(),
+  status: z.string(),
+  items: z.array(WeeklyCuratedItemSchema),
+});
+
+const CurrentBatchResponseSchema = z.object({
+  batch: WeeklyCuratedBatchSchema.nullable(),
+});
+
+const RejectCuratedItemResponseSchema = z.object({
+  itemId: z.string(),
+});
+
+const ApproveCuratedItemResponseSchema = z.object({
+  applicationId: z.string(),
+  alreadyApplied: z.boolean(),
+});
+
+const RageApplyResponseSchema = z.object({
+  attempted: z.number().int().min(0),
+  submitted: z.number().int().min(0),
+  skippedExisting: z.number().int().min(0),
+  failed: z.array(
+    z.object({
+      jobId: z.string(),
+      reason: z.string(),
+    }),
+  ),
+});
+
 export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
   {
     method: 'GET',
     path: '/v1/apply-mode/weekly-curated/current',
     auth: { kind: 'jwt' },
+    response: CurrentBatchResponseSchema,
     openapi: {
       summary: "This week's curated batch for the viewer.",
       tags: ['apply-mode'],
@@ -46,6 +89,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     path: '/v1/apply-mode/weekly-curated/:itemId/reject',
     auth: { kind: 'jwt' },
     params: ItemIdParam,
+    response: RejectCuratedItemResponseSchema,
     openapi: {
       summary: 'Reject a curated item.',
       tags: ['apply-mode'],
@@ -64,6 +108,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     auth: { kind: 'jwt' },
     params: ItemIdParam,
     statusCode: 200,
+    response: ApproveCuratedItemResponseSchema,
     guards: [{ id: 'fit-profile' }, { id: 'min-quality' }],
     openapi: {
       summary: "Approve a curated item — submits a JobApplication using the user's primary resume.",
@@ -84,6 +129,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     permission: Permission.RAGE_APPLY,
     body: RageApplyBodySchema,
     statusCode: 200,
+    response: RageApplyResponseSchema,
     guards: [{ id: 'fit-profile' }, { id: 'min-quality' }],
     openapi: {
       summary:
