@@ -4,7 +4,10 @@ import type { LoggerPort } from '@/shared-kernel';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { CuratedSelectorService } from '../application/services/curated-selector.service';
-import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
+import {
+  AutoApplyAllPicksFailedException,
+  AutomationWorkerUnavailableException,
+} from '../domain/exceptions/automation.exceptions';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
 
@@ -68,10 +71,22 @@ export class AutoApplyWorker {
     );
     if (allowed.length === 0) return;
     for (const u of allowed) {
-      await this.queue.enqueue<AutoApplyJobData>(AUTO_APPLY_QUEUE, {
-        kind: 'run-for-user',
-        userId: u.id,
-      });
+      try {
+        await this.queue.enqueue<AutoApplyJobData>(AUTO_APPLY_QUEUE, {
+          kind: 'run-for-user',
+          userId: u.id,
+        });
+      } catch (err) {
+        // BullMQ / queue backend is down — fail fast with a domain
+        // type so the scheduler retries via its standard backoff
+        // policy instead of treating this as a per-user failure.
+        this.logger.error(
+          `Auto-apply enqueue failed for user=${u.id}: ${err instanceof Error ? err.message : String(err)}`,
+          err instanceof Error ? err.stack : undefined,
+          CTX,
+        );
+        throw new AutomationWorkerUnavailableException();
+      }
     }
   }
 
