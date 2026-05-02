@@ -1,11 +1,36 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { InvalidSkillCategoryException } from '../../../../domain/exceptions/skills-catalog.exceptions';
 import type { CreateSkillData, Skill } from '../../../domain/ports/skill-management.port';
 import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
+
+/**
+ * Whitelist of skill categories accepted on the public add/update API.
+ * Anything outside this list rejects with `InvalidSkillCategoryException`
+ * — keeps user-facing skill grouping consistent across resumes and
+ * prevents free-typed values from polluting downstream analytics.
+ */
+const VALID_SKILL_CATEGORIES = new Set([
+  'Language',
+  'Framework',
+  'Library',
+  'Tool',
+  'Platform',
+  'Database',
+  'Cloud',
+  'OS',
+  'Methodology',
+  'SoftSkill',
+  'Other',
+]);
 
 export class AddSkillUseCase {
   constructor(private readonly repository: SkillManagementRepositoryPort) {}
 
   async execute(resumeId: string, data: CreateSkillData): Promise<Skill> {
+    if (!VALID_SKILL_CATEGORIES.has(data.category)) {
+      throw new InvalidSkillCategoryException(data.category);
+    }
+
     const exists = await this.repository.resumeExists(resumeId);
 
     if (!exists) {

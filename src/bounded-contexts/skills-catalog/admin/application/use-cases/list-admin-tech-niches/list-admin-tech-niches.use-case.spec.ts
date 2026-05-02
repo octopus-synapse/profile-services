@@ -25,7 +25,12 @@ describe('Admin tech-niches use cases', () => {
 
   it('create forwards input', async () => {
     const repo = new InMemoryAdminTechNichesRepository();
-    await new CreateAdminTechNicheUseCase(repo).execute({ slug: 'web' });
+    await new CreateAdminTechNicheUseCase(repo).execute({
+      slug: 'web',
+      nameEn: 'Web',
+      namePtBr: 'Web',
+      areaId: 'area-1',
+    });
     expect(repo.created).toHaveLength(1);
   });
 
