@@ -12,6 +12,13 @@ export interface TrackView {
   referer?: string;
   country?: string;
   city?: string;
+  /**
+   * LGPD/GDPR consent flag. `undefined` is treated as "consent not
+   * inferable" and the call proceeds (legitimate-interest basis for
+   * basic counts). `false` is an explicit revocation and the use case
+   * raises `AnalyticsConsentRequiredException`.
+   */
+  consent?: boolean;
 }
 
 export interface ViewStatsOptions {
