@@ -18,7 +18,6 @@
     "src/bounded-contexts/collaboration/chat/chat.routes.ts",
     "src/bounded-contexts/jobs/jobs.routes.schemas.ts",
     "src/bounded-contexts/social/infrastructure/adapters/persistence/connection.repository.ts",
-    "src/shared-kernel/utils/locale-resolver.util.ts",
     "src/bounded-contexts/platform/common/audit/audit-log.service.ts",
     "src/bounded-contexts/social/social.composition.ts",
     "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts",
