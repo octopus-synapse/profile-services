@@ -12,48 +12,15 @@
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { GlobalSearchGroup, GlobalSearchItem, GlobalSearchResult } from './ports/search.port';
+import {
+  buildOrderClauseSql,
+  extractSkillNames,
+  filterResultsBySkills,
+  normalizeSearchTerms,
+} from './resume-search.helpers';
+import type { SearchParams, SearchResult, SearchResultItem } from './resume-search.types';
 
-/**
- * Search query parameters
- */
-export interface SearchParams {
-  query: string;
-  skills?: string[];
-  location?: string;
-  minExperienceYears?: number;
-  maxExperienceYears?: number;
-  page?: number;
-  limit?: number;
-  sortBy?: 'relevance' | 'date' | 'views';
-}
-
-/**
- * Search result item
- */
-export interface SearchResultItem {
-  id: string;
-  userId: string;
-  fullName: string | null;
-  jobTitle: string | null;
-  summary: string | null;
-  slug: string | null;
-  location: string | null;
-  profileViews: number;
-  createdAt: Date;
-  skills?: string[];
-  rank?: number;
-}
-
-/**
- * Paginated search result
- */
-export interface SearchResult {
-  data: SearchResultItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+export type { SearchParams, SearchResult, SearchResultItem };
 
 export class ResumeSearchService {
   constructor(private readonly prisma: PrismaService) {}
@@ -76,7 +43,7 @@ export class ResumeSearchService {
     const safeLimit = Number(limit) || 20;
     const safePage = Number(page) || 1;
     const offset = (safePage - 1) * safeLimit;
-    const searchTerms = this.normalizeSearchTerms(query);
+    const searchTerms = normalizeSearchTerms(query);
 
     // Build dynamic WHERE conditions as Prisma.Sql fragments so values are
     // bound through Prisma's parameterizer (avoids `$N` collisions when the
@@ -106,7 +73,7 @@ export class ResumeSearchService {
     }
 
     const whereClause = Prisma.join(conditions, ' AND ');
-    const orderClause = this.buildOrderClauseSql(sortBy);
+    const orderClause = buildOrderClauseSql(sortBy);
 
     const searchQuery = Prisma.sql`
       SELECT
@@ -140,7 +107,7 @@ export class ResumeSearchService {
     // Filter by skills if provided (post-query filter for simplicity)
     let filteredResults = results;
     if (skills && skills.length > 0) {
-      filteredResults = await this.filterBySkills(results, skills);
+      filteredResults = await filterResultsBySkills(this.prisma, results, skills);
     }
 
     const total = countResult[0].count;
@@ -152,7 +119,7 @@ export class ResumeSearchService {
    * Get search suggestions (autocomplete)
    */
   async suggest(prefix: string, limit = 10): Promise<string[]> {
-    const normalizedPrefix = this.normalizeSearchTerms(prefix);
+    const normalizedPrefix = normalizeSearchTerms(prefix);
 
     const suggestions = await this.prisma.$queryRaw<{ suggestion: string }[]>`
       SELECT DISTINCT "jobTitle" as suggestion
@@ -197,7 +164,7 @@ export class ResumeSearchService {
       return [];
     }
 
-    const skillNames = this.extractSkillNames(sourceResume.resumeSections);
+    const skillNames = extractSkillNames(sourceResume.resumeSections);
 
     if (skillNames.length === 0) {
       return [];
@@ -235,7 +202,7 @@ export class ResumeSearchService {
 
     const ranked = candidates
       .map((resume) => {
-        const candidateSkills = this.extractSkillNames(resume.resumeSections);
+        const candidateSkills = extractSkillNames(resume.resumeSections);
         const sharedSkills = candidateSkills.filter((skill) => skillNames.includes(skill));
 
         return {
@@ -351,91 +318,4 @@ export class ResumeSearchService {
   /**
    * Normalize search terms for consistent matching
    */
-  private normalizeSearchTerms(query: string): string {
-    return query
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, ' ')
-      .replace(/\s+/g, ' ');
-  }
-
-  /**
-   * Build ORDER BY clause as a Prisma.Sql fragment so it can be safely
-   * interpolated inside a Prisma.sql template.
-   */
-  private buildOrderClauseSql(sortBy: string): Prisma.Sql {
-    switch (sortBy) {
-      case 'date':
-        return Prisma.sql`"createdAt" DESC`;
-      case 'views':
-        return Prisma.sql`"profileViews" DESC`;
-      default:
-        return Prisma.sql`"profileViews" DESC, "createdAt" DESC`;
-    }
-  }
-
-  /**
-   * Filter results by skills (post-query)
-   */
-  private async filterBySkills(
-    results: SearchResultItem[],
-    skills: string[],
-  ): Promise<SearchResultItem[]> {
-    if (results.length === 0) return results;
-
-    const resumeIds = results.map((r) => r.id);
-    const normalizedSkills = skills.map((s) => s.toLowerCase());
-
-    const items = await this.prisma.sectionItem.findMany({
-      where: {
-        resumeSection: {
-          resumeId: { in: resumeIds },
-          sectionType: {
-            semanticKind: { contains: 'SKILL', mode: 'insensitive' },
-          },
-        },
-      },
-      select: {
-        resumeSection: {
-          select: { resumeId: true },
-        },
-        content: true,
-      },
-    });
-
-    const matchingIds = new Set<string>();
-    for (const item of items) {
-      const content = this.asRecord(item.content);
-      const name = typeof content.name === 'string' ? content.name.toLowerCase() : '';
-
-      if (normalizedSkills.includes(name)) {
-        matchingIds.add(item.resumeSection.resumeId);
-      }
-    }
-
-    return results.filter((r) => matchingIds.has(r.id));
-  }
-
-  private extractSkillNames(sections: Array<{ items: Array<{ content: unknown }> }>): string[] {
-    const skills: string[] = [];
-
-    for (const section of sections) {
-      for (const item of section.items) {
-        const content = this.asRecord(item.content);
-        if (typeof content.name === 'string') {
-          skills.push(content.name.toLowerCase());
-        }
-      }
-    }
-
-    return skills;
-  }
-
-  private asRecord(value: unknown): Record<string, unknown> {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return {};
-    }
-
-    return value as Record<string, unknown>;
-  }
 }
