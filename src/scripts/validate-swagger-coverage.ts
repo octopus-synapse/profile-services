@@ -28,7 +28,7 @@ import { readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ZodSchema } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 
 const SRC_DIR = resolve(__dirname, '../../src');
 const ROOT = resolve(__dirname, '../../');

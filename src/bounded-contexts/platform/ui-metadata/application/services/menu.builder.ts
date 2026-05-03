@@ -7,7 +7,7 @@
  */
 
 import type { Permission } from '@/shared-kernel/authorization';
-import type { SupportedLocale } from './enum-catalog';
+import type { SupportedLocale } from './enum-catalog.service';
 
 export interface MenuNode {
   id: string;

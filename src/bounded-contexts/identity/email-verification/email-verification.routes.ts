@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
 import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.schema';
 

@@ -9,7 +9,7 @@
 import type {
   NotificationPreferenceView,
   NotificationType,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 
 const ALL_TYPES: readonly NotificationType[] = [

@@ -15,7 +15,7 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import {
   type MarkReadResult,
   NotificationsRepositoryPort,

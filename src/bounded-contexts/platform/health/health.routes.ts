@@ -14,7 +14,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { HealthUseCases } from './application/health.bundle';
 import type { ProbeResult } from './domain/probe.port';
 

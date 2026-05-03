@@ -9,8 +9,8 @@ import {
   DslEvaluationLimitExceededException,
   DslTypeMismatchException,
 } from '../../domain/exceptions/dsl.exceptions';
-import { type Expression, ExpressionType } from '../parsers/expression-parser';
-import { TokenEvaluator } from './token-evaluator';
+import { type Expression, ExpressionType } from '../parsers/expression.parser';
+import { TokenEvaluator } from './token.evaluator';
 
 describe('TokenEvaluator', () => {
   const baseContext = {

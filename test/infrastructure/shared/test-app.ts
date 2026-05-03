@@ -26,7 +26,7 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed-runner';
+import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
 import { seedOnboardingSteps } from '../../../prisma/seeds/onboarding-step.seed';
 import { seedResumeStyles } from '../../../prisma/seeds/resume-styles.seed';

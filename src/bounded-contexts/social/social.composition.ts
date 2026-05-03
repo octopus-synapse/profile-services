@@ -35,7 +35,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import type { EventBusPort, EventHandler } from '@/shared-kernel/event-bus/event-bus.port';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';

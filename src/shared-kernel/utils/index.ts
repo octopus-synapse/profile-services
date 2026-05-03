@@ -1,1 +1,1 @@
-export * from './locale-resolver';
+export * from './locale-resolver.util';

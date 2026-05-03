@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
 

@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ShareAnalyticsReaderPort } from './application/ports/share-analytics-reader.port';
 
 const ShareIdParam = z.object({ shareId: z.string() });

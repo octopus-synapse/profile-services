@@ -24,7 +24,7 @@ import type { JwtPort, LoggerPort } from '@/shared-kernel';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { WebSocketPort } from '@/shared-kernel/websocket/websocket.port';
 
 // admin slice

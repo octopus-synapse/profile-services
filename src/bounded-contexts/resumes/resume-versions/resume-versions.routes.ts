@@ -11,7 +11,7 @@
 
 import { z } from 'zod';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { toVersionIsoList } from './infrastructure/presenters/resume-version.presenter';
 

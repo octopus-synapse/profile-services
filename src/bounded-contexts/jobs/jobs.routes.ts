@@ -11,7 +11,7 @@ import type { EnglishLevel, JobType } from '@prisma/client';
 import { z } from 'zod';
 import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { RecordApplicationEventSchema } from './dto/application-event.schema';

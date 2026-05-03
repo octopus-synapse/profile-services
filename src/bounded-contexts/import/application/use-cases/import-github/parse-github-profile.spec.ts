@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import type { GithubRepoSummary, GithubUserSummary } from './github-api.port';
-import { parseGithubProfile } from './parse-github-profile';
+import { parseGithubProfile } from './parse-github-profile.helper';
 
 const baseUser: GithubUserSummary = {
   login: 'enzoferracini',

@@ -2,7 +2,7 @@
  * Domain shapes for post engagement (likes, bookmarks, reports, votes).
  */
 
-import type { PostAuthor, ReactionType } from './post';
+import type { PostAuthor, ReactionType } from './post.entity';
 
 export interface PostLike {
   readonly id: string;

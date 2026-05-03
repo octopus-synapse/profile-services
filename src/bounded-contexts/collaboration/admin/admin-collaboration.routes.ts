@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { AdminCollaborationUseCases } from './application/ports/admin-collaboration.port';
 
 const PageQuerySchema = z.object({

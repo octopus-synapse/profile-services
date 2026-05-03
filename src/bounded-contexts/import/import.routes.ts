@@ -14,7 +14,7 @@
 import { z } from 'zod';
 import type { MultipartBody } from '@/infrastructure/elysia-adapter/multipart-bridge';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ImportUseCases } from './application/ports/import.port';
 import {
   JsonResumeBasicsMissingException,
@@ -22,7 +22,7 @@ import {
   LinkedinImportNotImplementedException,
   MissingPdfUploadException,
 } from './domain/exceptions/import.exceptions';
-import { JsonResumeParser } from './domain/services/json-resume-parser';
+import { JsonResumeParser } from './domain/services/json-resume.parser';
 import type { JsonResumeSchema } from './domain/types/import.types';
 import {
   toImportJobDto,

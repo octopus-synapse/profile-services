@@ -11,7 +11,7 @@ import {
   DslParseErrorException,
   DslUnexpectedTokenException,
 } from '../../domain/exceptions/dsl.exceptions';
-import { ExpressionLexer, type Token, TokenType } from './expression-lexer';
+import { ExpressionLexer, type Token, TokenType } from './expression.lexer';
 
 export enum ExpressionType {
   LITERAL = 'LITERAL',

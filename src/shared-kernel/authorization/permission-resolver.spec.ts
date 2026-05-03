@@ -13,7 +13,7 @@ import {
   hasRole,
   isAdmin,
   resolvePermissions,
-} from './permission-resolver';
+} from './permission-resolver.service';
 import { ROLES } from './roles';
 
 describe('PermissionResolver', () => {

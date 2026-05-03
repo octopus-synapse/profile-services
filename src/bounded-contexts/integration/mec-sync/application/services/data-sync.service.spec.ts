@@ -1,10 +1,10 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { InMemoryMecCache } from '../../testing/in-memory-mec-cache';
 import {
   InMemoryMecCourseRepository,
   InMemoryMecInstitutionRepository,
-} from '../../testing/in-memory-mec-repositories';
+} from '../../testing/in-memory-mec.repository';
+import { InMemoryMecCache } from '../../testing/in-memory-mec-cache';
 import { DataSyncService } from './data-sync.service';
 import type { ParseResult } from './mec-csv-parser.service';
 

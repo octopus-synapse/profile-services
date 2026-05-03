@@ -14,7 +14,7 @@ import type {
   NotificationStreamEvent,
   NotificationType,
   NotificationView,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import { UnknownNotificationTypeException } from '../../../domain/exceptions/notifications.exceptions';
 import type { NotificationEmailPort } from '../../../domain/ports/notification-email.port';
 import type { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';

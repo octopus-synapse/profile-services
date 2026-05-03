@@ -9,7 +9,7 @@
  */
 
 import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
-import type { NotificationStreamEvent } from '../../../domain/entities/notification';
+import type { NotificationStreamEvent } from '../../../domain/entities/notification.entity';
 import { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';
 
 export class EventEmitterNotificationStreamAdapter extends NotificationStreamPort {

@@ -7,8 +7,8 @@
 import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { OnboardingCompletionInProgressException } from './domain/exceptions/onboarding-extra.exceptions';
 import { type OnboardingData, OnboardingDataSchema } from './domain/schemas/onboarding-data.schema';

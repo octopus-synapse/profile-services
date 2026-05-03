@@ -8,8 +8,8 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { DslUseCases } from './application/ports/dsl.port';
 import { ResumeAstSchema } from './domain/schemas/ast/resume-ast.schema';
 

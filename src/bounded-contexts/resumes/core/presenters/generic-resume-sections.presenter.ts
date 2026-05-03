@@ -1,4 +1,4 @@
-import { resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver';
+import { resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import type { ResumeSectionTypesDataDto } from '../dto/generic-sections-response.schema';
 
 type SectionTypeLike = Parameters<typeof resolveSectionTypeForLocale>[0];

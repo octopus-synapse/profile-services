@@ -3,7 +3,7 @@
  * context. Used by the timeline endpoint.
  */
 
-import type { PostWithRelations, ReactionType } from './post';
+import type { PostWithRelations, ReactionType } from './post.entity';
 
 export interface FeedItem extends PostWithRelations {
   readonly isLiked: boolean;

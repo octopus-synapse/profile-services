@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { UiMetadataUseCases } from './application/ports/ui-metadata.port';
 
 const EnumKeyParams = z.object({ key: z.string() });

@@ -11,7 +11,7 @@ import {
 } from '@/shared-kernel/websocket/websocket.port';
 import { ChatUseCases } from '../application/ports/chat.port';
 import { InMemoryChatCacheService, InMemoryConversationRepository } from '../testing';
-import { type ChatRealtimePort, registerChatWebSocketHandlers } from './chat-handlers';
+import { type ChatRealtimePort, registerChatWebSocketHandlers } from './chat.handler';
 
 // ----------------------------------------------------------------------------
 // Fakes

@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeQualityUseCases } from './application/ports/resume-quality.port';
 import { ResumeQualitySnapshotMissingException } from './domain/exceptions/resume-quality.exceptions';
 import { presentQualitySnapshot } from './infrastructure/presenters/resume-quality.presenter';

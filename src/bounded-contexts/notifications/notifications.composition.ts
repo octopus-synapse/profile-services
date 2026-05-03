@@ -51,7 +51,7 @@ import { SendDailyDigestsUseCase } from './application/use-cases/send-daily-dige
 import { SendExpiryReminderUseCase } from './application/use-cases/send-expiry-reminder/send-expiry-reminder.use-case';
 import { SendWeeklyDigestsUseCase } from './application/use-cases/send-weekly-digests/send-weekly-digests.use-case';
 import { SetPreferenceUseCase } from './application/use-cases/set-preference/set-preference.use-case';
-import type { NotificationStreamEvent } from './domain/entities/notification';
+import type { NotificationStreamEvent } from './domain/entities/notification.entity';
 import type { NotificationStreamPort } from './domain/ports/notification-stream.port';
 import { CacheReminderStateAdapter } from './infrastructure/adapters/external-services/cache-reminder-state.adapter';
 import { EventEmitterNotificationStreamAdapter } from './infrastructure/adapters/external-services/event-emitter-notification-stream.adapter';

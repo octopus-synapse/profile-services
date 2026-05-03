@@ -11,7 +11,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { SkillType, TechAreaType } from './interfaces';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';

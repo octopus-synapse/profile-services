@@ -1,5 +1,5 @@
-export type { AuditEntry, ExportAuditEntry } from './in-memory-audit-logger';
-export { InMemoryAuditLogger } from './in-memory-audit-logger';
+export type { AuditEntry, ExportAuditEntry } from './in-memory-audit-logger.adapter';
+export { InMemoryAuditLogger } from './in-memory-audit-logger.adapter';
 export { InMemoryConsentRepository } from './in-memory-consent.repository';
 export { InMemoryDataExportRepository } from './in-memory-data-export.repository';
 export type { PublishedEvent } from './in-memory-event-bus';

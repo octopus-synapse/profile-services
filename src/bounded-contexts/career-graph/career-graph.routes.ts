@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { CareerGraphUseCases } from './application/ports/career-graph.port';
 
 export { RATE_LIMIT_KEY };

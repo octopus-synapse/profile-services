@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { BadgesUseCases } from './application/ports/badges.port';
 
 const ListForUserParams = z.object({ userId: z.string() });

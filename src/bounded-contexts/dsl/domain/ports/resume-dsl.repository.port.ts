@@ -13,7 +13,7 @@
  */
 
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
 
 export abstract class ResumeDslRepositoryPort {
   /** Owned read — returns null when the resume doesn't exist or doesn't

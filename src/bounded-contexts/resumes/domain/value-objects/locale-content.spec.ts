@@ -6,7 +6,7 @@ import {
   type LocalizedSection,
   migrateFromLegacy,
   resolveForLocale,
-} from './locale-content';
+} from './locale-content.vo';
 
 describe('LocaleContent', () => {
   const validContent: LocaleContent = {

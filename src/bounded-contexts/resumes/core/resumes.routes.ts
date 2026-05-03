@@ -15,8 +15,8 @@
 import { z } from 'zod';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import {

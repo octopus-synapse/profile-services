@@ -6,7 +6,7 @@ import {
   FlagGraphDuplicateKeyError,
   FlagGraphMissingDependencyError,
   validateRegistry,
-} from './feature-flag-graph';
+} from './feature-flag-graph.service';
 import type { FlagDefinition, FlagRecord } from './types';
 
 const def = (key: string, dependsOn: string[] = []): FlagDefinition => ({

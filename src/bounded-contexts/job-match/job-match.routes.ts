@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
 import { ComputeMatchRequestDto } from './dto/match-breakdown.schema';

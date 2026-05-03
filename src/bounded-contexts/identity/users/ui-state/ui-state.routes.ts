@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import { UiStateService } from './ui-state.service';
 

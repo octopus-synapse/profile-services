@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { ExpressionLexer, TokenType } from './expression-lexer';
+import { ExpressionLexer, TokenType } from './expression.lexer';
 
 describe('ExpressionLexer', () => {
   describe('literal tokenization', () => {

@@ -8,7 +8,7 @@ import { describe, expect, it } from 'bun:test';
 import { DslCyclicReferenceException } from '../../domain/exceptions/dsl.exceptions';
 import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import type { ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
-import { ThemeCompiler } from './theme-compiler';
+import { ThemeCompiler } from './theme.compiler';
 
 describe('ThemeCompiler', () => {
   describe('compile', () => {

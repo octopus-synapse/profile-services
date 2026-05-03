@@ -9,7 +9,7 @@
  * web client subscribes through `EventSource`, not Orval.
  */
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { SseHubPort } from '../../application/ports/sse-hub.port';
 import { parseTopics } from '../../domain/topic';
 

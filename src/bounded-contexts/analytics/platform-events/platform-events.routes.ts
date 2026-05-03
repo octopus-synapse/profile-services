@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { TrackPlatformEventsUseCase } from './application/use-cases/track-platform-events/track-platform-events.use-case';
 
 const PlatformEventSchema = z.object({

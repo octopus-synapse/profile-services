@@ -10,8 +10,8 @@
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import type { HttpCtx } from '@/shared-kernel/http/context';
-import type { Route } from '@/shared-kernel/http/route';
-import { withRedirect } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { withRedirect } from '@/shared-kernel/http/route.types';
 import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 
 const ProviderParam = z.object({ provider: z.enum(['github', 'linkedin']) });

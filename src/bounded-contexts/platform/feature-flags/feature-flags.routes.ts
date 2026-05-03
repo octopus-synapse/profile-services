@@ -9,7 +9,7 @@
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { FeatureFlagsUseCases } from './application/ports/feature-flags.port';
 import type { FlagStreamMessage } from './infrastructure/sse/sse-flag-stream.service';
 

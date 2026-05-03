@@ -19,8 +19,8 @@ import {
   type FunctionCallExpr,
   type ReferenceExpr,
   type TemplateExpr,
-} from '../parsers/expression-parser';
-import { colorFunctions } from './color-functions';
+} from '../parsers/expression.parser';
+import { colorFunctions } from './color.functions';
 
 type EvalResult = string | number | boolean | undefined | unknown[];
 

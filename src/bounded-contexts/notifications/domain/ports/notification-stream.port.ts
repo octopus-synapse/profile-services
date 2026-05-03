@@ -5,7 +5,7 @@
  * `SseStreamPort.subscribe`.
  */
 
-import type { NotificationStreamEvent } from '../entities/notification';
+import type { NotificationStreamEvent } from '../entities/notification.entity';
 
 export abstract class NotificationStreamPort {
   abstract emit(userId: string, event: NotificationStreamEvent): void;

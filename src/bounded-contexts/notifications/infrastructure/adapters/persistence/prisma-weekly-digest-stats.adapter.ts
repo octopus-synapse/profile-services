@@ -5,7 +5,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { WeeklyDigestStats } from '../../../domain/entities/notification';
+import type { WeeklyDigestStats } from '../../../domain/entities/notification.entity';
 import { WeeklyDigestStatsPort } from '../../../domain/ports/weekly-digest-stats.port';
 
 export class PrismaWeeklyDigestStatsAdapter extends WeeklyDigestStatsPort {

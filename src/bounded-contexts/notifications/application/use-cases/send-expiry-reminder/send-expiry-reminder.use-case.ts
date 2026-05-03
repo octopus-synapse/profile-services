@@ -11,7 +11,7 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
-import type { FitProfileReminderDaysLeft } from '../../../domain/entities/notification';
+import type { FitProfileReminderDaysLeft } from '../../../domain/entities/notification.entity';
 import { ReminderStatePort } from '../../../domain/ports/reminder-state.port';
 import { CreateNotificationUseCase } from '../create-notification/create-notification.use-case';
 import { flagKeyFor } from '../enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';

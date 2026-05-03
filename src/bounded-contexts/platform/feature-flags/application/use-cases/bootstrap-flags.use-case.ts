@@ -1,5 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import { validateRegistry } from '../../domain/feature-flag-graph';
+import { validateRegistry } from '../../domain/feature-flag-graph.service';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import { FEATURE_FLAGS_REGISTRY } from '../../registry/feature-flags.registry';
 

@@ -5,7 +5,7 @@
  * than 100 rows in one request.
  */
 
-import type { NotificationListPage } from '../../../domain/entities/notification';
+import type { NotificationListPage } from '../../../domain/entities/notification.entity';
 import { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 
 const DEFAULT_LIMIT = 20;

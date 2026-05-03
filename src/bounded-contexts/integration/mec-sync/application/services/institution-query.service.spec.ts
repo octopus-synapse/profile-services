@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { InMemoryMecInstitutionRepository } from '../../testing/in-memory-mec.repository';
 import { InMemoryMecCache } from '../../testing/in-memory-mec-cache';
-import { InMemoryMecInstitutionRepository } from '../../testing/in-memory-mec-repositories';
 import { InstitutionQueryService } from './institution-query.service';
 
 describe('InstitutionQueryService', () => {

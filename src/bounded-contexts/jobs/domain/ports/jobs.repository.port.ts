@@ -20,7 +20,7 @@ import type {
   JobAuthor,
   JobFilters,
   UpdateJobInput,
-} from '../entities/job';
+} from '../entities/job.entity';
 
 export interface JobWithAuthor extends Job {
   readonly author: JobAuthor | null;

@@ -11,7 +11,7 @@ import type { DslUseCases } from '@/bounded-contexts/dsl';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
 import type { TypstCompilerService } from './typst-compiler.service';

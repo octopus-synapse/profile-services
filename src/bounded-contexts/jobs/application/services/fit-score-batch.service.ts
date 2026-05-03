@@ -8,7 +8,7 @@
  * we leave them null and let the scorer fall back to neutral factors.
  */
 
-import type { JobFitInputRow } from '../../domain/entities/job';
+import type { JobFitInputRow } from '../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
 import { computeFitScore, type FitScore } from './compute-fit-score.service';
 

@@ -23,7 +23,7 @@ import {
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi';
 import { type ZodSchema, z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ErrorResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 
 extendZodWithOpenApi(z);

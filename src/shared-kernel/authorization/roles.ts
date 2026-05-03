@@ -9,7 +9,7 @@
  * - role_user: Default for all authenticated users
  * - role_admin: Full administrative access
  */
-import type { PermissionGroupId } from './permission-groups';
+import type { PermissionGroupId } from './permission-groups.config';
 
 export interface Role {
   readonly id: string;

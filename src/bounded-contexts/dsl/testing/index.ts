@@ -7,7 +7,7 @@
 
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeDslRepositoryPort } from '../domain/ports/resume-dsl.repository.port';
 
 /** Mock AST result */

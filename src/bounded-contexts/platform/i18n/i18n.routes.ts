@@ -8,8 +8,8 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
-import { withHeaders } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { withHeaders } from '@/shared-kernel/http/route.types';
 import { negotiateLocale } from './application/locale-negotiator';
 import { I18nUseCases } from './application/ports/i18n.port';
 

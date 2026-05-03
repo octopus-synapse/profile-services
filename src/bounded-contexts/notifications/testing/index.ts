@@ -19,7 +19,7 @@ import type {
   NotificationView,
   PendingDigestNotification,
   WeeklyDigestStats,
-} from '../domain/entities/notification';
+} from '../domain/entities/notification.entity';
 import { FitProfileExpiryReadPort } from '../domain/ports/fit-profile-expiry.port';
 import {
   type NotificationEmailMessage,

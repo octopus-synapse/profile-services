@@ -12,7 +12,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type {
   NotificationType,
   PendingDigestNotification,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import { NotificationEmailPort } from '../../../domain/ports/notification-email.port';
 import { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 import { escapeHtml, humanizeType } from '../../shared/format';

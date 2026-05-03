@@ -1,5 +1,5 @@
 import type { ResumeForAnalytics } from '../domain/types';
-import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords';
+import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords.vo';
 import type {
   Industry,
   JobMatchResult,

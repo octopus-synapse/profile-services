@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { GitHubIntegrationUseCases } from './application/ports/github-integration.port';
 import type { GitHubSummaryResult } from './application/use-cases/get-github-summary/get-github-summary.use-case';
 import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';

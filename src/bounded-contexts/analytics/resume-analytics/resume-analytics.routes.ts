@@ -10,7 +10,7 @@
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
 
 export interface AnalyticsUpdateEvent {

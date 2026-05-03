@@ -19,8 +19,8 @@ import type {
   SpacingSize,
   ThemeDefinition,
 } from '../../domain/schemas/dsl/theme-ast.schema';
-import { ExpressionParser } from '../parsers/expression-parser';
-import { TokenEvaluator } from './token-evaluator';
+import { ExpressionParser } from '../parsers/expression.parser';
+import { TokenEvaluator } from './token.evaluator';
 
 // =============================================================================
 // Font Family Mappings

@@ -11,7 +11,7 @@
 import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { FeedUseCases } from './application/ports/feed.port';
 import { CreatePostSchema } from './dto/create-post-request.schema';
 

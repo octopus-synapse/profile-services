@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { TestRunnerUseCases } from './application/ports/test-runner.port';
 
 const RunTestsBody = z.object({ suite: z.string() });

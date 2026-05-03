@@ -18,7 +18,7 @@ import {
   resolveTranslation,
   type SupportedLocale,
   type TranslationsJson,
-} from '@/shared-kernel/utils/locale-resolver';
+} from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
 import { RESUME_RELATIONS_INCLUDE } from '../../queries/resume-query';
 

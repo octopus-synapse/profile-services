@@ -9,7 +9,7 @@
  * it framework-free.
  */
 
-import type { WeeklyDigestStats } from '../../domain/entities/notification';
+import type { WeeklyDigestStats } from '../../domain/entities/notification.entity';
 import { escapeHtml } from '../shared/format';
 
 export interface WeeklyDigestInput {

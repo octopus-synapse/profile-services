@@ -9,9 +9,9 @@ import type { NotificationType } from '@prisma/client';
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { NotificationsUseCases } from './application/ports/notifications.port';
-import type { NotificationStreamEvent } from './domain/entities/notification';
+import type { NotificationStreamEvent } from './domain/entities/notification.entity';
 
 /**
  * Bundle for the notifications SSE route. Holds an Observable-returning

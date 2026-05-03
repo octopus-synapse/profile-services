@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ChangePasswordSchema } from './infrastructure/controllers/change-password.schema';
 import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.schema';

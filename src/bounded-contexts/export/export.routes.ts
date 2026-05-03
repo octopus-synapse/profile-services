@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import { sanitizeQueryParam } from './infrastructure/helpers';

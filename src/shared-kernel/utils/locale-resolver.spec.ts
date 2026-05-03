@@ -4,7 +4,7 @@ import {
   resolveDefinitionFieldsForLocale,
   resolveTranslation,
   type TranslationsJson,
-} from './locale-resolver';
+} from './locale-resolver.util';
 
 describe('locale-resolver', () => {
   describe('parseLocale', () => {

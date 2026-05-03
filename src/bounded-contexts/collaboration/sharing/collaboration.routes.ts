@@ -9,7 +9,7 @@
 import { z } from 'zod';
 import { CollaboratorRoleSchema } from '@/bounded-contexts/collaboration/domain/enums';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { CollaborationUseCases } from './application/collaboration.composition';
 import type { CollabCommentService } from './services/collab-comment.service';
 

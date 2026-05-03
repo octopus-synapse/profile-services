@@ -7,7 +7,7 @@
  * Resolution chain: User.roles → Role.groups → Group.permissions
  */
 import { Permission } from './permission.enum';
-import { PERMISSION_GROUPS } from './permission-groups';
+import { PERMISSION_GROUPS } from './permission-groups.config';
 import { ROLES, type RoleId } from './roles';
 
 /**

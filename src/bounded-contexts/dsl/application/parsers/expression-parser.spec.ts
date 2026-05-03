@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from 'bun:test';
 import { DslParseErrorException } from '../../domain/exceptions/dsl.exceptions';
-import { type Expression, ExpressionParser, ExpressionType } from './expression-parser';
+import { type Expression, ExpressionParser, ExpressionType } from './expression.parser';
 
 describe('ExpressionParser', () => {
   describe('literal expressions', () => {

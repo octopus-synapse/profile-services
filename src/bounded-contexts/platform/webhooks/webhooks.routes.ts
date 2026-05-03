@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { WebhooksUseCases } from './application/ports/webhooks.port';
 
 const SUPPORTED_EVENTS = ['resume.created', 'resume.published', 'ats.score.updated'] as const;

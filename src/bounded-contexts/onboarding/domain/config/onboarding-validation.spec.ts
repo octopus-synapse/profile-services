@@ -3,7 +3,7 @@ import {
   canCompleteOnboarding,
   canProceedFromStep,
   type OnboardingDataForValidation,
-} from './onboarding-validation';
+} from './onboarding-validation.rules';
 
 describe('canProceedFromStep', () => {
   const emptyData: OnboardingDataForValidation = {};

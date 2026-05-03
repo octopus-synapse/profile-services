@@ -20,7 +20,7 @@
  * except `useCases` and `routes`.
  */
 
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 
 export interface BcEventBinding<TEvent = unknown> {

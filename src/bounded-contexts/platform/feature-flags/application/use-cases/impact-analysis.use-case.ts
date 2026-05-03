@@ -1,5 +1,5 @@
 import { FeatureFlagNotFoundException } from '../../domain/exceptions/feature-flag.exceptions';
-import { buildImpactTree } from '../../domain/feature-flag-graph';
+import { buildImpactTree } from '../../domain/feature-flag-graph.service';
 import type { FlagImpactTree } from '../../domain/types';
 import { FlagStateService } from '../services/flag-state.service';
 

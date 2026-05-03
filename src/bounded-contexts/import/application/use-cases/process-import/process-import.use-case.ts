@@ -2,7 +2,7 @@ import { LoggerPort } from '@/shared-kernel';
 import { ImportNotFoundException } from '../../../domain/exceptions/import.exceptions';
 import { ImportJobRepositoryPort } from '../../../domain/ports/import-job.repository.port';
 import { ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
-import { JsonResumeParser } from '../../../domain/services/json-resume-parser';
+import { JsonResumeParser } from '../../../domain/services/json-resume.parser';
 import type { ImportResult } from '../../../domain/types/import.types';
 
 export class ProcessImportUseCase {

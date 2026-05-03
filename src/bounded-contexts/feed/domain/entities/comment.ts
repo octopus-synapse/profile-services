@@ -2,7 +2,7 @@
  * Domain shapes for post comments.
  */
 
-import type { PostAuthor } from './post';
+import type { PostAuthor } from './post.entity';
 
 export interface Comment {
   readonly id: string;

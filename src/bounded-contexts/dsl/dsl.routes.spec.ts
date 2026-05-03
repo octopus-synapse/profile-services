@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { HttpCtx } from '@/shared-kernel/http/context';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { DslUseCases } from './application/ports/dsl.port';
 import { dslRoutes } from './dsl.routes';
 

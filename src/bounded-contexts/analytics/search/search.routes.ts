@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { SearchServicePort } from './ports';
 import { parseCsvQuery } from './search.presenter';
 

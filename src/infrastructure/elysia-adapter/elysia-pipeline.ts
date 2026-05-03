@@ -25,9 +25,9 @@
 import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import type { AuthExtractorPort } from '@/shared-kernel/http/auth-extractor.port';
 import type { HttpCtx } from '@/shared-kernel/http/context';
-import { mapDomainErrorToHttp } from '@/shared-kernel/http/error-mapper';
+import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
 import type { NextFn, PipelineStage } from '@/shared-kernel/http/pipeline';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { responseWrapperStage } from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';

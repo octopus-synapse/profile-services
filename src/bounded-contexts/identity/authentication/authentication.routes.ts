@@ -22,7 +22,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
 import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.schema';

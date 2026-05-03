@@ -25,7 +25,7 @@ export {
   PERMISSION_GROUPS,
   type PermissionGroup,
   type PermissionGroupId,
-} from './permission-groups';
+} from './permission-groups.config';
 export {
   getPermissionsArray,
   getRolesWithPermission,
@@ -35,5 +35,5 @@ export {
   hasRole,
   isAdmin,
   resolvePermissions,
-} from './permission-resolver';
+} from './permission-resolver.service';
 export { getAllRoleIds, getRoleById, isValidRoleId, ROLES, type Role, type RoleId } from './roles';

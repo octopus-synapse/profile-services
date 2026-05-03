@@ -16,7 +16,7 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-} from '../entities/notification';
+} from '../entities/notification.entity';
 
 export interface SetPreferenceInput {
   readonly enabled?: boolean;

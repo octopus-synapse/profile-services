@@ -5,7 +5,7 @@
 
 import { LoggerPort } from '@/shared-kernel';
 import type { PaginatedResult } from '@/shared-kernel/database';
-import type { Job, JobFilters } from '../../../domain/entities/job';
+import type { Job, JobFilters } from '../../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 import type { JobEnrichmentService } from '../../services/job-enrichment.service';
 

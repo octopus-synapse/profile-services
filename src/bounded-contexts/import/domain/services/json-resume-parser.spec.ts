@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { minimalJsonResume, sampleJsonResume } from '../../testing/fixtures/import-job.fixtures';
-import { JsonResumeParser } from './json-resume-parser';
+import { JsonResumeParser } from './json-resume.parser';
 
 describe('JsonResumeParser', () => {
   const parser = new JsonResumeParser();

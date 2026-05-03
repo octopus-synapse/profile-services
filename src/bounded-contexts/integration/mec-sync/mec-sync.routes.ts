@@ -11,7 +11,7 @@
 
 import { z } from 'zod';
 import { APP_CONFIG, ValidationException } from '@/shared-kernel';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
 import {
   CourseSchema,

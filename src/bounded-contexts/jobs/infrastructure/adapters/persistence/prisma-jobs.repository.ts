@@ -17,7 +17,7 @@ import type {
   JobApplication,
   JobFilters,
   UpdateJobInput,
-} from '../../../domain/entities/job';
+} from '../../../domain/entities/job.entity';
 import {
   type ApplicationListItem,
   type ApplicationWithJob,
