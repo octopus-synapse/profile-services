@@ -7,6 +7,12 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  KeyParam,
+  SectionTypeListResponseSchema,
+  SectionTypeResponseSchema,
+  SemanticKindsResponseSchema,
+} from './admin-section-types.routes.schemas';
 import { AdminSectionTypesUseCases } from './application/ports/admin-section-types.port';
 import {
   type CreateSectionTypeDto,
@@ -16,68 +22,6 @@ import {
   type UpdateSectionTypeDto,
   UpdateSectionTypeSchema,
 } from './dto';
-
-const KeyParam = z.object({ key: z.string() });
-
-// ─── Response schemas ─────────────────────────────────────────────────
-// Bounded-depth JSON value: leaf | array of leaves | object of leaves.
-// Two levels deep covers the section type definition / uiSchema / hints
-// shapes that admins use today.
-const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const JsonNodeLevel2Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonLeafSchema),
-  z.record(z.string(), JsonLeafSchema),
-]);
-const JsonNodeLevel1Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonNodeLevel2Schema),
-  z.record(z.string(), JsonNodeLevel2Schema),
-]);
-const JsonObjectSchema = z.record(z.string(), JsonNodeLevel1Schema);
-
-const SectionTypeTranslationSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  label: z.string(),
-  noDataLabel: z.string().optional(),
-  placeholder: z.string().optional(),
-  addLabel: z.string().optional(),
-});
-
-const SectionTypeResponseSchema = z.object({
-  id: z.string(),
-  key: z.string(),
-  slug: z.string(),
-  title: z.string(),
-  description: z.string().nullable(),
-  semanticKind: z.string(),
-  version: z.number().int(),
-  isActive: z.boolean(),
-  isSystem: z.boolean(),
-  isRepeatable: z.boolean(),
-  minItems: z.number().int(),
-  maxItems: z.number().int().nullable(),
-  definition: JsonObjectSchema,
-  uiSchema: JsonObjectSchema.nullable(),
-  renderHints: JsonObjectSchema,
-  fieldStyles: z.record(z.string(), JsonObjectSchema),
-  iconType: z.string(),
-  icon: z.string(),
-  translations: z.record(z.string(), SectionTypeTranslationSchema),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const SectionTypeListResponseSchema = z.object({
-  items: z.array(SectionTypeResponseSchema),
-  total: z.number().int(),
-  page: z.number().int(),
-  pageSize: z.number().int(),
-  totalPages: z.number().int(),
-});
-
-const SemanticKindsResponseSchema = z.array(z.string());
 
 export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCases>> = [
   {

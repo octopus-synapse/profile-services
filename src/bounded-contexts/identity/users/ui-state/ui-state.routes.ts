@@ -2,24 +2,15 @@
  * Route descriptors for the ui-state BC. Replaces `UiStateController`.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
+import {
+  KeyParam,
+  SetKeyBody,
+  UiStateDeleteResponseSchema,
+  UiStateGetAllResponseSchema,
+  UiStateSetKeyResponseSchema,
+} from './ui-state.routes.schemas';
 import { UiStateService } from './ui-state.service';
-
-const KeyParam = z.object({ key: z.string() });
-const SetKeyBody = z.object({ value: z.unknown() });
-
-const UiStateGetAllResponseSchema = z.object({
-  state: z.record(z.string(), JsonValueSchema),
-});
-
-const UiStateSetKeyResponseSchema = z.object({
-  key: z.string(),
-  value: JsonValueSchema,
-});
-
-const UiStateDeleteResponseSchema = z.object({ deleted: z.literal(true) });
 
 export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
   {

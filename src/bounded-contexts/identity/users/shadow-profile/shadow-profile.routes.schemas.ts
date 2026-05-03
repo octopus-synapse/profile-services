@@ -1,0 +1,35 @@
+/**
+ * Route descriptors for the shadow-profile BC. Replaces
+ * `ShadowProfileController`.
+ */
+
+import { z } from 'zod';
+
+export const UpsertGithubBody = z.object({
+  token: z.string(),
+  username: z.string(),
+});
+
+export const FindCandidatesQuery = z.object({
+  email: z.string().optional(),
+  githubLogin: z.string().optional(),
+});
+
+export const ShadowProfileIdParam = z.object({ id: z.string() });
+
+// ─── Response schemas ────────────────────────────────────────────────
+// `payload` is the Prisma Json column carrying the shadow-payload
+// produced by `buildShadowPayload`. Modelled as `passthrough()` so we
+// stay schema-driven without falling back to `z.unknown()`.
+export const ShadowProfileSnapshotSchema = z.object({
+  id: z.string(),
+  source: z.string(),
+  externalHandle: z.string(),
+  contactEmail: z.string().nullable(),
+  payload: z.object({}).passthrough().nullable(),
+  claimedByUserId: z.string().nullable(),
+});
+
+export const FindCandidatesResponseSchema = z.object({
+  candidates: z.array(ShadowProfileSnapshotSchema),
+});

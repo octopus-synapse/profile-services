@@ -9,82 +9,21 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import type {
-  ActivityLoggerPort,
-  ConnectionReaderPort,
-  FollowReaderPort,
-} from './application/ports/facade.ports';
+import {
+  FollowersResponseSchema,
+  FollowIdResponseSchema,
+  FollowingResponseSchema,
+  FollowRoutesBundle,
+  IsFollowingResponseSchema,
+  MeSocialStatsResponseSchema,
+  PageQuery,
+  paginate,
+  SocialStatsResponseSchema,
+  UnfollowResponseSchema,
+  UserIdParam,
+} from './follow.routes.schemas';
 
-export abstract class FollowRoutesBundle {
-  abstract readonly followService: FollowReaderPort;
-  abstract readonly activityService: ActivityLoggerPort;
-  abstract readonly connectionService: ConnectionReaderPort;
-}
-
-const UserIdParam = z.object({ userId: z.string() });
-const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function paginate(q: { page?: string; limit?: string }): { page: number; limit: number } {
-  return {
-    page: num(q.page, 1),
-    limit: Math.min(num(q.limit, 10), 100),
-  };
-}
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const FollowUserSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-});
-
-const FollowWithUserSchema = z.object({
-  id: z.string(),
-  followerId: z.string(),
-  followingId: z.string(),
-  createdAt: z.string().datetime(),
-  follower: FollowUserSchema.optional(),
-  following: FollowUserSchema.optional(),
-  isFollowedByMe: z.boolean().optional(),
-});
-
-const FollowPaginatedSchema = z.object({
-  data: z.array(FollowWithUserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
-
-const FollowIdResponseSchema = z.object({ id: z.string() });
-
-const UnfollowResponseSchema = z.object({ unfollowed: z.literal(true) });
-
-const FollowersResponseSchema = z.object({ followers: FollowPaginatedSchema });
-
-const FollowingResponseSchema = z.object({ following: FollowPaginatedSchema });
-
-const IsFollowingResponseSchema = z.object({ isFollowing: z.boolean() });
-
-const SocialStatsResponseSchema = z.object({
-  followers: z.number().int().min(0),
-  following: z.number().int().min(0),
-  connections: z.number().int().min(0),
-});
-
-const MeSocialStatsResponseSchema = SocialStatsResponseSchema.extend({
-  pendingInvitations: z.number().int().min(0),
-});
+export type { FollowRoutesBundle } from './follow.routes.schemas';
 
 export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
   {

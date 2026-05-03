@@ -6,93 +6,22 @@
  * `FeatureFlagsSseBundle`).
  */
 
-import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { FeatureFlagsUseCases } from './application/ports/feature-flags.port';
-import type { FlagStreamMessage } from './infrastructure/sse/sse-flag-stream.service';
+import {
+  ActiveFlagsResponseSchema,
+  BroadcastRefreshResponseSchema,
+  FeatureFlagsSseBundle,
+  ImpactResponseSchema,
+  KeyParam,
+  ListFlagsResponseSchema,
+  ToggleFeatureFlagSchema,
+  ToggleFlagResponseSchema,
+} from './feature-flags.routes.schemas';
 
-/**
- * Bundle for the feature-flags SSE route. Holds the local hub that
- * fans out flag-invalidate broadcasts to connected clients (wired in
- * `feature-flags.module.ts`).
- */
-export abstract class FeatureFlagsSseBundle {
-  abstract readonly flagStream: { observe(): Observable<FlagStreamMessage> };
-}
-
-const KeyParam = z.object({ key: z.string() });
-
-const ToggleFeatureFlagSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    enabledForRoles: z.array(z.string()).optional(),
-  })
-  .strict();
-
-const ActiveFlagsResponseSchema = z.object({
-  flags: z.record(z.boolean()),
-});
-
-// ─── Admin response schemas ────────────────────────────────────────
-const FlagAdminRowSchema = z.object({
-  key: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  enabled: z.boolean(),
-  enabledForRoles: z.array(z.string()),
-  deprecated: z.boolean(),
-  dependsOn: z.array(z.string()),
-  effectiveGlobal: z.boolean(),
-  blockedBy: z.array(z.string()),
-});
-
-const ListFlagsResponseSchema = z.object({
-  flags: z.array(FlagAdminRowSchema),
-});
-
-// `FlagImpactTree` is genuinely recursive (a key plus children of the same
-// shape). Swagger's `zod-to-openapi` generator doesn't handle `z.lazy`, so
-// we serialise the recursion explicitly with bounded depth. Production
-// trees are dependency DAGs of feature flags — the seeded set is two
-// layers deep, so 5 levels is roomy.
-const ImpactTreeLeafSchema = z.object({
-  key: z.string(),
-  children: z.array(z.object({ key: z.string() })),
-});
-const ImpactTreeDepth3Schema = z.object({
-  key: z.string(),
-  children: z.array(ImpactTreeLeafSchema),
-});
-const ImpactTreeDepth4Schema = z.object({
-  key: z.string(),
-  children: z.array(ImpactTreeDepth3Schema),
-});
-const ImpactTreeDepth5Schema = z.object({
-  key: z.string(),
-  children: z.array(ImpactTreeDepth4Schema),
-});
-const ImpactTreeSchema = z.object({
-  key: z.string(),
-  children: z.array(ImpactTreeDepth5Schema),
-});
-
-const ImpactResponseSchema = z.object({ tree: ImpactTreeSchema });
-
-const ToggleFlagResponseSchema = z.object({
-  key: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  enabled: z.boolean(),
-  enabledForRoles: z.array(z.string()),
-  deprecated: z.boolean(),
-  dependsOn: z.array(z.string()),
-  blockedBy: z.array(z.string()),
-  effectiveGlobal: z.boolean(),
-});
-
-const BroadcastRefreshResponseSchema = z.object({}).strict();
+export type { FeatureFlagsSseBundle } from './feature-flags.routes.schemas';
 
 export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
   {

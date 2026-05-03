@@ -8,57 +8,13 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ShareAnalyticsReaderPort } from './application/ports/share-analytics-reader.port';
-
-const ShareIdParam = z.object({ shareId: z.string() });
-const ResumeShareParams = z.object({ resumeId: z.string(), shareId: z.string() });
-
-const EventsQuerySchema = z.object({
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  eventType: z.enum(['VIEW', 'DOWNLOAD']).optional(),
-});
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const ShareEventTypeSchema = z.enum(['VIEW', 'DOWNLOAD']);
-
-const ShareAnalyticsRecentEventSchema = z.object({
-  event: ShareEventTypeSchema,
-  country: z.string().nullable(),
-  city: z.string().nullable(),
-  createdAt: z.string().datetime(),
-});
-
-const ShareAnalyticsSummarySchema = z.object({
-  shareId: z.string(),
-  totalViews: z.number().int().min(0),
-  totalDownloads: z.number().int().min(0),
-  uniqueVisitors: z.number().int().min(0),
-  byCountry: z.array(
-    z.object({
-      country: z.string().nullable(),
-      count: z.number().int().min(0),
-    }),
-  ),
-  recentEvents: z.array(ShareAnalyticsRecentEventSchema),
-});
-
-const ShareAnalyticsResponseSchema = z.object({
-  analytics: ShareAnalyticsSummarySchema,
-});
-
-const ShareAnalyticsEventItemSchema = z.object({
-  eventType: ShareEventTypeSchema,
-  ipAddress: z.string(),
-  userAgent: z.string().nullable(),
-  referrer: z.string().nullable(),
-  country: z.string().nullable(),
-  city: z.string().nullable(),
-  createdAt: z.string().datetime(),
-});
-
-const ShareAnalyticsEventsResponseSchema = z.object({
-  events: z.array(ShareAnalyticsEventItemSchema),
-});
+import {
+  EventsQuerySchema,
+  ResumeShareParams,
+  ShareAnalyticsEventsResponseSchema,
+  ShareAnalyticsResponseSchema,
+  ShareIdParam,
+} from './share-analytics.routes.schemas';
 
 export const shareAnalyticsRoutes: ReadonlyArray<Route<ShareAnalyticsReaderPort>> = [
   {

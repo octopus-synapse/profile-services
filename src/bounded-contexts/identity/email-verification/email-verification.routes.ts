@@ -9,29 +9,14 @@
  * registry lives in `email-verification.module.ts`.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
+import {
+  ResendCooldownResponseSchema,
+  SendVerificationResponseSchema,
+  VerifyEmailResponseSchema,
+} from './email-verification.routes.schemas';
 import { VerifyEmailSchema } from './infrastructure/controllers/verify-email.schema';
-
-// ─── Response schemas ────────────────────────────────────────────────
-const VerifyEmailResponseSchema = z.object({
-  email: z.string(),
-  message: z.string(),
-});
-
-// `cooldown` is the `ResendCooldown` shape from the send/resend ports.
-const ResendCooldownShape = z.object({
-  secondsUntilResendAllowed: z.number().int().min(0),
-  cooldownSeconds: z.number().int().min(0),
-});
-
-const SendVerificationResponseSchema = z.object({
-  message: z.string(),
-  cooldown: ResendCooldownShape,
-});
-
-const ResendCooldownResponseSchema = ResendCooldownShape;
 
 export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCases>> = [
   {

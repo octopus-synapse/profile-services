@@ -6,25 +6,13 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { ConnectionRecsService } from './services/connection-recs.service';
+import {
+  ConnectionRecommendationsResponseSchema,
+  ConnectionRecsRoutesBundle,
+  LimitQuery,
+} from './connection-recs.routes.schemas';
 
-export abstract class ConnectionRecsRoutesBundle {
-  abstract readonly service: ConnectionRecsService;
-}
-
-const LimitQuery = z.object({ limit: z.string().optional() });
-
-const ConnectionRecommendationSchema = z.object({
-  userId: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  sharedSkills: z.array(z.string()),
-  overlapScore: z.number(),
-});
-
-const ConnectionRecommendationsResponseSchema = z.object({
-  recommendations: z.array(ConnectionRecommendationSchema),
-});
+export type { ConnectionRecsRoutesBundle } from './connection-recs.routes.schemas';
 
 export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundle>> = [
   {

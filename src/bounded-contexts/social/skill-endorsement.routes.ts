@@ -6,50 +6,17 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { SkillEndorsementService } from './services/skill-endorsement.service';
+import {
+  EndorsementMutationResponseSchema,
+  EndorsersListResponseSchema,
+  PageQuery,
+  SkillEndorsementRoutesBundle,
+  UserIdAndSkillParam,
+  UserIdParam,
+  UserSkillsResponseSchema,
+} from './skill-endorsement.routes.schemas';
 
-export abstract class SkillEndorsementRoutesBundle {
-  abstract readonly service: SkillEndorsementService;
-}
-
-const UserIdParam = z.object({ userId: z.string() });
-const UserIdAndSkillParam = z.object({ userId: z.string(), skill: z.string() });
-const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-// ─── Response schemas ────────────────────────────────────────────────
-const UserSkillSummarySchema = z.object({
-  skill: z.string(),
-  endorsementCount: z.number().int().min(0),
-  endorsedByMe: z.boolean(),
-});
-
-const UserSkillsResponseSchema = z.object({
-  skills: z.array(UserSkillSummarySchema),
-});
-
-// `endorse` and `withdraw` return the same `UserSkillSummary` shape.
-const EndorsementMutationResponseSchema = UserSkillSummarySchema;
-
-const EndorserSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-  endorsedAt: z.string().datetime(),
-});
-
-// Legacy `{ data, total, page, limit, totalPages }` shape (matches the
-// existing `ActivityPaginatedSchema` envelope used by the social BC).
-const EndorsersListResponseSchema = z.object({
-  data: z.array(EndorserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export type { SkillEndorsementRoutesBundle } from './skill-endorsement.routes.schemas';
 
 export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesBundle>> = [
   {

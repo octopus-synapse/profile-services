@@ -6,36 +6,14 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  FindCandidatesQuery,
+  FindCandidatesResponseSchema,
+  ShadowProfileIdParam,
+  ShadowProfileSnapshotSchema,
+  UpsertGithubBody,
+} from './shadow-profile.routes.schemas';
 import { ShadowProfileService } from './shadow-profile.service';
-
-const UpsertGithubBody = z.object({
-  token: z.string(),
-  username: z.string(),
-});
-
-const FindCandidatesQuery = z.object({
-  email: z.string().optional(),
-  githubLogin: z.string().optional(),
-});
-
-const ShadowProfileIdParam = z.object({ id: z.string() });
-
-// ─── Response schemas ────────────────────────────────────────────────
-// `payload` is the Prisma Json column carrying the shadow-payload
-// produced by `buildShadowPayload`. Modelled as `passthrough()` so we
-// stay schema-driven without falling back to `z.unknown()`.
-const ShadowProfileSnapshotSchema = z.object({
-  id: z.string(),
-  source: z.string(),
-  externalHandle: z.string(),
-  contactEmail: z.string().nullable(),
-  payload: z.object({}).passthrough().nullable(),
-  claimedByUserId: z.string().nullable(),
-});
-
-const FindCandidatesResponseSchema = z.object({
-  candidates: z.array(ShadowProfileSnapshotSchema),
-});
 
 export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
   {

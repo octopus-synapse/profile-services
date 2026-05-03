@@ -10,62 +10,18 @@
  * no metadata is set, so we can omit the `metadata` payload.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { AutomationUseCases } from './application/ports/automation.port';
-
-const ItemIdParam = z.object({ itemId: z.string() });
-
-const RageApplyBodySchema = z.object({
-  minFit: z.coerce.number().int().min(0).max(100).optional(),
-  maxApplications: z.coerce.number().int().min(1).max(100).optional(),
-  sinceDays: z.coerce.number().int().min(1).max(90).optional(),
-});
-
-type RageApplyBody = z.infer<typeof RageApplyBodySchema>;
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const WeeklyCuratedItemSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  matchScore: z.number(),
-  status: z.string(),
-  decidedAt: z.string().datetime().nullable(),
-});
-
-const WeeklyCuratedBatchSchema = z.object({
-  id: z.string(),
-  weekOf: z.string().datetime(),
-  sentAt: z.string().datetime().nullable(),
-  status: z.string(),
-  items: z.array(WeeklyCuratedItemSchema),
-});
-
-const CurrentBatchResponseSchema = z.object({
-  batch: WeeklyCuratedBatchSchema.nullable(),
-});
-
-const RejectCuratedItemResponseSchema = z.object({
-  itemId: z.string(),
-});
-
-const ApproveCuratedItemResponseSchema = z.object({
-  applicationId: z.string(),
-  alreadyApplied: z.boolean(),
-});
-
-const RageApplyResponseSchema = z.object({
-  attempted: z.number().int().min(0),
-  submitted: z.number().int().min(0),
-  skippedExisting: z.number().int().min(0),
-  failed: z.array(
-    z.object({
-      jobId: z.string(),
-      reason: z.string(),
-    }),
-  ),
-});
+import {
+  ApproveCuratedItemResponseSchema,
+  CurrentBatchResponseSchema,
+  ItemIdParam,
+  RageApplyBody,
+  RageApplyBodySchema,
+  RageApplyResponseSchema,
+  RejectCuratedItemResponseSchema,
+} from './automation.routes.schemas';
 
 export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
   {

@@ -10,89 +10,24 @@
  * Bundle token is the existing `SearchServicePort`.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { SearchServicePort } from './ports';
 import { parseCsvQuery } from './search.presenter';
-
-const SearchQuerySchema = z.object({
-  q: z.string().max(500).optional(),
-  skills: z.string().max(500).optional(),
-  location: z.string().max(200).optional(),
-  minExp: z.coerce.number().int().min(0).max(80).optional(),
-  maxExp: z.coerce.number().int().min(0).max(80).optional(),
-  page: z.coerce.number().int().min(1).max(1000).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(['relevance', 'date', 'views']).optional(),
-});
-type SearchQuery = z.infer<typeof SearchQuerySchema>;
-
-const SuggestionsQuerySchema = z.object({
-  prefix: z.string().max(50).optional(),
-  limit: z.coerce.number().int().min(1).max(50).default(10),
-});
-type SuggestionsQuery = z.infer<typeof SuggestionsQuerySchema>;
-
-const SimilarQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(5),
-});
-type SimilarQuery = z.infer<typeof SimilarQuerySchema>;
-
-const GlobalSearchQuerySchema = z.object({
-  q: z.string().min(1).max(200),
-  limit: z.coerce.number().int().min(1).max(20).default(5),
-});
-type GlobalSearchQuery = z.infer<typeof GlobalSearchQuerySchema>;
-
-const IdParam = z.object({ id: z.string() });
-
-const GlobalSearchItemSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  snippet: z.string().optional(),
-  href: z.string(),
-  badge: z.string().optional(),
-});
-
-const GlobalSearchResponseSchema = z.object({
-  groups: z.array(
-    z.object({
-      type: z.enum(['users', 'jobs', 'resumes', 'posts']),
-      label: z.string(),
-      items: z.array(GlobalSearchItemSchema),
-    }),
-  ),
-});
-
-const SearchResultItemSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  fullName: z.string().nullable(),
-  jobTitle: z.string().nullable(),
-  summary: z.string().nullable(),
-  slug: z.string().nullable(),
-  location: z.string().nullable(),
-  profileViews: z.number().int().min(0),
-  createdAt: z.string().datetime(),
-  skills: z.array(z.string()).optional(),
-  rank: z.number().optional(),
-});
-
-const SearchResponseSchema = z.object({
-  data: z.array(SearchResultItemSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
-
-const SuggestionsResponseSchema = z.object({
-  suggestions: z.array(z.string()),
-});
-
-const SimilarResumesResponseSchema = z.object({
-  resumes: z.array(SearchResultItemSchema),
-});
+import {
+  GlobalSearchQuery,
+  GlobalSearchQuerySchema,
+  GlobalSearchResponseSchema,
+  IdParam,
+  SearchQuery,
+  SearchQuerySchema,
+  SearchResponseSchema,
+  SimilarQuery,
+  SimilarQuerySchema,
+  SimilarResumesResponseSchema,
+  SuggestionsQuery,
+  SuggestionsQuerySchema,
+  SuggestionsResponseSchema,
+} from './search.routes.schemas';
 
 export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
   {

@@ -4,75 +4,19 @@
  * bundle — no Nest decorators, no DTO classes.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { GitHubIntegrationUseCases } from './application/ports/github-integration.port';
-import type { GitHubSummaryResult } from './application/use-cases/get-github-summary/get-github-summary.use-case';
-import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';
-import { toPinnedRepos } from './infrastructure/presenters/github.presenter';
-
-const SummaryParams = z.object({ username: z.string() });
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const SyncBody = z.object({
-  githubUsername: z.string(),
-  resumeId: z.string(),
-});
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const PinnedRepoSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  url: z.string(),
-});
-
-const GitHubSummaryResponseSchema = z.object({
-  username: z.string(),
-  name: z.string().optional(),
-  bio: z.string().optional(),
-  publicRepos: z.number().int(),
-  followers: z.number().int(),
-  following: z.number().int(),
-  topLanguages: z.array(z.string()),
-  pinnedRepos: z.array(PinnedRepoSchema),
-});
-
-const GitHubSyncResponseSchema = z.object({
-  synced: z.boolean(),
-  message: z.string(),
-});
-
-const GitHubSyncStatusResponseSchema = z.object({
-  status: z.enum(['IDLE', 'COMPLETED']),
-  progress: z.number().int(),
-  startedAt: z.string().datetime().optional(),
-  currentTask: z.string().optional(),
-});
-
-function toGitHubSummaryDto(result: GitHubSummaryResult) {
-  return {
-    username: result.username,
-    name: result.name ?? undefined,
-    bio: result.bio ?? undefined,
-    publicRepos: result.publicRepos,
-    followers: 0,
-    following: 0,
-    topLanguages: [] as string[],
-    pinnedRepos: toPinnedRepos(
-      result.topRepos.map((r) => ({ name: r.name, description: r.description, url: r.url })),
-    ),
-  };
-}
-
-function toGitHubSyncResponseDto(result: GitHubSyncResult) {
-  return {
-    synced: true,
-    message: `Synced GitHub profile for ${result.profile.username}`,
-  };
-}
-
-function toIsoString(value: Date | string): string {
-  return value instanceof Date ? value.toISOString() : value;
-}
+import {
+  GitHubSummaryResponseSchema,
+  GitHubSyncResponseSchema,
+  GitHubSyncStatusResponseSchema,
+  ResumeIdParams,
+  SummaryParams,
+  SyncBody,
+  toGitHubSummaryDto,
+  toGitHubSyncResponseDto,
+  toIsoString,
+} from './github.routes.schemas';
 
 export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
   {

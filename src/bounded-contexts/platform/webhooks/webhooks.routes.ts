@@ -6,60 +6,16 @@ import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { WebhooksUseCases } from './application/ports/webhooks.port';
-
-const SUPPORTED_EVENTS = ['resume.created', 'resume.published', 'ats.score.updated'] as const;
-
-const IdParam = z.object({ id: z.string() });
-
-const CreateWebhookSchema = z.object({
-  url: z.string().url(),
-  events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
-});
-
-const UpdateWebhookSchema = z.object({
-  url: z.string().url().optional(),
-  events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
-  enabled: z.boolean().optional(),
-});
-
-// ─── Response schemas ────────────────────────────────────────────────
-const WebhookViewSchema = z.object({
-  id: z.string(),
-  url: z.string(),
-  events: z.array(z.enum(SUPPORTED_EVENTS)),
-  enabled: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
-});
-
-const WebhookDeliveryViewSchema = z.object({
-  id: z.string(),
-  eventType: z.string(),
-  attempt: z.number().int(),
-  success: z.boolean(),
-  statusCode: z.number().int().nullable(),
-  errorMessage: z.string().nullable(),
-  createdAt: z.string().datetime(),
-});
-
-const ListWebhooksResponseSchema = z.object({
-  webhooks: z.array(WebhookViewSchema),
-});
-
-const CreateWebhookResponseSchema = z.object({
-  webhook: WebhookViewSchema,
-  secret: z.string(),
-});
-
-const UpdateWebhookResponseSchema = z.object({
-  webhook: WebhookViewSchema,
-});
-
-const DeleteWebhookResponseSchema = z.object({}).strict();
-
-const ListDeliveriesResponseSchema = z.object({
-  deliveries: z.array(WebhookDeliveryViewSchema),
-});
+import {
+  CreateWebhookResponseSchema,
+  CreateWebhookSchema,
+  DeleteWebhookResponseSchema,
+  IdParam,
+  ListDeliveriesResponseSchema,
+  ListWebhooksResponseSchema,
+  UpdateWebhookResponseSchema,
+  UpdateWebhookSchema,
+} from './webhooks.routes.schemas';
 
 export const webhooksRoutes: ReadonlyArray<Route<WebhooksUseCases>> = [
   {

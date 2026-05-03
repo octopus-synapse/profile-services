@@ -11,34 +11,12 @@ import {
   CreateSuccessStorySchema,
   UpdateSuccessStorySchema,
 } from './dto/success-story-request.schema';
-
-const IdParam = z.object({ id: z.string() });
-const LimitQuery = z.object({ limit: z.string().optional() });
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const SuccessStoryAuthorSchema = z.object({
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-});
-
-const SuccessStorySchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  headline: z.string(),
-  beforeText: z.string(),
-  afterText: z.string(),
-  quote: z.string(),
-  timeframeDays: z.number().int().nullable(),
-  publishedAt: z.string().datetime().nullable(),
-  user: SuccessStoryAuthorSchema,
-});
-
-const SuccessStoriesListResponseSchema = z.object({
-  stories: z.array(SuccessStorySchema),
-});
-
-const SuccessStoryIdResponseSchema = z.object({ id: z.string() });
+import {
+  IdParam,
+  LimitQuery,
+  SuccessStoriesListResponseSchema,
+  SuccessStoryIdResponseSchema,
+} from './success-stories.routes.schemas';
 
 export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> = [
   {

@@ -9,17 +9,14 @@
  * `ThrottlerGuard` from `@nestjs/throttler`) into the registry.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { PasswordManagementUseCases } from './application/ports/password-management.port';
 import { ChangePasswordSchema } from './infrastructure/controllers/change-password.schema';
 import { ResetPasswordSchema } from './infrastructure/controllers/reset-password.schema';
-
-const ForgotPasswordSchema = z.object({ email: z.string().email() });
-
-// ─── Response schemas ────────────────────────────────────────────────
-// All three endpoints return the same `{ message }` envelope.
-const PasswordMessageResponseSchema = z.object({ message: z.string() });
+import {
+  ForgotPasswordSchema,
+  PasswordMessageResponseSchema,
+} from './password-management.routes.schemas';
 
 export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUseCases>> = [
   {

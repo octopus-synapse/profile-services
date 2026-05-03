@@ -1,0 +1,58 @@
+/**
+ * Route descriptors for the translation BC. Replaces
+ * `TranslationController`. The BC's HTTP boundary fronts a single
+ * `TranslationService` aggregate, which we use directly as the bundle
+ * token (no separate Use-Cases port today).
+ */
+
+import { z } from 'zod';
+
+export const TranslateTextSchema = z.object({
+  text: z.string().min(1),
+  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
+  targetLanguage: z.enum(['pt', 'en']),
+});
+
+export const TranslateSimpleSchema = z.object({ text: z.string().min(1) });
+
+export const TranslateBatchSchema = z.object({
+  texts: z.array(z.string().min(1)).min(1),
+  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
+  targetLanguage: z.enum(['pt', 'en']),
+});
+
+// ─── Response schemas ────────────────────────────────────────────────
+export const TranslationLanguageSchema = z.enum(['pt', 'en']);
+export const SourceLanguageSchema = z.enum(['pt', 'en', 'auto']);
+
+export const HealthResponseSchema = z.object({
+  status: z.enum(['healthy', 'unavailable']),
+  timestamp: z.string().datetime(),
+});
+
+export const TranslationResultSchema = z.object({
+  original: z.string(),
+  translated: z.string(),
+  sourceLanguage: SourceLanguageSchema,
+  targetLanguage: TranslationLanguageSchema,
+  detectedLanguage: TranslationLanguageSchema.optional(),
+});
+
+export const LanguageDetectionsResponseSchema = z.object({
+  detections: z.array(
+    z.object({
+      language: z.string(),
+      confidence: z.number(),
+    }),
+  ),
+});
+
+export const BatchTranslationResponseSchema = z.object({
+  translations: z.array(TranslationResultSchema),
+  failed: z.array(
+    z.object({
+      text: z.string(),
+      error: z.string(),
+    }),
+  ),
+});

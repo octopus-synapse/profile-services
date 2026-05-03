@@ -3,32 +3,14 @@
  * `TestRunnerController`.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { TestRunnerUseCases } from './application/ports/test-runner.port';
-
-const RunTestsBody = z.object({ suite: z.string() });
-
-// ─── Response schemas ────────────────────────────────────────────────
-const TestResultSchema = z.object({
-  name: z.string(),
-  pass: z.boolean(),
-  detail: z.string(),
-  durationMs: z.number(),
-});
-
-const TestResultsResponseSchema = z.object({
-  suite: z.string(),
-  results: z.array(TestResultSchema),
-  totalMs: z.number(),
-  passed: z.number().int(),
-  failed: z.number().int(),
-});
-
-const ListSuitesResponseSchema = z.object({
-  suites: z.array(z.string()),
-});
+import {
+  ListSuitesResponseSchema,
+  RunTestsBody,
+  TestResultsResponseSchema,
+} from './test-runner.routes.schemas';
 
 export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
   {

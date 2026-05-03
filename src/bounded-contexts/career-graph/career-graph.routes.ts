@@ -6,39 +6,13 @@
  * module wires `RateLimitGuard` into the synthesizer's guard registry.
  */
 
-import { z } from 'zod';
-import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { CareerGraphUseCases } from './application/ports/career-graph.port';
-
-export { RATE_LIMIT_KEY };
-
-const ViewCareerGraphRequestSchema = z.object({
-  stack: z.array(z.string().min(1).max(60)).min(1).max(40),
-  maxBuckets: z.number().int().min(1).max(40).default(20),
-});
-
-type ViewCareerGraphRequest = z.infer<typeof ViewCareerGraphRequestSchema>;
-
-const CareerGraphBucketSchema = z.object({
-  experienceYears: z.number().int().min(0),
-  peerCount: z.number().int().min(0),
-  topJobTitles: z.array(z.object({ title: z.string(), count: z.number().int().min(0) })),
-});
-
-const ViewCareerGraphResponseSchema = z.object({
-  stack: z.array(z.string()),
-  user: z.object({ experienceYears: z.number(), jobTitle: z.string().nullable() }),
-  totalPeers: z.number().int().min(0),
-  current: CareerGraphBucketSchema.nullable(),
-  buckets: z.array(CareerGraphBucketSchema),
-  projections: z.array(
-    z.object({
-      yearsAhead: z.number().int(),
-      bucket: CareerGraphBucketSchema.nullable(),
-    }),
-  ),
-});
+import {
+  ViewCareerGraphRequest,
+  ViewCareerGraphRequestSchema,
+  ViewCareerGraphResponseSchema,
+} from './career-graph.routes.schemas';
 
 export const careerGraphRoutes: ReadonlyArray<Route<CareerGraphUseCases>> = [
   {

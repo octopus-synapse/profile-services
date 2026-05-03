@@ -8,23 +8,9 @@
  * each `Route` into a Nest `@Controller` at boot.
  */
 
-import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { BadgesUseCases } from './application/ports/badges.port';
-
-const ListForUserParams = z.object({ userId: z.string() });
-
-// ─── Response schemas ────────────────────────────────────────────────
-// Mirrors `AwardedBadgeView` — `awardedAt` is already pre-serialized
-// (the use case calls `.toISOString()`).
-const AwardedBadgeViewSchema = z.object({
-  kind: z.string(),
-  awardedAt: z.string().datetime(),
-});
-
-const ListBadgesResponseSchema = z.object({
-  badges: z.array(AwardedBadgeViewSchema),
-});
+import { ListBadgesResponseSchema, ListForUserParams } from './badges.routes.schemas';
 
 export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
   {

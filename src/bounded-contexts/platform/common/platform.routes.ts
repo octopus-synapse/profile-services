@@ -4,68 +4,17 @@
  * and `PlatformStatsController`.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { PlatformUseCases } from './application/ports/platform.port';
-
-// ─── Response schemas ──────────────────────────────────────────────────
-const AdminAlertsResponseSchema = z.object({
-  reportsPending: z.number().int(),
-  usersPendingVerification: z.number().int(),
-  shadowProfilesStale: z.number().int(),
-  total: z.number().int(),
-});
-
-const AdminDashboardMetricsResponseSchema = z.object({
-  totalUsers: z.number().int(),
-  totalResumes: z.number().int(),
-  activeUsers7d: z.number().int(),
-  activeUsers30d: z.number().int(),
-  totalViews: z.number().int(),
-  signupsThisWeek: z.number().int(),
-  signupsThisMonth: z.number().int(),
-  resumesThisWeek: z.number().int(),
-  resumesThisMonth: z.number().int(),
-  averageAtsScore: z.number(),
-  onboardingCompletionRate: z.number(),
-});
-
-const ExportFormatDescriptorSchema = z.object({
-  key: z.enum(['pdf', 'docx', 'json', 'latex']),
-  label: z.string(),
-  mimeType: z.string(),
-  extension: z.string(),
-  enabled: z.boolean(),
-  requiresPro: z.boolean().optional(),
-});
-
-const ExportFormatsResponseSchema = z.object({
-  formats: z.array(ExportFormatDescriptorSchema),
-});
-
-const UserRolesResponseSchema = z.object({
-  roles: z.array(z.object({ role: z.enum(['USER', 'ADMIN']) })),
-});
-
-const SectionTypeViewSchema = z.object({
-  key: z.string(),
-  semanticKind: z.string(),
-  title: z.string(),
-});
-
-const SectionTypesResponseSchema = z.object({
-  types: z.array(SectionTypeViewSchema),
-});
-
-const PlatformStatsResponseSchema = z.object({
-  totalUsers: z.number().int(),
-  totalResumes: z.number().int(),
-  totalViews: z.number().int(),
-  activeUsersToday: z.number().int(),
-  activeUsersWeek: z.number().int(),
-  updatedAt: z.string().datetime(),
-});
+import {
+  AdminAlertsResponseSchema,
+  AdminDashboardMetricsResponseSchema,
+  ExportFormatsResponseSchema,
+  PlatformStatsResponseSchema,
+  SectionTypesResponseSchema,
+  UserRolesResponseSchema,
+} from './platform.routes.schemas';
 
 export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
   // ─── Admin Alerts ─────────────────────────────────────────────────

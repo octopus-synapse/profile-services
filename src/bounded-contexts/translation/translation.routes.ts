@@ -10,56 +10,15 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { TranslationService } from './application/services';
 import type { SourceLanguage, TranslationLanguage } from './domain/types/translation.types';
-
-const TranslateTextSchema = z.object({
-  text: z.string().min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
-});
-
-const TranslateSimpleSchema = z.object({ text: z.string().min(1) });
-
-const TranslateBatchSchema = z.object({
-  texts: z.array(z.string().min(1)).min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
-});
-
-// ─── Response schemas ────────────────────────────────────────────────
-const TranslationLanguageSchema = z.enum(['pt', 'en']);
-const SourceLanguageSchema = z.enum(['pt', 'en', 'auto']);
-
-const HealthResponseSchema = z.object({
-  status: z.enum(['healthy', 'unavailable']),
-  timestamp: z.string().datetime(),
-});
-
-const TranslationResultSchema = z.object({
-  original: z.string(),
-  translated: z.string(),
-  sourceLanguage: SourceLanguageSchema,
-  targetLanguage: TranslationLanguageSchema,
-  detectedLanguage: TranslationLanguageSchema.optional(),
-});
-
-const LanguageDetectionsResponseSchema = z.object({
-  detections: z.array(
-    z.object({
-      language: z.string(),
-      confidence: z.number(),
-    }),
-  ),
-});
-
-const BatchTranslationResponseSchema = z.object({
-  translations: z.array(TranslationResultSchema),
-  failed: z.array(
-    z.object({
-      text: z.string(),
-      error: z.string(),
-    }),
-  ),
-});
+import {
+  BatchTranslationResponseSchema,
+  HealthResponseSchema,
+  LanguageDetectionsResponseSchema,
+  TranslateBatchSchema,
+  TranslateSimpleSchema,
+  TranslateTextSchema,
+  TranslationResultSchema,
+} from './translation.routes.schemas';
 
 export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {

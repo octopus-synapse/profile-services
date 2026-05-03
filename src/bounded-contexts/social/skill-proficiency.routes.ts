@@ -11,35 +11,16 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { SkillProficiencyService } from './services/skill-proficiency.service';
+import {
+  ClearProficiencyResponseSchema,
+  ListProficiencyResponseSchema,
+  SetProficiencyBody,
+  SetProficiencyResponseSchema,
+  SkillNameParam,
+  SkillProficiencyRoutesBundle,
+} from './skill-proficiency.routes.schemas';
 
-export abstract class SkillProficiencyRoutesBundle {
-  abstract readonly service: SkillProficiencyService;
-}
-
-const SkillNameParam = z.object({ skillName: z.string() });
-const SetProficiencyBody = z.object({
-  proficiency: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']),
-  yearsOfExperience: z.number().int().min(0).max(80).optional(),
-});
-
-const SkillProficiencyEntrySchema = z.object({
-  skillName: z.string(),
-  proficiency: z.string(),
-  yearsOfExperience: z.number().int().nullable(),
-  updatedAt: z.string().datetime(),
-});
-
-const ListProficiencyResponseSchema = z.object({
-  proficiencies: z.array(SkillProficiencyEntrySchema),
-});
-
-const SetProficiencyResponseSchema = z.object({
-  skillName: z.string(),
-  proficiency: z.string(),
-});
-
-const ClearProficiencyResponseSchema = z.null();
+export type { SkillProficiencyRoutesBundle } from './skill-proficiency.routes.schemas';
 
 export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesBundle>> = [
   {
