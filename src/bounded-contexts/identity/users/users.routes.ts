@@ -44,6 +44,8 @@ import {
   ManagedUserListResponseSchema,
   MessageOnlyResponseSchema,
   PermissionsListResponseSchema,
+  PublicUsersListQuery,
+  PublicUsersListResponseSchema,
   UpdateBasicPreferencesResponseSchema,
   UpdatedUserResponseSchema,
   UpdateUsernameResponseSchema,
@@ -93,6 +95,35 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const result = await bundle.profile.getProfileUseCase.execute(ctx.user!.userId);
       return result;
+    },
+  },
+  // ─── Public users (sitemap) ───────────────────────────────────────
+  // Public, no-auth listing of users that have a username set. Used by
+  // the SEO sitemap to enumerate `@<username>` routes.
+  {
+    method: 'GET',
+    path: '/v1/users/public',
+    auth: { kind: 'public' },
+    query: PublicUsersListQuery,
+    response: PublicUsersListResponseSchema,
+    openapi: {
+      summary: 'List users with a public username (paginated)',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const q = ctx.query as z.infer<typeof PublicUsersListQuery>;
+      const page = q.page ?? 1;
+      const limit = q.limit ?? 100;
+      const result = await bundle.profile.listPublicUsersUseCase.execute(page, limit);
+      return {
+        ...result,
+        items: result.items.map((i) => ({
+          username: i.username,
+          updatedAt: i.updatedAt.toISOString(),
+        })),
+      };
     },
   },
   {

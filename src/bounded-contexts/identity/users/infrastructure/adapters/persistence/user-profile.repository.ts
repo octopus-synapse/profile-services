@@ -1,6 +1,10 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
-import type { UpdateProfileData, UserProfile } from '../../../application/ports/user-profile.port';
+import type {
+  PublicUserListItem,
+  UpdateProfileData,
+  UserProfile,
+} from '../../../application/ports/user-profile.port';
 import { UserProfileRepositoryPort } from '../../../application/ports/user-profile.port';
 
 export class UserProfileRepository extends UserProfileRepositoryPort {
@@ -50,5 +54,26 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
       where: { id: userId },
       data,
     });
+  }
+
+  async listPublicUsers(
+    page: number,
+    limit: number,
+  ): Promise<{ items: PublicUserListItem[]; total: number }> {
+    const where = { username: { not: null }, isActive: true } as const;
+    const [rows, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: { username: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+    const items: PublicUserListItem[] = rows
+      .filter((r): r is { username: string; updatedAt: Date } => r.username !== null)
+      .map((r) => ({ username: r.username, updatedAt: r.updatedAt }));
+    return { items, total };
   }
 }

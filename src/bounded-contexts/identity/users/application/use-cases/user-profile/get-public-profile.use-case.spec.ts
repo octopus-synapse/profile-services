@@ -33,6 +33,7 @@ describe('GetPublicProfileUseCase', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       })),
+      listPublicUsers: mock(async () => ({ items: [], total: 0 })),
     } as UserProfileRepositoryPort;
 
     useCase = new GetPublicProfileUseCase(repository);

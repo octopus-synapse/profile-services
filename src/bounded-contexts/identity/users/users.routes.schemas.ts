@@ -154,6 +154,27 @@ export const UpdatedUserResponseSchema = z.object({
 export const UsernameParam = z.object({ username: z.string() });
 export const CheckUsernameQuery = z.object({ username: z.string() });
 
+// Public users listing — used by the SEO sitemap. No auth.
+export const PublicUserItemSchema = z.object({
+  username: z.string(),
+  updatedAt: z.string().datetime(),
+});
+
+export const PublicUsersListResponseSchema = z.object({
+  items: z.array(PublicUserItemSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
+});
+
+export const PublicUsersListQuery = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(500).optional(),
+});
+
 export const UserIdParam = z.object({ id: z.string() });
 
 export const ListUsersQuery = z.object({

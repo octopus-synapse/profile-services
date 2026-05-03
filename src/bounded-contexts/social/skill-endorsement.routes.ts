@@ -21,6 +21,24 @@ export type { SkillEndorsementRoutesBundle } from './skill-endorsement.routes.sc
 export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesBundle>> = [
   {
     method: 'GET',
+    path: '/v1/users/me/skills',
+    auth: { kind: 'jwt' },
+    permission: Permission.SOCIAL_USE,
+    response: UserSkillsResponseSchema,
+    openapi: {
+      summary: 'List the authenticated user’s own skills with endorsement counts',
+      tags: ['skill-endorsements'],
+      description: 'Skill endorsements API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const userId = ctx.user!.userId;
+      const skills = await bundle.service.getUserSkills(userId, userId);
+      return { skills };
+    },
+  },
+  {
+    method: 'GET',
     path: '/v1/users/:userId/skills',
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
