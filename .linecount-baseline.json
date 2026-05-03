@@ -12,7 +12,6 @@
     "src/bounded-contexts/onboarding/domain/config/onboarding-steps.config.ts",
     "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts",
     "src/bounded-contexts/resumes/resume-versions/infrastructure/adapters/persistence/prisma-resume-versions.repository.ts",
-    "src/bounded-contexts/platform/test-runner/test-runner.service.ts",
     "src/bounded-contexts/dsl/application/compilers/theme.compiler.ts",
     "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts",
     "src/bounded-contexts/jobs/testing/in-memory-jobs.repository.ts",
@@ -23,7 +22,6 @@
     "src/bounded-contexts/notifications/notifications.routes.ts",
     "src/bounded-contexts/jobs/infrastructure/adapters/persistence/prisma-jobs.repository.ts",
     "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-users.repository.ts",
-    "src/bounded-contexts/platform/metrics/metrics.service.ts",
     "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts",
     "src/bounded-contexts/dsl/domain/schemas/dsl/theme-ast.schema.ts",
     "src/bounded-contexts/social/connection.routes.ts",
@@ -173,6 +171,7 @@
     "src/bounded-contexts/identity/users/shadow-profile/shadow-profile.service.ts",
     "src/bounded-contexts/collaboration/sharing/testing/in-memory-collaboration.service.ts",
     "src/bounded-contexts/identity/authorization/domain/services/permission-resolver.service.ts",
+    "src/bounded-contexts/platform/metrics/metrics.service.ts",
     "src/bounded-contexts/collaboration/chat/application/ports/chat.port.ts",
     "src/bounded-contexts/platform/webhooks/infrastructure/adapters/persistence/prisma-webhook-config.repository.ts"
   ]
