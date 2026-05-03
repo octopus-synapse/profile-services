@@ -3,7 +3,6 @@
   "files": [
     "src/infrastructure/elysia-adapter/elysia-bootstrap.ts",
     "src/bounded-contexts/jobs/jobs.routes.ts",
-    "src/bounded-contexts/onboarding/domain/config/onboarding-steps.config.ts",
     "src/bounded-contexts/onboarding/onboarding.routes.ts",
     "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts",
     "src/bounded-contexts/feed/feed.routes.ts",
@@ -166,6 +165,7 @@
     "src/bounded-contexts/automation/testing/in-memory-apply-mode.repository.ts",
     "src/bounded-contexts/integration/github/github.routes.ts",
     "src/bounded-contexts/export/export.composition.ts",
+    "src/bounded-contexts/onboarding/domain/config/onboarding-translations.config.ts",
     "src/bounded-contexts/onboarding/application/use-cases/complete-onboarding-from-progress/complete-onboarding-from-progress.use-case.ts",
     "src/bounded-contexts/identity/users/application/services/username.service.ts",
     "src/bounded-contexts/analytics/resume-analytics/application/use-cases/get-industry-benchmark/get-industry-benchmark.use-case.ts",
