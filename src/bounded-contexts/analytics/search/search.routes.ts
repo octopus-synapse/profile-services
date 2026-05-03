@@ -46,20 +46,6 @@ type GlobalSearchQuery = z.infer<typeof GlobalSearchQuerySchema>;
 
 const IdParam = z.object({ id: z.string() });
 
-interface GlobalSearchItem {
-  readonly id: string;
-  readonly title: string;
-  readonly snippet?: string;
-  readonly href: string;
-  readonly badge?: string;
-}
-
-interface GlobalSearchGroup {
-  readonly type: 'users' | 'jobs' | 'resumes' | 'posts';
-  readonly label: string;
-  readonly items: readonly GlobalSearchItem[];
-}
-
 const GlobalSearchItemSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -164,35 +150,12 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
       summary: 'Global multi-type search (resumes, users, jobs, posts)',
       tags: ['search'],
       description:
-        'Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Today only the `resumes` group is populated; `users`, `jobs`, `posts` groups stream in once their dedicated indexes are wired.',
+        'Returns results grouped by entity type. Each item carries `{id,title,snippet?,href,badge?}` so the frontend can render a generic list. Groups: `resumes`, `users`, `jobs`, `posts`.',
     },
     sdk: { exported: true },
     handler: async (ctx, service) => {
       const q = ctx.query as unknown as GlobalSearchQuery;
-      const resumeResult = await service.search({
-        query: q.q,
-        skills: [],
-        page: 1,
-        limit: q.limit,
-      });
-      // The resume-search service still returns the legacy `{data, ...}`
-      // shape; we adapt here so the global-search wire format stays canonical.
-      const rows =
-        (resumeResult as unknown as { data?: ReadonlyArray<Record<string, unknown>> }).data ?? [];
-      const resumeItems: GlobalSearchItem[] = rows.map((row) => ({
-        id: String(row.id ?? ''),
-        title: String(row.fullName ?? row.jobTitle ?? 'Untitled'),
-        snippet:
-          typeof row.summary === 'string' && row.summary.length > 0
-            ? row.summary.slice(0, 160)
-            : undefined,
-        href: `/resumes/${String(row.slug ?? row.id ?? '')}`,
-      }));
-      const groups: GlobalSearchGroup[] = [
-        { type: 'resumes', label: 'Currículos', items: resumeItems },
-        // TODO: populate users/jobs/posts groups once their indexes ship.
-      ];
-      return { groups };
+      return service.globalSearch(q.q, q.limit);
     },
   },
   {

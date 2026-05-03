@@ -11,6 +11,11 @@
 
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type {
+  GlobalSearchGroup,
+  GlobalSearchItem,
+  GlobalSearchResult,
+} from './ports/search.port';
 
 /**
  * Search query parameters
@@ -262,6 +267,89 @@ export class ResumeSearchService {
       .map(({ sharedSkillCount: _sharedSkillCount, ...resume }) => resume);
 
     return ranked;
+  }
+
+  /**
+   * Multi-type search across resumes, users, jobs, posts. Each group is
+   * capped at `limit`; results are returned in the canonical group order
+   * the frontend expects.
+   */
+  async globalSearch(query: string, limit = 5): Promise<GlobalSearchResult> {
+    const trimmed = query.trim();
+    if (trimmed.length === 0) {
+      return { groups: [] };
+    }
+    const safeLimit = Math.max(1, Math.min(20, Number(limit) || 5));
+    const insensitive = { mode: 'insensitive' as const };
+
+    const [resumeResult, userRows, jobRows, postRows] = await Promise.all([
+      this.search({ query: trimmed, page: 1, limit: safeLimit }),
+      this.prisma.user.findMany({
+        where: {
+          isActive: true,
+          OR: [
+            { name: { contains: trimmed, ...insensitive } },
+            { username: { contains: trimmed, ...insensitive } },
+            { bio: { contains: trimmed, ...insensitive } },
+          ],
+        },
+        select: { id: true, name: true, username: true, bio: true, photoURL: true },
+        take: safeLimit,
+      }),
+      this.prisma.job.findMany({
+        where: {
+          OR: [
+            { title: { contains: trimmed, ...insensitive } },
+            { description: { contains: trimmed, ...insensitive } },
+            { company: { contains: trimmed, ...insensitive } },
+          ],
+        },
+        select: { id: true, title: true, company: true, description: true, location: true },
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.post.findMany({
+        where: { content: { contains: trimmed, ...insensitive } },
+        select: { id: true, content: true, type: true, authorId: true },
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const resumeItems: GlobalSearchItem[] = resumeResult.data.map((row) => ({
+      id: row.id,
+      title: row.fullName ?? row.jobTitle ?? 'Untitled',
+      snippet: row.summary ? row.summary.slice(0, 160) : undefined,
+      href: `/resumes/${row.slug ?? row.id}`,
+    }));
+    const userItems: GlobalSearchItem[] = userRows.map((u) => ({
+      id: u.id,
+      title: u.name ?? u.username ?? 'User',
+      snippet: u.bio ? u.bio.slice(0, 160) : undefined,
+      href: u.username ? `/u/${u.username}` : `/users/${u.id}`,
+    }));
+    const jobItems: GlobalSearchItem[] = jobRows.map((j) => ({
+      id: j.id,
+      title: j.title,
+      snippet: j.description.slice(0, 160),
+      href: `/jobs/${j.id}`,
+      badge: j.company,
+    }));
+    const postItems: GlobalSearchItem[] = postRows.map((p) => ({
+      id: p.id,
+      title: (p.content ?? '').slice(0, 80) || 'Post',
+      snippet: p.content ? p.content.slice(0, 160) : undefined,
+      href: `/feed/${p.id}`,
+      badge: p.type,
+    }));
+
+    const groups: GlobalSearchGroup[] = [
+      { type: 'resumes', label: 'Currículos', items: resumeItems },
+      { type: 'users', label: 'Pessoas', items: userItems },
+      { type: 'jobs', label: 'Vagas', items: jobItems },
+      { type: 'posts', label: 'Publicações', items: postItems },
+    ];
+    return { groups };
   }
 
   /**

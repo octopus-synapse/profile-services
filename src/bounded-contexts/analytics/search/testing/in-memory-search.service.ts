@@ -5,11 +5,37 @@
  */
 
 import { SearchServicePort } from '../ports';
+import type {
+  GlobalSearchGroup,
+  GlobalSearchItem,
+  GlobalSearchResult,
+} from '../ports/search.port';
 import type { SearchParams, SearchResult, SearchResultItem } from '../resume-search.service';
+
+interface SeedUser {
+  id: string;
+  name?: string | null;
+  username?: string | null;
+  bio?: string | null;
+}
+interface SeedJob {
+  id: string;
+  title: string;
+  company?: string;
+  description?: string;
+}
+interface SeedPost {
+  id: string;
+  content?: string | null;
+  type?: string;
+}
 
 export class InMemorySearchService implements SearchServicePort {
   private resumes: SearchResultItem[] = [];
   private suggestions: string[] = [];
+  private users: SeedUser[] = [];
+  private jobs: SeedJob[] = [];
+  private posts: SeedPost[] = [];
 
   async search(params: SearchParams): Promise<SearchResult> {
     const page = params.page ?? 1;
@@ -65,6 +91,86 @@ export class InMemorySearchService implements SearchServicePort {
       .slice(0, limit);
   }
 
+  async globalSearch(query: string, limit = 5): Promise<GlobalSearchResult> {
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed.length === 0) return { groups: [] };
+    const cap = Math.max(1, Math.min(20, Number(limit) || 5));
+
+    const resumeMatches = this.resumes
+      .filter(
+        (r) =>
+          r.fullName?.toLowerCase().includes(trimmed) ||
+          r.jobTitle?.toLowerCase().includes(trimmed) ||
+          r.summary?.toLowerCase().includes(trimmed),
+      )
+      .slice(0, cap);
+    const userMatches = this.users
+      .filter(
+        (u) =>
+          u.name?.toLowerCase().includes(trimmed) ||
+          u.username?.toLowerCase().includes(trimmed) ||
+          u.bio?.toLowerCase().includes(trimmed),
+      )
+      .slice(0, cap);
+    const jobMatches = this.jobs
+      .filter(
+        (j) =>
+          j.title.toLowerCase().includes(trimmed) ||
+          j.company?.toLowerCase().includes(trimmed) ||
+          j.description?.toLowerCase().includes(trimmed),
+      )
+      .slice(0, cap);
+    const postMatches = this.posts
+      .filter((p) => p.content?.toLowerCase().includes(trimmed))
+      .slice(0, cap);
+
+    const groups: GlobalSearchGroup[] = [
+      {
+        type: 'resumes',
+        label: 'Currículos',
+        items: resumeMatches.map<GlobalSearchItem>((r) => ({
+          id: r.id,
+          title: r.fullName ?? r.jobTitle ?? 'Untitled',
+          snippet: r.summary ?? undefined,
+          href: `/resumes/${r.slug ?? r.id}`,
+        })),
+      },
+      {
+        type: 'users',
+        label: 'Pessoas',
+        items: userMatches.map<GlobalSearchItem>((u) => ({
+          id: u.id,
+          title: u.name ?? u.username ?? 'User',
+          snippet: u.bio ?? undefined,
+          href: u.username ? `/u/${u.username}` : `/users/${u.id}`,
+        })),
+      },
+      {
+        type: 'jobs',
+        label: 'Vagas',
+        items: jobMatches.map<GlobalSearchItem>((j) => ({
+          id: j.id,
+          title: j.title,
+          snippet: j.description,
+          href: `/jobs/${j.id}`,
+          badge: j.company,
+        })),
+      },
+      {
+        type: 'posts',
+        label: 'Publicações',
+        items: postMatches.map<GlobalSearchItem>((p) => ({
+          id: p.id,
+          title: (p.content ?? '').slice(0, 80) || 'Post',
+          snippet: p.content ?? undefined,
+          href: `/feed/${p.id}`,
+          badge: p.type,
+        })),
+      },
+    ];
+    return { groups };
+  }
+
   // Test helpers
   seedResume(resume: Partial<SearchResultItem>): void {
     this.resumes.push({
@@ -85,8 +191,21 @@ export class InMemorySearchService implements SearchServicePort {
     this.suggestions = suggestions;
   }
 
+  seedUser(user: SeedUser): void {
+    this.users.push(user);
+  }
+  seedJob(job: SeedJob): void {
+    this.jobs.push(job);
+  }
+  seedPost(post: SeedPost): void {
+    this.posts.push(post);
+  }
+
   clear(): void {
     this.resumes = [];
     this.suggestions = [];
+    this.users = [];
+    this.jobs = [];
+    this.posts = [];
   }
 }
