@@ -73,10 +73,6 @@ export class CacheService implements Lifecycle {
     return this.patternsService.getOrSet(key, computeFn, ttl);
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically
-  // post-Lifecycle migration. The Nest adapter's `nest-bootstrap.ts` should
-  // register a SIGTERM handler that walks all `Lifecycle` instances. Out of
-  // scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     await this.redisConnection.dispose?.();
   }

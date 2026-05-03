@@ -59,10 +59,6 @@ export class RedisConnectionService implements Lifecycle {
     }
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically
-  // post-Lifecycle migration. The Nest adapter's `nest-bootstrap.ts` should
-  // register a SIGTERM handler that walks all `Lifecycle` instances. Out of
-  // scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     // In test environment, don't destroy the connection as tests share the app instance
     // and destroying the connection breaks subsequent tests

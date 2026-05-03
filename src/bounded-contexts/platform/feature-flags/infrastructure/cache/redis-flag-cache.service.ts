@@ -87,9 +87,6 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
     }
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically.
-  // The Nest adapter's `nest-bootstrap.ts` should register a SIGTERM handler
-  // that walks all `Lifecycle` instances. Out of scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
     if (this.subscriber) {
