@@ -25,7 +25,6 @@
     "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts",
     "src/shared-kernel/schemas/sections/generic-section.types.ts",
     "src/bounded-contexts/feed/testing/in-memory-feed.repository.ts",
-    "src/bounded-contexts/platform/feature-flags/registry/feature-flags.registry.ts",
     "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts",
     "src/bounded-contexts/resumes/core/resumes.routes.schemas.ts",
     "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
