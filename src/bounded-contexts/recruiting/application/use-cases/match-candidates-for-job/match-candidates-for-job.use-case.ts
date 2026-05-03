@@ -1,9 +1,17 @@
 import { CandidateDirectoryRepositoryPort, RankedCandidate } from '../../../domain';
+import {
+  CandidateDirectoryUnavailableException,
+  CandidatePoolEmptyException,
+  MatchCandidatesInvalidLimitException,
+  MatchCandidatesNoCriteriaException,
+} from '../../../domain/exceptions/recruiting.exceptions';
 import type {
   MatchCandidatesForJobInput,
   MatchCandidatesForJobOutput,
   MatchCandidatesForJobOutputItem,
 } from './match-candidates-for-job.schema';
+
+const MAX_LIMIT = 100;
 
 /**
  * MatchCandidatesForJobUseCase.
@@ -22,10 +30,30 @@ export class MatchCandidatesForJobUseCase {
   constructor(private readonly directory: CandidateDirectoryRepositoryPort) {}
 
   async execute(input: MatchCandidatesForJobInput): Promise<MatchCandidatesForJobOutput> {
-    const pool = await this.directory.loadSearchablePool({
-      excludeUserId: input.requesterId,
-      poolCap: CANDIDATE_POOL_CAP,
-    });
+    if (!Number.isFinite(input.limit) || input.limit < 1 || input.limit > MAX_LIMIT) {
+      throw new MatchCandidatesInvalidLimitException(input.limit);
+    }
+    if (
+      input.jobSkills.length === 0 &&
+      input.jobMinEnglish === null &&
+      input.jobRemotePolicy === null
+    ) {
+      throw new MatchCandidatesNoCriteriaException();
+    }
+
+    let pool: Awaited<ReturnType<CandidateDirectoryRepositoryPort['loadSearchablePool']>>;
+    try {
+      pool = await this.directory.loadSearchablePool({
+        excludeUserId: input.requesterId,
+        poolCap: CANDIDATE_POOL_CAP,
+      });
+    } catch {
+      throw new CandidateDirectoryUnavailableException();
+    }
+
+    if (pool.length === 0) {
+      throw new CandidatePoolEmptyException();
+    }
 
     const ranked = pool
       .map((record) =>

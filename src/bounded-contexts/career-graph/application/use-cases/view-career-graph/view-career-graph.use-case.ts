@@ -1,10 +1,18 @@
 import { CareerCohort, CareerCohortRepositoryPort, type CohortBucket } from '../../../domain';
+import {
+  CareerCohortEmptyException,
+  CareerGraphInvalidMaxBucketsException,
+  CareerGraphRepositoryUnavailableException,
+  CareerGraphStackRequiredException,
+} from '../../../domain/exceptions/career-graph.exceptions';
 import type {
   CareerGraphBucketOutput,
   CareerGraphProjectionOutput,
   ViewCareerGraphInput,
   ViewCareerGraphOutput,
 } from './view-career-graph.schema';
+
+const MAX_BUCKETS_CAP = 50;
 
 /**
  * ViewCareerGraphUseCase — produces the data backing the "Career graph"
@@ -25,14 +33,35 @@ export class ViewCareerGraphUseCase {
   constructor(private readonly repo: CareerCohortRepositoryPort) {}
 
   async execute(input: ViewCareerGraphInput): Promise<ViewCareerGraphOutput> {
-    const [snapshot, rawBuckets] = await Promise.all([
-      this.repo.loadRequesterSnapshot(input.requesterId),
-      this.repo.loadCohortBuckets({
-        requesterId: input.requesterId,
-        stack: input.stack,
-        maxBuckets: input.maxBuckets,
-      }),
-    ]);
+    if (input.stack.length === 0) {
+      throw new CareerGraphStackRequiredException();
+    }
+    if (
+      !Number.isFinite(input.maxBuckets) ||
+      input.maxBuckets < 1 ||
+      input.maxBuckets > MAX_BUCKETS_CAP
+    ) {
+      throw new CareerGraphInvalidMaxBucketsException(input.maxBuckets);
+    }
+
+    let snapshot: Awaited<ReturnType<CareerCohortRepositoryPort['loadRequesterSnapshot']>>;
+    let rawBuckets: Awaited<ReturnType<CareerCohortRepositoryPort['loadCohortBuckets']>>;
+    try {
+      [snapshot, rawBuckets] = await Promise.all([
+        this.repo.loadRequesterSnapshot(input.requesterId),
+        this.repo.loadCohortBuckets({
+          requesterId: input.requesterId,
+          stack: input.stack,
+          maxBuckets: input.maxBuckets,
+        }),
+      ]);
+    } catch {
+      throw new CareerGraphRepositoryUnavailableException();
+    }
+
+    if (rawBuckets.length === 0) {
+      throw new CareerCohortEmptyException();
+    }
 
     const user = snapshot ?? { experienceYears: 0, jobTitle: null };
 

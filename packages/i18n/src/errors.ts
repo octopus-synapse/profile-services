@@ -1335,4 +1335,37 @@ export const ERROR_DICTIONARY = {
     en: 'Style score is monotonic and cannot regress',
     'pt-BR': 'A pontuação do estilo é monotônica e não pode regredir',
   },
+  CAREER_GRAPH_STACK_REQUIRED: {
+    en: 'Career graph requires at least one stack skill to compare cohorts',
+    'pt-BR': 'O career graph exige pelo menos uma skill de stack para comparar grupos',
+  },
+  CAREER_GRAPH_INVALID_MAX_BUCKETS: {
+    en: 'maxBuckets must be between 1 and 50',
+    'pt-BR': 'maxBuckets deve estar entre 1 e 50',
+  },
+  CAREER_COHORT_EMPTY: {
+    en: 'No peers found matching this stack — try broadening the skills',
+    'pt-BR': 'Nenhum par encontrado para essa stack — tente ampliar as skills',
+  },
+  CAREER_GRAPH_REPOSITORY_UNAVAILABLE: {
+    en: 'Career graph data is temporarily unavailable',
+    'pt-BR': 'Os dados do career graph estão temporariamente indisponíveis',
+  },
+  MATCH_CANDIDATES_INVALID_LIMIT: {
+    en: 'limit must be between 1 and 100',
+    'pt-BR': 'limit deve estar entre 1 e 100',
+  },
+  MATCH_CANDIDATES_NO_CRITERIA: {
+    en: 'At least one matching criterion is required (jobSkills, jobMinEnglish, or jobRemotePolicy)',
+    'pt-BR':
+      'Pelo menos um critério de matching é obrigatório (jobSkills, jobMinEnglish ou jobRemotePolicy)',
+  },
+  CANDIDATE_POOL_EMPTY: {
+    en: 'No opt-in candidates match the requested criteria',
+    'pt-BR': 'Nenhum candidato opt-in atende aos critérios solicitados',
+  },
+  CANDIDATE_DIRECTORY_UNAVAILABLE: {
+    en: 'Candidate directory is temporarily unavailable',
+    'pt-BR': 'O diretório de candidatos está temporariamente indisponível',
+  },
 } as const satisfies LocalizedDictionary;
