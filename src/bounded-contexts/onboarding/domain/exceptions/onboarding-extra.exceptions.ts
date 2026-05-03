@@ -18,18 +18,6 @@ export class OnboardingAlreadyCompletedException extends ConflictException {
   }
 }
 
-// Reservado: a regra de negócio explícita em `advance-onboarding-step.use-case`
-// é que "navigation through the onboarding is free" — usuários podem pular
-// passos sem completar os anteriores. Esta exception fica reservada para
-// uma futura camada `enforceLinearOnboarding` (feature flag em commit/issue
-// futuro) que, se ativada, gating linear pode usar este código padronizado.
-export class OnboardingStepOutOfOrderException extends ValidationException {
-  readonly code: string = 'ONBOARDING_STEP_OUT_OF_ORDER';
-  constructor(stepId: string) {
-    super(`Step "${stepId}" cannot be completed in the current order`);
-  }
-}
-
 export class OnboardingSessionExpiredException extends DomainException {
   readonly code: string = 'ONBOARDING_SESSION_EXPIRED';
   readonly statusHint = 410;
@@ -119,25 +107,6 @@ export class OnboardingUsernameTakenException extends ConflictException {
   readonly code: string = 'USERNAME_TAKEN';
   constructor() {
     super('Username is already taken');
-  }
-}
-
-/**
- * The route-level `requireOnboardingCompleted` gate emits this when a
- * user with `onboardingCompleted = false` hits a feature locked behind
- * the gate. Replaces the deleted Nest `OnboardingCompletedGuard`.
- *
- * Reservado: throwed pela camada `presentation/middlewares/onboarding-gate`
- * em commit/issue futuro — nenhum use-case onboarding precisa lançar esta
- * exception (todos eles operam ANTES da conclusão do onboarding). Mantida
- * aqui para que o gate de rota — quando implementado — importe diretamente
- * do BC dono ao invés de criar um clone framework-side.
- */
-export class OnboardingNotCompletedException extends DomainException {
-  readonly code: string = 'ONBOARDING_NOT_COMPLETED';
-  readonly statusHint = 403;
-  constructor() {
-    super('Onboarding must be completed before accessing this resource');
   }
 }
 

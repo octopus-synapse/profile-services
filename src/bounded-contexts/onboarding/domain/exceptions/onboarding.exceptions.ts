@@ -62,10 +62,6 @@ export abstract class OnboardingValidationException extends DomainException {
     return new OnboardingInvalidUsernameException(reason);
   }
 
-  static usernameAlreadyTaken(username: string): OnboardingUsernameAlreadyTakenException {
-    return new OnboardingUsernameAlreadyTakenException(username);
-  }
-
   static stepNotCompleted(stepId: string): OnboardingStepNotCompletedException {
     return new OnboardingStepNotCompletedException(stepId);
   }
@@ -101,21 +97,6 @@ export class OnboardingInvalidUsernameException extends OnboardingValidationExce
   readonly code = 'INVALID_USERNAME';
   constructor(reason: string) {
     super(reason, [{ code: 'INVALID_USERNAME', field: 'username', message: reason }]);
-  }
-}
-
-// Reservado: redundante com OnboardingUsernameTakenException (-extra), que já é
-// throwed por save-progress + complete-onboarding. Mantido para o factory
-// `OnboardingValidationException.usernameAlreadyTaken(...)` que retorna a
-// versão validation-style com payload structured (`{field, message}` para o
-// SDK). Será throwed por uma camada futura caso a UI passe a precisar da
-// listagem `details[]` no envelope de validação.
-export class OnboardingUsernameAlreadyTakenException extends OnboardingValidationException {
-  readonly code = 'USERNAME_TAKEN';
-  constructor(username: string) {
-    super(`Username "${username}" is already taken`, [
-      { code: 'USERNAME_TAKEN', field: 'username', message: 'This username is already taken' },
-    ]);
   }
 }
 

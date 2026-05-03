@@ -11,26 +11,6 @@ import {
   ValidationException,
 } from '@/shared-kernel/exceptions';
 
-// Reservado: endorsement de skills hoje vive em `social/skill-endorsement.service`,
-// não em collaboration BC. Esta exception ficará aqui até o "skill endorsement
-// dentro de comentários colaborativos" ser implementado (commit/issue futuro).
-// Throwed por essa camada nova quando ela chegar.
-export class AlreadyEndorsedException extends ConflictException {
-  readonly code: string = 'ALREADY_ENDORSED';
-  constructor() {
-    super('You have already endorsed this skill for this user');
-  }
-}
-
-// Reservado: idem AlreadyEndorsedException — endorsement vive em social BC,
-// será throwed pela camada futura de endorsement em comentários colaborativos.
-export class CannotEndorseSelfException extends ValidationException {
-  readonly code: string = 'CANNOT_ENDORSE_SELF';
-  constructor() {
-    super('You cannot endorse your own skills');
-  }
-}
-
 export class CollaboratorLimitReachedException extends ConflictException {
   readonly code: string = 'COLLABORATOR_LIMIT_REACHED';
   constructor(max: number) {
@@ -59,25 +39,6 @@ export class ResumeNotFoundForCollaborationException extends EntityNotFoundExcep
   }
 }
 
-// Reservado: feature de "recommendations" colaborativas (ainda sem use-case
-// ou serviço — nem tabela Prisma dedicada). Throwed por essa camada quando
-// o módulo de recommendations dentro de collaboration for implementado.
-export class RecommendationAlreadyWrittenException extends ConflictException {
-  readonly code: string = 'RECOMMENDATION_ALREADY_WRITTEN';
-  constructor() {
-    super('You have already written a recommendation for this user');
-  }
-}
-
-// Reservado: idem RecommendationAlreadyWrittenException — feature de
-// recommendations colaborativas ainda não tem camada implementada.
-export class CannotRecommendSelfException extends ValidationException {
-  readonly code: string = 'CANNOT_RECOMMEND_SELF';
-  constructor() {
-    super('You cannot write a recommendation for yourself');
-  }
-}
-
 export class CannotBlockSelfException extends ValidationException {
   readonly code: string = 'CANNOT_BLOCK_SELF';
   constructor() {
@@ -99,40 +60,10 @@ export class BlockNotFoundException extends ValidationException {
   }
 }
 
-// Reservado: redundante com CannotDeleteAnotherUsersCommentException, que já é
-// throwed por collab-comment.service.delete. Quando uma rota de "edit comment"
-// for adicionada (commit/issue futuro), essa será throwed na guarda de
-// ownership do path de edição.
-export class CommentNotOwnedException extends ForbiddenException {
-  readonly code: string = 'COMMENT_NOT_OWNED';
-  constructor() {
-    super('You can only modify your own comments');
-  }
-}
-
 export class CommentThreadClosedException extends ValidationException {
   readonly code: string = 'COMMENT_THREAD_CLOSED';
   constructor() {
     super('This comment thread is closed');
-  }
-}
-
-// Reservado: feature de "moderation reports" colaborativos (denúncias por
-// outros usuários) ainda não tem camada implementada — sem service ou
-// use-case. Throwed por essa camada futura.
-export class ReportAlreadySubmittedException extends ConflictException {
-  readonly code: string = 'REPORT_ALREADY_SUBMITTED';
-  constructor() {
-    super('You have already reported this item');
-  }
-}
-
-// Reservado: idem ReportAlreadySubmittedException — throwed por uma camada
-// futura de moderation que ainda não existe.
-export class ReportNotReviewableException extends ValidationException {
-  readonly code: string = 'REPORT_NOT_REVIEWABLE';
-  constructor() {
-    super('This report is not in a reviewable state');
   }
 }
 
