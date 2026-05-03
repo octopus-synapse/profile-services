@@ -3,7 +3,7 @@ import {
   InternalAuthNotConfiguredException,
   InternalTokenInvalidException,
   InternalTokenMissingException,
-} from '../domain/exceptions/integration.exceptions';
+} from '../domain/exceptions';
 import { assertInternalAuth } from './internal-auth.guard';
 
 describe('assertInternalAuth', () => {

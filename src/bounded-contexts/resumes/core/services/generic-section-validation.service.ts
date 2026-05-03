@@ -3,7 +3,7 @@ import {
   SectionItemContentInvalidException,
   SectionTypeInvalidException,
   UnknownSectionTypeException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type {
   FieldValidationError,

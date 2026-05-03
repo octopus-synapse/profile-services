@@ -1,8 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../../../domain/exceptions/resumes.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../../../domain/exceptions';
 import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
 import { VariantRepositoryPort } from '../ports/variant-repository.port';
 

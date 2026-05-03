@@ -14,7 +14,7 @@ import {
   GitHubSyncFailedException,
   GitHubUsernameMissingException,
   SyncCooldownActiveException,
-} from '../../../domain/exceptions/integration.exceptions';
+} from '../../../domain/exceptions';
 import { GitHubApiPort } from '../../domain/ports/github-api.port';
 import { GitHubResumeRepositoryPort } from '../../domain/ports/github-resume.repository.port';
 import { extractGitHubUsername } from '../../domain/value-objects/github-username';

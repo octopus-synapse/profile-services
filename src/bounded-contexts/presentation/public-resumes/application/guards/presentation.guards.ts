@@ -13,7 +13,7 @@
 import {
   OnlyAdminsCanDoThisException,
   SectionNotFoundInResumeException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 
 export interface AdminCheckable {
   readonly isAdmin?: boolean;

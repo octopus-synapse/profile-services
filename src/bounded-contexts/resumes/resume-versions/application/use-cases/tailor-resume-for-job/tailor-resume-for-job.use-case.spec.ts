@@ -4,7 +4,7 @@ import {
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
   TailorEngineUnavailableException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeVersionsRepository, StubResumeTailorLlm } from '../../../testing';

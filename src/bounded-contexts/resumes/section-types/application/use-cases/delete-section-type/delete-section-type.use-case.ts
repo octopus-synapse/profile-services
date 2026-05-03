@@ -1,7 +1,7 @@
 import {
   SectionTypeInUseException,
   SystemSectionTypeUndeletableException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 

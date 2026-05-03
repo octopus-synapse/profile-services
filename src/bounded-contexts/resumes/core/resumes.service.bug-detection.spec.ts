@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import type { CreateResume } from '@/shared-kernel';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumeEventPublisher } from '../domain/ports';
 import { ResumesService } from './resumes.service';
 

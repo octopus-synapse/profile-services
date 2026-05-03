@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { InMemoryResumeVersionsRepository } from '../../../testing';
 import { GetTailoredVersionsUseCase } from './get-tailored-versions.use-case';
 

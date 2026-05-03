@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { MecSyncInProgressException } from '../../../domain/exceptions/integration.exceptions';
+import { MecSyncInProgressException } from '../../../domain/exceptions';
 import { MecCsvDownloaderPort } from '../../domain/ports/mec-csv-downloader.port';
 import {
   InMemoryMecCourseRepository,

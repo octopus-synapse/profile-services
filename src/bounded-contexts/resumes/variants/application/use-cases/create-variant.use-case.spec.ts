@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../../../domain/exceptions/resumes.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../../../domain/exceptions';
 import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
 import { VariantRepositoryPort } from '../ports/variant-repository.port';
 import { BaseResumeReader, CreateVariantUseCase } from './create-variant.use-case';

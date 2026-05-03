@@ -11,7 +11,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumesService } from './resumes.service';
 import {
   createTestResumesService,

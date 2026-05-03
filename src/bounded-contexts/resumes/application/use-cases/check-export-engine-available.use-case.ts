@@ -13,7 +13,7 @@
  * from any particular adapter.
  */
 
-import { ExportEngineUnavailableException } from '../../domain/exceptions/resumes.exceptions';
+import { ExportEngineUnavailableException } from '../../domain/exceptions';
 
 export interface ExportEngineProbe {
   /** Returns true when the engine for `format` is ready, false otherwise. */

@@ -6,7 +6,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type { LoggerPort } from '@/shared-kernel';
-import { UploadStorageUnavailableException } from '../../../../domain/exceptions/integration.exceptions';
+import { UploadStorageUnavailableException } from '../../../../domain/exceptions';
 import {
   FileStoragePort,
   type UploadedFileLocation,

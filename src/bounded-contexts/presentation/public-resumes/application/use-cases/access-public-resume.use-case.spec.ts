@@ -7,7 +7,7 @@ import {
   ShareLinkExpiredException,
   SharePasswordInvalidException,
   SharePasswordRequiredException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import {
   AccessPublicResumeUseCase,
   type PublicResumeShareLoader,

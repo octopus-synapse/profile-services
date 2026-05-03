@@ -1,6 +1,6 @@
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumeEventPublisher } from '../domain/ports';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';

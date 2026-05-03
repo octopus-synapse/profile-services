@@ -20,7 +20,7 @@ import {
   ShareLinkExpiredException,
   SharePasswordInvalidException,
   SharePasswordRequiredException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ShareDownloadedEvent, ShareViewedEvent } from '../../../shared-kernel/domain/events';
 
 export type AccessMode = 'view' | 'download';

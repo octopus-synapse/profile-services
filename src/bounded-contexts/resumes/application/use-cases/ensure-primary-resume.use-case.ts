@@ -12,7 +12,7 @@
  */
 
 import { ResumesRepositoryPort } from '../../core/ports/resumes-repository.port';
-import { PrimaryResumeRequiredException } from '../../domain/exceptions/resumes.exceptions';
+import { PrimaryResumeRequiredException } from '../../domain/exceptions';
 
 export class EnsurePrimaryResumeUseCase {
   constructor(private readonly repository: ResumesRepositoryPort) {}

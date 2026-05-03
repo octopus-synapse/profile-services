@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { UrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
+import { UrlRequiredException } from '../../domain/exceptions';
 import { buildShareOgSvg, OgImageService } from './og-image.service';
 
 describe('buildShareOgSvg', () => {

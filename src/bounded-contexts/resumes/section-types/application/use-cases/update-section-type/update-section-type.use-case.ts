@@ -1,7 +1,7 @@
 import {
   SectionTypeSlugVersionTakenException,
   SystemSectionTypeImmutableException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';

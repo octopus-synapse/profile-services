@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { QrUrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
+import { QrUrlRequiredException } from '../../domain/exceptions';
 import { QrCodeService } from './qr-code.service';
 
 describe('QrCodeService', () => {

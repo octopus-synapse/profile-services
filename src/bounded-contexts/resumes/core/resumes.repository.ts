@@ -1,10 +1,7 @@
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../domain/exceptions/resumes.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../domain/exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 const CTX = 'ResumesRepository';

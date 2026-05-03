@@ -1,5 +1,5 @@
 import * as QRCode from 'qrcode';
-import { QrUrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
+import { QrUrlRequiredException } from '../../domain/exceptions';
 
 export interface QrCodeOptions {
   size?: number;

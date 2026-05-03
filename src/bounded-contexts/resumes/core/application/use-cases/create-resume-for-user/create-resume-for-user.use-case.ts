@@ -1,5 +1,5 @@
 import type { CreateResume, LoggerPort } from '@/shared-kernel';
-import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';

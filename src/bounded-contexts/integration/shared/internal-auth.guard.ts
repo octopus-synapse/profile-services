@@ -22,7 +22,7 @@ import {
   InternalAuthNotConfiguredException,
   InternalTokenInvalidException,
   InternalTokenMissingException,
-} from '../domain/exceptions/integration.exceptions';
+} from '../domain/exceptions';
 
 export const INTERNAL_TOKEN_HEADER = 'x-internal-token';
 

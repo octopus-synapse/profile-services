@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { UploadStorageUnavailableException } from '../../../../domain/exceptions/integration.exceptions';
+import { UploadStorageUnavailableException } from '../../../../domain/exceptions';
 import { InMemoryFileStorage } from '../../../testing';
 import { UploadProfileImageUseCase } from './upload-profile-image.use-case';
 

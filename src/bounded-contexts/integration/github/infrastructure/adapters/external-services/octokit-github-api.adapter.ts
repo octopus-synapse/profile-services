@@ -18,7 +18,7 @@ import {
   IntegrationRateLimitedException,
   IntegrationResponseInvalidException,
   IntegrationTimeoutException,
-} from '../../../../domain/exceptions/integration.exceptions';
+} from '../../../../domain/exceptions';
 import { GitHubApiPort } from '../../../domain/ports/github-api.port';
 import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../../../types/github.types';
 

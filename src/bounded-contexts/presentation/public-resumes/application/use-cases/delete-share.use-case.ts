@@ -5,7 +5,7 @@
 import {
   ResumeShareAccessDeniedException,
   ShareNotFoundException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 export class DeleteShareUseCase {

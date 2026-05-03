@@ -1,4 +1,4 @@
-import { SectionItemLimitExceededException } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { SectionItemLimitExceededException } from '@/bounded-contexts/resumes/domain/exceptions';
 import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 

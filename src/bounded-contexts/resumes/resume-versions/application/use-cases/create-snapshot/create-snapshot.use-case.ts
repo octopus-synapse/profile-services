@@ -7,7 +7,7 @@
 import {
   ResumeNotFoundException,
   ResumeSnapshotNotSerializableException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { LoggerPort } from '@/shared-kernel';
 import type {

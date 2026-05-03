@@ -11,7 +11,7 @@ import { describe, expect, it } from 'bun:test';
 import {
   OnlyAdminsCanDoThisException,
   SectionNotFoundInResumeException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { requireAdmin, requireSection } from './presentation.guards';
 
 describe('requireAdmin', () => {

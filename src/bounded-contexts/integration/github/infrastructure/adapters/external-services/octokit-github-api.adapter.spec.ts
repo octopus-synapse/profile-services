@@ -4,7 +4,7 @@ import {
   ExternalHandleInvalidException,
   IntegrationAuthFailedException,
   IntegrationRateLimitedException,
-} from '../../../../domain/exceptions/integration.exceptions';
+} from '../../../../domain/exceptions';
 import { OctokitGitHubApiAdapter } from './octokit-github-api.adapter';
 
 const stubConfig = {

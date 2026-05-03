@@ -5,7 +5,7 @@ import {
   ResumeNotFoundException,
   ResumeShareSlugInvalidException,
   ResumeShareSlugTakenException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
   type ShareEntity,

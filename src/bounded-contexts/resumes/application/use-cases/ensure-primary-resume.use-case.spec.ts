@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
 import { type ResumeEntity, ResumesRepositoryPort } from '../../core/ports/resumes-repository.port';
-import { PrimaryResumeRequiredException } from '../../domain/exceptions/resumes.exceptions';
+import { PrimaryResumeRequiredException } from '../../domain/exceptions';
 import { EnsurePrimaryResumeUseCase } from './ensure-primary-resume.use-case';
 
 class StubRepo extends ResumesRepositoryPort {

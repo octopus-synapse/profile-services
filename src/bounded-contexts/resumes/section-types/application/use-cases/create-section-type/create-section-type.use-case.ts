@@ -1,7 +1,7 @@
 import {
   SectionTypeAlreadyExistsException,
   SectionTypeSlugVersionTakenException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';

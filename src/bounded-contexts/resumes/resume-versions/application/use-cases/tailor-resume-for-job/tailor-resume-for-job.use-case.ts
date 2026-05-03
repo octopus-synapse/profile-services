@@ -11,7 +11,7 @@ import {
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
   TailorEngineUnavailableException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {

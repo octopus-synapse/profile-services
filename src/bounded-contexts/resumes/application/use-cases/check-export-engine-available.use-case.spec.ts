@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { ExportEngineUnavailableException } from '../../domain/exceptions/resumes.exceptions';
+import { ExportEngineUnavailableException } from '../../domain/exceptions';
 import { CheckExportEngineAvailableUseCase } from './check-export-engine-available.use-case';
 
 describe('CheckExportEngineAvailableUseCase', () => {

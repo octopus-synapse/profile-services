@@ -9,7 +9,7 @@ import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeVersionNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import type { TailoredVersionDiff } from '../../../domain/entities/tailor';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
 

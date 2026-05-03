@@ -12,7 +12,7 @@
  */
 
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { IntegrationNotConfiguredException } from '../../../../domain/exceptions/integration.exceptions';
+import { IntegrationNotConfiguredException } from '../../../../domain/exceptions';
 import {
   FileStoragePort,
   type UploadedFileLocation,

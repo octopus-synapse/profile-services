@@ -6,7 +6,7 @@
 import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import type { TailoredVersionSummary } from '../../../domain/entities/tailor';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
 

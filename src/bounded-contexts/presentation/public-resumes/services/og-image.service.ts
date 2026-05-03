@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { UrlRequiredException } from '../../domain/exceptions/presentation.exceptions';
+import { UrlRequiredException } from '../../domain/exceptions';
 
 const MAX_NAME_CHARS = 60;
 const MAX_TITLE_CHARS = 80;
