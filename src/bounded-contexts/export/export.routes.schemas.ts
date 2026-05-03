@@ -47,3 +47,13 @@ export const PdfBase64ResponseSchema = z.object({
   pdf: z.string(),
   filename: z.string(),
 });
+
+// Pre-signed download envelope. Backend uploads the binary to MinIO with
+// a private ACL and returns a signed GET URL with short TTL. Browser
+// downloads natively via `<a href={downloadUrl} download={filename}>` —
+// frontend never touches blob/atob/MIME logic.
+export const PresignedDownloadResponseSchema = z.object({
+  downloadUrl: z.string().url(),
+  filename: z.string(),
+  expiresAt: z.string().datetime(),
+});

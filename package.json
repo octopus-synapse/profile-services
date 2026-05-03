@@ -62,7 +62,8 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
-    "@aws-sdk/client-s3": "^3.1021.0",
+    "@aws-sdk/client-s3": "^3.1041.0",
+    "@aws-sdk/s3-request-presigner": "^3.1041.0",
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.4.2",
     "@prisma/adapter-pg": "^7.6.0",

@@ -8,6 +8,7 @@
  * `StreamableFile` flow through Nest's response interceptor unchanged.
  */
 
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
@@ -16,17 +17,19 @@ import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import {
   BANNER_HEADERS,
   BannerQuery,
-  DOCX_HEADERS,
   JsonExportQuery,
   LatexExportQuery,
-  PDF_HEADERS,
   PdfBase64ResponseSchema,
+  PresignedDownloadResponseSchema,
   ResumeIdParams,
   ResumePdfQuery,
   UserIdParams,
 } from './export.routes.schemas';
 import { sanitizeQueryParam } from './infrastructure/helpers';
 import { presentPdfAsBase64 } from './infrastructure/presenters/pdf-base64.presenter';
+
+const DOWNLOAD_TTL_SECONDS = 300;
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   // ─── Banner ────────────────────────────────────────────────────────
@@ -54,17 +57,19 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   },
 
   // ─── PDF ───────────────────────────────────────────────────────────
+  // Returns a pre-signed MinIO URL the browser uses for native download.
+  // Backend uploads the rendered binary with a private ACL + short TTL,
+  // so the frontend never touches Blob/atob/MIME.
   {
     method: 'GET',
     path: '/v1/export/resume/pdf',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
     query: ResumePdfQuery,
-    headers: PDF_HEADERS,
-    binary: { mediaType: 'application/pdf', filename: 'resume.pdf' },
+    response: PresignedDownloadResponseSchema,
     guards: [{ id: 'feature-flag', metadata: { key: 'resumes.export.pdf' } }],
     openapi: {
-      summary: 'Export resume as PDF document',
+      summary: 'Generate resume PDF (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -97,7 +102,15 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
             }),
         ),
       );
-      return new StreamableFile(buffer);
+      const filename = `resume-${userId}-${Date.now()}.pdf`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${userId}/${randomUUID()}.pdf`,
+        body: buffer,
+        contentType: 'application/pdf',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
+      });
+      return { ...signed, filename };
     },
   },
   {
@@ -129,13 +142,9 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     path: '/v1/export/resume/docx',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
-    headers: DOCX_HEADERS,
-    binary: {
-      mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      filename: 'resume.docx',
-    },
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as DOCX document',
+      summary: 'Generate resume DOCX (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -145,7 +154,15 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
       const buffer = await bundle.pipeline.run('docx', userId, () =>
         bundle.useCases.exportDocxUseCase.execute({ userId }),
       );
-      return new StreamableFile(buffer);
+      const filename = `resume-${userId}-${Date.now()}.docx`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${userId}/${randomUUID()}.docx`,
+        body: buffer,
+        contentType: DOCX_MIME,
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
+      });
+      return { ...signed, filename };
     },
   },
 
@@ -157,9 +174,9 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
     query: JsonExportQuery,
-    binary: { mediaType: 'application/json', filename: 'resume.json' },
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as JSON',
+      summary: 'Generate resume JSON (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -172,16 +189,15 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         resumeId,
         format,
       });
-      const headers = {
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="resume-${resumeId}.json"`,
-      };
-      // Wrap as StreamableFile so the response interceptor passes it
-      // through unchanged.
-      return new StreamableFile(buffer, {
-        type: headers['Content-Type'],
-        disposition: headers['Content-Disposition'],
+      const filename = `resume-${resumeId}.json`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${resumeId}/${randomUUID()}.json`,
+        body: buffer,
+        contentType: 'application/json',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
+      return { ...signed, filename };
     },
   },
   {
@@ -191,9 +207,9 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     params: ResumeIdParams,
     query: LatexExportQuery,
-    binary: { mediaType: 'application/x-tex', filename: 'resume.tex' },
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as LaTeX',
+      summary: 'Generate resume LaTeX (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -206,10 +222,15 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         resumeId,
         template,
       });
-      return new StreamableFile(buffer, {
-        type: 'application/x-latex',
-        disposition: `attachment; filename="resume-${resumeId}.tex"`,
+      const filename = `resume-${resumeId}.tex`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${resumeId}/${randomUUID()}.tex`,
+        body: buffer,
+        contentType: 'application/x-tex',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
+      return { ...signed, filename };
     },
   },
 ];

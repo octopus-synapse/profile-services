@@ -6,6 +6,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { z } from 'zod';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { LoggerPort } from '@/shared-kernel/logger';
@@ -225,6 +226,66 @@ export class S3UploadService {
       throw new StorageObjectNotFoundException(key);
     }
     return buffer;
+  }
+
+  /**
+   * Upload an object as private and return a pre-signed GET URL with TTL.
+   * Used for one-shot downloads (resume export, admin reports) where the
+   * frontend hands the URL directly to the browser via `<a href download>`.
+   * Object is NOT public-read — only the signed URL grants access, and
+   * only until `ttlSeconds` elapses.
+   */
+  async uploadAndPresign(opts: {
+    key: string;
+    body: Buffer;
+    contentType: string;
+    filename: string;
+    ttlSeconds: number;
+  }): Promise<{ downloadUrl: string; expiresAt: string }> {
+    if (!this._isEnabled || !this.client || !this.bucket) {
+      throw new StorageConfigurationException();
+    }
+
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: opts.key,
+          Body: opts.body,
+          ContentType: opts.contentType,
+          ContentDisposition: `attachment; filename="${opts.filename.replace(/"/g, '')}"`,
+        }),
+      );
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'unknown error';
+      throw new StorageUploadFailedException(reason);
+    }
+
+    // Sign with the public-facing endpoint when configured so the browser
+    // can resolve the URL (the in-cluster MinIO host is unreachable from
+    // the user's machine).
+    const presignClient = this.publicEndpoint
+      ? new S3Client({
+          endpoint: this.publicEndpoint,
+          region: 'us-east-1',
+          credentials: {
+            accessKeyId: this.config.get<string>('MINIO_ACCESS_KEY') ?? '',
+            secretAccessKey: this.config.get<string>('MINIO_SECRET_KEY') ?? '',
+          },
+          forcePathStyle: true,
+        })
+      : this.client;
+
+    const downloadUrl = await getSignedUrl(
+      presignClient,
+      new GetObjectCommand({ Bucket: this.bucket, Key: opts.key }),
+      { expiresIn: opts.ttlSeconds },
+    );
+
+    return {
+      downloadUrl,
+      expiresAt: new Date(Date.now() + opts.ttlSeconds * 1000).toISOString(),
+    };
   }
 
   /**
