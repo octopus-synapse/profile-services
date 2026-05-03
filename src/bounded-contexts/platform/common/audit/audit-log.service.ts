@@ -12,23 +12,10 @@ import type { Request } from 'express';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { AuditLogFailedException } from '../exceptions/platform.exceptions';
+import { extractAuditMetadata } from './audit-log.helpers';
+import type { AuditMetadata, RequestMetadataSource } from './audit-log.types';
 
-export interface AuditMetadata {
-  ipAddress?: string;
-  userAgent?: string;
-  referer?: string;
-  geo?: string;
-  [key: string]: string | undefined;
-}
-
-export interface RequestMetadataSource {
-  ip?: string;
-  headers?: Request['headers'];
-  method?: string;
-  originalUrl?: string;
-  path?: string;
-  socket?: { remoteAddress?: string };
-}
+export type { AuditMetadata, RequestMetadataSource };
 
 export class AuditLogService {
   constructor(
@@ -54,7 +41,7 @@ export class AuditLogService {
     request?: RequestMetadataSource,
   ): Promise<void> {
     try {
-      const metadata = this.extractMetadata(request);
+      const metadata = extractAuditMetadata(request);
 
       await this.prisma.auditLog.create({
         data: {
@@ -108,7 +95,7 @@ export class AuditLogService {
     request?: RequestMetadataSource,
   ): Promise<void> {
     try {
-      const metadata = this.extractMetadata(request);
+      const metadata = extractAuditMetadata(request);
       await this.prisma.auditLog.create({
         data: {
           userId,
@@ -292,44 +279,6 @@ export class AuditLogService {
         },
       },
     });
-  }
-
-  /**
-   * Extract metadata from Express request
-   */
-  private extractMetadata(request?: RequestMetadataSource): {
-    ipAddress?: string;
-    userAgent?: string;
-    metadata?: Prisma.InputJsonValue;
-  } {
-    if (!request) {
-      return {};
-    }
-
-    const headers = request.headers ?? {};
-    const forwardedForValue = headers['x-forwarded-for'];
-    const forwardedFor = Array.isArray(forwardedForValue)
-      ? forwardedForValue[0]
-      : forwardedForValue;
-    const userAgentValue = headers['user-agent'];
-    const userAgent = Array.isArray(userAgentValue) ? userAgentValue[0] : userAgentValue;
-    const refererValue = headers.referer;
-    const referer = Array.isArray(refererValue) ? refererValue[0] : refererValue;
-
-    const ipAddress =
-      (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : undefined) ??
-      request.ip ??
-      request.socket?.remoteAddress;
-
-    return {
-      ipAddress,
-      userAgent: typeof userAgent === 'string' ? userAgent : undefined,
-      metadata: {
-        referer: typeof referer === 'string' ? referer : undefined,
-        method: request.method,
-        path: request.path,
-      },
-    };
   }
 
   /**
