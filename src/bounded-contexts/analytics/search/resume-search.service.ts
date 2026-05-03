@@ -11,11 +11,7 @@
 
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  GlobalSearchGroup,
-  GlobalSearchItem,
-  GlobalSearchResult,
-} from './ports/search.port';
+import type { GlobalSearchGroup, GlobalSearchItem, GlobalSearchResult } from './ports/search.port';
 
 /**
  * Search query parameters

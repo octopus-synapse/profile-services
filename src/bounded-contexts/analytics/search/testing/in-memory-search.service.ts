@@ -5,11 +5,7 @@
  */
 
 import { SearchServicePort } from '../ports';
-import type {
-  GlobalSearchGroup,
-  GlobalSearchItem,
-  GlobalSearchResult,
-} from '../ports/search.port';
+import type { GlobalSearchGroup, GlobalSearchItem, GlobalSearchResult } from '../ports/search.port';
 import type { SearchParams, SearchResult, SearchResultItem } from '../resume-search.service';
 
 interface SeedUser {
