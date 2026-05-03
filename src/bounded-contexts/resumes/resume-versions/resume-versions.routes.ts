@@ -14,92 +14,18 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { toVersionIsoList } from './infrastructure/presenters/resume-version.presenter';
-
-const ResumeIdParam = z.object({ resumeId: z.string() });
-const ResumeIdAndVersionIdParam = z.object({
-  resumeId: z.string(),
-  versionId: z.string(),
-});
-
-const VersionIdQuery = z.object({ versionId: z.string() });
-
-const TailorResumeBody = z.object({
-  jobId: z.string().min(1).optional(),
-  jobDescription: z.string().min(10).optional(),
-  jobTitle: z.string().max(200).optional(),
-  jobCompany: z.string().max(200).optional(),
-});
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const ResumeVersionListItemSchema = z.object({
-  id: z.string(),
-  versionNumber: z.number().int(),
-  label: z.string().nullable(),
-  createdAt: z.string().datetime(),
-});
-
-const ResumeVersionsResponseSchema = z.object({
-  versions: z.array(ResumeVersionListItemSchema),
-});
-
-const TailoredVersionSummarySchema = ResumeVersionListItemSchema.extend({
-  tailoredJobId: z.string().nullable(),
-});
-
-const TailoredVersionsResponseSchema = z.object({
-  versions: z.array(TailoredVersionSummarySchema),
-});
-
-const ResumeVersionRestoreResponseSchema = z.object({
-  restoredFrom: z.string().datetime(),
-});
-
-const ResumeVersionDetailSchema = ResumeVersionListItemSchema.extend({
-  resumeId: z.string().optional(),
-});
-
-const ResumeVersionResponseSchema = z.object({
-  version: ResumeVersionDetailSchema,
-});
-
-const TailorBulletSchema = z.object({
-  id: z.string(),
-  original: z.string(),
-  tailored: z.string(),
-  highlights: z.array(z.string()),
-});
-
-const TailoredVersionDiffResponseSchema = z.object({
-  versionId: z.string(),
-  summary: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
-  jobTitle: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
-  bullets: z.array(
-    z.object({
-      id: z.string(),
-      before: z.string(),
-      after: z.string(),
-      highlights: z.array(z.string()),
-    }),
-  ),
-});
-
-const TailorChangeSchema = z.object({
-  path: z.array(z.union([z.string(), z.number()])),
-  op: z.enum(['add', 'remove', 'replace']),
-  before: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
-  after: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
-  highlights: z.array(z.string()).optional(),
-});
-
-const TailorResumeResponseSchema = z.object({
-  versionId: z.string(),
-  versionNumber: z.number().int(),
-  label: z.string(),
-  summary: z.string().nullable(),
-  jobTitle: z.string().nullable(),
-  bullets: z.array(TailorBulletSchema),
-  changes: z.array(TailorChangeSchema),
-});
+import {
+  ResumeIdAndVersionIdParam,
+  ResumeIdParam,
+  ResumeVersionResponseSchema,
+  ResumeVersionRestoreResponseSchema,
+  ResumeVersionsResponseSchema,
+  TailoredVersionDiffResponseSchema,
+  TailoredVersionsResponseSchema,
+  TailorResumeBody,
+  TailorResumeResponseSchema,
+  VersionIdQuery,
+} from './resume-versions.routes.schemas';
 
 export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> = [
   // ─── Resume versions (nested + flat routes) ───────────────────────

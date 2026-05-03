@@ -7,12 +7,9 @@
  * module wires `RateLimitGuard` into the synthesizer's guard registry.
  */
 
-import type { EnglishLevel, JobType } from '@prisma/client';
 import { z } from 'zod';
-import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { RecordApplicationEventSchema } from './dto/application-event.schema';
 import {
@@ -22,350 +19,37 @@ import {
   UpdateJobSchema,
 } from './dto/job.schema';
 import {
-  parsePaymentCurrencies,
-  parseRemotePolicies,
-  parseSkillsCsv,
-} from './presenters/job.presenter';
-
-export { RATE_LIMIT_KEY };
-
-const IdParam = z.object({ id: z.string() });
-const ApplicationIdParam = z.object({ applicationId: z.string() });
-const CompanyParam = z.object({ company: z.string() });
-
-const JobListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  search: z.string().max(500).optional(),
-  jobType: z.string().optional(),
-  skills: z.string().max(500).optional(),
-  paymentCurrency: z.string().max(100).optional(),
-  remotePolicy: z.string().max(100).optional(),
-  minEnglishLevel: z.string().optional(),
-});
-
-const PageOnlyQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const SimilarQuerySchema = z.object({ limit: z.string().optional() });
-
-const TrackerQuerySchema = z.object({ silentDays: z.string().optional() });
-
-const FitDimensionSchema = z.object({
-  key: z.string(),
-  label: z.string(),
-  value: z.number(),
-  target: z.number(),
-  color: z.string(),
-  hint: z.string(),
-  weight: z.number(),
-});
-
-const JobFitResponseSchema = z.object({
-  score: z.number(),
-  dimensions: z.array(FitDimensionSchema),
-  matchedKeywords: z.array(z.string()),
-  missingKeywords: z.array(z.string()),
-});
-
-const ApplyRequirementSchema = z.object({
-  type: z.string(),
-  key: z.string(),
-  label: z.string(),
-  required: z.boolean(),
-  maxLength: z.number().int().optional(),
-  options: z.array(z.string()).optional(),
-});
-
-const ApplyBlockerSchema = z.object({
-  code: z.string(),
-  message: z.string(),
-});
-
-const ApplyContextResponseSchema = z.object({
-  defaults: z.object({
-    coverLetter: z.string(),
-    resumeId: z.string().nullable(),
-  }),
-  requirements: z.array(ApplyRequirementSchema),
-  cta: z.object({
-    label: z.string(),
-    endpoint: z.object({ method: z.string(), path: z.string() }),
-  }),
-  oneClickAvailable: z.boolean(),
-  blockers: z.array(ApplyBlockerSchema).optional(),
-});
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const JobTypeEnum = z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE']);
-const RemotePolicyEnum = z.enum(['REMOTE', 'HYBRID', 'ONSITE']);
-const PaymentCurrencyEnum = z.enum(['BRL', 'USD', 'EUR', 'GBP']);
-const EnglishLevelEnum = z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']);
-const JobApplicationStatusEnum = z.enum([
-  'SUBMITTED',
-  'VIEWED',
-  'REJECTED',
-  'ACCEPTED',
-  'WITHDRAWN',
-]);
-const JobApplicationEventTypeEnum = z.enum([
-  'SUBMITTED',
-  'VIEWED',
-  'INTERVIEW_SCHEDULED',
-  'INTERVIEW_COMPLETED',
-  'OFFER_RECEIVED',
-  'REJECTED',
-  'WITHDRAWN',
-  'FOLLOW_UP_SENT',
-]);
-
-const JobAuthorSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-});
-
-const JobSchema = z.object({
-  id: z.string(),
-  authorId: z.string(),
-  title: z.string(),
-  company: z.string(),
-  location: z.string().nullable(),
-  jobType: JobTypeEnum,
-  description: z.string(),
-  requirements: z.array(z.string()),
-  skills: z.array(z.string()),
-  salaryRange: z.string().nullable(),
-  applyUrl: z.string().nullable(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  expiresAt: z.string().datetime().nullable(),
-  paymentCurrency: PaymentCurrencyEnum.nullable(),
-  remotePolicy: RemotePolicyEnum.nullable(),
-  minEnglishLevel: EnglishLevelEnum.nullable(),
-});
-
-// Job + denormalized author + viewer-relative flags (the "decorated"
-// shape returned by every listing endpoint).
-const JobWithAuthorSchema = JobSchema.extend({
-  author: JobAuthorSchema.nullable().optional(),
-});
-
-const JobViewSchema = JobWithAuthorSchema.extend({
-  isBookmarked: z.boolean().optional(),
-  hasApplied: z.boolean().optional(),
-});
-
-const FitScoreBreakdownSchema = z.object({
-  skillOverlap: z.number(),
-  englishMatch: z.number(),
-  remoteMatch: z.number(),
-  matchedSkills: z.array(z.string()),
-  missingSkills: z.array(z.string()),
-});
-
-const FitScoreSchema = z.object({
-  score: z.number(),
-  breakdown: FitScoreBreakdownSchema,
-});
-
-const JobWithFitScoreSchema = JobViewSchema.extend({
-  fitScore: FitScoreSchema.nullable(),
-});
-
-const JobsListResponseSchema = PaginatedResponseSchema(JobViewSchema);
-const JobsListWithFitScoreResponseSchema = PaginatedResponseSchema(JobWithFitScoreSchema);
-const MyJobsListResponseSchema = PaginatedResponseSchema(JobSchema);
-
-// Legacy `{ data, total, page, limit, totalPages }` shape — preserved
-// because the underlying use case still emits it (not yet migrated to
-// the canonical `{ items, ..., hasNext, hasPrev }` paginator).
-const LegacyPaginatedSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
-  z.object({
-    data: z.array(itemSchema),
-    total: z.number().int().min(0),
-    page: z.number().int().min(1),
-    limit: z.number().int().min(1),
-    totalPages: z.number().int().min(0),
-  });
-
-const BookmarkedJobItemSchema = JobWithAuthorSchema.extend({
-  bookmarkedAt: z.string().datetime(),
-});
-
-const BookmarkedJobsResponseSchema = LegacyPaginatedSchema(BookmarkedJobItemSchema);
-
-const RecommendedJobItemSchema = JobViewSchema.extend({ matchScore: z.number() });
-const RecommendedJobsResponseSchema = LegacyPaginatedSchema(RecommendedJobItemSchema);
-
-// `listMyApplications` returns `data: ApplicationWithJob[]` (typed
-// `unknown[]` in the use case but emitted as application + denormalized
-// job/author). Models the actual JSON shape the repository projects.
-const JobApplicationSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  userId: z.string(),
-  status: JobApplicationStatusEnum,
-  coverLetter: z.string().nullable(),
-  resumeId: z.string().nullable(),
-  tailoredVersionId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-});
-
-const ApplicationWithJobSchema = JobApplicationSchema.extend({
-  job: JobWithAuthorSchema,
-});
-
-const MyApplicationsResponseSchema = LegacyPaginatedSchema(ApplicationWithJobSchema);
-
-// Employer-side: list of applications received on a job. The use case
-// projects each row into `{...applicationListItem, user: candidate | null}`.
-const ApplicationCandidateSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  email: z.string(),
-  photoURL: z.string().nullable(),
-});
-
-const JobApplicationListItemSchema = z.object({
-  id: z.string(),
-  status: JobApplicationStatusEnum,
-  createdAt: z.string().datetime(),
-  coverLetter: z.string().nullable(),
-  resumeId: z.string().nullable(),
-  tailoredVersionId: z.string().nullable(),
-  user: ApplicationCandidateSchema.nullable(),
-});
-
-const JobApplicationsResponseSchema = z.object({
-  items: z.array(JobApplicationListItemSchema),
-  pagination: z.object({
-    page: z.number().int().min(1),
-    pageSize: z.number().int().min(1),
-    total: z.number().int().min(0),
-    totalPages: z.number().int().min(0),
-  }),
-});
-
-const SimilarJobItemSchema = JobViewSchema.extend({ skillOverlap: z.number() });
-const SimilarJobsResponseSchema = z.object({
-  items: z.array(SimilarJobItemSchema),
-});
-
-const BookmarkResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
-  alreadyBookmarked: z.boolean(),
-});
-
-const UnbookmarkResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
-  removed: z.literal(true),
-});
-
-const ApplyToJobResponseSchema = JobApplicationSchema.extend({
-  alreadyApplied: z.boolean(),
-});
-
-const WithdrawApplicationResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
-  withdrawn: z.literal(true),
-});
-
-const TimelineEventSchema = z.object({
-  id: z.string(),
-  type: JobApplicationEventTypeEnum,
-  note: z.string().nullable(),
-  occurredAt: z.string().datetime(),
-});
-
-const TrackedApplicationSchema = z.object({
-  id: z.string(),
-  jobId: z.string(),
-  status: z.string(),
-  appliedAt: z.string().datetime(),
-  job: z.object({
-    id: z.string(),
-    title: z.string(),
-    company: z.string(),
-    location: z.string().nullable(),
-  }),
-  events: z.array(TimelineEventSchema),
-  daysSinceLastResponse: z.number().int().nullable(),
-  needsFollowUp: z.boolean(),
-});
-
-const ApplicationsTimelineResponseSchema = z.object({
-  applications: z.array(TrackedApplicationSchema),
-});
-
-const RecordApplicationEventResponseSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  note: z.string().nullable(),
-  occurredAt: z.string().datetime(),
-});
-
-const CompanyResponseStatsResponseSchema = z.object({
-  company: z.string(),
-  sampleSize: z.number().int().min(0),
-  p50Days: z.number().int().nullable(),
-  p90Days: z.number().int().nullable(),
-  responseRate: z.number().min(0).max(1),
-});
-
-const ExtractedJobSchema = z.object({
-  title: z.string().nullable(),
-  company: z.string().nullable(),
-  location: z.string().nullable(),
-  description: z.string().nullable(),
-  requirements: z.array(z.string()),
-  skills: z.array(z.string()),
-  salaryRange: z.string().nullable(),
-  applyUrl: z.string().nullable(),
-  jobType: JobTypeEnum.nullable(),
-  remotePolicy: RemotePolicyEnum.nullable(),
-  paymentCurrency: PaymentCurrencyEnum.nullable(),
-  minEnglishLevel: EnglishLevelEnum.nullable(),
-});
-
-const ImportJobFromUrlResponseSchema = z.object({
-  source: z.string(),
-  preview: ExtractedJobSchema,
-});
-
-function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function buildJobListInput(q: z.infer<typeof JobListQuerySchema>) {
-  return {
-    page: Math.min(Math.max(num(q.page, 1), 1), 1000),
-    limit: Math.min(Math.max(num(q.limit, 20), 1), 100),
-    search: q.search,
-    jobType: q.jobType as JobType | undefined,
-    skills: parseSkillsCsv(q.skills),
-    paymentCurrency: parsePaymentCurrencies(q.paymentCurrency),
-    remotePolicy: parseRemotePolicies(q.remotePolicy),
-    minEnglishLevel: q.minEnglishLevel as EnglishLevel | undefined,
-  };
-}
-
-function pageOnly(q: z.infer<typeof PageOnlyQuerySchema>): { page: number; limit: number } {
-  return {
-    page: Math.min(Math.max(num(q.page, 1), 1), 1000),
-    limit: Math.min(Math.max(num(q.limit, 20), 1), 100),
-  };
-}
+  ApplicationIdParam,
+  ApplicationsTimelineResponseSchema,
+  ApplyContextResponseSchema,
+  ApplyToJobResponseSchema,
+  BookmarkedJobsResponseSchema,
+  BookmarkResponseSchema,
+  buildJobListInput,
+  CompanyParam,
+  CompanyResponseStatsResponseSchema,
+  IdParam,
+  ImportJobFromUrlResponseSchema,
+  JobApplicationsResponseSchema,
+  JobFitResponseSchema,
+  JobListQuerySchema,
+  JobSchema,
+  JobsListResponseSchema,
+  JobsListWithFitScoreResponseSchema,
+  JobViewSchema,
+  MyApplicationsResponseSchema,
+  MyJobsListResponseSchema,
+  num,
+  PageOnlyQuerySchema,
+  pageOnly,
+  RecommendedJobsResponseSchema,
+  RecordApplicationEventResponseSchema,
+  SimilarJobsResponseSchema,
+  SimilarQuerySchema,
+  TrackerQuerySchema,
+  UnbookmarkResponseSchema,
+  WithdrawApplicationResponseSchema,
+} from './jobs.routes.schemas';
 
 export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
   // ─── Catalog ──────────────────────────────────────────────────────

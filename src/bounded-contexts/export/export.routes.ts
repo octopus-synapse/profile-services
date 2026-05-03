@@ -13,46 +13,20 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
+import {
+  BANNER_HEADERS,
+  BannerQuery,
+  DOCX_HEADERS,
+  JsonExportQuery,
+  LatexExportQuery,
+  PDF_HEADERS,
+  PdfBase64ResponseSchema,
+  ResumeIdParams,
+  ResumePdfQuery,
+  UserIdParams,
+} from './export.routes.schemas';
 import { sanitizeQueryParam } from './infrastructure/helpers';
 import { presentPdfAsBase64 } from './infrastructure/presenters/pdf-base64.presenter';
-
-// ─── Schemas ─────────────────────────────────────────────────────────
-const BannerQuery = z.object({
-  palette: z.string().optional(),
-  logo: z.string().optional(),
-});
-const ResumePdfQuery = z.object({
-  palette: z.string().optional(),
-  lang: z.string().optional(),
-  bannerColor: z.string().optional(),
-  template: z.string().optional(),
-});
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const UserIdParams = z.object({ userId: z.string() });
-const JsonExportQuery = z.object({ format: z.string().optional() });
-const LatexExportQuery = z.object({ template: z.string().optional() });
-
-const PDF_HEADERS = {
-  'Content-Type': 'application/pdf',
-  'Content-Disposition': 'attachment; filename="resume.pdf"',
-} as const;
-
-const DOCX_HEADERS = {
-  'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'Content-Disposition': 'attachment; filename="resume.docx"',
-} as const;
-
-const BANNER_HEADERS = {
-  'Content-Type': 'image/png',
-  'Content-Disposition': 'attachment; filename="linkedin-banner.png"',
-} as const;
-
-// Base64 PDF JSON envelope used by the admin "fetch another user's
-// resume" endpoint where streaming the PDF directly is not viable.
-const PdfBase64ResponseSchema = z.object({
-  pdf: z.string(),
-  filename: z.string(),
-});
 
 export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   // ─── Banner ────────────────────────────────────────────────────────

@@ -26,68 +26,18 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
 import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.schema';
-
-const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() });
-const LogoutSchema = z.object({
-  refreshToken: z.string().optional(),
-  logoutAllSessions: z.boolean().default(false),
-});
-const RevokeSessionParams = z.object({ id: z.string() });
-
-const SessionUserSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  hasCompletedOnboarding: z.boolean(),
-  emailVerified: z.boolean().nullable().optional(),
-  role: z.enum(['USER', 'ADMIN']),
-  roles: z.array(z.string()),
-  isAdmin: z.boolean(),
-  needsOnboarding: z.boolean(),
-  needsEmailVerification: z.boolean(),
-});
-
-const SessionResponseSchema = z.object({
-  authenticated: z.boolean(),
-  user: SessionUserSchema.nullable().optional(),
-});
-
-// Server-to-server clients with explicit `refreshToken` body get the legacy
-// token shape; browser clients get `{ ok: true }`. Either is acceptable.
-const RefreshResponseSchema = z.union([
-  z.object({
-    accessToken: z.string(),
-    refreshToken: z.string(),
-    expiresIn: z.number(),
-  }),
-  z.object({ ok: z.literal(true) }),
-]);
-
-const LoginResponseSchema = z.union([
-  z.object({ userId: z.string(), twoFactorRequired: z.literal(true) }),
-  z.object({ userId: z.string() }),
-]);
-
-const Verify2faResponseSchema = z.object({ userId: z.string() });
-
-const LogoutResponseSchema = z.object({ message: z.string() });
-
-const SessionDeviceSchema = z.object({
-  id: z.string(),
-  createdAt: z.string(),
-  lastUsedAt: z.string().nullable(),
-  expiresAt: z.string(),
-  ipAddress: z.string().nullable(),
-  userAgent: z.string().nullable(),
-  deviceName: z.string().nullable(),
-  authMethod: z.string().nullable(),
-  revoked: z.boolean(),
-});
-
-const ListSessionsResponseSchema = z.object({ sessions: z.array(SessionDeviceSchema) });
-
-const RevokeSessionResponseSchema = z.object({ revoked: z.literal(true) });
+import {
+  ListSessionsResponseSchema,
+  LoginResponseSchema,
+  LogoutResponseSchema,
+  LogoutSchema,
+  RefreshResponseSchema,
+  RefreshTokenSchema,
+  RevokeSessionParams,
+  RevokeSessionResponseSchema,
+  SessionResponseSchema,
+  Verify2faResponseSchema,
+} from './authentication.routes.schemas';
 
 export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>> = [
   {

@@ -8,164 +8,28 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
+import {
+  AnyBody,
+  CodeParam,
+  DeleteAckResponseSchema,
+  IdParam,
+  ListQuery,
+  NicheListQuery,
+  ProgrammingLanguageListResponseSchema,
+  ProgrammingLanguageRowSchema,
+  SkillListQuery,
+  SlugParam,
+  SpokenLanguageListResponseSchema,
+  SpokenLanguageRowSchema,
+  TechAreaListResponseSchema,
+  TechAreaRowSchema,
+  TechNicheListResponseSchema,
+  TechNicheRowSchema,
+  TechSkillListResponseSchema,
+  TechSkillRowSchema,
+  toListInput,
+} from './admin-catalog.routes.schemas';
 import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
-
-const ListQuery = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
-  search: z.string().optional(),
-  isActive: z.string().optional(),
-});
-
-const NicheListQuery = ListQuery.extend({ areaId: z.string().optional() });
-
-const SkillListQuery = ListQuery.extend({
-  nicheId: z.string().optional(),
-  type: z.string().optional(),
-});
-
-const IdParam = z.object({ id: z.string() });
-const CodeParam = z.object({ code: z.string() });
-const SlugParam = z.object({ slug: z.string() });
-
-const AnyBody = z.record(z.unknown());
-
-// ─── Response schemas (mirror Prisma row shapes) ──────────────────────
-const TechAreaTypeEnum = z.enum([
-  'DEVELOPMENT',
-  'DEVOPS',
-  'DATA',
-  'SECURITY',
-  'DESIGN',
-  'PRODUCT',
-  'QA',
-  'INFRASTRUCTURE',
-  'OTHER',
-]);
-
-const SkillTypeEnum = z.enum([
-  'LANGUAGE',
-  'FRAMEWORK',
-  'LIBRARY',
-  'DATABASE',
-  'TOOL',
-  'PLATFORM',
-  'METHODOLOGY',
-  'SOFT_SKILL',
-  'CERTIFICATION',
-  'OTHER',
-]);
-
-const TechAreaRowSchema = z.object({
-  id: z.string(),
-  type: TechAreaTypeEnum,
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  order: z.number().int(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const TechNicheRowSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  order: z.number().int(),
-  isActive: z.boolean(),
-  areaId: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const TechSkillRowSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  type: SkillTypeEnum,
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  website: z.string().nullable(),
-  nicheId: z.string().nullable(),
-  aliases: z.array(z.string()),
-  keywords: z.array(z.string()),
-  popularity: z.number().int(),
-  order: z.number().int(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const SpokenLanguageRowSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  nameEs: z.string(),
-  nativeName: z.string().nullable(),
-  order: z.number().int(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const ProgrammingLanguageRowSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  website: z.string().nullable(),
-  paradigms: z.array(z.string()),
-  typing: z.string().nullable(),
-  aliases: z.array(z.string()),
-  fileExtensions: z.array(z.string()),
-  popularity: z.number().int(),
-  order: z.number().int(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const TechAreaListResponseSchema = PaginatedResponseSchema(TechAreaRowSchema);
-const TechNicheListResponseSchema = PaginatedResponseSchema(TechNicheRowSchema);
-const TechSkillListResponseSchema = PaginatedResponseSchema(TechSkillRowSchema);
-const SpokenLanguageListResponseSchema = PaginatedResponseSchema(SpokenLanguageRowSchema);
-const ProgrammingLanguageListResponseSchema = PaginatedResponseSchema(ProgrammingLanguageRowSchema);
-
-const DeleteAckResponseSchema = z.object({}).strict();
-
-type ListInput = {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  isActive?: boolean;
-};
-
-function toListInput(q: z.infer<typeof ListQuery>): ListInput {
-  return {
-    page: q.page ? Number(q.page) : undefined,
-    pageSize: q.pageSize ? Number(q.pageSize) : undefined,
-    search: q.search,
-    isActive: q.isActive !== undefined ? String(q.isActive) === 'true' : undefined,
-  };
-}
 
 export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
   // ─── Tech Areas ───────────────────────────────────────────────────

@@ -6,133 +6,25 @@
  */
 
 import type { NotificationType } from '@prisma/client';
-import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { NotificationsUseCases } from './application/ports/notifications.port';
-import type { NotificationStreamEvent } from './domain/entities/notification.entity';
+import {
+  GetPreferencesResponseSchema,
+  MarkReadBody,
+  MarkReadResponseSchema,
+  NotificationListResponseSchema,
+  NotificationsSseBundle,
+  NotificationTypesResponseSchema,
+  PaginationQuery,
+  SetPreferenceBody,
+  SetPreferenceResponseSchema,
+  TypeParam,
+  UnreadCountResponseSchema,
+} from './notifications.routes.schemas';
 
-/**
- * Bundle for the notifications SSE route. Holds an Observable-returning
- * subscribe method backed by the shared `SseStreamPort` (wired in
- * `buildNotificationsSseBundle` inside `notifications.composition.ts`).
- */
-export interface NotificationsSseEvent {
-  readonly data: NotificationStreamEvent;
-  readonly id: string;
-  readonly type: string;
-  readonly retry: number;
-}
-
-export abstract class NotificationsSseBundle {
-  abstract subscribeToUserStream(userId: string): Observable<NotificationsSseEvent>;
-}
-
-const PaginationQuery = z.object({
-  cursor: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const TypeParam = z.object({ type: z.string() });
-
-const MarkReadBody = z.object({
-  notificationId: z.string().optional(),
-});
-
-const SetPreferenceBody = z.object({
-  enabled: z.boolean().optional(),
-  emailEnabled: z.boolean().optional(),
-  emailDelivery: z.enum(['INSTANT', 'DAILY', 'WEEKLY', 'OFF']).optional(),
-});
-
-// ─── Response schemas ────────────────────────────────────────────────
-// Mirrors `NotificationType` from the Prisma enum — keep in sync with
-// `src/bounded-contexts/notifications/domain/entities/notification.ts`.
-const NOTIFICATION_TYPES = [
-  'POST_LIKED',
-  'POST_COMMENTED',
-  'POST_REPOSTED',
-  'POST_BOOKMARKED',
-  'COMMENT_REPLIED',
-  'CONNECTION_REQUEST',
-  'CONNECTION_ACCEPTED',
-  'FOLLOW_NEW',
-  'CONNECTION_RECOMMENDATION',
-  'SKILL_DECAY',
-  'APPLICATION_STALE',
-  'FIT_PROFILE_EXPIRED',
-  'FIT_PROFILE_EXPIRY_REMINDER',
-  'MATCH_RECOMMENDATIONS_READY',
-  'RESUME_QUALITY_IMPROVED',
-  'RESUME_QUALITY_REGRESSED',
-] as const satisfies readonly NotificationType[];
-
-const NotificationTypeSchema = z.enum(NOTIFICATION_TYPES);
-
-const EmailDeliveryModeSchema = z.enum(['INSTANT', 'DAILY', 'WEEKLY', 'OFF']);
-
-const NotificationActorSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-});
-
-// `createdAt` is a `Date` in the domain; the JSON envelope stringifies
-// it via the global serializer (Date → ISO string).
-const NotificationViewSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  type: NotificationTypeSchema,
-  actorId: z.string().nullable(),
-  entityType: z.string().nullable(),
-  entityId: z.string().nullable(),
-  message: z.string(),
-  read: z.boolean(),
-  createdAt: z.string().datetime(),
-  actor: NotificationActorSchema.nullable(),
-});
-
-const NotificationListResponseSchema = z.object({
-  data: z.array(NotificationViewSchema),
-  nextCursor: z.string().nullable(),
-});
-
-const UnreadCountResponseSchema = z.object({ count: z.number().int().min(0) });
-
-const MarkReadResponseSchema = z.object({ count: z.number().int().min(0) });
-
-const NotificationPreferenceSchema = z.object({
-  type: NotificationTypeSchema,
-  enabled: z.boolean(),
-  emailEnabled: z.boolean(),
-  emailDelivery: EmailDeliveryModeSchema,
-});
-
-const GetPreferencesResponseSchema = z.object({
-  preferences: z.array(NotificationPreferenceSchema),
-});
-
-const NotificationTypeMetaSchema = z.object({
-  key: NotificationTypeSchema,
-  label: z.string(),
-  description: z.string(),
-  category: z.enum(['social', 'jobs', 'scoring', 'system']),
-  channels: z.array(
-    z.object({
-      key: z.enum(['inapp', 'email']),
-      enabled: z.boolean(),
-    }),
-  ),
-  userEnabled: z.boolean(),
-});
-
-const NotificationTypesResponseSchema = z.object({
-  types: z.array(NotificationTypeMetaSchema),
-});
-
-const SetPreferenceResponseSchema = NotificationPreferenceSchema;
+export type { NotificationsSseBundle } from './notifications.routes.schemas';
 
 export const notificationsRoutes: ReadonlyArray<Route<NotificationsUseCases>> = [
   {

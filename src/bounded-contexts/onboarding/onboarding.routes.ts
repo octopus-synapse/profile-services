@@ -18,105 +18,24 @@ import {
 } from './domain/schemas/onboarding-progress.schema';
 import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.schema';
 import { buildSession } from './infrastructure/presenters/onboarding.presenter';
-
-// ─── Schemas ─────────────────────────────────────────────────────────
-const LocaleQuery = z.object({ locale: z.string().optional() });
-const StepKeyParam = z.object({ key: z.string() });
-const StepDataBody = z.record(z.unknown());
-const GotoStepBody = z.object({ stepId: z.string() });
-
-type LocaleQuery = z.infer<typeof LocaleQuery>;
-
-// ─── Response schemas ─────────────────────────────────────────────────
-// Bounded JSON-leaf type used for free-form Prisma JSON columns
-// (`fields`, `translations`, `validation`, `strengthLevels`). Two
-// levels of nesting cover every realistic shape without `z.lazy()`.
-const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const JsonValueDepth1Schema = z.union([JsonLeafSchema, z.array(JsonLeafSchema)]);
-const JsonValueDepth2Schema = z.union([
-  JsonValueDepth1Schema,
-  z.record(z.string(), JsonValueDepth1Schema),
-  z.array(z.union([JsonLeafSchema, z.record(z.string(), JsonValueDepth1Schema)])),
-]);
-const JsonValueSchema = z.union([
-  JsonValueDepth2Schema,
-  z.record(z.string(), JsonValueDepth2Schema),
-  z.array(JsonValueDepth2Schema),
-]);
-
-const OnboardingStepRowSchema = z.object({
-  id: z.string(),
-  key: z.string(),
-  order: z.number().int(),
-  component: z.string(),
-  icon: z.string(),
-  required: z.boolean(),
-  sectionTypeKey: z.string().nullable(),
-  fields: JsonValueSchema,
-  translations: JsonValueSchema,
-  validation: JsonValueSchema,
-  strengthWeight: z.number().int(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const OnboardingStepsResponseSchema = z.object({ steps: z.array(OnboardingStepRowSchema) });
-
-// `getStep` returns either `{ step }` or a fallback `{ success, message }`
-// when the step is missing — model both branches in a single union.
-const OnboardingStepResponseSchema = z.union([
-  z.object({ step: OnboardingStepRowSchema }),
-  z.object({ success: z.literal(false), message: z.string() }),
-]);
-
-const OnboardingStatsResponseSchema = z.object({
-  stats: z.object({
-    totalStarted: z.number().int(),
-    totalCompleted: z.number().int(),
-    completionRate: z.number().int(),
-    dropOffByStep: z.record(z.string(), z.number()),
-  }),
-});
-
-const OnboardingConfigRowSchema = z.object({
-  id: z.string(),
-  key: z.string(),
-  strengthLevels: JsonValueSchema,
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const OnboardingConfigResponseSchema = z.object({
-  config: OnboardingConfigRowSchema.nullable(),
-});
-
-const OnboardingConfigUpdatedResponseSchema = z.object({
-  config: OnboardingConfigRowSchema,
-});
-
-const OnboardingStepCreatedResponseSchema = z.object({ step: OnboardingStepRowSchema });
-
-const OnboardingStatusResponseSchema = z.object({
-  hasCompletedOnboarding: z.boolean(),
-  onboardingCompletedAt: z.string().datetime().nullable(),
-});
-
-const SaveProgressResponseSchema = z.object({
-  currentStep: z.string(),
-  completedSteps: z.array(z.string()),
-});
-
-const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string() });
-
-const EmptyResponseSchema = z.null();
-
-// Helper to fetch system themes through the bundle.
-async function getSystemThemes(bundle: OnboardingHttpBundle) {
-  return bundle.systemThemes.getSystemThemes();
-}
-
-type AuthUser = { userId: string; email: string; name?: string };
+import {
+  AuthUser,
+  CompleteOnboardingResponseSchema,
+  EmptyResponseSchema,
+  GotoStepBody,
+  getSystemThemes,
+  LocaleQuery,
+  OnboardingConfigResponseSchema,
+  OnboardingConfigUpdatedResponseSchema,
+  OnboardingStatsResponseSchema,
+  OnboardingStatusResponseSchema,
+  OnboardingStepCreatedResponseSchema,
+  OnboardingStepResponseSchema,
+  OnboardingStepsResponseSchema,
+  SaveProgressResponseSchema,
+  StepDataBody,
+  StepKeyParam,
+} from './onboarding.routes.schemas';
 
 export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
   // ===== Session / Commands API =====

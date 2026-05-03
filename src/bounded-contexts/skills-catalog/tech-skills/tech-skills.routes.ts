@@ -15,133 +15,20 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import type { SkillType, TechAreaType } from './interfaces';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
+import {
+  AreaParams,
+  AreasResponseSchema,
+  CombinedSearchResponseSchema,
+  LanguagesResponseSchema,
+  NicheParams,
+  NichesResponseSchema,
+  parseLimit,
+  SearchQuery,
+  SkillsResponseSchema,
+  SyncResponseSchema,
+  TypeParams,
+} from './tech-skills.routes.schemas';
 
-const SearchQuery = z.object({
-  q: z.string(),
-  limit: z.string().optional(),
-});
-
-const TypeParams = z.object({ type: z.string() });
-const AreaParams = z.object({ areaType: z.string() });
-const NicheParams = z.object({ nicheSlug: z.string() });
-
-function parseLimit(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return parseInt(raw, 10);
-}
-
-// ─── Response schemas (DTO mirrors) ────────────────────────────────────
-const TechAreaTypeEnum = z.enum([
-  'DEVELOPMENT',
-  'DEVOPS',
-  'DATA',
-  'SECURITY',
-  'DESIGN',
-  'PRODUCT',
-  'QA',
-  'INFRASTRUCTURE',
-  'OTHER',
-]);
-
-const SkillTypeEnum = z.enum([
-  'LANGUAGE',
-  'FRAMEWORK',
-  'LIBRARY',
-  'DATABASE',
-  'TOOL',
-  'PLATFORM',
-  'METHODOLOGY',
-  'SOFT_SKILL',
-  'CERTIFICATION',
-  'OTHER',
-]);
-
-const TechAreaDtoSchema = z.object({
-  id: z.string(),
-  type: TechAreaTypeEnum,
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  order: z.number().int(),
-});
-
-const TechNicheDtoSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  descriptionEn: z.string().nullable(),
-  descriptionPtBr: z.string().nullable(),
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  order: z.number().int(),
-  areaType: TechAreaTypeEnum,
-});
-
-const NicheReferenceSchema = z.object({
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-});
-
-const TechSkillDtoSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  type: SkillTypeEnum,
-  icon: z.string().nullable(),
-  color: z.string().nullable(),
-  website: z.string().nullable(),
-  aliases: z.array(z.string()),
-  popularity: z.number().int(),
-  niche: NicheReferenceSchema.nullable(),
-});
-
-const ProgrammingLanguageDtoSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  nameEn: z.string(),
-  namePtBr: z.string(),
-  color: z.string().nullable(),
-  website: z.string().nullable(),
-  aliases: z.array(z.string()),
-  fileExtensions: z.array(z.string()),
-  paradigms: z.array(z.string()),
-  typing: z.string().nullable(),
-  popularity: z.number().int(),
-});
-
-const AreasResponseSchema = z.object({ areas: z.array(TechAreaDtoSchema) });
-const NichesResponseSchema = z.object({ niches: z.array(TechNicheDtoSchema) });
-const SkillsResponseSchema = z.object({ skills: z.array(TechSkillDtoSchema) });
-const LanguagesResponseSchema = z.object({ languages: z.array(ProgrammingLanguageDtoSchema) });
-const CombinedSearchResponseSchema = z.object({
-  results: z.object({
-    languages: z.array(ProgrammingLanguageDtoSchema),
-    skills: z.array(TechSkillDtoSchema),
-  }),
-});
-
-const TechSkillsSyncResultSchema = z.object({
-  languagesInserted: z.number().int(),
-  languagesUpdated: z.number().int(),
-  skillsInserted: z.number().int(),
-  skillsUpdated: z.number().int(),
-  areasCreated: z.number().int(),
-  nichesCreated: z.number().int(),
-  errors: z.array(z.string()),
-});
-
-const SyncResponseSchema = z.object({
-  message: z.string(),
-  result: TechSkillsSyncResultSchema,
-});
-
-// ──────────────────────────── Tech Skills Query routes
 export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>> = [
   // tech-areas
   {

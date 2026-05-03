@@ -13,91 +13,35 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { BlockUseCases } from './application/ports/block.port';
-import { ChatUseCases } from './application/ports/chat.port';
+import {
+  BlockedUsersResponseSchema,
+  BlockStatusResponseSchema,
+  BlockUserResponseSchemaWrapped,
+  ChatHttpBundle,
+  ChatUsersSearchResponseSchema,
+  ConversationIdParam,
+  ConversationWithUserResponseSchema,
+  GetConversationResponseSchema,
+  GetConversationsResponseSchema,
+  GetMessagesResponseSchema,
+  MarkConversationReadResponseSchema,
+  SearchQuerySchema,
+  SendMessageResponseSchema,
+  SetMuteResponseSchema,
+  SetMuteSchema,
+  SetPinResponseSchema,
+  SetPinSchema,
+  UserIdParam,
+} from './chat.routes.schemas';
 import {
   GetConversationsQuerySchema as GetConversationsRequestQuerySchema,
   GetMessagesQuerySchema as GetMessagesRequestQuerySchema,
   SendMessageSchema,
   SendMessageToConversationSchema,
 } from './dto/chat-request.schema';
-import {
-  BlockedUserResponseSchema,
-  BlockUserSchema,
-  ConversationResponseSchema,
-  MessageResponseSchema,
-  PaginatedConversationsResponseSchema,
-  PaginatedMessagesResponseSchema,
-  UnreadCountResponseSchema,
-} from './schemas/chat.schema';
-import type { ChatPreferenceService } from './services/chat-preference.service';
-import type { ChatUserSearchService } from './services/user-search.service';
+import { BlockUserSchema, UnreadCountResponseSchema } from './schemas/chat.schema';
 
-/**
- * Aggregated bundle for the chat BC's HTTP surface. Composed in
- * `chat.module.ts` from the BC's individual providers.
- */
-export abstract class ChatHttpBundle {
-  abstract readonly chat: ChatUseCases;
-  abstract readonly block: BlockUseCases;
-  abstract readonly preferences: ChatPreferenceService;
-  abstract readonly search: ChatUserSearchService;
-}
-
-const ConversationIdParam = z.object({ conversationId: z.string() });
-const UserIdParam = z.object({ userId: z.string() });
-
-const SearchQuerySchema = z.object({ q: z.string().optional() });
-
-const SetPinSchema = z.object({ pinned: z.boolean() });
-const SetMuteSchema = z.object({
-  muted: z.boolean(),
-  mutedUntil: z.string().datetime().optional(),
-});
-
-// ─── Response schemas ──────────────────────────────────────────────
-const SendMessageResponseSchema = z.object({ message: MessageResponseSchema });
-
-const GetConversationsResponseSchema = z.object({
-  conversations: PaginatedConversationsResponseSchema,
-});
-
-const GetConversationResponseSchema = z.object({ conversation: ConversationResponseSchema });
-
-const GetMessagesResponseSchema = z.object({ messages: PaginatedMessagesResponseSchema });
-
-const MarkConversationReadResponseSchema = z.object({ count: z.number().int() });
-
-const ConversationWithUserResponseSchema = z.union([
-  z.object({ conversationId: z.null() }),
-  z.object({ conversationId: z.string(), conversation: ConversationResponseSchema }),
-]);
-
-const UserSearchResultSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-});
-
-const ChatUsersSearchResponseSchema = z.object({
-  users: z.array(UserSearchResultSchema),
-});
-
-const SetPinResponseSchema = z.object({ pinned: z.boolean() });
-
-const SetMuteResponseSchema = z.object({
-  muted: z.boolean(),
-  mutedUntil: z.string().datetime().nullable(),
-});
-
-const BlockUserResponseSchemaWrapped = z.object({ block: BlockedUserResponseSchema });
-
-const BlockedUsersResponseSchema = z.object({
-  blockedUsers: z.array(BlockedUserResponseSchema),
-});
-
-const BlockStatusResponseSchema = z.object({ isBlocked: z.boolean() });
+export type { ChatHttpBundle } from './chat.routes.schemas';
 
 export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
   // ─── Chat: messaging + conversations ───────────────────────────────

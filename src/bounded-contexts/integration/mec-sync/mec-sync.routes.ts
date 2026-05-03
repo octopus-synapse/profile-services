@@ -10,88 +10,28 @@
  */
 
 import { z } from 'zod';
-import { APP_CONFIG, ValidationException } from '@/shared-kernel';
+import { APP_CONFIG } from '@/shared-kernel';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
 import {
-  CourseSchema,
-  InstitutionSchema,
-  InstitutionWithCoursesSchema,
-  MecStatsSchema,
-  SyncMetadataSchema,
-} from './schemas/mec.schema';
-
-// ─── Response schemas ────────────────────────────────────────────────
-const CoursesListResponseSchema = z.object({ courses: z.array(CourseSchema) });
-const CourseResponseSchema = z.object({ course: CourseSchema.nullable() });
-
-const InstitutionsListResponseSchema = z.object({
-  institutions: z.array(InstitutionSchema),
-});
-const InstitutionResponseSchema = z.object({
-  institution: InstitutionWithCoursesSchema.nullable(),
-});
-
-const StatesResponseSchema = z.object({ states: z.array(z.string()) });
-const AreasResponseSchema = z.object({ areas: z.array(z.string()) });
-const StatsResponseSchema = z.object({ stats: MecStatsSchema });
-
-const SyncTriggerResponseSchema = z.object({
-  institutionsInserted: z.number().int().min(0),
-  coursesInserted: z.number().int().min(0),
-  totalRowsProcessed: z.number().int().min(0),
-  errorsCount: z.number().int().min(0),
-});
-
-// `SyncLogRow` is `{ id: string; [k: string]: unknown }` — Prisma's row
-// shape varies and we already serialize through `JSON.stringify` (Date →
-// ISO string). Use a passthrough record so we stay schema-driven without
-// `z.unknown()` at the leaves.
-const SyncLogRowSchema = z.object({ id: z.string() }).passthrough();
-
-const SyncStatusResponseSchema = z.object({
-  isRunning: z.boolean(),
-  metadata: SyncMetadataSchema.nullable(),
-  lastSync: SyncLogRowSchema.nullable(),
-});
-
-const SyncHistoryResponseSchema = z.object({
-  history: z.array(SyncLogRowSchema),
-});
-
-function parseLimitOrThrow(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  const parsed = parseInt(raw, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    throw new ValidationException('Invalid limit parameter. Must be a positive number.');
-  }
-  return parsed;
-}
-
-function parseLimitLoose(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return parseInt(raw, 10);
-}
-
-function parseCodeOrThrow(raw: string): number {
-  const parsed = parseInt(raw, 10);
-  if (Number.isNaN(parsed)) {
-    throw new ValidationException('Invalid integer parameter.');
-  }
-  return parsed;
-}
-
-const SearchQuery = z.object({
-  q: z.string(),
-  limit: z.string().optional(),
-});
-
-const ListInstitutionsQuery = z.object({
-  uf: z.string().optional(),
-});
-
-const CourseCodeParams = z.object({ codigoCurso: z.string() });
-const InstitutionCodeParams = z.object({ codigoIes: z.string() });
+  AreasResponseSchema,
+  CourseCodeParams,
+  CourseResponseSchema,
+  CoursesListResponseSchema,
+  InstitutionCodeParams,
+  InstitutionResponseSchema,
+  InstitutionsListResponseSchema,
+  ListInstitutionsQuery,
+  parseCodeOrThrow,
+  parseLimitLoose,
+  parseLimitOrThrow,
+  SearchQuery,
+  StatesResponseSchema,
+  StatsResponseSchema,
+  SyncHistoryResponseSchema,
+  SyncStatusResponseSchema,
+  SyncTriggerResponseSchema,
+} from './mec-sync.routes.schemas';
 
 export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
   // ──────────────────────────────────────── Courses

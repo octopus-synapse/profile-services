@@ -7,93 +7,24 @@
  * `Res({ passthrough: true })` wiring.
  */
 
-import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
 import { presentDetail, presentList } from './infrastructure/presenters/resume-style.presenter';
-
-const IdParams = z.object({ id: z.string() });
-const ResumeIdParams = z.object({ resumeId: z.string() });
-
-const ListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const ApplyStyleBodySchema = z.object({ styleId: z.string() });
-
-const SectionStylesSchema = z.record(z.string(), z.unknown());
-
-const LayoutKindSchema = z.nativeEnum(LayoutKind);
-
-const CreateStyleBodySchema = z.object({
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string(),
-  layoutKind: LayoutKindSchema,
-  styleConfig: z.record(z.string(), z.unknown()),
-  sectionStyles: SectionStylesSchema,
-});
-
-const UpdateStyleBodySchema = z.object({
-  name: z.string().optional(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string().optional(),
-  layoutKind: LayoutKindSchema.optional(),
-  styleConfig: z.record(z.string(), z.unknown()).optional(),
-  sectionStyles: SectionStylesSchema.optional(),
-});
-
-// ─── Response schemas ─────────────────────────────────────────────────
-// Bounded-depth JSON value: leaf | object | array. Two levels deep is
-// enough for the style configuration shapes admins use today.
-const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const JsonNodeLevel2Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonLeafSchema),
-  z.record(z.string(), JsonLeafSchema),
-]);
-const JsonNodeLevel1Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonNodeLevel2Schema),
-  z.record(z.string(), JsonNodeLevel2Schema),
-]);
-const StyleConfigSchema = z.record(z.string(), JsonNodeLevel1Schema);
-
-const StyleSummaryResponseSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  styleScore: z.number().int().min(0).max(100),
-  layoutKind: LayoutKindSchema,
-  typstTemplate: z.string(),
-  isSystem: z.boolean(),
-  thumbnailUrl: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({
-  version: z.number().int(),
-  styleConfig: StyleConfigSchema,
-  sectionStyles: StyleConfigSchema,
-  atsSafetyBreakdown: z.record(z.string(), z.number()),
-  previewImages: z.array(z.string()),
-  authorId: z.string(),
-});
-
-const StyleListResponseSchema = z.object({
-  items: z.array(StyleSummaryResponseSchema),
-  total: z.number().int(),
-  page: z.number().int(),
-  limit: z.number().int(),
-});
-
-const ApplyStyleResponseSchema = z.null();
-const DeleteStyleResponseSchema = z.null();
+import {
+  ApplyStyleBodySchema,
+  ApplyStyleResponseSchema,
+  CreateStyleBodySchema,
+  DeleteStyleResponseSchema,
+  IdParams,
+  ListQuerySchema,
+  ResumeIdParams,
+  StyleDetailResponseSchema,
+  StyleListResponseSchema,
+  UpdateStyleBodySchema,
+} from './resume-styles.routes.schemas';
 
 export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
   // ─── Public catalog ────────────────────────────────────────────────

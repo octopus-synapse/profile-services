@@ -8,297 +8,44 @@
  * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
-import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
+import { ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { FeedUseCases } from './application/ports/feed.port';
 import { CreatePostSchema } from './dto/create-post-request.schema';
-
-const IdParam = z.object({ id: z.string() });
-const UserIdParam = z.object({ userId: z.string() });
-
-const PaginationQuery = z.object({
-  cursor: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const TimelineQuery = PaginationQuery.extend({
-  type: z.nativeEnum(PostType).optional(),
-  followingOnly: z.string().optional(),
-});
-
-const LikeBodySchema = z.object({
-  reactionType: z.enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const).optional(),
-});
-
-const RepostBodySchema = z.object({ commentary: z.string().optional() });
-
-const ReportBodySchema = z.object({ reason: z.string() });
-
-const VoteBodySchema = z.object({ optionIndex: z.number().int().nonnegative() });
-
-const CreateCommentBodySchema = z.object({
-  content: z.string(),
-  parentId: z.string().optional(),
-});
-
-function clampLimit(limit?: string): number {
-  if (!limit) return 20;
-  return Math.min(Number(limit), 50);
-}
-
-const COMPOSER_CONFIG = {
-  maxLength: 3000,
-  mediaTypes: ['image/png', 'image/jpeg', 'image/webp'] as const,
-  maxImages: 4,
-  maxImageBytes: 5 * 1024 * 1024,
-  pollEnabled: true,
-  pollMaxOptions: 4,
-  pollMaxOptionLength: 80,
-  repostEnabled: true,
-  mentionLimit: 10,
-  postTypes: Object.values(PostType),
-} as const;
-
-const ComposerConfigResponseSchema = z.object({
-  maxLength: z.number().int(),
-  mediaTypes: z.array(z.string()),
-  maxImages: z.number().int(),
-  maxImageBytes: z.number().int(),
-  pollEnabled: z.boolean(),
-  pollMaxOptions: z.number().int(),
-  pollMaxOptionLength: z.number().int(),
-  repostEnabled: z.boolean(),
-  mentionLimit: z.number().int(),
-  postTypes: z.array(z.nativeEnum(PostType)),
-});
-
-// ─── Shared post-shape schemas ────────────────────────────────────────
-//
-// These mirror the domain entities from `domain/entities/*`. The post
-// `data`, `linkPreview`, and `codeSnippet` columns are persisted as
-// JSON; we expose them as permissive `passthrough()` objects so
-// arbitrary structured payloads round-trip without losing fields.
-
-const PostAuthorSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  username: z.string().nullable(),
-  photoURL: z.string().nullable(),
-  bio: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
-});
-
-const LinkPreviewDataSchema = z
-  .object({
-    title: z.string().nullable(),
-    description: z.string().nullable(),
-    image: z.string().nullable(),
-    domain: z.string(),
-  })
-  .nullable();
-
-const CodeSnippetSchema = z
-  .object({
-    language: z.string(),
-    code: z.string(),
-    filename: z.string().optional(),
-  })
-  .nullable();
-
-const PostDataSchema = z.object({}).passthrough().nullable();
-
-const BasePostSchema = z.object({
-  id: z.string(),
-  authorId: z.string(),
-  type: z.nativeEnum(PostType),
-  subtype: z.string().nullable(),
-  content: z.string().nullable(),
-  hardSkills: z.array(z.string()),
-  softSkills: z.array(z.string()),
-  hashtags: z.array(z.string()),
-  data: PostDataSchema,
-  imageUrl: z.string().nullable(),
-  linkUrl: z.string().nullable(),
-  linkPreview: LinkPreviewDataSchema,
-  originalPostId: z.string().nullable(),
-  coAuthors: z.array(z.string()),
-  scheduledAt: z.string().datetime().nullable(),
-  isPublished: z.boolean(),
-  threadId: z.string().nullable(),
-  pollDeadline: z.string().datetime().nullable(),
-  votesCount: z.number().int(),
-  codeSnippet: CodeSnippetSchema,
-  likesCount: z.number().int(),
-  commentsCount: z.number().int(),
-  repostsCount: z.number().int(),
-  bookmarksCount: z.number().int(),
-  isDeleted: z.boolean(),
-  deletedAt: z.string().datetime().nullable(),
-  isAnonymous: z.boolean(),
-  anonymousCategory: z.nativeEnum(AnonymousCategory).nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const PostWithAuthorSchema = BasePostSchema.extend({
-  author: PostAuthorSchema,
-});
-
-const PostWithRelationsSchema = PostWithAuthorSchema.extend({
-  originalPost: PostWithAuthorSchema.nullable().optional(),
-});
-
-const FeedItemSchema = PostWithRelationsSchema.extend({
-  isLiked: z.boolean(),
-  reactionType: z.nativeEnum(ReactionType).nullable(),
-  isBookmarked: z.boolean(),
-  isReposted: z.boolean(),
-  hasVoted: z.boolean(),
-  myVoteIndex: z.number().int().nullable(),
-  threadPosts: z.array(PostWithRelationsSchema),
-});
-
-const BookmarkedFeedItemSchema = PostWithRelationsSchema.extend({
-  bookmarkedAt: z.string().datetime(),
-  isLiked: z.boolean(),
-  isBookmarked: z.boolean(),
-});
-
-const FeedTimelineResponseSchema = z.object({
-  posts: z.array(FeedItemSchema),
-  nextCursor: z.string().nullable(),
-});
-
-const FeedBookmarksResponseSchema = z.object({
-  posts: z.array(BookmarkedFeedItemSchema),
-  nextCursor: z.string().nullable(),
-});
-
-const UserPostsResponseSchema = z.object({
-  posts: z.array(PostWithRelationsSchema),
-  nextCursor: z.string().nullable(),
-});
-
-// ─── Comments ───────────────────────────────────────────────────────
-const CommentBaseSchema = z.object({
-  id: z.string(),
-  postId: z.string(),
-  authorId: z.string(),
-  content: z.string(),
-  parentId: z.string().nullable(),
-  isDeleted: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const CommentWithAuthorSchema = CommentBaseSchema.extend({
-  author: PostAuthorSchema,
-});
-
-const CommentWithRepliesSchema = CommentWithAuthorSchema.extend({
-  replies: z.array(CommentWithAuthorSchema),
-});
-
-const CommentWithPostSchema = CommentWithAuthorSchema.extend({
-  post: z.object({
-    id: z.string(),
-    type: z.string(),
-    content: z.string().nullable(),
-    authorId: z.string(),
-    author: PostAuthorSchema,
-  }),
-});
-
-const CommentsListResponseSchema = z.object({
-  comments: z.array(CommentWithRepliesSchema),
-  nextCursor: z.string().nullable(),
-});
-
-const UserCommentsResponseSchema = z.object({
-  comments: z.array(CommentWithPostSchema),
-  nextCursor: z.string().nullable(),
-});
-
-// ─── Engagement ─────────────────────────────────────────────────────
-const LikePostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
-  reactionType: z.nativeEnum(ReactionType),
-  postAuthorId: z.string().optional(),
-  alreadyLiked: z.boolean(),
-  updated: z.boolean().optional(),
-});
-
-const UnlikePostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
-});
-
-const BookmarkPostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
-  alreadyBookmarked: z.boolean(),
-});
-
-const UnbookmarkPostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
-});
-
-const RepostPostResponseSchema = z.union([
+import {
+  BookmarkPostResponseSchema,
+  COMPOSER_CONFIG,
+  CommentsListResponseSchema,
+  CommentWithAuthorSchema,
+  ComposerConfigResponseSchema,
+  CreateCommentBodySchema,
+  clampLimit,
+  DeletedResponseSchema,
+  FeedBookmarksResponseSchema,
+  FeedTimelineResponseSchema,
+  IdParam,
+  LikeBodySchema,
+  LikePostResponseSchema,
+  PaginationQuery,
+  PollVoteResponseSchema,
+  PostImageUploadResponseSchema,
   PostWithAuthorSchema,
-  z.object({
-    postId: z.string(),
-    userId: z.string(),
-    reposted: z.boolean(),
-  }),
-]);
-
-const ReportPostResponseSchema = z.object({
-  id: z.string(),
-  postId: z.string(),
-  userId: z.string(),
-  reason: z.string(),
-  status: z.string(),
-  createdAt: z.string().datetime(),
-});
-
-const PollVoteResponseSchema = z.object({
-  id: z.string(),
-  postId: z.string(),
-  userId: z.string(),
-  optionIndex: z.number().int(),
-  createdAt: z.string().datetime(),
-});
-
-const ReactionWithPostSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
-  reactionType: z.nativeEnum(ReactionType),
-  createdAt: z.string().datetime(),
-  post: z.object({
-    id: z.string(),
-    type: z.string(),
-    content: z.string().nullable(),
-    authorId: z.string(),
-    author: PostAuthorSchema,
-  }),
-});
-
-const UserReactionsResponseSchema = z.object({
-  reactions: z.array(ReactionWithPostSchema),
-  nextCursor: z.string().nullable(),
-});
-
-// ─── Misc ───────────────────────────────────────────────────────────
-const DeletedResponseSchema = z.object({ deleted: z.literal(true) });
-
-const PostImageUploadResponseSchema = z.object({
-  url: z.string(),
-  key: z.string(),
-});
+  PostWithRelationsSchema,
+  ReportBodySchema,
+  ReportPostResponseSchema,
+  RepostBodySchema,
+  RepostPostResponseSchema,
+  TimelineQuery,
+  UnbookmarkPostResponseSchema,
+  UnlikePostResponseSchema,
+  UserCommentsResponseSchema,
+  UserIdParam,
+  UserPostsResponseSchema,
+  UserReactionsResponseSchema,
+  VoteBodySchema,
+} from './feed.routes.schemas';
 
 export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
   // ─── Composer config ──────────────────────────────────────────────

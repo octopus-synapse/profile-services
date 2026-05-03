@@ -22,133 +22,24 @@ import {
   toSharePayload,
   toSharePayloadList,
 } from './presenters/share-management.presenter';
-
-// ─── Schemas ─────────────────────────────────────────────────────────
-const SlugParam = z.object({ slug: z.string() });
-const ResumeIdParam = z.object({ resumeId: z.string() });
-const ShareIdParam = z.object({ shareId: z.string() });
-const AliasIdParam = z.object({ aliasId: z.string() });
-
-const CreateShareSchema = z.object({
-  resumeId: z.string().min(1),
-  slug: z
-    .string()
-    .min(3)
-    .max(80)
-    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
-    .optional(),
-  password: z.string().min(4).max(200).optional(),
-  expiresAt: z.coerce.date().optional(),
-});
-
-const AddAliasSchema = z.object({
-  slug: z
-    .string()
-    .min(3)
-    .max(80)
-    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
-});
-
-const QrSizeSchema = z.object({
-  size: z.coerce.number().int().min(64).max(1024).default(256),
-});
-
-const PNG_HEADERS = {
-  'Content-Type': 'image/png',
-  'Cache-Control': 'public, max-age=86400',
-} as const;
-
-// ─── Response schemas ─────────────────────────────────────────────────
-// Bounded-depth JSON value for free-form section item content shapes.
-const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const JsonNodeLevel2Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonLeafSchema),
-  z.record(z.string(), JsonLeafSchema),
-]);
-const JsonNodeLevel1Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonNodeLevel2Schema),
-  z.record(z.string(), JsonNodeLevel2Schema),
-]);
-
-const PublicResumeSectionSchema = z.object({
-  semanticKind: z.string(),
-  items: z.array(JsonNodeLevel1Schema),
-});
-
-const PublicResumeSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  title: z.string().nullable(),
-  language: z.string(),
-  isPublic: z.boolean(),
-  slug: z.string().nullable(),
-  fullName: z.string().nullable(),
-  jobTitle: z.string().nullable(),
-  phone: z.string().nullable(),
-  location: z.string().nullable(),
-  linkedin: z.string().nullable(),
-  github: z.string().nullable(),
-  website: z.string().nullable(),
-  summary: z.string().nullable(),
-  accentColor: z.string().nullable(),
-  styleId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  sections: z.array(PublicResumeSectionSchema),
-});
-
-const PublicShareInfoSchema = z.object({
-  slug: z.string(),
-  expiresAt: z.string().datetime().nullable(),
-});
-
-const PublicResumeResponseSchema = z.object({
-  resume: PublicResumeSchema.nullable(),
-  share: PublicShareInfoSchema,
-});
-
-const SharePayloadSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  resumeId: z.string(),
-  isActive: z.boolean(),
-  hasPassword: z.boolean(),
-  expiresAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
-  publicUrl: z.string(),
-});
-
-const ShareCreateResponseSchema = z.object({ share: SharePayloadSchema });
-const ShareListResponseSchema = z.object({ shares: z.array(SharePayloadSchema) });
-const ShareDeleteResponseSchema = z.object({ deleted: z.boolean() });
-
-const AliasPayloadSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  shareId: z.string(),
-});
-
-const AliasCreateResponseSchema = z.object({ alias: AliasPayloadSchema });
-const AliasListResponseSchema = z.object({ aliases: z.array(AliasPayloadSchema) });
-
-function pickIp(headers: Record<string, string | string[] | undefined>): string {
-  const forwarded = headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') return forwarded.split(',')[0]?.trim() || 'unknown';
-  if (Array.isArray(forwarded) && forwarded.length > 0) return forwarded[0] ?? 'unknown';
-  return 'unknown';
-}
-
-function pickHeader(
-  headers: Record<string, string | string[] | undefined>,
-  name: string,
-): string | undefined {
-  const value = headers[name];
-  if (typeof value === 'string') return value;
-  if (Array.isArray(value) && value.length > 0) return value[0];
-  return undefined;
-}
+import {
+  AddAliasSchema,
+  AliasCreateResponseSchema,
+  AliasIdParam,
+  AliasListResponseSchema,
+  CreateShareSchema,
+  PNG_HEADERS,
+  PublicResumeResponseSchema,
+  pickHeader,
+  pickIp,
+  QrSizeSchema,
+  ResumeIdParam,
+  ShareCreateResponseSchema,
+  ShareDeleteResponseSchema,
+  ShareIdParam,
+  ShareListResponseSchema,
+  SlugParam,
+} from './public-resumes.routes.schemas';
 
 export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> = [
   // ===== Public resume access (no auth) =====
