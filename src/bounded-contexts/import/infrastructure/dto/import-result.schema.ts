@@ -1,15 +1,7 @@
+import { ImportStatus } from '@prisma/client';
 import { z } from 'zod';
 
-export const ImportStatusEnumSchema = z.enum([
-  'PENDING',
-  'PROCESSING',
-  'MAPPING',
-  'VALIDATING',
-  'IMPORTING',
-  'COMPLETED',
-  'FAILED',
-  'PARTIAL',
-]);
+export const ImportStatusEnumSchema = z.nativeEnum(ImportStatus);
 
 export const ImportResultSchema = z.object({
   importId: z.string(),

@@ -11,6 +11,7 @@
  * alongside the pure use-cases.
  */
 
+import { ImportSource, ImportStatus } from '@prisma/client';
 import { z } from 'zod';
 import {
   JsonResumeBasicsMissingException,
@@ -35,18 +36,9 @@ export const GithubImportBodySchema = z.object({
 });
 
 // ─── Response schemas ─────────────────────────────────────────────────
-export const ImportSourceEnumSchema = z.enum(['LINKEDIN', 'PDF', 'DOCX', 'JSON', 'GITHUB']);
+export const ImportSourceEnumSchema = z.nativeEnum(ImportSource);
 
-export const ImportStatusEnumSchema = z.enum([
-  'PENDING',
-  'PROCESSING',
-  'MAPPING',
-  'VALIDATING',
-  'IMPORTING',
-  'COMPLETED',
-  'FAILED',
-  'PARTIAL',
-]);
+export const ImportStatusEnumSchema = z.nativeEnum(ImportStatus);
 
 // Bounded JSON-leaf type used by the free-form `data` blob and the
 // per-section `items[]` payload. No `z.lazy()` so the OpenAPI
