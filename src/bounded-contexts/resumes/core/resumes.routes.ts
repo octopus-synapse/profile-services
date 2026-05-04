@@ -13,6 +13,7 @@
  */
 
 import { z } from 'zod';
+import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
 import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
@@ -67,8 +68,12 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageLimitQuery>;
-      const page = parsePositiveIntParam(q.page, 1);
-      const limit = parsePositiveIntParam(q.limit, 50);
+      const page = parsePositiveIntParam(q.page, PAGINATION.DEFAULT_PAGE);
+      const limit = parsePositiveIntParam(
+        q.limit,
+        PAGINATION.DEFAULT_PAGE_SIZE,
+        PAGINATION.MAX_PAGE_SIZE,
+      );
       const result = await bc.findAllUserResumesUseCase.execute(ctx.user!.userId, page, limit);
       return toPaginatedResumesData(result, { page, limit });
     },
