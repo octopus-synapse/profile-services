@@ -142,7 +142,7 @@ export class BusinessRuleViolationException extends DomainException {
  */
 export class LimitExceededException extends DomainException {
   readonly code: string = 'LIMIT_EXCEEDED';
-  readonly statusHint = 422;
+  readonly statusHint = 429;
   override readonly severity: ErrorSeverity = 'modal';
 
   constructor(
