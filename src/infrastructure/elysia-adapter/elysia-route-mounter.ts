@@ -17,6 +17,10 @@ import type { PipelineStage } from '@/shared-kernel/http/pipeline';
 import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route.types';
 import { isRedirect, isResponseWithHeaders } from '@/shared-kernel/http/route.types';
 import type { SseEvent } from '@/shared-kernel/http/sse-stream.port';
+import {
+  isSuccessMessage,
+  renderSuccessMessageForRequest,
+} from '@/shared-kernel/http/success-message';
 import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.adapter';
 import { runPipeline } from './elysia-pipeline';
 import { parseMultipart } from './multipart-bridge';
@@ -185,6 +189,14 @@ export function mountRoutes<TBundle>(
           (body as { source: unknown }).source instanceof ArrayBuffer)
       ) {
         return (body as { source: Uint8Array | ArrayBuffer }).source;
+      }
+      // Q8 — translate `{ code, params? }` success envelopes via the
+      // i18n SUCCESS_MESSAGE_DICTIONARY using the request's
+      // Accept-Language header. Routes opt in by returning a
+      // SuccessMessage instead of a pre-formatted `{ message }` string.
+      if (isSuccessMessage(body)) {
+        const acceptLanguage = ec.request.headers.get('accept-language') ?? undefined;
+        return renderSuccessMessageForRequest(body, acceptLanguage);
       }
       return ctx.state.responseBody;
     };

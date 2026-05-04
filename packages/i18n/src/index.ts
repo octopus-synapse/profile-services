@@ -18,5 +18,12 @@ export type {
 } from './notifications';
 export { NOTIFICATION_DICTIONARY, renderNotification } from './notifications';
 
+export type {
+  SuccessMessageCode,
+  SuccessMessageDictionary,
+  SuccessMessageTemplate,
+} from './success-messages';
+export { renderSuccessMessage, SUCCESS_MESSAGE_DICTIONARY } from './success-messages';
+
 export type { Locale, LocalizedDictionary, LocalizedMessages } from './types';
 export { DEFAULT_LOCALE, LOCALES } from './types';

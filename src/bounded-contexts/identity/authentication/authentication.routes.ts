@@ -179,11 +179,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         terminateAllSessions: dto.logoutAllSessions,
       });
 
-      const message = dto.logoutAllSessions
-        ? 'Logged out from all sessions.'
-        : 'Logged out successfully.';
-
-      return { message };
+      // Q8 — return a success-message envelope; the route mounter
+      // translates `code` via packages/i18n SUCCESS_MESSAGE_DICTIONARY
+      // using the request's Accept-Language.
+      return {
+        code: dto.logoutAllSessions ? 'LOGOUT_ALL_SESSIONS' : 'LOGOUT_SUCCESS',
+      };
     },
   },
   {
