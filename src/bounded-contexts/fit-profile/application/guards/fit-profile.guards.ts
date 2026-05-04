@@ -39,14 +39,22 @@ export function requireAuthenticatedUserId(user: AuthenticatedUserLike | null | 
  * status view. Routes guarded by Job Match / Match Explanation should
  * call this before invoking the underlying use case so the surface
  * carries the localizable `FIT_PROFILE_REQUIRED` envelope.
+ *
+ * Pass `exceptionFactory` to throw a BC-specific exception (e.g.
+ * `JobMatchFitProfileRequiredException`) while keeping the lifecycle
+ * branching (never / expired) here — Q23 in the duplication audit.
  */
 export async function requireCurrentFitProfile(
   userId: string,
   statusUseCase: GetFitProfileStatusUseCase,
-  now: Date = new Date(),
+  options: {
+    now?: Date;
+    exceptionFactory?: (status: 'never' | 'expired') => Error;
+  } = {},
 ): Promise<void> {
-  const view = await statusUseCase.execute(userId, now);
+  const view = await statusUseCase.execute(userId, options.now ?? new Date());
   if (view.status === 'never' || view.status === 'expired') {
-    throw new FitProfileRequiredException(view.status);
+    const factory = options.exceptionFactory ?? ((s) => new FitProfileRequiredException(s));
+    throw factory(view.status);
   }
 }
