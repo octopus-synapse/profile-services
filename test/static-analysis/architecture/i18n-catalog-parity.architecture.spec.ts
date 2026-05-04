@@ -9,84 +9,19 @@
  * `MissingTranslationError`. The filter's crash-loud behaviour on missing
  * entries is a last-resort safety net, not the primary defense.
  *
- * Discovery is by static parse of `src/**\/*.ts` so the test stays fast and
- * resilient to bootstrap-time regressions.
+ * Discovery is delegated to test/static-analysis/shared/dictionary-discovery.ts
+ * (see Q60 in the duplication audit).
  */
 
 import { describe, expect, it } from 'bun:test';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ERROR_DICTIONARY, LOCALES } from '@packages/i18n';
+import { discoverErrorCodes } from '../shared/dictionary-discovery';
 
 const SOURCE_ROOT = path.resolve(__dirname, '../../../src');
 
-const KNOWN_BASES = new Set([
-  'DomainException',
-  'EntityNotFoundException',
-  'ConflictException',
-  'UnauthorizedException',
-  'ForbiddenException',
-  'ValidationException',
-  'BusinessRuleViolationException',
-  'LimitExceededException',
-  'OnboardingValidationException',
-]);
-
-const CLASS_DECL_RE = /export\s+(abstract\s+)?class\s+(\w+)\s+extends\s+([A-Za-z_][\w]*)/g;
-const CODE_LITERAL_RE = /readonly\s+code(?:\s*:\s*string)?\s*=\s*['"]([A-Z][A-Z0-9_]*)['"]/;
-
-function listSourceFiles(dir: string, acc: string[] = []): string[] {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'testing' || entry.name === '__mocks__') continue;
-    if (entry.name.startsWith('.')) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) listSourceFiles(full, acc);
-    else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts')) acc.push(full);
-  }
-  return acc;
-}
-
-function extractBody(src: string, from: number): string {
-  const open = src.indexOf('{', from);
-  if (open < 0) return '';
-  let depth = 0;
-  for (let i = open; i < src.length; i++) {
-    const ch = src[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') {
-      depth--;
-      if (depth === 0) return src.slice(open, i + 1);
-    }
-  }
-  return src.slice(open);
-}
-
-function discoverCodes(): Set<string> {
-  const codes = new Set<string>();
-  for (const file of listSourceFiles(SOURCE_ROOT)) {
-    const src = fs.readFileSync(file, 'utf8');
-    if (!src.includes('extends ')) continue;
-    CLASS_DECL_RE.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while (true) {
-      match = CLASS_DECL_RE.exec(src);
-      if (!match) break;
-      // match[1] = optional `abstract`, match[2] = class name,
-      // match[3] = parent class. Original spec read match[2] as parent,
-      // which silently dropped every BC subclass — fixed in Phase-2.
-      const [, isAbstract, , parent] = match;
-      if (isAbstract) continue;
-      if (!KNOWN_BASES.has(parent)) continue;
-      const body = extractBody(src, match.index);
-      const code = body.match(CODE_LITERAL_RE)?.[1];
-      if (code) codes.add(code);
-    }
-  }
-  return codes;
-}
-
 describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
-  const discovered = discoverCodes();
+  const discovered = discoverErrorCodes(SOURCE_ROOT);
   const dictionaryKeys = new Set(Object.keys(ERROR_DICTIONARY));
 
   it('every DomainException code has an entry in ERROR_DICTIONARY', () => {

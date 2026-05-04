@@ -388,6 +388,18 @@ export const ERROR_DICTIONARY = {
     en: 'Integration authentication failed',
     'pt-BR': 'Falha na autenticação da integração',
   },
+  INTERNAL_MALFORMED_TRANSLATION: {
+    en: 'Internal translation entry is malformed',
+    'pt-BR': 'A entrada interna de tradução está malformada',
+  },
+  INTERNAL_TRANSLATION_MISSING: {
+    en: 'Internal translation entry is missing',
+    'pt-BR': 'A entrada interna de tradução está faltando',
+  },
+  INTERNAL_UNSUPPORTED_LOCALE: {
+    en: 'Locale is not supported',
+    'pt-BR': 'Idioma não suportado',
+  },
   INTEGRATION_NOT_CONFIGURED: {
     en: 'Integration is not configured',
     'pt-BR': 'Integração não configurada',

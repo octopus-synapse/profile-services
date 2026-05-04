@@ -5,43 +5,18 @@
  * matching translation in `ENUM_DICTIONARY`, and every dictionary entry
  * points at a real enum value.
  *
- * Discovery is a regex parse of the .prisma files — no prisma runtime
- * required, so the test stays fast and dependency-free.
+ * Discovery is delegated to test/static-analysis/shared/dictionary-discovery.ts
+ * (Q60 in the duplication audit).
  */
 
 import { describe, expect, it } from 'bun:test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { ENUM_DICTIONARY, LOCALES } from '@packages/i18n';
+import { discoverPrismaEnums } from '../shared/dictionary-discovery';
 
 const SCHEMA_DIR = 'prisma/schema';
-const ENUM_RE = /^enum\s+(\w+)\s*\{([\s\S]*?)\}/gm;
-
-function discoverEnums(): Record<string, Set<string>> {
-  const out: Record<string, Set<string>> = {};
-  for (const entry of fs.readdirSync(SCHEMA_DIR)) {
-    if (!entry.endsWith('.prisma')) continue;
-    const src = fs.readFileSync(path.join(SCHEMA_DIR, entry), 'utf8');
-    ENUM_RE.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while (true) {
-      match = ENUM_RE.exec(src);
-      if (!match) break;
-      const [, name, body] = match;
-      const values = new Set(
-        body
-          .split('\n')
-          .map((l) => l.replace(/\/\/.*$/, '').trim())
-          .filter((l) => l.length > 0 && /^[A-Z][A-Z0-9_]*$/.test(l)),
-      );
-      out[name] = values;
-    }
-  }
-  return out;
-}
 
 describe('i18n enum parity (@packages/i18n ENUM_DICTIONARY)', () => {
-  const discovered = discoverEnums();
+  const discovered = discoverPrismaEnums(SCHEMA_DIR);
 
   it('every Prisma enum appears in ENUM_DICTIONARY', () => {
     const missing = Object.keys(discovered)

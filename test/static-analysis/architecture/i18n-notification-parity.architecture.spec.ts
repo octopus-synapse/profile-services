@@ -10,27 +10,11 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { LOCALES, NOTIFICATION_DICTIONARY } from '@packages/i18n';
+import { discoverNotificationTypes } from '../shared/dictionary-discovery';
 
 const SCHEMA_DIR = 'prisma/schema';
 const PLACEHOLDER_RE = /\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}/g;
-
-function discoverNotificationTypes(): Set<string> {
-  for (const entry of fs.readdirSync(SCHEMA_DIR)) {
-    if (!entry.endsWith('.prisma')) continue;
-    const src = fs.readFileSync(path.join(SCHEMA_DIR, entry), 'utf8');
-    const match = src.match(/enum\s+NotificationType\s*\{([\s\S]*?)\}/);
-    if (!match) continue;
-    const values = match[1]
-      .split('\n')
-      .map((l) => l.replace(/\/\/.*$/, '').trim())
-      .filter((l) => l.length > 0 && /^[A-Z][A-Z0-9_]*$/.test(l));
-    return new Set(values);
-  }
-  throw new Error('NotificationType enum not found in prisma/schema');
-}
 
 function extractPlaceholders(template: string): Set<string> {
   const out = new Set<string>();
@@ -45,7 +29,7 @@ function extractPlaceholders(template: string): Set<string> {
 }
 
 describe('i18n notification parity (@packages/i18n NOTIFICATION_DICTIONARY)', () => {
-  const discovered = discoverNotificationTypes();
+  const discovered = discoverNotificationTypes(SCHEMA_DIR);
 
   it('every NotificationType has a template', () => {
     const missing = [...discovered]
