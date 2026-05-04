@@ -15,7 +15,7 @@
 import { setDefaultTimeout } from 'bun:test';
 import type { PrismaClient } from '@prisma/client';
 import { startTestApp, type TestApp } from '../shared';
-import { AuthHelper } from './helpers/auth.helper';
+import { AuthHelper } from '../shared/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
 
 setDefaultTimeout(15000);
@@ -41,7 +41,7 @@ export async function createE2ETestApp(): Promise<E2ETestContext> {
   const app = await startTestApp();
   if (cachedAppRef !== app) {
     cachedAppRef = app;
-    cachedAuth = new AuthHelper(app, app.prisma);
+    cachedAuth = new AuthHelper(app);
     cachedCleanup = new CleanupHelper(app.prisma);
   }
   return {

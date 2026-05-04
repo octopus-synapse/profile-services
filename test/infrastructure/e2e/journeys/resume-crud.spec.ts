@@ -29,7 +29,7 @@ import {
   createResumeWithSections,
   createSectionItemContent,
 } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 

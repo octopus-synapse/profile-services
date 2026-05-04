@@ -20,7 +20,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper, TestUser } from '../helpers/auth.helper';
+import type { AuthHelper, TestUser } from '../../shared/auth.helper';
 import { ChatHelper } from '../helpers/chat.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
