@@ -310,12 +310,6 @@ export const ResumeSectionItemDeletedResponseSchema = z.object({
   deleted: z.boolean(),
 });
 
-export function parsePositiveInt(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = parseInt(value, 10);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
 // ─────────────────────────────────────────────────────────────────────
 // Resumes (CRUD)
 // ─────────────────────────────────────────────────────────────────────

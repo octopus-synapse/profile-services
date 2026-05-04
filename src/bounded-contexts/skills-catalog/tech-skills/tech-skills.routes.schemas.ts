@@ -20,11 +20,6 @@ export const TypeParams = z.object({ type: z.string() });
 export const AreaParams = z.object({ areaType: z.string() });
 export const NicheParams = z.object({ nicheSlug: z.string() });
 
-export function parseLimit(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return parseInt(raw, 10);
-}
-
 // ─── Response schemas (DTO mirrors) ────────────────────────────────────
 export const TechAreaTypeEnum = z.enum([
   'DEVELOPMENT',

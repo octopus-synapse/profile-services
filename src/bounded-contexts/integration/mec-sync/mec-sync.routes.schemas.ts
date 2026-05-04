@@ -57,6 +57,12 @@ export const SyncHistoryResponseSchema = z.object({
   history: z.array(SyncLogRowSchema),
 });
 
+/**
+ * Strict limit parser — throws when the caller passes something that
+ * isn't a positive number. mec-sync admin endpoints use this so
+ * obvious typos (`?limit=foo`) surface as 400 rather than silently
+ * applying the fallback.
+ */
 export function parseLimitOrThrow(raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw === null || raw === '') return fallback;
   const parsed = parseInt(raw, 10);
@@ -64,11 +70,6 @@ export function parseLimitOrThrow(raw: string | undefined, fallback: number): nu
     throw new ValidationException('Invalid limit parameter. Must be a positive number.');
   }
   return parsed;
-}
-
-export function parseLimitLoose(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return parseInt(raw, 10);
 }
 
 export function parseCodeOrThrow(raw: string): number {

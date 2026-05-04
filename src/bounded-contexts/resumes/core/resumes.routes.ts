@@ -13,6 +13,7 @@
  */
 
 import { z } from 'zod';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
@@ -33,7 +34,6 @@ import {
   MgmtResumeMessageResponseSchema,
   PageLimitQuery,
   PaginatedResumesResponseSchema,
-  parsePositiveInt,
   ResumeBaseSchema,
   ResumeFullResponseSchema,
   ResumeIdAndTypeKeyAndItemIdParam,
@@ -67,8 +67,8 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageLimitQuery>;
-      const page = parsePositiveInt(q.page, 1);
-      const limit = parsePositiveInt(q.limit, 50);
+      const page = parsePositiveIntParam(q.page, 1);
+      const limit = parsePositiveIntParam(q.limit, 50);
       const result = await bc.findAllUserResumesUseCase.execute(ctx.user!.userId, page, limit);
       return toPaginatedResumesData(result, { page, limit });
     },

@@ -11,6 +11,7 @@
 import { ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { FeedUseCases } from './application/ports/feed.port';
 import { CreatePostSchema } from './dto/create-post-request.schema';
@@ -21,7 +22,7 @@ import {
   CommentWithAuthorSchema,
   ComposerConfigResponseSchema,
   CreateCommentBodySchema,
-  clampLimit,
+  FEED_MAX_PAGE_SIZE,
   DeletedResponseSchema,
   FeedBookmarksResponseSchema,
   FeedTimelineResponseSchema,
@@ -143,7 +144,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
       return bc.listFeedTimeline.execute({
         userId: ctx.user!.userId,
         cursor: q.cursor,
-        limit: clampLimit(q.limit),
+        limit: parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
         type: q.type,
         followingOnly: q.followingOnly === 'true' || q.followingOnly === '1',
       });
@@ -164,7 +165,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listFeedBookmarks.execute(ctx.user!.userId, q.cursor, clampLimit(q.limit));
+      return bc.listFeedBookmarks.execute(ctx.user!.userId, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
     },
   },
   {
@@ -184,7 +185,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listUserPosts.execute(userId, q.cursor, clampLimit(q.limit));
+      return bc.listUserPosts.execute(userId, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
     },
   },
 
@@ -206,7 +207,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listPostComments.execute(id, q.cursor, clampLimit(q.limit));
+      return bc.listPostComments.execute(id, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
     },
   },
   {

@@ -39,10 +39,14 @@ export const CreateCommentBodySchema = z.object({
   parentId: z.string().optional(),
 });
 
-export function clampLimit(limit?: string): number {
-  if (!limit) return 20;
-  return Math.min(Number(limit), 50);
-}
+/**
+ * Cap on `?limit=` for cursor-paginated feed/comment listings.
+ *
+ * Lower than the project-wide MAX_PAGE_SIZE (100) on purpose — feed
+ * payloads are heavier (denormalised author + media), so 50 keeps a
+ * page request from blowing past ~250 KB.
+ */
+export const FEED_MAX_PAGE_SIZE = 50;
 
 export const COMPOSER_CONFIG = {
   maxLength: 3000,

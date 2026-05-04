@@ -5,12 +5,15 @@
  * internal/admin endpoints are gated by `InternalAuthGuard`, registered
  * via the synthesizer guard registry under id `internal-auth`.
  *
- * BUG-035 (NaN limit handling) is preserved — the helpers below
- * mirror the original parseInt validation semantics.
+ * BUG-035 (legacy NaN handling for the institution-search `?limit=`)
+ * is intentionally fixed by the migration to parsePositiveIntParam: a
+ * non-numeric value now falls back to APP_CONFIG.DEFAULT_PAGE_SIZE
+ * instead of producing NaN downstream.
  */
 
 import { z } from 'zod';
 import { APP_CONFIG } from '@/shared-kernel';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
 import {
@@ -23,7 +26,6 @@ import {
   InstitutionsListResponseSchema,
   ListInstitutionsQuery,
   parseCodeOrThrow,
-  parseLimitLoose,
   parseLimitOrThrow,
   SearchQuery,
   StatesResponseSchema,
@@ -106,7 +108,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { q, limit } = ctx.query as { q: string; limit?: string };
-      const parsedLimit = parseLimitLoose(limit, APP_CONFIG.DEFAULT_PAGE_SIZE);
+      const parsedLimit = parsePositiveIntParam(limit, APP_CONFIG.DEFAULT_PAGE_SIZE);
       const institutions = await bc.searchInstitutions.execute(q, parsedLimit);
       return { institutions };
     },

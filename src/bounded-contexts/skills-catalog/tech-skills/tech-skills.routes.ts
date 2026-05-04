@@ -12,6 +12,7 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { SkillType, TechAreaType } from './interfaces';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
@@ -22,7 +23,6 @@ import {
   LanguagesResponseSchema,
   NicheParams,
   NichesResponseSchema,
-  parseLimit,
   SearchQuery,
   SkillsResponseSchema,
   SyncResponseSchema,
@@ -141,7 +141,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
-      const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
+      const skills = await q.getSkillsByType(type as SkillType, parsePositiveIntParam(limit, 50));
       return { skills };
     },
   },
@@ -227,7 +227,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const languages = await q.searchLanguages(query, parseLimit(limit, 20));
+      const languages = await q.searchLanguages(query, parsePositiveIntParam(limit, 20));
       return { languages };
     },
   },
@@ -261,7 +261,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const skills = await q.searchSkills(query, parseLimit(limit, 20));
+      const skills = await q.searchSkills(query, parsePositiveIntParam(limit, 20));
       return { skills };
     },
   },
@@ -299,7 +299,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
-      const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
+      const skills = await q.getSkillsByType(type as SkillType, parsePositiveIntParam(limit, 50));
       return { skills };
     },
   },
@@ -317,7 +317,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const results = await q.searchAll(query, parseLimit(limit, 20));
+      const results = await q.searchAll(query, parsePositiveIntParam(limit, 20));
       return { results };
     },
   },

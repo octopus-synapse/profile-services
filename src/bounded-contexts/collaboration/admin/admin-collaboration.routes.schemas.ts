@@ -4,7 +4,14 @@
  */
 
 import { z } from 'zod';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 
+/**
+ * Admin pagination uses `pageSize` instead of `limit` (legacy alias).
+ * Kept as an extension of the canonical schema rather than reverting
+ * to bespoke field names.
+ */
 export const PageQuerySchema = z.object({
   page: z.string().optional(),
   pageSize: z.string().optional(),
@@ -15,8 +22,8 @@ export function parsePage(q: z.infer<typeof PageQuerySchema>): {
   pageSize?: number;
 } {
   return {
-    page: q.page ? Number(q.page) : undefined,
-    pageSize: q.pageSize ? Number(q.pageSize) : undefined,
+    page: q.page ? parsePositiveIntParam(q.page, 1) : undefined,
+    pageSize: q.pageSize ? parsePositiveIntParam(q.pageSize, 20, 100) : undefined,
   };
 }
 
@@ -47,15 +54,8 @@ export const ChatConversationViewSchema = z.object({
   lastMessageSenderId: z.string().nullable(),
 });
 
-export const PaginatedChatConversationsResponseSchema = z.object({
-  items: z.array(ChatConversationViewSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-  hasNext: z.boolean(),
-  hasPrev: z.boolean(),
-});
+export const PaginatedChatConversationsResponseSchema =
+  PaginatedResponseSchema(ChatConversationViewSchema);
 
 export const CollaborationStatsResponseSchema = z.object({
   totalCollaborations: z.number().int().min(0),
@@ -90,15 +90,8 @@ export const AdminCollaborationViewSchema = z.object({
   resume: CollaboratorResumeViewSchema,
 });
 
-export const PaginatedCollaborationsResponseSchema = z.object({
-  items: z.array(AdminCollaborationViewSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-  hasNext: z.boolean(),
-  hasPrev: z.boolean(),
-});
+export const PaginatedCollaborationsResponseSchema =
+  PaginatedResponseSchema(AdminCollaborationViewSchema);
 
 export const ResumeAndUserIdParams = z.object({
   resumeId: z.string(),
