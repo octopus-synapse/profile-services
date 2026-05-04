@@ -24,13 +24,18 @@ export class AuditLogService {
   ) {}
 
   /**
-   * Log an audit event
+   * Log an audit event.
+   *
    * @param userId User performing the action
    * @param action Type of action performed
    * @param entityType Entity type affected (e.g., 'User', 'Resume')
    * @param entityId ID of affected entity
    * @param changes Optional before/after state snapshot
    * @param request Optional Express request object for metadata extraction
+   * @param options.lenient When `true`, audit-write failures are logged
+   *   and swallowed (the parent operation continues). Default `false` —
+   *   per Q51+Q52 in the duplication audit, audit failures are
+   *   compliance failures and propagate as `AuditLogFailedException`.
    */
   async log(
     userId: string,
@@ -39,6 +44,7 @@ export class AuditLogService {
     entityId: string,
     changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
     request?: RequestMetadataSource,
+    options: { lenient?: boolean } = {},
   ): Promise<void> {
     try {
       const metadata = extractAuditMetadata(request);
@@ -64,27 +70,25 @@ export class AuditLogService {
         entityId,
       });
     } catch (error) {
-      // Never fail the main operation due to audit logging
+      const reason = error instanceof Error ? error.message : 'unknown error';
       this.logger.error(
-        'Failed to create audit log',
+        options.lenient
+          ? 'Audit log write failed (lenient — swallowed)'
+          : 'Audit log write failed — propagating to caller',
         error instanceof Error ? error.stack : 'Unknown error',
         'AuditLogService',
-        {
-          userId,
-          action,
-          entityType,
-          entityId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
+        { userId, action, entityType, entityId, reason },
       );
+      if (!options.lenient) {
+        throw new AuditLogFailedException(reason);
+      }
     }
   }
 
   /**
-   * Strict variant of `log` for compliance-critical operations that
-   * must NOT silently swallow audit failures (e.g. financial events,
-   * GDPR deletions). Surfaces the typed `AuditLogFailedException` so
-   * the caller can decide whether to roll back or retry.
+   * @deprecated Strict is now the default for `log()`. Kept as a
+   * source-compat facade per Q52 in the duplication audit; remove
+   * after callers migrate.
    */
   async logStrict(
     userId: string,
@@ -94,31 +98,7 @@ export class AuditLogService {
     changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
     request?: RequestMetadataSource,
   ): Promise<void> {
-    try {
-      const metadata = extractAuditMetadata(request);
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action,
-          entityType,
-          entityId,
-          changesBefore: changes?.before ?? Prisma.JsonNull,
-          changesAfter: changes?.after ?? Prisma.JsonNull,
-          ipAddress: metadata.ipAddress,
-          userAgent: metadata.userAgent,
-          metadata: metadata.metadata ?? Prisma.JsonNull,
-        },
-      });
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : 'unknown error';
-      this.logger.error(
-        'Strict audit log failed — propagating to caller',
-        error instanceof Error ? error.stack : 'Unknown error',
-        'AuditLogService',
-        { userId, action, entityType, entityId, reason },
-      );
-      throw new AuditLogFailedException(reason);
-    }
+    return this.log(userId, action, entityType, entityId, changes, request);
   }
 
   /**

@@ -94,12 +94,29 @@ describe('AuditLogService', () => {
       expect(auditLogs[0].userAgent).toBe('Mozilla/5.0');
     });
 
-    it('should not throw on prisma errors', async () => {
+    it('throws by default on prisma errors (Q51 + Q52: strict default)', async () => {
       stubPrisma.auditLog.create.mockRejectedValueOnce(new Error('DB error'));
 
-      // Should not throw
       await expect(
         service.log('user-1', AuditAction.USERNAME_CHANGED, 'User', 'user-1'),
+      ).rejects.toThrow('Audit log failed');
+
+      expect(stubLogger.error).toHaveBeenCalled();
+    });
+
+    it('swallows prisma errors when called with { lenient: true }', async () => {
+      stubPrisma.auditLog.create.mockRejectedValueOnce(new Error('DB error'));
+
+      await expect(
+        service.log(
+          'user-1',
+          AuditAction.USERNAME_CHANGED,
+          'User',
+          'user-1',
+          undefined,
+          undefined,
+          { lenient: true },
+        ),
       ).resolves.toBeUndefined();
 
       expect(stubLogger.error).toHaveBeenCalled();
