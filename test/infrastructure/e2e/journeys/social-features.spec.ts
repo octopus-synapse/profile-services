@@ -373,9 +373,9 @@ describe('E2E Journey: Social Features', () => {
     });
 
     it.serial('should handle social stats for user with no activity', async () => {
-      const freshUser = authHelper.createTestUser('fresh-social');
-      const result = await authHelper.registerAndLogin(freshUser);
-      cleanupEmails.push(freshUser.email);
+      const freshInDbUser = authHelper.createTestUser('fresh-social');
+      const result = await authHelper.registerAndLogin(freshInDbUser);
+      cleanupEmails.push(freshInDbUser.email);
 
       const response = await app.request
         .get(`/api/v1/users/${result.userId}/social-stats`)

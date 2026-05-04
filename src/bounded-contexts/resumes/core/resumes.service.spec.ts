@@ -9,7 +9,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumesService } from './resumes.service';
@@ -29,7 +29,7 @@ describe('ResumesService', () => {
   const userId = 'user-123';
 
   const createTestResume = (overrides: Partial<{ id: string; title: string }> = {}) =>
-    createMockResume({
+    buildResume({
       id: overrides.id ?? 'resume-1',
       userId,
       title: overrides.title ?? 'Software Engineer',

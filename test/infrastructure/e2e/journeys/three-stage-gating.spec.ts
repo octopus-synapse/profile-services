@@ -7,7 +7,7 @@
  *   - fully-onboarded users get through.
  *
  * Concurrent-safe: each `it` provisions its own fixture user (with
- * the appropriate pre-conditions via `freshUser({ skipEmailVerify,
+ * the appropriate pre-conditions via `freshInDbUser({ skipEmailVerify,
  * skipOnboarding })`), so two tests running in parallel never
  * mutate the same row.
  */
@@ -15,7 +15,7 @@
 process.env.SKIP_EMAIL_VERIFICATION = 'false';
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { freshUser, stopTestApp, type TestApp } from '../../shared';
+import { freshInDbUser, stopTestApp, type TestApp } from '../../shared';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
@@ -32,7 +32,7 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
 
   describe('Stage 1 — fresh signup (unverified, not onboarded)', () => {
     it('session endpoint reports both gates open', async () => {
-      const me = await freshUser(app, { skipEmailVerify: true, skipOnboarding: true });
+      const me = await freshInDbUser(app, { skipEmailVerify: true, skipOnboarding: true });
       const res = await app.request.get('/api/auth/session').set(me.bearer());
       expect(res.status).toBe(200);
       expect(res.body.data.user.needsEmailVerification).toBe(true);
@@ -40,7 +40,7 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
     });
 
     it('returns 403 with `email-verified` missing on a protected endpoint', async () => {
-      const me = await freshUser(app, { skipEmailVerify: true, skipOnboarding: true });
+      const me = await freshInDbUser(app, { skipEmailVerify: true, skipOnboarding: true });
       const res = await app.request.get('/api/v1/resumes').set(me.bearer());
       expect(res.status).toBe(403);
       expect(res.body.error?.missing).toContain('email-verified');
@@ -49,21 +49,21 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
 
   describe('Stage 2 — verified but not onboarded', () => {
     it('clears the email gate but keeps onboarding pending', async () => {
-      const me = await freshUser(app, { skipOnboarding: true });
+      const me = await freshInDbUser(app, { skipOnboarding: true });
       const session = await app.request.get('/api/auth/session').set(me.bearer());
       expect(session.body.data.user.needsEmailVerification).toBe(false);
       expect(session.body.data.user.needsOnboarding).toBe(true);
     });
 
     it('returns 403 with `onboarding-completed` missing on a protected endpoint', async () => {
-      const me = await freshUser(app, { skipOnboarding: true });
+      const me = await freshInDbUser(app, { skipOnboarding: true });
       const res = await app.request.get('/api/v1/resumes').set(me.bearer());
       expect(res.status).toBe(403);
       expect(res.body.error?.missing).toContain('onboarding-completed');
     });
 
     it('session + onboarding endpoints stay reachable for verified-but-not-onboarded users', async () => {
-      const me = await freshUser(app, { skipOnboarding: true });
+      const me = await freshInDbUser(app, { skipOnboarding: true });
       const session = await app.request.get('/api/auth/session').set(me.bearer());
       expect(session.status).toBe(200);
       const onboardingStatus = await app.request.get('/api/v1/onboarding/status').set(me.bearer());
@@ -73,7 +73,7 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
 
   describe('Stage 3 — fully onboarded', () => {
     it('unlocks protected endpoints once role is assigned + onboarding is complete', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const res = await app.request
         .get('/api/v1/resumes')
         .set(me.bearer())

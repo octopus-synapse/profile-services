@@ -15,13 +15,13 @@ import { EventPublisher } from '@/shared-kernel';
  *
  * Usage:
  * ```ts
- * const { mockEventPublisher, eventPublisherProvider } = createMockEventPublisher();
+ * const { mockEventPublisher, eventPublisherProvider } = buildEventPublisher();
  *
  * const module = await Test.createTestingModule({ *   providers: [
  *     MyService, *     eventPublisherProvider, *   ], * }).compile();
  * ```
  */
-export function createMockEventPublisher() {
+export function buildEventPublisher() {
   const mockEventPublisher = { publish: mock(), publishAsync: mock(() => Promise.resolve()) };
 
   return {
@@ -35,13 +35,13 @@ export function createMockEventPublisher() {
  *
  * Usage:
  * ```ts
- * const { mockResumeEventPublisher, resumeEventPublisherProvider } = createMockResumeEventPublisher();
+ * const { mockResumeEventPublisher, resumeEventPublisherProvider } = buildResumeEventPublisher();
  *
  * const module = await Test.createTestingModule({ *   providers: [
  *     ResumesService, *     resumeEventPublisherProvider, *   ], * }).compile();
  * ```
  */
-export function createMockResumeEventPublisher() {
+export function buildResumeEventPublisher() {
   const mockResumeEventPublisher: ResumeEventPublisher = {
     publishResumeCreated: mock(),
     publishResumeUpdated: mock(),

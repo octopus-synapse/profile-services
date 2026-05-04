@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import type { CreateResume } from '@/shared-kernel';
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeSlotLimitReachedException } from '../domain/exceptions';
@@ -16,7 +16,7 @@ import { ResumesService } from './resumes.service';
 // Stub Classes
 // ============================================================================
 
-type Resume = ReturnType<typeof createMockResume>;
+type Resume = ReturnType<typeof buildResume>;
 
 class StubResumesRepository {
   private resumes: Resume[] = [];
@@ -36,7 +36,7 @@ class StubResumesRepository {
   }
 
   async createResumeForUser(userId: string, data: { title: string }): Promise<Resume> {
-    const newResume = createMockResume({
+    const newResume = buildResume({
       id: `resume-${this.resumes.length + 1}`,
       userId,
       title: data.title,
@@ -135,7 +135,7 @@ describe('ResumesService - Bug Detection', () => {
   let stubVersionService: StubResumeVersionService;
   let stubEventPublisher: StubResumeEventPublisher;
 
-  const _mockResume = createMockResume({
+  const _mockResume = buildResume({
     id: 'resume-1',
     userId: 'user-123',
     title: 'Test Resume',
@@ -161,10 +161,10 @@ describe('ResumesService - Bug Detection', () => {
     it('should throw ResumeSlotLimitReachedException (422) when limit reached', async () => {
       // User already has 4 resumes
       stubRepository.setResumes([
-        createMockResume({ id: '1', userId: 'user-123' }),
-        createMockResume({ id: '2', userId: 'user-123' }),
-        createMockResume({ id: '3', userId: 'user-123' }),
-        createMockResume({ id: '4', userId: 'user-123' }),
+        buildResume({ id: '1', userId: 'user-123' }),
+        buildResume({ id: '2', userId: 'user-123' }),
+        buildResume({ id: '3', userId: 'user-123' }),
+        buildResume({ id: '4', userId: 'user-123' }),
       ]);
 
       // Trying to create 5th should throw 422
@@ -175,10 +175,10 @@ describe('ResumesService - Bug Detection', () => {
 
     it('should NOT throw ValidationException (400) for limit error', async () => {
       stubRepository.setResumes([
-        createMockResume({ id: '1', userId: 'user-123' }),
-        createMockResume({ id: '2', userId: 'user-123' }),
-        createMockResume({ id: '3', userId: 'user-123' }),
-        createMockResume({ id: '4', userId: 'user-123' }),
+        buildResume({ id: '1', userId: 'user-123' }),
+        buildResume({ id: '2', userId: 'user-123' }),
+        buildResume({ id: '3', userId: 'user-123' }),
+        buildResume({ id: '4', userId: 'user-123' }),
       ]);
 
       // This exposes the bug: it currently throws ValidationException
@@ -194,10 +194,10 @@ describe('ResumesService - Bug Detection', () => {
 
     it('should have clear message about the limit', async () => {
       stubRepository.setResumes([
-        createMockResume({ id: '1', userId: 'user-123' }),
-        createMockResume({ id: '2', userId: 'user-123' }),
-        createMockResume({ id: '3', userId: 'user-123' }),
-        createMockResume({ id: '4', userId: 'user-123' }),
+        buildResume({ id: '1', userId: 'user-123' }),
+        buildResume({ id: '2', userId: 'user-123' }),
+        buildResume({ id: '3', userId: 'user-123' }),
+        buildResume({ id: '4', userId: 'user-123' }),
       ]);
 
       try {
@@ -217,9 +217,9 @@ describe('ResumesService - Bug Detection', () => {
   describe('Resume limit boundary tests', () => {
     it('should allow creating 4th resume (at limit)', async () => {
       stubRepository.setResumes([
-        createMockResume({ id: '1', userId: 'user-123' }),
-        createMockResume({ id: '2', userId: 'user-123' }),
-        createMockResume({ id: '3', userId: 'user-123' }),
+        buildResume({ id: '1', userId: 'user-123' }),
+        buildResume({ id: '2', userId: 'user-123' }),
+        buildResume({ id: '3', userId: 'user-123' }),
       ]);
 
       const result = await service.createResumeForUser(
@@ -234,10 +234,10 @@ describe('ResumesService - Bug Detection', () => {
 
     it('should reject at exactly 4 existing resumes', async () => {
       stubRepository.setResumes([
-        createMockResume({ id: '1', userId: 'user-123' }),
-        createMockResume({ id: '2', userId: 'user-123' }),
-        createMockResume({ id: '3', userId: 'user-123' }),
-        createMockResume({ id: '4', userId: 'user-123' }),
+        buildResume({ id: '1', userId: 'user-123' }),
+        buildResume({ id: '2', userId: 'user-123' }),
+        buildResume({ id: '3', userId: 'user-123' }),
+        buildResume({ id: '4', userId: 'user-123' }),
       ]);
 
       await expect(

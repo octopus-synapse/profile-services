@@ -17,7 +17,7 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
-import { freshUser, startTestApp, stopTestApp, type TestApp, type TestRequest } from '../shared';
+import { freshInDbUser, startTestApp, stopTestApp, type TestApp, type TestRequest } from '../shared';
 
 // Load test env so DATABASE_URL / REDIS_HOST / JWT_SECRET land before
 // the bootstrap reads process.env.
@@ -131,7 +131,7 @@ export async function createTestUserAndLogin(
   // Same fixture the e2e suite uses; no spec relies on the legacy
   // refreshToken (real refresh-token flow lives in `auth.integration`,
   // which exercises the actual login route end-to-end).
-  const fresh = await freshUser(app, {
+  const fresh = await freshInDbUser(app, {
     email: customUser?.email,
     password: customUser?.password,
   });

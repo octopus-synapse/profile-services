@@ -1,13 +1,13 @@
 /**
  * E2E: Authentication
  *
- * Concurrent-safe: every `it` mints its own user via `freshUser()`,
+ * Concurrent-safe: every `it` mints its own user via `freshInDbUser()`,
  * so tests don't share token/userId state. Bun's `--concurrent` flag
  * can run them in parallel without colliding.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { freshUser, stopTestApp, type TestApp } from '../../shared';
+import { freshInDbUser, stopTestApp, type TestApp } from '../../shared';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E: Authentication', () => {
@@ -24,7 +24,7 @@ describe('E2E: Authentication', () => {
 
   describe('Login flow', () => {
     it('logs in with valid credentials', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request
         .post('/api/auth/login')
         .send({ email: me.email, password: me.password });
@@ -37,7 +37,7 @@ describe('E2E: Authentication', () => {
     });
 
     it('rejects invalid password', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request
         .post('/api/auth/login')
         .send({ email: me.email, password: 'WrongPassword123!' });
@@ -65,7 +65,7 @@ describe('E2E: Authentication', () => {
 
   describe('Protected resource access', () => {
     it('accesses protected endpoint with valid token', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request.get('/api/v1/users/profile').set(me.bearer());
 
       expect(response.status).toBe(200);
@@ -103,7 +103,7 @@ describe('E2E: Authentication', () => {
 
   describe('Token refresh', () => {
     it('refreshes access token with valid refresh token', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       // Login to obtain a refresh token (the helper holds the cookie
       // but the refresh endpoint expects the body field).
       const login = await app.request
@@ -125,7 +125,7 @@ describe('E2E: Authentication', () => {
     });
 
     it('uses new token to access protected resources', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const login = await app.request
         .post('/api/auth/login')
         .send({ email: me.email, password: me.password });
@@ -165,7 +165,7 @@ describe('E2E: Authentication', () => {
 
   describe('Failed-login throttling', () => {
     it('handles multiple wrong-password attempts gracefully', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const results: number[] = [];
       for (let i = 0; i < 5; i++) {
         const r = await app.request

@@ -9,7 +9,7 @@
  * overwritten by another test, the same user is mutated by two
  * tests at once, etc.).
  *
- * `freshUser()` and friends return per-test fixtures: every call
+ * `freshInDbUser()` and friends return per-test fixtures: every call
  * builds a brand-new user (unique email + password), drives signup +
  * verify-email + onboarding-complete + role assignment, and hands
  * back a token + user-id that no other test holds. Tests then own
@@ -94,7 +94,7 @@ async function hashPassword(password: string): Promise<string> {
  * return a JWT access token + identity. Every call is independent —
  * the email is randomized so two parallel tests never collide.
  */
-export async function freshUser(app: TestApp, opts: FreshUserOptions = {}): Promise<FreshUser> {
+export async function freshInDbUser(app: TestApp, opts: FreshUserOptions = {}): Promise<FreshUser> {
   const id = randomUUID().slice(0, 12);
   const email = opts.email ?? `fresh-${id}@example.com`;
   const password = opts.password ?? 'FreshPass123!';
@@ -161,15 +161,15 @@ export async function freshUser(app: TestApp, opts: FreshUserOptions = {}): Prom
 }
 
 /**
- * Build a fully-onboarded admin user. Same contract as `freshUser`
+ * Build a fully-onboarded admin user. Same contract as `freshInDbUser`
  * with `admin: true` — exposed as a separate name so call sites read
  * naturally.
  */
-export function freshAdmin(
+export function freshInDbAdmin(
   app: TestApp,
   opts: Omit<FreshUserOptions, 'admin'> = {},
 ): Promise<FreshUser> {
-  return freshUser(app, { ...opts, admin: true });
+  return freshInDbUser(app, { ...opts, admin: true });
 }
 
 /**

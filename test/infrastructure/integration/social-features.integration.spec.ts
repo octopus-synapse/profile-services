@@ -321,12 +321,12 @@ describeIntegration('Social Features Integration', () => {
 
     it('should return empty activities for user with no activity', async () => {
       // Create a fresh user with no activities
-      const freshUser = await createTestUserAndLogin({ email: uniqueTestEmail('no-activity') });
-      createdUserIds.push(freshUser.userId);
+      const freshInDbUser = await createTestUserAndLogin({ email: uniqueTestEmail('no-activity') });
+      createdUserIds.push(freshInDbUser.userId);
 
       const response = await getRequest()
-        .get(`/api/v1/users/${freshUser.userId}/activities`)
-        .set(authHeader(freshUser.accessToken));
+        .get(`/api/v1/users/${freshInDbUser.userId}/activities`)
+        .set(authHeader(freshInDbUser.accessToken));
 
       expect(response.status).toBe(200);
 
