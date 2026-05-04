@@ -3,7 +3,7 @@ import type { SavedUserFitProfile } from '../../domain/ports/user-fit-profile.re
 import type { FitProfileMeDto } from '../../dto/fit-profile-me-response.schema';
 import type { SubmittedFitProfileDto } from '../../dto/submit-fit-answers.schema';
 
-export function presentFitProfileMe(view: FitProfileStatusView): FitProfileMeDto {
+export function toFitProfileMeResponseDto(view: FitProfileStatusView): FitProfileMeDto {
   return {
     status: view.status,
     vector: view.profile?.vector ?? null,
@@ -13,7 +13,7 @@ export function presentFitProfileMe(view: FitProfileStatusView): FitProfileMeDto
   };
 }
 
-export function presentSubmittedFitProfile(profile: SavedUserFitProfile): SubmittedFitProfileDto {
+export function toSubmittedFitProfileResponseDto(profile: SavedUserFitProfile): SubmittedFitProfileDto {
   return {
     profileId: profile.id,
     version: profile.version,

@@ -28,15 +28,15 @@ import {
   UpsertJobFitProfileSchema,
 } from './fit-profile.routes.schemas';
 import {
-  presentFitProfileMe,
-  presentSubmittedFitProfile,
+  toFitProfileMeResponseDto,
+  toSubmittedFitProfileResponseDto,
 } from './infrastructure/presenters/fit-profile.presenter';
 import {
-  presentFitQuestion,
-  presentFitQuestionList,
-  presentFitQuestions,
+  toFitQuestionResponseDto,
+  toFitQuestionListResponseDto,
+  toFitQuestionsResponseDto,
 } from './infrastructure/presenters/fit-question.presenter';
-import { presentJobFitProfile } from './infrastructure/presenters/job-fit-profile.presenter';
+import { toJobFitProfileResponseDto } from './infrastructure/presenters/job-fit-profile.presenter';
 
 export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
   // ─── User-facing fit-profile ─────────────────────────────────────
@@ -53,7 +53,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const view = await bc.getFitProfileStatus.execute(ctx.user!.userId);
-      return presentFitProfileMe(view);
+      return toFitProfileMeResponseDto(view);
     },
   },
   {
@@ -69,7 +69,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const view = await bc.getOrCreateQuestionSet.execute(ctx.user!.userId);
-      return presentFitQuestions(view);
+      return toFitQuestionsResponseDto(view);
     },
   },
   {
@@ -91,7 +91,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         questionSetId: body.questionSetId,
         answers: body.answers,
       });
-      return presentSubmittedFitProfile(saved);
+      return toSubmittedFitProfileResponseDto(saved);
     },
   },
   {
@@ -129,7 +129,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id: jobId } = ctx.params as { id: string };
       const profile = await bc.getJobFitProfile.execute(jobId);
       if (!profile) throw new JobFitProfileNotSetException(jobId);
-      return presentJobFitProfile(profile);
+      return toJobFitProfileResponseDto(profile);
     },
   },
   {
@@ -154,7 +154,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         editedByUserId: ctx.user!.userId,
         sliders: body.sliders,
       });
-      return presentJobFitProfile(saved);
+      return toJobFitProfileResponseDto(saved);
     },
   },
 
@@ -173,7 +173,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const rows = await bc.listFitQuestions.execute();
-      return presentFitQuestionList(rows);
+      return toFitQuestionListResponseDto(rows);
     },
   },
   {
@@ -193,7 +193,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id } = ctx.params as { id: string };
       const row = await bc.getFitQuestion.execute(id);
       if (!row) throw new FitQuestionNotFoundException(id);
-      return presentFitQuestion(row);
+      return toFitQuestionResponseDto(row);
     },
   },
   {
@@ -221,7 +221,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         isActive: body.isActive,
         reverseScored: body.reverseScored,
       });
-      return presentFitQuestion(row);
+      return toFitQuestionResponseDto(row);
     },
   },
   {
@@ -242,7 +242,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpdateFitQuestionSchema>;
       const row = await bc.updateFitQuestion.execute(id, body);
-      return presentFitQuestion(row);
+      return toFitQuestionResponseDto(row);
     },
   },
   {

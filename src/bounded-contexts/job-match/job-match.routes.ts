@@ -8,7 +8,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { ComputeMatchRequestDto } from './dto/match-breakdown.schema';
-import { presentMatchBreakdown } from './infrastructure/presenters/match-breakdown.presenter';
+import { toMatchBreakdownResponseDto } from './infrastructure/presenters/match-breakdown.presenter';
 import {
   ComputeMatchSchema,
   MatchBreakdownResponseSchema,
@@ -37,7 +37,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId: body.resumeId,
         jobId: body.jobId,
       });
-      return presentMatchBreakdown(breakdown);
+      return toMatchBreakdownResponseDto(breakdown);
     },
   },
   {
@@ -60,7 +60,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId,
         jobId,
       });
-      return presentMatchBreakdown(breakdown);
+      return toMatchBreakdownResponseDto(breakdown);
     },
   },
 ];

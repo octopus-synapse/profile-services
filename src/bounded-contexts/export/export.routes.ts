@@ -26,7 +26,7 @@ import {
   UserIdParams,
 } from './export.routes.schemas';
 import { sanitizeQueryParam } from './infrastructure/helpers';
-import { presentPdfAsBase64 } from './infrastructure/presenters/pdf-base64.presenter';
+import { toPdfBase64ResponseDto } from './infrastructure/presenters/pdf-base64.presenter';
 
 const DOWNLOAD_TTL_SECONDS = 300;
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -132,7 +132,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
           bundle.useCases.exportPdfUseCase.execute({ userId: targetUserId }),
         ),
       );
-      return presentPdfAsBase64(buffer);
+      return toPdfBase64ResponseDto(buffer);
     },
   },
 

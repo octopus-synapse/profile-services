@@ -8,7 +8,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeQualityUseCases } from './application/ports/resume-quality.port';
 import { ResumeQualitySnapshotMissingException } from './domain/exceptions/resume-quality.exceptions';
-import { presentQualitySnapshot } from './infrastructure/presenters/resume-quality.presenter';
+import { toQualitySnapshotResponseDto } from './infrastructure/presenters/resume-quality.presenter';
 import {
   ResumeIdParams,
   ResumeQualityResponseSchema,
@@ -32,7 +32,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.getLatestQuality.execute(resumeId);
       if (!snapshot) throw new ResumeQualitySnapshotMissingException();
-      return presentQualitySnapshot(snapshot);
+      return toQualitySnapshotResponseDto(snapshot);
     },
   },
   {
@@ -51,7 +51,7 @@ export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await bc.computeQuality.execute(resumeId);
-      return presentQualitySnapshot(snapshot);
+      return toQualitySnapshotResponseDto(snapshot);
     },
   },
 ];

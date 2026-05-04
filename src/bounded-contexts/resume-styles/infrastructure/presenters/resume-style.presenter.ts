@@ -6,7 +6,7 @@ import type {
   StyleSummaryDto,
 } from '../dto/resume-style.schema';
 
-export function presentSummary(s: StyleSummary): StyleSummaryDto {
+export function toSummaryResponseDto(s: StyleSummary): StyleSummaryDto {
   return {
     id: s.id,
     name: s.name,
@@ -21,9 +21,9 @@ export function presentSummary(s: StyleSummary): StyleSummaryDto {
   };
 }
 
-export function presentDetail(s: StyleDetail): StyleDetailDto {
+export function toDetailResponseDto(s: StyleDetail): StyleDetailDto {
   return {
-    ...presentSummary(s),
+    ...toSummaryResponseDto(s),
     version: s.version,
     styleConfig: s.styleConfig as Record<string, unknown>,
     sectionStyles: s.sectionStyles as Record<string, unknown>,
@@ -33,6 +33,6 @@ export function presentDetail(s: StyleDetail): StyleDetailDto {
   };
 }
 
-export function presentList(p: PaginatedStyles): StyleListResponseDto {
-  return { items: p.items.map(presentSummary), total: p.total, page: p.page, limit: p.limit };
+export function toListResponseDto(p: PaginatedStyles): StyleListResponseDto {
+  return { items: p.items.map(toSummaryResponseDto), total: p.total, page: p.page, limit: p.limit };
 }

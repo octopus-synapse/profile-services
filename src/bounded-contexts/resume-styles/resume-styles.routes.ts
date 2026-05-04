@@ -12,7 +12,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
-import { presentDetail, presentList } from './infrastructure/presenters/resume-style.presenter';
+import { toDetailResponseDto, toListResponseDto } from './infrastructure/presenters/resume-style.presenter';
 import {
   ApplyStyleBodySchema,
   ApplyStyleResponseSchema,
@@ -46,7 +46,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });
-      return presentList(result);
+      return toListResponseDto(result);
     },
   },
   {
@@ -64,7 +64,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const style = await bc.getStyle.execute(id);
-      return presentDetail(style);
+      return toDetailResponseDto(style);
     },
   },
   {
@@ -116,7 +116,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         sectionStyles: body.sectionStyles,
         authorId: ctx.user!.userId,
       });
-      return presentDetail(created);
+      return toDetailResponseDto(created);
     },
   },
   {
@@ -144,7 +144,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         styleConfig: body.styleConfig,
         sectionStyles: body.sectionStyles,
       });
-      return presentDetail(updated);
+      return toDetailResponseDto(updated);
     },
   },
   {
