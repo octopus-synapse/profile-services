@@ -34,7 +34,7 @@ export class PrismaFeatureFlagRepository extends FeatureFlagRepositoryPort {
     super();
   }
 
-  async findAll(): Promise<FlagRecord[]> {
+  async listAll(): Promise<FlagRecord[]> {
     const rows = (await this.prisma.featureFlag.findMany({
       include: { dependsOn: { include: { dependency: { select: { key: true } } } } },
       orderBy: { key: 'asc' },

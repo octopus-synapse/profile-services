@@ -29,7 +29,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
     super();
   }
 
-  async findAllUserResumes(userId: string): Promise<Resume[]> {
+  async listUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
@@ -104,7 +104,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   /**
    * BUG-015 FIX: Proper database pagination
    */
-  async findAllUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
+  async listUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },

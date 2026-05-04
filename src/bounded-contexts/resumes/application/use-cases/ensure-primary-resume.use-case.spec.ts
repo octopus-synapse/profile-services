@@ -8,10 +8,10 @@ class StubRepo extends ResumesRepositoryPort {
   constructor(private readonly resumes: ResumeEntity[]) {
     super();
   }
-  async findAllUserResumes(): Promise<ResumeEntity[]> {
+  async listUserResumes(): Promise<ResumeEntity[]> {
     return this.resumes;
   }
-  async findAllUserResumesPaginated(): Promise<ResumeEntity[]> {
+  async listUserResumesPaginated(): Promise<ResumeEntity[]> {
     return this.resumes;
   }
   async findResumeByIdAndUserId(): Promise<ResumeEntity | null> {

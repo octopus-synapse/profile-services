@@ -20,7 +20,7 @@ export class PrismaAdminTechAreasRepository extends AdminTechAreasRepositoryPort
     super();
   }
 
-  async findAll(query: AdminTechAreasListQuery) {
+  async listAll(query: AdminTechAreasListQuery) {
     const where: Prisma.TechAreaWhereInput = {};
     if (query.search) where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     if (query.isActive !== undefined) where.isActive = query.isActive;

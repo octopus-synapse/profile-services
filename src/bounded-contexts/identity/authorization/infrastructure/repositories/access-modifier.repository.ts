@@ -73,7 +73,7 @@ export class AccessModifierRepository implements IAccessModifierRepository {
     return toDomain(row);
   }
 
-  async findAllForUser(userId: UserId): Promise<AccessModifier[]> {
+  async listForUser(userId: UserId): Promise<AccessModifier[]> {
     const rows = await this.prisma.accessModifier.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

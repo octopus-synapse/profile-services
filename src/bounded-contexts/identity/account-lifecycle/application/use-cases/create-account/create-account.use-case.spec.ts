@@ -57,7 +57,7 @@ function makeConsentStubs() {
     async findByUserAndDocumentType() {
       return null;
     },
-    async findAllByUser() {
+    async listByUser() {
       return consents;
     },
   };

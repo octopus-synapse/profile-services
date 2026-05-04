@@ -26,7 +26,7 @@ class StubResumesRepository {
     this.resumes = resumes;
   }
 
-  async findAllUserResumes(userId: string): Promise<Resume[]> {
+  async listUserResumes(userId: string): Promise<Resume[]> {
     this.findAllUserResumesCalledWith = userId;
     return this.resumes;
   }
@@ -66,7 +66,7 @@ class StubResumesRepository {
     return this.resumes.find((r) => r.userId === userId) ?? null;
   }
 
-  async findAllUserResumesPaginated(
+  async listUserResumesPaginated(
     userId: string,
     _page: number,
     _limit: number,

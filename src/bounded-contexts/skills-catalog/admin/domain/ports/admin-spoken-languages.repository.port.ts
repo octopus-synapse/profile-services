@@ -14,7 +14,7 @@ export interface AdminSpokenLanguagesListQuery {
 }
 
 export abstract class AdminSpokenLanguagesRepositoryPort {
-  abstract findAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>>;
+  abstract listAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>>;
   abstract findOne(code: string): Promise<SpokenLanguage | null>;
   abstract create(input: Record<string, unknown>): Promise<SpokenLanguage>;
   abstract update(code: string, input: Record<string, unknown>): Promise<SpokenLanguage>;

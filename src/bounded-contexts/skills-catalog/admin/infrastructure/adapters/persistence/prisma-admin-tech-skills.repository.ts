@@ -15,7 +15,7 @@ export class PrismaAdminTechSkillsRepository extends AdminTechSkillsRepositoryPo
     super();
   }
 
-  async findAll(query: AdminTechSkillsListQuery) {
+  async listAll(query: AdminTechSkillsListQuery) {
     const where: Prisma.TechSkillWhereInput = {};
     if (query.search) where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     if (query.nicheId) where.nicheId = query.nicheId;

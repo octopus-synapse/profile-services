@@ -51,7 +51,7 @@ export class PermissionRepository implements IPermissionRepository {
     return this.toDomain(record);
   }
 
-  async findAll(): Promise<Permission[]> {
+  async listAll(): Promise<Permission[]> {
     const records = await this.prisma.permission.findMany({
       orderBy: [{ resource: 'asc' }, { action: 'asc' }],
     });

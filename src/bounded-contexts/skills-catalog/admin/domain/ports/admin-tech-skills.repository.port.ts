@@ -15,7 +15,7 @@ export interface AdminTechSkillsListQuery {
 }
 
 export abstract class AdminTechSkillsRepositoryPort {
-  abstract findAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>>;
+  abstract listAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>>;
   abstract findOne(id: string): Promise<TechSkill | null>;
   /** Lookup by unique slug. Returns `null` when no row exists. Used by
    *  `CreateAdminTechSkillUseCase` to throw `SkillSlugTakenException`

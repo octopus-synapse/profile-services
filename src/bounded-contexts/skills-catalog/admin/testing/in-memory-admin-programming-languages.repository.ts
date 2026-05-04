@@ -15,7 +15,7 @@ export class InMemoryAdminProgrammingLanguagesRepository extends AdminProgrammin
     this.rows.set(row.slug, row);
   }
 
-  async findAll(
+  async listAll(
     query: AdminProgrammingLanguagesListQuery,
   ): Promise<PaginatedResult<ProgrammingLanguage>> {
     const items = [...this.rows.values()];

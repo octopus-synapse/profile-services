@@ -15,7 +15,7 @@ export class InMemoryAdminSpokenLanguagesRepository extends AdminSpokenLanguages
     this.rows.set(row.code, row);
   }
 
-  async findAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>> {
+  async listAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>> {
     const items = [...this.rows.values()];
     return {
       items,

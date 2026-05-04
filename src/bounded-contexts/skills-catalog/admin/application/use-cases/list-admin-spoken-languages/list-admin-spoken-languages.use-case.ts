@@ -7,6 +7,6 @@ export class ListAdminSpokenLanguagesUseCase {
   constructor(private readonly repository: AdminSpokenLanguagesRepositoryPort) {}
 
   execute(query: AdminSpokenLanguagesListQuery) {
-    return this.repository.findAll(query);
+    return this.repository.listAll(query);
   }
 }

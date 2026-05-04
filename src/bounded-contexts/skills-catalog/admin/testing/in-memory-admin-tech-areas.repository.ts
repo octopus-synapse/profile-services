@@ -26,7 +26,7 @@ export class InMemoryAdminTechAreasRepository extends AdminTechAreasRepositoryPo
     this.nicheCounts.set(areaId, count);
   }
 
-  async findAll(query: AdminTechAreasListQuery): Promise<PaginatedResult<TechArea>> {
+  async listAll(query: AdminTechAreasListQuery): Promise<PaginatedResult<TechArea>> {
     const items = [...this.rows.values()];
     const page = query.page ?? 1;
     const limit = query.pageSize ?? 20;

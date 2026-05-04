@@ -36,7 +36,7 @@ export class BootstrapFlagsUseCase {
       })),
     );
 
-    const allInDb = await this.repo.findAll();
+    const allInDb = await this.repo.listAll();
     const registryKeys = new Set<string>(FEATURE_FLAGS_REGISTRY.map((f) => f.key));
     const deprecatedCandidates = allInDb
       .filter((f) => !registryKeys.has(f.key) && !f.deprecated)

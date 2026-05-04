@@ -33,16 +33,16 @@ type SeedResumeInput = {
 export class InMemoryResumesRepository extends ResumesRepositoryPort {
   private resumes = new Map<string, ResumeEntity>();
 
-  async findAllUserResumes(userId: string): Promise<ResumeEntity[]> {
+  async listUserResumes(userId: string): Promise<ResumeEntity[]> {
     return Array.from(this.resumes.values()).filter((r) => r.userId === userId);
   }
 
-  async findAllUserResumesPaginated(
+  async listUserResumesPaginated(
     userId: string,
     skip: number,
     take: number,
   ): Promise<ResumeEntity[]> {
-    const all = await this.findAllUserResumes(userId);
+    const all = await this.listUserResumes(userId);
     return all.slice(skip, skip + take);
   }
 
@@ -55,12 +55,12 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
   }
 
   async findResumeByUserId(userId: string): Promise<ResumeEntity | null> {
-    const userResumes = await this.findAllUserResumes(userId);
+    const userResumes = await this.listUserResumes(userId);
     return userResumes[0] ?? null;
   }
 
   async countUserResumes(userId: string): Promise<number> {
-    const resumes = await this.findAllUserResumes(userId);
+    const resumes = await this.listUserResumes(userId);
     return resumes.length;
   }
 

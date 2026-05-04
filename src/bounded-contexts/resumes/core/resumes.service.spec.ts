@@ -104,7 +104,7 @@ describe('ResumesService', () => {
       repository.seedResume(createTestResume({ id: 'r1' }));
       repository.seedResume(createTestResume({ id: 'r2' }));
 
-      const result = await service.findAllUserResumes(userId);
+      const result = await service.listUserResumes(userId);
 
       expect(result).toHaveLength(2);
     });

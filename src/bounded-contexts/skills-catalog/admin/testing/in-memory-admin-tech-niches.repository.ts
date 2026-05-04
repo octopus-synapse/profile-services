@@ -20,7 +20,7 @@ export class InMemoryAdminTechNichesRepository extends AdminTechNichesRepository
     this.skillCounts.set(nicheId, count);
   }
 
-  async findAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>> {
+  async listAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>> {
     const items = [...this.rows.values()];
     return {
       items,

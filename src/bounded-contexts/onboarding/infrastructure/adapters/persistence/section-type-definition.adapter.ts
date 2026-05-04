@@ -23,7 +23,7 @@ export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
     super();
   }
 
-  async findAll(locale = 'en'): Promise<SectionTypeData[]> {
+  async listAll(locale = 'en'): Promise<SectionTypeData[]> {
     const types = await this.prisma.sectionType.findMany({
       where: { isActive: true },
       select: {

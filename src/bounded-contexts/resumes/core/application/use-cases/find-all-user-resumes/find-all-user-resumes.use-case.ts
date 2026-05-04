@@ -17,7 +17,7 @@ export class FindAllUserResumesUseCase {
       return this.findPaginated(userId, page, limit);
     }
 
-    return this.repository.findAllUserResumes(userId);
+    return this.repository.listUserResumes(userId);
   }
 
   private async findPaginated(
@@ -27,7 +27,7 @@ export class FindAllUserResumesUseCase {
   ): Promise<UserResumesPaginatedResult> {
     const skip = (page - 1) * limit;
     const [resumes, total] = await Promise.all([
-      this.repository.findAllUserResumesPaginated(userId, skip, limit),
+      this.repository.listUserResumesPaginated(userId, skip, limit),
       this.repository.countUserResumes(userId),
     ]);
     const totalPages = Math.ceil(total / limit);

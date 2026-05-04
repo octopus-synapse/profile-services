@@ -35,7 +35,7 @@ export class CreateResumeForUserUseCase {
   }
 
   private async ensureUserHasSlots(userId: string): Promise<void> {
-    const existing = await this.repository.findAllUserResumes(userId);
+    const existing = await this.repository.listUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
       throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
     }

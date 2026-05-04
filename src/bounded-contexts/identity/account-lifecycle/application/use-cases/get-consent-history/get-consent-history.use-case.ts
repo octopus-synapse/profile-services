@@ -11,7 +11,7 @@ export class GetConsentHistoryUseCase {
   constructor(private readonly consentRepository: ConsentRepositoryPort) {}
 
   async execute(input: GetConsentHistoryInput): Promise<GetConsentHistoryOutput> {
-    const records = await this.consentRepository.findAllByUser(input.userId);
+    const records = await this.consentRepository.listByUser(input.userId);
 
     return records.map((record) => ({
       id: record.id,

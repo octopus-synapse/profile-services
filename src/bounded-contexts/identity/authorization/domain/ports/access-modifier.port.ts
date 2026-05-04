@@ -17,7 +17,7 @@ export interface IAccessModifierRepository {
   create(input: CreateAccessModifierInput): Promise<AccessModifier>;
 
   /** Returns every modifier for a user, regardless of active state. */
-  findAllForUser(userId: UserId): Promise<AccessModifier[]>;
+  listForUser(userId: UserId): Promise<AccessModifier[]>;
 
   /** Returns only modifiers whose `startsAt <= now < endsAt` and that aren't revoked. */
   findActiveForUser(userId: UserId, at?: Date): Promise<AccessModifier[]>;

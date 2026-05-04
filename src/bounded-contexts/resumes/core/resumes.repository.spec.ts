@@ -102,9 +102,9 @@ describe('ResumesRepository', () => {
     repository = new ResumesRepository({ resume: store } as unknown as PrismaService, stubLogger);
   });
 
-  describe('findAll', () => {
+  describe('listAll', () => {
     it('should return empty array when user has no resumes', async () => {
-      const result = await repository.findAllUserResumes('user-1');
+      const result = await repository.listUserResumes('user-1');
 
       expect(result).toEqual([]);
     });
@@ -114,7 +114,7 @@ describe('ResumesRepository', () => {
       store.seed({ id: 'r2', userId: 'user-1', title: 'Resume B' });
       store.seed({ id: 'r3', userId: 'user-2', title: 'Other User' });
 
-      const result = await repository.findAllUserResumes('user-1');
+      const result = await repository.listUserResumes('user-1');
 
       expect(result).toHaveLength(2);
       expect(result.every((r) => r.userId === 'user-1')).toBe(true);
@@ -164,7 +164,7 @@ describe('ResumesRepository', () => {
         isPublic: false,
       });
 
-      const allResumes = await repository.findAllUserResumes('user-1');
+      const allResumes = await repository.listUserResumes('user-1');
 
       expect(allResumes).toHaveLength(1);
       expect(allResumes[0].title).toBe('Persisted Resume');

@@ -19,9 +19,9 @@ export interface ResumeEntity {
 }
 
 export abstract class ResumesRepositoryPort {
-  abstract findAllUserResumes(userId: string): Promise<ResumeEntity[]>;
+  abstract listUserResumes(userId: string): Promise<ResumeEntity[]>;
 
-  abstract findAllUserResumesPaginated(
+  abstract listUserResumesPaginated(
     userId: string,
     skip: number,
     take: number,

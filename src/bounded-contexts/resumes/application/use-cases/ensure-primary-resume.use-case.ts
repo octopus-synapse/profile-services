@@ -18,7 +18,7 @@ export class EnsurePrimaryResumeUseCase {
   constructor(private readonly repository: ResumesRepositoryPort) {}
 
   async execute(userId: string): Promise<void> {
-    const resumes = await this.repository.findAllUserResumes(userId);
+    const resumes = await this.repository.listUserResumes(userId);
     if (resumes.length === 0) {
       throw new PrimaryResumeRequiredException();
     }

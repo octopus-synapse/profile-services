@@ -35,7 +35,7 @@ export class GroupRepository implements IGroupRepository {
     return null;
   }
 
-  async findAll(): Promise<Group[]> {
+  async listAll(): Promise<Group[]> {
     return [];
   }
 

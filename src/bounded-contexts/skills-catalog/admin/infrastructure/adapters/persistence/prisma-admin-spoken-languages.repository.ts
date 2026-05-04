@@ -15,7 +15,7 @@ export class PrismaAdminSpokenLanguagesRepository extends AdminSpokenLanguagesRe
     super();
   }
 
-  async findAll(query: AdminSpokenLanguagesListQuery) {
+  async listAll(query: AdminSpokenLanguagesListQuery) {
     const where: Prisma.SpokenLanguageWhereInput = {};
     if (query.search) where.OR = searchWhere(query.search, ['nameEn', 'namePtBr', 'nameEs']);
     if (query.isActive !== undefined) where.isActive = query.isActive;

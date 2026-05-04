@@ -15,7 +15,7 @@ export class InMemoryAdminTechSkillsRepository extends AdminTechSkillsRepository
     this.rows.set(row.id, row);
   }
 
-  async findAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>> {
+  async listAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>> {
     const items = [...this.rows.values()];
     return {
       items,

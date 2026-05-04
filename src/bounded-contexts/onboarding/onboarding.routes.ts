@@ -61,7 +61,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
-        bundle.sectionTypes.findAll(locale),
+        bundle.sectionTypes.listAll(locale),
       ]);
       return buildSession(
         data,
@@ -244,7 +244,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getStrengthConfig(),
         getSystemThemes(bundle),
-        bundle.sectionTypes.findAll(locale),
+        bundle.sectionTypes.listAll(locale),
       ]);
       return buildSession(
         data,

@@ -14,7 +14,7 @@ export interface UpdateFlagInput {
 }
 
 export abstract class FeatureFlagRepositoryPort {
-  abstract findAll(): Promise<FlagRecord[]>;
+  abstract listAll(): Promise<FlagRecord[]>;
   abstract findByKey(key: FeatureFlagKey): Promise<FlagRecord | null>;
   abstract upsertFromRegistry(inputs: UpsertFlagInput[]): Promise<void>;
   abstract markDeprecated(keys: FeatureFlagKey[]): Promise<void>;

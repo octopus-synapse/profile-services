@@ -30,5 +30,5 @@ export abstract class ConsentRepositoryPort {
     documentType: ConsentDocumentType,
     version: string,
   ): Promise<ConsentRecord | null>;
-  abstract findAllByUser(userId: string): Promise<ConsentRecord[]>;
+  abstract listByUser(userId: string): Promise<ConsentRecord[]>;
 }
