@@ -163,6 +163,11 @@ export function mountRoutes<TBundle>(
         ec.set.status = ctx.state.responseStatus as number;
       } else if (route.statusCode !== undefined) {
         ec.set.status = route.statusCode;
+      } else if (route.method === 'POST') {
+        // Honour the documented contract on `Route.statusCode`
+        // (route.types.ts:43-45): POST defaults to 201 Created. Any
+        // route that wants 200 must declare `statusCode: 200` explicitly.
+        ec.set.status = 201;
       }
       if (route.headers) {
         for (const [k, v] of Object.entries(route.headers)) ec.set.headers[k] = v;
