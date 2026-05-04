@@ -8,3 +8,8 @@ export {
   type WsHandshake,
   type WsMessageHandler,
 } from './websocket.port';
+export {
+  validateWsMessage,
+  WsValidationError,
+  type WsValidationFieldIssue,
+} from './ws-message-schema';
