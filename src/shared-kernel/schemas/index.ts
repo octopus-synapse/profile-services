@@ -14,6 +14,7 @@ export * from './auth';
 export * from './authorization';
 export * from './common';
 export * from './consent';
+export * from './create-localized-schema';
 export * from './export';
 export * from './gdpr';
 export * from './params';
