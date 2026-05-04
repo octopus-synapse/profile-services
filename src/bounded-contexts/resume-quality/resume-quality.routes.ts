@@ -4,43 +4,15 @@
  * `ResumeQualityUseCases`.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeQualityUseCases } from './application/ports/resume-quality.port';
 import { ResumeQualitySnapshotMissingException } from './domain/exceptions/resume-quality.exceptions';
 import { presentQualitySnapshot } from './infrastructure/presenters/resume-quality.presenter';
-
-const ResumeIdParams = z.object({ resumeId: z.string() });
-
-// ─── Response schemas ─────────────────────────────────────────────────
-const QualityIssueContextSchema = z.object({
-  sectionKey: z.string().optional(),
-  itemIndex: z.number().int().optional(),
-  excerpt: z.string().optional(),
-});
-
-const QualityIssueSchema = z.object({
-  code: z.string(),
-  severity: z.enum(['low', 'medium', 'high']),
-  messageArgs: z
-    .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
-    .optional(),
-  freeformMessage: z.string().optional(),
-  context: QualityIssueContextSchema.optional(),
-});
-
-const ResumeQualityResponseSchema = z.object({
-  id: z.string(),
-  resumeId: z.string(),
-  overallScore: z.number().int().min(0).max(100),
-  completenessScore: z.number().int().min(0).max(100),
-  contentQualityScore: z.number().int().min(0).max(100).nullable(),
-  issues: z.array(QualityIssueSchema),
-  scoringRulesVersion: z.string(),
-  aiPromptVersion: z.string().nullable(),
-  computedAt: z.string().datetime(),
-});
+import {
+  ResumeIdParams,
+  ResumeQualityResponseSchema,
+} from './resume-quality.routes.schemas';
 
 export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = [
   {
