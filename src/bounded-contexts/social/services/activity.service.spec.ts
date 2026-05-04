@@ -9,7 +9,7 @@ import { ActivityType } from '../application/ports/activity.port';
 import {
   InMemoryActivityRepository,
   InMemoryFollowRepository,
-  InMemorySocialEventBus,
+  InMemorySseStream,
   InMemorySocialLogger,
 } from '../testing';
 import { ActivityService } from './activity.service';
@@ -18,13 +18,13 @@ describe('ActivityService', () => {
   let service: ActivityService;
   let activityRepo: InMemoryActivityRepository;
   let followRepo: InMemoryFollowRepository;
-  let eventBus: InMemorySocialEventBus;
+  let sse: InMemorySseStream;
   let eventPublisher: EventPublisherPort;
 
   beforeEach(() => {
     activityRepo = new InMemoryActivityRepository();
     followRepo = new InMemoryFollowRepository();
-    eventBus = new InMemorySocialEventBus();
+    sse = new InMemorySseStream();
     eventPublisher = {
       publish: mock(<T>(_event: DomainEvent<T>) => {}),
       publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
@@ -35,7 +35,7 @@ describe('ActivityService', () => {
       followRepo,
       eventPublisher,
       new InMemorySocialLogger(),
-      eventBus,
+      sse,
     );
   });
 
@@ -69,9 +69,9 @@ describe('ActivityService', () => {
 
       await service.createActivity('user-1', ActivityType.RESUME_CREATED);
 
-      expect(eventBus.emitted).toHaveLength(2);
-      expect(eventBus.emitted[0].event).toBe('feed:user:f-1');
-      expect(eventBus.emitted[1].event).toBe('feed:user:f-2');
+      expect(sse.published).toHaveLength(2);
+      expect(sse.published[0].channel).toBe('feed:user:f-1');
+      expect(sse.published[1].channel).toBe('feed:user:f-2');
     });
   });
 

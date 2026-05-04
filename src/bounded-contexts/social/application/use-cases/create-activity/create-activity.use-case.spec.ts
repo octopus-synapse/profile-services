@@ -93,7 +93,17 @@ const stubEventPublisher = {
   on: () => {},
 };
 
-const stubEventEmitter = { emit: () => true, emitAsync: () => Promise.resolve([]) };
+import { Observable } from 'rxjs';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
+
+class StubSseStream extends SseStreamPort {
+  subscribe<T>(): Observable<{ data: T }> {
+    return new Observable(() => undefined);
+  }
+  publish(): void {}
+}
+
+const stubSse = new StubSseStream();
 
 import { stubLogger } from '@/shared-kernel/logger/testing';
 
@@ -107,7 +117,7 @@ describe('CreateActivityUseCase', () => {
       activityRepo,
       new StubFollowRepository(),
       stubEventPublisher,
-      stubEventEmitter,
+      stubSse,
       stubLogger,
     );
   });

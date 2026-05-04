@@ -28,7 +28,7 @@
  * a `lifecycle.init()` so it doesn't double-register on hot reload.
  */
 
-import { filter, map, type Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
@@ -36,7 +36,7 @@ import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import type { EventBusPort, EventHandler } from '@/shared-kernel/event-bus/event-bus.port';
 import type { Route } from '@/shared-kernel/http/route.types';
-import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import {
@@ -54,7 +54,6 @@ import {
 import { ConnectionRepositoryPort } from './application/ports/connection.port';
 import { ActivityCreatorPort } from './application/ports/facade.ports';
 import { FollowRepositoryPort } from './application/ports/follow.port';
-import { SocialEventBusPort } from './application/ports/social-event-bus.port';
 import { connectionRoutes } from './connection.routes';
 import { ConnectionRecsRoutesBundle, connectionRecsRoutes } from './connection-recs.routes';
 import { followRoutes } from './follow.routes';
@@ -106,22 +105,21 @@ export abstract class SocialUseCases {
 }
 
 /**
- * Minimal in-memory `SocialEventBusPort` the bootstrap can use when no
- * real adapter is wired (e.g. Elysia POC). Mirrors the Nest
- * `EventEmitter2`-backed adapter's contract — just `emit(...)`.
+ * Minimal in-memory `SseStreamPort` the bootstrap can use when no
+ * real adapter is wired (e.g. Elysia POC, unit tests). Q33 in the
+ * duplication audit — replaces the dedicated SocialEventBusPort.
+ *
+ * Subscribe is a no-op because the in-process variant has nobody
+ * subscribing; the production EventEmitter2-backed adapter handles
+ * real streams.
  */
-class InProcessSocialEventBus extends SocialEventBusPort {
-  private readonly listeners = new Map<string, Array<(payload: unknown) => void>>();
-
-  emit(eventName: string, payload: unknown): void {
-    const handlers = this.listeners.get(eventName) ?? [];
-    for (const h of handlers) h(payload);
+class InProcessSseStream extends SseStreamPort {
+  subscribe<T>(): Observable<{ data: T }> {
+    return new Observable(() => undefined);
   }
 
-  on(eventName: string, handler: (payload: unknown) => void): void {
-    const list = this.listeners.get(eventName) ?? [];
-    list.push(handler);
-    this.listeners.set(eventName, list);
+  publish(): void {
+    /* no listeners; in-process stub */
   }
 }
 
@@ -131,7 +129,6 @@ export interface SocialCompositionDeps {
   readonly eventPublisher: EventBusPort;
   readonly eventBus: EventBusPort;
   readonly idempotency: IdempotencyService;
-  readonly socialEventBus?: SocialEventBusPort;
   readonly sse?: SseStreamPort;
   readonly cron?: CronPort;
 }
@@ -151,7 +148,7 @@ export function buildSocialUseCases(deps: SocialCompositionDeps): {
   activityService: ActivityService;
 } {
   const { prisma, logger, eventPublisher } = deps;
-  const socialEventBus = deps.socialEventBus ?? new InProcessSocialEventBus();
+  const sse = deps.sse ?? new InProcessSseStream();
 
   // --- Repositories ---
   const followRepo: FollowRepositoryPort = new FollowRepository(prisma);
@@ -166,7 +163,7 @@ export function buildSocialUseCases(deps: SocialCompositionDeps): {
     followRepo,
     eventPublisher,
     logger,
-    socialEventBus,
+    sse,
   );
   const skillEndorsementService = new SkillEndorsementService(prisma);
   const skillProficiencyService = new SkillProficiencyService(prisma);

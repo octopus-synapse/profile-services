@@ -7,6 +7,7 @@
 
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   ActivityRepositoryPort,
@@ -19,7 +20,6 @@ import {
   ActivityReaderPort,
 } from '../application/ports/facade.ports';
 import { FollowRepositoryPort } from '../application/ports/follow.port';
-import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
 import { ActivityCreatedEvent, type SocialActivityType } from '../domain/events';
 import type { PaginatedResult, PaginationParams } from './follow.service';
 
@@ -34,7 +34,7 @@ export class ActivityService
     private readonly followRepo: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
     private readonly logger: LoggerPort,
-    private readonly eventBus: SocialEventBusPort,
+    private readonly sse: SseStreamPort,
   ) {
     super();
   }
@@ -66,7 +66,7 @@ export class ActivityService
 
     const followerIds = await this.followRepo.findFollowerIds(userId);
     for (const followerId of followerIds) {
-      this.eventBus.emit(`feed:user:${followerId}`, activityWithUser);
+      this.sse.publish(`feed:user:${followerId}`, activityWithUser);
     }
 
     this.logger.debug(

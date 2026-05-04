@@ -4,6 +4,8 @@
  * Port-level in-memory fakes for social features.
  */
 
+import { Observable } from 'rxjs';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
   ActivityRepositoryPort,
@@ -20,7 +22,6 @@ import {
   type FollowWithUser,
   type PaginationParams,
 } from '../application/ports/follow.port';
-import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
 
 // ═══════════════════════════════════════════════════════════════
 // USER RECORD (fixture type)
@@ -424,14 +425,23 @@ export class InMemorySocialLogger extends LoggerPort {
   error(): void {}
 }
 
-export class InMemorySocialEventBus extends SocialEventBusPort {
-  readonly emitted: Array<{ event: string; payload: unknown }> = [];
+/**
+ * In-memory `SseStreamPort` capturing every published payload for
+ * spec assertions. Replaces the old `InMemorySocialEventBus` after the
+ * SocialEventBusPort consolidation (Q33).
+ */
+export class InMemorySseStream extends SseStreamPort {
+  readonly published: Array<{ channel: string; payload: unknown }> = [];
 
-  emit(event: string, payload: unknown): void {
-    this.emitted.push({ event, payload });
+  subscribe<T>(): Observable<{ data: T }> {
+    return new Observable(() => undefined);
+  }
+
+  publish<T>(channel: string, payload: T): void {
+    this.published.push({ channel, payload });
   }
 
   clear(): void {
-    this.emitted.length = 0;
+    this.published.length = 0;
   }
 }
