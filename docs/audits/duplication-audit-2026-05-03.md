@@ -451,3 +451,34 @@ Priorização P0 → P3 baseada em ROI imediato:
 18. Investigar uniformidade `cuid` vs `uuid` no Prisma schema
 19. Decidir destino do `_swagger-diag.ts` (live ou legacy?)
 20. Definir `DistributedLockPort` shared (cache + jobs + idempotency)
+
+---
+
+## Apêndice — execução (atualizada 2026-05-04)
+
+Todas as 75 decisões do plano foram aplicadas em ~50 commits na branch
+`refactor/backend`. Ver `/home/enzoferracini/.claude/plans/glittery-whistling-simon.md`
+para o catálogo completo das decisões e `git log refactor/backend ^main`
+para o histórico.
+
+Resumo por fase:
+
+| Fase | Status | Itens |
+|---|---|---|
+| 0 — fixes táticos 1-LoC | ✅ | Q14, Q26, Q12a-d, Q62, Q69, Q18, Q19 |
+| 1 — shared-kernel additions | ✅ | Q5, Q6, Q7, Q16, Q22, Q28+Q29, Q31, Q34, Q35, Q40, Q45, Q46, Q55, Q58, Q59, Q17 |
+| 2 — sweeps + ports novos | ✅ | Q1+Q2+Q42+Q44+Q48 (pagination), Q3+Q4 (page defaults), Q9 (mappers), Q10 (repos), Q17 (auto-201), Q20+Q53+Q54 (logger), Q21 (logger.error sig), Q23 (fit-profile guard), Q33 (event bus), Q43 (jobs enums), Q47 (resume-quality schemas), Q50+Q51+Q52 (audit), Q60 (dictionary discovery), Q56+Q57 (test fixtures) |
+| 3 — políticas estruturais | ✅ | Q8 (success interceptor), Q27 (drop 'es'), Q32 (cache invalidation port + lint), Q36 (OnShutdown), Q37 (WorkerFailureMode), Q38 (DistributedLock), Q39 (WsMessageSchema), Q49 (soft-delete updateMany guard), Q11 (UUID v7 phase 1: extension migration), Q63 (apaga 5 logger scripts), Q64 (walk-source lib), Q65 (test-orchestration.sh) |
+| 4 — docs + governance | ✅ | Q41+Q67 (CLAUDE.md), Q66 (scripts/README.md), Q70+Q71 (test/README.md), Q24 (ownership policy doc), apêndice neste audit |
+
+Notas:
+
+- Q11 fase 2 (swap de defaults `cuid → uuidv7` + backfill) ficou
+  documentada em `prisma/migrations/README.md` — a migration de
+  install do extension está aplicada, a swap precisa de janela de
+  deploy coordenada.
+- Q32 lint roda em modo `warn` por default; o sweep dos 4 call sites
+  remanescentes (`mec-sync redis-cache`, `job-match recompute worker`,
+  `tech-skills-sync`, `chat-cache`) habilita `CACHE_LINT_MODE=error`
+  no precommit.
+- Q57 + Q9 atingiram cobertura total (todos os call sites migrados).
