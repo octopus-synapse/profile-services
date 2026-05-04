@@ -15,7 +15,10 @@ export interface UpdateFlagInput {
 
 export abstract class FeatureFlagRepositoryPort {
   abstract listAll(): Promise<FlagRecord[]>;
+  /** @returns the row, or `null` when the key is unknown. */
   abstract findByKey(key: FeatureFlagKey): Promise<FlagRecord | null>;
+  /** @throws FeatureFlagNotFoundException when the key is unknown (Q10 split). */
+  abstract getByKey(key: FeatureFlagKey): Promise<FlagRecord>;
   abstract upsertFromRegistry(inputs: UpsertFlagInput[]): Promise<void>;
   abstract markDeprecated(keys: FeatureFlagKey[]): Promise<void>;
   abstract update(key: FeatureFlagKey, input: UpdateFlagInput): Promise<FlagRecord>;

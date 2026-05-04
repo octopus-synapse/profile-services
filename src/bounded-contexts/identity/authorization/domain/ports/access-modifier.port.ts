@@ -24,6 +24,12 @@ export interface IAccessModifierRepository {
 
   findById(id: AccessModifierId): Promise<AccessModifier | null>;
 
+  /**
+   * @throws AccessModifierNotFoundException when the id is unknown
+   * (Q10 split — saves callers from `if (!x) throw` boilerplate).
+   */
+  getById(id: AccessModifierId): Promise<AccessModifier>;
+
   /** Set `revokedAt` + `revokedBy`. No-op on already-revoked rows. */
   revoke(id: AccessModifierId, revokedBy: UserId, revokedAt?: Date): Promise<void>;
 }

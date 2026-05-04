@@ -37,7 +37,14 @@ export type ConnectionWithUser = {
 export abstract class ConnectionRepositoryPort {
   abstract createConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser>;
 
+  /** @returns the row, or `null` when the id is unknown. */
   abstract findConnectionById(id: string): Promise<ConnectionWithUser | null>;
+
+  /**
+   * @throws EntityNotFoundException when the id is unknown — saves
+   * every caller from the same `if (!c) throw` boilerplate (Q10).
+   */
+  abstract getConnectionById(id: string): Promise<ConnectionWithUser>;
 
   abstract findConnection(
     requesterId: string,

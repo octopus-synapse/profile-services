@@ -38,8 +38,7 @@ export class ToggleFlagUseCase {
   async execute(input: ToggleFlagInput): Promise<FlagRecord> {
     this.assertValidInput(input);
 
-    const current = await this.repo.findByKey(input.key);
-    if (!current) throw new FeatureFlagNotFoundException(input.key);
+    const current = await this.repo.getByKey(input.key);
     if (current.deprecated) {
       throw new FeatureFlagDeprecatedException(input.key);
     }

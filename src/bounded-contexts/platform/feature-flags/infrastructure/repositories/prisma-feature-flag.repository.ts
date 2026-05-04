@@ -1,4 +1,5 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { FeatureFlagNotFoundException } from '../../domain/exceptions/feature-flag.exceptions';
 import {
   FeatureFlagRepositoryPort,
   type UpdateFlagInput,
@@ -48,6 +49,12 @@ export class PrismaFeatureFlagRepository extends FeatureFlagRepositoryPort {
       include: { dependsOn: { include: { dependency: { select: { key: true } } } } },
     })) as FlagRow | null;
     return row ? toRecord(row) : null;
+  }
+
+  async getByKey(key: FeatureFlagKey): Promise<FlagRecord> {
+    const row = await this.findByKey(key);
+    if (!row) throw new FeatureFlagNotFoundException(key);
+    return row;
   }
 
   async upsertFromRegistry(inputs: UpsertFlagInput[]): Promise<void> {

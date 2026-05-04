@@ -13,6 +13,7 @@ import {
   type ModifierType as DomainModifierType,
   type UserId,
 } from '../../domain/entities/access-modifier.entity';
+import { AccessModifierNotFoundException } from '../../application/use-cases/access-modifier/revoke-access-modifier.use-case';
 import type { IAccessModifierRepository } from '../../domain/ports/access-modifier.port';
 
 interface PrismaAccessModifierRow {
@@ -97,6 +98,12 @@ export class AccessModifierRepository implements IAccessModifierRepository {
   async findById(id: AccessModifierId): Promise<AccessModifier | null> {
     const row = await this.prisma.accessModifier.findUnique({ where: { id } });
     return row ? toDomain(row) : null;
+  }
+
+  async getById(id: AccessModifierId): Promise<AccessModifier> {
+    const row = await this.findById(id);
+    if (!row) throw new AccessModifierNotFoundException(id);
+    return row;
   }
 
   async revoke(

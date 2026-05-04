@@ -85,11 +85,7 @@ export class ConnectionService {
   }
 
   async acceptConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -115,11 +111,7 @@ export class ConnectionService {
   }
 
   async rejectConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -138,11 +130,7 @@ export class ConnectionService {
   }
 
   async withdrawSentRequest(connectionId: string, currentUserId: string): Promise<void> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -159,11 +147,7 @@ export class ConnectionService {
   }
 
   async removeConnection(connectionId: string, currentUserId: string): Promise<void> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'ACCEPTED') {
       throw new ConnectionNotAcceptedException();
     }

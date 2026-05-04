@@ -9,7 +9,10 @@
 
 import { describe, expect, it, mock } from 'bun:test';
 import type { EventBusPort, LoggerPort } from '@/shared-kernel';
-import { FeatureFlagInvalidInputException } from '../../domain/exceptions/feature-flag.exceptions';
+import {
+  FeatureFlagInvalidInputException,
+  FeatureFlagNotFoundException,
+} from '../../domain/exceptions/feature-flag.exceptions';
 import type { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import type { FlagAuditPort } from '../ports/flag-audit.port';
 import type { FlagCachePort } from '../ports/flag-cache.port';
@@ -19,6 +22,9 @@ import { ToggleFlagUseCase } from './toggle-flag.use-case';
 const buildUseCase = () => {
   const repo = {
     findByKey: mock(() => Promise.resolve(null)),
+    getByKey: mock(() =>
+      Promise.reject(new FeatureFlagNotFoundException('test-key')),
+    ),
     update: mock(),
   } as unknown as FeatureFlagRepositoryPort;
   const cache = { invalidateAll: mock() } as unknown as FlagCachePort;

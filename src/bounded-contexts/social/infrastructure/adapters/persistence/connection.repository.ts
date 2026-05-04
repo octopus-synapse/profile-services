@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ConnectionRepositoryPort,
   type ConnectionUser,
@@ -31,6 +32,12 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
         target: { select: USER_SELECT },
       },
     });
+  }
+
+  async getConnectionById(id: string): Promise<ConnectionWithUser> {
+    const row = await this.findConnectionById(id);
+    if (!row) throw new EntityNotFoundException('Connection', id);
+    return row;
   }
 
   async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {

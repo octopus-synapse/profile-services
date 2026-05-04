@@ -266,6 +266,17 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     return this.connections.find((c) => c.id === id) ?? null;
   }
 
+  async getConnectionById(id: string): Promise<ConnectionWithUser> {
+    const row = await this.findConnectionById(id);
+    if (!row) {
+      // Imported lazily to avoid coupling testing/ on shared-kernel exceptions
+      // at module-load time (test bundlers may tree-shake differently).
+      const { EntityNotFoundException } = await import('@/shared-kernel/exceptions/domain.exceptions');
+      throw new EntityNotFoundException('Connection', id);
+    }
+    return row;
+  }
+
   async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {
     return (
       this.connections.find((c) => c.requesterId === requesterId && c.targetId === targetId) ?? null
