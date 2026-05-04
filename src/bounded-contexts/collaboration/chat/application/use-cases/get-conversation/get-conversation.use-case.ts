@@ -2,7 +2,7 @@ import { LoggerPort } from '@/shared-kernel';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import { ChatConversationNotFoundException } from '../../../domain/exceptions/chat.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
-import { mapConversationToResponse } from '../../mappers/chat.mapper';
+import { toConversationResponseDto } from '../../mappers/chat.mapper';
 import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationUseCase {
@@ -26,6 +26,6 @@ export class GetConversationUseCase {
 
     const unreadCount = await this.messageRepo.getUnreadCountByConversation(conversationId, userId);
 
-    return mapConversationToResponse(conversation, userId, unreadCount);
+    return toConversationResponseDto(conversation, userId, unreadCount);
   }
 }

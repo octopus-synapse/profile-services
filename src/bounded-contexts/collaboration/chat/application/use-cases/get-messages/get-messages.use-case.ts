@@ -1,7 +1,7 @@
 import { LoggerPort } from '@/shared-kernel';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { GetMessagesQuery, PaginatedMessagesResponse } from '../../../schemas/chat.schema';
-import { mapMessageToResponse } from '../../mappers/chat.mapper';
+import { toMessageResponseDto } from '../../mappers/chat.mapper';
 import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetMessagesUseCase {
@@ -23,7 +23,7 @@ export class GetMessagesUseCase {
     });
 
     return {
-      messages: result.messages.map(mapMessageToResponse),
+      messages: result.messages.map(toMessageResponseDto),
       nextCursor: result.nextCursor,
       hasMore: result.hasMore,
     };

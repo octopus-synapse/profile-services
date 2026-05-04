@@ -5,7 +5,7 @@ import {
   NotConversationParticipantException,
 } from '../../../../domain/exceptions/collaboration.exceptions';
 import type { MessageResponse } from '../../../schemas/chat.schema';
-import { mapMessageToResponse } from '../../mappers/chat.mapper';
+import { toMessageResponseDto } from '../../mappers/chat.mapper';
 import {
   BlockedUserRepositoryPort,
   ChatCachePort,
@@ -59,6 +59,6 @@ export class SendMessageToConversationUseCase {
       this.chatCache.invalidateConversations(otherParticipant.id),
     ]);
 
-    return mapMessageToResponse(message);
+    return toMessageResponseDto(message);
   }
 }
