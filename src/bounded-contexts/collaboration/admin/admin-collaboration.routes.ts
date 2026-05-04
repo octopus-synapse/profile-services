@@ -13,6 +13,8 @@ import {
   PaginatedChatConversationsResponseSchema,
   PaginatedCollaborationsResponseSchema,
   parsePage,
+  RemoveCollaborationResponseSchema,
+  ResumeAndUserIdParams,
 } from './admin-collaboration.routes.schemas';
 import { AdminCollaborationUseCases } from './application/ports/admin-collaboration.port';
 
@@ -82,6 +84,25 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageQuerySchema>;
       return bc.listCollaborations.execute(parsePage(q));
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/v1/admin/collaborations/:resumeId/:userId',
+    auth: { kind: 'jwt' },
+    permission: Permission.PLATFORM_MANAGE,
+    params: ResumeAndUserIdParams,
+    response: RemoveCollaborationResponseSchema,
+    openapi: {
+      summary: 'Remove a collaborator from a resume (admin)',
+      tags: ['admin-collaborations'],
+      description: 'Admin Collaborations API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { resumeId, userId } = ctx.params as z.infer<typeof ResumeAndUserIdParams>;
+      await bc.removeCollaboration.execute(resumeId, userId);
+      return { message: 'Colaboração removida.' };
     },
   },
 ];

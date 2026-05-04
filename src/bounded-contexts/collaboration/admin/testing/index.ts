@@ -87,4 +87,8 @@ export class InMemoryAdminCollaborationsRepository extends AdminCollaborationsRe
   async listCollaborations(query: ListCollaborationsQuery) {
     return paginateInMemory(this.rows, query);
   }
+
+  async removeCollaborator(resumeId: string, userId: string): Promise<void> {
+    this.rows = this.rows.filter((r) => !(r.resumeId === resumeId && r.userId === userId));
+  }
 }

@@ -10,6 +10,7 @@ import { GetChatStatsUseCase } from './application/use-cases/get-chat-stats/get-
 import { GetCollaborationStatsUseCase } from './application/use-cases/get-collaboration-stats/get-collaboration-stats.use-case';
 import { ListChatConversationsUseCase } from './application/use-cases/list-chat-conversations/list-chat-conversations.use-case';
 import { ListCollaborationsUseCase } from './application/use-cases/list-collaborations/list-collaborations.use-case';
+import { RemoveCollaborationUseCase } from './application/use-cases/remove-collaboration/remove-collaboration.use-case';
 import { PrismaAdminChatRepository } from './infrastructure/adapters/persistence/prisma-admin-chat.repository';
 import { PrismaAdminCollaborationsRepository } from './infrastructure/adapters/persistence/prisma-admin-collaborations.repository';
 
@@ -24,5 +25,6 @@ export function buildAdminCollaborationUseCases(prisma: PrismaService): AdminCol
     listChatConversations: new ListChatConversationsUseCase(chatRepo),
     getCollaborationStats: new GetCollaborationStatsUseCase(collabRepo),
     listCollaborations: new ListCollaborationsUseCase(collabRepo),
+    removeCollaboration: new RemoveCollaborationUseCase(collabRepo),
   };
 }

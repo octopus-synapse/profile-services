@@ -8,10 +8,12 @@ import type { GetChatStatsUseCase } from '../use-cases/get-chat-stats/get-chat-s
 import type { GetCollaborationStatsUseCase } from '../use-cases/get-collaboration-stats/get-collaboration-stats.use-case';
 import type { ListChatConversationsUseCase } from '../use-cases/list-chat-conversations/list-chat-conversations.use-case';
 import type { ListCollaborationsUseCase } from '../use-cases/list-collaborations/list-collaborations.use-case';
+import type { RemoveCollaborationUseCase } from '../use-cases/remove-collaboration/remove-collaboration.use-case';
 
 export abstract class AdminCollaborationUseCases {
   abstract readonly getChatStats: GetChatStatsUseCase;
   abstract readonly listChatConversations: ListChatConversationsUseCase;
   abstract readonly getCollaborationStats: GetCollaborationStatsUseCase;
   abstract readonly listCollaborations: ListCollaborationsUseCase;
+  abstract readonly removeCollaboration: RemoveCollaborationUseCase;
 }

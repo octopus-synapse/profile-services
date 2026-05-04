@@ -49,4 +49,5 @@ export abstract class AdminCollaborationsRepositoryPort {
   abstract listCollaborations(
     query: ListCollaborationsQuery,
   ): Promise<PaginatedResult<AdminCollaborationView>>;
+  abstract removeCollaborator(resumeId: string, userId: string): Promise<void>;
 }

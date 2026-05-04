@@ -99,3 +99,12 @@ export const PaginatedCollaborationsResponseSchema = z.object({
   hasNext: z.boolean(),
   hasPrev: z.boolean(),
 });
+
+export const ResumeAndUserIdParams = z.object({
+  resumeId: z.string(),
+  userId: z.string(),
+});
+
+export const RemoveCollaborationResponseSchema = z.object({
+  message: z.string(),
+});
