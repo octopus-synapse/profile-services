@@ -22,6 +22,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
+import { UnauthorizedException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
@@ -201,7 +202,10 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         cookieReader: ctxCookieReader(ctx),
         userId: ctx.user?.userId,
       });
-      return { authenticated: result.success, user: result.user };
+      if (!result.success || !result.user) {
+        throw new UnauthorizedException('Session is invalid or expired');
+      }
+      return { user: result.user };
     },
   },
   {

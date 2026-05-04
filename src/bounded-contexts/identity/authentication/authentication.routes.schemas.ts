@@ -44,8 +44,7 @@ export const SessionUserSchema = z.object({
 });
 
 export const SessionResponseSchema = z.object({
-  authenticated: z.boolean(),
-  user: SessionUserSchema.nullable().optional(),
+  user: SessionUserSchema,
 });
 
 // Server-to-server clients with explicit `refreshToken` body get the legacy

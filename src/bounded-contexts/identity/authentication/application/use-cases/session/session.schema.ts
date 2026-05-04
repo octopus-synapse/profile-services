@@ -19,8 +19,7 @@ const SessionUserResponseSchema = z.object({
 });
 
 const SessionResponseSchema = z.object({
-  authenticated: z.boolean(),
-  user: SessionUserResponseSchema.nullable(),
+  user: SessionUserResponseSchema,
 });
 
 // ============================================================================
