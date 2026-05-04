@@ -1,7 +1,9 @@
 /**
- * Supported locales for section type translations.
- * Every section type must provide translations for all locales on creation.
+ * Supported app locales for i18n + section-type translations.
+ * Every section type must provide translations for all locales on
+ * creation. 'es' was removed per Q27 in the duplication audit; the
+ * project supports only English and Brazilian Portuguese for now.
  */
-export const SUPPORTED_LOCALES = ['en', 'pt-BR', 'es'] as const;
+export const SUPPORTED_LOCALES = ['en', 'pt-BR'] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

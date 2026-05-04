@@ -1,7 +1,7 @@
-export type SupportedLocale = 'en' | 'pt-BR' | 'es';
+export type SupportedLocale = 'en' | 'pt-BR';
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'pt-BR', 'es'];
+export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'pt-BR'];
 
 /** Translation structure stored in SectionType.translations JSON */
 export interface SectionTypeTranslation {

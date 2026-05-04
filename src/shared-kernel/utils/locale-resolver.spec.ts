@@ -14,11 +14,13 @@ describe('locale-resolver', () => {
 
     test('returns valid locale', () => {
       expect(parseLocale('pt-BR')).toBe('pt-BR');
-      expect(parseLocale('es')).toBe('es');
       expect(parseLocale('en')).toBe('en');
     });
 
     test('returns default for invalid locale', () => {
+      // 'es' was a supported locale until Q27 — it now falls back like
+      // any other unsupported tag.
+      expect(parseLocale('es')).toBe('en');
       expect(parseLocale('fr')).toBe('en');
       expect(parseLocale('invalid')).toBe('en');
     });
@@ -49,8 +51,10 @@ describe('locale-resolver', () => {
       expect(result.title).toBe('Experiência Profissional');
     });
 
-    test('falls back to English', () => {
-      const result = resolveTranslation(translations, 'es');
+    test('falls back to English when locale missing from translations map', () => {
+      // 'pt-BR' is supported but absent from a hypothetical en-only catalog.
+      const enOnly: TranslationsJson = { en: translations.en };
+      const result = resolveTranslation(enOnly, 'pt-BR');
       expect(result.title).toBe('Work Experience');
     });
 
@@ -103,20 +107,6 @@ describe('locale-resolver', () => {
       expect(field0.label).toBe('Empresa');
       expect(field0.placeholder).toBe('ex: Google');
       expect(field1.label).toBe('Cargo');
-    });
-
-    test('resolves field labels for es', () => {
-      const resolved = resolveDefinitionFieldsForLocale(definition, 'es') as typeof definition;
-      // Label/placeholder are flattened to field root level for frontend compatibility
-      const field0 = resolved.fields[0] as (typeof resolved.fields)[0] & {
-        label?: string;
-        placeholder?: string;
-      };
-      const field1 = resolved.fields[1] as (typeof resolved.fields)[1] & { label?: string };
-      expect(field0.label).toBe('Empresa');
-      expect(field0.placeholder).toBe('ej: Google');
-      // Falls back to en for role since no es translation
-      expect(field1.label).toBe('Role');
     });
 
     test('resolves field labels for en', () => {
