@@ -7,6 +7,7 @@
 import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
@@ -393,7 +394,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       const step = await bundle.admin.getStep(key);
-      if (!step) return { success: false, message: 'Step not found' };
+      if (!step) throw new EntityNotFoundException('OnboardingStep', key);
       return { step };
     },
   },
