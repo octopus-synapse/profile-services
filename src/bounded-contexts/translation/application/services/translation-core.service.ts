@@ -90,11 +90,7 @@ export class TranslationCoreService {
         detectedLanguage,
       };
     } catch (error) {
-      this.logger.error(
-        `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { context: CTX });
       return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
   }
@@ -111,11 +107,7 @@ export class TranslationCoreService {
       const data = (await response.json()) as LanguageDetectionResult[] | undefined;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      this.logger.error(
-        `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { context: CTX });
       return [];
     }
   }

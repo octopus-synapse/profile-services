@@ -151,7 +151,7 @@ export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void>
 
     console.log('✅ Authorization seed completed successfully!\n');
   } catch (error) {
-    console.error('❌ Authorization seed failed:', error);
+    console.error('❌ Authorization seed failed:', { stack: error });
     throw error;
   }
 }

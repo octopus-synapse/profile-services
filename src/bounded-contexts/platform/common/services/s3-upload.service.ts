@@ -58,11 +58,7 @@ export class S3UploadService {
     this.publicEndpoint = this.config.get<string>('MINIO_PUBLIC_ENDPOINT');
 
     if (!parsed.success) {
-      this.logger.error(
-        'MinIO config invalid — service disabled',
-        JSON.stringify(parsed.error.flatten()),
-        'S3UploadService',
-      );
+      this.logger.error('MinIO config invalid — service disabled', { context: 'S3UploadService', stack: JSON.stringify(parsed.error.flatten()) });
       this._isEnabled = false;
       return;
     }
@@ -89,11 +85,7 @@ export class S3UploadService {
           bucket,
         });
       } catch (error) {
-        this.logger.error(
-          'Failed to initialize MinIO client',
-          error instanceof Error ? error.stack : undefined,
-          'S3UploadService',
-        );
+        this.logger.error('Failed to initialize MinIO client', { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
         this._isEnabled = false;
       }
     } else {
@@ -168,11 +160,7 @@ export class S3UploadService {
 
       return true;
     } catch (error) {
-      this.logger.error(
-        `Failed to delete file from MinIO: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'S3UploadService',
-      );
+      this.logger.error(`Failed to delete file from MinIO: ${key}`, { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
       return false;
     }
   }
@@ -301,11 +289,7 @@ export class S3UploadService {
       await this.client.send(command);
       return true;
     } catch (error) {
-      this.logger.error(
-        'S3/MinIO connection check failed',
-        error instanceof Error ? error.stack : undefined,
-        'S3UploadService',
-      );
+      this.logger.error('S3/MinIO connection check failed', { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
       return false;
     }
   }

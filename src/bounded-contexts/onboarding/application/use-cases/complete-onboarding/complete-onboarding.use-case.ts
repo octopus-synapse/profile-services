@@ -115,12 +115,7 @@ export class CompleteOnboardingUseCase {
    *  (or pass it through). Logs once with full context so the caller's
    *  rethrow doesn't double-log. */
   private toDomainError(error: unknown, userId: string, data: OnboardingData): unknown {
-    this.logger.error(
-      'Onboarding completion failed, progress preserved',
-      error instanceof Error ? error.stack : 'Unknown error',
-      'CompleteOnboardingUseCase',
-      { userId, error: error instanceof Error ? error.message : 'Unknown error' },
-    );
+    this.logger.error('Onboarding completion failed, progress preserved', { context: 'CompleteOnboardingUseCase', stack: error instanceof Error ? error.stack : 'Unknown error', userId, error: error instanceof Error ? error.message : 'Unknown error' });
 
     if (this.isUsernameConflict(error)) {
       this.logger.warn(

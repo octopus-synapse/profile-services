@@ -28,13 +28,9 @@ export class ConsoleLoggerAdapter extends LoggerPort {
     this.write('warn', message, context, meta);
   }
 
-  error(
-    message: string,
-    trace?: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
-    this.write('error', message, context, { ...meta, trace });
+  error(message: string, options: Record<string, unknown> = {}): void {
+    const { context, ...rest } = options;
+    this.write('error', message, typeof context === 'string' ? context : undefined, rest);
   }
 
   private write(

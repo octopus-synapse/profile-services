@@ -46,11 +46,7 @@ export class FitProfileExpireWorker {
       }
     } catch (err) {
       const userId = job?.data?.kind === 'expire-user' ? job.data.userId : '(schedule)';
-      this.logger.error(
-        `fit-profile-expire failed user=${userId} err=${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`fit-profile-expire failed user=${userId} err=${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
       throw err;
     }
   }

@@ -138,17 +138,13 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI tailor response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI tailor response', { context: CTX, stack: raw });
       throw err;
     }
 
     const result = TailorOutputSchema.safeParse(parsed);
     if (!result.success) {
-      this.logger.error(
-        `OpenAI tailor response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`OpenAI tailor response failed schema validation: ${result.error.message}`, { context: CTX });
       throw new AiInvalidOutputException('tailorResume');
     }
     return result.data;
@@ -180,16 +176,12 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI extract response', { context: CTX, stack: raw });
       throw err;
     }
     const result = ExtractedResumeSchema.safeParse(parsed);
     if (!result.success) {
-      this.logger.error(
-        `OpenAI extract response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`OpenAI extract response failed schema validation: ${result.error.message}`, { context: CTX });
       throw new AiInvalidOutputException('extractResumeFromText');
     }
     return result.data;
@@ -220,16 +212,12 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract-job response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI extract-job response', { context: CTX, stack: raw });
       throw err;
     }
     const result = ExtractedJobSchema.safeParse(parsed);
     if (!result.success) {
-      this.logger.error(
-        `OpenAI extract-job response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`OpenAI extract-job response failed schema validation: ${result.error.message}`, { context: CTX });
       throw new AiInvalidOutputException('extractJobFromText');
     }
     return result.data;

@@ -31,11 +31,7 @@ export class NotificationDigestWorker {
         CTX,
       );
     } catch (error) {
-      this.logger.error(
-        `Daily digest failed: ${error instanceof Error ? error.message : 'unknown'}`,
-        error instanceof Error ? error.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`Daily digest failed: ${error instanceof Error ? error.message : 'unknown'}`, { context: CTX, stack: error instanceof Error ? error.stack : undefined });
     }
   }
 }

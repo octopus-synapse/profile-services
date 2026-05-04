@@ -45,16 +45,10 @@ export class RedisConnectionService implements Lifecycle {
       });
 
       this._client.on('error', (error) => {
-        this.logger.error('Redis connection error', error.stack, 'RedisConnectionService', {
-          error: error.message,
-        });
+        this.logger.error('Redis connection error', { context: 'RedisConnectionService', stack: error.stack, error: error.message, });
       });
     } catch (error) {
-      this.logger.error(
-        'Failed to initialize Redis client',
-        error instanceof Error ? error.stack : undefined,
-        'RedisConnectionService',
-      );
+      this.logger.error('Failed to initialize Redis client', { context: 'RedisConnectionService', stack: error instanceof Error ? error.stack : undefined });
       this._isEnabled = false;
     }
   }

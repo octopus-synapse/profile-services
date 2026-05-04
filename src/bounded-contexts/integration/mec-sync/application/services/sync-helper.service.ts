@@ -79,7 +79,7 @@ export class SyncHelperService {
       triggeredBy,
     });
 
-    this.logger.error('MEC sync failed', errorStack, this.context);
+    this.logger.error('MEC sync failed', { context: this.context, stack: errorStack });
   }
 
   async updateSyncMetadata(metadata: SyncMetadata): Promise<void> {

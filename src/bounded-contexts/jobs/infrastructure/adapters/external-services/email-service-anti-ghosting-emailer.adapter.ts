@@ -33,13 +33,9 @@ export class EmailServiceAntiGhostingEmailerAdapter extends AntiGhostingEmailerP
         text: message.text,
       });
     } catch (err) {
-      this.logger.error(
-        `Anti-ghosting email failed for ${message.to}: ${
+      this.logger.error(`Anti-ghosting email failed for ${message.to}: ${
           err instanceof Error ? err.message : 'unknown'
-        }`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+        }`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
     }
   }
 }

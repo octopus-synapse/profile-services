@@ -36,11 +36,7 @@ export class AuditLogFlagAuditAdapter implements FlagAuditPort {
         input.request as Request | undefined,
       );
     } catch (err) {
-      this.logger.error(
-        `Failed to write flag-toggle audit entry for ${input.flagKey}`,
-        err instanceof Error ? err.stack : undefined,
-        'AuditLogFlagAuditAdapter',
-      );
+      this.logger.error(`Failed to write flag-toggle audit entry for ${input.flagKey}`, { context: 'AuditLogFlagAuditAdapter', stack: err instanceof Error ? err.stack : undefined });
       throw err;
     }
   }

@@ -25,11 +25,10 @@ export function initLifecycle(
       } catch (err) {
         const elapsedMs = Date.now() - startedAt;
         const message = err instanceof Error ? err.message : 'unknown error';
-        logger?.error(
-          `[lifecycle:init] ${name} failed after ${elapsedMs}ms: ${message}`,
-          err instanceof Error ? err.stack : undefined,
-          'initLifecycle',
-        );
+        logger?.error(`[lifecycle:init] ${name} failed after ${elapsedMs}ms: ${message}`, {
+          context: 'initLifecycle',
+          stack: err instanceof Error ? err.stack : undefined,
+        });
         throw err;
       }
     },

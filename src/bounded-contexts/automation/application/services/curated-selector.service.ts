@@ -110,11 +110,7 @@ export class CuratedSelectorService {
       throw new CuratedSelectorAllScoringFailedException(userId, jobs.length);
     }
     if (scoringFailures > jobs.length / 2) {
-      this.logger.error(
-        `Curated selector: ${scoringFailures}/${jobs.length} scoring calls failed for user=${userId} — investigate`,
-        undefined,
-        CTX,
-      );
+      this.logger.error(`Curated selector: ${scoringFailures}/${jobs.length} scoring calls failed for user=${userId} — investigate`, { context: CTX });
     }
 
     scored.sort((a, b) => b.matchScore - a.matchScore);

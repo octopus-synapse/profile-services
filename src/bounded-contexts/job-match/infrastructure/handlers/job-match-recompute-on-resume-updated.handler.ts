@@ -27,11 +27,7 @@ export class JobMatchRecomputeOnResumeUpdatedHandler {
         { jobId: `match-invalidate:resume:${event.aggregateId}` },
       );
     } catch (err) {
-      this.logger.error(
-        `Failed to enqueue job-match recompute for resume ${event.aggregateId}`,
-        err instanceof Error ? err.stack : undefined,
-        'JobMatchRecomputeOnResumeUpdatedHandler',
-      );
+      this.logger.error(`Failed to enqueue job-match recompute for resume ${event.aggregateId}`, { context: 'JobMatchRecomputeOnResumeUpdatedHandler', stack: err instanceof Error ? err.stack : undefined });
       throw err;
     }
   }

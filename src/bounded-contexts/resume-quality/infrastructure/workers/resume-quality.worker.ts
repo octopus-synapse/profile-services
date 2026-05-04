@@ -41,11 +41,7 @@ export class ResumeQualityWorker {
     try {
       await this.compute.execute(job.data.resumeId);
     } catch (err) {
-      this.logger.error(
-        `resume-quality recompute failed resumeId=${job.data.resumeId} err=${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`resume-quality recompute failed resumeId=${job.data.resumeId} err=${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
       throw err;
     }
   }

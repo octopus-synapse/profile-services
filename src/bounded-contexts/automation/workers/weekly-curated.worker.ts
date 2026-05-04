@@ -40,11 +40,7 @@ export class WeeklyCuratedWorker {
         return;
       }
     } catch (err) {
-      this.logger.error(
-        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
       throw err;
     }
   }
@@ -116,11 +112,7 @@ export class WeeklyCuratedWorker {
         data: { status: 'SENT', sentAt: new Date() },
       });
     } catch (err) {
-      this.logger.error(
-        `Weekly digest email failed for ${userId}: ${(err as Error).message}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`Weekly digest email failed for ${userId}: ${(err as Error).message}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
       await this.prisma.weeklyCuratedBatch.update({
         where: { id: batch.id },
         data: { status: 'FAILED' },

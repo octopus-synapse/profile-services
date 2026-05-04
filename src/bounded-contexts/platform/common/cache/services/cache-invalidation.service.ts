@@ -127,11 +127,7 @@ export class CacheInvalidationService {
     try {
       await this.cache.delete(key);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache key: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheInvalidationService',
-      );
+      this.logger.error(`Failed to delete cache key: ${key}`, { context: 'CacheInvalidationService', stack: error instanceof Error ? error.stack : undefined });
     }
   }
 
@@ -139,11 +135,7 @@ export class CacheInvalidationService {
     try {
       await this.cache.deletePattern(pattern);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache pattern: ${pattern}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheInvalidationService',
-      );
+      this.logger.error(`Failed to delete cache pattern: ${pattern}`, { context: 'CacheInvalidationService', stack: error instanceof Error ? error.stack : undefined });
     }
   }
 }

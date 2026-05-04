@@ -84,8 +84,9 @@ export class AppLoggerService extends LoggerPort {
     this.logger.info(message, { context, ...meta });
   }
 
-  error(message: string, trace?: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.error(message, { context, stack: trace, ...meta });
+  error(message: string, options: Record<string, unknown> = {}): void {
+    const { context, stack, ...rest } = options;
+    this.logger.error(message, { context, stack, ...rest });
   }
 
   warn(message: string, context?: string, meta?: Record<string, unknown>): void {

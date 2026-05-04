@@ -32,11 +32,7 @@ export class ViewsProjectionWorker {
     try {
       await this.refreshDay(startOfYesterday);
     } catch (err) {
-      this.logger.error(
-        `Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
+      this.logger.error(`Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
     }
   }
 

@@ -32,7 +32,7 @@ export class WeeklyDigestWorker {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'unknown';
       const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`Weekly digest failed: ${message}`, stack, CTX);
+      this.logger.error(`Weekly digest failed: ${message}`, { context: CTX, stack: stack });
       throw error;
     }
   }

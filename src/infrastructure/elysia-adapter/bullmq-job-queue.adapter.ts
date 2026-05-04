@@ -48,8 +48,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
             adapter.degraded = true;
             adapter.logger?.error(
               `BullMQ Redis connection failed after ${MAX_RECONNECT_ATTEMPTS} attempts; queue running in degraded mode`,
-              undefined,
-              'BullMQJobQueueAdapter',
+              { context: 'BullMQJobQueueAdapter' },
             );
           }
           return null;
@@ -71,11 +70,10 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
       { connection: this.connectionOpts() },
     );
     worker.on('error', (err) => {
-      this.logger?.error(
-        `BullMQ worker "${name}" error: ${err.message}`,
-        err.stack,
-        'BullMQJobQueueAdapter',
-      );
+      this.logger?.error(`BullMQ worker "${name}" error: ${err.message}`, {
+        context: 'BullMQJobQueueAdapter',
+        stack: err.stack,
+      });
     });
     this.workers.set(name, worker as unknown as Worker);
   }
