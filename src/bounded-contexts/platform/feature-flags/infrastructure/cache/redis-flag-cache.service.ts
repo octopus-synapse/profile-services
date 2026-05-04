@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import type { FlagCachePort } from '../../application/ports/flag-cache.port';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
@@ -25,7 +25,7 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
 
   constructor(
     private readonly connection: RedisConnectionService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   async init(): Promise<void> {

@@ -7,7 +7,7 @@
  */
 
 import { ERROR_MESSAGES } from '../constants/config';
-import { AppLoggerService } from '../logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { RedisConnectionService } from './redis-connection.service';
 
 export interface LockOptions {
@@ -22,7 +22,7 @@ export interface LockOptions {
 export class CacheLockService {
   constructor(
     private readonly redisConnection: RedisConnectionService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

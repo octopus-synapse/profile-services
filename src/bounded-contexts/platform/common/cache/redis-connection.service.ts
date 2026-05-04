@@ -5,7 +5,7 @@
 
 import Redis from 'ioredis';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
-import { AppLoggerService } from '../logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 const REDIS_DEFAULT_PORT = 6379;
 const RETRY_DELAY_MAX = 2000;
@@ -16,7 +16,7 @@ export class RedisConnectionService implements Lifecycle {
   private _client: Redis | null = null;
   private _isEnabled: boolean;
 
-  constructor(private readonly logger: AppLoggerService) {
+  constructor(private readonly logger: LoggerPort) {
     const redisHost = process.env.REDIS_HOST;
     const redisPort = parseInt(process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT), 10);
     const redisPassword = process.env.REDIS_PASSWORD;

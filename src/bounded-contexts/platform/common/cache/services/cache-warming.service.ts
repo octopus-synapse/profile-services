@@ -8,7 +8,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../../logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheService } from '../cache.service';
 
 // --- Types ---
@@ -39,7 +39,7 @@ export class CacheWarmingService {
   constructor(
     private readonly cache: CacheService,
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
