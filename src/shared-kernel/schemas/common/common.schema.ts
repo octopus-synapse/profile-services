@@ -34,16 +34,6 @@ export const DateStringSchema = z
 export type DateString = z.infer<typeof DateStringSchema>;
 
 /**
- * ID Parameter Schema
- * Used for route parameters requiring a valid CUID.
- */
-export const IdParamSchema = z.object({
-  id: z.string().min(1, 'ID is required'),
-});
-
-export type IdParam = z.infer<typeof IdParamSchema>;
-
-/**
  * Search Query Schema
  * Used for search endpoints with optional filters.
  */
@@ -58,7 +48,5 @@ export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 export type ReorderItemsDto = z.infer<typeof ReorderItemsSchema>;
 
 export type DateStringDto = z.infer<typeof DateStringSchema>;
-
-export type IdParamDto = z.infer<typeof IdParamSchema>;
 
 export type SearchQueryDto = z.infer<typeof SearchQuerySchema>;

@@ -16,6 +16,7 @@ export * from './common';
 export * from './consent';
 export * from './export';
 export * from './gdpr';
+export * from './params';
 export * from './primitives';
 export * from './resume';
 export * from './resume-ast';
