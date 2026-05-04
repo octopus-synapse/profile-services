@@ -84,14 +84,14 @@ describe('ActivityService', () => {
 
       const result = await service.getFeed('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
       expect(result.total).toBe(2);
     });
 
     it('should return empty feed when not following anyone', async () => {
       const result = await service.getFeed('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(0);
+      expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
   });
@@ -102,7 +102,7 @@ describe('ActivityService', () => {
 
       const result = await service.getUserActivities('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
     });
   });
@@ -117,8 +117,8 @@ describe('ActivityService', () => {
         limit: 10,
       });
 
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].type).toBe(ActivityType.RESUME_CREATED);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].type).toBe(ActivityType.RESUME_CREATED);
     });
   });
 

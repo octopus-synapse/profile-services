@@ -11,16 +11,16 @@ import {
 import { GetUserActivitiesUseCase } from './get-user-activities.use-case';
 
 class StubActivityRepository implements ActivityRepositoryPort {
-  private _data: ActivityWithUser[] = [];
+  private _items: ActivityWithUser[] = [];
   private _total = 0;
 
-  setResult(data: ActivityWithUser[], total: number) {
-    this._data = data;
+  setResult(items: ActivityWithUser[], total: number) {
+    this._items = items;
     this._total = total;
   }
 
   async findUserActivities() {
-    return { data: this._data, total: this._total };
+    return { items: this._items, total: this._total };
   }
   async createActivity(): Promise<ActivityWithUser> {
     throw new Error('not used in test');
@@ -29,10 +29,10 @@ class StubActivityRepository implements ActivityRepositoryPort {
     return null;
   }
   async findActivitiesByUserIds() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivitiesByType() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async deleteOlderThan() {
     return 0;
@@ -64,7 +64,7 @@ describe('GetUserActivitiesUseCase', () => {
 
     const result = await useCase.execute('user-1', { page: 1, limit: 10 });
 
-    expect(result.data).toHaveLength(1);
+    expect(result.items).toHaveLength(1);
     expect(result.total).toBe(1);
   });
 });

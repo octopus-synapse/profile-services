@@ -6,7 +6,6 @@
  * token at runtime.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import {
@@ -17,7 +16,6 @@ import {
   IsFollowingResponseSchema,
   MeSocialStatsResponseSchema,
   PageQuery,
-  paginate,
   SocialStatsResponseSchema,
   UnfollowResponseSchema,
   UserIdParam,
@@ -88,7 +86,8 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     },
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
       const result = await bundle.followService.getFollowers(userId, pagination, ctx.user!.userId);
       return { followers: result };
     },
@@ -107,7 +106,8 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     },
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
       const result = await bundle.followService.getFollowing(userId, pagination, ctx.user!.userId);
       return { following: result };
     },

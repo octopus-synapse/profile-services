@@ -7,16 +7,16 @@ import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.po
 import { GetFollowingUseCase } from './get-following.use-case';
 
 class StubFollowRepository implements FollowRepositoryPort {
-  private _data: FollowWithUser[] = [];
+  private _items: FollowWithUser[] = [];
   private _total = 0;
 
-  setResult(data: FollowWithUser[], total: number) {
-    this._data = data;
+  setResult(items: FollowWithUser[], total: number) {
+    this._items = items;
     this._total = total;
   }
 
   async findFollowing() {
-    return { data: this._data, total: this._total };
+    return { items: this._items, total: this._total };
   }
   async createFollow(): Promise<FollowWithUser> {
     throw new Error('not used in test');
@@ -26,7 +26,7 @@ class StubFollowRepository implements FollowRepositoryPort {
     return null;
   }
   async findFollowers() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async countFollowers() {
     return 0;
@@ -62,7 +62,7 @@ describe('GetFollowingUseCase', () => {
 
     const result = await useCase.execute('user-1', { page: 1, limit: 10 });
 
-    expect(result.data).toHaveLength(1);
+    expect(result.items).toHaveLength(1);
     expect(result.total).toBe(1);
   });
 });

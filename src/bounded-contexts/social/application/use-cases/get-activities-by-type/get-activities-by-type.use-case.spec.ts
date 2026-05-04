@@ -19,7 +19,7 @@ class StubActivityRepository implements ActivityRepositoryPort {
     pagination: { page: number; limit: number },
   ) {
     this.calls.push({ method: 'findUserActivitiesByType', args: [userId, type, pagination] });
-    return { data: [] as ActivityWithUser[], total: 0 };
+    return { items: [] as ActivityWithUser[], total: 0 };
   }
   async createActivity(): Promise<ActivityWithUser> {
     throw new Error('not used in test');
@@ -28,10 +28,10 @@ class StubActivityRepository implements ActivityRepositoryPort {
     return null;
   }
   async findActivitiesByUserIds() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivities() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async deleteOlderThan() {
     return 0;

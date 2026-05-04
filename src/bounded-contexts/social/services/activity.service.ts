@@ -7,6 +7,7 @@
 
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   ActivityRepositoryPort,
   type ActivityType,
@@ -96,29 +97,26 @@ export class ActivityService
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-
     const followingIds = await this.followRepo.findFollowingIds(userId);
 
     if (followingIds.length === 0) {
-      return { data: [], total: 0, page, limit, totalPages: 0 };
+      return buildPaginatedResponse<ActivityWithUser>([], 0, pagination);
     }
 
-    const { data, total } = await this.activityRepo.findActivitiesByUserIds(
+    const { items, total } = await this.activityRepo.findActivitiesByUserIds(
       followingIds,
       pagination,
     );
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async getUserActivities(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.activityRepo.findUserActivities(userId, pagination);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const { items, total } = await this.activityRepo.findUserActivities(userId, pagination);
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async getActivitiesByType(
@@ -126,13 +124,12 @@ export class ActivityService
     type: ActivityType,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.activityRepo.findUserActivitiesByType(
+    const { items, total } = await this.activityRepo.findUserActivitiesByType(
       userId,
       type,
       pagination,
     );
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async deleteOldActivities(days: number): Promise<number> {

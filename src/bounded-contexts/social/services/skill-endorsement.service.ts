@@ -6,6 +6,8 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 
 export interface UserSkillSummary {
   skill: string;
@@ -113,13 +115,7 @@ export class SkillEndorsementService {
     skill: string,
     page = 1,
     limit = 20,
-  ): Promise<{
-    data: EndorserInfo[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  ): Promise<PaginatedResponse<EndorserInfo>> {
     const skillName = skill.trim();
     const safeLimit = Math.min(limit, 100);
     const safePage = Math.max(1, page);
@@ -139,13 +135,10 @@ export class SkillEndorsementService {
     ]);
 
     if (endorsements.length === 0) {
-      return {
-        data: [],
-        total,
+      return buildPaginatedResponse<EndorserInfo>([], total, {
         page: safePage,
         limit: safeLimit,
-        totalPages: Math.ceil(total / safeLimit),
-      };
+      });
     }
 
     const users = await this.prisma.user.findMany({
@@ -154,7 +147,7 @@ export class SkillEndorsementService {
     });
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    const data: EndorserInfo[] = endorsements
+    const items: EndorserInfo[] = endorsements
       .map((e) => {
         const user = userMap.get(e.endorserUserId);
         if (!user) return null;
@@ -162,13 +155,10 @@ export class SkillEndorsementService {
       })
       .filter((x): x is EndorserInfo => x !== null);
 
-    return {
-      data,
-      total,
+    return buildPaginatedResponse(items, total, {
       page: safePage,
       limit: safeLimit,
-      totalPages: Math.ceil(total / safeLimit),
-    };
+    });
   }
 
   private async countFor(endorsedUserId: string, skill: string): Promise<number> {

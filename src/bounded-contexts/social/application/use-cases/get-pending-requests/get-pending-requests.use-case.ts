@@ -1,4 +1,5 @@
 import type { ConnectionWithUser } from '../../ports/connection.port';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import { ConnectionRepositoryPort } from '../../ports/connection.port';
 import type { PaginationParams } from '../../ports/follow.port';
 
@@ -9,15 +10,14 @@ export class GetPendingRequestsUseCase {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: ConnectionWithUser[];
+    items: ConnectionWithUser[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
   }> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.repository.findPendingRequests(userId, pagination);
+        const { items, total } = await this.repository.findPendingRequests(userId, pagination);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

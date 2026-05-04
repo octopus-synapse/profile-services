@@ -56,17 +56,17 @@ export abstract class ConnectionRepositoryPort {
   abstract findPendingRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }>;
+  ): Promise<{ items: ConnectionWithUser[]; total: number }>;
 
   abstract findSentRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }>;
+  ): Promise<{ items: ConnectionWithUser[]; total: number }>;
 
   abstract findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }>;
+  ): Promise<{ items: ConnectionWithUser[]; total: number }>;
 
   abstract countAcceptedConnections(userId: string): Promise<number>;
 
@@ -76,7 +76,7 @@ export abstract class ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<
+    items: Array<
       ConnectionUser & {
         reason: string;
         score: number;
@@ -112,7 +112,7 @@ export abstract class ConnectionUseCases {
       userId: string,
       pagination: PaginationParams,
     ) => Promise<{
-      data: ConnectionWithUser[];
+      items: ConnectionWithUser[];
       total: number;
       page: number;
       limit: number;
@@ -124,7 +124,7 @@ export abstract class ConnectionUseCases {
       userId: string,
       pagination: PaginationParams,
     ) => Promise<{
-      data: ConnectionWithUser[];
+      items: ConnectionWithUser[];
       total: number;
       page: number;
       limit: number;

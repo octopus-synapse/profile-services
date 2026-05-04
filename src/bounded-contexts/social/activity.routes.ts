@@ -14,7 +14,7 @@ import {
   ActivityRoutesBundle,
   ActivitySseBundle,
   PageQuery,
-  paginate,
+  
   UserActivitiesResponseSchema,
   UserIdAndTypeParam,
   UserIdParam,
@@ -42,7 +42,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     },
     handler: async (ctx, bundle) => {
       const userId = ctx.user!.userId;
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
+      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
       const result = await bundle.activityService.getFeed(userId, pagination);
       return { feed: result };
     },
@@ -60,7 +60,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     },
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
+      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
       const result = await bundle.activityService.getUserActivities(userId, pagination);
       return { activities: result };
     },
@@ -78,7 +78,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
     },
     handler: async (ctx, bundle) => {
       const { userId, type } = ctx.params as { userId: string; type: string };
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
+      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
       const result = await bundle.activityService.getActivitiesByType(
         userId,
         type as ActivityType,

@@ -30,25 +30,15 @@ export abstract class ActivitySseBundle {
   ): Observable<ActivityFeedSseEvent>;
 }
 
-export const UserIdParam = z.object({ userId: z.string() });
+import {
+  PaginatedResponseSchema,
+  PaginationQuerySchema,
+} from '@/shared-kernel/schemas/common/api.types';
+import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
+
+export const UserIdParam = UserIdParamSchema;
 export const UserIdAndTypeParam = z.object({ userId: z.string(), type: z.string() });
-export const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-export function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-export function paginate(q: { page?: string; limit?: string }): { page: number; limit: number } {
-  return {
-    page: num(q.page, 1),
-    limit: Math.min(num(q.limit, 20), 100),
-  };
-}
+export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ─────────────────────────────────────────────────
 //
@@ -88,19 +78,7 @@ export const ActivityWithUserSchema = z.object({
   user: ActivityUserSchema.optional(),
 });
 
-/**
- * Legacy paginated shape returned by `ActivityService` —
- * `{data, total, page, limit, totalPages}`. Distinct from the canonical
- * `{items, total, ..., hasNext, hasPrev}` envelope; mirrors the actual
- * JSON the handler emits (no migration scheduled yet).
- */
-export const ActivityPaginatedSchema = z.object({
-  data: z.array(ActivityWithUserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export const ActivityPaginatedSchema = PaginatedResponseSchema(ActivityWithUserSchema);
 
 export const ActivityFeedResponseSchema = z.object({ feed: ActivityPaginatedSchema });
 

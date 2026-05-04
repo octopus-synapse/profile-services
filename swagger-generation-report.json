@@ -1,8 +1,8 @@
 {
   "success": true,
   "generatedBy": "route-descriptors",
-  "paths": 346,
-  "operations": 414,
+  "paths": 347,
+  "operations": 415,
   "schemas": 0,
   "tags": [
     "account-lifecycle",
@@ -102,8 +102,8 @@
     "users",
     "webhooks"
   ],
-  "clientPaths": 329,
-  "clientOperations": 397,
+  "clientPaths": 330,
+  "clientOperations": 398,
   "omittedFromSdk": [
     {
       "method": "GET",

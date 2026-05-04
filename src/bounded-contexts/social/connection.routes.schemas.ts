@@ -6,6 +6,11 @@
  */
 
 import { z } from 'zod';
+import {
+  PaginatedResponseSchema,
+  PaginationQuerySchema,
+} from '@/shared-kernel/schemas/common/api.types';
+import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type { ConnectionService } from './services/connection.service';
 import type { FollowService } from './services/follow.service';
 
@@ -14,28 +19,9 @@ export abstract class ConnectionRoutesBundle {
   abstract readonly followService: FollowService;
 }
 
-export const UserIdParam = z.object({ userId: z.string() });
-export const IdParam = z.object({ id: z.string() });
-export const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-export function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-export function paginate(
-  q: { page?: string; limit?: string },
-  defaults: { page?: number; limit?: number; cap?: number } = {},
-): { page: number; limit: number } {
-  return {
-    page: num(q.page, defaults.page ?? 1),
-    limit: Math.min(num(q.limit, defaults.limit ?? 10), defaults.cap ?? 100),
-  };
-}
+export const UserIdParam = UserIdParamSchema;
+export const IdParam = IdParamSchema;
+export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const ConnectionUserSchema = z.object({
@@ -68,28 +54,9 @@ export const ConnectionSuggestionSchema = z.object({
   commonSkills: z.array(z.string()),
 });
 
-/**
- * Legacy paginated shape returned by `ConnectionService` —
- * `{data, total, page, limit, totalPages}`. Distinct from the canonical
- * `{items, total, page, limit, totalPages, hasNext, hasPrev}` response
- * because the service hasn't been migrated yet; the schema mirrors the
- * actual JSON the handler emits.
- */
-export const ConnectionPaginatedSchema = z.object({
-  data: z.array(ConnectionWithUserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export const ConnectionPaginatedSchema = PaginatedResponseSchema(ConnectionWithUserSchema);
 
-export const SuggestionsPaginatedSchema = z.object({
-  data: z.array(ConnectionSuggestionSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export const SuggestionsPaginatedSchema = PaginatedResponseSchema(ConnectionSuggestionSchema);
 
 export const NetworkSummaryResponseSchema = z.object({
   stats: z.object({

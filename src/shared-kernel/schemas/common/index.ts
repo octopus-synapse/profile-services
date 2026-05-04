@@ -2,6 +2,7 @@
  * Common Schemas
  */
 export * from './api.types';
+export * from './build-paginated-response';
 export * from './common.schema';
 export * from './http-client.types';
 export * from './json.schema';

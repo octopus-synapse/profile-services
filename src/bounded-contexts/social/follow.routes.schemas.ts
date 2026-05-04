@@ -7,6 +7,8 @@
  */
 
 import { z } from 'zod';
+import { PaginatedResponseSchema, PaginationQuerySchema } from '@/shared-kernel/schemas/common/api.types';
+import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type {
   ActivityLoggerPort,
   ConnectionReaderPort,
@@ -19,24 +21,8 @@ export abstract class FollowRoutesBundle {
   abstract readonly connectionService: ConnectionReaderPort;
 }
 
-export const UserIdParam = z.object({ userId: z.string() });
-export const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-export function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-export function paginate(q: { page?: string; limit?: string }): { page: number; limit: number } {
-  return {
-    page: num(q.page, 1),
-    limit: Math.min(num(q.limit, 10), 100),
-  };
-}
+export const UserIdParam = UserIdParamSchema;
+export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const FollowUserSchema = z.object({
@@ -56,13 +42,7 @@ export const FollowWithUserSchema = z.object({
   isFollowedByMe: z.boolean().optional(),
 });
 
-export const FollowPaginatedSchema = z.object({
-  data: z.array(FollowWithUserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export const FollowPaginatedSchema = PaginatedResponseSchema(FollowWithUserSchema);
 
 export const FollowIdResponseSchema = z.object({ id: z.string() });
 

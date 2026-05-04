@@ -1,4 +1,5 @@
 import type { FollowWithUser, PaginatedResult, PaginationParams } from '../../ports/follow.port';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import { FollowRepositoryPort } from '../../ports/follow.port';
 
 export class GetFollowersUseCase {
@@ -9,8 +10,8 @@ export class GetFollowersUseCase {
     pagination: PaginationParams,
   ): Promise<PaginatedResult<FollowWithUser>> {
     const { page, limit } = pagination;
-    const { data, total } = await this.repository.findFollowers(userId, pagination);
+    const { items, total } = await this.repository.findFollowers(userId, pagination);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

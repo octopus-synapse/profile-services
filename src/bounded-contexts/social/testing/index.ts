@@ -70,23 +70,23 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
   async findFollowers(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.follows
       .filter((f) => f.followingId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findFollowing(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.follows
       .filter((f) => f.followerId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countFollowers(userId: string): Promise<number> {
@@ -175,35 +175,35 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
   async findActivitiesByUserIds(
     userIds: string[],
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => userIds.includes(a.userId))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivities(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => a.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivitiesByType(
     userId: string,
     type: ActivityType,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => a.userId === userId && a.type === type)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async deleteOlderThan(date: Date): Promise<number> {
@@ -299,34 +299,34 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
   async findPendingRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.targetId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findSentRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.requesterId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countAcceptedConnections(userId: string): Promise<number> {
@@ -348,7 +348,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<
+    items: Array<
       ConnectionUser & {
         reason: string;
         score: number;
@@ -367,7 +367,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
       mutualCount: 0,
       commonSkills: [],
     }));
-    return { data: ranked.slice((page - 1) * limit, page * limit), total: ranked.length };
+    return { items: ranked.slice((page - 1) * limit, page * limit), total: ranked.length };
   }
 
   async userExists(userId: string): Promise<boolean> {

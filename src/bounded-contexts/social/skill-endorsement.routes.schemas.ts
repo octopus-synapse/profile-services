@@ -4,18 +4,20 @@
  */
 
 import { z } from 'zod';
+import {
+  PaginatedResponseSchema,
+  PaginationQuerySchema,
+} from '@/shared-kernel/schemas/common/api.types';
+import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type { SkillEndorsementService } from './services/skill-endorsement.service';
 
 export abstract class SkillEndorsementRoutesBundle {
   abstract readonly service: SkillEndorsementService;
 }
 
-export const UserIdParam = z.object({ userId: z.string() });
+export const UserIdParam = UserIdParamSchema;
 export const UserIdAndSkillParam = z.object({ userId: z.string(), skill: z.string() });
-export const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
+export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const UserSkillSummarySchema = z.object({
@@ -39,12 +41,4 @@ export const EndorserSchema = z.object({
   endorsedAt: z.string().datetime(),
 });
 
-// Legacy `{ data, total, page, limit, totalPages }` shape (matches the
-// existing `ActivityPaginatedSchema` envelope used by the social BC).
-export const EndorsersListResponseSchema = z.object({
-  data: z.array(EndorserSchema),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
-  totalPages: z.number().int().min(0),
-});
+export const EndorsersListResponseSchema = PaginatedResponseSchema(EndorserSchema);

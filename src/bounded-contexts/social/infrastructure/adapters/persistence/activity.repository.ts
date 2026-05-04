@@ -41,7 +41,7 @@ export class ActivityRepository extends ActivityRepositoryPort {
   async findActivitiesByUserIds(
     userIds: string[],
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -56,13 +56,13 @@ export class ActivityRepository extends ActivityRepositoryPort {
       this.prisma.activity.count({ where: { userId: { in: userIds } } }),
     ]);
 
-    return { data: data as ActivityWithUser[], total };
+    return { items: data as ActivityWithUser[], total };
   }
 
   async findUserActivities(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -76,14 +76,14 @@ export class ActivityRepository extends ActivityRepositoryPort {
       this.prisma.activity.count({ where: { userId } }),
     ]);
 
-    return { data: data as ActivityWithUser[], total };
+    return { items: data as ActivityWithUser[], total };
   }
 
   async findUserActivitiesByType(
     userId: string,
     type: ActivityType,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -97,7 +97,7 @@ export class ActivityRepository extends ActivityRepositoryPort {
       this.prisma.activity.count({ where: { userId, type } }),
     ]);
 
-    return { data: data as ActivityWithUser[], total };
+    return { items: data as ActivityWithUser[], total };
   }
 
   async deleteOlderThan(date: Date): Promise<number> {

@@ -3,7 +3,7 @@
  * Replaces `SkillEndorsementController`.
  */
 
-import { z } from 'zod';
+
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import {
@@ -108,13 +108,8 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { userId, skill } = ctx.params as { userId: string; skill: string };
-      const q = ctx.query as z.infer<typeof PageQuery>;
-      return bundle.service.getEndorsers(
-        userId,
-        decodeURIComponent(skill),
-        q.page ? Number(q.page) : undefined,
-        q.limit ? Number(q.limit) : undefined,
-      );
+      const { page, limit } = PageQuery.parse(ctx.query);
+      return bundle.service.getEndorsers(userId, decodeURIComponent(skill), page, limit);
     },
   },
 ];

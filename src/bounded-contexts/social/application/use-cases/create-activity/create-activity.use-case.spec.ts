@@ -43,13 +43,13 @@ class StubActivityRepository implements ActivityRepositoryPort {
     return this._findResult;
   }
   async findActivitiesByUserIds() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivities() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivitiesByType() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async deleteOlderThan() {
     return 0;
@@ -68,10 +68,10 @@ class StubFollowRepository implements FollowRepositoryPort {
     return null;
   }
   async findFollowers() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findFollowing() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async countFollowers() {
     return 0;
