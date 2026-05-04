@@ -30,15 +30,6 @@ export class ResumeQualityBelowThresholdException extends ConflictException {
   ) {
     super(`Resume quality score (${score}) is below the required threshold (${threshold}).`);
   }
-
-  getResponse() {
-    return {
-      code: this.code,
-      statusCode: 409,
-      message: this.message,
-      details: { score: this.score, threshold: this.threshold },
-    };
-  }
 }
 
 /** Resume quality has not been computed yet — the action requires a score. */

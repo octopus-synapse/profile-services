@@ -15,9 +15,9 @@ export interface OnboardingValidationError {
 }
 
 /**
- * Shared base carrying the structured `details` payload and the legacy
- * `getResponse()` contract that the filter still reads. Subclasses below
- * declare the concrete `code` / `statusHint` / default message.
+ * Shared base carrying the structured `details` payload that the error
+ * mapper serialises into the response envelope. Subclasses below declare
+ * the concrete `code` / `statusHint` / default message.
  */
 export abstract class OnboardingValidationException extends DomainException {
   readonly statusHint = 400;
@@ -28,16 +28,6 @@ export abstract class OnboardingValidationException extends DomainException {
   ) {
     super(message);
     this.name = this.constructor.name;
-  }
-
-  getResponse() {
-    return {
-      statusCode: this.statusHint,
-      error: 'Onboarding Validation Failed',
-      code: this.code,
-      message: this.message,
-      details: this.details,
-    };
   }
 
   // --- Factory helpers preserved for call-site compatibility ---------------

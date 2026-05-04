@@ -38,13 +38,4 @@ export class JobMatchFitProfileRequiredException extends ConflictException {
         : 'Fit profile is required to compute matches.',
     );
   }
-
-  getResponse() {
-    return {
-      code: this.code,
-      statusCode: 409,
-      message: this.message,
-      details: { status: this.status },
-    };
-  }
 }

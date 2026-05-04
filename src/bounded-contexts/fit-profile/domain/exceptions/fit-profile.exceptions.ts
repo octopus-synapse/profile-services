@@ -32,15 +32,6 @@ export class FitProfileRequiredException extends ConflictException {
         : 'Fit profile is required for this action.',
     );
   }
-
-  getResponse() {
-    return {
-      code: this.code,
-      statusCode: 409,
-      message: this.message,
-      details: { status: this.status },
-    };
-  }
 }
 
 /** Job has no `JobFitProfile` row associated yet. */
