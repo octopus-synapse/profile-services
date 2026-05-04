@@ -11,7 +11,7 @@ describe('ListBookmarkedJobsUseCase', () => {
 
     const out = await new ListBookmarkedJobsUseCase(repo).execute('me', 1, 20);
     expect(out.total).toBe(1);
-    expect((out.data[0] as { id: string }).id).toBe(job.id);
-    expect((out.data[0] as { bookmarkedAt: Date }).bookmarkedAt).toEqual(bm.createdAt);
+    expect((out.items[0] as { id: string }).id).toBe(job.id);
+    expect((out.items[0] as { bookmarkedAt: Date }).bookmarkedAt).toEqual(bm.createdAt);
   });
 });

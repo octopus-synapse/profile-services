@@ -39,7 +39,6 @@ import {
   JobViewSchema,
   MyApplicationsResponseSchema,
   MyJobsListResponseSchema,
-  num,
   PageOnlyQuerySchema,
   pageOnly,
   RecommendedJobsResponseSchema,
@@ -63,7 +62,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     openapi: { summary: 'List paginated job postings', tags: ['jobs'], description: 'Jobs API' },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const q = ctx.query as z.infer<typeof JobListQuerySchema>;
+      const q = JobListQuerySchema.parse(ctx.query);
       return bc.listJobs.execute(buildJobListInput(q), ctx.user!.userId);
     },
   },
@@ -82,7 +81,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const q = ctx.query as z.infer<typeof JobListQuerySchema>;
+      const q = JobListQuerySchema.parse(ctx.query);
       return bc.listJobsWithFitScore.execute(buildJobListInput(q), ctx.user!.userId);
     },
   },
@@ -100,7 +99,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { page, limit } = pageOnly(ctx.query as z.infer<typeof PageOnlyQuerySchema>);
+      const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       return bc.listMyJobs.execute(ctx.user!.userId, page, limit);
     },
   },
@@ -118,7 +117,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { page, limit } = pageOnly(ctx.query as z.infer<typeof PageOnlyQuerySchema>);
+      const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       return bc.listBookmarkedJobs.execute(ctx.user!.userId, page, limit);
     },
   },
@@ -136,7 +135,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { page, limit } = pageOnly(ctx.query as z.infer<typeof PageOnlyQuerySchema>);
+      const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       return bc.listRecommendedJobs.execute(ctx.user!.userId, page, limit);
     },
   },
@@ -154,7 +153,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const { page, limit } = pageOnly(ctx.query as z.infer<typeof PageOnlyQuerySchema>);
+      const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       return bc.listMyApplications.execute(ctx.user!.userId, page, limit);
     },
   },
@@ -174,7 +173,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const { page, limit } = pageOnly(ctx.query as z.infer<typeof PageOnlyQuerySchema>);
+      const { page, limit } = pageOnly(PageOnlyQuerySchema.parse(ctx.query));
       return bc.listJobApplications.execute(id, ctx.user!.userId, page, limit);
     },
   },
@@ -194,8 +193,9 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const q = ctx.query as z.infer<typeof SimilarQuerySchema>;
-      const limit = Math.min(Math.max(num(q.limit, 5), 1), 10);
+      const q = SimilarQuerySchema.parse(ctx.query);
+      const requested = q.limit ? Number(q.limit) : 5;
+      const limit = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 10) : 5;
       return bc.findSimilarJobs.execute(id, ctx.user!.userId, limit);
     },
   },
@@ -491,7 +491,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const q = ctx.query as z.infer<typeof TrackerQuerySchema>;
+      const q = TrackerQuerySchema.parse(ctx.query);
       const threshold = q.silentDays ? Math.max(1, Number(q.silentDays)) : 10;
       const applications = await bc.listApplicationTimeline.execute(ctx.user!.userId, threshold);
       return { applications };

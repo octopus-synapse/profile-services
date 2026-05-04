@@ -36,7 +36,7 @@ describe('ListJobApplicationsUseCase', () => {
       createdAt: new Date(),
     });
     const out = await new ListJobApplicationsUseCase(repo).execute(job.id, 'owner');
-    expect(out.pagination.total).toBe(1);
+    expect(out.total).toBe(1);
     expect((out.items[0] as { user: { id: string } | null }).user?.id).toBe('candidate');
   });
 });

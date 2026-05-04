@@ -7,10 +7,22 @@
  * module wires `RateLimitGuard` into the synthesizer's guard registry.
  */
 
-import type { EnglishLevel, JobType } from '@prisma/client';
+import {
+  EnglishLevel,
+  type JobType,
+  JobApplicationEventType,
+  JobApplicationStatus,
+  JobType as JobTypeEnumValues,
+  PaymentCurrency,
+  RemotePolicy,
+} from '@prisma/client';
 import { z } from 'zod';
 import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
-import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
+import {
+  PaginatedResponseSchema,
+  PaginationQuerySchema,
+} from '@/shared-kernel/schemas/common/api.types';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,
@@ -19,13 +31,11 @@ import {
 
 export { RATE_LIMIT_KEY };
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 export const ApplicationIdParam = z.object({ applicationId: z.string() });
 export const CompanyParam = z.object({ company: z.string() });
 
-export const JobListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
+export const JobListQuerySchema = PaginationQuerySchema.extend({
   search: z.string().max(500).optional(),
   jobType: z.string().optional(),
   skills: z.string().max(500).optional(),
@@ -34,10 +44,7 @@ export const JobListQuerySchema = z.object({
   minEnglishLevel: z.string().optional(),
 });
 
-export const PageOnlyQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
+export const PageOnlyQuerySchema = PaginationQuerySchema;
 
 export const SimilarQuerySchema = z.object({ limit: z.string().optional() });
 
@@ -89,33 +96,12 @@ export const ApplyContextResponseSchema = z.object({
 });
 
 // ─── Response schemas ─────────────────────────────────────────────────
-export const JobTypeEnum = z.enum([
-  'FULL_TIME',
-  'PART_TIME',
-  'CONTRACT',
-  'INTERNSHIP',
-  'FREELANCE',
-]);
-export const RemotePolicyEnum = z.enum(['REMOTE', 'HYBRID', 'ONSITE']);
-export const PaymentCurrencyEnum = z.enum(['BRL', 'USD', 'EUR', 'GBP']);
-export const EnglishLevelEnum = z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']);
-export const JobApplicationStatusEnum = z.enum([
-  'SUBMITTED',
-  'VIEWED',
-  'REJECTED',
-  'ACCEPTED',
-  'WITHDRAWN',
-]);
-export const JobApplicationEventTypeEnum = z.enum([
-  'SUBMITTED',
-  'VIEWED',
-  'INTERVIEW_SCHEDULED',
-  'INTERVIEW_COMPLETED',
-  'OFFER_RECEIVED',
-  'REJECTED',
-  'WITHDRAWN',
-  'FOLLOW_UP_SENT',
-]);
+export const JobTypeEnum = z.nativeEnum(JobTypeEnumValues);
+export const RemotePolicyEnum = z.nativeEnum(RemotePolicy);
+export const PaymentCurrencyEnum = z.nativeEnum(PaymentCurrency);
+export const EnglishLevelEnum = z.nativeEnum(EnglishLevel);
+export const JobApplicationStatusEnum = z.nativeEnum(JobApplicationStatus);
+export const JobApplicationEventTypeEnum = z.nativeEnum(JobApplicationEventType);
 
 export const JobAuthorSchema = z.object({
   id: z.string(),
@@ -177,26 +163,14 @@ export const JobsListResponseSchema = PaginatedResponseSchema(JobViewSchema);
 export const JobsListWithFitScoreResponseSchema = PaginatedResponseSchema(JobWithFitScoreSchema);
 export const MyJobsListResponseSchema = PaginatedResponseSchema(JobSchema);
 
-// Legacy `{ data, total, page, limit, totalPages }` shape — preserved
-// because the underlying use case still emits it (not yet migrated to
-// the canonical `{ items, ..., hasNext, hasPrev }` paginator).
-export const LegacyPaginatedSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
-  z.object({
-    data: z.array(itemSchema),
-    total: z.number().int().min(0),
-    page: z.number().int().min(1),
-    limit: z.number().int().min(1),
-    totalPages: z.number().int().min(0),
-  });
-
 export const BookmarkedJobItemSchema = JobWithAuthorSchema.extend({
   bookmarkedAt: z.string().datetime(),
 });
 
-export const BookmarkedJobsResponseSchema = LegacyPaginatedSchema(BookmarkedJobItemSchema);
+export const BookmarkedJobsResponseSchema = PaginatedResponseSchema(BookmarkedJobItemSchema);
 
 export const RecommendedJobItemSchema = JobViewSchema.extend({ matchScore: z.number() });
-export const RecommendedJobsResponseSchema = LegacyPaginatedSchema(RecommendedJobItemSchema);
+export const RecommendedJobsResponseSchema = PaginatedResponseSchema(RecommendedJobItemSchema);
 
 // `listMyApplications` returns `data: ApplicationWithJob[]` (typed
 // `unknown[]` in the use case but emitted as application + denormalized
@@ -216,7 +190,7 @@ export const ApplicationWithJobSchema = JobApplicationSchema.extend({
   job: JobWithAuthorSchema,
 });
 
-export const MyApplicationsResponseSchema = LegacyPaginatedSchema(ApplicationWithJobSchema);
+export const MyApplicationsResponseSchema = PaginatedResponseSchema(ApplicationWithJobSchema);
 
 // Employer-side: list of applications received on a job. The use case
 // projects each row into `{...applicationListItem, user: candidate | null}`.
@@ -238,15 +212,7 @@ export const JobApplicationListItemSchema = z.object({
   user: ApplicationCandidateSchema.nullable(),
 });
 
-export const JobApplicationsResponseSchema = z.object({
-  items: z.array(JobApplicationListItemSchema),
-  pagination: z.object({
-    page: z.number().int().min(1),
-    pageSize: z.number().int().min(1),
-    total: z.number().int().min(0),
-    totalPages: z.number().int().min(0),
-  }),
-});
+export const JobApplicationsResponseSchema = PaginatedResponseSchema(JobApplicationListItemSchema);
 
 export const SimilarJobItemSchema = JobViewSchema.extend({ skillOverlap: z.number() });
 export const SimilarJobsResponseSchema = z.object({
@@ -337,16 +303,10 @@ export const ImportJobFromUrlResponseSchema = z.object({
   preview: ExtractedJobSchema,
 });
 
-export function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 export function buildJobListInput(q: z.infer<typeof JobListQuerySchema>) {
   return {
-    page: Math.min(Math.max(num(q.page, 1), 1), 1000),
-    limit: Math.min(Math.max(num(q.limit, 20), 1), 100),
+    page: q.page,
+    limit: q.limit,
     search: q.search,
     jobType: q.jobType as JobType | undefined,
     skills: parseSkillsCsv(q.skills),
@@ -357,8 +317,5 @@ export function buildJobListInput(q: z.infer<typeof JobListQuerySchema>) {
 }
 
 export function pageOnly(q: z.infer<typeof PageOnlyQuerySchema>): { page: number; limit: number } {
-  return {
-    page: Math.min(Math.max(num(q.page, 1), 1), 1000),
-    limit: Math.min(Math.max(num(q.limit, 20), 1), 100),
-  };
+  return { page: q.page, limit: q.limit };
 }

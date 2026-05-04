@@ -1,4 +1,10 @@
-import { EnglishLevel, JobType, PaymentCurrency, RemotePolicy } from '@prisma/client';
+import {
+  EnglishLevel,
+  JobApplicationStatus,
+  JobType,
+  PaymentCurrency,
+  RemotePolicy,
+} from '@prisma/client';
 import { z } from 'zod';
 
 // Use the Prisma enum values as the source of truth so the DTO type matches
@@ -8,6 +14,7 @@ const JobTypeEnum = z.nativeEnum(JobType);
 const RemotePolicyEnum = z.nativeEnum(RemotePolicy);
 const PaymentCurrencyEnum = z.nativeEnum(PaymentCurrency);
 const EnglishLevelEnum = z.nativeEnum(EnglishLevel);
+const JobApplicationStatusEnum = z.nativeEnum(JobApplicationStatus);
 
 // ============================================================================
 // Create job
@@ -104,14 +111,6 @@ const JobApplicationCandidateSchema = z.object({
   email: z.string(),
   photoURL: z.string().nullable(),
 });
-
-const JobApplicationStatusEnum = z.enum([
-  'SUBMITTED',
-  'VIEWED',
-  'REJECTED',
-  'ACCEPTED',
-  'WITHDRAWN',
-]);
 
 const JobApplicationItemSchema = z.object({
   id: z.string(),
