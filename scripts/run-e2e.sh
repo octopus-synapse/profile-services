@@ -307,9 +307,14 @@ if [[ "$STARTED_BY_US" == "true" ]]; then
     log_step "Cleaning up previous containers..."
     docker compose -f "$COMPOSE_FILE" down -v --remove-orphans 2>/dev/null || true
 
-    # Start containers
+    # Start containers. `--renew-anon-volumes` discards the anonymous
+    # `/app/node_modules` volume from the previous run so a freshly
+    # rebuilt backend image isn't shadowed by stale dependencies (the
+    # bug that bit us when we swapped @aws-sdk → minio: the image
+    # had the right node_modules but the volume from the previous
+    # boot was layered on top with the old contents).
     log_step "Starting containers..."
-    docker compose -f "$COMPOSE_FILE" up -d 2>&1 | grep -v "^$" || true
+    docker compose -f "$COMPOSE_FILE" up -d --renew-anon-volumes 2>&1 | grep -v "^$" || true
 
     # Re-fetch connection info after containers start
     sleep 2
