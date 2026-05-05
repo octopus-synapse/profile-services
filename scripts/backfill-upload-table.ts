@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * P0-005 follow-up: backfill the `Upload` table with rows for legacy
- * S3 keys that pre-date the table.
+ * MinIO keys that pre-date the table.
  *
  * Without this script, legacy uploads stay in "limbo" — the per-delete
  * lazy backfill (in `DeleteUploadUseCase`) eventually catches up, but
@@ -9,8 +9,9 @@
  * up-front so a single bulk-delete sweep can scope the right keys.
  *
  * Approach:
- *   1. List every object in `MINIO_BUCKET` via `ListObjectsV2`,
- *      paginating with `ContinuationToken` until the bucket is drained.
+ *   1. Stream every object in `MINIO_BUCKET` via the official `minio`
+ *      SDK (`listObjectsV2`, recursive). The stream paginates
+ *      transparently — we just consume it.
  *   2. For each key, infer `userId` using the same path-convention rule
  *      `inferOwnerFromKeyPath()` uses in the lazy-backfill use case.
  *   3. INSERT a row only when (a) inferred userId looks valid AND
@@ -26,8 +27,8 @@
  *   bun run scripts/backfill-upload-table.ts --max=10000
  */
 
-import { type _Object, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3';
 import { PrismaClient } from '@prisma/client';
+import { type BucketItem, Client as MinioClient } from 'minio';
 import { inferOwnerFromKeyPath } from '@/bounded-contexts/integration/upload/application/use-cases/delete-upload/delete-upload.use-case';
 
 interface Args {
@@ -48,14 +49,27 @@ function parseArgs(argv: string[]): Args {
   return { dryRun, max };
 }
 
+interface ParsedEndpoint {
+  readonly endPoint: string;
+  readonly port: number;
+  readonly useSSL: boolean;
+}
+
+function parseEndpoint(url: string): ParsedEndpoint {
+  const u = new URL(url);
+  const useSSL = u.protocol === 'https:';
+  const port = u.port ? Number(u.port) : useSSL ? 443 : 80;
+  return { endPoint: u.hostname, port, useSSL };
+}
+
 async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
 
   const endpoint = process.env.MINIO_ENDPOINT;
-  const accessKeyId = process.env.MINIO_ACCESS_KEY;
-  const secretAccessKey = process.env.MINIO_SECRET_KEY;
+  const accessKey = process.env.MINIO_ACCESS_KEY;
+  const secretKey = process.env.MINIO_SECRET_KEY;
   const bucket = process.env.MINIO_BUCKET;
-  if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+  if (!endpoint || !accessKey || !secretKey || !bucket) {
     // eslint-disable-next-line no-console
     console.error(
       'backfill-upload-table: MINIO_* env vars not configured (need ENDPOINT, ACCESS_KEY, SECRET_KEY, BUCKET).',
@@ -63,11 +77,13 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const s3 = new S3Client({
-    endpoint,
-    region: 'us-east-1',
-    credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: true,
+  const parsed = parseEndpoint(endpoint);
+  const minio = new MinioClient({
+    endPoint: parsed.endPoint,
+    port: parsed.port,
+    useSSL: parsed.useSSL,
+    accessKey,
+    secretKey,
   });
   const prisma = new PrismaClient();
 
@@ -75,57 +91,47 @@ async function main(): Promise<number> {
   let inserted = 0;
   let skippedExisting = 0;
   let skippedNoOwner = 0;
-  let token: string | undefined;
 
   try {
-    do {
-      const out = await s3.send(
-        new ListObjectsV2Command({
-          Bucket: bucket,
-          ContinuationToken: token,
-          MaxKeys: 1000,
-        }),
-      );
-      const contents: _Object[] = out.Contents ?? [];
-      for (const obj of contents) {
-        if (scanned >= args.max) break;
-        scanned += 1;
-        if (!obj.Key) continue;
-        const owner = inferOwnerFromKeyPath(obj.Key);
-        if (!owner) {
-          skippedNoOwner += 1;
-          continue;
-        }
-
-        const existing = await prisma.upload.findUnique({
-          where: { key: obj.Key },
-          select: { key: true },
-        });
-        if (existing) {
-          skippedExisting += 1;
-          continue;
-        }
-
-        if (args.dryRun) {
-          // eslint-disable-next-line no-console
-          console.log(`[dry-run] would insert key=${obj.Key} userId=${owner}`);
-        } else {
-          await prisma.upload.create({
-            data: {
-              key: obj.Key,
-              userId: owner,
-              sizeBytes: typeof obj.Size === 'number' ? obj.Size : null,
-            },
-          });
-        }
-        inserted += 1;
-        if (inserted % 100 === 0) {
-          // eslint-disable-next-line no-console
-          console.log(`progress: scanned=${scanned} inserted=${inserted}`);
-        }
+    const stream = minio.listObjectsV2(bucket, '', true);
+    for await (const obj of stream as AsyncIterable<BucketItem>) {
+      if (scanned >= args.max) break;
+      scanned += 1;
+      const key = obj.name;
+      if (!key) continue;
+      const owner = inferOwnerFromKeyPath(key);
+      if (!owner) {
+        skippedNoOwner += 1;
+        continue;
       }
-      token = out.IsTruncated ? out.NextContinuationToken : undefined;
-    } while (token && scanned < args.max);
+
+      const existing = await prisma.upload.findUnique({
+        where: { key },
+        select: { key: true },
+      });
+      if (existing) {
+        skippedExisting += 1;
+        continue;
+      }
+
+      if (args.dryRun) {
+        // eslint-disable-next-line no-console
+        console.log(`[dry-run] would insert key=${key} userId=${owner}`);
+      } else {
+        await prisma.upload.create({
+          data: {
+            key,
+            userId: owner,
+            sizeBytes: typeof obj.size === 'number' ? obj.size : null,
+          },
+        });
+      }
+      inserted += 1;
+      if (inserted % 100 === 0) {
+        // eslint-disable-next-line no-console
+        console.log(`progress: scanned=${scanned} inserted=${inserted}`);
+      }
+    }
 
     // eslint-disable-next-line no-console
     console.log(

@@ -1,12 +1,4 @@
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  HeadBucketCommand,
-  NoSuchKey,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Client as MinioClient, S3Error } from 'minio';
 import { z } from 'zod';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { LoggerPort } from '@/shared-kernel/logger';
@@ -28,18 +20,37 @@ const MinioConfigSchema = z.object({
     .optional(),
 });
 
+interface ParsedEndpoint {
+  readonly endPoint: string;
+  readonly port: number;
+  readonly useSSL: boolean;
+}
+
+function parseEndpoint(url: string): ParsedEndpoint {
+  const u = new URL(url);
+  const useSSL = u.protocol === 'https:';
+  const port = u.port ? Number(u.port) : useSSL ? 443 : 80;
+  return { endPoint: u.hostname, port, useSSL };
+}
+
 /**
- * Framework-free S3/MinIO upload service. POJO consumed by both the
- * Nest `useFactory` shell and the Elysia bootstrap via
- * `buildS3UploadService(config, logger)`.
+ * Framework-free MinIO upload service. POJO consumed by the Elysia
+ * bootstrap via `buildS3UploadService(config, logger)`.
  *
  * Reads MinIO env via the injected `ConfigPort` so it stays portable
- * between Nest's `ConfigService` and the Bun `ProcessEnvConfigAdapter`.
- * The `MINIO_PUBLIC_ENDPOINT` URL fallback is also routed through the
- * port to avoid `process.env` reads inside the class body.
+ * between the legacy Nest `ConfigService` and the Bun
+ * `ProcessEnvConfigAdapter`. The `MINIO_PUBLIC_ENDPOINT` URL fallback
+ * is also routed through the port to avoid `process.env` reads inside
+ * the class body.
+ *
+ * Backed by the official `minio` SDK — no AWS SDK dep — because the
+ * deployment target is MinIO (self-hosted S3-compatible). The class
+ * name stays `S3UploadService` for now to avoid a wide rename across
+ * BCs; a follow-up can rename to `StorageService` if desired.
  */
 export class S3UploadService {
-  private client: S3Client | null = null;
+  private client: MinioClient | null = null;
+  private presignClient: MinioClient | null = null;
   private bucket: string | null = null;
   private _isEnabled: boolean;
   private readonly publicEndpoint: string | undefined;
@@ -68,20 +79,38 @@ export class S3UploadService {
 
     const {
       MINIO_ENDPOINT: endpoint,
-      MINIO_ACCESS_KEY: accessKeyId,
-      MINIO_SECRET_KEY: secretAccessKey,
+      MINIO_ACCESS_KEY: accessKey,
+      MINIO_SECRET_KEY: secretKey,
       MINIO_BUCKET: bucket,
     } = parsed.data;
-    this._isEnabled = !!(endpoint && accessKeyId && secretAccessKey && bucket);
+    this._isEnabled = !!(endpoint && accessKey && secretKey && bucket);
 
-    if (this._isEnabled && endpoint && accessKeyId && secretAccessKey) {
+    if (this._isEnabled && endpoint && accessKey && secretKey) {
       try {
-        this.client = new S3Client({
-          endpoint,
-          region: 'us-east-1', // MinIO requires a region but doesn't use it
-          credentials: { accessKeyId, secretAccessKey },
-          forcePathStyle: true, // Required for MinIO
+        const internal = parseEndpoint(endpoint);
+        this.client = new MinioClient({
+          endPoint: internal.endPoint,
+          port: internal.port,
+          useSSL: internal.useSSL,
+          accessKey,
+          secretKey,
         });
+
+        // Presign URLs need the public-facing endpoint so a browser
+        // outside the docker network can resolve them.
+        if (this.publicEndpoint) {
+          const pub = parseEndpoint(this.publicEndpoint);
+          this.presignClient = new MinioClient({
+            endPoint: pub.endPoint,
+            port: pub.port,
+            useSSL: pub.useSSL,
+            accessKey,
+            secretKey,
+          });
+        } else {
+          this.presignClient = this.client;
+        }
+
         this.bucket = bucket ?? null;
         this.logger.log('MinIO upload service initialized', 'S3UploadService', {
           endpoint,
@@ -120,15 +149,12 @@ export class S3UploadService {
     // users.
     const acl = options.acl ?? 'public-read';
 
-    const command = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      Body: file,
-      ContentType: contentType,
-      ACL: acl,
-    });
+    const metaData: Record<string, string> = {
+      'Content-Type': contentType,
+      'x-amz-acl': acl,
+    };
 
-    await this.client.send(command);
+    await this.client.putObject(this.bucket, key, file, file.length, metaData);
 
     // Build MinIO URL — use public endpoint if available (for Docker networking)
     const endpoint = this.publicEndpoint ?? this.config.get<string>('MINIO_ENDPOINT');
@@ -153,15 +179,14 @@ export class S3UploadService {
       return null;
     }
     try {
-      const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
-      const response = await this.client.send(command);
-      if (!response.Body) return null;
-      const bytes = await response.Body.transformToByteArray();
-      return Buffer.from(bytes);
-    } catch (error) {
-      if (error instanceof NoSuchKey || (error as { name?: string })?.name === 'NoSuchKey') {
-        return null;
+      const stream = await this.client.getObject(this.bucket, key);
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
       }
+      return Buffer.concat(chunks);
+    } catch (error) {
+      if (isNotFoundError(error)) return null;
       throw error;
     }
   }
@@ -173,12 +198,8 @@ export class S3UploadService {
     }
 
     try {
-      const command = new DeleteObjectCommand({ Bucket: this.bucket, Key: key });
-
-      await this.client.send(command);
-
+      await this.client.removeObject(this.bucket, key);
       this.logger.log('File deleted from MinIO successfully', 'S3UploadService', { key });
-
       return true;
     } catch (error) {
       this.logger.error(`Failed to delete file from MinIO: ${key}`, {
@@ -190,7 +211,7 @@ export class S3UploadService {
   }
 
   /**
-   * Check if S3/MinIO is enabled
+   * Check if MinIO is enabled
    */
   get isEnabled(): boolean {
     return this._isEnabled;
@@ -246,6 +267,9 @@ export class S3UploadService {
    * frontend hands the URL directly to the browser via `<a href download>`.
    * Object is NOT public-read — only the signed URL grants access, and
    * only until `ttlSeconds` elapses.
+   *
+   * The presigned URL is signed against `MINIO_PUBLIC_ENDPOINT` when
+   * configured so the browser (outside the docker network) can resolve it.
    */
   async uploadAndPresign(opts: {
     key: string;
@@ -254,46 +278,26 @@ export class S3UploadService {
     filename: string;
     ttlSeconds: number;
   }): Promise<{ downloadUrl: string; expiresAt: string }> {
-    if (!this._isEnabled || !this.client || !this.bucket) {
+    if (!this._isEnabled || !this.client || !this.bucket || !this.presignClient) {
       throw new StorageConfigurationException();
     }
 
+    const safeFilename = opts.filename.replace(/"/g, '');
     try {
-      await this.client.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: opts.key,
-          Body: opts.body,
-          ContentType: opts.contentType,
-          ContentDisposition: `attachment; filename="${opts.filename.replace(/"/g, '')}"`,
-        }),
-      );
+      await this.client.putObject(this.bucket, opts.key, opts.body, opts.body.length, {
+        'Content-Type': opts.contentType,
+        'Content-Disposition': `attachment; filename="${safeFilename}"`,
+        'x-amz-acl': 'private',
+      });
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'unknown error';
       throw new StorageUploadFailedException(reason);
     }
 
-    // Sign with the public-facing endpoint when configured so the browser
-    // can resolve the URL (the in-cluster MinIO host is unreachable from
-    // the user's machine).
-    const presignClient = this.publicEndpoint
-      ? new S3Client({
-          endpoint: this.publicEndpoint,
-          region: 'us-east-1',
-          credentials: {
-            accessKeyId: this.config.get<string>('MINIO_ACCESS_KEY') ?? '',
-            secretAccessKey: this.config.get<string>('MINIO_SECRET_KEY') ?? '',
-          },
-          forcePathStyle: true,
-        })
-      : this.client;
-
-    const downloadUrl = await getSignedUrl(
-      // biome-ignore lint/suspicious/noExplicitAny: hoisted @smithy/types versions diverge between s3-request-presigner sub-dep and top-level @smithy/types
-      presignClient as any,
-      // biome-ignore lint/suspicious/noExplicitAny: same reason
-      new GetObjectCommand({ Bucket: this.bucket, Key: opts.key }) as any,
-      { expiresIn: opts.ttlSeconds },
+    const downloadUrl = await this.presignClient.presignedGetObject(
+      this.bucket,
+      opts.key,
+      opts.ttlSeconds,
     );
 
     return {
@@ -303,7 +307,7 @@ export class S3UploadService {
   }
 
   /**
-   * Check connection to S3/MinIO bucket
+   * Check connection to MinIO bucket
    */
   async checkConnection(): Promise<boolean> {
     if (!this._isEnabled || !this.client || !this.bucket) {
@@ -311,15 +315,21 @@ export class S3UploadService {
     }
 
     try {
-      const command = new HeadBucketCommand({ Bucket: this.bucket });
-      await this.client.send(command);
-      return true;
+      return await this.client.bucketExists(this.bucket);
     } catch (error) {
-      this.logger.error('S3/MinIO connection check failed', {
+      this.logger.error('MinIO connection check failed', {
         context: 'S3UploadService',
         stack: error instanceof Error ? error.stack : undefined,
       });
       return false;
     }
   }
+}
+
+function isNotFoundError(err: unknown): boolean {
+  if (err instanceof S3Error) {
+    return err.code === 'NoSuchKey' || err.code === 'NotFound';
+  }
+  const code = (err as { code?: string })?.code;
+  return code === 'NoSuchKey' || code === 'NotFound';
 }
