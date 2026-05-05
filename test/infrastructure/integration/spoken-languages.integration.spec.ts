@@ -41,11 +41,10 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
-      expect(Array.isArray(res.body.data.languages)).toBe(true);
+      expect(res.body.languages).toBeDefined();
+      expect(Array.isArray(res.body.languages)).toBe(true);
       // Seed has 31 languages (30 + "Other")
-      expect(res.body.data.languages.length).toBeGreaterThanOrEqual(30);
+      expect(res.body.languages.length).toBeGreaterThanOrEqual(30);
     });
 
     it('should return languages with expected shape', async () => {
@@ -56,7 +55,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const lang = res.body.data.languages[0];
+      const lang = res.body.languages[0];
       expect(lang).toHaveProperty('code');
       expect(lang).toHaveProperty('nameEn');
       expect(lang).toHaveProperty('namePtBr');
@@ -73,7 +72,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const codes = res.body.data.languages.map((l: { code: string }) => l.code);
+      const codes = res.body.languages.map((l: { code: string }) => l.code);
       expect(codes).toContain('en');
       expect(codes).toContain('pt');
       expect(codes).toContain('es');
@@ -87,7 +86,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const codes = res.body.data.languages.map((l: { code: string }) => l.code);
+      const codes = res.body.languages.map((l: { code: string }) => l.code);
       expect(codes).toContain('other');
     });
 
@@ -112,12 +111,11 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
-      expect(res.body.data.languages.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.languages).toBeDefined();
+      expect(res.body.languages.length).toBeGreaterThanOrEqual(1);
 
       // Should find Portuguese
-      const names = res.body.data.languages.map((l: { nameEn: string }) => l.nameEn.toLowerCase());
+      const names = res.body.languages.map((l: { nameEn: string }) => l.nameEn.toLowerCase());
       expect(names.some((n: string) => n.includes('portuguese'))).toBe(true);
     });
 
@@ -134,8 +132,8 @@ describeIntegration('Spoken Languages Integration', () => {
 
       expect(resLower.status).toBe(200);
       expect(resUpper.status).toBe(200);
-      expect(resLower.body.data.languages.length).toBeGreaterThanOrEqual(1);
-      expect(resUpper.body.data.languages.length).toBeGreaterThanOrEqual(1);
+      expect(resLower.body.languages.length).toBeGreaterThanOrEqual(1);
+      expect(resUpper.body.languages.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should return empty for no matches', async () => {
@@ -146,7 +144,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages).toHaveLength(0);
+      expect(res.body.languages).toHaveLength(0);
     });
 
     it('should handle empty query', async () => {
@@ -157,9 +155,8 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
       // Empty query should return languages (up to limit)
-      expect(res.body.data.languages).toBeDefined();
+      expect(res.body.languages).toBeDefined();
     });
 
     it('should respect limit parameter', async () => {
@@ -170,7 +167,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages.length).toBeLessThanOrEqual(3);
+      expect(res.body.languages.length).toBeLessThanOrEqual(3);
     });
 
     it('should reject invalid limit parameter', async () => {
@@ -211,7 +208,7 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages).toHaveLength(0);
+      expect(res.body.languages).toHaveLength(0);
     });
 
     it('should handle unicode characters in query', async () => {
@@ -223,7 +220,6 @@ describeIntegration('Spoken Languages Integration', () => {
 
       // Should not crash, regardless of result
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
   });
 
@@ -239,10 +235,9 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.language).toBeDefined();
-      expect(res.body.data.language.code).toBe('en');
-      expect(res.body.data.language.nameEn).toBe('English');
+      expect(res.body.language).toBeDefined();
+      expect(res.body.language.code).toBe('en');
+      expect(res.body.language.nameEn).toBe('English');
     });
 
     it('should return Portuguese by code', async () => {
@@ -253,9 +248,9 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language.code).toBe('pt');
-      expect(res.body.data.language.nameEn).toBe('Portuguese');
-      expect(res.body.data.language.namePtBr).toBe('Português');
+      expect(res.body.language.code).toBe('pt');
+      expect(res.body.language.nameEn).toBe('Portuguese');
+      expect(res.body.language.namePtBr).toBe('Português');
     });
 
     it('should return 404 for invalid code', async () => {
@@ -286,9 +281,9 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language.code).toBe('ja');
-      expect(res.body.data.language.nameEn).toBe('Japanese');
-      expect(res.body.data.language.nativeName).toBe('日本語');
+      expect(res.body.language.code).toBe('ja');
+      expect(res.body.language.nameEn).toBe('Japanese');
+      expect(res.body.language.nativeName).toBe('日本語');
     });
 
     it('should return the "other" language option', async () => {
@@ -299,8 +294,8 @@ describeIntegration('Spoken Languages Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language.code).toBe('other');
-      expect(res.body.data.language.nameEn).toBe('Other');
+      expect(res.body.language.code).toBe('other');
+      expect(res.body.language.nameEn).toBe('Other');
     });
   });
 });

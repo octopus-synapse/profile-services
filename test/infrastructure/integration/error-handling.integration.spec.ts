@@ -85,13 +85,7 @@ describe('Error Handling Integration', () => {
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(401);
-      // Error envelope is `{ success: false, error: { code, message } }`
-      // or — for legacy callers — a flat `{ message }`. Either is fine.
-      const hasMessage =
-        typeof response.body === 'object' &&
-        response.body !== null &&
-        ('message' in response.body || ('error' in response.body && response.body.error?.message));
-      expect(hasMessage).toBeTruthy();
+      expect(response.body.message).toBeDefined();
     });
   });
 
@@ -119,18 +113,18 @@ describe('Error Handling Integration', () => {
   describe('BUG-029: Validation Error Format', () => {
     it('should return structured validation errors', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({ email: 'not-an-email', password: 'short', name: '' });
 
       // 400 or 422 for validation errors (Zod returns 422 by default)
       expect([400, 422]).toContain(response.status);
-      // Check for message OR errors array (Zod format)
-      const hasMessage = response.body.message || response.body.errors || response.body.error;
-      expect(hasMessage).toBeTruthy();
+      expect(response.body.message).toBeDefined();
     });
 
     it('should list all validation errors', async () => {
-      const response = await getRequest().post('/api/auth/login').send({ email: '', password: '' });
+      const response = await getRequest()
+        .post('/api/v1/auth/login')
+        .send({ email: '', password: '' });
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);

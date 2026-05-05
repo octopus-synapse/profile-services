@@ -31,8 +31,8 @@ describeIntegration('MEC Integration', () => {
 
     // Check if MEC data exists by fetching stats
     const statsRes = await app.request.get('/api/v1/mec/stats');
-    if (statsRes.status === 200 && statsRes.body.data?.stats) {
-      const stats = statsRes.body.data.stats;
+    if (statsRes.status === 200 && statsRes.body?.stats) {
+      const stats = statsRes.body.stats;
       hasMecData = (stats.totalInstitutions > 0 || stats.totalCourses > 0) ?? false;
     }
   }, 15000);
@@ -43,10 +43,9 @@ describeIntegration('MEC Integration', () => {
     it('should return MEC statistics', async () => {
       const res = await app.request.get('/api/v1/mec/stats').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.stats).toBeDefined();
+      expect(res.body.stats).toBeDefined();
 
-      const stats = res.body.data.stats;
+      const stats = res.body.stats;
       expect(typeof stats.totalInstitutions).toBe('number');
       expect(typeof stats.totalCourses).toBe('number');
       expect(stats.totalInstitutions).toBeGreaterThanOrEqual(0);
@@ -60,11 +59,10 @@ describeIntegration('MEC Integration', () => {
     it('should return list of Brazilian states', async () => {
       const res = await app.request.get('/api/v1/mec/ufs').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.states).toBeDefined();
+      expect(res.body.states).toBeDefined();
 
       if (hasMecData) {
-        const states = res.body.data.states;
+        const states = res.body.states;
         expect(Array.isArray(states)).toBe(true);
         expect(states.length).toBeGreaterThan(0);
 
@@ -84,12 +82,11 @@ describeIntegration('MEC Integration', () => {
     it('should return knowledge areas', async () => {
       const res = await app.request.get('/api/v1/mec/areas').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.areas).toBeDefined();
+      expect(res.body.areas).toBeDefined();
 
       if (hasMecData) {
-        expect(Array.isArray(res.body.data.areas)).toBe(true);
-        expect(res.body.data.areas.length).toBeGreaterThan(0);
+        expect(Array.isArray(res.body.areas)).toBe(true);
+        expect(res.body.areas.length).toBeGreaterThan(0);
       }
     });
   });
@@ -107,8 +104,7 @@ describeIntegration('MEC Integration', () => {
         .get('/api/v1/mec/institutions/search?q=universidade')
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.institutions)).toBe(true);
+      expect(Array.isArray(res.body.institutions)).toBe(true);
     });
 
     it('should search with special characters (Sao Paulo)', async () => {
@@ -118,8 +114,7 @@ describeIntegration('MEC Integration', () => {
         .get(`/api/v1/mec/institutions/search?q=${encodeURIComponent('São Paulo')}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.institutions)).toBe(true);
+      expect(Array.isArray(res.body.institutions)).toBe(true);
     });
 
     it('should respect limit parameter', async () => {
@@ -129,7 +124,7 @@ describeIntegration('MEC Integration', () => {
         .get('/api/v1/mec/institutions/search?q=faculdade&limit=3')
         .expect(200);
 
-      expect(res.body.data.institutions.length).toBeLessThanOrEqual(3);
+      expect(res.body.institutions.length).toBeLessThanOrEqual(3);
     });
 
     it('should return empty results for nonsense query', async () => {
@@ -137,8 +132,7 @@ describeIntegration('MEC Integration', () => {
         .get('/api/v1/mec/institutions/search?q=zzzznonexistent12345')
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.institutions).toEqual([]);
+      expect(res.body.institutions).toEqual([]);
     });
 
     it('should handle empty search query', async () => {
@@ -147,7 +141,6 @@ describeIntegration('MEC Integration', () => {
       // Should return 200 with empty results or 400
       expect([200, 400]).toContain(res.status);
       if (res.status === 200) {
-        expect(res.body.success).toBe(true);
       }
     });
   });
@@ -158,8 +151,7 @@ describeIntegration('MEC Integration', () => {
     it('should list institutions (no filter)', async () => {
       const res = await app.request.get('/api/v1/mec/institutions').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.institutions)).toBe(true);
+      expect(Array.isArray(res.body.institutions)).toBe(true);
     });
 
     it('should filter institutions by state (UF)', async () => {
@@ -167,8 +159,7 @@ describeIntegration('MEC Integration', () => {
 
       const res = await app.request.get('/api/v1/mec/institutions?uf=SP').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.institutions)).toBe(true);
+      expect(Array.isArray(res.body.institutions)).toBe(true);
     });
   });
 
@@ -183,8 +174,7 @@ describeIntegration('MEC Integration', () => {
 
       const res = await app.request.get('/api/v1/mec/courses/search?q=engenharia').expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.courses)).toBe(true);
+      expect(Array.isArray(res.body.courses)).toBe(true);
     });
 
     it('should search with accented characters', async () => {
@@ -194,8 +184,7 @@ describeIntegration('MEC Integration', () => {
         .get(`/api/v1/mec/courses/search?q=${encodeURIComponent('ciência')}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.courses)).toBe(true);
+      expect(Array.isArray(res.body.courses)).toBe(true);
     });
 
     it('should respect limit parameter', async () => {
@@ -205,7 +194,7 @@ describeIntegration('MEC Integration', () => {
         .get('/api/v1/mec/courses/search?q=administracao&limit=2')
         .expect(200);
 
-      expect(res.body.data.courses.length).toBeLessThanOrEqual(2);
+      expect(res.body.courses.length).toBeLessThanOrEqual(2);
     });
 
     it('should return empty results for no matches', async () => {
@@ -213,7 +202,7 @@ describeIntegration('MEC Integration', () => {
         .get('/api/v1/mec/courses/search?q=xyznonexistent98765')
         .expect(200);
 
-      expect(res.body.data.courses).toEqual([]);
+      expect(res.body.courses).toEqual([]);
     });
 
     it('should reject invalid limit (non-positive)', async () => {
@@ -249,7 +238,6 @@ describeIntegration('MEC Integration', () => {
       // Should be safe - Prisma uses parameterized queries
       expect([200, 400]).toContain(res.status);
       if (res.status === 200) {
-        expect(res.body.success).toBe(true);
       }
     });
   });

@@ -50,8 +50,8 @@ describe('Security Boundaries Integration', () => {
           .send({ title: payload });
 
         if (response.status === 201) {
-          expect(response.body.data.title).not.toContain('<script>');
-          expect(response.body.data.title).not.toContain('onerror=');
+          expect(response.body.title).not.toContain('<script>');
+          expect(response.body.title).not.toContain('onerror=');
         }
       }
     });
@@ -62,8 +62,8 @@ describe('Security Boundaries Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Test Resume', summary: '<script>document.cookie</script>' });
 
-      if (response.status === 201 && typeof response.body.data.summary === 'string') {
-        expect(response.body.data.summary).not.toContain('<script>');
+      if (response.status === 201 && typeof response.body.summary === 'string') {
+        expect(response.body.summary).not.toContain('<script>');
       }
     });
   });
@@ -230,7 +230,7 @@ describe('Security Boundaries Integration', () => {
 
     it('should handle null in required fields', async () => {
       const response = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: null, password: null });
 
       // 400 or 422 for validation error

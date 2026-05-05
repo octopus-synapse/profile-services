@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { tokenFromResponse } from '../shared';
 import {
   assignUserRole,
   closeApp,
@@ -21,10 +22,10 @@ describe('Auth Smoke Tests', () => {
     await getApp();
     // Pre-create user for all tests
     const createRes = await getRequest()
-      .post('/api/accounts')
+      .post('/api/v1/accounts')
       .send(signupBody({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name }));
     if (createRes.status === 201) {
-      const userId = createRes.body.data.userId;
+      const userId = createRes.body.userId;
       testContext.userId = userId;
 
       // Verify email + complete onboarding so user can access protected routes
@@ -37,11 +38,11 @@ describe('Auth Smoke Tests', () => {
 
       // Login to get tokens
       const loginRes = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: uniqueEmail, password: TEST_USER.password });
       if (loginRes.status === 200) {
-        accessToken = loginRes.body.data.accessToken;
-        refreshToken = loginRes.body.data.refreshToken;
+        accessToken = tokenFromResponse(loginRes, 'access_token')!;
+        refreshToken = tokenFromResponse(loginRes, 'refresh_token')!;
         testContext.accessToken = accessToken;
         testContext.refreshToken = refreshToken;
       }
@@ -52,10 +53,10 @@ describe('Auth Smoke Tests', () => {
     await closeApp();
   });
 
-  describe('POST /api/auth/signup', () => {
+  describe('POST /api/v1/auth/signup', () => {
     it('should reject duplicate email', async () => {
       const res = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({ email: uniqueEmail, password: TEST_USER.password, name: TEST_USER.name }),
         );
@@ -65,7 +66,7 @@ describe('Auth Smoke Tests', () => {
 
     it('should reject invalid email format', async () => {
       const res = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: 'invalid-email',
@@ -80,7 +81,7 @@ describe('Auth Smoke Tests', () => {
 
     it('should reject weak password', async () => {
       const res = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: `weak-pass-${uniqueTestId()}@test.com`,
@@ -96,38 +97,38 @@ describe('Auth Smoke Tests', () => {
     it('should create a new user', async () => {
       const newEmail = `signup-test-${uniqueTestId()}@test.com`;
       const res = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody({ email: newEmail, password: TEST_USER.password, name: TEST_USER.name }));
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('userId');
-      expect(res.body.data).toHaveProperty('email');
-      expect(res.body.data.email).toBe(newEmail);
+      expect(res.body).toHaveProperty('userId');
+      expect(res.body).toHaveProperty('email');
+      expect(res.body.email).toBe(newEmail);
     });
   });
 
-  describe('POST /api/auth/login', () => {
+  describe('POST /api/v1/auth/login', () => {
     it('should login with valid credentials', async () => {
       const res = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: uniqueEmail, password: TEST_USER.password });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('accessToken');
-      expect(res.body.data).toHaveProperty('refreshToken');
+      expect(res.body).toHaveProperty('accessToken');
+      expect(res.body).toHaveProperty('refreshToken');
 
       // Update tokens
-      accessToken = res.body.data.accessToken;
-      refreshToken = res.body.data.refreshToken;
+      accessToken = tokenFromResponse(res, 'access_token')!;
+      refreshToken = tokenFromResponse(res, 'refresh_token')!;
       testContext.accessToken = accessToken;
       testContext.refreshToken = refreshToken;
     });
 
     it('should reject invalid password', async () => {
       const res = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: uniqueEmail, password: 'wrong-password' });
 
       expect(res.status).toBe(401);
@@ -138,7 +139,7 @@ describe('Auth Smoke Tests', () => {
       // failed-attempts counter on a hardcoded address and trip the
       // 423 lockout instead of the expected 401.
       const res = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({
           email: `nonexistent-${uniqueTestId()}@test.com`,
           password: TEST_USER.password,
@@ -148,11 +149,11 @@ describe('Auth Smoke Tests', () => {
     });
   });
 
-  describe('GET /api/auth/me', () => {
+  describe('GET /api/v1/auth/me', () => {
     it('should return current user info', async () => {
       // Ensure we have a fresh token by logging in
       const loginRes = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: uniqueEmail, password: TEST_USER.password });
 
       // If login fails, skip this test (user may have been cleaned up)
@@ -162,7 +163,7 @@ describe('Auth Smoke Tests', () => {
         return;
       }
 
-      const token = loginRes.body.data.accessToken;
+      const token = tokenFromResponse(loginRes, 'access_token')!;
 
       const res = await getRequest()
         .get('/api/v1/users/profile')
@@ -170,9 +171,9 @@ describe('Auth Smoke Tests', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('id');
-      expect(res.body.data).toHaveProperty('email');
-      expect(res.body.data.email).toBe(uniqueEmail);
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toHaveProperty('email');
+      expect(res.body.email).toBe(uniqueEmail);
     });
 
     it('should reject without token', async () => {
@@ -190,33 +191,33 @@ describe('Auth Smoke Tests', () => {
     });
   });
 
-  describe('POST /api/auth/refresh', () => {
+  describe('POST /api/v1/auth/refresh', () => {
     it('should refresh tokens', async () => {
       // Get fresh token first
       const loginRes = await getRequest()
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: uniqueEmail, password: TEST_USER.password });
-      const currentRefreshToken = loginRes.body.data?.refreshToken || refreshToken;
+      const currentRefreshToken = loginRes.body?.refreshToken || refreshToken;
 
       const res = await getRequest()
-        .post('/api/auth/refresh')
+        .post('/api/v1/auth/refresh')
         .send({ refreshToken: currentRefreshToken });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('accessToken');
-      expect(res.body.data).toHaveProperty('refreshToken');
+      expect(res.body).toHaveProperty('accessToken');
+      expect(res.body).toHaveProperty('refreshToken');
 
       // Update tokens for subsequent tests
-      accessToken = res.body.data.accessToken;
-      refreshToken = res.body.data.refreshToken;
+      accessToken = tokenFromResponse(res, 'access_token')!;
+      refreshToken = tokenFromResponse(res, 'refresh_token')!;
       testContext.accessToken = accessToken;
       testContext.refreshToken = refreshToken;
     });
 
     it('should reject invalid refresh token', async () => {
       const res = await getRequest()
-        .post('/api/auth/refresh')
+        .post('/api/v1/auth/refresh')
         .send({ refreshToken: 'invalid-refresh-token' });
 
       expect(res.status).toBe(401);

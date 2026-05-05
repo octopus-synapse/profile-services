@@ -49,14 +49,14 @@ describe('2FA Security - Bug Discovery Tests', () => {
   describe('Setup 2FA', () => {
     it('should setup 2FA and return secret', async () => {
       const response = await getRequest()
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data?.secret).toBeDefined();
-      expect(response.body.data?.qrCode).toBeDefined();
+      expect(response.body?.secret).toBeDefined();
+      expect(response.body?.qrCode).toBeDefined();
 
-      totpSecret = response.body.data.secret;
+      totpSecret = response.body.secret;
     });
 
     it('should enable 2FA with valid token', async () => {
@@ -66,12 +66,12 @@ describe('2FA Security - Bug Discovery Tests', () => {
       });
 
       const response = await getRequest()
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ code: token });
 
       expect(response.status).toBe(200);
-      expect(response.body.data?.enabled).toBe(true);
+      expect(response.body?.enabled).toBe(true);
     });
   });
 
@@ -92,15 +92,15 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // Setup 2FA
       const setupRes = await getRequest()
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${testUser.accessToken}`);
 
-      const secret = setupRes.body.data.secret;
+      const secret = setupRes.body.secret;
 
       // Enable 2FA
       const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
       await getRequest()
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ code: enableToken });
 
@@ -110,19 +110,19 @@ describe('2FA Security - Bug Discovery Tests', () => {
       const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
 
       // Step 1: Login with password (triggers 2FA challenge)
-      const loginRes = await getRequest().post('/api/auth/login').send({
+      const loginRes = await getRequest().post('/api/v1/auth/login').send({
         email: user?.email,
         password: testPassword,
       });
 
-      expect(loginRes.body.data?.twoFactorRequired).toBe(true);
+      expect(loginRes.body?.twoFactorRequired).toBe(true);
 
       // Generate a TOTP token
       const totpToken = speakeasy.totp({ secret, encoding: 'base32' });
 
       // Step 2: First use of token - should succeed (bypass rate limit for non-rate-limit tests)
       const firstUse = await getRequest()
-        .post('/api/auth/login/verify-2fa')
+        .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           userId: testUser.userId,
@@ -130,11 +130,11 @@ describe('2FA Security - Bug Discovery Tests', () => {
         });
 
       expect(firstUse.status).toBe(200);
-      expect(firstUse.body.data?.accessToken).toBeDefined();
+      expect(firstUse.body?.accessToken).toBeDefined();
 
       // Step 3: REUSE same token - THIS SHOULD FAIL but will pass if bug exists
       const secondUse = await getRequest()
-        .post('/api/auth/login/verify-2fa')
+        .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           userId: testUser.userId,
@@ -143,8 +143,6 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // If this test FAILS (status is 200), there's a REPLAY ATTACK vulnerability!
       expect(secondUse.status).toBe(401);
-      expect(secondUse.body.success).toBe(false);
-
       // Cleanup
       await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
       await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
@@ -170,14 +168,14 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
         // Setup and enable 2FA
         const setupRes = await getRequest()
-          .post('/api/auth/2fa/setup')
+          .post('/api/v1/auth/2fa/setup')
           .set('Authorization', `Bearer ${testUser.accessToken}`);
 
-        const secret = setupRes.body.data.secret;
+        const secret = setupRes.body.secret;
         const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
 
         await getRequest()
-          .post('/api/auth/2fa/verify')
+          .post('/api/v1/auth/2fa/verify')
           .set('Authorization', `Bearer ${testUser.accessToken}`)
           .send({ code: enableToken });
 
@@ -185,7 +183,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
         const prisma = getPrisma();
         const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
 
-        await getRequest().post('/api/auth/login').send({
+        await getRequest().post('/api/v1/auth/login').send({
           email: user?.email,
           password: 'SecurePass123!',
         });
@@ -193,7 +191,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
         // Try 10 wrong codes
         const results: number[] = [];
         for (let i = 0; i < 10; i++) {
-          const response = await getRequest().post('/api/auth/login/verify-2fa').send({
+          const response = await getRequest().post('/api/v1/auth/login/verify-2fa').send({
             userId: testUser.userId,
             code: '000000', // Wrong code
           });
@@ -228,19 +226,19 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // Setup and enable 2FA
       const setupRes = await getRequest()
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${testUser.accessToken}`);
 
-      const secret = setupRes.body.data.secret;
+      const secret = setupRes.body.secret;
 
       // Enable 2FA - backup codes are returned in the verify response
       const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
       const verifyRes = await getRequest()
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ code: enableToken });
 
-      const backupCodes: string[] = verifyRes.body.data?.backupCodes || [];
+      const backupCodes: string[] = verifyRes.body?.backupCodes || [];
 
       if (backupCodes.length === 0) {
         console.log('No backup codes returned - skipping test');
@@ -254,13 +252,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
       const backupCode = backupCodes[0];
 
       // First login attempt
-      await getRequest().post('/api/auth/login').send({
+      await getRequest().post('/api/v1/auth/login').send({
         email: user?.email,
         password: 'SecurePass123!',
       });
 
       const firstUse = await getRequest()
-        .post('/api/auth/login/verify-2fa')
+        .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           userId: testUser.userId,
@@ -271,13 +269,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
       expect(firstUse.status).toBe(200);
 
       // Second login attempt with same backup code
-      await getRequest().post('/api/auth/login').send({
+      await getRequest().post('/api/v1/auth/login').send({
         email: user?.email,
         password: 'SecurePass123!',
       });
 
       const secondUse = await getRequest()
-        .post('/api/auth/login/verify-2fa')
+        .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           userId: testUser.userId,
@@ -306,10 +304,10 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // Setup 2FA
       const setupRes = await getRequest()
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${testUser.accessToken}`);
 
-      const secret = setupRes.body.data.secret;
+      const secret = setupRes.body.secret;
 
       // Generate token for a time 60 seconds in the past
       const pastToken = speakeasy.totp({
@@ -368,15 +366,15 @@ describe('2FA Security - Bug Discovery Tests', () => {
 
       // Setup 2FA for attacker only
       const attackerSetup = await getRequest()
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${attacker.accessToken}`);
 
-      const attackerSecret = attackerSetup.body.data.secret;
+      const attackerSecret = attackerSetup.body.secret;
 
       // Enable attacker's 2FA
       const enableToken = speakeasy.totp({ secret: attackerSecret, encoding: 'base32' });
       await getRequest()
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${attacker.accessToken}`)
         .send({ code: enableToken });
 
@@ -384,7 +382,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
       const attackerToken = speakeasy.totp({ secret: attackerSecret, encoding: 'base32' });
 
       const response = await getRequest()
-        .post('/api/auth/login/verify-2fa')
+        .post('/api/v1/auth/login/verify-2fa')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           userId: victim.userId, // Victim's ID

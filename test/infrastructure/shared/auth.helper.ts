@@ -25,6 +25,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type { TestApp } from './test-app';
+import { extractCookieValue } from './test-request';
 
 export interface TestUser {
   email: string;
@@ -58,7 +59,7 @@ export class AuthHelper {
   async registerAndLogin(user?: TestUser, opts: RegisterAndLoginOptions = {}): Promise<TestUser> {
     const u = user ?? this.createTestUser();
 
-    const signup = await this.app.request.post('/api/accounts').send({
+    const signup = await this.app.request.post('/api/v1/accounts').send({
       email: u.email,
       password: u.password,
       name: u.name,
@@ -104,42 +105,47 @@ export class AuthHelper {
     }
 
     const login = await this.app.request
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: u.email, password: u.password });
     if (login.status >= 400) {
       throw new Error(
         `login failed: ${login.status} ${typeof login.body === 'string' ? login.body : JSON.stringify(login.body)}`,
       );
     }
-    const body = login.body as { accessToken?: string; data?: { accessToken?: string } };
-    u.token = body.accessToken ?? body.data?.accessToken;
+    // P0-006: login is cookie-only by design. Tokens are set on
+    // `Set-Cookie: access_token=…; refresh_token=…` rather than the
+    // response body. Extract them so specs can both:
+    //   - call routes via `Authorization: Bearer <token>` header
+    //   - call routes that read the `access_token` HttpOnly cookie
+    const accessCookie = login.setCookie.find((c) => c.startsWith('access_token=')) ?? undefined;
+    u.token = accessCookie ? extractCookieValue(accessCookie) : undefined;
     u.refreshCookie = login.setCookie.find((c) => c.startsWith('refresh_token=')) ?? undefined;
     return u;
   }
 
   async login(email: string, password: string): Promise<string> {
-    const res = await this.app.request.post('/api/auth/login').send({ email, password });
+    const res = await this.app.request.post('/api/v1/auth/login').send({ email, password });
     if (res.status !== 200) {
       throw new Error(
         `Login failed: ${res.status} - ${typeof res.body === 'string' ? res.body : JSON.stringify(res.body)}`,
       );
     }
-    const body = res.body as {
-      accessToken?: string;
-      token?: string;
-      data?: { accessToken?: string; token?: string };
-    };
-    const token = body.accessToken ?? body.token ?? body.data?.accessToken ?? body.data?.token;
-    if (!token) throw new Error('Login response missing access token');
+    // P0-006: tokens travel on cookies, not the response body.
+    const accessCookie = res.setCookie.find((c) => c.startsWith('access_token=')) ?? '';
+    const token = extractCookieValue(accessCookie);
+    if (!token) throw new Error('Login response missing access_token cookie');
     return token;
   }
 
-  async refreshToken(token: string): Promise<string> {
-    const res = await this.app.request
-      .post('/api/auth/refresh')
-      .set('Authorization', `Bearer ${token}`);
+  async refreshToken(refreshCookie: string): Promise<string> {
+    // The server reads `refresh_token` from the cookie jar; resend the
+    // raw cookie header to mirror what the browser does.
+    const res = await this.app.request.post('/api/v1/auth/refresh').set('Cookie', refreshCookie);
     if (res.status !== 200) throw new Error('Token refresh failed');
-    return (res.body as { token: string }).token;
+    const accessCookie = res.setCookie.find((c) => c.startsWith('access_token=')) ?? '';
+    const token = extractCookieValue(accessCookie);
+    if (!token) throw new Error('Refresh response missing access_token cookie');
+    return token;
   }
 
   async getCurrentUser(token: string): Promise<unknown> {
@@ -170,7 +176,7 @@ export class AuthHelper {
 
   async requestEmailVerification(token: string): Promise<void> {
     await this.app.request
-      .post('/api/email-verification/send')
+      .post('/api/v1/auth/email-verification/send')
       .set('Authorization', `Bearer ${token}`);
   }
 

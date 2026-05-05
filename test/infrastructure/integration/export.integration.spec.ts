@@ -61,11 +61,10 @@ describeIntegration('Export Integration Tests', () => {
       const response = await getRequest().get('/api/v1/enums/export-formats');
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.formats).toBeDefined();
-      expect(Array.isArray(response.body.data.formats)).toBe(true);
+      expect(response.body.formats).toBeDefined();
+      expect(Array.isArray(response.body.formats)).toBe(true);
 
-      const formatNames = response.body.data.formats.map((f: { format: string }) => f.format);
+      const formatNames = response.body.formats.map((f: { format: string }) => f.format);
       expect(formatNames).toContain('PDF');
       expect(formatNames).toContain('DOCX');
     });

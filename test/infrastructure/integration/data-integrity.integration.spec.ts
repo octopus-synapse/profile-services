@@ -171,7 +171,7 @@ describe('Data Integrity Integration', () => {
 
       // First registration
       await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: duplicateEmail,
@@ -182,7 +182,7 @@ describe('Data Integrity Integration', () => {
 
       // Second registration with same email
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: duplicateEmail,

@@ -87,9 +87,8 @@ describeIntegration('Social Features Integration', () => {
         .post(`/api/v1/users/${userBId}/follow`)
         .set(authHeader(userAToken));
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.id).toBeDefined();
     });
 
     it('should confirm User A is following User B', async () => {
@@ -98,7 +97,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(true);
+      expect(response.body.isFollowing).toBe(true);
     });
 
     it('should confirm User A is NOT following User C yet', async () => {
@@ -107,7 +106,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(false);
+      expect(response.body.isFollowing).toBe(false);
     });
   });
 
@@ -140,7 +139,6 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it('should confirm User A is no longer following User B', async () => {
@@ -149,7 +147,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(false);
+      expect(response.body.isFollowing).toBe(false);
     });
 
     it('should handle unfollowing a user you do not follow', async () => {
@@ -180,11 +178,10 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userBToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.followers).toBeDefined();
+      expect(response.body.followers).toBeDefined();
 
       // Unwrap: could be { data: [...], total: N } or direct array
-      const followersData = response.body.data.followers;
+      const followersData = response.body.followers;
       const followersList = Array.isArray(followersData) ? followersData : followersData.data;
 
       expect(followersList.length).toBeGreaterThanOrEqual(2);
@@ -197,7 +194,7 @@ describeIntegration('Social Features Integration', () => {
 
       expect(response.status).toBe(200);
 
-      const followersData = response.body.data.followers;
+      const followersData = response.body.followers;
       const followersList = Array.isArray(followersData) ? followersData : followersData.data;
 
       expect(followersList.length).toBeLessThanOrEqual(1);
@@ -210,7 +207,7 @@ describeIntegration('Social Features Integration', () => {
 
       expect(response.status).toBe(200);
 
-      const followersData = response.body.data.followers;
+      const followersData = response.body.followers;
       const followersList = Array.isArray(followersData) ? followersData : followersData.data;
       const total = Array.isArray(followersData) ? followersData.length : followersData.total;
 
@@ -226,9 +223,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
-      const followingData = response.body.data.following;
+      const followingData = response.body.following;
       const followingList = Array.isArray(followingData) ? followingData : followingData.data;
 
       // User A follows User B
@@ -255,8 +250,8 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userBToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBeGreaterThanOrEqual(2);
-      expect(response.body.data.following).toBeGreaterThanOrEqual(0);
+      expect(response.body.followers).toBeGreaterThanOrEqual(2);
+      expect(response.body.following).toBeGreaterThanOrEqual(0);
     });
 
     it('should return correct stats for User A (follows someone)', async () => {
@@ -265,7 +260,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.following).toBeGreaterThanOrEqual(1);
+      expect(response.body.following).toBeGreaterThanOrEqual(1);
     });
 
     it('should update stats after unfollow', async () => {
@@ -273,7 +268,7 @@ describeIntegration('Social Features Integration', () => {
       const beforeResp = await getRequest()
         .get(`/api/v1/users/${userBId}/social-stats`)
         .set(authHeader(userBToken));
-      const followersBefore = beforeResp.body.data.followers;
+      const followersBefore = beforeResp.body.followers;
 
       // User C unfollows User B
       await getRequest().delete(`/api/v1/users/${userBId}/follow`).set(authHeader(userCToken));
@@ -282,7 +277,7 @@ describeIntegration('Social Features Integration', () => {
       const afterResp = await getRequest()
         .get(`/api/v1/users/${userBId}/social-stats`)
         .set(authHeader(userBToken));
-      const followersAfter = afterResp.body.data.followers;
+      const followersAfter = afterResp.body.followers;
 
       expect(followersAfter).toBe(followersBefore - 1);
     });
@@ -299,7 +294,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.activities).toBeDefined();
+      expect(response.body.activities).toBeDefined();
     });
 
     it('should show feed for authenticated user', async () => {
@@ -308,7 +303,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.feed).toBeDefined();
+      expect(response.body.feed).toBeDefined();
     });
 
     it('should support pagination on activities', async () => {
@@ -330,7 +325,7 @@ describeIntegration('Social Features Integration', () => {
 
       expect(response.status).toBe(200);
 
-      const activities = response.body.data.activities;
+      const activities = response.body.activities;
       const actList = Array.isArray(activities) ? activities : activities.data;
 
       expect(actList.length).toBe(0);
@@ -357,7 +352,7 @@ describeIntegration('Social Features Integration', () => {
 
       // Could return false or 404
       if (response.status === 200) {
-        expect(response.body.data.isFollowing).toBe(false);
+        expect(response.body.isFollowing).toBe(false);
       } else {
         expect([400, 404]).toContain(response.status);
       }
@@ -371,8 +366,8 @@ describeIntegration('Social Features Integration', () => {
       expect(response.status).not.toBe(500);
 
       if (response.status === 200) {
-        expect(response.body.data.followers).toBe(0);
-        expect(response.body.data.following).toBe(0);
+        expect(response.body.followers).toBe(0);
+        expect(response.body.following).toBe(0);
       }
     });
 

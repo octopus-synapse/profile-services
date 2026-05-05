@@ -72,7 +72,7 @@ describe('Edge Cases Integration', () => {
         .send({ title: '👨‍💻 Developer Resume 🚀' });
 
       if (response.status === 201) {
-        expect(response.body.data.title).toContain('👨‍💻');
+        expect(response.body.title).toContain('👨‍💻');
       }
     });
 
@@ -137,7 +137,7 @@ describe('Edge Cases Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.data).toEqual([]);
+      expect(response.body).toEqual([]);
     });
 
     it('should reject negative page numbers', async () => {
@@ -213,7 +213,7 @@ describe('Edge Cases Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Date Test Resume' });
 
-      resumeId = res.body.data?.id;
+      resumeId = res.body?.id;
     });
 
     it('should handle future dates in experience', async () => {
@@ -307,7 +307,7 @@ describe('Edge Cases Integration', () => {
 
       if (createRes.status !== 201) return;
 
-      const resumeId = createRes.body.data.id;
+      const resumeId = createRes.body.id;
 
       const promises = Array.from({ length: 3 }, (_, i) =>
         getRequest()
