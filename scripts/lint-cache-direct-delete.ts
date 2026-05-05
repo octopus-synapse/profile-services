@@ -52,6 +52,12 @@ const ALLOWLIST = new Set([
   'src/bounded-contexts/identity/authorization/application/services/authorization.service.ts',
   'src/bounded-contexts/skills-catalog/tech-skills/services/tech-skills-sync.service.ts',
   'src/bounded-contexts/job-match/infrastructure/workers/job-match-recompute.worker.ts',
+  // P0-017: cache-invalidation queue adapter is the canonical fallback
+  // surface; it dispatches to `cache.delete`/`deletePattern` by design.
+  'src/infrastructure/elysia-adapter/bullmq-cache-invalidation.adapter.ts',
+  // P0-017: sync handler for JobUpdatedEvent — calls `cache.deletePattern`
+  // directly with a queue fallback on failure.
+  'src/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler.ts',
 ]);
 
 const PATTERN = /\b(?:cache|cachePort|this\.cache)\.(?:delete|deletePattern)\s*\(/;

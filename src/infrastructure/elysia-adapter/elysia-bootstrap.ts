@@ -31,7 +31,13 @@ import { buildBadgesComposition } from '@/bounded-contexts/badges/badges.composi
 import { buildCareerGraphComposition } from '@/bounded-contexts/career-graph/career-graph.composition';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
 import { buildDslComposition } from '@/bounded-contexts/dsl/dsl.composition';
+import {
+  ExportCompletedEvent,
+  ExportFailedEvent,
+  ExportRequestedEvent,
+} from '@/bounded-contexts/export/domain/events';
 import { buildExportComposition } from '@/bounded-contexts/export/export.composition';
+import { ExportAuditHandler } from '@/bounded-contexts/export/infrastructure/handlers/export-audit.handler';
 import { buildFeedComposition } from '@/bounded-contexts/feed/feed.composition';
 import {
   buildFitProfileBundle,
@@ -41,6 +47,15 @@ import { buildAccountLifecycleUseCases } from '@/bounded-contexts/identity/accou
 import { accountLifecycleRoutes } from '@/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes';
 import { buildAuthenticationUseCases } from '@/bounded-contexts/identity/authentication/authentication.composition';
 import { authenticationRoutes } from '@/bounded-contexts/identity/authentication/authentication.routes';
+import {
+  LoginFailedEvent,
+  SessionCreatedEvent,
+  SessionTerminatedEvent,
+  TokenRefreshedEvent,
+  UserLoggedInEvent,
+  UserLoggedOutEvent,
+} from '@/bounded-contexts/identity/authentication/domain/events';
+import { AuthAuditHandler } from '@/bounded-contexts/identity/authentication/infrastructure/handlers/auth-audit.handler';
 import { accessModifierRoutes } from '@/bounded-contexts/identity/authorization/access-modifier.routes';
 import { buildAuthorizationUseCases } from '@/bounded-contexts/identity/authorization/authorization.composition';
 import { buildEmailVerificationUseCases } from '@/bounded-contexts/identity/email-verification/email-verification.composition';
@@ -67,12 +82,15 @@ import { githubRoutes } from '@/bounded-contexts/integration/github/github.route
 import { buildMecSyncUseCases } from '@/bounded-contexts/integration/mec-sync/mec-sync.composition';
 import { mecSyncRoutes } from '@/bounded-contexts/integration/mec-sync/mec-sync.routes';
 import { buildUploadComposition } from '@/bounded-contexts/integration/upload/upload.composition';
+import { InvalidateMatchCacheOnJobUpdatedHandler } from '@/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
+import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
 import { buildOnboardingComposition } from '@/bounded-contexts/onboarding/onboarding.composition';
 import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.routes';
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
+import { AuditLogServiceAdapter } from '@/bounded-contexts/platform/common/audit/audit-log-port.adapter';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
@@ -93,25 +111,44 @@ import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-r
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
 import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/webhooks.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
+import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
 import { buildRecruitingComposition } from '@/bounded-contexts/recruiting/recruiting.composition';
 import { buildResumeQualityComposition } from '@/bounded-contexts/resume-quality/resume-quality.composition';
 import { buildResumeStylesComposition } from '@/bounded-contexts/resume-styles/resume-styles.composition';
 import { buildResumesCoreComposition } from '@/bounded-contexts/resumes/core/resumes.composition';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import { resumesRoutes } from '@/bounded-contexts/resumes/core/resumes.routes';
+import {
+  VersionCreatedEvent,
+  VersionRestoredEvent,
+} from '@/bounded-contexts/resumes/domain/events';
 import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters/resume-event-publisher.adapter';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories/section-type.repository';
+import { VersionAuditHandler } from '@/bounded-contexts/resumes/resume-versions/infrastructure/handlers/version-audit.handler';
 import { buildResumeVersionsComposition } from '@/bounded-contexts/resumes/resume-versions/resume-versions.composition';
 import { buildAdminSectionTypesComposition } from '@/bounded-contexts/resumes/section-types/application/admin-section-types.composition';
 import { buildTimeCapsuleComposition } from '@/bounded-contexts/resumes/time-capsule/time-capsule.composition';
 import { buildAdminCatalogUseCases } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.composition';
 import { buildSkillsCatalogCompositions } from '@/bounded-contexts/skills-catalog/skills-catalog.composition';
+import {
+  ConnectionRequestedEvent,
+  UserFollowedEvent,
+} from '@/bounded-contexts/social/domain/events';
+import { SocialAuditHandler } from '@/bounded-contexts/social/infrastructure/handlers/social-audit.handler';
 import { buildSocialComposition } from '@/bounded-contexts/social/social.composition';
 import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stories/success-stories.composition';
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
+import { OwnershipRegistry } from '@/shared-kernel/authorization';
+import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
+import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
+import {
+  applyCacheInvalidation,
+  BullMQCacheInvalidationAdapter,
+  CACHE_INVALIDATION_QUEUE,
+} from './bullmq-cache-invalidation.adapter';
 import { BullMQJobQueueAdapter } from './bullmq-job-queue.adapter';
 import { CacheIdempotencyAdapter } from './cache-idempotency.adapter';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
@@ -127,6 +164,7 @@ import { JoseJwtAdapter } from './jose-jwt.adapter';
 import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
+import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
 import { applySecurityHeaders, enableCors } from './security-headers';
 
 export interface BootstrapHandle {
@@ -140,12 +178,25 @@ export interface BootstrapHandle {
 
 export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Framework-free port impls ---
-  const config = new ProcessEnvConfigAdapter();
+  // P0-001: validate the entire env up front. ConfigValidationError is
+  // surfaced verbatim so a misconfigured deploy sees every issue in one
+  // pass rather than fix-one-hit-the-next.
+  let config: ProcessEnvConfigAdapter;
+  try {
+    config = new ProcessEnvConfigAdapter();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
   const logger = new PinoLoggerAdapter();
+  // P0-001: JWT_SECRET is validated up front by the ConfigPort schema
+  // (min 32 chars, required). No fallback default — boot fails before
+  // any adapter is constructed if the var is missing.
   const jwt = new JoseJwtAdapter({
-    secret: config.getOrDefault<string>('JWT_SECRET', 'dev-secret-change-me'),
-    issuer: config.get<string>('JWT_ISSUER'),
-    audience: config.get<string>('JWT_AUDIENCE'),
+    secret: config.env.JWT_SECRET,
+    issuer: config.env.JWT_ISSUER,
+    audience: config.env.JWT_AUDIENCE,
   });
   const prisma = new PrismaClient(createPrismaClientOptions());
   await prisma.$connect();
@@ -156,6 +207,35 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // by every BC that takes `CachePort`. Construct early so it can be
   // injected here; the remaining adapters keep their original order.
   const cache = new InMemoryCacheAdapter();
+  // SafeFetchPort: SSRF-defended HTTP client (P0-013/014).
+  // - default: link-preview style (single shot, attacker-untrusted URL)
+  // - strict:  webhook-delivery style (DNS-rebinding-resistant, repeated traffic)
+  const safeFetch = new SafeFetchAdapter({ defaultTimeoutMs: 5_000 });
+  const safeFetchStrict = new SafeFetchStrictAdapter({ defaultTimeoutMs: 15_000 });
+  // P0-010: distributed lock — used by `runGuardedJob` to ensure that
+  // each scheduled cron worker runs at most once per tick across pods.
+  // Redis-backed (SETNX + Lua release) when REDIS_HOST is set. Falls
+  // back to a no-op handle in single-instance dev; multi-pod production
+  // deploys MUST set REDIS_HOST or this becomes a silent footgun.
+  // The connection is registered with `lifecycles` below once that
+  // array exists; the same instance is reused by feature-flags too.
+  const sharedRedis = new RedisConnectionService(logger as never);
+  const distributedLock = new RedisDistributedLockAdapter(sharedRedis, logger);
+  // P0-004: ownership registry — composition root populates per-BC
+  // lookups below; the pipeline `ownershipGuard` stage consults this
+  // when a route declares `guards: [{ id: 'ownership', metadata: ... }]`.
+  const ownershipRegistry = new OwnershipRegistry();
+  // `entity: 'user'` is a self-only check — the requested userId must
+  // match the authenticated user. Lookup returns the requested id so
+  // the guard's owner-vs-requester equality test is the only gate.
+  ownershipRegistry.register('user', (id) => Promise.resolve(id));
+  ownershipRegistry.register('resume', async (id) => {
+    const row = await prisma.resume.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+    return row?.userId ?? null;
+  });
   const authExtractor = new JoseAuthExtractorAdapter(
     jwt,
     { cookieName: config.getOrDefault<string>('AUTH_COOKIE_NAME', 'access_token') },
@@ -293,7 +373,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const recruiting = buildRecruitingComposition(prisma as never);
   const fitProfile = buildFitProfileComposition(prisma as never, eventBus, logger);
   const metrics = buildMetricsComposition(logger);
-  const webhooks = buildWebhooksComposition(prisma as never, logger);
+  const webhooks = buildWebhooksComposition(prisma as never, logger, safeFetchStrict);
 
   // Notifications: needs cache + sse + queue (skipped — Redis-bound) +
   // cron + eventBus + email. The cron/queue scheduler bits are wrapped
@@ -307,6 +387,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     queue,
     cron,
+    distributedLock,
   );
   for (const binding of notifications.eventHandlers ?? []) {
     eventBus.on(binding.eventType, binding.handler);
@@ -334,12 +415,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     logger,
   );
-  resumeAnalytics.registerCron(cron);
+  resumeAnalytics.registerCron(cron, distributedLock);
 
   // Feed needs notifications.useCases.createNotification + s3.
-  const feed = buildFeedComposition(prisma as never, logger, s3, {
-    createNotification: notifications.useCases.createNotification,
-  });
+  const feed = buildFeedComposition(
+    prisma as never,
+    logger,
+    s3,
+    { createNotification: notifications.useCases.createNotification },
+    safeFetch,
+  );
 
   // Jobs needs llm + resumeAnalytics facade + email + eventBus.
   const jobs = buildJobsComposition(
@@ -361,6 +446,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     idempotency: idempotency as never,
     sse: sseStream,
     cron,
+    lock: distributedLock,
   });
   for (const binding of social.eventHandlers ?? []) {
     eventBus.on(binding.eventType, binding.handler);
@@ -446,7 +532,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // FF after auditLog (dep) and before realtime BC (translators
   // subscribe to FlagToggled events; subscriptions are durable so the
   // order is observability-only — clearer to read FF first here).
-  const redisConnection = new RedisConnectionService(logger as never);
+  // Reuse the `sharedRedis` instance constructed early for the
+  // distributed lock — single connection avoids spawning duplicate
+  // ioredis clients (each one would consume a CONNECT slot and tick
+  // its own retry timers).
+  const redisConnection = sharedRedis;
   lifecycles.push(redisConnection);
   const featureFlagsCache = new RedisFlagCache(redisConnection, logger as never);
   const featureFlagsSse = new SseFlagStream(featureFlagsCache);
@@ -531,7 +621,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   }
 
   // Integration.
-  const upload = buildUploadComposition(s3, logger);
+  const upload = buildUploadComposition(s3, prisma as never, logger);
 
   // Onboarding consumes typst services exposed by export composition.
   const cacheLock = new InMemoryCacheLockAdapter();
@@ -564,7 +654,13 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
   ) as never;
   const adminSectionTypes = buildAdminSectionTypesComposition(prisma as never, logger);
-  const timeCapsule = buildTimeCapsuleComposition(prisma as never, emailService, logger, cron);
+  const timeCapsule = buildTimeCapsuleComposition(
+    prisma as never,
+    emailService,
+    logger,
+    cron,
+    distributedLock,
+  );
 
   // Resume quality + styles. `flags` shared with job-match.
   const resumeQuality = buildResumeQualityComposition(
@@ -641,6 +737,68 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus.on(binding.eventType, binding.handler);
   }
 
+  // P0-017: subscribe the Match-cache invalidator to JobUpdatedEvent.
+  // Sync attempt + BullMQ fallback (see handler doc for the pattern).
+  const cacheInvalidationQueue = new BullMQCacheInvalidationAdapter(queue);
+  // The processor side: register a worker on `cache-invalidation` that
+  // applies queued invalidations against the cache.
+  queue.register<CacheInvalidationJob>(CACHE_INVALIDATION_QUEUE, async ({ data }) => {
+    await applyCacheInvalidation(cache as never, data);
+  });
+  const invalidateMatchOnJobUpdated = new InvalidateMatchCacheOnJobUpdatedHandler(
+    cache as never,
+    cacheInvalidationQueue,
+    logger,
+  );
+  eventBus.on(
+    JobUpdatedEvent.TYPE,
+    invalidateMatchOnJobUpdated.handle.bind(invalidateMatchOnJobUpdated) as never,
+  );
+
+  // P1-035: wire the four audit handlers (auth/export/social/version)
+  // against their respective DomainEvents. Strict mode by default —
+  // a missing audit row is a compliance failure (Q51 + LGPD).
+  const auditPort = new AuditLogServiceAdapter(auditLog, logger);
+
+  const authAudit = new AuthAuditHandler(auditPort, logger);
+  eventBus.on('auth.login.failed' as never, authAudit.onLoginFailed.bind(authAudit) as never);
+  eventBus.on('auth.user.logged_in' as never, authAudit.onUserLoggedIn.bind(authAudit) as never);
+  eventBus.on('auth.user.logged_out' as never, authAudit.onUserLoggedOut.bind(authAudit) as never);
+  eventBus.on('auth.session.created' as never, authAudit.onSessionCreated.bind(authAudit) as never);
+  eventBus.on(
+    'auth.session.terminated' as never,
+    authAudit.onSessionTerminated.bind(authAudit) as never,
+  );
+  eventBus.on('auth.token.refreshed' as never, authAudit.onTokenRefreshed.bind(authAudit) as never);
+  // Touch the imported event classes so the static analyser sees the
+  // dependency (handler params reference them by type only).
+  void LoginFailedEvent;
+  void UserLoggedInEvent;
+  void UserLoggedOutEvent;
+  void SessionCreatedEvent;
+  void SessionTerminatedEvent;
+  void TokenRefreshedEvent;
+
+  const exportAudit = new ExportAuditHandler(auditPort, logger);
+  eventBus.on(ExportRequestedEvent.TYPE, exportAudit.onRequested.bind(exportAudit) as never);
+  eventBus.on(ExportCompletedEvent.TYPE, exportAudit.onCompleted.bind(exportAudit) as never);
+  eventBus.on(ExportFailedEvent.TYPE, exportAudit.onFailed.bind(exportAudit) as never);
+
+  const socialAudit = new SocialAuditHandler(auditPort, logger);
+  eventBus.on(UserFollowedEvent.TYPE, socialAudit.onUserFollowed.bind(socialAudit) as never);
+  eventBus.on(
+    ConnectionRequestedEvent.TYPE,
+    socialAudit.onConnectionRequested.bind(socialAudit) as never,
+  );
+  eventBus.on(ShareDownloadedEvent.TYPE, socialAudit.onShareDownloaded.bind(socialAudit) as never);
+
+  const versionAudit = new VersionAuditHandler(auditPort, logger);
+  eventBus.on(VersionCreatedEvent.TYPE, versionAudit.onVersionCreated.bind(versionAudit) as never);
+  eventBus.on(
+    VersionRestoredEvent.TYPE,
+    versionAudit.onVersionRestored.bind(versionAudit) as never,
+  );
+
   void shadowProfile;
   void uiState;
   void emailVerification;
@@ -688,6 +846,33 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     skipTosCheck: config.getOrDefault<string>('SKIP_TOS_CHECK', 'false') === 'true',
     permissionChecker,
     rateLimiter: new CacheRateLimiter(cache),
+    ownershipRegistry,
+    featureFlags: flags,
+    internalApiToken: config.env.INTERNAL_API_TOKEN,
+    metricsKey: config.env.PROMETHEUS_KEY ?? config.env.INTERNAL_API_TOKEN,
+    // P1-follow-up: domain gates for auto-apply routes. fit-profile
+    // is satisfied when the cached status is `'responded'` (the only
+    // non-blocking state). min-quality reads the most-recent
+    // `ResumeQualityScoreHistory` row for the user's primary resume.
+    hasValidFitProfile: async (userId: string): Promise<boolean> => {
+      const status = await fitProfileBundle.useCases.getFitProfileStatus.execute(userId);
+      return status.status === 'responded';
+    },
+    meetsMinQuality: async (userId: string): Promise<boolean> => {
+      const MIN_OVERALL_SCORE = 70;
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { primaryResumeId: true },
+      });
+      if (!user?.primaryResumeId) return false;
+      const latest = await prisma.resumeQualityScoreHistory.findFirst({
+        where: { resumeId: user.primaryResumeId },
+        select: { overallScore: true },
+        orderBy: { computedAt: 'desc' },
+      });
+      if (!latest) return false;
+      return latest.overallScore >= MIN_OVERALL_SCORE;
+    },
   });
 
   // --- Mount routes on Elysia ---
