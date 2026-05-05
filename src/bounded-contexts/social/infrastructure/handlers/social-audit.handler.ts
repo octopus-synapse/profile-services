@@ -50,9 +50,11 @@ export class SocialAuditHandler {
   }
 
   async onShareDownloaded(event: ShareDownloadedEvent): Promise<void> {
-    // The downloader may be anonymous — `aggregateId` is the share id.
-    const downloaderId =
-      (event.payload as { downloaderUserId?: string }).downloaderUserId ?? event.aggregateId;
+    // Public shares are downloaded by anonymous visitors most of the
+    // time, and `AuditLog.userId` has a FK to `User`. We only persist
+    // when the payload carries a confirmed authenticated downloader.
+    const downloaderId = (event.payload as { downloaderUserId?: string }).downloaderUserId;
+    if (!downloaderId) return;
     await this.audit.log(
       buildAuditEntry({
         userId: downloaderId,

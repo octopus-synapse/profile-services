@@ -40,7 +40,7 @@ export class ExportAuditHandler {
   async onCompleted(event: ExportCompletedEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: (event.payload as { userId?: string }).userId ?? event.aggregateId,
+        userId: event.payload.userId,
         action: 'EXPORT_COMPLETED',
         entityType: 'Export',
         entityId: event.aggregateId,
@@ -53,7 +53,7 @@ export class ExportAuditHandler {
   async onFailed(event: ExportFailedEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: (event.payload as { userId?: string }).userId ?? event.aggregateId,
+        userId: event.payload.userId,
         action: 'EXPORT_FAILED',
         entityType: 'Export',
         entityId: event.aggregateId,

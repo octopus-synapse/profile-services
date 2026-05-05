@@ -45,11 +45,13 @@ export class ExportPipelineService {
     this.events.publish(new ExportRequestedEvent(exportId, { resumeId: userId, userId, format }));
     try {
       const result = await task();
-      this.events.publish(new ExportCompletedEvent(exportId, { resumeId: userId, fileUrl: '' }));
+      this.events.publish(
+        new ExportCompletedEvent(exportId, { userId, resumeId: userId, fileUrl: '' }),
+      );
       return result;
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      this.events.publish(new ExportFailedEvent(exportId, { resumeId: userId, reason }));
+      this.events.publish(new ExportFailedEvent(exportId, { userId, resumeId: userId, reason }));
       if (err instanceof Error && err.constructor.name.endsWith('Exception')) {
         throw err;
       }

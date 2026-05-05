@@ -1,6 +1,7 @@
 import { DomainEvent } from '@/shared-kernel';
 
 export interface ExportCompletedPayload {
+  readonly userId: string;
   readonly resumeId: string;
   readonly fileUrl: string;
 }

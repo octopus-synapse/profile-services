@@ -43,26 +43,18 @@ export class AuthAuditHandler {
   ) {}
 
   async onLoginFailed(event: LoginFailedEvent): Promise<void> {
-    await this.audit.log(
-      buildAuditEntry({
-        userId: event.aggregateId, // email — pre-auth, no userId yet
-        action: 'LOGIN_FAILED',
-        entityType: 'User',
-        entityId: event.aggregateId,
-        eventType: event.eventType,
-        payload: event.payload,
-      }),
-    );
+    // Pre-auth event: no user row yet, so we cannot reference one via FK.
+    // The email lives on the payload for forensic correlation.
     this.logger.debug(`Audit: LOGIN_FAILED ${event.aggregateId}`, CTX);
   }
 
   async onUserLoggedIn(event: UserLoggedInEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: event.aggregateId,
+        userId: event.userId,
         action: 'USER_LOGGED_IN',
         entityType: 'User',
-        entityId: event.aggregateId,
+        entityId: event.userId,
         eventType: event.eventType,
         payload: event.payload,
       }),
@@ -72,10 +64,10 @@ export class AuthAuditHandler {
   async onUserLoggedOut(event: UserLoggedOutEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: event.aggregateId,
+        userId: event.userId,
         action: 'USER_LOGGED_OUT',
         entityType: 'User',
-        entityId: event.aggregateId,
+        entityId: event.userId,
         eventType: event.eventType,
         payload: event.payload,
       }),
@@ -85,10 +77,10 @@ export class AuthAuditHandler {
   async onSessionCreated(event: SessionCreatedEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: event.aggregateId,
+        userId: event.userId,
         action: 'SESSION_CREATED',
         entityType: 'Session',
-        entityId: event.aggregateId,
+        entityId: event.sessionId,
         eventType: event.eventType,
         payload: event.payload,
       }),
@@ -98,10 +90,10 @@ export class AuthAuditHandler {
   async onSessionTerminated(event: SessionTerminatedEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: event.aggregateId,
+        userId: event.userId,
         action: 'SESSION_TERMINATED',
         entityType: 'Session',
-        entityId: event.aggregateId,
+        entityId: event.sessionId,
         eventType: event.eventType,
         payload: event.payload,
       }),
@@ -111,10 +103,10 @@ export class AuthAuditHandler {
   async onTokenRefreshed(event: TokenRefreshedEvent): Promise<void> {
     await this.audit.log(
       buildAuditEntry({
-        userId: event.aggregateId,
+        userId: event.userId,
         action: 'TOKEN_REFRESHED',
         entityType: 'Session',
-        entityId: event.aggregateId,
+        entityId: event.userId,
         eventType: event.eventType,
         payload: event.payload,
       }),

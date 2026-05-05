@@ -432,21 +432,21 @@ export function permissionGuardStage(
 
       if (missing.length === 0) return next();
 
-      // Back-compat: surface the historical specific code when exactly
-      // one state-permission is missing. Otherwise fall back to the
-      // generic INSUFFICIENT_PERMISSION envelope; the `missing[]` field
-      // always carries the full list either way.
+      // Surface the most actionable code: state gates (email/onboarding)
+      // outrank the generic `INSUFFICIENT_PERMISSION` even when domain
+      // permissions are *also* missing, because the user has to fix the
+      // state gate first — granting them the perm wouldn't unblock them
+      // anyway. The `missing[]` field carries the full list for clients
+      // that want to render every requirement.
       let code: 'EMAIL_NOT_VERIFIED' | 'ONBOARDING_NOT_COMPLETED' | 'INSUFFICIENT_PERMISSION' =
         'INSUFFICIENT_PERMISSION';
       let message = `Missing: ${missing.join(', ')}`;
-      if (missing.length === 1) {
-        if (missing[0] === 'email-verified') {
-          code = 'EMAIL_NOT_VERIFIED';
-          message = 'Email address must be verified to access this resource';
-        } else if (missing[0] === 'onboarding-completed') {
-          code = 'ONBOARDING_NOT_COMPLETED';
-          message = 'Onboarding must be completed before accessing this resource';
-        }
+      if (missing.includes('email-verified')) {
+        code = 'EMAIL_NOT_VERIFIED';
+        message = 'Email address must be verified to access this resource';
+      } else if (missing.includes('onboarding-completed')) {
+        code = 'ONBOARDING_NOT_COMPLETED';
+        message = 'Onboarding must be completed before accessing this resource';
       }
 
       ctx.state.responseStatus = 403;

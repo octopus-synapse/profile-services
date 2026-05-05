@@ -100,6 +100,25 @@ export const ENUM_DICTIONARY = {
     USERNAME_CHANGED: { en: 'Username changed', 'pt-BR': 'Nome de usuário alterado' },
     USER_LOGIN: { en: 'User login', 'pt-BR': 'Login realizado' },
     USER_LOGOUT: { en: 'User logout', 'pt-BR': 'Logout realizado' },
+    // P1-035 — auth/session lifecycle audit events.
+    LOGIN_FAILED: { en: 'Login failed', 'pt-BR': 'Falha de login' },
+    USER_LOGGED_IN: { en: 'User logged in', 'pt-BR': 'Usuário logou' },
+    USER_LOGGED_OUT: { en: 'User logged out', 'pt-BR': 'Usuário deslogou' },
+    SESSION_CREATED: { en: 'Session created', 'pt-BR': 'Sessão criada' },
+    SESSION_TERMINATED: { en: 'Session terminated', 'pt-BR': 'Sessão encerrada' },
+    TOKEN_REFRESHED: { en: 'Token refreshed', 'pt-BR': 'Token renovado' },
+    // P1-035 — export, social, and resume-version audit events.
+    EXPORT_REQUESTED: { en: 'Export requested', 'pt-BR': 'Exportação solicitada' },
+    EXPORT_COMPLETED: { en: 'Export completed', 'pt-BR': 'Exportação concluída' },
+    EXPORT_FAILED: { en: 'Export failed', 'pt-BR': 'Exportação falhou' },
+    USER_FOLLOWED: { en: 'User followed', 'pt-BR': 'Usuário seguido' },
+    CONNECTION_REQUESTED: { en: 'Connection requested', 'pt-BR': 'Conexão solicitada' },
+    SHARE_DOWNLOADED: { en: 'Share downloaded', 'pt-BR': 'Compartilhamento baixado' },
+    RESUME_VERSION_CREATED: { en: 'Resume version created', 'pt-BR': 'Versão do currículo criada' },
+    RESUME_VERSION_RESTORED: {
+      en: 'Resume version restored',
+      'pt-BR': 'Versão do currículo restaurada',
+    },
   },
   BadgeKind: {
     ATS_90_PLUS: { en: 'ATS 90+', 'pt-BR': 'ATS 90+' },
