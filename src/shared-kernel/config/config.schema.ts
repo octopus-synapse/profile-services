@@ -28,6 +28,24 @@ const BooleanString = z
   .union([z.literal('true'), z.literal('false'), z.literal('1'), z.literal('0')])
   .transform((v) => v === 'true' || v === '1');
 
+/**
+ * Optional URL where the empty string is normalised to `undefined`.
+ *
+ * `.env` files frequently leave a placeholder line like
+ * `MINIO_ENDPOINT=""` for variables that an environment intentionally
+ * does not set. Plain `z.string().url().optional()` would reject the
+ * empty string because the schema is "string-or-undefined", and ""
+ * is a string that is not a valid URL.
+ *
+ * This preprocessor turns empty strings into `undefined` BEFORE the
+ * URL validator runs, which is the conventional shell semantics
+ * ("unset variable").
+ */
+const OptionalUrl = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.string().url().optional(),
+);
+
 const PortNumber = z
   .string()
   .regex(/^\d+$/u, 'must be a positive integer')
@@ -88,18 +106,18 @@ export const EnvConfigSchema = z.object({
   SKIP_EMAIL_VERIFICATION: BooleanString.optional(),
 
   // --- Storage (MinIO / S3) ---
-  MINIO_ENDPOINT: z.string().url().optional(),
+  MINIO_ENDPOINT: OptionalUrl,
   MINIO_ACCESS_KEY: z.string().optional(),
   MINIO_SECRET_KEY: z.string().optional(),
   MINIO_BUCKET: z.string().optional(),
-  MINIO_PUBLIC_ENDPOINT: z.string().url().optional(),
+  MINIO_PUBLIC_ENDPOINT: OptionalUrl,
 
   // --- Application URLs (used in CORS, emails, frontend redirects) ---
-  BACKEND_URL: z.string().url().optional(),
-  FRONTEND_URL: z.string().url().optional(),
-  PUBLIC_APP_URL: z.string().url().optional(),
-  API_BASE_URL: z.string().url().optional(),
-  UI_BASE_URL: z.string().url().optional(),
+  BACKEND_URL: OptionalUrl,
+  FRONTEND_URL: OptionalUrl,
+  PUBLIC_APP_URL: OptionalUrl,
+  API_BASE_URL: OptionalUrl,
+  UI_BASE_URL: OptionalUrl,
   APP_VERSION: z.string().optional(),
 
   // --- CORS / WebSocket origin allowlist ---
@@ -142,10 +160,10 @@ export const EnvConfigSchema = z.object({
   OPENAI_EMBEDDING_MODEL: z.string().optional(),
 
   // --- Translation ---
-  LIBRETRANSLATE_URL: z.string().url().optional(),
+  LIBRETRANSLATE_URL: OptionalUrl,
 
   // --- Analytics (PostHog) ---
-  POSTHOG_HOST: z.string().url().optional(),
+  POSTHOG_HOST: OptionalUrl,
   POSTHOG_API_KEY: z.string().optional(),
 
   // --- Typst PDF rendering ---
@@ -159,9 +177,6 @@ export const EnvConfigSchema = z.object({
   INTERNAL_API_TOKEN: z.string().optional(),
   PROMETHEUS_KEY: z.string().optional(),
   SDK_COVERAGE_MODE: z.string().optional(),
-
-  // --- Theme preview ---
-  THEME_PREVIEW_RESUME_ID: z.string().optional(),
 
   // --- Attestation witness ---
   ATTESTATION_WITNESS_STORAGE_PATH: z.string().optional(),
