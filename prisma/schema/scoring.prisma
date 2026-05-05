@@ -15,7 +15,7 @@
 // A materialized view (created in the migration) exposes the latest row per
 // resumeId for fast reads; this table keeps the full audit trail.
 model ResumeQualityScoreHistory {
-  id                  String   @id @default(cuid())
+  id                  String   @id @default(dbgenerated("uuidv7()"))
   resumeId            String
   overallScore        Int
   completenessScore   Int
@@ -36,7 +36,7 @@ model ResumeQualityScoreHistory {
 // Missing/expired vector triggers the fit-profile lockout (403) on gated
 // endpoints (Match, Auto-Apply, AI Tailor, apply-to-internal-jobs).
 model UserFitProfile {
-  id         String   @id @default(cuid())
+  id         String   @id @default(dbgenerated("uuidv7()"))
   userId     String   @unique
   vectorJson Json // { bigFive: [...], schwartz: [...], sdt: [...] }
   version    Int
@@ -51,7 +51,7 @@ model UserFitProfile {
 // One row per job — recruiter-authored behavioural profile (sliders) used
 // as the "company side" of the Fit sub-score.
 model JobFitProfile {
-  id             String   @id @default(cuid())
+  id             String   @id @default(dbgenerated("uuidv7()"))
   jobId          String   @unique
   vectorJson     Json
   editedByUserId String // recruiter who last edited the sliders
@@ -63,7 +63,7 @@ model JobFitProfile {
 // Pool of ~100 psychometric questions (stratified across FitDimension). The
 // 25-question questionnaire is sampled from active rows of this pool.
 model FitQuestion {
-  id        String       @id @default(cuid())
+  id        String       @id @default(dbgenerated("uuidv7()"))
   key       String       @unique
   dimension FitDimension
   textEn    String
@@ -78,7 +78,7 @@ model FitQuestion {
 // Individual answers. `questionSetId` scopes an answer to the specific sampled
 // 25-question set so a user can re-answer on remap without overwriting history.
 model FitAnswer {
-  id            String   @id @default(cuid())
+  id            String   @id @default(dbgenerated("uuidv7()"))
   userId        String
   questionId    String
   rawValue      Int // 1-5 likert (or scale-specific encoded int)
@@ -97,7 +97,7 @@ model FitAnswer {
 // idempotent — re-requesting the questionnaire before `completedAt` is set
 // returns the same 25 questions.
 model FitQuestionSet {
-  id          String    @id @default(cuid())
+  id          String    @id @default(dbgenerated("uuidv7()"))
   userId      String
   seed        String
   createdAt   DateTime  @default(now())
@@ -112,7 +112,7 @@ model FitQuestionSet {
 // Vector snapshots captured at every remap (initial compute + each 3-month
 // refresh). Lets us observe drift over time without touching UserFitProfile.
 model FitRemapHistory {
-  id         String   @id @default(cuid())
+  id         String   @id @default(dbgenerated("uuidv7()"))
   userId     String
   vectorJson Json
   snapshotAt DateTime @default(now())

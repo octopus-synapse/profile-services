@@ -5,7 +5,7 @@
 // as claimed.
 
 model ShadowProfile {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   // Origin of the data: 'github', 'devto', etc. Today only github but
   // the column is here so the claim flow doesn't need a migration when

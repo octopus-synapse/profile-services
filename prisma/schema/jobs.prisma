@@ -1,7 +1,7 @@
 // Jobs: Job listings posted by users
 
 model Job {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   authorId String
   author   User   @relation("UserJobs", fields: [authorId], references: [id])
 
@@ -67,7 +67,7 @@ model Job {
 }
 
 model JobBookmark {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String
@@ -79,7 +79,7 @@ model JobBookmark {
 }
 
 model JobApplication {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String

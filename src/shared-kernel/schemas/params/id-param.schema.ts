@@ -3,13 +3,12 @@ import { z } from 'zod';
 /**
  * Generic single-id route param: `/:id`.
  *
- * Validation is `z.string().min(1)` (not `.uuid()`) until the Prisma
- * UUID v7 migration lands — see Q11 in the duplication audit. Switch to
- * `.uuid()` together with the Prisma schema change to avoid breaking
- * existing CUID-shaped IDs in transit.
+ * Validation tightened to `z.string().uuid()` after the Prisma UUID v7
+ * migration (Q11 phase 2). v4 and v7 share the same textual form so
+ * legacy rows still validate.
  */
 export const IdParamSchema = z.object({
-  id: z.string().min(1, 'ID is required'),
+  id: z.string().uuid('ID must be a valid UUID'),
 });
 
 export type IdParam = z.infer<typeof IdParamSchema>;

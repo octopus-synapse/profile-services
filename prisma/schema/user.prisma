@@ -1,7 +1,7 @@
 // User and Preferences Models
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(dbgenerated("uuidv7()"))
   name          String?
   email         String?   @unique
   /// Timestamp when the email was verified. `null` = unverified.
@@ -135,7 +135,7 @@ model User {
 }
 
 model UserPreferences {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -185,7 +185,7 @@ model UserPreferences {
 // as defaults for the Weekly Curated picker). Separate table so we can extend
 // it without touching UserPreferences on every new dimension.
 model UserApplyCriteria {
-  id            String          @id @default(cuid())
+  id            String          @id @default(dbgenerated("uuidv7()"))
   preferencesId String          @unique
   preferences   UserPreferences @relation(fields: [preferencesId], references: [id], onDelete: Cascade)
 
@@ -202,7 +202,7 @@ model UserApplyCriteria {
 }
 
 model OnboardingProgress {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -225,7 +225,7 @@ model OnboardingProgress {
 }
 
 model AuditLog {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -253,7 +253,7 @@ model AuditLog {
 
 // GDPR Compliance: Track ToS/Privacy Policy acceptance (#75)
 model UserConsent {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   userId String
   user   User   @relation("UserConsents", fields: [userId], references: [id], onDelete: Cascade)

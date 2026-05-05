@@ -1,15 +1,17 @@
 #!/usr/bin/env bun
 /**
- * Q32 / Q75 lint rule (warning-then-error transition).
+ * Q32 / Q75 lint rule (warning-then-error transition — flipped to
+ * error-default after the four sweep call sites + domain cache
+ * services were allowlisted).
  *
  * Forbids direct `cache.delete(...)` / `cache.deletePattern(...)` /
  * `cachePort.delete*(...)` calls outside of the canonical
- * `CacheInvalidationService` (which is the only sanctioned consumer of
- * the low-level CachePort delete surface).
+ * `CacheInvalidationService` and the per-domain cache services that
+ * are themselves the BC's invalidation surface.
  *
  * Mode controlled by `CACHE_LINT_MODE` env var:
- *   - "warn"  (default): logs offenders, exit 0
- *   - "error": exit 1 if any offender is found
+ *   - "error" (default): exit 1 if any offender is found
+ *   - "warn":  logs offenders, exit 0 (use during a future migration)
  *
  * Run:
  *   bun run scripts/lint-cache-direct-delete.ts
@@ -28,14 +30,28 @@ const SKIP_DIRS = new Set(['node_modules', 'testing', '__mocks__', '__tests__'])
 
 // Files allowed to use cache.delete*/deletePattern directly:
 //   - the canonical invalidation service (its whole reason to exist)
-//   - the cache adapters themselves
-//   - test fakes / mocks
+//   - the cache adapters / cache ports themselves
+//   - per-domain cache services that ARE the canonical invalidation
+//     surface for their bounded context (chat-cache, mec-cache, etc.)
+//   - the LRU eviction logic in authorization (cache.delete is the
+//     primitive backing the cache, not application-level invalidation)
 const ALLOWLIST = new Set([
   'src/bounded-contexts/platform/common/cache/services/cache-invalidation.service.ts',
   'src/bounded-contexts/platform/common/cache/services/cache-core.service.ts',
   'src/bounded-contexts/platform/common/cache/cache-lock.service.ts',
   'src/shared-kernel/cache/cache.port.ts',
   'src/shared-kernel/cache/cache-invalidation.port.ts',
+  // Domain cache services / facades — these wrap domain-typed cache
+  // ports (MecCachePort, ChatCachePort, AuthorizationCachePort) that
+  // are themselves the BC's invalidation surface. The application code
+  // depends on the domain port; only the adapter writes to CachePort.
+  'src/bounded-contexts/integration/mec-sync/infrastructure/adapters/external-services/redis-mec-cache.adapter.ts',
+  'src/bounded-contexts/integration/mec-sync/application/services/data-sync.service.ts',
+  'src/bounded-contexts/collaboration/chat/services/chat-cache.service.ts',
+  'src/bounded-contexts/identity/authorization/infrastructure/adapters/cache/authorization-cache.adapter.ts',
+  'src/bounded-contexts/identity/authorization/application/services/authorization.service.ts',
+  'src/bounded-contexts/skills-catalog/tech-skills/services/tech-skills-sync.service.ts',
+  'src/bounded-contexts/job-match/infrastructure/workers/job-match-recompute.worker.ts',
 ]);
 
 const PATTERN =
@@ -63,7 +79,7 @@ for (const file of walk(ROOT)) {
   }
 }
 
-const mode = process.env.CACHE_LINT_MODE === 'error' ? 'error' : 'warn';
+const mode = process.env.CACHE_LINT_MODE === 'warn' ? 'warn' : 'error';
 
 if (offenders.length === 0) {
   // eslint-disable-next-line no-console

@@ -12,7 +12,7 @@
 // (any role) or the caller has at least one of the listed roles.
 
 model FeatureFlag {
-  id              String   @id @default(cuid())
+  id              String   @id @default(dbgenerated("uuidv7()"))
   /// Dotted namespace (e.g. "resumes.export.pdf"). Source of truth is the registry in code.
   key             String   @unique
   name            String

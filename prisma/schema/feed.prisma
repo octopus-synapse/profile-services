@@ -1,7 +1,7 @@
 // Feed: Posts, Comments, Likes, Bookmarks, Reports, Polls
 
 model Post {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   authorId String
   author   User   @relation("UserPosts", fields: [authorId], references: [id])
 
@@ -81,7 +81,7 @@ model Post {
 }
 
 model PostComment {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   postId   String
   post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId String
@@ -101,7 +101,7 @@ model PostComment {
 }
 
 model PostLike {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -115,7 +115,7 @@ model PostLike {
 }
 
 model PostBookmark {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -127,7 +127,7 @@ model PostBookmark {
 }
 
 model PostReport {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -142,7 +142,7 @@ model PostReport {
 }
 
 model PollVote {
-  id          String @id @default(cuid())
+  id          String @id @default(dbgenerated("uuidv7()"))
   postId      String
   post        Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId      String

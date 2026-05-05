@@ -3,7 +3,7 @@
 // new events can be added without migrations. Queried by admin analytics.
 
 model PlatformEvent {
-  id         String   @id @default(cuid())
+  id         String   @id @default(dbgenerated("uuidv7()"))
   userId     String?
   event      String
   props      Json?

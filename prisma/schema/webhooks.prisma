@@ -1,6 +1,6 @@
 // User-registered webhooks for event notifications.
 model WebhookConfig {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserWebhooks", fields: [userId], references: [id], onDelete: Cascade)
 
@@ -20,7 +20,7 @@ model WebhookConfig {
 
 // Audit trail of every delivery attempt.
 model WebhookDelivery {
-  id        String        @id @default(cuid())
+  id        String        @id @default(dbgenerated("uuidv7()"))
   webhookId String
   webhook   WebhookConfig @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 

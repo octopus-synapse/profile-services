@@ -6,7 +6,7 @@
 // dashboard; approval fans out into a JobApplication (via JobsApplyUseCase).
 
 model WeeklyCuratedBatch {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserCuratedBatches", fields: [userId], references: [id], onDelete: Cascade)
 
@@ -27,7 +27,7 @@ model WeeklyCuratedBatch {
 }
 
 model WeeklyCuratedItem {
-  id      String             @id @default(cuid())
+  id      String             @id @default(dbgenerated("uuidv7()"))
   batchId String
   batch   WeeklyCuratedBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 

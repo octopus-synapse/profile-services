@@ -1,7 +1,7 @@
 // Resume Import Models
 
 model ResumeImport {
-  id           String       @id @default(cuid())
+  id           String       @id @default(dbgenerated("uuidv7()"))
   userId       String
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   source       ImportSource
