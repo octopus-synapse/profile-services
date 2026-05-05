@@ -17,9 +17,11 @@ export {
   OwnershipAccessDeniedException,
   OwnershipMissingParamException,
   OwnershipResourceMissingException,
+  OwnershipUnknownModelException,
   UserRolesNotAvailableException,
 } from './authorization.exceptions';
 export { AuthorizationCheckPort } from './authorization-check.port';
+export { type OwnershipLookupFn, OwnershipRegistry } from './ownership-registry';
 export { Permission } from './permission.enum';
 export {
   PERMISSION_GROUPS,

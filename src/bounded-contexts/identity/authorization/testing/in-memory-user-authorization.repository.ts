@@ -1,10 +1,8 @@
-import type { GroupId } from '../domain/entities/group.entity';
 import type { PermissionId } from '../domain/entities/permission.entity';
 import type { RoleId } from '../domain/entities/role.entity';
 import type { UserId } from '../domain/entities/user-auth-context.entity';
 import type {
   IUserAuthorizationRepository,
-  UserGroupMembership,
   UserPermissionAssignment,
   UserRoleAssignment,
 } from '../domain/ports';
@@ -13,10 +11,15 @@ interface AssignOptions {
   expiresAt?: Date;
 }
 
+/**
+ * In-memory implementation for tests.
+ *
+ * P0-009: group-related state and methods removed alongside the
+ * dropped `Group/UserGroup` schema.
+ */
 export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRepository {
   private permissions = new Map<UserId, UserPermissionAssignment[]>();
   private roles = new Map<UserId, UserRoleAssignment[]>();
-  private groups = new Map<UserId, UserGroupMembership[]>();
 
   // ───────────────────────────────────────────────────────────────
   // IUserAuthorizationRepository (read)
@@ -28,10 +31,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
 
   async getUserRoles(userId: UserId): Promise<UserRoleAssignment[]> {
     return this.roles.get(userId) ?? [];
-  }
-
-  async getUserGroups(userId: UserId): Promise<UserGroupMembership[]> {
-    return this.groups.get(userId) ?? [];
   }
 
   // ───────────────────────────────────────────────────────────────
@@ -61,32 +60,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
     this.roles.set(
       userId,
       roleIds.map((roleId) => ({ roleId, expiresAt: options?.expiresAt })),
-    );
-  }
-
-  async addToGroup(userId: UserId, groupId: GroupId, options?: AssignOptions): Promise<void> {
-    const userGroups = this.groups.get(userId) ?? [];
-    const existing = userGroups.findIndex((g) => g.groupId === groupId);
-    if (existing >= 0) {
-      userGroups[existing] = { groupId, expiresAt: options?.expiresAt };
-    } else {
-      userGroups.push({ groupId, expiresAt: options?.expiresAt });
-    }
-    this.groups.set(userId, userGroups);
-  }
-
-  async removeFromGroup(userId: UserId, groupId: GroupId): Promise<void> {
-    const userGroups = this.groups.get(userId) ?? [];
-    this.groups.set(
-      userId,
-      userGroups.filter((g) => g.groupId !== groupId),
-    );
-  }
-
-  async setGroups(userId: UserId, groupIds: GroupId[], options?: AssignOptions): Promise<void> {
-    this.groups.set(
-      userId,
-      groupIds.map((groupId) => ({ groupId, expiresAt: options?.expiresAt })),
     );
   }
 
@@ -147,16 +120,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
     return this.roleNameCounts.get(roleName.toLowerCase()) ?? 0;
   }
 
-  async getUsersInGroup(groupId: GroupId): Promise<UserId[]> {
-    const result: UserId[] = [];
-    for (const [userId, userGroups] of this.groups.entries()) {
-      if (userGroups.some((g) => g.groupId === groupId)) {
-        result.push(userId);
-      }
-    }
-    return result;
-  }
-
   async cleanupExpiredAssignments(): Promise<void> {
     const now = new Date();
     for (const [userId, perms] of this.permissions.entries()) {
@@ -169,12 +132,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
       this.roles.set(
         userId,
         userRoles.filter((r) => !r.expiresAt || r.expiresAt > now),
-      );
-    }
-    for (const [userId, userGroups] of this.groups.entries()) {
-      this.groups.set(
-        userId,
-        userGroups.filter((g) => !g.expiresAt || g.expiresAt > now),
       );
     }
   }
@@ -197,12 +154,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
     this.roles.set(userId, userRoles);
   }
 
-  seedGroup(userId: UserId, membership: UserGroupMembership): void {
-    const userGroups = this.groups.get(userId) ?? [];
-    userGroups.push(membership);
-    this.groups.set(userId, userGroups);
-  }
-
   setRoleNameCount(roleName: string, count: number): void {
     this.roleNameCounts.set(roleName.toLowerCase(), count);
   }
@@ -210,7 +161,6 @@ export class InMemoryUserAuthorizationRepository implements IUserAuthorizationRe
   clear(): void {
     this.permissions.clear();
     this.roles.clear();
-    this.groups.clear();
     this.roleNameCounts.clear();
   }
 }

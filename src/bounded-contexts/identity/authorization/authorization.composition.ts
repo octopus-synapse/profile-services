@@ -30,7 +30,6 @@ import { ListActiveModifiersUseCase } from './application/use-cases/access-modif
 import { RevokeAccessModifierUseCase } from './application/use-cases/access-modifier/revoke-access-modifier.use-case';
 import { AccessModifierAuditLogAdapter } from './infrastructure/adapters/audit-log.adapter';
 import { AccessModifierRepository } from './infrastructure/repositories/access-modifier.repository';
-import { GroupRepository } from './infrastructure/repositories/group.repository';
 import { PermissionRepository } from './infrastructure/repositories/permission.repository';
 import { RoleRepository } from './infrastructure/repositories/role.repository';
 import { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';
@@ -50,7 +49,6 @@ export interface AuthorizationUseCases {
   readonly accessModifier: AccessModifierUseCases;
   readonly permissionRepo: PermissionRepository;
   readonly roleRepo: RoleRepository;
-  readonly groupRepo: GroupRepository;
   readonly userAuthRepo: UserAuthorizationRepository;
 }
 
@@ -61,19 +59,12 @@ export function buildAuthorizationUseCases(
 ): AuthorizationUseCases {
   const permissionRepo = new PermissionRepository(prisma);
   const roleRepo = new RoleRepository(prisma);
-  const groupRepo = new GroupRepository(prisma, logger);
   const userAuthRepo = new UserAuthorizationRepository(prisma);
 
-  const authService = new AuthorizationService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
+  const authService = new AuthorizationService(permissionRepo, roleRepo, userAuthRepo);
   const managementService = new AuthorizationManagementService(userAuthRepo, eventPublisher);
 
-  const checks = buildAuthorizationCheckUseCases(
-    permissionRepo,
-    roleRepo,
-    groupRepo,
-    userAuthRepo,
-    logger,
-  );
+  const checks = buildAuthorizationCheckUseCases(permissionRepo, roleRepo, userAuthRepo, logger);
   const management = buildAuthorizationManagementUseCases(userAuthRepo, eventPublisher, logger);
 
   const auditLog = new AccessModifierAuditLogAdapter(prisma, logger);
@@ -93,7 +84,6 @@ export function buildAuthorizationUseCases(
     accessModifier,
     permissionRepo,
     roleRepo,
-    groupRepo,
     userAuthRepo,
   };
 }

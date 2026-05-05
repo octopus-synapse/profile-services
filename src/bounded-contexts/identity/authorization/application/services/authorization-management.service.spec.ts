@@ -21,7 +21,6 @@ describe('AuthorizationManagementService', () => {
   const mockUserId = 'user-123';
   const mockRoleId = 'role-456';
   const mockPermissionId = 'perm-789';
-  const mockGroupId = 'group-abc';
 
   beforeEach(() => {
     mockUserAuthRepo = {
@@ -29,8 +28,6 @@ describe('AuthorizationManagementService', () => {
       revokeRole: mock(() => Promise.resolve()),
       grantPermission: mock(() => Promise.resolve()),
       denyPermission: mock(() => Promise.resolve()),
-      addToGroup: mock(() => Promise.resolve()),
-      removeFromGroup: mock(() => Promise.resolve()),
     };
 
     mockEventPublisher = {
@@ -135,35 +132,6 @@ describe('AuthorizationManagementService', () => {
     });
   });
 
-  describe('addToGroup', () => {
-    it('should add user to group', async () => {
-      await service.addToGroup({ userId: mockUserId, groupId: mockGroupId });
-
-      expect(mockUserAuthRepo.addToGroup).toHaveBeenCalledWith(
-        mockUserId,
-        mockGroupId,
-        expect.any(Object),
-      );
-    });
-
-    it('should publish GroupMembershipChangedEvent', async () => {
-      await service.addToGroup({ userId: mockUserId, groupId: mockGroupId });
-
-      expect(mockEventPublisher.publish).toHaveBeenCalled();
-    });
-  });
-
-  describe('removeFromGroup', () => {
-    it('should remove user from group', async () => {
-      await service.removeFromGroup(mockUserId, mockGroupId);
-
-      expect(mockUserAuthRepo.removeFromGroup).toHaveBeenCalledWith(mockUserId, mockGroupId);
-    });
-
-    it('should publish GroupMembershipChangedEvent', async () => {
-      await service.removeFromGroup(mockUserId, mockGroupId);
-
-      expect(mockEventPublisher.publish).toHaveBeenCalled();
-    });
-  });
+  // P0-009: addToGroup/removeFromGroup tests removed alongside the
+  // dropped Group hierarchy (`20260430040810_authz_refactor` migration).
 });

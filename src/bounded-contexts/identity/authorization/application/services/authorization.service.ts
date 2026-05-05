@@ -14,7 +14,6 @@
 
 import { UserAuthContext, type UserId } from '../../domain/entities/user-auth-context.entity';
 import type {
-  IGroupRepository,
   IPermissionRepository,
   IRoleRepository,
   IUserAuthorizationRepository,
@@ -46,16 +45,10 @@ export class AuthorizationService extends AuthorizationServicePort {
   constructor(
     private readonly permissionRepo: IPermissionRepository,
     private readonly roleRepo: IRoleRepository,
-    private readonly groupRepo: IGroupRepository,
     private readonly userAuthRepo: IUserAuthorizationRepository,
   ) {
     super();
-    this.resolver = new PermissionResolverService(
-      permissionRepo,
-      roleRepo,
-      groupRepo,
-      userAuthRepo,
-    );
+    this.resolver = new PermissionResolverService(permissionRepo, roleRepo, userAuthRepo);
   }
 
   // ============================================================================
@@ -162,26 +155,6 @@ export class AuthorizationService extends AuthorizationServicePort {
     const role = await this.roleRepo.findByName(roleIdOrName);
     if (role) {
       return context.hasRole(role.id);
-    }
-
-    return false;
-  }
-
-  /**
-   * Check if user belongs to a group (by ID or name)
-   */
-  async inGroup(userId: UserId, groupIdOrName: string): Promise<boolean> {
-    const context = await this.getContext(userId);
-
-    // Check by ID first
-    if (context.inGroup(groupIdOrName)) {
-      return true;
-    }
-
-    // Check by name
-    const group = await this.groupRepo.findByName(groupIdOrName);
-    if (group) {
-      return context.inGroup(group.id);
     }
 
     return false;

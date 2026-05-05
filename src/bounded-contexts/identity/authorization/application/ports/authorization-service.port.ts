@@ -56,11 +56,6 @@ export abstract class AuthorizationServicePort {
   abstract hasRole(userId: UserId, roleIdOrName: string): Promise<boolean>;
 
   /**
-   * Check if a user is in a specific group.
-   */
-  abstract inGroup(userId: UserId, groupIdOrName: string): Promise<boolean>;
-
-  /**
    * Count users with a specific role.
    */
   abstract countUsersWithRole(roleName: string): Promise<number>;

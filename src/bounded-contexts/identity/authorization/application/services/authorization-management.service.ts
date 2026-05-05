@@ -10,7 +10,6 @@
 
 import { EventPublisher } from '@/shared-kernel';
 import {
-  GroupMembershipChangedEvent,
   PermissionDeniedEvent,
   PermissionGrantedEvent,
   RoleAssignedEvent,
@@ -45,13 +44,6 @@ export interface DenyPermissionParams {
   permissionId: string;
   deniedBy?: string;
   reason?: string;
-}
-
-export interface GroupMembershipParams {
-  userId: string;
-  groupId: string;
-  assignedBy?: string;
-  expiresAt?: Date;
 }
 
 export class AuthorizationManagementService {
@@ -113,25 +105,6 @@ export class AuthorizationManagementService {
         deniedBy: params.deniedBy ?? 'system',
         reason: params.reason ?? 'explicit denial',
       }),
-    );
-  }
-
-  async addToGroup(params: GroupMembershipParams): Promise<void> {
-    await this.userAuthRepo.addToGroup(params.userId, params.groupId, {
-      assignedBy: params.assignedBy,
-      expiresAt: params.expiresAt,
-    });
-
-    this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(params.userId, { groupId: params.groupId, action: 'added' }),
-    );
-  }
-
-  async removeFromGroup(userId: string, groupId: string): Promise<void> {
-    await this.userAuthRepo.removeFromGroup(userId, groupId);
-
-    this.eventPublisher.publish(
-      new GroupMembershipChangedEvent(userId, { groupId, action: 'removed' }),
     );
   }
 }

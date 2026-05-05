@@ -117,10 +117,13 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     method: 'GET',
     path: '/v1/export/user/:userId/resume/pdf',
     auth: { kind: 'jwt' },
+    // P0-004: ownership guard — only the user themself can export their resume
+    // through this endpoint. Cross-user exports were possible before the guard.
+    guards: [{ id: 'ownership', metadata: { entity: 'user', paramKey: 'userId' } }],
     params: UserIdParams,
     response: PdfBase64ResponseSchema,
     openapi: {
-      summary: "Generate another user's resume as PDF (base64)",
+      summary: "Generate the authenticated user's resume as PDF (base64)",
       tags: ['export'],
       description: 'Export API',
     },
@@ -172,6 +175,8 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     path: '/v1/export/:resumeId/json',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
+    // P0-004: ownership guard — only the resume owner can export it.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     query: JsonExportQuery,
     response: PresignedDownloadResponseSchema,
@@ -205,6 +210,8 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     path: '/v1/export/:resumeId/latex',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
+    // P0-004: ownership guard — only the resume owner can export it.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     query: LatexExportQuery,
     response: PresignedDownloadResponseSchema,

@@ -5,7 +5,6 @@
  */
 
 import type { UserAuthContext, UserId } from '../../domain/entities/user-auth-context.entity';
-import type { AddToGroupParams } from '../use-cases/authorization-management/add-to-group.use-case';
 import type { AssignRoleParams } from '../use-cases/authorization-management/assign-role.use-case';
 import type { DenyPermissionParams } from '../use-cases/authorization-management/deny-permission.use-case';
 import type { GrantPermissionParams } from '../use-cases/authorization-management/grant-permission.use-case';
@@ -45,9 +44,6 @@ export abstract class AuthorizationCheckUseCases {
   abstract readonly checkRoleUseCase: {
     execute: (userId: UserId, roleIdOrName: string) => Promise<boolean>;
   };
-  abstract readonly checkGroupMembershipUseCase: {
-    execute: (userId: UserId, groupIdOrName: string) => Promise<boolean>;
-  };
   abstract readonly countUsersWithRoleUseCase: { execute: (roleName: string) => Promise<number> };
   abstract readonly checkLastAdminUseCase: { execute: (userId: UserId) => Promise<boolean> };
   abstract readonly invalidateCache: (userId: UserId) => void;
@@ -63,9 +59,5 @@ export abstract class AuthorizationManagementUseCases {
   };
   abstract readonly denyPermissionUseCase: {
     execute: (params: DenyPermissionParams) => Promise<void>;
-  };
-  abstract readonly addToGroupUseCase: { execute: (params: AddToGroupParams) => Promise<void> };
-  abstract readonly removeFromGroupUseCase: {
-    execute: (userId: string, groupId: string) => Promise<void>;
   };
 }

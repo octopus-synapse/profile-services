@@ -89,7 +89,9 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { key } = ctx.params as { key: string };
-      const deleted = await bc.deleteUpload.execute(key);
+      // P0-005: ownership enforced inside the use case (DB-backed +
+      // lazy backfill for legacy keys).
+      const deleted = await bc.deleteUpload.execute(key, ctx.user!.userId);
       return { deleted };
     },
   },

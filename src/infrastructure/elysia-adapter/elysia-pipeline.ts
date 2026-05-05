@@ -22,7 +22,9 @@
  * they emit is the final response.
  */
 
+import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
+import type { OwnershipRegistry } from '@/shared-kernel/authorization';
 import type { AuthExtractorPort } from '@/shared-kernel/http/auth-extractor.port';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
@@ -31,6 +33,15 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { responseWrapperStage } from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
+import {
+  type DomainGateCheck,
+  fitProfileGuardStage,
+  minQualityGuardStage,
+} from './domain-gate-guard.stage';
+import { featureFlagGuardStage } from './feature-flag-guard.stage';
+import { internalAuthGuardStage } from './internal-auth-guard.stage';
+import { metricsKeyGuardStage } from './metrics-key-guard.stage';
+import { ownershipGuardStage } from './ownership-guard.stage';
 
 export interface PipelineDeps {
   readonly logger: LoggerPort;
@@ -49,6 +60,30 @@ export interface PipelineDeps {
    *  active modifiers per-request to apply DENY suspensions on state /
    *  role and GRANT overrides on permissions. */
   readonly accessModifierLookup?: AccessModifierLookup;
+  /** OwnershipRegistry — when provided, routes that declare
+   *  `guards: [{ id: 'ownership', metadata: { entity, paramKey } }]`
+   *  are gated by an owner-vs-requester comparison BEFORE the handler
+   *  runs. Composition root populates the registry per BC. */
+  readonly ownershipRegistry?: OwnershipRegistry;
+  /** FeatureFlagService — when provided, routes that declare
+   *  `guards: [{ id: 'feature-flag', metadata: { key } }]` are gated
+   *  by `flags.assertEnabled(key, userId)` before the handler runs. */
+  readonly featureFlags?: FeatureFlagService;
+  /** Expected `X-Internal-Token` value (read from
+   *  `INTERNAL_API_TOKEN` env var). When provided, routes that declare
+   *  `guards: [{ id: 'internal-auth' }]` require the header to match. */
+  readonly internalApiToken?: string;
+  /** Expected Prometheus scrape key (read from `PROMETHEUS_KEY`,
+   *  falls back to `INTERNAL_API_TOKEN` in dev). Routes declaring
+   *  `guards: [{ id: 'metrics-key' }]` require the bearer token. */
+  readonly metricsKey?: string;
+  /** Domain check: returns true when the user has a current
+   *  (non-expired) Fit Profile. Wired by the bootstrap from the
+   *  fit-profile BC's `requireCurrentFitProfile` helper. */
+  readonly hasValidFitProfile?: DomainGateCheck;
+  /** Domain check: returns true when the user's primary resume meets
+   *  the minimum quality score threshold for auto-apply / rage-apply. */
+  readonly meetsMinQuality?: DomainGateCheck;
 }
 
 /** The slice of IAccessModifierRepository the gate actually needs. */
@@ -84,6 +119,28 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
       }),
     );
   }
+  // OwnershipGuard runs after permission gate so the route's broad
+  // permission check (e.g. RESUME_EXPORT) acts first; the ownership
+  // gate is the per-instance refinement.
+  if (deps.ownershipRegistry) {
+    stages.push(ownershipGuardStage(deps.ownershipRegistry));
+  }
+  // NEW-1: feature-flag stage — runs before handler so a disabled
+  // flag returns 404 (matching `FeatureFlagService.assertEnabled`).
+  if (deps.featureFlags) {
+    stages.push(featureFlagGuardStage(deps.featureFlags));
+  }
+  // NEW-1 follow-up: internal-auth stage. Always wired so routes
+  // that declare the guard fail-closed when INTERNAL_API_TOKEN is
+  // unset (vs. silently passing through).
+  stages.push(internalAuthGuardStage({ expectedToken: deps.internalApiToken }));
+  // NEW-1 follow-up: metrics-key stage — Prometheus scrape token.
+  stages.push(metricsKeyGuardStage({ expectedKey: deps.metricsKey }));
+  // NEW-1 follow-up: domain gates (fit-profile + min-quality) for
+  // auto-apply routes. Both fail-closed when the check function isn't
+  // wired (returns 503 instead of silently allowing the route to run).
+  stages.push(fitProfileGuardStage(deps.hasValidFitProfile));
+  stages.push(minQualityGuardStage(deps.meetsMinQuality));
   stages.push(responseWrapperStage);
   return stages;
 }

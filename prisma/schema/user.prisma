@@ -103,6 +103,9 @@ model User {
   postBookmarks      PostBookmark[]   @relation("UserBookmarks")
   postReports        PostReport[]     @relation("UserReports")
 
+  // Upload ownership (P0-005)
+  uploads            Upload[]         @relation("UserUploads")
+
   // Notifications
   notifications      Notification[]   @relation("UserNotifications")
   notificationActors Notification[]   @relation("NotificationActors")

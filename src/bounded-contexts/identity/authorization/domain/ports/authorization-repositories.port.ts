@@ -4,11 +4,15 @@
  * Per-entity read ports following Dependency Inversion Principle.
  * Domain services depend on these abstractions, not implementations.
  *
- * User-scoped role/group/permission mutations live in
+ * User-scoped role/permission mutations live in
  * `user-authorization.port.ts` so this file stays within the ISP budget.
+ *
+ * P0-009: `IGroupRepository` was removed alongside the dropped
+ * `Group/UserGroup/GroupPermission/GroupRole` tables — the
+ * `20260430040810_authz_refactor` migration replaced the group hierarchy
+ * with `AccessModifier`.
  */
 
-import type { Group, GroupId } from '../entities/group.entity';
 import type { Permission, PermissionId } from '../entities/permission.entity';
 import type { Role, RoleId } from '../entities/role.entity';
 
@@ -17,7 +21,6 @@ import type { Role, RoleId } from '../entities/role.entity';
  * `user-authorization.port.ts`. */
 export type {
   IUserAuthorizationRepository,
-  UserGroupMembership,
   UserPermissionAssignment,
   UserRoleAssignment,
 } from './user-authorization.port';
@@ -34,12 +37,4 @@ export interface IRoleRepository {
   findById(id: RoleId): Promise<Role | null>;
   findByIds(ids: RoleId[]): Promise<Role[]>;
   findByName(name: string): Promise<Role | null>;
-}
-
-/** Group repository port */
-export interface IGroupRepository {
-  findById(id: GroupId): Promise<Group | null>;
-  findByIds(ids: GroupId[]): Promise<Group[]>;
-  findByName(name: string): Promise<Group | null>;
-  findAncestors(groupId: GroupId): Promise<Group[]>;
 }

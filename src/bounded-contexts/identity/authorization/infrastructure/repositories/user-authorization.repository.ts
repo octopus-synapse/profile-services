@@ -1,22 +1,22 @@
 /**
  * User Authorization Repository Implementation
  *
- * Backs role assignments via Prisma. Group operations and per-user
- * permission grants moved out of the model:
- * - Groups were dropped from the schema; group-related methods are
- *   no-ops kept for interface parity during the migration window.
- * - Per-user grants/suspensions live in `AccessModifier` (handled by
- *   a dedicated repository, not this one).
+ * Backs role assignments via Prisma. Per-user grants/suspensions live
+ * in `AccessModifier` (handled by a dedicated repository, not this one).
+ *
+ * P0-009: the legacy Group hierarchy was removed by the
+ * `20260430040810_authz_refactor` migration. The previous "no-op"
+ * group methods (kept for interface parity during the migration window)
+ * are now gone too — invoking them at runtime against the dropped
+ * tables would have been a confusing red herring.
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { GroupId } from '../../domain/entities/group.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
 import type { RoleId } from '../../domain/entities/role.entity';
 import type { UserId } from '../../domain/entities/user-auth-context.entity';
 import type {
   IUserAuthorizationRepository,
-  UserGroupMembership,
   UserPermissionAssignment,
   UserRoleAssignment,
 } from '../../domain/ports/authorization-repositories.port';
@@ -38,10 +38,6 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
     });
 
     return records.map((r) => ({ roleId: r.roleId, expiresAt: r.expiresAt ?? undefined }));
-  }
-
-  async getUserGroups(_userId: UserId): Promise<UserGroupMembership[]> {
-    return [];
   }
 
   // ============================================================================
@@ -83,30 +79,6 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
         data: roleIds.map((roleId) => ({ userId, roleId, assignedBy: options?.assignedBy })),
       }),
     ]);
-  }
-
-  // ============================================================================
-  // User Group Membership — no-ops (groups dropped)
-  // ============================================================================
-
-  async addToGroup(
-    _userId: UserId,
-    _groupId: GroupId,
-    _options?: { assignedBy?: string; expiresAt?: Date },
-  ): Promise<void> {
-    // no-op
-  }
-
-  async removeFromGroup(_userId: UserId, _groupId: GroupId): Promise<void> {
-    // no-op
-  }
-
-  async setGroups(
-    _userId: UserId,
-    _groupIds: GroupId[],
-    _options?: { assignedBy?: string },
-  ): Promise<void> {
-    // no-op
   }
 
   // ============================================================================
@@ -173,10 +145,6 @@ export class UserAuthorizationRepository implements IUserAuthorizationRepository
     if (!role) return 0;
 
     return this.countUsersWithRole(role.id);
-  }
-
-  async getUsersInGroup(_groupId: GroupId): Promise<UserId[]> {
-    return [];
   }
 
   async cleanupExpiredAssignments(): Promise<number> {
