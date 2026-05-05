@@ -9,8 +9,8 @@ import { ActivityType } from '../application/ports/activity.port';
 import {
   InMemoryActivityRepository,
   InMemoryFollowRepository,
-  InMemorySseStream,
   InMemorySocialLogger,
+  InMemorySseStream,
 } from '../testing';
 import { ActivityService } from './activity.service';
 

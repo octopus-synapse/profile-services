@@ -16,7 +16,6 @@ export class GetFeedUseCase {
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    
     const followingIds = await this.followRepository.findFollowingIds(userId);
 
     if (followingIds.length === 0) {

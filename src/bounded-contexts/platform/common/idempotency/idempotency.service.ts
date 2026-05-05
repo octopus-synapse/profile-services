@@ -1,5 +1,5 @@
-import { CacheLockService } from '../cache/cache-lock.service';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
+import { CacheLockService } from '../cache/cache-lock.service';
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24h
 

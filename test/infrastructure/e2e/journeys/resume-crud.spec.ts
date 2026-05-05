@@ -24,12 +24,12 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import {
   createFullOnboardingData,
   createResumeWithSections,
   createSectionItemContent,
 } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 

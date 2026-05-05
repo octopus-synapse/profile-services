@@ -13,7 +13,9 @@ export function toFitProfileMeResponseDto(view: FitProfileStatusView): FitProfil
   };
 }
 
-export function toSubmittedFitProfileResponseDto(profile: SavedUserFitProfile): SubmittedFitProfileDto {
+export function toSubmittedFitProfileResponseDto(
+  profile: SavedUserFitProfile,
+): SubmittedFitProfileDto {
   return {
     profileId: profile.id,
     version: profile.version,

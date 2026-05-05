@@ -18,8 +18,8 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
-import { createFullOnboardingData, createMinimalOnboardingData } from '../fixtures/resumes.fixture';
 import type { AuthHelper } from '../../shared/auth.helper';
+import { createFullOnboardingData, createMinimalOnboardingData } from '../fixtures/resumes.fixture';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 

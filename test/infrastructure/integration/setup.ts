@@ -56,7 +56,7 @@ export const testContext: TestContext = {
 // `getApp()` we get a brand-new TestApp (with a brand-new Prisma) and
 // have to rebuild AuthHelper around it.
 let cachedAppRef: TestApp | null = null;
-let cachedAuth: AuthHelper | null = null;
+let _cachedAuth: AuthHelper | null = null;
 
 // ─── Unique ID helpers ────────────────────────────────────────────
 
@@ -82,7 +82,7 @@ export async function getApp(): Promise<TestApp> {
   const app = await startTestApp();
   if (cachedAppRef !== app) {
     cachedAppRef = app;
-    cachedAuth = new AuthHelper(app);
+    _cachedAuth = new AuthHelper(app);
   }
   return app;
 }
@@ -288,5 +288,5 @@ export function getCacheService(): {
 export async function teardownAll(): Promise<void> {
   await stopTestApp();
   cachedAppRef = null;
-  cachedAuth = null;
+  _cachedAuth = null;
 }

@@ -5,6 +5,7 @@
 import type { ModifierEffect, ModifierType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { AccessModifierNotFoundException } from '../../application/use-cases/access-modifier/revoke-access-modifier.use-case';
 import {
   AccessModifier,
   type AccessModifierId,
@@ -13,7 +14,6 @@ import {
   type ModifierType as DomainModifierType,
   type UserId,
 } from '../../domain/entities/access-modifier.entity';
-import { AccessModifierNotFoundException } from '../../application/use-cases/access-modifier/revoke-access-modifier.use-case';
 import type { IAccessModifierRepository } from '../../domain/ports/access-modifier.port';
 
 interface PrismaAccessModifierRow {

@@ -54,8 +54,9 @@ export const ChatConversationViewSchema = z.object({
   lastMessageSenderId: z.string().nullable(),
 });
 
-export const PaginatedChatConversationsResponseSchema =
-  PaginatedResponseSchema(ChatConversationViewSchema);
+export const PaginatedChatConversationsResponseSchema = PaginatedResponseSchema(
+  ChatConversationViewSchema,
+);
 
 export const CollaborationStatsResponseSchema = z.object({
   totalCollaborations: z.number().int().min(0),
@@ -90,8 +91,9 @@ export const AdminCollaborationViewSchema = z.object({
   resume: CollaboratorResumeViewSchema,
 });
 
-export const PaginatedCollaborationsResponseSchema =
-  PaginatedResponseSchema(AdminCollaborationViewSchema);
+export const PaginatedCollaborationsResponseSchema = PaginatedResponseSchema(
+  AdminCollaborationViewSchema,
+);
 
 export const ResumeAndUserIdParams = z.object({
   resumeId: z.string(),

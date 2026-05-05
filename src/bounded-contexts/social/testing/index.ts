@@ -271,7 +271,9 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     if (!row) {
       // Imported lazily to avoid coupling testing/ on shared-kernel exceptions
       // at module-load time (test bundlers may tree-shake differently).
-      const { EntityNotFoundException } = await import('@/shared-kernel/exceptions/domain.exceptions');
+      const { EntityNotFoundException } = await import(
+        '@/shared-kernel/exceptions/domain.exceptions'
+      );
       throw new EntityNotFoundException('Connection', id);
     }
     return row;

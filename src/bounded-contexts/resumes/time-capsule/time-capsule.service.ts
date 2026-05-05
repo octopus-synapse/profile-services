@@ -102,7 +102,10 @@ export class TimeCapsuleService {
         });
         sent += 1;
       } catch (err) {
-        this.logger.error(`Time capsule failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`, { context: 'TimeCapsuleService' });
+        this.logger.error(
+          `Time capsule failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+          { context: 'TimeCapsuleService' },
+        );
       }
     }
 

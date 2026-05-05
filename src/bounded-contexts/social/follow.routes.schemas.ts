@@ -7,7 +7,10 @@
  */
 
 import { z } from 'zod';
-import { PaginatedResponseSchema, PaginationQuerySchema } from '@/shared-kernel/schemas/common/api.types';
+import {
+  PaginatedResponseSchema,
+  PaginationQuerySchema,
+} from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type {
   ActivityLoggerPort,

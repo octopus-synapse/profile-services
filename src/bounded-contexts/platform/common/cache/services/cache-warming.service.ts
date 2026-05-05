@@ -90,7 +90,10 @@ export class CacheWarmingService {
       this.logger.log(`Warmed ${warmed} popular resumes`, 'CacheWarmingService');
     } catch (error) {
       this.stats.errors++;
-      this.logger.error('Failed to warm popular resumes cache', { context: 'CacheWarmingService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error('Failed to warm popular resumes cache', {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -125,7 +128,10 @@ export class CacheWarmingService {
       }
     } catch (error) {
       this.stats.errors++;
-      this.logger.error(`Failed to warm cache for resume: ${slug}`, { context: 'CacheWarmingService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to warm cache for resume: ${slug}`, {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -164,7 +170,10 @@ export class CacheWarmingService {
       }
     } catch (error) {
       this.stats.errors++;
-      this.logger.error(`Failed to warm cache for user: ${userId}`, { context: 'CacheWarmingService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to warm cache for user: ${userId}`, {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 

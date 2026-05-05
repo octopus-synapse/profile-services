@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
-import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { FlagCachePort } from '../../application/ports/flag-cache.port';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
 

@@ -67,9 +67,7 @@ export class InProcessShutdownOrchestrator extends OnShutdownPort {
       return;
     }
 
-    const wrapped = this.tasks.map((task) =>
-      this.runOne(task, strategy === 'FAIL_FAST'),
-    );
+    const wrapped = this.tasks.map((task) => this.runOne(task, strategy === 'FAIL_FAST'));
     if (strategy === 'FAIL_FAST') {
       await Promise.all(wrapped);
     } else {

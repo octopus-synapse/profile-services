@@ -66,11 +66,7 @@ class StubResumesRepository {
     return this.resumes.find((r) => r.userId === userId) ?? null;
   }
 
-  async listUserResumesPaginated(
-    userId: string,
-    _page: number,
-    _limit: number,
-  ): Promise<Resume[]> {
+  async listUserResumesPaginated(userId: string, _page: number, _limit: number): Promise<Resume[]> {
     return this.resumes.filter((r) => r.userId === userId);
   }
 

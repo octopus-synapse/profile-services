@@ -65,7 +65,10 @@ export class InvalidateSessionsOnCredentialChangeHandler {
         InvalidateSessionsOnCredentialChangeHandler.name,
       );
     } catch (error) {
-      this.logger.error(`Failed to invalidate sessions for user ${userId}`, { context: InvalidateSessionsOnCredentialChangeHandler.name, stack: error instanceof Error ? error.stack : String(error) });
+      this.logger.error(`Failed to invalidate sessions for user ${userId}`, {
+        context: InvalidateSessionsOnCredentialChangeHandler.name,
+        stack: error instanceof Error ? error.stack : String(error),
+      });
     }
   }
 }

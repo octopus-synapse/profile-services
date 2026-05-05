@@ -108,7 +108,10 @@ export function errorMapperStage(deps: PipelineDeps): PipelineStage {
           }
         }
         // Unknown error: surface a 500 with a generic shape.
-        deps.logger.error(err instanceof Error ? err.message : String(err), { context: 'ElysiaPipeline', stack: err instanceof Error ? err.stack : undefined });
+        deps.logger.error(err instanceof Error ? err.message : String(err), {
+          context: 'ElysiaPipeline',
+          stack: err instanceof Error ? err.stack : undefined,
+        });
         ctx.state.responseStatus = 500;
         ctx.state.responseBody = {
           statusCode: 500,

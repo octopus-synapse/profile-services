@@ -34,10 +34,7 @@ export abstract class DistributedLockPort {
    * `null` if the key was held by someone else (and retries didn't
    * resolve it).
    */
-  abstract acquire(
-    key: string,
-    options: AcquireLockOptions,
-  ): Promise<DistributedLockHandle | null>;
+  abstract acquire(key: string, options: AcquireLockOptions): Promise<DistributedLockHandle | null>;
 
   /**
    * Convenience: acquire → run fn → release. Returns null if the lock

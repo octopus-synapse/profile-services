@@ -3,7 +3,6 @@ import { FeatureFlagToggledEvent } from '../../domain/events/feature-flag-toggle
 import {
   FeatureFlagDeprecatedException,
   FeatureFlagInvalidInputException,
-  FeatureFlagNotFoundException,
   FeatureFlagParentDisabledException,
 } from '../../domain/exceptions/feature-flag.exceptions';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';

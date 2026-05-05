@@ -1,5 +1,5 @@
-import type { ConnectionWithUser } from '../../ports/connection.port';
 import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
+import type { ConnectionWithUser } from '../../ports/connection.port';
 import { ConnectionRepositoryPort } from '../../ports/connection.port';
 import type { PaginationParams } from '../../ports/follow.port';
 
@@ -16,7 +16,7 @@ export class GetConnectionsUseCase {
     limit: number;
     totalPages: number;
   }> {
-        const { items, total } = await this.repository.findAcceptedConnections(userId, pagination);
+    const { items, total } = await this.repository.findAcceptedConnections(userId, pagination);
 
     return buildPaginatedResponse(items, total, pagination);
   }

@@ -22,9 +22,7 @@ import { ToggleFlagUseCase } from './toggle-flag.use-case';
 const buildUseCase = () => {
   const repo = {
     findByKey: mock(() => Promise.resolve(null)),
-    getByKey: mock(() =>
-      Promise.reject(new FeatureFlagNotFoundException('test-key')),
-    ),
+    getByKey: mock(() => Promise.reject(new FeatureFlagNotFoundException('test-key'))),
     update: mock(),
   } as unknown as FeatureFlagRepositoryPort;
   const cache = { invalidateAll: mock() } as unknown as FlagCachePort;

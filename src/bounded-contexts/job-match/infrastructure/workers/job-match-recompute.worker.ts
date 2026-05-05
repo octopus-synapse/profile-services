@@ -42,7 +42,10 @@ export class JobMatchRecomputeWorker {
       await this.cache.deletePattern(pattern);
       this.logger.log(`Match cache invalidated via pattern=${pattern}`, CTX);
     } catch (err) {
-      this.logger.error(`Match cache invalidation failed pattern=${pattern} err=${(err as Error).message}`, { context: CTX, stack: (err as Error).stack });
+      this.logger.error(
+        `Match cache invalidation failed pattern=${pattern} err=${(err as Error).message}`,
+        { context: CTX, stack: (err as Error).stack },
+      );
       throw err;
     }
   }

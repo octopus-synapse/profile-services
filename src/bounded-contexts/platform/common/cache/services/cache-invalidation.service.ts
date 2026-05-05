@@ -7,11 +7,11 @@
  * Kent Beck: "Centralize knowledge to reduce duplication."
  */
 
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import {
   CacheInvalidationPort,
   type InvalidateResumeInput,
 } from '@/shared-kernel/cache/cache-invalidation.port';
-import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 // --- Types ---
@@ -136,7 +136,10 @@ export class CacheInvalidationService extends CacheInvalidationPort {
     try {
       await this.cache.delete(key);
     } catch (error) {
-      this.logger.error(`Failed to delete cache key: ${key}`, { context: 'CacheInvalidationService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to delete cache key: ${key}`, {
+        context: 'CacheInvalidationService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -144,7 +147,10 @@ export class CacheInvalidationService extends CacheInvalidationPort {
     try {
       await this.cache.deletePattern(pattern);
     } catch (error) {
-      this.logger.error(`Failed to delete cache pattern: ${pattern}`, { context: 'CacheInvalidationService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to delete cache pattern: ${pattern}`, {
+        context: 'CacheInvalidationService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 }

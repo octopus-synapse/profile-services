@@ -50,7 +50,12 @@ export class TranslateAndPublishUseCase {
         });
       }
     } catch (err) {
-      this.logger.error('realtime: translator threw', { context: 'TranslateAndPublishUseCase', stack: err instanceof Error ? err.stack : String(err), eventType: event.eventType, eventId: event.eventId });
+      this.logger.error('realtime: translator threw', {
+        context: 'TranslateAndPublishUseCase',
+        stack: err instanceof Error ? err.stack : String(err),
+        eventType: event.eventType,
+        eventId: event.eventId,
+      });
     }
   }
 }

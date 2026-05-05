@@ -1,4 +1,4 @@
-import { z, type ZodTypeAny } from 'zod';
+import { type ZodTypeAny, z } from 'zod';
 
 /**
  * Build a Zod schema that requires every entry in `requiredLocales` to
@@ -17,10 +17,9 @@ export function createLocalizedSchema<T extends ZodTypeAny>(
   innerSchema: T,
   requiredLocales: readonly string[],
 ) {
-  return z.record(z.string(), innerSchema).refine(
-    (translations) => requiredLocales.every((locale) => locale in translations),
-    {
+  return z
+    .record(z.string(), innerSchema)
+    .refine((translations) => requiredLocales.every((locale) => locale in translations), {
       message: `Translations must include all supported locales: ${requiredLocales.join(', ')}`,
-    },
-  );
+    });
 }

@@ -29,7 +29,10 @@ export class AntiGhostingWorker {
         CTX,
       );
     } catch (err) {
-      this.logger.error(`Anti-ghosting scan failed: ${err instanceof Error ? err.message : 'unknown'}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(
+        `Anti-ghosting scan failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+      );
     }
   }
 }

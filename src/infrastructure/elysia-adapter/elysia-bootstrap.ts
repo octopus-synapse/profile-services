@@ -169,10 +169,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // logs and survives — production deploys with a healthy Redis won't
   // hit it, dev without Redis won't crash because of it.
   process.on('uncaughtException', (err) => {
-    logger.error(`Uncaught exception swallowed: ${err.message}`, { context: 'ElysiaBootstrap', stack: err.stack });
+    logger.error(`Uncaught exception swallowed: ${err.message}`, {
+      context: 'ElysiaBootstrap',
+      stack: err.stack,
+    });
   });
   process.on('unhandledRejection', (reason) => {
-    logger.error(`Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`, { context: 'ElysiaBootstrap', stack: reason instanceof Error ? reason.stack : undefined });
+    logger.error(
+      `Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
+      { context: 'ElysiaBootstrap', stack: reason instanceof Error ? reason.stack : undefined },
+    );
   });
 
   // --- Lifecycle registry: init in order, dispose reverse on shutdown ---
@@ -859,7 +865,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       try {
         await l.dispose?.();
       } catch (err) {
-        logger.error(`Lifecycle dispose failed: ${err instanceof Error ? err.message : String(err)}`, { context: 'ElysiaBootstrap', stack: err instanceof Error ? err.stack : undefined });
+        logger.error(
+          `Lifecycle dispose failed: ${err instanceof Error ? err.message : String(err)}`,
+          { context: 'ElysiaBootstrap', stack: err instanceof Error ? err.stack : undefined },
+        );
       }
     }
   };

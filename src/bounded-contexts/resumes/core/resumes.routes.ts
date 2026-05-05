@@ -13,10 +13,10 @@
  */
 
 import { z } from 'zod';
-import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
-import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
+import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';

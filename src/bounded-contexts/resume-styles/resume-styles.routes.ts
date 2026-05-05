@@ -12,7 +12,10 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
-import { toDetailResponseDto, toListResponseDto } from './infrastructure/presenters/resume-style.presenter';
+import {
+  toDetailResponseDto,
+  toListResponseDto,
+} from './infrastructure/presenters/resume-style.presenter';
 import {
   ApplyStyleBodySchema,
   ApplyStyleResponseSchema,

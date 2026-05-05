@@ -54,8 +54,7 @@ const ALLOWLIST = new Set([
   'src/bounded-contexts/job-match/infrastructure/workers/job-match-recompute.worker.ts',
 ]);
 
-const PATTERN =
-  /\b(?:cache|cachePort|this\.cache)\.(?:delete|deletePattern)\s*\(/;
+const PATTERN = /\b(?:cache|cachePort|this\.cache)\.(?:delete|deletePattern)\s*\(/;
 
 function* walk(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -98,9 +97,7 @@ for (const o of offenders) {
 
 if (mode === 'error') {
   // eslint-disable-next-line no-console
-  console.log(
-    '\nMigrate the call sites to depend on CacheInvalidationPort, then re-run.',
-  );
+  console.log('\nMigrate the call sites to depend on CacheInvalidationPort, then re-run.');
   process.exit(1);
 }
 process.exit(0);

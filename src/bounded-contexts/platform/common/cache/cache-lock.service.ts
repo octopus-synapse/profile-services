@@ -6,8 +6,8 @@
  * instead of silently allowing operations to proceed unprotected.
  */
 
-import { ERROR_MESSAGES } from '../constants/config';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
+import { ERROR_MESSAGES } from '../constants/config';
 import { RedisConnectionService } from './redis-connection.service';
 
 export interface LockOptions {
@@ -41,7 +41,9 @@ export class CacheLockService {
         return true;
       }
       // BUG-004 FIX: Throw error instead of silently allowing
-      this.logger.error(`Attempted to acquire lock without Redis: ${key}`, { context: 'CacheLockService' });
+      this.logger.error(`Attempted to acquire lock without Redis: ${key}`, {
+        context: 'CacheLockService',
+      });
       throw new Error(ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE);
     }
 
@@ -55,7 +57,10 @@ export class CacheLockService {
       );
       return result === 'OK';
     } catch (error) {
-      this.logger.error(`Failed to acquire lock: ${key}`, { context: 'CacheLockService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to acquire lock: ${key}`, {
+        context: 'CacheLockService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return false;
     }
   }
@@ -71,7 +76,10 @@ export class CacheLockService {
     try {
       await this.redisConnection.client.del(key);
     } catch (error) {
-      this.logger.error(`Failed to release lock: ${key}`, { context: 'CacheLockService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to release lock: ${key}`, {
+        context: 'CacheLockService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -87,7 +95,10 @@ export class CacheLockService {
       const exists = await this.redisConnection.client.exists(key);
       return exists === 1;
     } catch (error) {
-      this.logger.error(`Failed to check lock: ${key}`, { context: 'CacheLockService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to check lock: ${key}`, {
+        context: 'CacheLockService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return false;
     }
   }

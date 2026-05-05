@@ -58,7 +58,10 @@ export class S3UploadService {
     this.publicEndpoint = this.config.get<string>('MINIO_PUBLIC_ENDPOINT');
 
     if (!parsed.success) {
-      this.logger.error('MinIO config invalid — service disabled', { context: 'S3UploadService', stack: JSON.stringify(parsed.error.flatten()) });
+      this.logger.error('MinIO config invalid — service disabled', {
+        context: 'S3UploadService',
+        stack: JSON.stringify(parsed.error.flatten()),
+      });
       this._isEnabled = false;
       return;
     }
@@ -85,7 +88,10 @@ export class S3UploadService {
           bucket,
         });
       } catch (error) {
-        this.logger.error('Failed to initialize MinIO client', { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
+        this.logger.error('Failed to initialize MinIO client', {
+          context: 'S3UploadService',
+          stack: error instanceof Error ? error.stack : undefined,
+        });
         this._isEnabled = false;
       }
     } else {
@@ -160,7 +166,10 @@ export class S3UploadService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to delete file from MinIO: ${key}`, { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error(`Failed to delete file from MinIO: ${key}`, {
+        context: 'S3UploadService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return false;
     }
   }
@@ -265,9 +274,7 @@ export class S3UploadService {
       : this.client;
 
     const downloadUrl = await getSignedUrl(
-      // biome-ignore lint/suspicious/noExplicitAny: hoisted @smithy/types versions
-      // diverge between the s3-request-presigner sub-dep and the top-level
-      // @smithy/types — unify with a structural cast.
+      // biome-ignore lint/suspicious/noExplicitAny: hoisted @smithy/types versions diverge between s3-request-presigner sub-dep and top-level @smithy/types
       presignClient as any,
       // biome-ignore lint/suspicious/noExplicitAny: same reason
       new GetObjectCommand({ Bucket: this.bucket, Key: opts.key }) as any,
@@ -293,7 +300,10 @@ export class S3UploadService {
       await this.client.send(command);
       return true;
     } catch (error) {
-      this.logger.error('S3/MinIO connection check failed', { context: 'S3UploadService', stack: error instanceof Error ? error.stack : undefined });
+      this.logger.error('S3/MinIO connection check failed', {
+        context: 'S3UploadService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return false;
     }
   }

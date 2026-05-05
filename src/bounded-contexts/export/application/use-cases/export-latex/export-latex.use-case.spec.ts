@@ -31,9 +31,7 @@ class InMemoryResumeDataRepository implements ResumeDataRepositoryPort {
   }
 }
 
-function buildLatexResume(
-  overrides: Parameters<typeof buildResume>[0] = {},
-): ResumeForLatexExport {
+function buildLatexResume(overrides: Parameters<typeof buildResume>[0] = {}): ResumeForLatexExport {
   const base = buildResume({
     id: 'resume-123',
     userId: 'user-456',

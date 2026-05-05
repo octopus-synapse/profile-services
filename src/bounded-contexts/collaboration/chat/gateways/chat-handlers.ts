@@ -207,10 +207,13 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
         return { success: true };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.error(`Failed to mark conversation ${payload.conversationId} read: ${errorMessage}`, {
-          context: CTX,
-          stack: error instanceof Error ? error.stack : undefined,
-        });
+        logger.error(
+          `Failed to mark conversation ${payload.conversationId} read: ${errorMessage}`,
+          {
+            context: CTX,
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+        );
         return { success: false, error: errorMessage };
       }
     },

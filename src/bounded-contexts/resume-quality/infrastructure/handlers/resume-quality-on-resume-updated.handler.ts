@@ -25,7 +25,13 @@ export class ResumeQualityOnResumeUpdatedHandler {
         { jobId: `resume-quality:${event.aggregateId}` },
       );
     } catch (err) {
-      this.logger.error(`Failed to enqueue resume-quality recompute for resume ${event.aggregateId}`, { context: 'ResumeQualityOnResumeUpdatedHandler', stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(
+        `Failed to enqueue resume-quality recompute for resume ${event.aggregateId}`,
+        {
+          context: 'ResumeQualityOnResumeUpdatedHandler',
+          stack: err instanceof Error ? err.stack : undefined,
+        },
+      );
       throw err;
     }
   }

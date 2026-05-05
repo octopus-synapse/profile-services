@@ -50,8 +50,7 @@ const DEFAULT_SKIP = ['node_modules', 'testing', '__mocks__', '__tests__'];
  */
 export function listSourceFiles(dir: string, opts: WalkOptions = {}): string[] {
   const skip = new Set(opts.skipDirs ?? DEFAULT_SKIP);
-  const filter =
-    opts.filter ?? ((name) => name.endsWith('.ts') && !name.endsWith('.spec.ts'));
+  const filter = opts.filter ?? ((name) => name.endsWith('.ts') && !name.endsWith('.spec.ts'));
   const acc: string[] = [];
   walk(dir, skip, filter, acc);
   return acc;

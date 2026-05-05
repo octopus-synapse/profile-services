@@ -43,7 +43,10 @@ export class AutoApplyWorker {
         await this.runForUser(job.data.userId);
       }
     } catch (err) {
-      this.logger.error(`Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(
+        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+      );
       throw err;
     }
   }
@@ -76,7 +79,10 @@ export class AutoApplyWorker {
         // BullMQ / queue backend is down — fail fast with a domain
         // type so the scheduler retries via its standard backoff
         // policy instead of treating this as a per-user failure.
-        this.logger.error(`Auto-apply enqueue failed for user=${u.id}: ${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+        this.logger.error(
+          `Auto-apply enqueue failed for user=${u.id}: ${err instanceof Error ? err.message : String(err)}`,
+          { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+        );
         throw new AutomationWorkerUnavailableException();
       }
     }
@@ -151,7 +157,9 @@ export class AutoApplyWorker {
       } catch (err) {
         const reason = (err as Error).message;
         failures.push({ jobId: pick.jobId, reason });
-        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`, { context: CTX });
+        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`, {
+          context: CTX,
+        });
       }
     }
     this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`, CTX);

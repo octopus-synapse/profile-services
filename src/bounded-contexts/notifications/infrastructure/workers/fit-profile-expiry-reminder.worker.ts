@@ -51,7 +51,10 @@ export class FitProfileExpiryReminderWorker {
       }
     } catch (err) {
       const kind = job?.data?.kind;
-      this.logger.error(`expiry-reminder failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(
+        `expiry-reminder failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+      );
       throw err;
     }
   }

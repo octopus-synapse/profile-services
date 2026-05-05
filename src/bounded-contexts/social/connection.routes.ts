@@ -5,7 +5,6 @@
  * `FollowService`).
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import {
@@ -19,7 +18,6 @@ import {
   NetworkSummaryResponseSchema,
   PageQuery,
   PendingRequestsListResponseSchema,
-  
   SuggestionsListResponseSchema,
   UserIdParam,
 } from './connection.routes.schemas';
@@ -169,7 +167,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
       const result = await bundle.connectionService.getConnections(ctx.user!.userId, pagination);
       return { connections: result };
     },
@@ -186,7 +185,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
       const result = await bundle.connectionService.getPendingRequests(
         ctx.user!.userId,
         pagination,
@@ -206,7 +206,8 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const { page, limit } = PageQuery.parse(ctx.query); const pagination = { page, limit };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
       const result = await bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
       return { pendingRequests: result };
     },

@@ -4,7 +4,9 @@ import type { ResumeQualityResponseDto } from '../../dto/resume-quality-response
 /** Presenter — projects the domain snapshot into the DTO the HTTP
  * layer returns. Kept out of the controller so the controller stays
  * "thin" per the architecture tests (no `.map`, no transformations). */
-export function toQualitySnapshotResponseDto(snapshot: SavedQualityScore): ResumeQualityResponseDto {
+export function toQualitySnapshotResponseDto(
+  snapshot: SavedQualityScore,
+): ResumeQualityResponseDto {
   return {
     id: snapshot.id,
     resumeId: snapshot.resumeId,

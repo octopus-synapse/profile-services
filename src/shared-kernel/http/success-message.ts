@@ -17,11 +17,8 @@
  * already uses).
  */
 
+import { renderSuccessMessage, type SuccessMessageCode } from '@packages/i18n';
 import { z } from 'zod';
-import {
-  renderSuccessMessage,
-  type SuccessMessageCode,
-} from '@packages/i18n';
 import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 
 /**

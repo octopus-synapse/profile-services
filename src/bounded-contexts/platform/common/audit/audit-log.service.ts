@@ -71,9 +71,20 @@ export class AuditLogService {
       });
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'unknown error';
-      this.logger.error(options.lenient
+      this.logger.error(
+        options.lenient
           ? 'Audit log write failed (lenient — swallowed)'
-          : 'Audit log write failed — propagating to caller', { context: 'AuditLogService', stack: error instanceof Error ? error.stack : 'Unknown error', userId, action, entityType, entityId, reason });
+          : 'Audit log write failed — propagating to caller',
+        {
+          context: 'AuditLogService',
+          stack: error instanceof Error ? error.stack : 'Unknown error',
+          userId,
+          action,
+          entityType,
+          entityId,
+          reason,
+        },
+      );
       if (!options.lenient) {
         throw new AuditLogFailedException(reason);
       }

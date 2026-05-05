@@ -3,7 +3,6 @@
  * Replaces `SkillEndorsementController`.
  */
 
-
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import {

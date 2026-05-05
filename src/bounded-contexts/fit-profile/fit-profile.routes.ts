@@ -32,8 +32,8 @@ import {
   toSubmittedFitProfileResponseDto,
 } from './infrastructure/presenters/fit-profile.presenter';
 import {
-  toFitQuestionResponseDto,
   toFitQuestionListResponseDto,
+  toFitQuestionResponseDto,
   toFitQuestionsResponseDto,
 } from './infrastructure/presenters/fit-question.presenter';
 import { toJobFitProfileResponseDto } from './infrastructure/presenters/job-fit-profile.presenter';

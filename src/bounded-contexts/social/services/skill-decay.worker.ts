@@ -24,7 +24,10 @@ export class SkillDecayWorker {
         CTX,
       );
     } catch (err) {
-      this.logger.error(`Skill decay scan failed: ${err instanceof Error ? err.message : 'unknown'}`, { context: CTX });
+      this.logger.error(
+        `Skill decay scan failed: ${err instanceof Error ? err.message : 'unknown'}`,
+        { context: CTX },
+      );
     }
   }
 }

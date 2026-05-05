@@ -42,7 +42,10 @@ export class BannerPageSetup {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
-      this.logger.error(`Error during page.goto: ${err instanceof Error ? err.message : String(err)}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(
+        `Error during page.goto: ${err instanceof Error ? err.message : String(err)}`,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+      );
       throw err;
     }
 

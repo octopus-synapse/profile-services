@@ -9,9 +9,9 @@
 
 import {
   EnglishLevel,
-  type JobType,
   JobApplicationEventType,
   JobApplicationStatus,
+  type JobType,
   JobType as JobTypeEnumValues,
   PaymentCurrency,
   RemotePolicy,

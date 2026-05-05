@@ -36,7 +36,10 @@ export class AccessModifierAuditLogAdapter extends AuditLogPort {
       });
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'unknown';
-      this.logger.error(`AuditLog write failed (action=${entry.action}): ${reason}`, { context: 'AccessModifierAuditLogAdapter', stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(`AuditLog write failed (action=${entry.action}): ${reason}`, {
+        context: 'AccessModifierAuditLogAdapter',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       if (!options.lenient) {
         throw new AuditLogFailedException(reason);
       }

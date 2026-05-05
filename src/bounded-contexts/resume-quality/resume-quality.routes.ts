@@ -9,10 +9,7 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeQualityUseCases } from './application/ports/resume-quality.port';
 import { ResumeQualitySnapshotMissingException } from './domain/exceptions/resume-quality.exceptions';
 import { toQualitySnapshotResponseDto } from './infrastructure/presenters/resume-quality.presenter';
-import {
-  ResumeIdParams,
-  ResumeQualityResponseSchema,
-} from './resume-quality.routes.schemas';
+import { ResumeIdParams, ResumeQualityResponseSchema } from './resume-quality.routes.schemas';
 
 export const resumeQualityRoutes: ReadonlyArray<Route<ResumeQualityUseCases>> = [
   {

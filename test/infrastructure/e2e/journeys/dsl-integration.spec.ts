@@ -21,10 +21,10 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createInvalidDsl, createValidDsl } from '../fixtures/dsl.fixture';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import { createShareData } from '../fixtures/shares.fixture';
-import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 

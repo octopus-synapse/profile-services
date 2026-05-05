@@ -22,8 +22,8 @@ import {
   CommentWithAuthorSchema,
   ComposerConfigResponseSchema,
   CreateCommentBodySchema,
-  FEED_MAX_PAGE_SIZE,
   DeletedResponseSchema,
+  FEED_MAX_PAGE_SIZE,
   FeedBookmarksResponseSchema,
   FeedTimelineResponseSchema,
   IdParam,
@@ -165,7 +165,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listFeedBookmarks.execute(ctx.user!.userId, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
+      return bc.listFeedBookmarks.execute(
+        ctx.user!.userId,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
   {
@@ -185,7 +189,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listUserPosts.execute(userId, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
+      return bc.listUserPosts.execute(
+        userId,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
 
@@ -207,7 +215,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listPostComments.execute(id, q.cursor, parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE));
+      return bc.listPostComments.execute(
+        id,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
   {

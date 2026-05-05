@@ -1,4 +1,3 @@
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ConnectionNotAcceptedException,
   NotPartOfConnectionException,

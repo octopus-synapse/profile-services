@@ -55,10 +55,7 @@ export class AuthHelper {
     };
   }
 
-  async registerAndLogin(
-    user?: TestUser,
-    opts: RegisterAndLoginOptions = {},
-  ): Promise<TestUser> {
+  async registerAndLogin(user?: TestUser, opts: RegisterAndLoginOptions = {}): Promise<TestUser> {
     const u = user ?? this.createTestUser();
 
     const signup = await this.app.request.post('/api/accounts').send({

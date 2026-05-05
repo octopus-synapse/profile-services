@@ -22,7 +22,10 @@ export class TimeCapsuleWorker {
       const result = await this.service.sendAnniversaries();
       this.logger.log(`Time capsule: ${result.sent} sent / ${result.checked} checked`, CTX);
     } catch (err) {
-      this.logger.error(`Time capsule failed: ${err instanceof Error ? err.message : 'unknown'}`, { context: CTX, stack: err instanceof Error ? err.stack : undefined });
+      this.logger.error(`Time capsule failed: ${err instanceof Error ? err.message : 'unknown'}`, {
+        context: CTX,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
     }
   }
 }
