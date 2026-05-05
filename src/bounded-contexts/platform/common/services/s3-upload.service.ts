@@ -103,18 +103,29 @@ export class S3UploadService {
     file: Buffer,
     key: string,
     contentType: string,
+    options: { acl?: 'public-read' | 'private' } = {},
   ): Promise<{ url: string; key: string } | null> {
     if (!this._isEnabled || !this.client || !this.bucket) {
       this.logger.warn('S3 upload attempted but service is disabled', 'S3UploadService');
       return null;
     }
 
+    // P0-015: ACL is now an explicit parameter. Profile photos and
+    // company logos default to `public-read` (consistent with their
+    // semantic of being part of a public profile in the social network).
+    // Posts MUST pass `private` — feed posts can carry restricted
+    // content that's only visible to the author's connections, and
+    // downloads should go through presigned GETs with `Cache-Control:
+    // private, max-age=300` so a CDN can't serve a leaked URL across
+    // users.
+    const acl = options.acl ?? 'public-read';
+
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       Body: file,
       ContentType: contentType,
-      ACL: 'public-read',
+      ACL: acl,
     });
 
     await this.client.send(command);
@@ -123,7 +134,11 @@ export class S3UploadService {
     const endpoint = this.publicEndpoint ?? this.config.get<string>('MINIO_ENDPOINT');
     const url = `${endpoint}/${this.bucket}/${key}`;
 
-    this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', { key, contentType });
+    this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', {
+      key,
+      contentType,
+      acl,
+    });
 
     return { url, key };
   }
