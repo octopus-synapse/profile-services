@@ -21,7 +21,6 @@ import { z } from 'zod';
 export const StandardResources = [
   'user',
   'resume',
-  'theme',
   'section',
   'section-item',
   'stats',

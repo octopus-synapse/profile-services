@@ -19,7 +19,6 @@ export type StandardAction = (typeof StandardActions)[keyof typeof StandardActio
 export const StandardResources = {
   USER: 'user',
   RESUME: 'resume',
-  THEME: 'theme',
   SKILL: 'skill',
   ROLE: 'role',
   GROUP: 'group',

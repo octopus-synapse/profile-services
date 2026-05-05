@@ -20,7 +20,7 @@ describe('Architecture', () => {
         'auth',
         'users',
         'resumes',
-        'themes',
+        'resume-styles',
         'onboarding',
       ]).filter(
         (f) =>
@@ -111,9 +111,8 @@ describe('Architecture', () => {
     });
 
     it('should have isolated module boundaries', () => {
-      // Identity BCs should not import from Themes
-      // Themes should not import from Resumes
-      // etc.
+      // Identity BCs should not import from Resume Styles.
+      // Resume Styles should not import from Resumes. etc.
 
       const moduleImportRules: Record<string, string[]> = {
         'src/bounded-contexts/identity': [

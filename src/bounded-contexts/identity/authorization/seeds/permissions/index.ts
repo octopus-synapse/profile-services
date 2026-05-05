@@ -22,17 +22,15 @@ import {
   STATS_PERMISSIONS,
   SUPER_ADMIN_PERMISSIONS,
 } from './system-permissions';
-import { THEME_PERMISSIONS } from './theme-permissions';
 import { USER_PERMISSIONS } from './user-permissions';
 
 /**
  * All system permissions aggregated.
- * Order: user → resume → theme → skill → section-types → authorization → system
+ * Order: user → resume → skill → section-types → authorization → system
  */
 export const SYSTEM_PERMISSIONS: CreatePermissionInput[] = [
   ...USER_PERMISSIONS,
   ...RESUME_PERMISSIONS,
-  ...THEME_PERMISSIONS,
   ...SKILL_PERMISSIONS,
   ...SECTION_TYPE_PERMISSIONS,
   ...ROLE_PERMISSIONS,
@@ -61,6 +59,5 @@ export {
   SKILL_PERMISSIONS,
   STATS_PERMISSIONS,
   SUPER_ADMIN_PERMISSIONS,
-  THEME_PERMISSIONS,
   USER_PERMISSIONS,
 };

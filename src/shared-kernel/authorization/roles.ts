@@ -56,7 +56,6 @@ export const ROLES = {
       'grp_automation_beta', // Admin permissions
       'grp_resume_admin',
       'grp_user_admin',
-      'grp_theme_admin',
       'grp_catalog_admin',
       'grp_analytics_admin',
       'grp_platform_admin',

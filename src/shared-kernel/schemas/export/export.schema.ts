@@ -27,7 +27,7 @@ export type ExportBannerOptions = z.infer<typeof ExportBannerOptionsSchema>;
 
 export const ExportResumeOptionsSchema = z.object({
   resumeId: z.string().cuid(),
-  themeId: z.string().cuid().optional(),
+  styleId: z.string().cuid().optional(),
   format: ExportOutputFormatEnum.default('pdf'),
 });
 

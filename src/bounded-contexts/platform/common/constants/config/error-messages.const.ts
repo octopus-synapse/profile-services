@@ -41,7 +41,6 @@ export const ERROR_MESSAGES = {
   RESOURCE_NOT_FOUND: 'Resource not found',
   ACCESS_DENIED: 'Access denied to this resource',
   PUBLIC_PROFILE_NOT_FOUND: 'Public profile not found',
-  ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES: 'Only admins can edit system themes',
   ONLY_ADMINS_CAN_DO_THIS: 'Only administrators can perform this action',
   REJECTION_REASON_REQUIRED: 'Rejection reason is required', // Config Validation
   LAYOUT_CONFIG_REQUIRED: 'Layout config is required',
@@ -58,8 +57,5 @@ export const ERROR_MESSAGES = {
   TOO_MANY_LOGIN_ATTEMPTS: 'Too many login attempts. Please try again later.',
   TOO_MANY_PASSWORD_RESET_REQUESTS: 'Too many password reset requests. Please try again later.',
   TOO_MANY_SYNC_REQUESTS: 'Daily sync limit reached. Please try again tomorrow.', // Business Limits
-  THEME_LIMIT_REACHED: 'Maximum number of themes reached (5)',
   SESSION_LIMIT_REACHED: 'Maximum number of active sessions reached (5)',
-  THEME_RESUBMISSION_LIMIT_REACHED:
-    'Theme has been rejected too many times. Maximum 2 resubmissions allowed.',
 } as const;

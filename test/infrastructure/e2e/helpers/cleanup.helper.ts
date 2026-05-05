@@ -8,51 +8,39 @@
 import type { PrismaClient } from '@prisma/client';
 
 export class CleanupHelper {
-  private trackedThemeIds: string[] = [];
+  private trackedResumeStyleIds: string[] = [];
   private trackedUserIds: string[] = [];
 
   constructor(private readonly prisma: PrismaClient) {}
 
-  /**
-   * Track a theme ID for cleanup
-   */
-  trackTheme(themeId: string): void {
-    this.trackedThemeIds.push(themeId);
+  /** Track a resume-style ID for cleanup. */
+  trackResumeStyle(styleId: string): void {
+    this.trackedResumeStyleIds.push(styleId);
   }
 
-  /**
-   * Track a user ID for cleanup
-   */
+  /** Track a user ID for cleanup. */
   trackUser(userId: string): void {
     this.trackedUserIds.push(userId);
   }
 
-  /**
-   * Clean up all tracked test data
-   */
+  /** Clean up all tracked test data. */
   async cleanupTestData(): Promise<void> {
-    // Clean up tracked themes
-    for (const themeId of this.trackedThemeIds) {
-      await this.deleteThemeById(themeId);
+    for (const styleId of this.trackedResumeStyleIds) {
+      await this.deleteResumeStyleById(styleId);
     }
-    this.trackedThemeIds = [];
+    this.trackedResumeStyleIds = [];
 
-    // Clean up tracked users
     for (const userId of this.trackedUserIds) {
       await this.deleteUserById(userId);
     }
     this.trackedUserIds = [];
   }
 
-  /**
-   * Delete theme by ID
-   */
-  async deleteThemeById(themeId: string): Promise<void> {
+  async deleteResumeStyleById(styleId: string): Promise<void> {
     try {
-      await this.prisma.resumeStyle.delete({ where: { id: themeId } });
+      await this.prisma.resumeStyle.delete({ where: { id: styleId } });
     } catch (error) {
-      // Theme might not exist or already deleted
-      console.warn(`Cleanup warning for theme ${themeId}:`, error);
+      console.warn(`Cleanup warning for resume style ${styleId}:`, error);
     }
   }
 

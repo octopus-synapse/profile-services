@@ -85,14 +85,7 @@ describe('OWASP Top 10 Security Tests', () => {
       }
 
       // Filter out known public endpoints
-      const allowedPublic = [
-        'health',
-        'docs',
-        'openapi',
-        'public-theme',
-        'public-profile',
-        'public-resume',
-      ];
+      const allowedPublic = ['health', 'docs', 'openapi', 'public-profile', 'public-resume'];
       const violations = unprotectedRoutes.filter(
         (route) => !allowedPublic.some((allowed) => route.toLowerCase().includes(allowed)),
       );

@@ -54,7 +54,7 @@ export const PERMISSION_GROUPS = {
   CATALOG_READER: {
     id: 'grp_catalog_reader',
     displayName: 'Catalog Reader',
-    permissions: [Permission.SKILL_READ, Permission.SECTION_TYPE_READ, Permission.THEME_READ],
+    permissions: [Permission.SKILL_READ, Permission.SECTION_TYPE_READ],
   },
 
   // User can use collaboration features
@@ -90,13 +90,6 @@ export const PERMISSION_GROUPS = {
     id: 'grp_user_admin',
     displayName: 'User Admin',
     permissions: [Permission.USER_MANAGE, Permission.USER_ROLE_ASSIGN],
-  },
-
-  // Admin can manage themes
-  THEME_ADMIN: {
-    id: 'grp_theme_admin',
-    displayName: 'Theme Admin',
-    permissions: [Permission.THEME_CREATE, Permission.THEME_UPDATE, Permission.THEME_DELETE],
   },
 
   // Admin can manage catalog (skills, section types)
