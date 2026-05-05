@@ -1,5 +1,6 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 
 export const JOB_MATCH_RECOMPUTE_QUEUE = 'job-match-recompute';
 
@@ -38,16 +39,10 @@ export class JobMatchRecomputeWorker {
   async process(job: { data: JobMatchRecomputeJobData; id?: string }): Promise<void> {
     const pattern = this.patternFor(job.data);
     if (!pattern) return;
-    try {
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       await this.cache.deletePattern(pattern);
       this.logger.log(`Match cache invalidated via pattern=${pattern}`, CTX);
-    } catch (err) {
-      this.logger.error(
-        `Match cache invalidation failed pattern=${pattern} err=${(err as Error).message}`,
-        { context: CTX, stack: (err as Error).stack },
-      );
-      throw err;
-    }
+    });
   }
 
   /** Redis glob — the orchestrator keys breakdowns as

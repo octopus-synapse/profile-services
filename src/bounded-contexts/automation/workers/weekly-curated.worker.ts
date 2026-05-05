@@ -1,6 +1,7 @@
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { CuratedSelectorService } from '../application/services/curated-selector.service';
 
@@ -30,22 +31,18 @@ export class WeeklyCuratedWorker {
   ) {}
 
   async process(job: { data: WeeklyCuratedJobData; id?: string }): Promise<void> {
-    try {
+    // P0-010 / P1-033: queue consumer — `RETRY` lets BullMQ apply its
+    // configured backoff. BullMQ already de-dupes by `jobId`, so no
+    // distributed lock is needed (would only block horizontal scaling).
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.enqueuePerUser();
         return;
       }
       if (job.data.kind === 'run-for-user') {
         await this.runForUser(job.data.userId);
-        return;
       }
-    } catch (err) {
-      this.logger.error(
-        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
-        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
-      );
-      throw err;
-    }
+    });
   }
 
   private async enqueuePerUser(): Promise<void> {

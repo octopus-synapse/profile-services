@@ -2,6 +2,7 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { CuratedSelectorService } from '../application/services/curated-selector.service';
 import {
@@ -34,7 +35,10 @@ export class AutoApplyWorker {
   ) {}
 
   async process(job: { data: AutoApplyJobData; id?: string }): Promise<void> {
-    try {
+    // Queue consumer: BullMQ owns the dedup+retry concerns. We declare
+    // RETRY so a transient failure (LLM blip, DB stutter) is replayed
+    // by the queue rather than swallowed.
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.enqueuePerUser();
         return;
@@ -42,13 +46,7 @@ export class AutoApplyWorker {
       if (job.data.kind === 'run-for-user') {
         await this.runForUser(job.data.userId);
       }
-    } catch (err) {
-      this.logger.error(
-        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
-        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
-      );
-      throw err;
-    }
+    });
   }
 
   private async enqueuePerUser(): Promise<void> {

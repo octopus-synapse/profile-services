@@ -26,7 +26,7 @@ import { UserFitProfileUpdatedEvent } from '@/bounded-contexts/fit-profile/domai
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
-import type { EventBusPort, LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, EventBusPort, LoggerPort } from '@/shared-kernel';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type {
   BcEventBinding,
@@ -167,11 +167,12 @@ export function registerNotificationsJobs(
   cron: CronPort,
   bundle: NotificationsUseCases,
   logger: LoggerPort,
+  lock: DistributedLockPort,
 ): void {
-  const dailyDigest = new NotificationDigestWorker(bundle, logger);
+  const dailyDigest = new NotificationDigestWorker(bundle, logger, lock);
   cron.register({ pattern: '0 8 * * *' }, dailyDigest.run.bind(dailyDigest));
 
-  const weeklyDigest = new WeeklyDigestWorker(bundle, logger);
+  const weeklyDigest = new WeeklyDigestWorker(bundle, logger, lock);
   cron.register({ pattern: '0 13 * * 1' }, weeklyDigest.run.bind(weeklyDigest));
 
   const expiryReminder = new FitProfileExpiryReminderWorker(bundle, queue, logger);
@@ -226,6 +227,7 @@ export function buildNotificationsComposition(
   eventBus: EventBusPort,
   queue: JobQueuePort,
   cron: CronPort,
+  lock: DistributedLockPort,
 ): BoundedContextComposition<NotificationsUseCases> & NotificationsCompositionExtras {
   const useCases = buildNotificationsUseCases(prisma, email, cache, logger, sse);
   const sseBundle = buildNotificationsSseBundle(sse);
@@ -256,8 +258,8 @@ export function buildNotificationsComposition(
   ];
 
   // --- Cron + repeat-job lifecycle (digests + fan-out tick) ---
-  const dailyDigest = new NotificationDigestWorker(useCases, logger);
-  const weeklyDigest = new WeeklyDigestWorker(useCases, logger);
+  const dailyDigest = new NotificationDigestWorker(useCases, logger, lock);
+  const weeklyDigest = new WeeklyDigestWorker(useCases, logger, lock);
 
   const lifecycles: ReadonlyArray<Lifecycle> = [
     {

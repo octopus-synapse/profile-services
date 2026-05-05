@@ -31,7 +31,7 @@
 import { filter, map, Observable } from 'rxjs';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import type { EventBusPort, EventHandler } from '@/shared-kernel/event-bus/event-bus.port';
@@ -131,6 +131,8 @@ export interface SocialCompositionDeps {
   readonly idempotency: IdempotencyService;
   readonly sse?: SseStreamPort;
   readonly cron?: CronPort;
+  /** Required when `cron` is provided (skill-decay worker uses it). */
+  readonly lock?: DistributedLockPort;
 }
 
 export interface SocialCompositionExtras {
@@ -304,7 +306,7 @@ export function buildSocialComposition(
   deps: SocialCompositionDeps,
 ): BoundedContextComposition<SocialUseCases> & SocialCompositionExtras {
   const { useCases, followRepo, activityCreator, activityService } = buildSocialUseCases(deps);
-  const { eventBus, idempotency, prisma, logger, cron, sse } = deps;
+  const { eventBus, idempotency, prisma, logger, cron, sse, lock } = deps;
 
   // --- Event handlers via `register-handlers.ts` (canonical pattern) ---
   const recorder = new RecordingEventBus() as unknown as EventBusPort;
@@ -327,13 +329,18 @@ export function buildSocialComposition(
 
   // --- Cron lifecycle (skill-decay sweep) ---
   const lifecycles: Lifecycle[] = [];
-  if (cron) {
+  if (cron && lock) {
     lifecycles.push({
       init: async (): Promise<void> => {
-        const worker = new SkillDecayWorker(useCases.skillDecayService, logger);
+        const worker = new SkillDecayWorker(useCases.skillDecayService, logger, lock);
         cron.register({ pattern: '0 2 * * 0' }, worker.run.bind(worker));
       },
     });
+  } else if (cron && !lock) {
+    logger.warn(
+      'social composition: cron provided but no DistributedLockPort — SkillDecayWorker not registered (would multi-fire across pods)',
+      'SocialComposition',
+    );
   }
 
   return {

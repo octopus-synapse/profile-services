@@ -8,31 +8,42 @@
  * Framework-free POJO. Wired via `registerJobsJobs` against the
  * shared `CronPort` (Nest cron adapter lives in
  * `infrastructure/nest-adapter/nest-cron.adapter.ts`).
+ *
+ * P0-010: wrapped with `runGuardedJob` so multi-instance deploys don't
+ * double-send anti-ghosting reminders. Lock TTL = max(2 × expected, 5min).
  */
 
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
+import { runGuardedJob } from '@/shared-kernel/jobs';
 import type { JobsUseCases } from '../../application/ports/jobs.port';
 
 const CTX = 'AntiGhostingWorker';
+// p99: full application sweep + reminder enqueue runs under 5 minutes.
+const EXPECTED_DURATION_MS = 5 * 60_000;
 
 export class AntiGhostingWorker {
   constructor(
     private readonly bc: JobsUseCases,
     private readonly logger: LoggerPort,
+    private readonly lock: DistributedLockPort,
   ) {}
 
   async run(): Promise<void> {
-    try {
-      const result = await this.bc.runAntiGhostingSweep.execute();
-      this.logger.log(
-        `Anti-ghosting scan: ${result.scanned} apps checked, ${result.reminded} reminders sent`,
-        CTX,
-      );
-    } catch (err) {
-      this.logger.error(
-        `Anti-ghosting scan failed: ${err instanceof Error ? err.message : 'unknown'}`,
-        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
-      );
-    }
+    await runGuardedJob(
+      {
+        name: CTX,
+        expectedDurationMs: EXPECTED_DURATION_MS,
+        failureMode: 'LOG_AND_CONTINUE',
+        lock: this.lock,
+        logger: this.logger,
+      },
+      async () => {
+        const result = await this.bc.runAntiGhostingSweep.execute();
+        this.logger.log(
+          `Anti-ghosting scan: ${result.scanned} apps checked, ${result.reminded} reminders sent`,
+          CTX,
+        );
+      },
+    );
   }
 }

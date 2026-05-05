@@ -11,7 +11,7 @@ import type { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import type { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
@@ -137,7 +137,12 @@ export function buildJobsComposition(
  *
  * Schedule: every day at 09:00 (`EVERY_DAY_AT_9AM` → '0 9 * * *').
  */
-export function registerJobsJobs(cron: CronPort, bundle: JobsUseCases, logger: LoggerPort): void {
-  const antiGhosting = new AntiGhostingWorker(bundle, logger);
+export function registerJobsJobs(
+  cron: CronPort,
+  bundle: JobsUseCases,
+  logger: LoggerPort,
+  lock: DistributedLockPort,
+): void {
+  const antiGhosting = new AntiGhostingWorker(bundle, logger, lock);
   cron.register({ pattern: '0 9 * * *' }, antiGhosting.run.bind(antiGhosting));
 }

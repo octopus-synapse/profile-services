@@ -2,6 +2,7 @@ import type { NotificationsUseCases } from '@/bounded-contexts/notifications/app
 import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { ComputeMatchUseCase } from '../../application/use-cases/compute-match.use-case';
 
@@ -55,7 +56,7 @@ export class DailyRecommendationsWorker {
   ) {}
 
   async process(job: { data: DailyRecommendationsJobData; id?: string }): Promise<void> {
-    try {
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.fanOutActiveUsers();
         return;
@@ -63,14 +64,7 @@ export class DailyRecommendationsWorker {
       if (job.data.kind === 'compute-for-user') {
         await this.computeForUser(job.data.userId);
       }
-    } catch (err) {
-      const kind = job?.data?.kind;
-      this.logger.error(
-        `daily-recommendations failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`,
-        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
-      );
-      throw err;
-    }
+    });
   }
 
   private async fanOutActiveUsers(): Promise<void> {

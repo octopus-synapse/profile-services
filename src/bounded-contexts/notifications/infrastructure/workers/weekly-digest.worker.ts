@@ -1,7 +1,10 @@
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
+import { runGuardedJob } from '@/shared-kernel/jobs';
 import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 
 const CTX = 'WeeklyDigestWorker';
+// p99: weekly aggregation is heavier than daily; budget 15 minutes.
+const EXPECTED_DURATION_MS = 15 * 60_000;
 
 /**
  * Weekly Digest Worker
@@ -11,7 +14,8 @@ const CTX = 'WeeklyDigestWorker';
  * summary of their last 7 days: resume views, profile views, new
  * followers, endorsements.
  *
- * Idempotent via `UserWeeklyDigestLog`.
+ * Idempotent via `UserWeeklyDigestLog`. P0-010 adds a distributed lock
+ * so multi-instance deploys don't race the same weekly anchor.
  *
  * Framework-free POJO. Wired by `registerNotificationsJobs` via
  * `CronPort`.
@@ -20,20 +24,25 @@ export class WeeklyDigestWorker {
   constructor(
     private readonly bc: NotificationsUseCases,
     private readonly logger: LoggerPort,
+    private readonly lock: DistributedLockPort,
   ) {}
 
   async run(): Promise<void> {
-    try {
-      const result = await this.bc.sendWeeklyDigests.execute();
-      this.logger.log(
-        `Weekly digest sent to ${result.usersEmailed} users (${result.usersSkipped} skipped)`,
-        CTX,
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'unknown';
-      const stack = error instanceof Error ? error.stack : undefined;
-      this.logger.error(`Weekly digest failed: ${message}`, { context: CTX, stack: stack });
-      throw error;
-    }
+    await runGuardedJob(
+      {
+        name: CTX,
+        expectedDurationMs: EXPECTED_DURATION_MS,
+        failureMode: 'FAIL_FAST',
+        lock: this.lock,
+        logger: this.logger,
+      },
+      async () => {
+        const result = await this.bc.sendWeeklyDigests.execute();
+        this.logger.log(
+          `Weekly digest sent to ${result.usersEmailed} users (${result.usersSkipped} skipped)`,
+          CTX,
+        );
+      },
+    );
   }
 }
