@@ -198,7 +198,138 @@ If an enum is used in 3+ BCs, hoist it to `shared-kernel/enums`. If
 it's a Prisma enum, import it from `@prisma/client` directly — don't
 re-declare.
 
+## Security primitives (P0 sweep — PR #227)
+
+### `SafeFetchPort` — SSRF defense for user-supplied URLs
+
+User-supplied URLs (post link previews, registered webhook targets)
+MUST go through a `SafeFetchPort` instead of the global `fetch`. The
+port enforces protocol allowlist (`https:`/`http:` only) + DNS
+resolution + IP allowlist (rejects loopback / RFC1918 / link-local
+incl. AWS metadata `169.254.169.254` + IPv4-mapped IPv6).
+
+Two implementations:
+- **`SafeFetchAdapter`** (default): single-shot reads (link preview).
+- **`SafeFetchStrictAdapter`**: pins the TCP socket to the resolved IP
+  literal so DNS rebinding can't flip the connection target after the
+  pre-check passes. Use for repeated outbound traffic where the
+  attacker is motivated (webhook delivery).
+
+### `OwnershipGuard` — route-level ownership checks
+
+When ownership is a simple `paramKey → ownerId` query, declare:
+
+```ts
+guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }]
+```
+
+Each BC's composition registers its lookup in `OwnershipRegistry`.
+The guard rejects with 403 (`OwnershipResourceMissingException` /
+`OwnershipAccessDeniedException`) before the handler runs.
+
+Use UC-level validation (existing `ResumeOwnershipPolicy`-style
+ensure*) when the use case must already load the entity for other
+reasons (shared resumes, public flags, multi-owner aggregates) — skip
+the route guard so the query isn't duplicated.
+
+### JWT validation via `ConfigPort` schema
+
+`JWT_SECRET` (and the rest of `.env.example`) is validated up front by
+`EnvConfigSchema` (Zod) in the `ProcessEnvConfigAdapter` constructor.
+Boot fail-fast: `ConfigValidationError` lists every missing/invalid
+var in one report. **Never** add a default for a true secret in code.
+
+### WebSocket origin policy
+
+`ElysiaWebSocketAdapter` requires `allowedOrigins: ReadonlySet<string>`.
+Composition root computes the union of `CORS_ORIGIN`, `APP_URL` /
+`PUBLIC_APP_URL`, and `ALLOWED_WS_ORIGINS` via
+`buildAllowedWsOrigins(config)`. **Fail-closed**: an empty set rejects
+every WS upgrade with 403. Native clients must send a recognised
+`Origin` header.
+
+### PII redaction in logs
+
+Use `redactEmail()` from `@/shared-kernel/logger` whenever a log entry
+would otherwise carry a raw email. The script
+`scripts/lint-pii-in-logs.ts` runs in CI and fails the build if a
+`logger.<level>` call references `*.email` (or `to:`/`recipient:`/
+`emailAddress:` metadata) without wrapping in `redactEmail()`.
+
+For a non-PII identifier (preferred when available), log the
+`userId` instead.
+
+## Workers (P0-010)
+
+Every worker — cron OR queue consumer — wraps its body with one of:
+
+- **`runGuardedJob({ name, expectedDurationMs, failureMode, lock, logger }, fn)`**
+  for **cron** workers. Combines a distributed lock (so multi-instance
+  deploys don't double-execute the same scheduled tick) with the
+  declared failure mode. Lock TTL = `max(2 × expectedDurationMs, 5min)`.
+  Skip silently when the lock is held by another instance.
+- **`runWithFailureMode({ worker, logger }, mode, fn)`** for **queue
+  consumers** (`process(job)`). BullMQ already de-dupes via `jobId`
+  and handles retry, so an extra distributed lock would only block
+  horizontal scaling. The wrapper still gives uniform error logging
+  and explicit failure-mode declaration.
+
+`expectedDurationMs` MUST reflect the worker's p99 wallclock (measure
+via Prometheus or log timestamps from the past week). When you don't
+know yet, default to 30s and tune after the first observability cycle.
+
+## Audit log policy
+
+Audit events use `AuditLogPort` (Q50). Default is **strict**: a
+write failure throws `AuditLogFailedException` and unstucks the event
+bus loop. Use the strict mode for compliance-relevant events
+(authentication, session lifecycle, exports, social actions, version
+mutations) — a missed audit row is a regulatory gap under LGPD/GDPR.
+
+`{ lenient: true }` (Q52) is reserved for telemetry-only signals where
+storage availability is more important than the audit trail. Today no
+caller in the repo uses lenient mode; introducing one needs an
+explicit comment justifying why audit loss is acceptable.
+
+Per-BC audit handlers (P1-035) live next to their BC's domain events
+and follow the **composition** pattern — each handler holds an
+`AuditLogPort` reference and calls `buildAuditEntry()`. Inheritance
+between handlers is deliberately avoided.
+
+## S3 ACL policy (P0-015)
+
+`S3UploadService.uploadFile` accepts an explicit `acl: 'public-read' | 'private'`:
+
+| Asset | ACL | Why |
+|---|---|---|
+| Profile photos | `public-read` | Part of the user's public-facing profile in the social graph |
+| Company logos | `public-read` | Branding asset attached to a public job listing |
+| **Post images** | **`private`** | Feed posts can carry connection-only / restricted content |
+| Resume exports | `private` (presigned GET) | User-scoped artefacts; presigned URL TTL 5min |
+
+Posts served via presigned GET MUST set `Cache-Control: private, max-age=300`
+on the response so CDNs don't share a leaked URL across users.
+
+## `ResumeStyle.styleScore` monotonic invariant (NEW-3)
+
+Migration `20260423221242_scoring_refactor` installs a `BEFORE UPDATE`
+trigger on `ResumeStyle` that **rejects any UPDATE that decrements
+`styleScore`** with a `RAISE EXCEPTION`. This is intentional — the
+score is a one-way counter that only ever rises. Code that "resets"
+or "rolls back" a style score will see a Postgres `check_violation`
+at runtime, not a silent overwrite.
+
+If you legitimately need to reset (e.g. ops rescue), do it via raw SQL
+(`ALTER TABLE … DISABLE TRIGGER … / UPDATE / ENABLE TRIGGER`) and
+audit it.
+
 ## Scripts
 
 See `scripts/README.md` for the inventory and the public/internal
 distinction.
+
+P0-sweep additions:
+- `lint-pii-in-logs.ts` — fails on `${user.email}` or `to:` raw email in `logger.*` calls.
+- `check-no-group-refs.ts` — fails on any reintroduction of the dropped Group/UserGroup tables.
+- `check-pg-extensions.ts` — pre-deploy gate verifying `pg_uuidv7` is in the cluster's allowlist.
+- `check-route-guards.ts` — flags `guards: [{ id }]` declarations that have no pipeline stage (silently un-guarded routes).

@@ -48932,7 +48932,7 @@
     },
     "/api/v1/export/user/{userId}/resume/pdf": {
       "get": {
-        "summary": "Generate another user's resume as PDF (base64)",
+        "summary": "Generate the authenticated user's resume as PDF (base64)",
         "description": "Export API",
         "tags": [
           "export"
