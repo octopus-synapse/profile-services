@@ -84,28 +84,35 @@ describe('E2E: Session-Based Authentication', () => {
   });
 
   describe('Step 2: Session Endpoint Validates Cookie', () => {
-    it.serial('should return user when valid session cookie is present', async () => {
+    it.serial('should return authenticated user when valid session cookie is present', async () => {
       const response = await app.request.get('/api/auth/session').set('Cookie', accessCookie);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+      expect(response.body.data.authenticated).toBe(true);
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.user.id).toBe(testUser.userId);
       expect(response.body.data.user.email).toBe(testUser.email);
     });
 
-    it.serial('should return 401 when no cookie is present', async () => {
+    it.serial('should return unauthenticated when no cookie is present', async () => {
       const response = await app.request.get('/api/auth/session');
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.authenticated).toBe(false);
+      expect(response.body.data.user).toBeNull();
     });
 
-    it.serial('should return 401 with invalid cookie', async () => {
+    it.serial('should return unauthenticated with invalid cookie', async () => {
       const response = await app.request
         .get('/api/auth/session')
         .set('Cookie', 'access_token=invalid-token');
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.authenticated).toBe(false);
+      expect(response.body.data.user).toBeNull();
     });
   });
 

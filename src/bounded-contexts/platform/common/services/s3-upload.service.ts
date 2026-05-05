@@ -265,8 +265,12 @@ export class S3UploadService {
       : this.client;
 
     const downloadUrl = await getSignedUrl(
-      presignClient,
-      new GetObjectCommand({ Bucket: this.bucket, Key: opts.key }),
+      // biome-ignore lint/suspicious/noExplicitAny: hoisted @smithy/types versions
+      // diverge between the s3-request-presigner sub-dep and the top-level
+      // @smithy/types — unify with a structural cast.
+      presignClient as any,
+      // biome-ignore lint/suspicious/noExplicitAny: same reason
+      new GetObjectCommand({ Bucket: this.bucket, Key: opts.key }) as any,
       { expiresIn: opts.ttlSeconds },
     );
 

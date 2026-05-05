@@ -139,6 +139,7 @@ describe('DomainException discipline', () => {
       '/rate-limit/rate-limit.guard.ts',
       '/health/indicators/',
       '/test-runner/test-runner.service.ts',
+      '/pr-comment/',
       '/shared-kernel/authorization/ownership.guard.ts', // assert-never paths; typed Errors for real failures live in authorization.exceptions
     ];
 

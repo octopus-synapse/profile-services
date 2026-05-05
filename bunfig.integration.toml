@@ -1,7 +1,7 @@
 [test]
-# Integration configuration. Suites live under
-# `test/infrastructure/integration/`, wired through the `TestApp`
-# harness in `shared/`.
+# Integration configuration. Only the migrated suites under
+# `test/infrastructure/integration/` run here — `_legacy/` stays
+# excluded until each suite is converted to the new `TestApp` harness.
 root = "./test/infrastructure/integration"
 timeout = 60000
 

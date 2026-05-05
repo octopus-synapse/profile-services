@@ -66,9 +66,4 @@ describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
       `Entries with raw \${ ... } template leakage. Use { param } named placeholders instead.\n${leaks.join('\n')}`,
     ).toEqual([]);
   });
-
-  // Note: we intentionally do not assert `en !== 'pt-BR'` here — the
-  // `as const satisfies LocalizedDictionary` annotation on `ERROR_DICTIONARY`
-  // proves this at compile time (the literal types are disjoint, so TS
-  // won't even let you write a mirror entry).
 });

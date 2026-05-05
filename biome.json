@@ -78,10 +78,7 @@
       "linter": {
         "rules": {
           "correctness": { "noUnusedVariables": "warn" },
-          "style": {
-            "noRestrictedImports": "off",
-            "noNonNullAssertion": "off"
-          }
+          "style": { "noRestrictedImports": "off" }
         }
       }
     },

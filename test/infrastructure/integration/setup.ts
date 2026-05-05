@@ -17,7 +17,14 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
-import { freshInDbUser, startTestApp, stopTestApp, type TestApp, type TestRequest } from '../shared';
+import {
+  AuthHelper,
+  freshInDbUser,
+  startTestApp,
+  stopTestApp,
+  type TestApp,
+  type TestRequest,
+} from '../shared';
 
 // Load test env so DATABASE_URL / REDIS_HOST / JWT_SECRET land before
 // the bootstrap reads process.env.
@@ -49,6 +56,7 @@ export const testContext: TestContext = {
 // `getApp()` we get a brand-new TestApp (with a brand-new Prisma) and
 // have to rebuild AuthHelper around it.
 let cachedAppRef: TestApp | null = null;
+let cachedAuth: AuthHelper | null = null;
 
 // ─── Unique ID helpers ────────────────────────────────────────────
 
@@ -72,7 +80,10 @@ export function uniqueTestId(): string {
 
 export async function getApp(): Promise<TestApp> {
   const app = await startTestApp();
-  cachedAppRef = app;
+  if (cachedAppRef !== app) {
+    cachedAppRef = app;
+    cachedAuth = new AuthHelper(app);
+  }
   return app;
 }
 
@@ -277,4 +288,5 @@ export function getCacheService(): {
 export async function teardownAll(): Promise<void> {
   await stopTestApp();
   cachedAppRef = null;
+  cachedAuth = null;
 }

@@ -2,8 +2,10 @@ name: _infrastructure-e2e
 
 # Phase-2 cutover (Nest → Elysia + Bun) replaced AppModule + supertest
 # with the framework-free `bootstrap()` + the supertest-shaped fetch
-# wrapper under `test/infrastructure/shared/`. Suites live in
-# `test/infrastructure/e2e/*.spec.ts`.
+# wrapper under `test/infrastructure/shared/`. Only the migrated
+# suites (`test/infrastructure/e2e/*.spec.ts`) run here; the legacy
+# tree under `test/infrastructure/_legacy/e2e/` is opt-in via a
+# manual run only and gets converted suite-by-suite.
 
 on:
   workflow_call:

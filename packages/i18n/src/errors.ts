@@ -64,6 +64,10 @@ export const ERROR_DICTIONARY = {
     en: 'Already connected with this user',
     'pt-BR': 'Você já está conectado com este usuário',
   },
+  ALREADY_ENDORSED: {
+    en: 'You have already endorsed this skill for this user',
+    'pt-BR': 'Você já recomendou esta habilidade para este usuário',
+  },
   ALREADY_FOLLOWING: {
     en: 'Already following this user',
     'pt-BR': 'Você já segue este usuário',
@@ -152,6 +156,10 @@ export const ERROR_DICTIONARY = {
     en: 'Cannot delete your own account through the admin interface',
     'pt-BR': 'Você não pode apagar a sua própria conta pela interface de admin',
   },
+  CANNOT_ENDORSE_SELF: {
+    en: 'You cannot endorse your own skills',
+    'pt-BR': 'Você não pode recomendar suas próprias habilidades',
+  },
   CANNOT_FOLLOW_SELF: {
     en: 'Cannot follow yourself',
     'pt-BR': 'Você não pode seguir a si mesmo',
@@ -168,6 +176,10 @@ export const ERROR_DICTIONARY = {
     en: "You cannot modify another user's job posting",
     'pt-BR': 'Você não pode modificar a vaga de outro usuário',
   },
+  CANNOT_RECOMMEND_SELF: {
+    en: 'You cannot write a recommendation for yourself',
+    'pt-BR': 'Você não pode escrever uma recomendação para si mesmo',
+  },
   CANNOT_SEND_MESSAGE_TO_USER: {
     en: 'Cannot send message to this user',
     'pt-BR': 'Não é possível enviar mensagem para este usuário',
@@ -179,6 +191,10 @@ export const ERROR_DICTIONARY = {
   COLLABORATOR_LIMIT_REACHED: {
     en: 'Collaborator limit reached',
     'pt-BR': 'Limite de colaboradores atingido',
+  },
+  COMMENT_NOT_OWNED: {
+    en: 'You can only modify your own comments',
+    'pt-BR': 'Você só pode modificar os seus próprios comentários',
   },
   COMMENT_THREAD_CLOSED: {
     en: 'This comment thread is closed',
@@ -640,6 +656,10 @@ export const ERROR_DICTIONARY = {
     en: 'Onboarding session has expired',
     'pt-BR': 'A sessão do onboarding expirou',
   },
+  ONBOARDING_STEP_OUT_OF_ORDER: {
+    en: 'Onboarding step attempted out of order',
+    'pt-BR': 'Passo do onboarding executado fora da ordem',
+  },
   ONBOARDING_UNKNOWN_STEP: {
     en: 'Unknown onboarding step',
     'pt-BR': 'Passo do onboarding desconhecido',
@@ -743,6 +763,18 @@ export const ERROR_DICTIONARY = {
   RATE_LIMITED: {
     en: 'Too many requests. Slow down.',
     'pt-BR': 'Muitas requisições. Diminua o ritmo.',
+  },
+  RECOMMENDATION_ALREADY_WRITTEN: {
+    en: 'You have already written a recommendation for this user',
+    'pt-BR': 'Você já escreveu uma recomendação para este usuário',
+  },
+  REPORT_ALREADY_SUBMITTED: {
+    en: 'You have already reported this item',
+    'pt-BR': 'Você já denunciou este item',
+  },
+  REPORT_NOT_REVIEWABLE: {
+    en: 'This report is not in a reviewable state',
+    'pt-BR': 'Esta denúncia não está em estado de revisão',
   },
   REPOSITORY_NOT_INITIALIZED: {
     en: 'Repository is not initialized',
@@ -1126,6 +1158,10 @@ export const ERROR_DICTIONARY = {
     en: 'Parent comment not found',
     'pt-BR': 'Comentário pai não encontrado',
   },
+  COLLABORATOR_SELF_INVITE: {
+    en: 'Cannot add yourself as a collaborator',
+    'pt-BR': 'Você não pode adicionar a si mesmo como colaborador',
+  },
   CONSENT_VERSION_MISMATCH: {
     en: 'Consent version mismatch — please accept the latest Terms of Service and Privacy Policy',
     'pt-BR':
@@ -1223,6 +1259,10 @@ export const ERROR_DICTIONARY = {
     en: 'Resume not found',
     'pt-BR': 'Currículo não encontrado',
   },
+  ONBOARDING_NOT_COMPLETED: {
+    en: 'Onboarding must be completed before accessing this resource.',
+    'pt-BR': 'É preciso concluir o onboarding antes de acessar este recurso.',
+  },
   ONBOARDING_SECTION_PERSISTENCE_FAILED: {
     en: 'Failed to save resume sections',
     'pt-BR': 'Falha ao salvar as seções do currículo',
@@ -1306,38 +1346,5 @@ export const ERROR_DICTIONARY = {
   STYLE_SCORE_REGRESSION: {
     en: 'Style score is monotonic and cannot regress',
     'pt-BR': 'A pontuação do estilo é monotônica e não pode regredir',
-  },
-  CAREER_GRAPH_STACK_REQUIRED: {
-    en: 'Career graph requires at least one stack skill to compare cohorts',
-    'pt-BR': 'O career graph exige pelo menos uma skill de stack para comparar grupos',
-  },
-  CAREER_GRAPH_INVALID_MAX_BUCKETS: {
-    en: 'maxBuckets must be between 1 and 50',
-    'pt-BR': 'maxBuckets deve estar entre 1 e 50',
-  },
-  CAREER_COHORT_EMPTY: {
-    en: 'No peers found matching this stack — try broadening the skills',
-    'pt-BR': 'Nenhum par encontrado para essa stack — tente ampliar as skills',
-  },
-  CAREER_GRAPH_REPOSITORY_UNAVAILABLE: {
-    en: 'Career graph data is temporarily unavailable',
-    'pt-BR': 'Os dados do career graph estão temporariamente indisponíveis',
-  },
-  MATCH_CANDIDATES_INVALID_LIMIT: {
-    en: 'limit must be between 1 and 100',
-    'pt-BR': 'limit deve estar entre 1 e 100',
-  },
-  MATCH_CANDIDATES_NO_CRITERIA: {
-    en: 'At least one matching criterion is required (jobSkills, jobMinEnglish, or jobRemotePolicy)',
-    'pt-BR':
-      'Pelo menos um critério de matching é obrigatório (jobSkills, jobMinEnglish ou jobRemotePolicy)',
-  },
-  CANDIDATE_POOL_EMPTY: {
-    en: 'No opt-in candidates match the requested criteria',
-    'pt-BR': 'Nenhum candidato opt-in atende aos critérios solicitados',
-  },
-  CANDIDATE_DIRECTORY_UNAVAILABLE: {
-    en: 'Candidate directory is temporarily unavailable',
-    'pt-BR': 'O diretório de candidatos está temporariamente indisponível',
   },
 } as const satisfies LocalizedDictionary;

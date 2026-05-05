@@ -97,7 +97,8 @@ export class MetricsService extends MetricsReaderPort implements Lifecycle {
     return this.metrics.registry.metrics();
   }
 
-  /** MetricsReaderPort surface — alias of `getMetrics`. */
+  /** MetricsReaderPort surface — alias of `getMetrics` so the use case
+   *  layer doesn't import the historical name. */
   getPrometheusText(): Promise<string> {
     return this.getMetrics();
   }

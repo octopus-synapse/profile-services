@@ -101,29 +101,5 @@
     "user-engagement",
     "users",
     "webhooks"
-  ],
-  "clientPaths": 330,
-  "clientOperations": 398,
-  "omittedFromSdk": [
-    {
-      "method": "GET",
-      "path": "/health",
-      "reason": "sdk.exported=false"
-    },
-    {
-      "method": "GET",
-      "path": "/health/live",
-      "reason": "sdk.exported=false"
-    },
-    {
-      "method": "GET",
-      "path": "/health/ready",
-      "reason": "sdk.exported=false"
-    },
-    {
-      "method": "GET",
-      "path": "/v1/feature-flags/evaluate",
-      "reason": "sdk.exported=false"
-    }
   ]
 }

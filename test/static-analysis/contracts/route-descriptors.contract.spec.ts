@@ -23,7 +23,7 @@ import { beforeAll, describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { Route } from '@/shared-kernel/http/route.types';
+import type { Route } from '@/shared-kernel/http/route';
 
 const SRC_DIR = resolve(__dirname, '../../../src');
 const SWAGGER_PATH = resolve(__dirname, '../../../swagger.json');
