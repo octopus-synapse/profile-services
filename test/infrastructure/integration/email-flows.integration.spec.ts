@@ -16,7 +16,7 @@
 import { afterAll, beforeAll, describe, expect, it, mock } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../shared';
+import { stopTestApp, type TestApp, tokenFromResponse, waitFor } from '../shared';
 import { acceptTosWithPrisma, assignUserRole, getApp, signupBody, uniqueTestId } from './setup';
 
 describe('Email Flows Integration', () => {
@@ -39,21 +39,26 @@ describe('Email Flows Integration', () => {
       sendEmailMock.mockClear();
 
       const response = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody({ email, password: 'SecurePass123!', name: 'Email Test User' }));
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-
-      // Email service should have been called (verification email on signup)
-      // Give async handlers a moment to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       // The mock may or may not be called depending on whether the
-      // registration flow sends a verification email automatically.
-      // We verify the registration succeeded - email behavior may vary.
-      const userId = response.body.data.userId;
+      // registration flow sends a verification email automatically;
+      // we only assert that the row landed.
+      const userId = response.body.userId;
       expect(userId).toBeDefined();
+      // Give async handlers room to land before the cleanup below
+      // observes a half-written user. Polling ensures the userConsent
+      // rows the signup writes via event are present before delete.
+      await waitFor(
+        async () => {
+          const consents = await prisma.userConsent.count({ where: { userId } });
+          if (consents === 0) throw new Error('consents not yet persisted');
+          return consents;
+        },
+        { label: 'signup consents' },
+      );
 
       // Cleanup
       await prisma.userConsent.deleteMany({ where: { userId } });
@@ -67,30 +72,30 @@ describe('Email Flows Integration', () => {
 
       // Create user
       const signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody({ email, password: 'SecurePass123!', name: 'Verify Test User' }));
 
       expect(signupResponse.status).toBe(201);
-      const userId = signupResponse.body.data.userId;
+      const userId = signupResponse.body.userId;
 
       // Login (before email verification, some endpoints may still work)
       // Accept ToS so login works
       await acceptTosWithPrisma(prisma, userId);
 
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email, password: 'SecurePass123!' });
 
       // Login may succeed even without email verification
       // (email guard blocks protected routes, not login itself)
       if (loginResponse.status === 200) {
-        const token = loginResponse.body.data.accessToken;
+        const token = tokenFromResponse(loginResponse, 'access_token')!;
 
         sendEmailMock.mockClear();
 
         // Request email verification
         const verifyResponse = await app.request
-          .post('/api/email-verification/send')
+          .post('/api/v1/auth/email-verification/send')
           .set('Authorization', `Bearer ${token}`);
 
         // Should succeed (200) or conflict if already verified (409)
@@ -101,7 +106,6 @@ describe('Email Flows Integration', () => {
           // app's email transport; we can't assert on `sendEmailMock`
           // here. The contract under test is that the verification
           // endpoint accepts the request — already covered above.
-          expect(verifyResponse.body.success).toBe(true);
         }
       }
 
@@ -117,11 +121,11 @@ describe('Email Flows Integration', () => {
 
       // Create and verify user
       const signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody({ email, password: 'SecurePass123!', name: 'Reset Test User' }));
 
       expect(signupResponse.status).toBe(201);
-      const userId = signupResponse.body.data.userId;
+      const userId = signupResponse.body.userId;
 
       await prisma.user.update({
         where: { id: userId },
@@ -131,11 +135,9 @@ describe('Email Flows Integration', () => {
       sendEmailMock.mockClear();
 
       // Request password reset
-      const resetResponse = await app.request.post('/api/auth/forgot-password').send({ email });
+      const resetResponse = await app.request.post('/api/v1/auth/forgot-password').send({ email });
 
       expect(resetResponse.status).toBe(200);
-      expect(resetResponse.body.success).toBe(true);
-
       // The mock is local to this spec and isn't wired into the app's
       // email transport — covered by the 200/success-envelope check
       // above. Asserting on `sendEmailMock` would only verify the
@@ -148,12 +150,11 @@ describe('Email Flows Integration', () => {
 
     it('should not reveal user existence on forgot-password for unknown email', async () => {
       const response = await app.request
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .send({ email: `nonexistent-${uniqueTestId()}@example.com` });
 
       // Should always return success to prevent email enumeration
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
   });
 
@@ -165,11 +166,11 @@ describe('Email Flows Integration', () => {
 
       // Create and verify user
       const signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody({ email, password, name: 'Change Pass Test User' }));
 
       expect(signupResponse.status).toBe(201);
-      const userId = signupResponse.body.data.userId;
+      const userId = signupResponse.body.userId;
 
       await prisma.user.update({
         where: { id: userId },
@@ -179,37 +180,48 @@ describe('Email Flows Integration', () => {
       await assignUserRole(userId);
 
       // Login
-      const loginResponse = await app.request.post('/api/auth/login').send({ email, password });
+      const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
 
       expect(loginResponse.status).toBe(200);
-      const token = loginResponse.body.data.accessToken;
+      const token = tokenFromResponse(loginResponse, 'access_token')!;
 
       sendEmailMock.mockClear();
 
-      // Change password (endpoint may be /api/auth/change-password or /api/v1/users/me/password)
+      // Change password (endpoint may be /api/v1/auth/change-password or /api/v1/users/me/password)
       const changeResponse = await app.request
-        .post('/api/auth/change-password')
+        .post('/api/v1/auth/change-password')
         .set('Authorization', `Bearer ${token}`)
         .send({ currentPassword: password, newPassword });
 
       if (changeResponse.status === 200) {
-        // Give async handlers time to complete
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Notification email should have been sent
-        expect(sendEmailMock).toHaveBeenCalled();
+        await waitFor(
+          () => {
+            if (!sendEmailMock.mock.calls.length) {
+              throw new Error('notification email not yet sent');
+            }
+            return sendEmailMock.mock.calls.length;
+          },
+          { label: 'password change notification email' },
+        );
       } else {
-        // If endpoint doesn't exist at this path, try alternative
+        // Endpoint moved — try the user-resource form.
         const altResponse = await app.request
           .patch('/api/v1/users/me/password')
           .set('Authorization', `Bearer ${token}`)
           .send({ currentPassword: password, newPassword });
 
         if (altResponse.status === 200) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          expect(sendEmailMock).toHaveBeenCalled();
+          await waitFor(
+            () => {
+              if (!sendEmailMock.mock.calls.length) {
+                throw new Error('notification email not yet sent');
+              }
+              return sendEmailMock.mock.calls.length;
+            },
+            { label: 'password change notification email (alt path)' },
+          );
         }
-        // If neither path works, the test still passes - endpoint may differ
+        // If neither path works, the test still passes — endpoint may differ.
       }
 
       // Cleanup
