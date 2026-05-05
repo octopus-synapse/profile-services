@@ -90,10 +90,10 @@ describe('E2E: Admin Section Types CRUD', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.items.length).toBeGreaterThan(0);
-      expect(response.body.data.page).toBe(1);
-      expect(typeof response.body.data.total).toBe('number');
-      expect(typeof response.body.data.totalPages).toBe('number');
+      expect(response.body.items.length).toBeGreaterThan(0);
+      expect(response.body.page).toBe(1);
+      expect(typeof response.body.total).toBe('number');
+      expect(typeof response.body.totalPages).toBe('number');
     });
 
     it.serial('should respect pageSize parameter', async () => {
@@ -102,8 +102,8 @@ describe('E2E: Admin Section Types CRUD', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.items.length).toBeLessThanOrEqual(3);
-      expect(response.body.data.pageSize).toBe(3);
+      expect(response.body.items.length).toBeLessThanOrEqual(3);
+      expect(response.body.pageSize).toBe(3);
     });
 
     it.serial('should filter by search term', async () => {
@@ -113,8 +113,8 @@ describe('E2E: Admin Section Types CRUD', () => {
 
       expect(response.status).toBe(200);
 
-      if (response.body.data.items.length > 0) {
-        const matchesSearch = response.body.data.items.some(
+      if (response.body.items.length > 0) {
+        const matchesSearch = response.body.items.some(
           (item: { key: string; title: string }) =>
             item.key.includes('work') || item.title.toLowerCase().includes('work'),
         );
@@ -129,7 +129,7 @@ describe('E2E: Admin Section Types CRUD', () => {
 
       expect(response.status).toBe(200);
 
-      for (const item of response.body.data.items) {
+      for (const item of response.body.items) {
         expect(item.isActive).toBe(true);
       }
     });
@@ -141,7 +141,7 @@ describe('E2E: Admin Section Types CRUD', () => {
 
       expect(response.status).toBe(200);
 
-      for (const item of response.body.data.items) {
+      for (const item of response.body.items) {
         expect(item.semanticKind).toBe('WORK_EXPERIENCE');
       }
     });
@@ -156,9 +156,9 @@ describe('E2E: Admin Section Types CRUD', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body.data)).toBe(true);
-      expect(response.body.data.length).toBeGreaterThan(0);
-      expect(response.body.data).toContain('WORK_EXPERIENCE');
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body).toContain('WORK_EXPERIENCE');
     });
   });
 
@@ -171,12 +171,12 @@ describe('E2E: Admin Section Types CRUD', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.key).toBe('work_experience_v1');
-      expect(response.body.data.semanticKind).toBe('WORK_EXPERIENCE');
-      expect(response.body.data.isSystem).toBe(true);
-      expect(typeof response.body.data.iconType).toBe('string');
-      expect(typeof response.body.data.icon).toBe('string');
-      expect(typeof response.body.data.translations).toBe('object');
+      expect(response.body.key).toBe('work_experience_v1');
+      expect(response.body.semanticKind).toBe('WORK_EXPERIENCE');
+      expect(response.body.isSystem).toBe(true);
+      expect(typeof response.body.iconType).toBe('string');
+      expect(typeof response.body.icon).toBe('string');
+      expect(typeof response.body.translations).toBe('object');
     });
 
     it.serial('should return 404 for nonexistent key', async () => {
@@ -239,12 +239,12 @@ describe('E2E: Admin Section Types CRUD', () => {
         .send(payload);
 
       expect(response.status).toBe(201);
-      expect(response.body.data.key).toBe(testSectionKey);
-      expect(response.body.data.isSystem).toBe(false);
-      expect(response.body.data.iconType).toBe('emoji');
-      expect(response.body.data.icon).toBe('🧪');
-      expect(response.body.data.translations.en.title).toBe('E2E Test');
-      expect(response.body.data.translations['pt-BR'].title).toBe('Teste E2E');
+      expect(response.body.key).toBe(testSectionKey);
+      expect(response.body.isSystem).toBe(false);
+      expect(response.body.iconType).toBe('emoji');
+      expect(response.body.icon).toBe('🧪');
+      expect(response.body.translations.en.title).toBe('E2E Test');
+      expect(response.body.translations['pt-BR'].title).toBe('Teste E2E');
     });
 
     it.serial('should reject duplicate key', async () => {
@@ -312,8 +312,8 @@ describe('E2E: Admin Section Types CRUD', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.title).toBe('Updated E2E Test Section');
-      expect(response.body.data.icon).toBe('✅');
+      expect(response.body.title).toBe('Updated E2E Test Section');
+      expect(response.body.icon).toBe('✅');
     });
 
     it.serial('should allow icon/translation updates on system types', async () => {
@@ -323,7 +323,7 @@ describe('E2E: Admin Section Types CRUD', () => {
         .send({ icon: '💼' });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.icon).toBe('💼');
+      expect(response.body.icon).toBe('💼');
     });
 
     it.serial('should reject definition changes on system types', async () => {

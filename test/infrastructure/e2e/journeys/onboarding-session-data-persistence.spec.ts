@@ -4,7 +4,7 @@
  * TDD: Tests that step data is correctly persisted when advancing through onboarding.
  *
  * Bug discovered: The /session/next endpoint advances steps but does NOT persist
- * step data (professionalProfile, template, theme, palette are all null after advancing).
+ * step data (professionalProfile, template, palette are all null after advancing).
  *
  * This test MUST FAIL until the bug is fixed.
  */
@@ -65,8 +65,8 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(personalInfoData);
 
-      expect(advanceResponse.status).toBe(200);
-      expect(advanceResponse.body.data.currentStep).toBe('username');
+      expect(advanceResponse.status).toBe(201);
+      expect(advanceResponse.body.currentStep).toBe('username');
 
       // Verify personalInfo was persisted
       const sessionResponse = await app.request
@@ -74,9 +74,9 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(sessionResponse.status).toBe(200);
-      expect(sessionResponse.body.data.personalInfo).toBeDefined();
-      expect(sessionResponse.body.data.personalInfo.fullName).toBe('Test Persistence User');
-      expect(sessionResponse.body.data.personalInfo.email).toBe(testUser.email);
+      expect(sessionResponse.body.personalInfo).toBeDefined();
+      expect(sessionResponse.body.personalInfo.fullName).toBe('Test Persistence User');
+      expect(sessionResponse.body.personalInfo.email).toBe(testUser.email);
     });
 
     it.serial('should persist username when advancing from username step', async () => {
@@ -88,8 +88,8 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(usernameData);
 
-      expect(advanceResponse.status).toBe(200);
-      expect(advanceResponse.body.data.currentStep).toBe('professional-profile');
+      expect(advanceResponse.status).toBe(201);
+      expect(advanceResponse.body.currentStep).toBe('professional-profile');
 
       // Verify username was persisted
       const sessionResponse = await app.request
@@ -97,7 +97,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(sessionResponse.status).toBe(200);
-      expect(sessionResponse.body.data.username).toBe(testUsername);
+      expect(sessionResponse.body.username).toBe(testUsername);
     });
 
     it.serial(
@@ -115,7 +115,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
           .set('Authorization', `Bearer ${testUser.token}`)
           .send(profileData);
 
-        expect(advanceResponse.status).toBe(200);
+        expect(advanceResponse.status).toBe(201);
 
         // Verify professionalProfile was persisted
         const sessionResponse = await app.request
@@ -125,13 +125,9 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         expect(sessionResponse.status).toBe(200);
 
         // BUG: This assertion FAILS because professionalProfile is null
-        expect(sessionResponse.body.data.professionalProfile).toBeDefined();
-        expect(sessionResponse.body.data.professionalProfile.jobTitle).toBe(
-          'Senior Software Engineer',
-        );
-        expect(sessionResponse.body.data.professionalProfile.summary).toContain(
-          'Experienced developer',
-        );
+        expect(sessionResponse.body.professionalProfile).toBeDefined();
+        expect(sessionResponse.body.professionalProfile.jobTitle).toBe('Senior Software Engineer');
+        expect(sessionResponse.body.professionalProfile.summary).toContain('Experienced developer');
       },
     );
 
@@ -149,7 +145,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       const beforeTemplate = await app.request
         .get('/api/v1/onboarding/session')
         .set('Authorization', `Bearer ${testUser.token}`);
-      expect(beforeTemplate.body.data.currentStep).toBe('template');
+      expect(beforeTemplate.body.currentStep).toBe('template');
 
       // Now advance from template to review WITH template data
       const templateData = { templateId: 'modern', colorScheme: 'blue' };
@@ -159,7 +155,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(templateData);
 
-      expect(advanceResponse.status).toBe(200);
+      expect(advanceResponse.status).toBe(201);
 
       // Verify template was persisted
       const sessionResponse = await app.request
@@ -169,9 +165,9 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       expect(sessionResponse.status).toBe(200);
 
       // templateSelection is returned in the session response
-      expect(sessionResponse.body.data.templateSelection).toBeDefined();
-      expect(sessionResponse.body.data.templateSelection.templateId).toBe('modern');
-      expect(sessionResponse.body.data.templateSelection.colorScheme).toBe('blue');
+      expect(sessionResponse.body.templateSelection).toBeDefined();
+      expect(sessionResponse.body.templateSelection.templateId).toBe('modern');
+      expect(sessionResponse.body.templateSelection.colorScheme).toBe('blue');
     });
   });
 
@@ -247,13 +243,13 @@ describe('E2E: Onboarding Session Data Persistence', () => {
           .get('/api/v1/onboarding/session')
           .set('Authorization', `Bearer ${completeTestUser.token}`);
 
-        expect(sessionBeforeComplete.body.data.currentStep).toBe('review');
+        expect(sessionBeforeComplete.body.currentStep).toBe('review');
 
         // Verify all required data was persisted before attempting complete
-        expect(sessionBeforeComplete.body.data.personalInfo).toBeDefined();
-        expect(sessionBeforeComplete.body.data.username).toBe(completeUsername);
-        expect(sessionBeforeComplete.body.data.professionalProfile).toBeDefined();
-        expect(sessionBeforeComplete.body.data.templateSelection).toBeDefined();
+        expect(sessionBeforeComplete.body.personalInfo).toBeDefined();
+        expect(sessionBeforeComplete.body.username).toBe(completeUsername);
+        expect(sessionBeforeComplete.body.professionalProfile).toBeDefined();
+        expect(sessionBeforeComplete.body.templateSelection).toBeDefined();
 
         // Now complete - this SHOULD succeed if data was persisted
         const completeResponse = await app.request
@@ -262,8 +258,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
 
         // Complete should succeed (200 or 201 depending on whether creating or updating)
         expect([200, 201]).toContain(completeResponse.status);
-        expect(completeResponse.body.success).toBe(true);
-        expect(completeResponse.body.data.resumeId).toBeDefined();
+        expect(completeResponse.body.resumeId).toBeDefined();
       },
     );
   });

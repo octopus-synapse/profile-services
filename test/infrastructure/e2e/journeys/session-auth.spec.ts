@@ -11,7 +11,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { stopTestApp, type TestApp } from '../../shared';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../../shared';
 import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
@@ -46,13 +46,12 @@ describe('E2E: Session-Based Authentication', () => {
   describe('Step 1: Login Sets Session Cookie', () => {
     it.serial('should set httpOnly session cookie on login', async () => {
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.accessToken).toBeDefined();
-      expect(response.body.data.refreshToken).toBeDefined();
+      // P0-006: only `access_token` is the session cookie.
+      expect(tokenFromResponse(response, 'access_token')).toBeDefined();
 
       // Extract session cookie from the wrapper's pre-parsed setCookie
       // array (Bun's `Headers.get('set-cookie')` returns null when more
@@ -72,7 +71,7 @@ describe('E2E: Session-Based Authentication', () => {
 
     it.serial('should not set session cookie on failed login', async () => {
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: 'WrongPassword123!' });
 
       expect(response.status).toBe(401);
@@ -85,34 +84,27 @@ describe('E2E: Session-Based Authentication', () => {
 
   describe('Step 2: Session Endpoint Validates Cookie', () => {
     it.serial('should return authenticated user when valid session cookie is present', async () => {
-      const response = await app.request.get('/api/auth/session').set('Cookie', accessCookie);
+      const response = await app.request.get('/api/v1/auth/session').set('Cookie', accessCookie);
 
+      // Q19: session endpoint returns the user entity directly (no
+      // { authenticated, user } envelope) and throws 401 when the
+      // cookie/JWT is missing or invalid.
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.authenticated).toBe(true);
-      expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.user.id).toBe(testUser.userId);
-      expect(response.body.data.user.email).toBe(testUser.email);
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.id).toBe(testUser.userId);
+      expect(response.body.user.email).toBe(testUser.email);
     });
 
-    it.serial('should return unauthenticated when no cookie is present', async () => {
-      const response = await app.request.get('/api/auth/session');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.authenticated).toBe(false);
-      expect(response.body.data.user).toBeNull();
+    it.serial('should reject when no cookie is present', async () => {
+      const response = await app.request.get('/api/v1/auth/session');
+      expect(response.status).toBe(401);
     });
 
-    it.serial('should return unauthenticated with invalid cookie', async () => {
+    it.serial('should reject with invalid cookie', async () => {
       const response = await app.request
-        .get('/api/auth/session')
+        .get('/api/v1/auth/session')
         .set('Cookie', 'access_token=invalid-token');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.authenticated).toBe(false);
-      expect(response.body.data.user).toBeNull();
+      expect(response.status).toBe(401);
     });
   });
 
@@ -123,7 +115,7 @@ describe('E2E: Session-Based Authentication', () => {
         const response = await app.request.get('/api/v1/users/profile').set('Cookie', accessCookie);
 
         expect(response.status).toBe(200);
-        expect(response.body.data).toBeDefined();
+        expect(response.body).toBeDefined();
       },
     );
 
@@ -142,7 +134,7 @@ describe('E2E: Session-Based Authentication', () => {
 
         expect(response.status).toBe(200);
         // Cookie should take precedence - expect first user's data
-        expect(response.body.data.email).toBe(testUser.email);
+        expect(response.body.email).toBe(testUser.email);
       } finally {
         await cleanupHelper.deleteUserByEmail(secondUser.email);
       }
@@ -154,7 +146,7 @@ describe('E2E: Session-Based Authentication', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
   });
 
@@ -162,18 +154,17 @@ describe('E2E: Session-Based Authentication', () => {
     it.serial('should clear session cookie on logout', async () => {
       // Login again to get fresh tokens
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
-      const freshRefreshToken = loginResponse.body.data.refreshToken;
       const freshAccessCookie = loginResponse.setCookie.find((c) => c.startsWith('access_token='));
 
-      // Now logout
+      // Now logout — refresh token isn't required for cookie-only flow.
       expect(freshAccessCookie).toBeDefined();
       const logoutResponse = await app.request
-        .post('/api/auth/logout')
+        .post('/api/v1/auth/logout')
         .set('Cookie', freshAccessCookie as string)
-        .send({ refreshToken: freshRefreshToken, logoutAllSessions: false });
+        .send({ logoutAllSessions: false });
 
       expect(logoutResponse.status).toBe(200);
 
@@ -190,7 +181,7 @@ describe('E2E: Session-Based Authentication', () => {
     it.serial('should reject session cookie after logout', async () => {
       // First login to get a valid session
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
       const freshAccessCookie = loginResponse.setCookie.find((c) => c.startsWith('access_token='));
@@ -198,16 +189,19 @@ describe('E2E: Session-Based Authentication', () => {
       // Logout
       expect(freshAccessCookie).toBeDefined();
       await app.request
-        .post('/api/auth/logout')
+        .post('/api/v1/auth/logout')
         .set('Cookie', freshAccessCookie as string)
-        .send({ refreshToken: loginResponse.body.data.refreshToken, logoutAllSessions: false });
+        .send({
+          refreshToken: tokenFromResponse(loginResponse, 'refresh_token')!,
+          logoutAllSessions: false,
+        });
 
       // Try to use the old cookie (should work because JWT is stateless)
       // The cookie was cleared on the client side, but the JWT is still valid until expiry
       // This test verifies the cookie clearing mechanism works on the response
 
       const sessionResponse = await app.request
-        .get('/api/auth/session')
+        .get('/api/v1/auth/session')
         .set('Cookie', freshAccessCookie as string);
 
       // Note: Since JWTs are stateless, the old token might still be valid
@@ -221,7 +215,7 @@ describe('E2E: Session-Based Authentication', () => {
     it.serial('should return complete user data in session response', async () => {
       // Login fresh
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
       const freshCookies = loginResponse.headers.get('set-cookie');
@@ -231,10 +225,10 @@ describe('E2E: Session-Based Authentication', () => {
 
       expect(freshAccessCookie).toBeDefined();
       const response = await app.request
-        .get('/api/auth/session')
+        .get('/api/v1/auth/session')
         .set('Cookie', freshAccessCookie as string);
 
-      expect(response.body.data.user).toMatchObject({
+      expect(response.body.user).toMatchObject({
         id: expect.any(String),
         email: testUser.email,
         hasCompletedOnboarding: expect.any(Boolean),

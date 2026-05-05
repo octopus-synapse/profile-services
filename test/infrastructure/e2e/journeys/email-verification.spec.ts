@@ -17,7 +17,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../../shared';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../../shared';
 import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
@@ -49,11 +49,11 @@ describe('E2E Journey: Email Verification', () => {
       testUser = authHelper.createTestUser('email-verify');
 
       // Register (but DO NOT verify email via helper). The
-      // /api/accounts endpoint records consent rows from the
+      // /api/v1/accounts endpoint records consent rows from the
       // `acceptedTosVersion` / `acceptedPrivacyVersion` body fields,
       // so we don't insert UserConsent here too — that would collide
       // on the (userId, documentType, version) unique key.
-      const signupResponse = await app.request.post('/api/accounts').send({
+      const signupResponse = await app.request.post('/api/v1/accounts').send({
         email: testUser.email,
         password: testUser.password,
         name: testUser.name,
@@ -62,9 +62,7 @@ describe('E2E Journey: Email Verification', () => {
       });
 
       expect(signupResponse.status).toBe(201);
-      expect(signupResponse.body.success).toBe(true);
-
-      const responseData = signupResponse.body.data;
+      const responseData = signupResponse.body;
       testUser.userId = responseData.userId;
 
       expect(testUser.userId).toBeDefined();
@@ -72,15 +70,14 @@ describe('E2E Journey: Email Verification', () => {
 
     it.serial('should login even with unverified email', async () => {
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
       // Login should succeed - email guard blocks routes, not login
       expect(loginResponse.status).toBe(200);
-      expect(loginResponse.body.success).toBe(true);
-      expect(loginResponse.body.data.accessToken).toBeDefined();
+      expect(tokenFromResponse(loginResponse, 'access_token')).toBeDefined();
 
-      testUser.token = loginResponse.body.data.accessToken;
+      testUser.token = tokenFromResponse(loginResponse, 'access_token')!;
     });
   });
 
@@ -98,7 +95,7 @@ describe('E2E Journey: Email Verification', () => {
         return;
       }
       expect(response.status).toBe(403);
-      expect(response.body.error?.missing).toContain('email-verified');
+      expect(response.body.code).toBe('EMAIL_NOT_VERIFIED');
     });
 
     it.serial('should block access to user profile with unverified email', async () => {
@@ -108,21 +105,20 @@ describe('E2E Journey: Email Verification', () => {
 
       if (response.status === 200) return;
       expect(response.status).toBe(403);
-      expect(response.body.error?.missing).toContain('email-verified');
+      expect(response.body.code).toBe('EMAIL_NOT_VERIFIED');
     });
   });
 
   describe('Step 3: Request Email Verification', () => {
     it.serial('should request a verification email', async () => {
       const response = await app.request
-        .post('/api/email-verification/send')
+        .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       // Should succeed (200) - sends verification email
       // Note: EmailSenderService is mocked in E2E, no actual email sent
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.message).toBeDefined();
+      expect(response.body.message).toBeDefined();
     });
   });
 
@@ -160,11 +156,11 @@ describe('E2E Journey: Email Verification', () => {
 
       // Re-login to get a fresh token that includes emailVerified claim
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: testUser.email, password: testUser.password });
 
       expect(loginResponse.status).toBe(200);
-      testUser.token = loginResponse.body.data.accessToken;
+      testUser.token = tokenFromResponse(loginResponse, 'access_token')!;
     });
   });
 
@@ -176,7 +172,6 @@ describe('E2E Journey: Email Verification', () => {
         .query({ page: 1, limit: 10 });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should access user profile after email verification', async () => {
@@ -185,7 +180,6 @@ describe('E2E Journey: Email Verification', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should be able to create a resume after verification', async () => {
@@ -196,15 +190,14 @@ describe('E2E Journey: Email Verification', () => {
 
       // Should succeed now
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBeDefined();
+      expect(response.body.id).toBeDefined();
     });
   });
 
   describe('Step 6: Re-request Verification (Already Verified)', () => {
     it.serial('should handle re-request when already verified', async () => {
       const response = await app.request
-        .post('/api/email-verification/send')
+        .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       // Should return 409 Conflict (already verified) or 200 with appropriate message
@@ -212,34 +205,36 @@ describe('E2E Journey: Email Verification', () => {
 
       if (response.status === 409) {
         // Conflict - email already verified
-        expect(response.body.message || response.body.error?.message).toBeDefined();
+        expect(response.body.message).toBeDefined();
       }
     });
   });
 
   describe('Step 7: Edge Cases', () => {
     it.serial('should reject verification request without authentication', async () => {
-      const response = await app.request.post('/api/email-verification/send');
+      const response = await app.request.post('/api/v1/auth/email-verification/send');
 
       expect(response.status).toBe(401);
     });
 
     it.serial('should reject verification with invalid token', async () => {
       const response = await app.request
-        .post('/api/email-verification/verify')
+        .post('/api/v1/auth/email-verification/verify')
         .send({ token: 'invalid-fake-token-12345' });
 
       expect([400, 404]).toContain(response.status);
     });
 
     it.serial('should reject verification with empty token', async () => {
-      const response = await app.request.post('/api/email-verification/verify').send({ token: '' });
+      const response = await app.request
+        .post('/api/v1/auth/email-verification/verify')
+        .send({ token: '' });
 
       expect([400, 422]).toContain(response.status);
     });
 
     it.serial('should reject verification without token field', async () => {
-      const response = await app.request.post('/api/email-verification/verify').send({});
+      const response = await app.request.post('/api/v1/auth/email-verification/verify').send({});
 
       expect([400, 422]).toContain(response.status);
     });

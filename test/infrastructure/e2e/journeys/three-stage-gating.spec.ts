@@ -33,38 +33,38 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
   describe('Stage 1 — fresh signup (unverified, not onboarded)', () => {
     it('session endpoint reports both gates open', async () => {
       const me = await freshInDbUser(app, { skipEmailVerify: true, skipOnboarding: true });
-      const res = await app.request.get('/api/auth/session').set(me.bearer());
+      const res = await app.request.get('/api/v1/auth/session').set(me.bearer());
       expect(res.status).toBe(200);
-      expect(res.body.data.user.needsEmailVerification).toBe(true);
-      expect(res.body.data.user.needsOnboarding).toBe(true);
+      expect(res.body.user.needsEmailVerification).toBe(true);
+      expect(res.body.user.needsOnboarding).toBe(true);
     });
 
     it('returns 403 with `email-verified` missing on a protected endpoint', async () => {
       const me = await freshInDbUser(app, { skipEmailVerify: true, skipOnboarding: true });
       const res = await app.request.get('/api/v1/resumes').set(me.bearer());
       expect(res.status).toBe(403);
-      expect(res.body.error?.missing).toContain('email-verified');
+      expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
     });
   });
 
   describe('Stage 2 — verified but not onboarded', () => {
     it('clears the email gate but keeps onboarding pending', async () => {
       const me = await freshInDbUser(app, { skipOnboarding: true });
-      const session = await app.request.get('/api/auth/session').set(me.bearer());
-      expect(session.body.data.user.needsEmailVerification).toBe(false);
-      expect(session.body.data.user.needsOnboarding).toBe(true);
+      const session = await app.request.get('/api/v1/auth/session').set(me.bearer());
+      expect(session.body.user.needsEmailVerification).toBe(false);
+      expect(session.body.user.needsOnboarding).toBe(true);
     });
 
     it('returns 403 with `onboarding-completed` missing on a protected endpoint', async () => {
       const me = await freshInDbUser(app, { skipOnboarding: true });
       const res = await app.request.get('/api/v1/resumes').set(me.bearer());
       expect(res.status).toBe(403);
-      expect(res.body.error?.missing).toContain('onboarding-completed');
+      expect(res.body.code).toBe('ONBOARDING_NOT_COMPLETED');
     });
 
     it('session + onboarding endpoints stay reachable for verified-but-not-onboarded users', async () => {
       const me = await freshInDbUser(app, { skipOnboarding: true });
-      const session = await app.request.get('/api/auth/session').set(me.bearer());
+      const session = await app.request.get('/api/v1/auth/session').set(me.bearer());
       expect(session.status).toBe(200);
       const onboardingStatus = await app.request.get('/api/v1/onboarding/status').set(me.bearer());
       expect(onboardingStatus.status).toBe(200);
@@ -79,7 +79,6 @@ describe('E2E: 3-Stage Gating (verify + onboarding)', () => {
         .set(me.bearer())
         .query({ page: 1, limit: 10 });
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
   });
 });
