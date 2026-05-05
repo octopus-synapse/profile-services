@@ -14,8 +14,18 @@
  * id `metrics-key`).
  */
 
+import {
+  ExportCompletedEvent,
+  ExportFailedEvent,
+  ExportRequestedEvent,
+} from '@/bounded-contexts/export/domain/events';
+// `UserLoggedInEvent` / `UserLoggedOutEvent` use instance-level
+// `eventType` (no static TYPE), so we subscribe via the literal
+// strings below — no import needed for the type.
+import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events/user-registered.event';
 import { MatchComputedEvent } from '@/bounded-contexts/job-match/domain/events';
 import { ResumeQualityComputedEvent } from '@/bounded-contexts/resume-quality/domain/events';
+import { ResumeCreatedEvent } from '@/bounded-contexts/resumes/domain/events/resume-created.event';
 import type { LoggerPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
@@ -23,6 +33,7 @@ import { MetricsUseCases } from './application/ports/metrics.port';
 import { GetMetricsOverviewUseCase } from './application/use-cases/get-metrics-overview/get-metrics-overview.use-case';
 import { GetPrometheusMetricsUseCase } from './application/use-cases/get-prometheus-metrics/get-prometheus-metrics.use-case';
 import type { MetricsReaderPort } from './domain/ports/metrics-reader.port';
+import { LifecycleMetricsHandler } from './handlers/lifecycle-metrics.handler';
 import { ScoreMetricsHandler } from './handlers/score-metrics.handler';
 import { metricsRoutes } from './metrics.routes';
 import { MetricsService } from './metrics.service';
@@ -60,6 +71,7 @@ export function buildMetricsComposition(
 
   // --- Event handlers (POJO `@OnEvent` replacements) ---
   const scoreHandler = new ScoreMetricsHandler(metrics, logger);
+  const lifecycleHandler = new LifecycleMetricsHandler(metrics, logger);
 
   const eventHandlers: ReadonlyArray<BcEventBinding> = [
     {
@@ -69,6 +81,44 @@ export function buildMetricsComposition(
     {
       eventType: MatchComputedEvent.TYPE,
       handler: scoreHandler.onMatchComputed.bind(scoreHandler) as BcEventBinding['handler'],
+    },
+    // P1-023 — wire the 5 dormant Prometheus signals to their domain
+    // events. `api_latency_seconds` is observed in the HTTP pipeline
+    // instead of here because latency belongs to the request, not the
+    // domain bus.
+    {
+      eventType: ResumeCreatedEvent.TYPE,
+      handler: lifecycleHandler.onResumeCreated.bind(lifecycleHandler) as BcEventBinding['handler'],
+    },
+    {
+      eventType: UserRegisteredEvent.TYPE,
+      handler: lifecycleHandler.onUserRegistered.bind(
+        lifecycleHandler,
+      ) as BcEventBinding['handler'],
+    },
+    {
+      eventType: 'auth.user.logged_in', // UserLoggedInEvent.eventType (string-literal)
+      handler: lifecycleHandler.onUserLoggedIn.bind(lifecycleHandler) as BcEventBinding['handler'],
+    },
+    {
+      eventType: 'auth.user.logged_out',
+      handler: lifecycleHandler.onUserLoggedOut.bind(lifecycleHandler) as BcEventBinding['handler'],
+    },
+    {
+      eventType: ExportRequestedEvent.TYPE,
+      handler: lifecycleHandler.onExportRequested.bind(
+        lifecycleHandler,
+      ) as BcEventBinding['handler'],
+    },
+    {
+      eventType: ExportCompletedEvent.TYPE,
+      handler: lifecycleHandler.onExportCompleted.bind(
+        lifecycleHandler,
+      ) as BcEventBinding['handler'],
+    },
+    {
+      eventType: ExportFailedEvent.TYPE,
+      handler: lifecycleHandler.onExportFailed.bind(lifecycleHandler) as BcEventBinding['handler'],
     },
   ];
 

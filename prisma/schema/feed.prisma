@@ -112,6 +112,11 @@ model PostLike {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+  // P1-024 — `listReactionsByUser(userId, page, limit)` orders by
+  // createdAt DESC. Without this index Postgres scans every row whose
+  // userId matches then sorts in memory; with it the planner walks the
+  // index in reverse and stops at `limit`.
+  @@index([userId, createdAt])
 }
 
 model PostBookmark {
@@ -124,6 +129,9 @@ model PostBookmark {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+  // P1-025 — same access pattern as `PostLike`: every "my bookmarks"
+  // query orders by createdAt and only fetches the first page.
+  @@index([userId, createdAt])
 }
 
 model PostReport {

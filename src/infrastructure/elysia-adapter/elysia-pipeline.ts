@@ -84,6 +84,16 @@ export interface PipelineDeps {
   /** Domain check: returns true when the user's primary resume meets
    *  the minimum quality score threshold for auto-apply / rage-apply. */
   readonly meetsMinQuality?: DomainGateCheck;
+  /**
+   * P1-023 — wired by the bootstrap to the metrics BC's
+   * `observeApiLatency`. Called from `requestLoggingStage` so the
+   * histogram observation reuses the same wall-clock measurement the
+   * log line records.
+   */
+  readonly observeApiLatency?: (
+    durationSeconds: number,
+    labels: { method: string; route: string; status: string },
+  ) => void;
 }
 
 /** The slice of IAccessModifierRepository the gate actually needs. */
@@ -108,7 +118,10 @@ export interface ActiveModifier {
  *  so its `finally` runs after `errorMapper` has settled the response
  *  status — otherwise we'd log 200 for a 500. */
 export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage[] {
-  const stages: PipelineStage[] = [requestLoggingStage(deps.logger), errorMapperStage(deps)];
+  const stages: PipelineStage[] = [
+    requestLoggingStage({ logger: deps.logger, observeApiLatency: deps.observeApiLatency }),
+    errorMapperStage(deps),
+  ];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
   if (deps.permissionChecker) {
@@ -182,7 +195,10 @@ export function errorMapperStage(deps: PipelineDeps): PipelineStage {
   };
 }
 
-export function requestLoggingStage(logger: LoggerPort): PipelineStage {
+export function requestLoggingStage(deps: {
+  readonly logger: LoggerPort;
+  readonly observeApiLatency?: PipelineDeps['observeApiLatency'];
+}): PipelineStage {
   return {
     name: 'requestLogging',
     async run(ctx, next) {
@@ -192,10 +208,23 @@ export function requestLoggingStage(logger: LoggerPort): PipelineStage {
       } finally {
         const duration = Date.now() - start;
         const status = (ctx.state.responseStatus as number | undefined) ?? 200;
-        logger.log(`${ctx.method} ${ctx.path} ${status} ${duration}ms`, 'ElysiaPipeline', {
+        deps.logger.log(`${ctx.method} ${ctx.path} ${status} ${duration}ms`, 'ElysiaPipeline', {
           ip: ctx.ip,
           userAgent: ctx.userAgent,
         });
+        // P1-023 — feed the same measurement into the Prometheus
+        // histogram. Use the route template (`/v1/users/:userId`) when
+        // available so we don't blow up label cardinality with
+        // millions of paths; fall back to the literal `ctx.path` only
+        // when the mounter didn't tag the matched route.
+        if (deps.observeApiLatency) {
+          const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? ctx.path;
+          deps.observeApiLatency(duration / 1000, {
+            method: ctx.method,
+            route,
+            status: String(status),
+          });
+        }
       }
     },
   };

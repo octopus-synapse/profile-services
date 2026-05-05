@@ -850,6 +850,13 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     featureFlags: flags,
     internalApiToken: config.env.INTERNAL_API_TOKEN,
     metricsKey: config.env.PROMETHEUS_KEY ?? config.env.INTERNAL_API_TOKEN,
+    // P1-023 — feed every request's wall-clock into the dormant
+    // `api_latency_seconds` histogram via the metrics BC. The
+    // pipeline already times each request for the access log; this
+    // observer reuses the same measurement.
+    observeApiLatency: (durationSeconds, labels) => {
+      metrics.metrics.observeApiLatency(durationSeconds, labels);
+    },
     // P1-follow-up: domain gates for auto-apply routes. fit-profile
     // is satisfied when the cached status is `'responded'` (the only
     // non-blocking state). min-quality reads the most-recent
