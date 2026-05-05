@@ -18,8 +18,6 @@ const UploadResponseSchema = z.object({
   key: z.string(),
 });
 
-const DeleteUploadResponseSchema = z.object({ deleted: z.boolean() });
-
 export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
   {
     method: 'POST',
@@ -79,8 +77,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: KeyParams,
-    statusCode: 200,
-    response: DeleteUploadResponseSchema,
+    statusCode: 204,
     openapi: {
       summary: 'Delete uploaded file',
       tags: ['upload'],
@@ -90,9 +87,9 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     handler: async (ctx, bc) => {
       const { key } = ctx.params as { key: string };
       // P0-005: ownership enforced inside the use case (DB-backed +
-      // lazy backfill for legacy keys).
-      const deleted = await bc.deleteUpload.execute(key, ctx.user!.userId);
-      return { deleted };
+      // lazy backfill for legacy keys). The use case throws on miss
+      // / not-owner; reaching this return means the delete succeeded.
+      await bc.deleteUpload.execute(key, ctx.user!.userId);
     },
   },
 ];

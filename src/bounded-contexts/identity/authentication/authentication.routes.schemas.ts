@@ -80,5 +80,3 @@ export const SessionDeviceSchema = z.object({
 });
 
 export const ListSessionsResponseSchema = z.object({ sessions: z.array(SessionDeviceSchema) });
-
-export const RevokeSessionResponseSchema = z.object({ revoked: z.literal(true) });

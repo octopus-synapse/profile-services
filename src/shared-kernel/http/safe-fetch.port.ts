@@ -26,6 +26,8 @@
  *     the attacker is motivated (registered webhook targets).
  */
 
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
+
 export interface SafeFetchInit {
   readonly method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD';
   readonly headers?: Record<string, string>;
@@ -44,13 +46,22 @@ export interface SafeFetchResponse {
   text(): Promise<string>;
 }
 
-export class SafeFetchBlockedError extends Error {
+/**
+ * Promoted to `DomainException` so the SSRF block reaches the HTTP
+ * boundary as a stable 400 with code `SAFE_FETCH_BLOCKED`, and so
+ * downstream wrappers can re-throw with `{ cause }` preserving the
+ * original DNS/parse failure for log forensics.
+ */
+export class SafeFetchBlockedError extends DomainException {
+  readonly code = 'SAFE_FETCH_BLOCKED';
+  readonly statusHint = 400;
+
   constructor(
     message: string,
     public readonly reason: 'protocol' | 'private-ip' | 'dns-failed' | 'rebinding' | 'invalid-url',
+    options: DomainExceptionOptions = {},
   ) {
-    super(message);
-    this.name = 'SafeFetchBlockedError';
+    super(message, options);
   }
 }
 

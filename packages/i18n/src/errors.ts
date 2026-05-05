@@ -20,6 +20,44 @@ export const ERROR_DICTIONARY = {
     en: 'Access modifier not found',
     'pt-BR': 'Modificador de acesso não encontrado',
   },
+  // P1-022 — domain-exception codes added when promoting internal
+  // Error subclasses to DomainException.
+  FEATURE_FLAG_GRAPH_CYCLE: {
+    en: 'Feature flag dependency cycle detected',
+    'pt-BR': 'Ciclo de dependência de feature flag detectado',
+  },
+  FEATURE_FLAG_GRAPH_DUPLICATE_KEY: {
+    en: 'Duplicate feature flag key in registry',
+    'pt-BR': 'Chave de feature flag duplicada no registro',
+  },
+  FEATURE_FLAG_GRAPH_MISSING_DEPENDENCY: {
+    en: 'Feature flag depends on an unknown flag',
+    'pt-BR': 'Feature flag depende de uma flag desconhecida',
+  },
+  FIT_ANSWER_COUNT_MISMATCH: {
+    en: 'Number of submitted answers does not match the question set',
+    'pt-BR': 'Número de respostas enviadas não corresponde ao conjunto de perguntas',
+  },
+  FIT_QUESTION_SET_NOT_FOUND: {
+    en: 'Fit question set not found',
+    'pt-BR': 'Conjunto de perguntas de fit não encontrado',
+  },
+  FIT_QUESTION_SET_OWNERSHIP: {
+    en: 'Fit question set does not belong to the submitting user',
+    'pt-BR': 'O conjunto de perguntas de fit não pertence ao usuário',
+  },
+  SAFE_FETCH_BLOCKED: {
+    en: 'External request blocked by SSRF protection',
+    'pt-BR': 'Requisição externa bloqueada pela proteção contra SSRF',
+  },
+  THEME_COMPILATION_ERROR: {
+    en: 'Failed to compile DSL theme',
+    'pt-BR': 'Falha ao compilar o tema do DSL',
+  },
+  WS_VALIDATION_ERROR: {
+    en: 'Invalid WebSocket payload',
+    'pt-BR': 'Payload de WebSocket inválido',
+  },
   ACCOUNT_ALREADY_ACTIVE: {
     en: 'Account is already active',
     'pt-BR': 'A conta já está ativa',

@@ -12992,25 +12992,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "revoked": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    }
-                  },
-                  "required": [
-                    "revoked"
-                  ]
-                }
-              }
-            }
+            "description": "Successful response"
           }
         }
       }
@@ -31128,22 +31110,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "deleted": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "deleted"
-                  ]
-                }
-              }
-            }
+            "description": "Successful response"
           }
         }
       }

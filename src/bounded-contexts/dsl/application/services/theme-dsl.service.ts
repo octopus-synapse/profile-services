@@ -5,6 +5,7 @@
  * Main entry point for working with theme definitions.
  */
 
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
 import type { RenderContext } from '../../domain/schemas/dsl/context.schema';
 import type { CompiledThemeAst, ThemeDefinition } from '../../domain/schemas/dsl/theme-ast.schema';
 import { ThemeCompiler } from '../compilers/theme.compiler';
@@ -12,15 +13,21 @@ import { TokenEvaluator } from '../compilers/token.evaluator';
 import { ThemeParseError, ThemeParser } from '../parsers/theme-parser';
 
 /**
- * Error thrown during theme compilation.
+ * Thrown when DSL theme compilation fails (token resolution, missing
+ * defaults, etc.). Promoted to `DomainException` so the route mounter
+ * surfaces a 422 with a stable code and the cause chain links back to
+ * the originating Zod / parser failure.
  */
-export class ThemeCompilationError extends Error {
+export class ThemeCompilationError extends DomainException {
+  readonly code = 'THEME_COMPILATION_ERROR';
+  readonly statusHint = 422;
+
   constructor(
     message: string,
     public readonly issues: Array<{ path: string; message: string }>,
+    options: DomainExceptionOptions = {},
   ) {
-    super(message);
-    this.name = 'ThemeCompilationError';
+    super(message, options);
   }
 }
 

@@ -1,4 +1,5 @@
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
 import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import type { FitQuestionRecord } from '../../domain/ports/fit-question.repository.port';
@@ -13,24 +14,38 @@ import { type SampleableQuestion, sampleQuestions } from '../../domain/rules/fit
 import { type ScoredAnswer, vectoriseAnswers } from '../../domain/rules/fit-vectoriser.rules';
 import { FIT_VECTOR_TTL_DAYS, QUESTION_SET_SIZE } from '../../domain/types';
 
-export class FitAnswerCountMismatchError extends Error {
-  constructor(expected: number, received: number) {
-    super(`Expected ${expected} answers, received ${received}.`);
-    this.name = 'FitAnswerCountMismatchError';
+/**
+ * Promoted to `DomainException` so the route layer translates these
+ * to stable HTTP codes (400 / 404 / 403) and downstream wrappers can
+ * preserve the cause chain when re-throwing.
+ */
+export class FitAnswerCountMismatchError extends DomainException {
+  readonly code = 'FIT_ANSWER_COUNT_MISMATCH';
+  readonly statusHint = 400;
+
+  constructor(expected: number, received: number, options: DomainExceptionOptions = {}) {
+    super(`Expected ${expected} answers, received ${received}.`, options);
   }
 }
 
-export class FitQuestionSetNotFoundError extends Error {
-  constructor(public readonly questionSetId: string) {
-    super(`Fit question set not found: ${questionSetId}`);
-    this.name = 'FitQuestionSetNotFoundError';
+export class FitQuestionSetNotFoundError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_NOT_FOUND';
+  readonly statusHint = 404;
+
+  constructor(
+    public readonly questionSetId: string,
+    options: DomainExceptionOptions = {},
+  ) {
+    super(`Fit question set not found: ${questionSetId}`, options);
   }
 }
 
-export class FitQuestionSetOwnershipError extends Error {
-  constructor() {
-    super('Fit question set does not belong to the submitting user.');
-    this.name = 'FitQuestionSetOwnershipError';
+export class FitQuestionSetOwnershipError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_OWNERSHIP';
+  readonly statusHint = 403;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Fit question set does not belong to the submitting user.', options);
   }
 }
 

@@ -35,7 +35,6 @@ import {
   RefreshResponseSchema,
   RefreshTokenSchema,
   RevokeSessionParams,
-  RevokeSessionResponseSchema,
   SessionResponseSchema,
   Verify2faResponseSchema,
 } from './authentication.routes.schemas';
@@ -231,8 +230,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: RevokeSessionParams,
-    statusCode: 200,
-    response: RevokeSessionResponseSchema,
+    statusCode: 204,
     openapi: {
       summary: 'Revoke a specific session (device) by refresh-token id.',
       tags: ['auth'],
@@ -241,7 +239,6 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     handler: async (ctx, bc) => {
       const { id } = ctx.params as z.infer<typeof RevokeSessionParams>;
       await bc.sessionDevices.revokeForUser(ctx.user!.userId, id);
-      return { revoked: true as const };
     },
   },
 ];

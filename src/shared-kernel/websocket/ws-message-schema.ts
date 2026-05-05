@@ -1,4 +1,5 @@
 import type { ZodTypeAny, z } from 'zod';
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
 import type { WsContext, WsMessageHandler } from './websocket.port';
 
 /**
@@ -40,12 +41,21 @@ export interface WsValidationFieldIssue {
   readonly message: string;
 }
 
-export class WsValidationError extends Error {
+/**
+ * Bumped onto `DomainException` so re-throws preserve the original
+ * fault (`{ cause }`) for log forensics, and so the route mounter's
+ * generic exception filter maps WS validation failures to a 400 with
+ * a stable `WS_VALIDATION_ERROR` code.
+ */
+export class WsValidationError extends DomainException {
+  readonly code = 'WS_VALIDATION_ERROR';
+  readonly statusHint = 400;
+
   constructor(
     message: string,
     public readonly issues: readonly WsValidationFieldIssue[],
+    options: DomainExceptionOptions = {},
   ) {
-    super(message);
-    this.name = 'WsValidationError';
+    super(message, options);
   }
 }

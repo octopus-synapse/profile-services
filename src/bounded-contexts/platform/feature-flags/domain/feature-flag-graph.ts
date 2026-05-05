@@ -3,29 +3,48 @@
  * No I/O, no NestJS — fully unit-testable in isolation.
  */
 
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
 import type { FeatureFlagKey, FlagDefinition, FlagImpactTree, FlagRecord } from './types';
 
-export class FlagGraphCycleError extends Error {
-  constructor(public readonly cycle: FeatureFlagKey[]) {
-    super(`Feature flag dependency cycle: ${cycle.join(' -> ')}`);
-    this.name = 'FlagGraphCycleError';
+/**
+ * Promoted to `DomainException` so the registry-validation layer can
+ * re-throw with `{ cause }` and the HTTP boundary surfaces a stable
+ * `FEATURE_FLAG_GRAPH_CYCLE` code instead of an opaque 500.
+ */
+export class FlagGraphCycleError extends DomainException {
+  readonly code = 'FEATURE_FLAG_GRAPH_CYCLE';
+  readonly statusHint = 422;
+
+  constructor(
+    public readonly cycle: FeatureFlagKey[],
+    options: DomainExceptionOptions = {},
+  ) {
+    super(`Feature flag dependency cycle: ${cycle.join(' -> ')}`, options);
   }
 }
 
-export class FlagGraphMissingDependencyError extends Error {
+export class FlagGraphMissingDependencyError extends DomainException {
+  readonly code = 'FEATURE_FLAG_GRAPH_MISSING_DEPENDENCY';
+  readonly statusHint = 422;
+
   constructor(
     public readonly flag: FeatureFlagKey,
     public readonly missing: FeatureFlagKey,
+    options: DomainExceptionOptions = {},
   ) {
-    super(`Feature flag "${flag}" depends on unknown flag "${missing}"`);
-    this.name = 'FlagGraphMissingDependencyError';
+    super(`Feature flag "${flag}" depends on unknown flag "${missing}"`, options);
   }
 }
 
-export class FlagGraphDuplicateKeyError extends Error {
-  constructor(public readonly key: FeatureFlagKey) {
-    super(`Duplicate feature flag key in registry: "${key}"`);
-    this.name = 'FlagGraphDuplicateKeyError';
+export class FlagGraphDuplicateKeyError extends DomainException {
+  readonly code = 'FEATURE_FLAG_GRAPH_DUPLICATE_KEY';
+  readonly statusHint = 422;
+
+  constructor(
+    public readonly key: FeatureFlagKey,
+    options: DomainExceptionOptions = {},
+  ) {
+    super(`Duplicate feature flag key in registry: "${key}"`, options);
   }
 }
 

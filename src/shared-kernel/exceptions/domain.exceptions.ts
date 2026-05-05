@@ -23,14 +23,28 @@ import type {
  * class supplies safe defaults (`'toast'`, no action) so adding the fields
  * across the codebase is non-breaking; specific subclasses override.
  */
+export interface DomainExceptionOptions {
+  /**
+   * Original error this exception wraps. Preserves the upstream
+   * stack and message in the cause chain so logs surface the real
+   * fault even when it's been re-thrown as a typed domain exception.
+   * Forwarded straight to the native `Error` constructor (ES2022).
+   */
+  readonly cause?: unknown;
+}
+
 export abstract class DomainException extends Error {
   abstract readonly code: string;
   abstract readonly statusHint: number;
   readonly severity: ErrorSeverity = 'toast';
   readonly suggestedAction?: SuggestedAction;
 
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options: DomainExceptionOptions = {}) {
+    // ES2022 `Error` accepts `{ cause }`; pass through verbatim so
+    // `err.cause` is populated on the native Error chain. Subclasses
+    // that previously called `super(message)` continue to work because
+    // the second arg is optional.
+    super(message, options.cause !== undefined ? { cause: options.cause } : undefined);
     this.name = this.constructor.name;
     // Maintains proper stack trace in V8 environments
     Error.captureStackTrace?.(this, this.constructor);
@@ -38,7 +52,18 @@ export abstract class DomainException extends Error {
 
   /** Plain-object representation used by the exception filter and logs. */
   toJSON(): Record<string, unknown> {
-    return { code: this.code, message: this.message, name: this.name };
+    const json: Record<string, unknown> = {
+      code: this.code,
+      message: this.message,
+      name: this.name,
+    };
+    if (this.cause !== undefined) {
+      json.cause =
+        this.cause instanceof Error
+          ? { name: this.cause.name, message: this.cause.message }
+          : this.cause;
+    }
+    return json;
   }
 }
 
