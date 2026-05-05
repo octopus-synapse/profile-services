@@ -14,67 +14,67 @@
 -- is added, add an ALTER for it here.
 
 -- Identity / users
-ALTER TABLE "User"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Permission"                 ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Role"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "UserRoleAssignment"         ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "AccessModifier"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "UserConsent"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "AuditLog"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "RefreshToken"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "User"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Permission"                 ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Role"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "UserRoleAssignment"         ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "AccessModifier"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "UserConsent"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "AuditLog"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "RefreshToken"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Resumes
-ALTER TABLE "Resume"                     ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeSection"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeSectionItem"          ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "SectionType"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeStyle"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeShare"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeVersion"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "QualityScoreSnapshot"       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Resume"                     ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeSection"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeSectionItem"          ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "SectionType"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeStyle"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeShare"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeVersion"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "QualityScoreSnapshot"       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Jobs / applications
-ALTER TABLE "Job"                        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "JobApplication"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "JobApplicationEvent"        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "JobBookmark"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "TrackedApplication"         ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Job"                        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "JobApplication"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "JobApplicationEvent"        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "JobBookmark"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "TrackedApplication"         ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Social
-ALTER TABLE "Follow"                     ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Connection"                 ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Activity"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "SkillEndorsement"           ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Follow"                     ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Connection"                 ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Activity"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "SkillEndorsement"           ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Feed / posts
-ALTER TABLE "Post"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "PostComment"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Reaction"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Post"                       ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "PostComment"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Reaction"                   ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Chat / collaboration
-ALTER TABLE "ChatConversation"           ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "Message"                    ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "BlockedUser"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "ResumeCollaboration"        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ChatConversation"           ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Message"                    ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "BlockedUser"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeCollaboration"        ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Notifications
-ALTER TABLE "Notification"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "Notification"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Imports / integrations
-ALTER TABLE "ResumeImport"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "GithubProfile"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "ResumeImport"               ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "GithubProfile"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Catalog
-ALTER TABLE "MecInstitution"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "MecCourse"                  ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "TechSkill"                  ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "SpokenLanguage"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "MecInstitution"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "MecCourse"                  ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "TechSkill"                  ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "SpokenLanguage"             ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Platform
-ALTER TABLE "FeatureFlag"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "WebhookConfig"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "WebhookDelivery"            ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
-ALTER TABLE "PlatformEvent"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "FeatureFlag"                ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "WebhookConfig"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "WebhookDelivery"            ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
+ALTER TABLE IF EXISTS "PlatformEvent"              ALTER COLUMN "id" SET DEFAULT uuidv7()::text;
 
 -- Sanity check — fail if pg_uuidv7 isn't actually available so we
 -- never silently fall back to NULL ids.

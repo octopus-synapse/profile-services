@@ -94,7 +94,10 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      # P0-001: ConfigPort schema requires JWT_SECRET >= 32 chars at boot.
+      # The fallback below is non-secret for local dev only — production
+      # MUST set JWT_SECRET explicitly.
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have

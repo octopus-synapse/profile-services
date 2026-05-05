@@ -126,17 +126,6 @@ async function seedRoles(
   return roleMap;
 }
 
-// Groups were dropped from the auth model. The function is kept as a
-// no-op so call sites that still pass a (now empty) SYSTEM_GROUPS list
-// don't need to be touched.
-async function seedGroups(
-  _prisma: PrismaClient,
-  _roleMap: Map<string, string>,
-  _permissionMap: Map<string, string>,
-): Promise<void> {
-  // intentional no-op
-}
-
 export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void> {
   if (!prismaArg && !cliPrisma) {
     cliPrisma = new PrismaClient(createPrismaClientOptions());
@@ -146,8 +135,9 @@ export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void>
 
   try {
     const permissionMap = await seedPermissions(prisma);
-    const roleMap = await seedRoles(prisma, permissionMap);
-    await seedGroups(prisma, roleMap, permissionMap);
+    await seedRoles(prisma, permissionMap);
+    // P0-009: Group hierarchy was dropped by 20260430040810_authz_refactor;
+    // the seed step that bootstrapped SYSTEM_GROUPS was removed alongside.
 
     console.log('✅ Authorization seed completed successfully!\n');
   } catch (error) {

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
+import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
