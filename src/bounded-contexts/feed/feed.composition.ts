@@ -9,7 +9,7 @@
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
 import { AnonymousMaskService } from './application/services/anonymous-mask.service';
@@ -53,6 +53,7 @@ export function buildFeedUseCases(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
 ): FeedUseCases {
   // Repos
   const feedRepo = new PrismaFeedRepository(prisma, logger);
@@ -62,7 +63,7 @@ export function buildFeedUseCases(
   const reportRepo = new PrismaReportRepository(prisma);
 
   // External adapters
-  const linkPreview = new FetchLinkPreviewAdapter(logger);
+  const linkPreview = new FetchLinkPreviewAdapter(logger, safeFetch);
   const imageStorage = new S3PostImageStorageAdapter(s3);
   const notifier = new NotificationsEngagementNotifierAdapter(notifications.createNotification);
 
@@ -105,8 +106,9 @@ export function buildFeedComposition(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
 ): BoundedContextComposition<FeedUseCases> {
-  const useCases = buildFeedUseCases(prisma, logger, s3, notifications);
+  const useCases = buildFeedUseCases(prisma, logger, s3, notifications, safeFetch);
 
   return {
     useCases,

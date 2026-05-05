@@ -11,7 +11,7 @@
 
 import { createTransport, type Transporter } from 'nodemailer';
 import type { ConfigPort } from '@/shared-kernel/config';
-import type { LoggerPort } from '@/shared-kernel/logger';
+import { type LoggerPort, redactEmail } from '@/shared-kernel/logger';
 import {
   ConfigurationMissingException,
   FeatureDisabledException,
@@ -60,7 +60,7 @@ export class EmailSenderService {
   async sendEmail(options: SendEmailOptions): Promise<void> {
     if (!this.transporter) {
       this.logger.warn('Email not configured. Skipping.', 'EmailSenderService', {
-        to: options.to,
+        to: redactEmail(options.to),
         subject: options.subject,
       });
       return;
@@ -75,7 +75,7 @@ export class EmailSenderService {
     });
 
     this.logger.log('Email sent', 'EmailSenderService', {
-      to: options.to,
+      to: redactEmail(options.to),
       subject: options.subject,
     });
   }

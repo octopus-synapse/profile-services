@@ -18,6 +18,7 @@
 
 import type { ServerWebSocket } from 'bun';
 import type Elysia from 'elysia';
+import type { LoggerPort } from '@/shared-kernel/logger';
 import {
   WebSocketNamespace,
   WebSocketPort,
@@ -59,8 +60,49 @@ interface ServerFrame {
 let socketCounter = 0;
 const nextSocketId = (): string => `s_${Date.now().toString(36)}_${(++socketCounter).toString(36)}`;
 
+export interface ElysiaWebSocketAdapterOptions {
+  /**
+   * Allowed `Origin` header values for WS upgrade requests. CSRF defense:
+   * a browser page on `evil.com` cannot upgrade WS to this server with
+   * an Origin matching the user's app, even when the auth cookie is sent
+   * automatically.
+   *
+   * **Fail-closed**: if the set is empty, every upgrade is rejected with
+   * `403`. Composition root MUST pass at least the public app origin.
+   * Native clients (mobile apps) need an explicit Origin in their
+   * upgrade request — this server does not silently allow missing
+   * Origin headers in production.
+   *
+   * Build the set from the union of `CORS_ORIGIN`, `APP_URL` (or
+   * `PUBLIC_APP_URL`), and `ALLOWED_WS_ORIGINS` env vars.
+   */
+  readonly allowedOrigins: ReadonlySet<string>;
+  /** Optional logger — used to emit a single warning when fail-closed
+   *  rejects an upgrade so misconfigurations are noticed quickly. */
+  readonly logger?: LoggerPort;
+}
+
 export class ElysiaWebSocketAdapter extends WebSocketPort {
   private readonly namespaces = new Map<string, NamespaceState>();
+  private readonly allowedOrigins: ReadonlySet<string>;
+  private readonly logger: LoggerPort | undefined;
+
+  constructor(options: ElysiaWebSocketAdapterOptions) {
+    super();
+    this.allowedOrigins = options.allowedOrigins;
+    this.logger = options.logger;
+    if (this.allowedOrigins.size === 0) {
+      this.logger?.warn(
+        'ElysiaWebSocketAdapter constructed with empty allowedOrigins — all WS upgrades will be rejected (fail-closed). Set CORS_ORIGIN / APP_URL / ALLOWED_WS_ORIGINS.',
+        'ElysiaWebSocketAdapter',
+      );
+    }
+  }
+
+  private isOriginAllowed(origin: string | null): boolean {
+    if (origin === null) return false;
+    return this.allowedOrigins.has(origin);
+  }
 
   namespace(name: string, authenticate: WsAuthenticator): WebSocketNamespace {
     const state: NamespaceState = {
@@ -132,6 +174,18 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
     const adapter = this;
     (app as unknown as { ws: (path: string, handlers: object) => unknown }).ws(path, {
       async beforeHandle(ctx: { request: Request; query: Record<string, unknown> }) {
+        // P0-002: CSRF defense for WS upgrades. A browser at attacker.com
+        // would auto-send the user's httpOnly auth cookie on a WS
+        // upgrade — checking Origin is the only browser-side primitive
+        // that distinguishes legitimate vs cross-site upgrade requests.
+        const origin = ctx.request.headers.get('origin');
+        if (!adapter.isOriginAllowed(origin)) {
+          adapter.logger?.warn('WS upgrade rejected: disallowed Origin', 'ElysiaWebSocketAdapter', {
+            origin: origin ?? '<missing>',
+            path,
+          });
+          return new Response('Forbidden', { status: 403 });
+        }
         const handshake: WsHandshake = {
           headers: Object.fromEntries(ctx.request.headers.entries()) as WsHandshake['headers'],
           cookies: parseCookieHeader(ctx.request.headers.get('cookie') ?? undefined),
