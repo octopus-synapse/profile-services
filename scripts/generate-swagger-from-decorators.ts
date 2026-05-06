@@ -98,9 +98,41 @@ function operationName(route: Route): string {
   return base.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
+/**
+ * P1-062 — auto-promote each route's body/response schema into the
+ * shared `components.schemas` table when it carries `.openapi('Name')`
+ * metadata (or a `_def.openapi.metadata.id` shape from
+ * `zod-to-openapi`). Schemas without metadata stay inlined per the
+ * old behaviour. This is opt-in per schema, so callers can register
+ * the bodies/responses they want to reuse and skip the trivial ones.
+ */
+function maybeRegisterNamedSchema(schema: ZodSchema<unknown>, registry: OpenAPIRegistry): void {
+  const meta = (
+    schema as unknown as {
+      _def?: { openapi?: { metadata?: { id?: string } } };
+    }
+  )._def?.openapi?.metadata;
+  const id = meta?.id;
+  if (!id) return;
+  // Idempotent: register the same id twice would throw.
+  try {
+    registry.register(id, schema);
+  } catch {
+    // Already registered — fine, the same Zod instance is referenced
+    // from more than one route.
+  }
+}
+
 function registerRoute(route: Route, registry: OpenAPIRegistry): void {
   const { path, pathParams } = convertPath(route.path);
   const opName = operationName(route);
+
+  if (route.body && isZodSchema(route.body)) {
+    maybeRegisterNamedSchema(route.body as ZodSchema<unknown>, registry);
+  }
+  if (route.response && isZodSchema(route.response)) {
+    maybeRegisterNamedSchema(route.response as ZodSchema<unknown>, registry);
+  }
 
   const parameters: Array<{
     name: string;
