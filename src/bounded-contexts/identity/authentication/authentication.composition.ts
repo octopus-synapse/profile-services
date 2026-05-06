@@ -40,7 +40,7 @@ import {
   PrismaAuthenticationRepository,
 } from './infrastructure/adapters';
 import { PrismaLoginAttemptsAdapter } from './infrastructure/adapters/prisma-login-attempts.adapter';
-import { SessionDeviceService } from './infrastructure/adapters/session-device.service';
+import { SessionDeviceService } from './infrastructure/adapters/session-device.adapter';
 
 export { AuthenticationHttpBundle };
 

@@ -625,7 +625,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
-  const uiState = buildUiStateUseCases(prisma as never) as never;
+  const uiState = buildUiStateUseCases(prisma as never, logger) as never;
 
   // Analytics sub-BCs.
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);

@@ -1,8 +1,5 @@
-/**
- * Route descriptors for the ui-state BC. Replaces `UiStateController`.
- */
-
 import type { Route } from '@/shared-kernel/http/route.types';
+import type { UiStateUseCasesBundle } from './ui-state.composition';
 import {
   KeyParam,
   SetKeyBody,
@@ -10,9 +7,8 @@ import {
   UiStateGetAllResponseSchema,
   UiStateSetKeyResponseSchema,
 } from './ui-state.routes.schemas';
-import { UiStateService } from './ui-state.service';
 
-export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
+export const uiStateRoutes: ReadonlyArray<Route<UiStateUseCasesBundle>> = [
   {
     method: 'GET',
     path: '/v1/me/ui-state',
@@ -26,7 +22,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
-      const state = await bundle.getAll(ctx.user!.userId);
+      const state = await bundle.getAll.execute(ctx.user!.userId);
       return { state };
     },
   },
@@ -46,7 +42,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       const body = ctx.body as { value: unknown };
-      return bundle.setKey(ctx.user!.userId, key, body?.value);
+      return bundle.setKey.execute(ctx.user!.userId, key, body?.value);
     },
   },
   {
@@ -63,7 +59,7 @@ export const uiStateRoutes: ReadonlyArray<Route<UiStateService>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
-      await bundle.deleteKey(ctx.user!.userId, key);
+      await bundle.deleteKey.execute(ctx.user!.userId, key);
       return { deleted: true };
     },
   },

@@ -1,11 +1,7 @@
-/**
- * Route descriptors for the shadow-profile BC. Replaces
- * `ShadowProfileController`.
- */
-
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import type { ShadowProfileUseCasesBundle } from './shadow-profile.composition';
 import {
   FindCandidatesQuery,
   FindCandidatesResponseSchema,
@@ -13,9 +9,8 @@ import {
   ShadowProfileSnapshotSchema,
   UpsertGithubBody,
 } from './shadow-profile.routes.schemas';
-import { ShadowProfileService } from './shadow-profile.service';
 
-export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
+export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileUseCasesBundle>> = [
   {
     method: 'POST',
     path: '/v1/shadow-profiles/github',
@@ -30,13 +25,9 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpsertGithubBody>;
-      const snapshot = await service.upsertGithub({
-        token: body.token,
-        username: body.username,
-      });
-      return snapshot;
+      return bundle.upsertGithub.execute({ token: body.token, username: body.username });
     },
   },
   {
@@ -53,9 +44,12 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof FindCandidatesQuery>;
-      const rows = await service.findCandidatesFor({ email: q.email, githubLogin: q.githubLogin });
+      const rows = await bundle.findCandidates.execute({
+        email: q.email,
+        githubLogin: q.githubLogin,
+      });
       return { candidates: rows };
     },
   },
@@ -72,10 +66,9 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      const claimed = await service.claimForUser(id, ctx.user!.userId);
-      return claimed;
+      return bundle.claim.execute(id, ctx.user!.userId);
     },
   },
 ];
