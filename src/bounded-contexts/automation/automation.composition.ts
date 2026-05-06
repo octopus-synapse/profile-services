@@ -30,6 +30,11 @@ import { RunRageApplyUseCase } from './application/use-cases/run-rage-apply/run-
 import { automationRoutes } from './automation.routes';
 import { PrismaApplyModeRepository } from './infrastructure/adapters/persistence/prisma-apply-mode.repository';
 import { PrismaRageApplyRepository } from './infrastructure/adapters/persistence/prisma-rage-apply.repository';
+// P1-046 — wrap the cross-BC `ResumeTailorService` in an adapter
+// owned by automation so the use case depends on the typed port,
+// not the resumes BC's class directly. The composition still takes
+// the live service from the bootstrap so behaviour is identical.
+import { ResumeTailorAdapter } from './infrastructure/adapters/external-services/resume-tailor.adapter';
 import {
   AUTO_APPLY_QUEUE,
   type AutoApplyJobData,
@@ -52,12 +57,14 @@ export function buildAutomationUseCases(
   // Repos
   const applyModeRepo = new PrismaApplyModeRepository(prisma, logger);
   const rageApplyRepo = new PrismaRageApplyRepository(prisma, logger);
+  // P1-046 — adapt the cross-BC service to automation's local port.
+  const tailorPort = new ResumeTailorAdapter(tailor);
 
   return {
     getCurrentBatch: new GetCurrentBatchUseCase(applyModeRepo),
     approveCuratedItem: new ApproveCuratedItemUseCase(applyModeRepo, logger),
     rejectCuratedItem: new RejectCuratedItemUseCase(applyModeRepo, logger),
-    runRageApply: new RunRageApplyUseCase(rageApplyRepo, selector, tailor, logger),
+    runRageApply: new RunRageApplyUseCase(rageApplyRepo, selector, tailorPort, logger),
   };
 }
 

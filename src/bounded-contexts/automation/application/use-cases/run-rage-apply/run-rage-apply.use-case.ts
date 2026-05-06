@@ -8,7 +8,6 @@
  * auto-apply worker so success metrics remain apples-to-apples.
  */
 
-import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import { LoggerPort } from '@/shared-kernel';
 import type { CacheLock, CachePort } from '@/shared-kernel/cache/cache.port';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -23,6 +22,9 @@ import {
   RageApplyMinFitInvalidException,
 } from '../../../domain/exceptions/automation.exceptions';
 import { RageApplyRepositoryPort } from '../../../domain/ports/rage-apply.repository.port';
+// P1-046 — depend on the typed port instead of the cross-BC service
+// import. Composition root wires the concrete adapter.
+import { ResumeTailorPort } from '../../ports/resume-tailor.port';
 import { CuratedSelectorService } from '../../services/curated-selector.service';
 
 export type { RageApplyFailure, RageApplyInput, RageApplyResult };
@@ -45,7 +47,7 @@ export class RunRageApplyUseCase {
   constructor(
     private readonly repository: RageApplyRepositoryPort,
     private readonly selector: CuratedSelectorService,
-    private readonly tailor: ResumeTailorService,
+    private readonly tailor: ResumeTailorPort,
     private readonly logger: LoggerPort,
     /** Optional in-flight lock + daily counter store. When omitted the
      *  use case skips concurrency / daily-limit guards entirely (kept
