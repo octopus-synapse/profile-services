@@ -33,6 +33,8 @@ interface SocketState {
   readonly userId: string;
   readonly socketId: string;
   readonly rooms: Set<string>;
+  /** P1-039 — per-connection rate-limit bucket. */
+  readonly rateBucket: RateBucket;
 }
 
 interface NamespaceState {
@@ -61,6 +63,32 @@ interface ClientFrame {
  * stay within sensible memory bounds.
  */
 const WS_MAX_PAYLOAD_BYTES = 64 * 1024;
+
+/**
+ * P1-039 — per-connection token-bucket rate limiter. A misbehaving
+ * client (or a compromised one) used to be able to pump 100+ frames
+ * per second indefinitely; the chat handler would re-issue DB hits
+ * for each, exhausting connection pool capacity for legitimate
+ * traffic. The bucket here lets bursts through (refilling at 30/sec)
+ * while capping the steady-state rate at the same number per second
+ * per socket. A throttled message is dropped silently — closing the
+ * socket would punish legitimate clients caught in a transient burst.
+ */
+const WS_RATE_REFILL_PER_SEC = 30;
+const WS_RATE_BUCKET_CAP = 30;
+interface RateBucket {
+  tokens: number;
+  lastRefillMs: number;
+}
+function consumeToken(bucket: RateBucket): boolean {
+  const now = Date.now();
+  const elapsedSec = (now - bucket.lastRefillMs) / 1000;
+  bucket.tokens = Math.min(WS_RATE_BUCKET_CAP, bucket.tokens + elapsedSec * WS_RATE_REFILL_PER_SEC);
+  bucket.lastRefillMs = now;
+  if (bucket.tokens < 1) return false;
+  bucket.tokens -= 1;
+  return true;
+}
 
 interface ServerFrame {
   readonly event: string;
@@ -220,6 +248,7 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
           userId,
           socketId,
           rooms: new Set(),
+          rateBucket: { tokens: WS_RATE_BUCKET_CAP, lastRefillMs: Date.now() },
         };
         state.socketsById.set(socketId, ws);
         adapter.trackUserSocket(state, userId, socketId);
@@ -240,6 +269,12 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
             'ElysiaWebSocketAdapter',
           );
           ws.close(1009, 'Payload too large'); // 1009 = "Message too big"
+          return;
+        }
+        // P1-039 — silently drop frames that exceed the per-socket
+        // rate limit. Throttled messages don't close the connection
+        // (transient bursts shouldn't punish legitimate clients).
+        if (!consumeToken(ws.data.rateBucket)) {
           return;
         }
         const text = typeof rawMessage === 'string' ? rawMessage : rawMessage.toString('utf8');

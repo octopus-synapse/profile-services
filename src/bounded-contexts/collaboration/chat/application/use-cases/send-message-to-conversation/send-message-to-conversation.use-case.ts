@@ -45,13 +45,27 @@ export class SendMessageToConversationUseCase {
       throw new CannotSendMessageToUserException();
     }
 
+    // P1-056 — message create + lastMessage pointer update ought to
+    // be atomic; today they're sequential. If `updateLastMessage`
+    // fails after `messageRepo.create` succeeds the message is in the
+    // conversation but the inbox preview shows the previous message.
+    // The next message succeeds and overwrites. Recovery is bounded
+    // (next message fixes), so we don't bubble the lastMessage error
+    // up to the user — log and continue.
     const message = await this.messageRepo.create({ conversationId, senderId, content });
 
-    await this.conversationRepo.updateLastMessage(conversationId, {
-      content,
-      senderId,
-      timestamp: message.createdAt,
-    });
+    try {
+      await this.conversationRepo.updateLastMessage(conversationId, {
+        content,
+        senderId,
+        timestamp: message.createdAt,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Conversation lastMessage pointer update failed for ${conversationId} (recovers on next message): ${err instanceof Error ? err.message : String(err)}`,
+        'SendMessageToConversation',
+      );
+    }
 
     await Promise.all([
       this.chatCache.invalidateUnread(otherParticipant.id),

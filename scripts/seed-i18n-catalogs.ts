@@ -134,9 +134,21 @@ if (toAdd.length === 0) {
   const before = currentSource.slice(0, openIdx + openMarker.length);
   const after = currentSource.slice(closeIdx);
   const nextSource = `${before}\n${entries}\n${after}`;
-  fs.writeFileSync(DICT_PATH, nextSource);
-  console.log(`Added ${toAdd.length} stub(s) to ERROR_DICTIONARY:`);
-  for (const c of toAdd) console.log(`  + ${c}`);
+  // P1-070 — `--dry-run` prints the target path and the diff hint
+  // instead of overwriting. Earlier we shipped a stray run that
+  // overwrote a hand-tuned dictionary with stub entries.
+  if (process.argv.includes('--dry-run')) {
+    console.log(`[dry-run] would add ${toAdd.length} stub(s) to ${DICT_PATH}:`);
+    for (const c of toAdd) console.log(`  + ${c}`);
+  } else {
+    // Write atomically: write to a sibling temp, then rename. A
+    // crash mid-write leaves the original dictionary intact.
+    const tmpPath = `${DICT_PATH}.tmp`;
+    fs.writeFileSync(tmpPath, nextSource);
+    fs.renameSync(tmpPath, DICT_PATH);
+    console.log(`Added ${toAdd.length} stub(s) to ERROR_DICTIONARY:`);
+    for (const c of toAdd) console.log(`  + ${c}`);
+  }
 }
 
 if (orphans.length > 0) {

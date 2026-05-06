@@ -110,7 +110,12 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
         CTX,
       );
     }
-    this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
+    // P1-076 — bound the request budget so a hung LLM doesn't pin a
+    // worker thread indefinitely. 60s is well above the p99 of every
+    // call we make today (max-tokens=1500 finishes in ~10s) and short
+    // enough that BullMQ retries trigger before a job lifetime
+    // expires.
+    this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_MODEL') ?? 'gpt-4o-mini';
     this.maxTokens = Number(this.config.get<string>('OPENAI_MAX_TOKENS') ?? '1500');
   }

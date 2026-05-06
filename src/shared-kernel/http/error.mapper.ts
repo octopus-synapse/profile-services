@@ -32,21 +32,45 @@ const FRAMEWORK_FIELDS = new Set([
   'cause',
 ]);
 
+/**
+ * P1-051 — extract i18n template params from a domain exception.
+ *
+ * Reads only enumerable own properties (not the prototype chain), so
+ * a base-class field like `severity` doesn't leak into the params
+ * payload. Each value is narrowed by `typeof` before being copied —
+ * `Object.keys` returns a `string[]` and the property access goes
+ * through `Reflect.get` which avoids the previous fragile
+ * `as unknown as Record<string, unknown>` cast.
+ *
+ * The `FRAMEWORK_FIELDS` denylist still gates which keys are
+ * eligible. Returning a fresh object means callers can mutate it
+ * freely without touching the exception.
+ */
+function isPrimitiveParam(value: unknown): value is string | number | boolean | null {
+  return (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
 function extractParams(exception: DomainException): TranslationParams {
   const out: Record<string, string | number | boolean | null> = {};
   for (const key of Object.keys(exception)) {
     if (FRAMEWORK_FIELDS.has(key)) continue;
-    const value = (exception as unknown as Record<string, unknown>)[key];
-    if (
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean' ||
-      value === null
-    ) {
+    const value = Reflect.get(exception, key);
+    if (isPrimitiveParam(value)) {
       out[key] = value;
     } else if (Array.isArray(value)) {
-      out[key] = value.join(', ');
+      // Best-effort: join scalars; objects are skipped silently.
+      const scalars = value.filter(isPrimitiveParam);
+      if (scalars.length === value.length) {
+        out[key] = scalars.join(', ');
+      }
     }
+    // Anything else (object / function / symbol) is dropped on the
+    // floor — translation params have to be primitives.
   }
   return out;
 }

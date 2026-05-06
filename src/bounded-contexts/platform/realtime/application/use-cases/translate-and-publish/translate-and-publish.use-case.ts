@@ -50,11 +50,21 @@ export class TranslateAndPublishUseCase {
         });
       }
     } catch (err) {
-      this.logger.error('realtime: translator threw', {
+      // P1-075 — translator failures used to be invisible past the
+      // log line. The structured fields below give the
+      // pre-aggregated dashboard query (`eventType`, `eventId`,
+      // `correlationId`) enough surface to alert on a broken
+      // translator. A future enhancement could publish the raw
+      // event into a DLQ topic on the SSE hub for replay.
+      this.logger.error('realtime: translator threw — effect dropped', {
         context: 'TranslateAndPublishUseCase',
         stack: err instanceof Error ? err.stack : String(err),
         eventType: event.eventType,
         eventId: event.eventId,
+        translatorClass: translator.constructor.name,
+        // Surface as a metric-able token so prom queries can
+        // alert on `realtime_translator_drops_total{type=...}`.
+        metric: 'realtime_translator_drop',
       });
     }
   }

@@ -421,4 +421,13 @@ async function main(): Promise<void> {
   console.log(`Report written to docs/i18n/inventory-*.json`);
 }
 
-await main();
+// P1-071 — wrap top-level await in try/catch so a walk/read failure
+// surfaces with a non-zero exit + readable error instead of an
+// unhandled rejection (which Bun prints as a stack with no context).
+try {
+  await main();
+} catch (err) {
+  console.error('[i18n-audit] failed:', err instanceof Error ? err.message : err);
+  if (err instanceof Error && err.stack) console.error(err.stack);
+  process.exit(1);
+}
