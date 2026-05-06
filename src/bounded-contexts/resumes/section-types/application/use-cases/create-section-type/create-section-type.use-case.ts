@@ -5,7 +5,7 @@ import {
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toResponseDto } from '../../to-response-dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class CreateSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}
@@ -42,6 +42,6 @@ export class CreateSectionTypeUseCase {
       isActive: true,
     });
 
-    return toResponseDto(sectionType);
+    return toSectionTypeResponseDto(sectionType);
   }
 }

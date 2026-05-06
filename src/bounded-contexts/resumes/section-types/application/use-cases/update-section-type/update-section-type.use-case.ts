@@ -6,7 +6,7 @@ import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.excep
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toResponseDto } from '../../to-response-dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class UpdateSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}
@@ -73,6 +73,6 @@ export class UpdateSectionTypeUseCase {
       translations: mergedTranslations as JsonValue | undefined,
     });
 
-    return toResponseDto(sectionType);
+    return toSectionTypeResponseDto(sectionType);
   }
 }

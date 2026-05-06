@@ -1,7 +1,7 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto } from '../../../dto';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toResponseDto } from '../../to-response-dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class GetSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}
@@ -13,6 +13,6 @@ export class GetSectionTypeUseCase {
       throw new EntityNotFoundException('SectionType', key);
     }
 
-    return toResponseDto(sectionType);
+    return toSectionTypeResponseDto(sectionType);
   }
 }
