@@ -1,8 +1,11 @@
+import { ListUsersUseCasePort } from '../../ports/list-users.use-case.port';
 import type { UserListOptions, UserListResult } from '../../ports/user-management.port';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
-export class ListUsersUseCase {
-  constructor(private readonly repository: UserManagementRepositoryPort) {}
+export class ListUsersUseCase extends ListUsersUseCasePort {
+  constructor(private readonly repository: UserManagementRepositoryPort) {
+    super();
+  }
 
   async execute(options: UserListOptions): Promise<UserListResult> {
     const { page, limit } = options;

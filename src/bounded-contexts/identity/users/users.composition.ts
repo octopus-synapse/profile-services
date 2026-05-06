@@ -1,17 +1,3 @@
-/**
- * Pure-TS wiring for the identity/users BC. Zero `@nestjs/*` imports.
- *
- * Per ADR-002, the BC exposes use cases (not service facades). The
- * username submodule was the first to be decomposed: the legacy
- * UsernameService is gone and routes now reach update/check/validate
- * UCs directly via `bundle.useCases.<name>`.
- *
- * Cross-BC dependency: `authorization` (the AuthorizationService from
- * the authorization BC) — both `UsersHttpBundle` and the
- * `UserManagementService` consume it. The split into a
- * `AuthorizationCheckPort` lives in a later commit.
- */
-
 import type { AuthorizationService } from '@/bounded-contexts/identity/authorization/application/services/authorization.service';
 import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -19,10 +5,9 @@ import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
-import { UserManagementService } from './application/services/user-management.service';
 import {
   buildUserManagementUseCases,
-  UserManagementUseCases,
+  type UserManagementUseCasesBundle,
 } from './application/user-management.composition';
 import {
   buildUserPreferencesUseCases,
@@ -50,8 +35,7 @@ export interface UsersUseCases {
   readonly profile: UserProfileUseCases;
   readonly preferences: UserPreferencesUseCases;
   readonly username: UsernameUseCasesBundle;
-  readonly management: UserManagementUseCases;
-  readonly userManagementService: UserManagementService;
+  readonly management: UserManagementUseCasesBundle;
   readonly usersRepository: UsersRepository;
 }
 
@@ -62,35 +46,27 @@ export function buildUsersUseCases(
   i18n: TranslationPort,
   logger: LoggerPort,
 ): UsersUseCases {
-  // Repositories.
   const userQuery = new UserQueryRepository(prisma, logger);
   const userMutation = new UserMutationRepository(prisma, logger);
   const usersRepository = new UsersRepository(userQuery, userMutation, logger);
 
-  // Sub-composition use-case bundles.
   const profile = buildUserProfileUseCases(prisma, resumesRepository);
   const preferences = buildUserPreferencesUseCases(prisma, logger);
   const username = buildUsernameUseCases(prisma);
-  // OWASP-recommended cost is 12; tests pin BCRYPT_COST=4 in .env.test
-  // to drop hash time from ~80ms to ~6ms. Same algorithm — fewer rounds.
   const bcryptCost = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
   const management = buildUserManagementUseCases(
     prisma,
     (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: bcryptCost }),
+    authorization,
     logger,
   );
-
-  // Facades that route handlers depend on (UserManagementService is
-  // decomposed into UCs in a follow-up commit).
-  const userManagementService = new UserManagementService(management, authorization);
 
   const bundle: UsersHttpBundle = {
     profile,
     preferences,
-    useCases: { ...username },
+    useCases: { ...username, ...management },
     i18n,
     authorization,
-    userManagement: userManagementService,
   };
 
   return {
@@ -99,7 +75,6 @@ export function buildUsersUseCases(
     preferences,
     username,
     management,
-    userManagementService,
     usersRepository,
   };
 }

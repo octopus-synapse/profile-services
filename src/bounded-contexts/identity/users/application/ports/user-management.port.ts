@@ -102,6 +102,8 @@ export abstract class UserManagementRepositoryPort {
   abstract deleteUser(userId: string): Promise<void>;
 
   abstract resetUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
+  abstract setUserRoles(userId: string, roles: readonly string[]): Promise<void>;
 }
 
 // ============================================================================

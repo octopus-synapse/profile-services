@@ -347,7 +347,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof ListUsersQuery>;
-      const result = await bundle.userManagement.listUsers({
+      const result = await bundle.useCases.listUsers.execute({
         page: q.page ? Number(q.page) : 1,
         limit: q.limit ? Number(q.limit) : 20,
         search: q.search,
@@ -371,7 +371,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      const user = await bundle.userManagement.getUserDetails(id);
+      const user = await bundle.useCases.getUserDetails.execute(id);
       return toUserDetailsData(user);
     },
   },
@@ -391,7 +391,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof AdminCreateUserSchema>;
-      const result = await bundle.userManagement.createUser(body);
+      const result = await bundle.useCases.createUser.execute(body);
       return { user: toCreatedUserMutation(result), message: 'User created successfully' };
     },
   },
@@ -412,7 +412,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminUpdateUserSchema>;
-      const result = await bundle.userManagement.updateUser(id, body);
+      const result = await bundle.useCases.updateUser.execute(id, body);
       return { user: toUpdatedUserMutation(result), message: 'User updated successfully' };
     },
   },
@@ -431,7 +431,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      await bundle.userManagement.deleteUser(id, ctx.user!.userId);
+      await bundle.useCases.deleteUser.execute(id, ctx.user!.userId);
       return { code: 'USER_DELETED' as const };
     },
   },
@@ -453,7 +453,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminResetPasswordSchema>;
-      await bundle.userManagement.resetPassword(id, body);
+      await bundle.useCases.adminResetPassword.execute(id, body.newPassword);
       return { code: 'PASSWORD_RESET' as const };
     },
   },
@@ -474,7 +474,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AssignRolesSchema>;
-      await bundle.userManagement.assignRoles(id, body.roles, ctx.user!.userId);
+      await bundle.useCases.assignRoles.execute(id, body.roles, ctx.user!.userId);
       return { code: 'ROLES_UPDATED' as const };
     },
   },

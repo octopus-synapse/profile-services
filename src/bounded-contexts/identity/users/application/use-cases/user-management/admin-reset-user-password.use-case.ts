@@ -1,5 +1,6 @@
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { AdminResetPasswordUseCasePort } from '../../ports/admin-reset-password.use-case.port';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 /**
@@ -10,12 +11,14 @@ import { UserManagementRepositoryPort } from '../../ports/user-management.port';
  * specific userId and intentionally skips token consumption +
  * session invalidation (the calling endpoint handles those).
  */
-export class AdminResetUserPasswordUseCase {
+export class AdminResetUserPasswordUseCase extends AdminResetPasswordUseCasePort {
   constructor(
     private readonly repository: UserManagementRepositoryPort,
     private readonly hashPassword: (password: string) => Promise<string>,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    super();
+  }
 
   async execute(userId: string, newPassword: string): Promise<void> {
     const user = await this.repository.findUserById(userId);
