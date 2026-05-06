@@ -7,7 +7,6 @@
 export { AuthorizationServicePort } from './application/ports/authorization-service.port';
 // Application Services & Ports
 export { AuthorizationService } from './application/services/authorization.service';
-export { AuthorizationManagementService } from './application/services/authorization-management.service';
 // Domain Entities
 export {
   type CreatePermissionInput,

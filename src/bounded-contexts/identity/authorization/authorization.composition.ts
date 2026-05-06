@@ -1,19 +1,5 @@
-/**
- * Pure-TS wiring for the identity/authorization BC. Zero `@nestjs/*`
- * imports. Returns the dynamic-RBAC service surface plus the
- * check/management use-case bundles.
- *
- * `PermissionGuard` (CanActivate) stays Nest-coupled and lives in the
- * Nest module shell — it just consumes `AuthorizationService` from this
- * composition.
- *
- * Existing partial compositions
- * (`authorization-checks.composition.ts`,
- * `authorization-management.composition.ts`) are reused unchanged.
- */
-
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisher, LoggerPort } from '@/shared-kernel';
+import type { EventBusPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import {
   AuthorizationCheckUseCases,
@@ -24,11 +10,17 @@ import {
   buildAuthorizationManagementUseCases,
 } from './application/authorization-management.composition';
 import { AuthorizationService } from './application/services/authorization.service';
-import { AuthorizationManagementService } from './application/services/authorization-management.service';
 import { ApplyAccessModifierUseCase } from './application/use-cases/access-modifier/apply-access-modifier.use-case';
 import { ListActiveModifiersUseCase } from './application/use-cases/access-modifier/list-active-modifiers.use-case';
 import { RevokeAccessModifierUseCase } from './application/use-cases/access-modifier/revoke-access-modifier.use-case';
+import {
+  PermissionDeniedEvent,
+  PermissionGrantedEvent,
+  RoleAssignedEvent,
+  RoleRevokedEvent,
+} from './domain/events';
 import { AccessModifierAuditLogAdapter } from './infrastructure/adapters/audit-log.adapter';
+import { AuthorizationCacheInvalidationHandler } from './infrastructure/handlers/authorization-cache-invalidation.handler';
 import { AccessModifierRepository } from './infrastructure/repositories/access-modifier.repository';
 import { PermissionRepository } from './infrastructure/repositories/permission.repository';
 import { RoleRepository } from './infrastructure/repositories/role.repository';
@@ -43,7 +35,6 @@ export interface AccessModifierUseCases {
 
 export interface AuthorizationUseCases {
   readonly authService: AuthorizationService;
-  readonly managementService: AuthorizationManagementService;
   readonly checks: AuthorizationCheckUseCases;
   readonly management: AuthorizationManagementUseCases;
   readonly accessModifier: AccessModifierUseCases;
@@ -54,7 +45,7 @@ export interface AuthorizationUseCases {
 
 export function buildAuthorizationUseCases(
   prisma: PrismaService,
-  eventPublisher: EventPublisher,
+  eventBus: EventBusPort,
   logger: LoggerPort,
 ): AuthorizationUseCases {
   const permissionRepo = new PermissionRepository(prisma);
@@ -62,10 +53,23 @@ export function buildAuthorizationUseCases(
   const userAuthRepo = new UserAuthorizationRepository(prisma);
 
   const authService = new AuthorizationService(permissionRepo, roleRepo, userAuthRepo);
-  const managementService = new AuthorizationManagementService(userAuthRepo, eventPublisher);
 
   const checks = buildAuthorizationCheckUseCases(permissionRepo, roleRepo, userAuthRepo, logger);
-  const management = buildAuthorizationManagementUseCases(userAuthRepo, eventPublisher, logger);
+  const management = buildAuthorizationManagementUseCases(userAuthRepo, eventBus, logger);
+
+  const cacheInvalidation = new AuthorizationCacheInvalidationHandler(authService, logger);
+  eventBus.on(RoleAssignedEvent.TYPE, (event) =>
+    cacheInvalidation.handleRoleAssigned(event as RoleAssignedEvent),
+  );
+  eventBus.on(RoleRevokedEvent.TYPE, (event) =>
+    cacheInvalidation.handleRoleRevoked(event as RoleRevokedEvent),
+  );
+  eventBus.on(PermissionGrantedEvent.TYPE, (event) =>
+    cacheInvalidation.handlePermissionGranted(event as PermissionGrantedEvent),
+  );
+  eventBus.on(PermissionDeniedEvent.TYPE, (event) =>
+    cacheInvalidation.handlePermissionDenied(event as PermissionDeniedEvent),
+  );
 
   const auditLog = new AccessModifierAuditLogAdapter(prisma, logger);
   const accessModifierRepo = new AccessModifierRepository(prisma, logger);
@@ -78,7 +82,6 @@ export function buildAuthorizationUseCases(
 
   return {
     authService,
-    managementService,
     checks,
     management,
     accessModifier,
@@ -90,10 +93,10 @@ export function buildAuthorizationUseCases(
 
 export function buildAuthorizationComposition(
   prisma: PrismaService,
-  eventPublisher: EventPublisher,
+  eventBus: EventBusPort,
   logger: LoggerPort,
 ): BoundedContextComposition<AuthorizationUseCases> {
-  const useCases = buildAuthorizationUseCases(prisma, eventPublisher, logger);
+  const useCases = buildAuthorizationUseCases(prisma, eventBus, logger);
 
   return {
     useCases,
