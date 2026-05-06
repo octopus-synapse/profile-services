@@ -1,3 +1,4 @@
+import type { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { EventBusPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
@@ -9,6 +10,7 @@ import {
   AuthorizationManagementUseCases,
   buildAuthorizationManagementUseCases,
 } from './application/authorization-management.composition';
+import type { AuthorizationContextCachePort } from './application/ports/authorization-context-cache.port';
 import { AuthorizationService } from './application/services/authorization.service';
 import { ApplyAccessModifierUseCase } from './application/use-cases/access-modifier/apply-access-modifier.use-case';
 import { ListActiveModifiersUseCase } from './application/use-cases/access-modifier/list-active-modifiers.use-case';
@@ -22,6 +24,7 @@ import {
 import { PermissionResolverService } from './domain/services/permission-resolver.service';
 import { AccessModifierAuditLogAdapter } from './infrastructure/adapters/audit-log.adapter';
 import { InMemoryAuthorizationContextCache } from './infrastructure/adapters/cache/in-memory-authorization-context.cache';
+import { RedisAuthorizationContextCache } from './infrastructure/adapters/cache/redis-authorization-context.cache';
 import { AuthorizationCacheInvalidationHandler } from './infrastructure/handlers/authorization-cache-invalidation.handler';
 import { AccessModifierRepository } from './infrastructure/repositories/access-modifier.repository';
 import { PermissionRepository } from './infrastructure/repositories/permission.repository';
@@ -49,13 +52,17 @@ export function buildAuthorizationUseCases(
   prisma: PrismaService,
   eventBus: EventBusPort,
   logger: LoggerPort,
+  redis?: RedisConnectionService,
 ): AuthorizationUseCases {
   const permissionRepo = new PermissionRepository(prisma);
   const roleRepo = new RoleRepository(prisma);
   const userAuthRepo = new UserAuthorizationRepository(prisma);
 
   const resolver = new PermissionResolverService(permissionRepo, roleRepo, userAuthRepo);
-  const authContextCache = new InMemoryAuthorizationContextCache();
+  const authContextCache: AuthorizationContextCachePort =
+    redis?.isEnabled && redis.client
+      ? new RedisAuthorizationContextCache(redis.client as never, logger)
+      : new InMemoryAuthorizationContextCache();
   const authService = new AuthorizationService(resolver, authContextCache, roleRepo, userAuthRepo);
 
   const checks = buildAuthorizationCheckUseCases(permissionRepo, roleRepo, userAuthRepo, logger);
@@ -99,8 +106,9 @@ export function buildAuthorizationComposition(
   prisma: PrismaService,
   eventBus: EventBusPort,
   logger: LoggerPort,
+  redis?: RedisConnectionService,
 ): BoundedContextComposition<AuthorizationUseCases> {
-  const useCases = buildAuthorizationUseCases(prisma, eventBus, logger);
+  const useCases = buildAuthorizationUseCases(prisma, eventBus, logger, redis);
 
   return {
     useCases,

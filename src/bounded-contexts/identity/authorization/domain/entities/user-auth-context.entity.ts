@@ -9,6 +9,7 @@
  */
 
 import type { GroupId } from './group.entity';
+import { Permission, type PermissionProps } from './permission.entity';
 import type { RoleId } from './role.entity';
 import type {
   PermissionSource,
@@ -18,6 +19,18 @@ import type {
 } from './user-auth-context.types';
 
 export type { PermissionSource, ResolvedPermission, UserAuthContextProps, UserId };
+
+export interface UserAuthContextCacheBlob {
+  readonly userId: UserId;
+  readonly roleIds: RoleId[];
+  readonly groupIds: GroupId[];
+  readonly permissions: Array<{
+    permission: PermissionProps;
+    sources: PermissionSource[];
+    granted: boolean;
+  }>;
+  readonly resolvedAt: string;
+}
 
 /** Immutable value object representing a user's complete permissions. */
 export class UserAuthContext {
@@ -141,5 +154,46 @@ export class UserAuthContext {
       permissions: this.grantedPermissionKeys,
       resolvedAt: this.props.resolvedAt.toISOString(),
     };
+  }
+
+  toCacheBlob(): UserAuthContextCacheBlob {
+    const permissions: UserAuthContextCacheBlob['permissions'] = [];
+    for (const resolved of this.props.permissions.values()) {
+      permissions.push({
+        permission: resolved.permission.toJSON(),
+        sources: [...resolved.sources],
+        granted: resolved.granted,
+      });
+    }
+    return {
+      userId: this.props.userId,
+      roleIds: Array.from(this.props.roleIds),
+      groupIds: Array.from(this.props.groupIds),
+      permissions,
+      resolvedAt: this.props.resolvedAt.toISOString(),
+    };
+  }
+
+  static fromCacheBlob(blob: UserAuthContextCacheBlob): UserAuthContext {
+    const permissionMap = new Map<string, ResolvedPermission>();
+    for (const entry of blob.permissions) {
+      const permission = Permission.fromPersistence({
+        ...entry.permission,
+        createdAt: new Date(entry.permission.createdAt),
+        updatedAt: new Date(entry.permission.updatedAt),
+      });
+      permissionMap.set(permission.key, {
+        permission,
+        sources: entry.sources,
+        granted: entry.granted,
+      });
+    }
+    return new UserAuthContext({
+      userId: blob.userId,
+      roleIds: new Set(blob.roleIds),
+      groupIds: new Set(blob.groupIds),
+      permissions: permissionMap,
+      resolvedAt: new Date(blob.resolvedAt),
+    });
   }
 }

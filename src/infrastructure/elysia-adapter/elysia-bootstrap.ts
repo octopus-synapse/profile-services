@@ -599,7 +599,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     authenticationUseCases.createSession,
     logger,
   ) as never;
-  const authorization = buildAuthorizationUseCases(prisma as never, eventBus, logger);
+  const authorization = buildAuthorizationUseCases(prisma as never, eventBus, logger, sharedRedis);
   // Real EmailService satisfies `EmailServicePort` structurally
   // (`sendEmail({to, subject, template, context})`).
   const emailVerification = buildEmailVerificationUseCases(
