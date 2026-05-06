@@ -50,9 +50,17 @@ export function registerHandler<T extends DomainEvent>(
     try {
       await handler.handle(event);
     } catch (err) {
+      // P2-142 — preserve the underlying error as `cause` in the log
+      // metadata so downstream JSON parsers (Loki, ES) keep the
+      // structured trace instead of just the top-line message.
+      const cause = err instanceof Error ? err.cause : undefined;
       logger.error(`Handler ${tag} failed for ${eventClass.TYPE}`, {
         context: tag,
         stack: err instanceof Error ? err.stack : undefined,
+        cause:
+          cause instanceof Error
+            ? { message: cause.message, name: cause.name, stack: cause.stack }
+            : cause,
         eventType: eventClass.TYPE,
         aggregateId: (event as DomainEvent).aggregateId,
       });

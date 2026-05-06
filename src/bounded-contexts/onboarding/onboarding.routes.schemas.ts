@@ -52,12 +52,11 @@ export const OnboardingStepRowSchema = z.object({
 
 export const OnboardingStepsResponseSchema = z.object({ steps: z.array(OnboardingStepRowSchema) });
 
-// `getStep` returns either `{ step }` or a fallback `{ success, message }`
-// when the step is missing — model both branches in a single union.
-export const OnboardingStepResponseSchema = z.union([
-  z.object({ step: OnboardingStepRowSchema }),
-  z.object({ success: z.literal(false), message: z.string() }),
-]);
+// P2-138 — handler now throws `EntityNotFoundException` on miss
+// (Q18), so the fallback `{ success: false, message }` branch is
+// dead. Schema is collapsed to the success-only shape; the 404
+// envelope is rendered by the global error mapper.
+export const OnboardingStepResponseSchema = z.object({ step: OnboardingStepRowSchema });
 
 export const OnboardingStatsResponseSchema = z.object({
   stats: z.object({

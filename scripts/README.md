@@ -39,6 +39,24 @@ Optional one-shot utilities. Document the purpose in the script header.
 | `lib/walk-source.ts` | TypeScript scripts needing recursive `.ts` discovery |
 | `lib/test-orchestration.sh` | Bash runners — readiness probes + round-robin sharding |
 
+## Codemods (`scripts/codemods/`)
+
+One-shot transformation scripts used during the NestJS → Elysia
+migration. They mutate source files in place; **always commit before
+running one** so the diff is reviewable. Re-running a codemod after
+its corresponding cleanup commit is safe (no-op) but should not be
+necessary in regular work.
+
+| Script | Purpose |
+|---|---|
+| `extract-route-schemas.ts` | Hoist inline Zod schemas from `*.routes.ts` into `*.routes.schemas.ts` companions (Q67). |
+| `fix-broken-aliases.ts` | Repair imports broken by other codemods that inserted lines mid-multi-line-import. |
+| `fix-exception-imports.ts` | Rewrites legacy `from '../exceptions'` to BC-specific exception modules after the split. |
+| `split-events.ts` | Splits one-file-per-many-events into one-file-per-event with a barrel `index.ts`. |
+| `split-exceptions.ts` | Same idea as `split-events.ts` but for exception classes. |
+| `standardize-suffixes.ts` | Renames legacy `*.controller.ts` / `*.service.ts` to current Q41 conventions. |
+| `lib.ts` | Shared helpers (AST traversal, file walking) consumed by the codemods above. |
+
 ## Conventions
 
 - Underscore-prefixed scripts are internal one-off helpers; do not invoke from CI.

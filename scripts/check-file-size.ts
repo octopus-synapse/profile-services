@@ -44,6 +44,19 @@ const args = process.argv.slice(2);
 const cmd = args[0] ?? 'check';
 
 if (cmd === 'snapshot') {
+  // P2-125 — snapshot writes a baseline that suppresses ratchet
+  // failures for every file already over the limit. That's exactly
+  // what we want during a one-off cleanup pass, but it also means
+  // accidentally running this in CI would mask new offenders. The
+  // confirmation flag makes "I really meant to widen the baseline"
+  // an explicit choice instead of a silent pass.
+  const confirmed = args.includes('--confirm');
+  if (!confirmed) {
+    console.error(
+      "snapshot mode rewrites the baseline and effectively allow-lists every current offender. Pass `--confirm` if that's what you intend.",
+    );
+    process.exit(2);
+  }
   const entries = collect();
   writeFileSync(
     BASELINE_PATH,

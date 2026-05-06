@@ -15,7 +15,12 @@ interface PaginateOptions<TWhere, TOrderBy> {
   page?: number;
   /** Page size. `pageSize` accepted as alias for backwards compatibility. */
   limit?: number;
-  /** @deprecated use `limit`. */
+  /**
+   * @deprecated use `limit`.
+   * P2-143 — alias retained because section-types + jobs admin DTOs
+   * still ship `pageSize` to clients. Removal blocked on a coordinated
+   * frontend update; tracked under the duplication-audit follow-up.
+   */
   pageSize?: number;
   where?: TWhere;
   orderBy?: TOrderBy;
