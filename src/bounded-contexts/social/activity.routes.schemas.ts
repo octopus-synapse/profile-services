@@ -35,6 +35,7 @@ import {
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const UserIdParam = UserIdParamSchema;
 export const UserIdAndTypeParam = z.object({ userId: z.string(), type: z.string() });
@@ -74,7 +75,7 @@ export const ActivityWithUserSchema = z.object({
   metadata: ActivityMetadataSchema,
   entityId: z.string().nullable(),
   entityType: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   user: ActivityUserSchema.optional(),
 });
 

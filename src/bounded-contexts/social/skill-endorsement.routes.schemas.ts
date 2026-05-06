@@ -10,6 +10,7 @@ import {
 } from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type { SkillEndorsementService } from './services/skill-endorsement.service';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class SkillEndorsementRoutesBundle {
   abstract readonly service: SkillEndorsementService;
@@ -38,7 +39,7 @@ export const EndorserSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   photoURL: z.string().nullable(),
-  endorsedAt: z.string().datetime(),
+  endorsedAt: IsoDateTimeSchema,
 });
 
 export const EndorsersListResponseSchema = PaginatedResponseSchema(EndorserSchema);

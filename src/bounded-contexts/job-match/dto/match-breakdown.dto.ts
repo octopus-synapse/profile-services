@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const SubScoreSchema = z.object({
   score: z.number().int().min(0).max(100).nullable(),
@@ -21,7 +22,7 @@ const MatchBreakdownSchema = z.object({
     fit: z.number().min(0).max(1),
   }),
   rulesVersion: z.string(),
-  computedAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
 });
 
 export class MatchBreakdownDto extends createZodDto(MatchBreakdownSchema) {}

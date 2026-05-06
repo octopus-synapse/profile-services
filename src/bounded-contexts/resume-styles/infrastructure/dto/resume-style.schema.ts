@@ -1,5 +1,6 @@
 import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const LayoutKindEnum = z.nativeEnum(LayoutKind);
 
@@ -12,8 +13,8 @@ const StyleSummarySchema = z.object({
   typstTemplate: z.string(),
   isSystem: z.boolean(),
   thumbnailUrl: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const StyleDetailSchema = StyleSummarySchema.extend({

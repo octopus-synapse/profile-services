@@ -4,8 +4,10 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 export const LimitQuery = z.object({ limit: z.string().optional() });
 
 // ─── Response schemas ─────────────────────────────────────────────────
@@ -23,7 +25,7 @@ export const SuccessStorySchema = z.object({
   afterText: z.string(),
   quote: z.string(),
   timeframeDays: z.number().int().nullable(),
-  publishedAt: z.string().datetime().nullable(),
+  publishedAt: IsoDateTimeSchema.nullable(),
   user: SuccessStoryAuthorSchema,
 });
 
@@ -31,4 +33,4 @@ export const SuccessStoriesListResponseSchema = z.object({
   stories: z.array(SuccessStorySchema),
 });
 
-export const SuccessStoryIdResponseSchema = z.object({ id: z.string() });
+export const SuccessStoryIdResponseSchema = IdParamSchema;

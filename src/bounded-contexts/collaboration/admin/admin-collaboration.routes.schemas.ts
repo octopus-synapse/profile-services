@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Admin pagination uses `pageSize` instead of `limit` (legacy alias).
@@ -43,14 +44,14 @@ export const ChatParticipantSchema = z.object({
 
 export const ChatConversationViewSchema = z.object({
   id: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   participant1Id: z.string(),
   participant2Id: z.string(),
   participant1: ChatParticipantSchema,
   participant2: ChatParticipantSchema,
   lastMessageContent: z.string().nullable(),
-  lastMessageAt: z.string().datetime().nullable(),
+  lastMessageAt: IsoDateTimeSchema.nullable(),
   lastMessageSenderId: z.string().nullable(),
 });
 
@@ -85,8 +86,8 @@ export const AdminCollaborationViewSchema = z.object({
   userId: z.string(),
   role: z.string(),
   invitedBy: z.string(),
-  invitedAt: z.string().datetime(),
-  joinedAt: z.string().datetime().nullable(),
+  invitedAt: IsoDateTimeSchema,
+  joinedAt: IsoDateTimeSchema.nullable(),
   user: CollaboratorUserViewSchema,
   resume: CollaboratorResumeViewSchema,
 });

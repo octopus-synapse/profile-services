@@ -10,8 +10,10 @@
 
 import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 export const UserIdParam = z.object({ userId: z.string() });
 
 export const PaginationQuery = z.object({
@@ -124,10 +126,10 @@ export const BasePostSchema = z.object({
   linkPreview: LinkPreviewDataSchema,
   originalPostId: z.string().nullable(),
   coAuthors: z.array(z.string()),
-  scheduledAt: z.string().datetime().nullable(),
+  scheduledAt: IsoDateTimeSchema.nullable(),
   isPublished: z.boolean(),
   threadId: z.string().nullable(),
-  pollDeadline: z.string().datetime().nullable(),
+  pollDeadline: IsoDateTimeSchema.nullable(),
   votesCount: z.number().int(),
   codeSnippet: CodeSnippetSchema,
   likesCount: z.number().int(),
@@ -135,11 +137,11 @@ export const BasePostSchema = z.object({
   repostsCount: z.number().int(),
   bookmarksCount: z.number().int(),
   isDeleted: z.boolean(),
-  deletedAt: z.string().datetime().nullable(),
+  deletedAt: IsoDateTimeSchema.nullable(),
   isAnonymous: z.boolean(),
   anonymousCategory: z.nativeEnum(AnonymousCategory).nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const PostWithAuthorSchema = BasePostSchema.extend({
@@ -161,7 +163,7 @@ export const FeedItemSchema = PostWithRelationsSchema.extend({
 });
 
 export const BookmarkedFeedItemSchema = PostWithRelationsSchema.extend({
-  bookmarkedAt: z.string().datetime(),
+  bookmarkedAt: IsoDateTimeSchema,
   isLiked: z.boolean(),
   isBookmarked: z.boolean(),
 });
@@ -189,8 +191,8 @@ export const CommentBaseSchema = z.object({
   content: z.string(),
   parentId: z.string().nullable(),
   isDeleted: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const CommentWithAuthorSchema = CommentBaseSchema.extend({
@@ -262,7 +264,7 @@ export const ReportPostResponseSchema = z.object({
   userId: z.string(),
   reason: z.string(),
   status: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const PollVoteResponseSchema = z.object({
@@ -270,14 +272,14 @@ export const PollVoteResponseSchema = z.object({
   postId: z.string(),
   userId: z.string(),
   optionIndex: z.number().int(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ReactionWithPostSchema = z.object({
   postId: z.string(),
   userId: z.string(),
   reactionType: z.nativeEnum(ReactionType),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   post: z.object({
     id: z.string(),
     type: z.string(),

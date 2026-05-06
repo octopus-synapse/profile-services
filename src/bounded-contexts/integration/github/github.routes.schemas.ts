@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { GitHubSummaryResult } from './application/use-cases/get-github-summary/get-github-summary.use-case';
 import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';
 import { toPinnedRepos } from './infrastructure/presenters/github.presenter';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SummaryParams = z.object({ username: z.string() });
 export const ResumeIdParams = z.object({ resumeId: z.string() });
@@ -42,7 +43,7 @@ export const GitHubSyncResponseSchema = z.object({
 export const GitHubSyncStatusResponseSchema = z.object({
   status: z.enum(['IDLE', 'COMPLETED']),
   progress: z.number().int(),
-  startedAt: z.string().datetime().optional(),
+  startedAt: IsoDateTimeSchema.optional(),
   currentTask: z.string().optional(),
 });
 

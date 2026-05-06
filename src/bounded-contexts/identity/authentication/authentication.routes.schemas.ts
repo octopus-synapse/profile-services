@@ -21,13 +21,14 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
 
 export const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() });
 export const LogoutSchema = z.object({
   refreshToken: z.string().optional(),
   logoutAllSessions: z.boolean().default(false),
 });
-export const RevokeSessionParams = z.object({ id: z.string() });
+export const RevokeSessionParams = IdParamSchema;
 
 export const SessionUserSchema = z.object({
   id: z.string(),

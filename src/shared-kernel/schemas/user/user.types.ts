@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * User Types
@@ -19,12 +20,12 @@ export const UserSchema = z.object({
   email: z.string().email(),
   name: z.string().nullable(),
   username: z.string().nullable(),
-  usernameUpdatedAt: z.string().datetime().nullable(),
+  usernameUpdatedAt: IsoDateTimeSchema.nullable(),
   role: UserRoleSchema,
   image: z.string().url().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type User = z.infer<typeof UserSchema>;
@@ -68,7 +69,7 @@ export const UserProfileApiSchema = z.object({
   linkedin: z.string().url().nullable().optional(),
   github: z.string().url().nullable().optional(),
   phone: z.string().nullable().optional(),
-  usernameUpdatedAt: z.string().datetime().nullable().optional(),
+  usernameUpdatedAt: IsoDateTimeSchema.nullable().optional(),
   role: UserRoleSchema,
   onboardingCompleted: z.boolean(),
   preferences: z
@@ -78,8 +79,8 @@ export const UserProfileApiSchema = z.object({
       emailNotifications: z.boolean().optional(),
     })
     .nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type UserProfileApi = z.infer<typeof UserProfileApiSchema>;
@@ -119,8 +120,8 @@ export const UserListItemSchema = z.object({
   username: z.string().nullable(),
   role: UserRoleSchema,
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   image: z.string().url().nullable(),
   emailVerified: z.boolean().nullable(),
   _count: z.object({ resumes: z.number() }).catchall(z.number()),
@@ -155,8 +156,8 @@ export const UserDetailsSchema = z.object({
   emailVerified: z.boolean().nullable(),
   role: UserRoleSchema,
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   resumes: z.array(z.record(z.unknown())),
   preferences: z.unknown(),
   _count: z.record(z.unknown()),
@@ -172,7 +173,7 @@ export const UpdateUserResponseSchema = z.object({
     name: z.string().nullable(),
     username: z.string().nullable(),
     hasCompletedOnboarding: z.boolean(),
-    updatedAt: z.string().datetime(),
+    updatedAt: IsoDateTimeSchema,
   }),
   message: z.string(),
 });

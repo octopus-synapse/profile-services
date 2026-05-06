@@ -14,6 +14,7 @@
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) });
 
@@ -32,7 +33,7 @@ const VerifyAndEnable2faResponseSchema = z.object({
 // `lastUsedAt` is mapped to ISO string in the handler.
 const TwoFactorStatusResponseSchema = z.object({
   enabled: z.boolean(),
-  lastUsedAt: z.string().datetime().nullable(),
+  lastUsedAt: IsoDateTimeSchema.nullable(),
   backupCodesRemaining: z.number().int().min(0),
 });
 

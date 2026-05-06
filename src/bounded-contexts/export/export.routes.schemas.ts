@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const BannerQuery = z.object({
@@ -55,5 +56,5 @@ export const PdfBase64ResponseSchema = z.object({
 export const PresignedDownloadResponseSchema = z.object({
   downloadUrl: z.string().url(),
   filename: z.string(),
-  expiresAt: z.string().datetime(),
+  expiresAt: IsoDateTimeSchema,
 });

@@ -9,6 +9,7 @@
 
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export interface AnalyticsUpdateEvent {
   readonly type: 'view' | 'ats_score';
@@ -39,8 +40,8 @@ export const TrackViewBody = z.object({
 export const PeriodEnum = z.enum(['day', 'week', 'month', 'year']);
 export const ViewStatsQuery = z.object({
   period: PeriodEnum,
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 export const IndustryEnum = z.enum([
@@ -249,7 +250,7 @@ export const AnalyticsSnapshotResponseSchema = z.object({
   totalInIndustry: z.number().int().optional(),
   topKeywords: z.array(z.string()),
   missingKeywords: z.array(z.string()),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const AnalyticsHistoryResponseSchema = z.array(AnalyticsSnapshotResponseSchema);
@@ -257,7 +258,7 @@ export const AnalyticsHistoryResponseSchema = z.array(AnalyticsSnapshotResponseS
 export const ScoreProgressionResponseSchema = z.object({
   snapshots: z.array(
     z.object({
-      date: z.string().datetime(),
+      date: IsoDateTimeSchema,
       score: z.number().int(),
     }),
   ),

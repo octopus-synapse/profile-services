@@ -9,8 +9,10 @@
 
 import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const IdParams = z.object({ id: z.string() });
+export const IdParams = IdParamSchema;
 export const ResumeIdParams = z.object({ resumeId: z.string() });
 
 export const ListQuerySchema = z.object({
@@ -67,8 +69,8 @@ export const StyleSummaryResponseSchema = z.object({
   typstTemplate: z.string(),
   isSystem: z.boolean(),
   thumbnailUrl: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { FIT_DIMENSIONS } from '../domain/types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const SliderMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
 
@@ -8,7 +9,7 @@ const JobFitProfileResponseSchema = z.object({
   id: z.string(),
   jobId: z.string(),
   editedByUserId: z.string(),
-  computedAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
   vector: z.object({ bigFive: SliderMapSchema, schwartz: SliderMapSchema, sdt: SliderMapSchema }),
 });
 

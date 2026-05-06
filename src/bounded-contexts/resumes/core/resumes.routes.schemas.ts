@@ -13,6 +13,8 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─────────────────────────────────────────────────────────────────────
 // Common schemas
@@ -23,7 +25,7 @@ export const PageLimitQuery = z.object({
   limit: z.string().optional(),
 });
 
-export const _IdParam = z.object({ id: z.string() });
+export const _IdParam = IdParamSchema;
 export const UserIdParam = z.object({ userId: z.string() });
 export const ResumeIdParam = z.object({ resumeId: z.string() });
 export const ResumeIdAndTypeKeyParam = z.object({
@@ -81,8 +83,8 @@ export const ResumeBaseSchema = z.object({
   targetRole: z.string().optional(),
   isPublic: z.boolean(),
   slug: z.string().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const ResumeListItemSchema = ResumeBaseSchema;
@@ -170,8 +172,8 @@ export const MgmtSectionTypeSchema = z.object({
   icon: z.string(),
   translations: JsonObjectSchema.nullable(),
   examples: JsonObjectSchema.nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const MgmtSectionItemSchema = z.object({
@@ -180,8 +182,8 @@ export const MgmtSectionItemSchema = z.object({
   content: JsonObjectSchema.nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const MgmtResumeSectionSchema = z.object({
@@ -191,8 +193,8 @@ export const MgmtResumeSectionSchema = z.object({
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   sectionType: MgmtSectionTypeSchema,
   items: z.array(MgmtSectionItemSchema),
 });
@@ -209,8 +211,8 @@ export const MgmtResumeListItemSchema = z.object({
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
   styleId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   resumeSections: z.array(MgmtResumeSectionSchema),
   _count: z.object({ resumeSections: z.number().int() }),
 });
@@ -236,8 +238,8 @@ export const MgmtResumeDetailsSchema = z.object({
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
   styleId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   user: z.object({
     id: z.string(),
     email: z.string().nullable(),
@@ -292,8 +294,8 @@ export const GenericResumeSectionSchema = z.object({
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   sectionType: MgmtSectionTypeSchema.nullable(),
   items: z.array(MgmtSectionItemSchema),
 });

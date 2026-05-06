@@ -5,6 +5,7 @@ import {
   SocialUrlSchema,
 } from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
 import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // Local primitives — kept inline because they're only used by user DTOs.
 // Promote to schemas/primitives if a second consumer appears.
@@ -58,7 +59,7 @@ export type AdminUserFilters = z.infer<typeof AdminUserFiltersSchema>;
 export const UserStatsSchema = z.object({
   totalResumes: z.number().int().nonnegative(),
   publicProfiles: z.number().int().nonnegative(),
-  lastActive: z.string().datetime().nullable(),
+  lastActive: IsoDateTimeSchema.nullable(),
 });
 
 export type UserStats = z.infer<typeof UserStatsSchema>;

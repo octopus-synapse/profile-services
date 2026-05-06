@@ -23,6 +23,7 @@ import {
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,
@@ -123,9 +124,9 @@ export const JobSchema = z.object({
   salaryRange: z.string().nullable(),
   applyUrl: z.string().nullable(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  expiresAt: z.string().datetime().nullable(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
+  expiresAt: IsoDateTimeSchema.nullable(),
   paymentCurrency: PaymentCurrencyEnum.nullable(),
   remotePolicy: RemotePolicyEnum.nullable(),
   minEnglishLevel: EnglishLevelEnum.nullable(),
@@ -164,7 +165,7 @@ export const JobsListWithFitScoreResponseSchema = PaginatedResponseSchema(JobWit
 export const MyJobsListResponseSchema = PaginatedResponseSchema(JobSchema);
 
 export const BookmarkedJobItemSchema = JobWithAuthorSchema.extend({
-  bookmarkedAt: z.string().datetime(),
+  bookmarkedAt: IsoDateTimeSchema,
 });
 
 export const BookmarkedJobsResponseSchema = PaginatedResponseSchema(BookmarkedJobItemSchema);
@@ -183,7 +184,7 @@ export const JobApplicationSchema = z.object({
   coverLetter: z.string().nullable(),
   resumeId: z.string().nullable(),
   tailoredVersionId: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ApplicationWithJobSchema = JobApplicationSchema.extend({
@@ -205,7 +206,7 @@ export const ApplicationCandidateSchema = z.object({
 export const JobApplicationListItemSchema = z.object({
   id: z.string(),
   status: JobApplicationStatusEnum,
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   coverLetter: z.string().nullable(),
   resumeId: z.string().nullable(),
   tailoredVersionId: z.string().nullable(),
@@ -245,14 +246,14 @@ export const TimelineEventSchema = z.object({
   id: z.string(),
   type: JobApplicationEventTypeEnum,
   note: z.string().nullable(),
-  occurredAt: z.string().datetime(),
+  occurredAt: IsoDateTimeSchema,
 });
 
 export const TrackedApplicationSchema = z.object({
   id: z.string(),
   jobId: z.string(),
   status: z.string(),
-  appliedAt: z.string().datetime(),
+  appliedAt: IsoDateTimeSchema,
   job: z.object({
     id: z.string(),
     title: z.string(),
@@ -272,7 +273,7 @@ export const RecordApplicationEventResponseSchema = z.object({
   id: z.string(),
   type: z.string(),
   note: z.string().nullable(),
-  occurredAt: z.string().datetime(),
+  occurredAt: IsoDateTimeSchema,
 });
 
 export const CompanyResponseStatsResponseSchema = z.object({

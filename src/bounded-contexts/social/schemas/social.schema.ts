@@ -8,6 +8,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // User Summary (for social context)
@@ -45,7 +46,7 @@ export const FollowUserSchema = z.object({
   username: z.string(),
   name: z.string().nullable(),
   avatar: z.string().url().nullable(),
-  followedAt: z.string().datetime(),
+  followedAt: IsoDateTimeSchema,
 });
 
 export type FollowUser = z.infer<typeof FollowUserSchema>;
@@ -101,7 +102,7 @@ export const SocialActivitySchema = z.object({
   userId: z.string().cuid(),
   type: SocialActivityTypeEnum,
   metadata: z.record(z.unknown()),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export type SocialActivity = z.infer<typeof SocialActivitySchema>;

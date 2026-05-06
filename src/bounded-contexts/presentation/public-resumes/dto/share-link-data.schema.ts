@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ShareLinkDataSchema = z.object({
   id: z.string(),
@@ -6,8 +7,8 @@ export const ShareLinkDataSchema = z.object({
   resumeId: z.string(),
   isActive: z.boolean(),
   hasPassword: z.boolean(),
-  expiresAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
+  expiresAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
   publicUrl: z.string(),
 });
 

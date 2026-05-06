@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { FIT_DIMENSIONS } from '../domain/types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const FitQuestionItemSchema = z.object({
   id: z.string(),
@@ -15,7 +16,7 @@ const FitQuestionItemSchema = z.object({
 const FitQuestionsResponseSchema = z.object({
   questionSetId: z.string(),
   seed: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   questions: z.array(FitQuestionItemSchema),
 });
 

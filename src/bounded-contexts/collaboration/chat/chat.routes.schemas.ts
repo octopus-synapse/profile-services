@@ -22,6 +22,7 @@ import {
 } from './schemas/chat.schema';
 import type { ChatPreferenceService } from './services/chat-preference.service';
 import type { ChatUserSearchService } from './services/user-search.service';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Aggregated bundle for the chat BC's HTTP surface. Composed in
@@ -42,7 +43,7 @@ export const SearchQuerySchema = z.object({ q: z.string().optional() });
 export const SetPinSchema = z.object({ pinned: z.boolean() });
 export const SetMuteSchema = z.object({
   muted: z.boolean(),
-  mutedUntil: z.string().datetime().optional(),
+  mutedUntil: IsoDateTimeSchema.optional(),
 });
 
 // ─── Response schemas ──────────────────────────────────────────────
@@ -78,7 +79,7 @@ export const SetPinResponseSchema = z.object({ pinned: z.boolean() });
 
 export const SetMuteResponseSchema = z.object({
   muted: z.boolean(),
-  mutedUntil: z.string().datetime().nullable(),
+  mutedUntil: IsoDateTimeSchema.nullable(),
 });
 
 export const BlockUserResponseSchemaWrapped = z.object({ block: BlockedUserResponseSchema });

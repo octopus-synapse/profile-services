@@ -6,11 +6,12 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const PlatformEventSchema = z.object({
   event: z.string().min(1).max(120),
   props: z.record(z.unknown()).optional(),
-  occurredAt: z.string().datetime(),
+  occurredAt: IsoDateTimeSchema,
 });
 
 export const TrackEventsBodySchema = z.object({

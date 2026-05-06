@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ListForUserParams = z.object({ userId: z.string() });
 
@@ -17,7 +18,7 @@ export const ListForUserParams = z.object({ userId: z.string() });
 // (the use case calls `.toISOString()`).
 export const AwardedBadgeViewSchema = z.object({
   kind: z.string(),
-  awardedAt: z.string().datetime(),
+  awardedAt: IsoDateTimeSchema,
 });
 
 export const ListBadgesResponseSchema = z.object({

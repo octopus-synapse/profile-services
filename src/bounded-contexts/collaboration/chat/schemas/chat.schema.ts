@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SendMessageSchema = z.object({
   recipientId: z.string().min(1, 'Recipient ID is required'),
@@ -57,7 +58,7 @@ export const WsMessageEventSchema = z.object({
   conversationId: z.string(),
   senderId: z.string(),
   content: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   isRead: z.boolean(),
 });
 
@@ -75,7 +76,7 @@ export const WsReadReceiptEventSchema = z.object({
   conversationId: z.string(),
   messageId: z.string(),
   readBy: z.string(),
-  readAt: z.string().datetime(),
+  readAt: IsoDateTimeSchema,
 });
 
 export type WsReadReceiptEvent = z.infer<typeof WsReadReceiptEventSchema>;
@@ -83,7 +84,7 @@ export type WsReadReceiptEvent = z.infer<typeof WsReadReceiptEventSchema>;
 export const WsUserStatusEventSchema = z.object({
   userId: z.string(),
   isOnline: z.boolean(),
-  lastSeen: z.string().datetime().optional(),
+  lastSeen: IsoDateTimeSchema.optional(),
 });
 
 export type WsUserStatusEvent = z.infer<typeof WsUserStatusEventSchema>;
@@ -94,8 +95,8 @@ export const MessageResponseSchema = z.object({
   senderId: z.string(),
   content: z.string(),
   isRead: z.boolean(),
-  readAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
+  readAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
   sender: z.object({
     id: z.string(),
     name: z.string().nullable(),
@@ -120,13 +121,13 @@ export const ConversationResponseSchema = z.object({
     .object({
       content: z.string(),
       senderId: z.string(),
-      createdAt: z.string().datetime(),
+      createdAt: IsoDateTimeSchema,
       isRead: z.boolean(),
     })
     .nullable(),
   unreadCount: z.number().int().min(0),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type ConversationResponse = z.infer<typeof ConversationResponseSchema>;
@@ -158,7 +159,7 @@ export type PaginatedConversationsResponse = z.infer<typeof PaginatedConversatio
  */
 export const BlockedUserResponseSchema = z.object({
   id: z.string(),
-  blockedAt: z.string().datetime(),
+  blockedAt: IsoDateTimeSchema,
   reason: z.string().nullable(),
   user: z.object({
     id: z.string(),

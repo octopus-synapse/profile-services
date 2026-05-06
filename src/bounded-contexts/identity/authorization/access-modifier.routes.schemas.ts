@@ -15,6 +15,7 @@
 import { z } from 'zod';
 import { DomainException } from '@/shared-kernel/exceptions';
 import type { ModifierEffect, ModifierType } from './domain/entities/access-modifier.entity';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const MODIFIER_TYPES: readonly ModifierType[] = [
   'SUSPEND_EMAIL_VERIFIED',
@@ -38,8 +39,8 @@ export const ApplyModifierBody = z
     effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
     reason: z.string().min(1).max(500),
     permissionId: z.string().min(1).optional(),
-    startsAt: z.string().datetime().optional(),
-    endsAt: z.string().datetime().optional(),
+    startsAt: IsoDateTimeSchema.optional(),
+    endsAt: IsoDateTimeSchema.optional(),
   })
   .superRefine((data, ctx) => {
     if (data.modifierType === 'GRANT_PERMISSION' && !data.permissionId) {
@@ -69,12 +70,12 @@ export const AccessModifierShape = z.object({
   effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
   permissionId: z.string().nullable(),
   reason: z.string(),
-  startsAt: z.string().datetime(),
-  endsAt: z.string().datetime().nullable(),
+  startsAt: IsoDateTimeSchema,
+  endsAt: IsoDateTimeSchema.nullable(),
   createdBy: z.string(),
-  revokedAt: z.string().datetime().nullable(),
+  revokedAt: IsoDateTimeSchema.nullable(),
   revokedBy: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ListAccessModifiersResponseSchema = z.object({

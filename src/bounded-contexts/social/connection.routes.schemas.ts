@@ -13,6 +13,7 @@ import {
 import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import type { ConnectionService } from './services/connection.service';
 import type { FollowService } from './services/follow.service';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class ConnectionRoutesBundle {
   abstract readonly connectionService: ConnectionService;
@@ -36,8 +37,8 @@ export const ConnectionWithUserSchema = z.object({
   requesterId: z.string(),
   targetId: z.string(),
   status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   requester: ConnectionUserSchema.optional(),
   target: ConnectionUserSchema.optional(),
   user: ConnectionUserSchema.optional(),
@@ -70,7 +71,7 @@ export const NetworkSummaryResponseSchema = z.object({
   suggestions: SuggestionsPaginatedSchema,
 });
 
-export const ConnectionIdResponseSchema = z.object({ id: z.string() });
+export const ConnectionIdResponseSchema = IdParamSchema;
 
 export const ConnectionRemovedResponseSchema = z.object({ removed: z.literal(true) });
 

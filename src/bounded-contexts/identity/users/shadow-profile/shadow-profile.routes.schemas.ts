@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
 
 export const UpsertGithubBody = z.object({
   token: z.string(),
@@ -15,7 +16,7 @@ export const FindCandidatesQuery = z.object({
   githubLogin: z.string().optional(),
 });
 
-export const ShadowProfileIdParam = z.object({ id: z.string() });
+export const ShadowProfileIdParam = IdParamSchema;
 
 // ─── Response schemas ────────────────────────────────────────────────
 // `payload` is the Prisma Json column carrying the shadow-payload

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Schemas
@@ -24,8 +25,8 @@ const SectionTypeDataSchema = z.object({
   iconType: z.string(),
   icon: z.string(),
   translations: z.record(z.record(z.string())),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const SectionTypeListDataSchema = z.object({

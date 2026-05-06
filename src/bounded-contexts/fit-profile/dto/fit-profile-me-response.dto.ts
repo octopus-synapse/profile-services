@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from '../domain/types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /** Per-dimension [0,1] score map; missing dimensions are absent. */
 const DimensionScoreMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
@@ -14,8 +15,8 @@ const FitVectorSchema = z.object({
 const FitProfileMeSchema = z.object({
   status: z.enum(['never', 'responded', 'expired']),
   vector: FitVectorSchema.nullable(),
-  answeredAt: z.string().datetime().nullable(),
-  expiresAt: z.string().datetime().nullable(),
+  answeredAt: IsoDateTimeSchema.nullable(),
+  expiresAt: IsoDateTimeSchema.nullable(),
   remainingQuestions: z.union([z.literal(0), z.literal(QUESTION_SET_SIZE)]),
 });
 

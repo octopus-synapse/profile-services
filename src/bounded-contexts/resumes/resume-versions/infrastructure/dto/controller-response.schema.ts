@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Schemas
@@ -8,7 +9,7 @@ const ResumeVersionItemSchema = z.object({
   id: z.string(),
   versionNumber: z.number().int(),
   label: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 const ResumeVersionListDataSchema = z.object({ versions: z.array(ResumeVersionItemSchema) });
@@ -17,7 +18,7 @@ const ResumeVersionDataSchema = z.object({ version: ResumeVersionItemSchema });
 
 const ResumeVersionRestoreDataSchema = z.object({
   success: z.boolean(),
-  restoredFrom: z.string().datetime(),
+  restoredFrom: IsoDateTimeSchema,
 });
 
 // ============================================================================

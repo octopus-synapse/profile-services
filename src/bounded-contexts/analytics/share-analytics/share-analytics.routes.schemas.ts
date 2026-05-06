@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ShareIdParam = z.object({ shareId: z.string() });
 export const ResumeShareParams = z.object({ resumeId: z.string(), shareId: z.string() });
@@ -22,7 +23,7 @@ export const ShareAnalyticsRecentEventSchema = z.object({
   event: ShareEventTypeSchema,
   country: z.string().nullable(),
   city: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ShareAnalyticsSummarySchema = z.object({
@@ -50,7 +51,7 @@ export const ShareAnalyticsEventItemSchema = z.object({
   referrer: z.string().nullable(),
   country: z.string().nullable(),
   city: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ShareAnalyticsEventsResponseSchema = z.object({

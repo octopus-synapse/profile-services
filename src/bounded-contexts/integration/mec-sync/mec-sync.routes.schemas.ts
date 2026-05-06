@@ -11,6 +11,7 @@
 
 import { z } from 'zod';
 import { ValidationException } from '@/shared-kernel';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import {
   CourseSchema,
   InstitutionSchema,
@@ -45,7 +46,7 @@ export const SyncTriggerResponseSchema = z.object({
 // shape varies and we already serialize through `JSON.stringify` (Date →
 // ISO string). Use a passthrough record so we stay schema-driven without
 // `z.unknown()` at the leaves.
-export const SyncLogRowSchema = z.object({ id: z.string() }).passthrough();
+export const SyncLogRowSchema = IdParamSchema.passthrough();
 
 export const SyncStatusResponseSchema = z.object({
   isRunning: z.boolean(),

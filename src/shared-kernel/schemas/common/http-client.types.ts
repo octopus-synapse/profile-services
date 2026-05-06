@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Retry Configuration
@@ -66,7 +67,7 @@ export const TransportErrorSchema = z.object({
   message: z.string(),
   statusCode: z.literal(0),
   details: z.record(z.unknown()).optional(),
-  timestamp: z.string().datetime(),
+  timestamp: IsoDateTimeSchema,
 });
 
 export type TransportError = z.infer<typeof TransportErrorSchema>;

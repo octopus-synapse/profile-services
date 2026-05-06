@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const IndustryEnum = z.enum([
   'software_engineering',
@@ -36,8 +37,8 @@ export const TrackViewSchema = z.object({
 
 export const ViewStatsQuerySchema = z.object({
   period: PeriodEnum,
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 export const KeywordOptionsSchema = z.object({
@@ -223,9 +224,9 @@ export const ResumeAnalyticsSchema = z.object({
   views: z.number().int().nonnegative(),
   downloads: z.number().int().nonnegative(),
   shares: z.number().int().nonnegative(),
-  lastViewedAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  lastViewedAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type ResumeAnalytics = z.infer<typeof ResumeAnalyticsSchema>;
@@ -240,7 +241,7 @@ export const ShareAnalyticsSchema = z.object({
   downloads: z.number().int().nonnegative(),
   topReferrers: z.array(z.object({ referer: z.string(), count: z.number().int().nonnegative() })),
   viewsByDate: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
-  lastViewedAt: z.string().datetime().nullable(),
+  lastViewedAt: IsoDateTimeSchema.nullable(),
 });
 
 export type ShareAnalytics = z.infer<typeof ShareAnalyticsSchema>;
@@ -249,8 +250,8 @@ export type ShareAnalytics = z.infer<typeof ShareAnalyticsSchema>;
  * Analytics Time Range Schema (For filtering analytics by date range)
  */
 export const AnalyticsTimeRangeSchema = z.object({
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 export type AnalyticsTimeRange = z.infer<typeof AnalyticsTimeRangeSchema>;

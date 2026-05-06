@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { ResumeIdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ResumeIdParams = ResumeIdParamSchema;
 
@@ -34,5 +35,5 @@ export const ResumeQualityResponseSchema = z.object({
   issues: z.array(QualityIssueSchema),
   scoringRulesVersion: z.string(),
   aiPromptVersion: z.string().nullable(),
-  computedAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
 });

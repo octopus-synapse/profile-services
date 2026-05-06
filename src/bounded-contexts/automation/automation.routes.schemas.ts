@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ItemIdParam = z.object({ itemId: z.string() });
 
@@ -28,13 +29,13 @@ export const WeeklyCuratedItemSchema = z.object({
   jobId: z.string(),
   matchScore: z.number(),
   status: z.string(),
-  decidedAt: z.string().datetime().nullable(),
+  decidedAt: IsoDateTimeSchema.nullable(),
 });
 
 export const WeeklyCuratedBatchSchema = z.object({
   id: z.string(),
-  weekOf: z.string().datetime(),
-  sentAt: z.string().datetime().nullable(),
+  weekOf: IsoDateTimeSchema,
+  sentAt: IsoDateTimeSchema.nullable(),
   status: z.string(),
   items: z.array(WeeklyCuratedItemSchema),
 });

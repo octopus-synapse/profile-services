@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Export Format
@@ -49,7 +50,7 @@ export const ExportJobSchema = z.object({
   progress: z.number().int().min(0).max(100),
   downloadUrl: z.string().url().nullable(),
   error: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export type ExportJob = z.infer<typeof ExportJobSchema>;

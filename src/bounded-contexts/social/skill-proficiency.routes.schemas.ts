@@ -10,6 +10,7 @@
 
 import { z } from 'zod';
 import type { SkillProficiencyService } from './services/skill-proficiency.service';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class SkillProficiencyRoutesBundle {
   abstract readonly service: SkillProficiencyService;
@@ -25,7 +26,7 @@ export const SkillProficiencyEntrySchema = z.object({
   skillName: z.string(),
   proficiency: z.string(),
   yearsOfExperience: z.number().int().nullable(),
-  updatedAt: z.string().datetime(),
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const ListProficiencyResponseSchema = z.object({

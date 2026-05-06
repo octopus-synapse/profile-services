@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ResumeIdParam = z.object({ resumeId: z.string() });
 export const ResumeIdAndVersionIdParam = z.object({
@@ -31,7 +32,7 @@ export const ResumeVersionListItemSchema = z.object({
   id: z.string(),
   versionNumber: z.number().int(),
   label: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ResumeVersionsResponseSchema = z.object({
@@ -47,7 +48,7 @@ export const TailoredVersionsResponseSchema = z.object({
 });
 
 export const ResumeVersionRestoreResponseSchema = z.object({
-  restoredFrom: z.string().datetime(),
+  restoredFrom: IsoDateTimeSchema,
 });
 
 export const ResumeVersionDetailSchema = ResumeVersionListItemSchema.extend({

@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const EnumKeyParams = z.object({ key: z.string() });
 
@@ -110,7 +111,7 @@ export const DashboardNotificationSchema = z.object({
   // round-trip without losing fields.
   messageParams: z.object({}).passthrough().nullable(),
   read: z.boolean(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const DashboardViewerSchema = z.object({

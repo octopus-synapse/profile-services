@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const TranslateTextSchema = z.object({
   text: z.string().min(1),
@@ -27,7 +28,7 @@ export const SourceLanguageSchema = z.enum(['pt', 'en', 'auto']);
 
 export const HealthResponseSchema = z.object({
   status: z.enum(['healthy', 'unavailable']),
-  timestamp: z.string().datetime(),
+  timestamp: IsoDateTimeSchema,
 });
 
 export const TranslationResultSchema = z.object({

@@ -19,6 +19,7 @@
 
 import { z } from 'zod';
 import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const AcceptConsentRequestSchema = z.object({
   documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
@@ -54,7 +55,7 @@ export const ExportedResumePersonalInfoSchema = z.object({
 });
 
 export const GdprExportResponseSchema = z.object({
-  exportedAt: z.string().datetime(),
+  exportedAt: IsoDateTimeSchema,
   dataRetentionPolicy: z.string(),
   user: z.object({
     id: z.string(),
@@ -62,14 +63,14 @@ export const GdprExportResponseSchema = z.object({
     name: z.string().nullable(),
     username: z.string().nullable(),
     hasCompletedOnboarding: z.boolean(),
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime(),
+    createdAt: IsoDateTimeSchema,
+    updatedAt: IsoDateTimeSchema,
   }),
   consents: z.array(
     z.object({
       documentType: z.string(),
       version: z.string(),
-      acceptedAt: z.string().datetime(),
+      acceptedAt: IsoDateTimeSchema,
       ipAddress: z.string().nullable(),
       userAgent: z.string().nullable(),
     }),
@@ -80,8 +81,8 @@ export const GdprExportResponseSchema = z.object({
       title: z.string().nullable(),
       slug: z.string().nullable(),
       isPublic: z.boolean(),
-      createdAt: z.string().datetime(),
-      updatedAt: z.string().datetime(),
+      createdAt: IsoDateTimeSchema,
+      updatedAt: IsoDateTimeSchema,
       personalInfo: ExportedResumePersonalInfoSchema,
       sections: z.array(
         z.object({
@@ -92,8 +93,8 @@ export const GdprExportResponseSchema = z.object({
               id: z.string(),
               order: z.number().int(),
               content: JsonValueSchema,
-              createdAt: z.string().datetime(),
-              updatedAt: z.string().datetime(),
+              createdAt: IsoDateTimeSchema,
+              updatedAt: IsoDateTimeSchema,
             }),
           ),
         }),
@@ -105,7 +106,7 @@ export const GdprExportResponseSchema = z.object({
       action: z.string(),
       entityType: z.string(),
       entityId: z.string(),
-      createdAt: z.string().datetime(),
+      createdAt: IsoDateTimeSchema,
       ipAddress: z.string().nullable(),
     }),
   ),
@@ -118,7 +119,7 @@ export const AcceptConsentResponseSchema = z.object({
     userId: z.string(),
     documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
     version: z.string(),
-    acceptedAt: z.string().datetime(),
+    acceptedAt: IsoDateTimeSchema,
     ipAddress: z.string(),
     userAgent: z.string(),
   }),
@@ -138,7 +139,7 @@ export const ConsentHistoryResponseSchema = z.array(
     id: z.string(),
     documentType: z.string(),
     version: z.string(),
-    acceptedAt: z.string().datetime(),
+    acceptedAt: IsoDateTimeSchema,
     ipAddress: z.string(),
     userAgent: z.string(),
   }),

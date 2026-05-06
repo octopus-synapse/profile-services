@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { RegisterCredentialsSchema } from './register.schema';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Temporary User Schema
@@ -35,7 +36,7 @@ export const TemporaryUserResponseSchema = z.object({
     email: z.string(),
     name: z.string().nullable(),
     isTemporary: z.literal(true),
-    expiresAt: z.string().datetime(),
+    expiresAt: IsoDateTimeSchema,
   }),
   accessToken: z.string(),
   refreshToken: z.string(),

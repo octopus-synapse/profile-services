@@ -11,6 +11,8 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SearchQuerySchema = z.object({
   q: z.string().max(500).optional(),
@@ -41,7 +43,7 @@ export const GlobalSearchQuerySchema = z.object({
 });
 export type GlobalSearchQuery = z.infer<typeof GlobalSearchQuerySchema>;
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 
 export const GlobalSearchItemSchema = z.object({
   id: z.string(),
@@ -70,7 +72,7 @@ export const SearchResultItemSchema = z.object({
   slug: z.string().nullable(),
   location: z.string().nullable(),
   profileViews: z.number().int().min(0),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   skills: z.array(z.string()).optional(),
   rank: z.number().optional(),
 });

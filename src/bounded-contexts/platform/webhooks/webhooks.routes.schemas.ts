@@ -3,6 +3,8 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SUPPORTED_EVENTS = [
   'resume.created',
@@ -10,7 +12,7 @@ export const SUPPORTED_EVENTS = [
   'ats.score.updated',
 ] as const;
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 
 export const CreateWebhookSchema = z.object({
   url: z.string().url(),
@@ -29,8 +31,8 @@ export const WebhookViewSchema = z.object({
   url: z.string(),
   events: z.array(z.enum(SUPPORTED_EVENTS)),
   enabled: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema.optional(),
 });
 
 export const WebhookDeliveryViewSchema = z.object({
@@ -40,7 +42,7 @@ export const WebhookDeliveryViewSchema = z.object({
   success: z.boolean(),
   statusCode: z.number().int().nullable(),
   errorMessage: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const ListWebhooksResponseSchema = z.object({

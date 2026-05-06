@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const SlugParam = z.object({ slug: z.string() });
@@ -83,14 +84,14 @@ export const PublicResumeSchema = z.object({
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
   styleId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   sections: z.array(PublicResumeSectionSchema),
 });
 
 export const PublicShareInfoSchema = z.object({
   slug: z.string(),
-  expiresAt: z.string().datetime().nullable(),
+  expiresAt: IsoDateTimeSchema.nullable(),
 });
 
 export const PublicResumeResponseSchema = z.object({
@@ -104,8 +105,8 @@ export const SharePayloadSchema = z.object({
   resumeId: z.string(),
   isActive: z.boolean(),
   hasPassword: z.boolean(),
-  expiresAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
+  expiresAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
   publicUrl: z.string(),
 });
 

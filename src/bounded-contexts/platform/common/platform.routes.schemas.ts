@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─── Response schemas ──────────────────────────────────────────────────
 export const AdminAlertsResponseSchema = z.object({
@@ -61,5 +62,5 @@ export const PlatformStatsResponseSchema = z.object({
   totalViews: z.number().int(),
   activeUsersToday: z.number().int(),
   activeUsersWeek: z.number().int(),
-  updatedAt: z.string().datetime(),
+  updatedAt: IsoDateTimeSchema,
 });

@@ -11,6 +11,8 @@
  */
 
 import { z } from 'zod';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─── Response schemas ────────────────────────────────────────────────
 // `UserProfile` from `application/ports/user-profile.port`. JSON-serialized
@@ -28,8 +30,8 @@ export const UserProfileResponseSchema = z.object({
   linkedin: z.string().nullable().optional(),
   github: z.string().nullable().optional(),
   twitter: z.string().nullable().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 // PATCH /v1/users/profile flattens the profile then nests it under `profile`
@@ -69,14 +71,14 @@ export const ManagedUserListItemSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   image: z.string().nullable(),
-  emailVerified: z.string().datetime().nullable(),
+  emailVerified: IsoDateTimeSchema.nullable(),
   resumeCount: z.number().int(),
   role: z.enum(['USER', 'ADMIN']),
   isActive: z.boolean(),
-  lastLoginAt: z.string().datetime().nullable(),
+  lastLoginAt: IsoDateTimeSchema.nullable(),
 });
 
 export const ManagedUserListResponseSchema = z.object({
@@ -93,8 +95,8 @@ export const ManagedUserResumeItemSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
   isPublic: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 // `UserDetails.preferences` is `unknown | null` in the port; the FullUserPreferences
@@ -108,12 +110,12 @@ export const ManagedUserDetailsResponseSchema = z.object({
     name: z.string().nullable(),
     username: z.string().nullable(),
     hasCompletedOnboarding: z.boolean(),
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime(),
+    createdAt: IsoDateTimeSchema,
+    updatedAt: IsoDateTimeSchema,
     image: z.string().nullable(),
-    emailVerified: z.string().datetime().nullable(),
+    emailVerified: IsoDateTimeSchema.nullable(),
     isActive: z.boolean(),
-    lastLoginAt: z.string().datetime().nullable(),
+    lastLoginAt: IsoDateTimeSchema.nullable(),
     roles: z.array(z.string()),
     resumes: z.array(ManagedUserResumeItemSchema),
     preferences: z.object({}).passthrough().nullable(),
@@ -129,7 +131,7 @@ export const CreatedUserSchema = z.object({
   id: z.string(),
   email: z.string().nullable(),
   name: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export const UpdatedManagedUserSchema = z.object({
@@ -138,7 +140,7 @@ export const UpdatedManagedUserSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  updatedAt: z.string().datetime(),
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const CreatedUserResponseSchema = z.object({
@@ -157,7 +159,7 @@ export const CheckUsernameQuery = z.object({ username: z.string() });
 // Public users listing — used by the SEO sitemap. No auth.
 export const PublicUserItemSchema = z.object({
   username: z.string(),
-  updatedAt: z.string().datetime(),
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const PublicUsersListResponseSchema = z.object({
@@ -175,7 +177,7 @@ export const PublicUsersListQuery = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
 });
 
-export const UserIdParam = z.object({ id: z.string() });
+export const UserIdParam = IdParamSchema;
 
 export const ListUsersQuery = z.object({
   page: z.coerce.number().int().optional(),

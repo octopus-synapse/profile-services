@@ -6,12 +6,14 @@
 
 import { z } from 'zod';
 import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from './domain/types';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 // Param name aligned with `jobs.routes.ts` (`:id`) so both BCs can
 // coexist on the same Elysia router (memoirist rejects parameter-name
 // divergence at a shared path prefix).
-export const JobIdParam = z.object({ id: z.string() });
+export const JobIdParam = IdParamSchema;
 
 export const CreateFitQuestionSchema = z.object({
   key: z.string().min(1).max(120),
@@ -60,8 +62,8 @@ export const FitVectorSchema = z.object({
 export const FitProfileMeResponseSchema = z.object({
   status: z.enum(['never', 'responded', 'expired']),
   vector: FitVectorSchema.nullable(),
-  answeredAt: z.string().datetime().nullable(),
-  expiresAt: z.string().datetime().nullable(),
+  answeredAt: IsoDateTimeSchema.nullable(),
+  expiresAt: IsoDateTimeSchema.nullable(),
   remainingQuestions: z.union([z.literal(0), z.literal(QUESTION_SET_SIZE)]),
 });
 
@@ -78,22 +80,22 @@ export const FitQuestionItemSchema = z.object({
 export const FitQuestionsResponseSchema = z.object({
   questionSetId: z.string(),
   seed: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   questions: z.array(FitQuestionItemSchema),
 });
 
 export const SubmittedFitProfileResponseSchema = z.object({
   profileId: z.string(),
   version: z.number().int().min(1),
-  computedAt: z.string().datetime(),
-  expiresAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
+  expiresAt: IsoDateTimeSchema,
 });
 
 export const JobFitProfileResponseSchema = z.object({
   id: z.string(),
   jobId: z.string(),
   editedByUserId: z.string(),
-  computedAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
   vector: FitVectorSchema,
 });
 

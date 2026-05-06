@@ -1,5 +1,6 @@
 import { PostType } from '@prisma/client';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const CreatePostSchema = z
   .object({
@@ -17,7 +18,7 @@ export const CreatePostSchema = z
     linkUrl: z.string().url().optional(),
     originalPostId: z.string().min(1).optional(),
     coAuthors: z.array(z.string().min(1)).max(8).optional(),
-    scheduledAt: z.string().datetime().optional(),
+    scheduledAt: IsoDateTimeSchema.optional(),
     threadId: z.string().min(1).optional(),
     codeSnippet: z
       .object({

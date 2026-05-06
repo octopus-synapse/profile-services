@@ -10,9 +10,14 @@
  * We prefer a loud failure over a silent lie.
  */
 
-export type SupportedLocale = 'pt-BR' | 'en';
+// P2-082 — locale literals follow the canonical 'en' | 'pt-BR'
+// ordering used across the codebase (Q27). The previous reverse
+// ordering on the type union was a one-off — runtime semantics are
+// unchanged but reviewers expected consistency with the other 30+
+// callsites that use `['en', 'pt-BR']`.
+export type SupportedLocale = 'en' | 'pt-BR';
 
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['pt-BR', 'en'];
+export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'pt-BR'];
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
 
 export interface TranslationParams {

@@ -9,6 +9,7 @@
 
 import { z } from 'zod';
 import { ResumeSchema } from './resume.types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Create Share
@@ -23,7 +24,7 @@ export const CreateShareSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens')
     .optional(),
   password: z.string().min(8).max(100).optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: IsoDateTimeSchema.optional(),
 });
 
 export type CreateShare = z.infer<typeof CreateShareSchema>;
@@ -38,8 +39,8 @@ export const ShareResponseSchema = z.object({
   resumeId: z.string().cuid(),
   isActive: z.boolean(),
   hasPassword: z.boolean(),
-  expiresAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
+  expiresAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
   publicUrl: z.string().url(),
 });
 
@@ -55,7 +56,7 @@ export type PublicResumeOptions = z.infer<typeof PublicResumeOptionsSchema>;
 
 export const PublicResumeResponseSchema = z.object({
   resume: ResumeSchema.extend({ resumeSections: ResumeSchema.shape.resumeSections.default([]) }),
-  share: z.object({ slug: z.string(), expiresAt: z.string().datetime().nullable() }),
+  share: z.object({ slug: z.string(), expiresAt: IsoDateTimeSchema.nullable() }),
 });
 
 export type PublicResumeResponse = z.infer<typeof PublicResumeResponseSchema>;

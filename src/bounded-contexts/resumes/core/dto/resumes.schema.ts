@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Common Schemas
@@ -63,13 +64,13 @@ const ResumeResponseSchema = z.object({
   targetRole: z.string().optional(),
   isPublic: z.boolean(),
   slug: z.string().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const ResumeListItemSchema = ResumeResponseSchema.extend({
   viewCount: z.number().int().optional(),
-  lastViewedAt: z.string().datetime().optional(),
+  lastViewedAt: IsoDateTimeSchema.optional(),
 });
 
 const ResumeSlotsResponseSchema = z.object({

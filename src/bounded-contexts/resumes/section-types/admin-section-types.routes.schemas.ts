@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const KeyParam = z.object({ key: z.string() });
 
@@ -54,8 +55,8 @@ export const SectionTypeResponseSchema = z.object({
   iconType: z.string(),
   icon: z.string(),
   translations: z.record(z.string(), SectionTypeTranslationSchema),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const SectionTypeListResponseSchema = z.object({

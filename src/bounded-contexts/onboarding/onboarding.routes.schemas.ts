@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const LocaleQuery = z.object({ locale: z.string().optional() });
@@ -45,8 +46,8 @@ export const OnboardingStepRowSchema = z.object({
   validation: JsonValueSchema,
   strengthWeight: z.number().int(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const OnboardingStepsResponseSchema = z.object({ steps: z.array(OnboardingStepRowSchema) });
@@ -71,8 +72,8 @@ export const OnboardingConfigRowSchema = z.object({
   id: z.string(),
   key: z.string(),
   strengthLevels: JsonValueSchema,
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const OnboardingConfigResponseSchema = z.object({
@@ -87,7 +88,7 @@ export const OnboardingStepCreatedResponseSchema = z.object({ step: OnboardingSt
 
 export const OnboardingStatusResponseSchema = z.object({
   hasCompletedOnboarding: z.boolean(),
-  onboardingCompletedAt: z.string().datetime().nullable(),
+  onboardingCompletedAt: IsoDateTimeSchema.nullable(),
 });
 
 export const SaveProgressResponseSchema = z.object({

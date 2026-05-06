@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { CollaboratorRoleSchema } from '@/bounded-contexts/collaboration/domain/enums';
 import { CollaborationUseCases } from './application/collaboration.composition';
 import type { CollabCommentService } from './services/collab-comment.service';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class CollaborationHttpBundle {
   abstract readonly collaboration: CollaborationUseCases;
@@ -47,8 +48,8 @@ export const CollaboratorWithUserSchema = z.object({
   userId: z.string(),
   role: z.string(),
   invitedBy: z.string(),
-  invitedAt: z.string().datetime(),
-  joinedAt: z.string().datetime().nullable(),
+  invitedAt: IsoDateTimeSchema,
+  joinedAt: IsoDateTimeSchema.nullable(),
   user: CollaboratorUserSchema,
 });
 
@@ -65,7 +66,7 @@ export const RemoveCollaboratorResponseSchema = z.object({}).strict();
 
 export const SharedResumeSchema = z.object({
   role: z.string(),
-  invitedAt: z.string().datetime(),
+  invitedAt: IsoDateTimeSchema,
   resume: z.object({
     id: z.string(),
     title: z.string().nullable(),
@@ -92,10 +93,10 @@ export const CommentSchema = z.object({
   sectionId: z.string().nullable(),
   itemId: z.string().nullable(),
   resolved: z.boolean(),
-  resolvedAt: z.string().datetime().nullable(),
+  resolvedAt: IsoDateTimeSchema.nullable(),
   resolvedById: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   author: CommentAuthorSchema,
 });
 

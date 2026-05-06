@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // ENUMS
@@ -43,8 +44,8 @@ const TrackViewRequestSchema = z.object({
 
 const ViewStatsQuerySchema = z.object({
   period: PeriodEnum,
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 const KeywordOptionsSchema = z.object({

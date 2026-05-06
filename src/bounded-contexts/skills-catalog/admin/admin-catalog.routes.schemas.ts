@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
+import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const ListQuery = z.object({
   page: z.string().optional(),
@@ -22,7 +24,7 @@ export const SkillListQuery = ListQuery.extend({
   type: z.string().optional(),
 });
 
-export const IdParam = z.object({ id: z.string() });
+export const IdParam = IdParamSchema;
 export const CodeParam = z.object({ code: z.string() });
 export const SlugParam = z.object({ slug: z.string() });
 
@@ -65,8 +67,8 @@ export const TechAreaRowSchema = z.object({
   color: z.string().nullable(),
   order: z.number().int(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const TechNicheRowSchema = z.object({
@@ -81,8 +83,8 @@ export const TechNicheRowSchema = z.object({
   order: z.number().int(),
   isActive: z.boolean(),
   areaId: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const TechSkillRowSchema = z.object({
@@ -102,8 +104,8 @@ export const TechSkillRowSchema = z.object({
   popularity: z.number().int(),
   order: z.number().int(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const SpokenLanguageRowSchema = z.object({
@@ -115,8 +117,8 @@ export const SpokenLanguageRowSchema = z.object({
   nativeName: z.string().nullable(),
   order: z.number().int(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const ProgrammingLanguageRowSchema = z.object({
@@ -136,8 +138,8 @@ export const ProgrammingLanguageRowSchema = z.object({
   popularity: z.number().int(),
   order: z.number().int(),
   isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const TechAreaListResponseSchema = PaginatedResponseSchema(TechAreaRowSchema);

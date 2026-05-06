@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Pagination
@@ -21,14 +22,14 @@ const UserListItemSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   image: z.string().nullable(),
-  emailVerified: z.string().datetime().nullable(),
+  emailVerified: IsoDateTimeSchema.nullable(),
   resumeCount: z.number().int(),
   role: z.enum(['USER', 'ADMIN']),
   isActive: z.boolean(),
-  lastLoginAt: z.string().datetime().nullable(),
+  lastLoginAt: IsoDateTimeSchema.nullable(),
 });
 
 const UserManagementListDataSchema = z.object({
@@ -44,8 +45,8 @@ const UserResumeItemSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
   isPublic: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const UserCountsSchema = z.object({
@@ -60,12 +61,12 @@ const UserDetailsSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
   image: z.string().nullable(),
-  emailVerified: z.string().datetime().nullable(),
+  emailVerified: IsoDateTimeSchema.nullable(),
   isActive: z.boolean(),
-  lastLoginAt: z.string().datetime().nullable(),
+  lastLoginAt: IsoDateTimeSchema.nullable(),
   roles: z.array(z.string()),
   resumes: z.array(UserResumeItemSchema),
   preferences: z.unknown().nullable(),
@@ -82,7 +83,7 @@ const CreatedUserSchema = z.object({
   id: z.string(),
   email: z.string().nullable(),
   name: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 const UpdatedUserSchema = z.object({
@@ -91,7 +92,7 @@ const UpdatedUserSchema = z.object({
   name: z.string().nullable(),
   username: z.string().nullable(),
   hasCompletedOnboarding: z.boolean(),
-  updatedAt: z.string().datetime(),
+  updatedAt: IsoDateTimeSchema,
 });
 
 const UserMutationDataSchema = z.object({

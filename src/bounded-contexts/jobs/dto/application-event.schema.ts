@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const RecordApplicationEventSchema = z.object({
   type: z.enum([
@@ -15,7 +16,7 @@ export const RecordApplicationEventSchema = z.object({
     .max(2000)
     .optional() /** Optional override; defaults to now. Used when the user retroactively
    *  records an interview they forgot to log. */,
-  occurredAt: z.string().datetime().optional(),
+  occurredAt: IsoDateTimeSchema.optional(),
 });
 
 export type RecordApplicationEventDto = z.infer<typeof RecordApplicationEventSchema>;

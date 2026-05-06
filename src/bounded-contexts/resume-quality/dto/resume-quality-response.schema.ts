@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const IssueSchema = z.object({
   code: z.string(),
@@ -28,7 +29,7 @@ const ResumeQualityResponseSchema = z.object({
   issues: z.array(IssueSchema),
   scoringRulesVersion: z.string(),
   aiPromptVersion: z.string().nullable(),
-  computedAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
 });
 
 export type IssueDto = z.infer<typeof IssueSchema>;

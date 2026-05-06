@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { QUESTION_SET_SIZE } from '../domain/types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 const FitAnswerSchema = z.object({
   questionId: z.string(),
@@ -13,8 +14,8 @@ const SubmitFitAnswersSchema = z.object({
 const SubmittedFitProfileSchema = z.object({
   profileId: z.string(),
   version: z.number().int().min(1),
-  computedAt: z.string().datetime(),
-  expiresAt: z.string().datetime(),
+  computedAt: IsoDateTimeSchema,
+  expiresAt: IsoDateTimeSchema,
 });
 
 export type FitAnswerDto = z.infer<typeof FitAnswerSchema>;

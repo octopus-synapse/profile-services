@@ -11,7 +11,8 @@ import {
   PaginatedResponseSchema,
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
-import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
+import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import type {
   ActivityLoggerPort,
   ConnectionReaderPort,
@@ -39,7 +40,7 @@ export const FollowWithUserSchema = z.object({
   id: z.string(),
   followerId: z.string(),
   followingId: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   follower: FollowUserSchema.optional(),
   following: FollowUserSchema.optional(),
   isFollowedByMe: z.boolean().optional(),
@@ -47,7 +48,7 @@ export const FollowWithUserSchema = z.object({
 
 export const FollowPaginatedSchema = PaginatedResponseSchema(FollowWithUserSchema);
 
-export const FollowIdResponseSchema = z.object({ id: z.string() });
+export const FollowIdResponseSchema = IdParamSchema;
 
 export const UnfollowResponseSchema = z.object({ unfollowed: z.literal(true) });
 

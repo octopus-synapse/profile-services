@@ -9,6 +9,7 @@ import type { NotificationType } from '@prisma/client';
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import type { NotificationStreamEvent } from './domain/entities/notification.entity';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Bundle for the notifications SSE route. Holds an Observable-returning
@@ -87,7 +88,7 @@ export const NotificationViewSchema = z.object({
   entityId: z.string().nullable(),
   message: z.string(),
   read: z.boolean(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   actor: NotificationActorSchema.nullable(),
 });
 

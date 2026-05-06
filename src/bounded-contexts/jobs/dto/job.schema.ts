@@ -6,6 +6,7 @@ import {
   RemotePolicy,
 } from '@prisma/client';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // Use the Prisma enum values as the source of truth so the DTO type matches
 // what the JobService methods expect (avoids structural mismatch on string vs
@@ -29,7 +30,7 @@ export const CreateJobSchema = z.object({
   skills: z.array(z.string()).optional(),
   salaryRange: z.string().max(100).optional(),
   applyUrl: z.string().url().optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: IsoDateTimeSchema.optional(),
   paymentCurrency: PaymentCurrencyEnum.optional(),
   remotePolicy: RemotePolicyEnum.optional(),
   minEnglishLevel: EnglishLevelEnum.optional(),
@@ -48,7 +49,7 @@ export const UpdateJobSchema = z.object({
   salaryRange: z.string().max(100).optional(),
   applyUrl: z.string().url().optional(),
   isActive: z.boolean().optional(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: IsoDateTimeSchema.optional(),
   paymentCurrency: PaymentCurrencyEnum.nullable().optional(),
   remotePolicy: RemotePolicyEnum.nullable().optional(),
   minEnglishLevel: EnglishLevelEnum.nullable().optional(),

@@ -9,10 +9,11 @@
  */
 import { z } from 'zod';
 import { EffectSchema } from './effect';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const EffectBatchSchema = z.object({
   effects: z.array(EffectSchema).min(1),
   correlationId: z.string().optional(),
-  ts: z.string().datetime(),
+  ts: IsoDateTimeSchema,
 });
 export type EffectBatch = z.infer<typeof EffectBatchSchema>;

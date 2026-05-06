@@ -7,6 +7,7 @@
 
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ---------- shared ----------
 
@@ -36,7 +37,7 @@ const TailoredVersionSummarySchema = z.object({
   id: z.string(),
   versionNumber: z.number().int(),
   label: z.string().nullable(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   tailoredJobId: z.string().nullable(),
 });
 
