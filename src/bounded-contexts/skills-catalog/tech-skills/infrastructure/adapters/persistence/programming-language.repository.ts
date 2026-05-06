@@ -7,7 +7,7 @@ export class ProgrammingLanguageRepository extends ProgrammingLanguageRepository
     super();
   }
 
-  async findAllActive(): Promise<ProgrammingLanguage[]> {
+  async listActive(): Promise<ProgrammingLanguage[]> {
     return this.prisma.programmingLanguage.findMany({
       where: { isActive: true },
       orderBy: { popularity: 'desc' },

@@ -134,7 +134,7 @@ export function findSectionByKind(sections: SectionInput[], kind: string): Secti
 /**
  * Find all sections with a given semantic kind.
  */
-export function findAllSectionsByKind(sections: SectionInput[], kind: string): SectionInput[] {
+export function listSectionsByKind(sections: SectionInput[], kind: string): SectionInput[] {
   return sections.filter((s) => s.semanticKind === kind);
 }
 

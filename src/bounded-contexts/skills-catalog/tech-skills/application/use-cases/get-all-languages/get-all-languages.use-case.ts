@@ -16,7 +16,7 @@ export class GetAllLanguagesUseCase {
     const cached = await this.cache.get<ProgrammingLanguage[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.LANGUAGES_LIST);
     return result;
   }

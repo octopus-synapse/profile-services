@@ -62,7 +62,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     },
     sdk: { exported: true },
     handler: async (_ctx, service) => {
-      const languages = await service.findAllActiveLanguages();
+      const languages = await service.listActiveLanguages();
       return { languages };
     },
   },

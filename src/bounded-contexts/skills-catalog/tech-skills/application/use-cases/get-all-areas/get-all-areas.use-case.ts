@@ -16,7 +16,7 @@ export class GetAllAreasUseCase {
     const cached = await this.cache.get<TechArea[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.AREAS_LIST);
     return result;
   }

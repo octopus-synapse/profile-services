@@ -22,7 +22,7 @@ export class SkillQueryService extends SkillQueryPort {
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_LIST);
     return result;
   }

@@ -11,7 +11,7 @@ export class TechSkillRepository extends TechSkillRepositoryPort {
     super();
   }
 
-  async findAllActive(): Promise<TechSkill[]> {
+  async listActive(): Promise<TechSkill[]> {
     const skills = await this.prisma.techSkill.findMany({
       where: { isActive: true },
       orderBy: { popularity: 'desc' },

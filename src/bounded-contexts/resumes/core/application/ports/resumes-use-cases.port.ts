@@ -6,7 +6,7 @@ import type {
 } from '../../ports/resumes-service.port';
 
 export abstract class ResumesUseCases {
-  abstract readonly findAllUserResumesUseCase: {
+  abstract readonly listUserResumesUseCase: {
     execute: (
       userId: string,
       page?: number,

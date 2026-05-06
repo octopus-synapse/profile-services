@@ -20,14 +20,14 @@ type Resume = ReturnType<typeof buildResume>;
 
 class StubResumesRepository {
   private resumes: Resume[] = [];
-  findAllUserResumesCalledWith: string | null = null;
+  listUserResumesCalledWith: string | null = null;
 
   setResumes(resumes: Resume[]): void {
     this.resumes = resumes;
   }
 
   async listUserResumes(userId: string): Promise<Resume[]> {
-    this.findAllUserResumesCalledWith = userId;
+    this.listUserResumesCalledWith = userId;
     return this.resumes;
   }
 

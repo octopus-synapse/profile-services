@@ -7,7 +7,7 @@ export class TechAreaRepository extends TechAreaRepositoryPort {
     super();
   }
 
-  async findAllActive(): Promise<TechArea[]> {
+  async listActive(): Promise<TechArea[]> {
     const areas = await this.prisma.techArea.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },

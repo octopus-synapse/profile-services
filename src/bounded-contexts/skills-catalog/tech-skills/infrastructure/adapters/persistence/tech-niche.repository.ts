@@ -8,7 +8,7 @@ export class TechNicheRepository extends TechNicheRepositoryPort {
     super();
   }
 
-  async findAllActive(): Promise<TechNiche[]> {
+  async listActive(): Promise<TechNiche[]> {
     const niches = await this.prisma.techNiche.findMany({
       where: { isActive: true },
       orderBy: [{ area: { order: 'asc' } }, { order: 'asc' }],

@@ -16,7 +16,7 @@ export class GetAllNichesUseCase {
     const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.NICHES_LIST);
     return result;
   }

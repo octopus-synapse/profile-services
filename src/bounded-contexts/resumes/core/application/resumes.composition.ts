@@ -19,7 +19,7 @@ export function buildResumesUseCases(
   logger: LoggerPort,
 ): ResumesUseCases {
   return {
-    findAllUserResumesUseCase: new FindAllUserResumesUseCase(repository),
+    listUserResumesUseCase: new FindAllUserResumesUseCase(repository),
     findResumeByIdForUserUseCase: new FindResumeByIdForUserUseCase(repository),
     createResumeForUserUseCase: new CreateResumeForUserUseCase(repository, eventPublisher, logger),
     updateResumeForUserUseCase: new UpdateResumeForUserUseCase(

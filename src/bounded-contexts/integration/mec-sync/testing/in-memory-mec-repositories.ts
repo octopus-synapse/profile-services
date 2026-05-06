@@ -46,7 +46,7 @@ export class InMemoryMecInstitutionRepository extends MecInstitutionRepositoryPo
     });
   }
 
-  async findAllActiveInstitutions(): Promise<Institution[]> {
+  async listActiveInstitutions(): Promise<Institution[]> {
     return [...this.institutions.values()].filter((i) => i.isActive).map(this.toInstitution);
   }
 
@@ -80,7 +80,7 @@ export class InMemoryMecInstitutionRepository extends MecInstitutionRepositoryPo
       .map(this.toInstitution);
   }
 
-  async findAllDistinctUfs(): Promise<string[]> {
+  async listDistinctUfs(): Promise<string[]> {
     return [...new Set([...this.institutions.values()].filter((i) => i.isActive).map((i) => i.uf))];
   }
 
@@ -97,7 +97,7 @@ export class InMemoryMecInstitutionRepository extends MecInstitutionRepositoryPo
     return [...this.institutions.values()].filter((i) => i.isActive).length;
   }
 
-  async findAllExistingInstitutionCodes(): Promise<Set<number>> {
+  async listExistingInstitutionCodes(): Promise<Set<number>> {
     return new Set([...this.institutions.keys()]);
   }
 
@@ -174,7 +174,7 @@ export class InMemoryMecCourseRepository extends MecCourseRepositoryPort {
       .map(this.toCourse);
   }
 
-  async findAllDistinctKnowledgeAreas(): Promise<string[]> {
+  async listDistinctKnowledgeAreas(): Promise<string[]> {
     return [
       ...new Set(
         [...this.courses.values()]
@@ -197,7 +197,7 @@ export class InMemoryMecCourseRepository extends MecCourseRepositoryPort {
     return [...this.courses.values()].filter((c) => c.isActive).length;
   }
 
-  async findAllExistingCourseCodes(): Promise<Set<number>> {
+  async listExistingCourseCodes(): Promise<Set<number>> {
     return new Set([...this.courses.keys()]);
   }
 

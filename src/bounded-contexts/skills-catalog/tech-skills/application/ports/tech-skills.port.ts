@@ -15,23 +15,23 @@ import type { SkillType, TechAreaType } from '../../interfaces';
 // ============================================================================
 
 export abstract class TechSkillRepositoryPort {
-  abstract findAllActive(): Promise<TechSkill[]>;
+  abstract listActive(): Promise<TechSkill[]>;
   abstract findByNiche(nicheSlug: string): Promise<TechSkill[]>;
   abstract findByType(type: SkillType, limit: number): Promise<TechSkill[]>;
   abstract searchSkills(query: string, limit: number): Promise<TechSkill[]>;
 }
 
 export abstract class TechAreaRepositoryPort {
-  abstract findAllActive(): Promise<TechArea[]>;
+  abstract listActive(): Promise<TechArea[]>;
 }
 
 export abstract class TechNicheRepositoryPort {
-  abstract findAllActive(): Promise<TechNiche[]>;
+  abstract listActive(): Promise<TechNiche[]>;
   abstract findByAreaType(areaType: TechAreaType): Promise<TechNiche[]>;
 }
 
 export abstract class ProgrammingLanguageRepositoryPort {
-  abstract findAllActive(): Promise<ProgrammingLanguage[]>;
+  abstract listActive(): Promise<ProgrammingLanguage[]>;
   abstract search(query: string, limit: number): Promise<ProgrammingLanguage[]>;
 }
 

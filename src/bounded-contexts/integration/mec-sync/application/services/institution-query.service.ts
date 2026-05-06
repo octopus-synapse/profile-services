@@ -27,7 +27,7 @@ export class InstitutionQueryService {
     const cached = await this.cache.get<Institution[]>(MEC_CACHE_KEYS.INSTITUTIONS_LIST);
     if (cached) return cached;
 
-    const institutions = await this.repository.findAllActiveInstitutions();
+    const institutions = await this.repository.listActiveInstitutions();
     await this.cache.set(
       MEC_CACHE_KEYS.INSTITUTIONS_LIST,
       institutions,
@@ -82,7 +82,7 @@ export class InstitutionQueryService {
     return this.repository.searchInstitutionsByName(normalizedQuery, limit);
   }
 
-  async findAllStateCodes(): Promise<string[]> {
-    return this.repository.findAllDistinctUfs();
+  async listStateCodes(): Promise<string[]> {
+    return this.repository.listDistinctUfs();
   }
 }

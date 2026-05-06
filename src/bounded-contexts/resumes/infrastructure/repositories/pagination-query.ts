@@ -4,7 +4,7 @@ import type { FindAllFilters, OrderByConfig } from './order-by-config';
 import { buildOrderByClause } from './order-by-config';
 import type { PrismaDelegate } from './prisma-delegate.type';
 
-export async function findAllWithPagination<T>(
+export async function listWithPagination<T>(
   delegate: PrismaDelegate<T>,
   resumeId: string,
   orderConfig: OrderByConfig,

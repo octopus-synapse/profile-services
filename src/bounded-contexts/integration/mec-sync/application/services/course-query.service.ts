@@ -56,8 +56,8 @@ export class CourseQueryService {
     return matches;
   }
 
-  async findAllKnowledgeAreas(): Promise<string[]> {
-    return this.repository.findAllDistinctKnowledgeAreas();
+  async listKnowledgeAreas(): Promise<string[]> {
+    return this.repository.listDistinctKnowledgeAreas();
   }
 
   private buildSearchCacheKey(query: string): string {
