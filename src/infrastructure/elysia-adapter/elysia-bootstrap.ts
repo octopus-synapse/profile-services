@@ -144,6 +144,7 @@ import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidat
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
+import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
 import {
   applyCacheInvalidation,
   BullMQCacheInvalidationAdapter,
@@ -264,9 +265,18 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     );
   });
 
-  // --- Lifecycle registry: init in order, dispose reverse on shutdown ---
+  // --- Lifecycle registry: init in order, dispose via OnShutdownPort ---
+  // The `lifecycles[]` array remains the source-of-truth for INIT
+  // ordering (BC compositions push their own lifecycles into it). For
+  // SHUTDOWN, the dispose tasks are forwarded into `onShutdown`
+  // (`InProcessShutdownOrchestrator`, Q36) so the canonical port is
+  // exercised end-to-end and per-task timeouts apply.
+  const onShutdown = new InProcessShutdownOrchestrator(logger);
   const lifecycles: Lifecycle[] = [
     {
+      // Inline dispose loses its constructor name; pre-register a named
+      // task here instead of relying on the late-stage walk below to
+      // synthesise one.
       dispose: async () => {
         await prisma.$disconnect();
         logger.log('Prisma disconnected', 'ElysiaBootstrap');
@@ -1068,24 +1078,45 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     'ElysiaBootstrap',
   );
 
-  // --- SIGTERM / SIGINT: dispose in reverse order ---
+  // --- SIGTERM / SIGINT: drain via OnShutdownPort (Q36) ---
+  // Forward each lifecycle.dispose into the orchestrator. Tasks are
+  // registered in reverse-init order so the *registration* ordering
+  // mirrors the original semantics; with `BEST_EFFORT` the orchestrator
+  // still runs them concurrently but the per-task timeout (5s default)
+  // bounds any single hung dispose, which the original sequential loop
+  // could not — a stuck Prisma disconnect would have blocked Redis quit
+  // forever.
+  let lifecycleSeq = 0;
+  for (const l of [...lifecycles].reverse()) {
+    if (!l.dispose) continue;
+    const inferred = l.constructor?.name;
+    const name = inferred && inferred !== 'Object' ? inferred : `lifecycle-${lifecycleSeq++}`;
+    onShutdown.register({
+      name,
+      run: async () => {
+        await l.dispose?.();
+      },
+    });
+  }
+
   let stopped = false;
   const drainLifecycles = async (): Promise<void> => {
     if (stopped) return;
     stopped = true;
-    for (const l of [...lifecycles].reverse()) {
-      try {
-        await l.dispose?.();
-      } catch (err) {
-        logger.error(
-          `Lifecycle dispose failed: ${err instanceof Error ? err.message : String(err)}`,
-          { context: 'ElysiaBootstrap', stack: err instanceof Error ? err.stack : undefined },
-        );
-      }
-    }
+    await onShutdown.shutdown('BEST_EFFORT');
   };
   const shutdown = async (signal: string): Promise<void> => {
     logger.log(`Received ${signal}, shutting down...`, 'ElysiaBootstrap');
+    // Stop accepting new HTTP traffic before draining so in-flight
+    // requests complete against still-live downstream resources.
+    try {
+      await app.stop();
+    } catch (err) {
+      logger.error(`app.stop() failed: ${err instanceof Error ? err.message : String(err)}`, {
+        context: 'ElysiaBootstrap',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+    }
     await drainLifecycles();
     process.exit(0);
   };

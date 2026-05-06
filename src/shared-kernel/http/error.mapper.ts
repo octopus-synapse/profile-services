@@ -16,64 +16,10 @@ import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/lo
 import type { ErrorEnvelope } from '@/bounded-contexts/platform/i18n/domain/error-envelope';
 import {
   MissingTranslationError,
-  type TranslationParams,
   type TranslationPort,
 } from '@/bounded-contexts/platform/i18n/domain/translation.port';
-import { DomainException } from '../exceptions/domain.exceptions';
-
-const FRAMEWORK_FIELDS = new Set([
-  'code',
-  'statusHint',
-  'severity',
-  'suggestedAction',
-  'message',
-  'name',
-  'stack',
-  'cause',
-]);
-
-/**
- * P1-051 — extract i18n template params from a domain exception.
- *
- * Reads only enumerable own properties (not the prototype chain), so
- * a base-class field like `severity` doesn't leak into the params
- * payload. Each value is narrowed by `typeof` before being copied —
- * `Object.keys` returns a `string[]` and the property access goes
- * through `Reflect.get` which avoids the previous fragile
- * `as unknown as Record<string, unknown>` cast.
- *
- * The `FRAMEWORK_FIELDS` denylist still gates which keys are
- * eligible. Returning a fresh object means callers can mutate it
- * freely without touching the exception.
- */
-function isPrimitiveParam(value: unknown): value is string | number | boolean | null {
-  return (
-    value === null ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  );
-}
-
-function extractParams(exception: DomainException): TranslationParams {
-  const out: Record<string, string | number | boolean | null> = {};
-  for (const key of Object.keys(exception)) {
-    if (FRAMEWORK_FIELDS.has(key)) continue;
-    const value = Reflect.get(exception, key);
-    if (isPrimitiveParam(value)) {
-      out[key] = value;
-    } else if (Array.isArray(value)) {
-      // Best-effort: join scalars; objects are skipped silently.
-      const scalars = value.filter(isPrimitiveParam);
-      if (scalars.length === value.length) {
-        out[key] = scalars.join(', ');
-      }
-    }
-    // Anything else (object / function / symbol) is dropped on the
-    // floor — translation params have to be primitives.
-  }
-  return out;
-}
+import { DomainException, extractDomainCodeParams } from '../exceptions/domain.exceptions';
+import { localizeDomainCode } from '../i18n/localize-domain-code';
 
 export interface MappedHttpError {
   readonly status: number;
@@ -97,15 +43,19 @@ export function mapDomainErrorToHttp(
     Array.isArray(acceptLanguageHeader) ? acceptLanguageHeader[0] : acceptLanguageHeader,
   );
   const locale = negotiated.locale;
-  const params = extractParams(error);
   const status = error.statusHint;
 
   const headers: Record<string, string> = { 'Content-Language': locale };
   if (!negotiated.matched) headers.Vary = 'Accept-Language';
 
-  let message: string;
+  // Unified i18n pipeline: build a `DomainCode` view of the exception and
+  // hand it to `localizeDomainCode`. This is the same primitive route
+  // handlers use when returning validation results in 200 bodies — single
+  // path for "code → message" resolution.
+  const params = extractDomainCodeParams(error);
+  let localized: ReturnType<typeof localizeDomainCode>;
   try {
-    message = i18n.translate(error.code, params, locale);
+    localized = localizeDomainCode({ code: error.code, params }, i18n, locale);
   } catch (err) {
     if (err instanceof MissingTranslationError) {
       const envelope: ErrorEnvelope = {
@@ -122,8 +72,8 @@ export function mapDomainErrorToHttp(
 
   const envelope: ErrorEnvelope = {
     statusCode: status,
-    code: error.code,
-    message,
+    code: localized.code,
+    message: localized.message,
     severity: error.severity,
     suggestedAction: error.suggestedAction,
     params,

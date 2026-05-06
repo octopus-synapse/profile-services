@@ -98,6 +98,18 @@ No `findAll*`. The `get*` variant wraps the `find*` query so the
   mounter renders via `packages/i18n/SUCCESS_MESSAGE_DICTIONARY`
   using the request's `Accept-Language` header. Don't return
   `{ message: 'X deleted successfully.' }` strings inline.
+- **Validation results in 200 bodies (Q8b):** when a use case returns a
+  structured validation outcome (multi-error array — e.g. "username has
+  3 problems, show them all"), it returns `errors: DomainCode[]` from
+  `shared-kernel/i18n`. The route handler injects `TranslationPort`,
+  reads `Accept-Language`, and maps each `DomainCode` through
+  `localizeDomainCode(dc, i18n, locale)` so the response carries
+  `{ code, message, params }` already translated. Never hardcode
+  `{ code, message: 'English label' }` inline in the use case — the
+  frontend depends on the message arriving in the user's locale
+  regardless of HTTP status. The `code` MUST be an entry in
+  `@packages/i18n/ERROR_DICTIONARY` (same catalog `DomainException`
+  uses) so a single source of truth backs both paths.
 
 ## Logging
 

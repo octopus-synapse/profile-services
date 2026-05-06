@@ -10,6 +10,7 @@ import type {
   ErrorSeverity,
   SuggestedAction,
 } from '@/bounded-contexts/platform/i18n/domain/error-envelope';
+import type { DomainCode, DomainCodeParam } from '@/shared-kernel/i18n/domain-code';
 
 /**
  * Base class for all domain exceptions.
@@ -65,6 +66,76 @@ export abstract class DomainException extends Error {
     }
     return json;
   }
+
+  /**
+   * View this exception as a `DomainCode` so route handlers / mappers can
+   * pass it to `localizeDomainCode` and produce a `{ code, message, params }`
+   * envelope identical to one assembled from a non-throwable code (e.g. a
+   * validation result inside a 200 response). The shared primitive keeps
+   * the i18n pipeline single-pathway.
+   *
+   * Subclasses do not need to override — the params come from own
+   * enumerable properties via `extractDomainCodeParams`. Override only when
+   * the default field-walking is wrong (rare).
+   */
+  toDomainCode(): DomainCode {
+    return {
+      code: this.code,
+      params: extractDomainCodeParams(this),
+      severity: this.severity,
+    };
+  }
+}
+
+/**
+ * Field-denylist for `extractDomainCodeParams`. These belong to the
+ * exception envelope shape, not to the i18n template's params.
+ */
+const FRAMEWORK_FIELDS = new Set([
+  'code',
+  'statusHint',
+  'severity',
+  'suggestedAction',
+  'message',
+  'name',
+  'stack',
+  'cause',
+]);
+
+function isPrimitiveParam(value: unknown): value is DomainCodeParam {
+  return (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
+/**
+ * Pull i18n template params from a `DomainException` instance by reading
+ * its own enumerable properties (skipping the framework envelope fields).
+ *
+ * Lifted out of `error.mapper.ts` so both `DomainException.toDomainCode()`
+ * and the mapper can share a single implementation; the mapper now imports
+ * this helper instead of redefining its own.
+ */
+export function extractDomainCodeParams(
+  exception: DomainException,
+): Readonly<Record<string, DomainCodeParam>> {
+  const out: Record<string, DomainCodeParam> = {};
+  for (const key of Object.keys(exception)) {
+    if (FRAMEWORK_FIELDS.has(key)) continue;
+    const value = Reflect.get(exception, key);
+    if (isPrimitiveParam(value)) {
+      out[key] = value;
+    } else if (Array.isArray(value)) {
+      const scalars = value.filter(isPrimitiveParam);
+      if (scalars.length === value.length) {
+        out[key] = scalars.join(', ');
+      }
+    }
+  }
+  return out;
 }
 
 /**
