@@ -19,7 +19,9 @@ import {
   RoleAssignedEvent,
   RoleRevokedEvent,
 } from './domain/events';
+import { PermissionResolverService } from './domain/services/permission-resolver.service';
 import { AccessModifierAuditLogAdapter } from './infrastructure/adapters/audit-log.adapter';
+import { InMemoryAuthorizationContextCache } from './infrastructure/adapters/cache/in-memory-authorization-context.cache';
 import { AuthorizationCacheInvalidationHandler } from './infrastructure/handlers/authorization-cache-invalidation.handler';
 import { AccessModifierRepository } from './infrastructure/repositories/access-modifier.repository';
 import { PermissionRepository } from './infrastructure/repositories/permission.repository';
@@ -52,7 +54,9 @@ export function buildAuthorizationUseCases(
   const roleRepo = new RoleRepository(prisma);
   const userAuthRepo = new UserAuthorizationRepository(prisma);
 
-  const authService = new AuthorizationService(permissionRepo, roleRepo, userAuthRepo);
+  const resolver = new PermissionResolverService(permissionRepo, roleRepo, userAuthRepo);
+  const authContextCache = new InMemoryAuthorizationContextCache();
+  const authService = new AuthorizationService(resolver, authContextCache, roleRepo, userAuthRepo);
 
   const checks = buildAuthorizationCheckUseCases(permissionRepo, roleRepo, userAuthRepo, logger);
   const management = buildAuthorizationManagementUseCases(userAuthRepo, eventBus, logger);
