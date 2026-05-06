@@ -120,15 +120,33 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
     }
   });
 
-  const broadcastUserStatus = async (userId: string, isOnline: boolean): Promise<void> => {
-    const { conversations } = await conversationRepo.findByUserId(userId, { limit: 100 });
-    for (const conv of conversations) {
-      namespace.toRoom(`conversation:${conv.id}`, 'user:status', {
-        userId,
-        isOnline,
-        lastSeen: isOnline ? undefined : new Date().toISOString(),
-      });
-    }
+  // P1-042 — debounce user-status broadcasts. Without this, a
+  // flapping client (mobile network blip, browser tab churn) emits
+  // a `user:status` to every conversation room the user is in on
+  // every connect/disconnect cycle. With ~20 conversations/user and
+  // 4 reconnects/min that's 80 wasted broadcasts/min; multiply by
+  // active users at peak. The debounce coalesces successive flips
+  // for the same user into the LAST observed state — so a quick
+  // disconnect+reconnect produces zero broadcasts (state unchanged)
+  // and a real disconnect emits exactly one.
+  const STATUS_DEBOUNCE_MS = 300;
+  const pendingStatus = new Map<string, { isOnline: boolean; timer: NodeJS.Timeout }>();
+
+  const broadcastUserStatus = (userId: string, isOnline: boolean): void => {
+    const existing = pendingStatus.get(userId);
+    if (existing) clearTimeout(existing.timer);
+    const timer = setTimeout(async () => {
+      pendingStatus.delete(userId);
+      const { conversations } = await conversationRepo.findByUserId(userId, { limit: 100 });
+      for (const conv of conversations) {
+        namespace.toRoom(`conversation:${conv.id}`, 'user:status', {
+          userId,
+          isOnline,
+          lastSeen: isOnline ? undefined : new Date().toISOString(),
+        });
+      }
+    }, STATUS_DEBOUNCE_MS);
+    pendingStatus.set(userId, { isOnline, timer });
   };
 
   namespace.onConnect(async ({ userId, socketId }) => {

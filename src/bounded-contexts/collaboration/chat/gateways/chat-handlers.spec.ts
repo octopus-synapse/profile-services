@@ -235,12 +235,13 @@ describe('registerChatWebSocketHandlers', () => {
       expect(realtime.isUserOnline('user-1')).toBe(true);
     });
 
-    it('broadcasts online status to conversation rooms', async () => {
+    it('broadcasts online status to conversation rooms (after debounce)', async () => {
       await wsCtl.state.connectHandlers[0]({ userId: 'user-1', socketId: 'sock-1' });
 
-      // Wait for the void-chained broadcastUserStatus().
-      await Promise.resolve();
-      await Promise.resolve();
+      // P1-042 — `broadcastUserStatus` is now debounced (300ms);
+      // wait the window plus the conversationRepo.findByUserId
+      // microtask before asserting.
+      await new Promise((r) => setTimeout(r, 350));
 
       const statusEmits = wsCtl.state.emits.filter((e) => e.event === 'user:status');
       expect(statusEmits.length).toBeGreaterThan(0);
