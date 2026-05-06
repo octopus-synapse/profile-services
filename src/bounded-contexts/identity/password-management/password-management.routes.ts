@@ -37,7 +37,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     handler: async (ctx, bc) => {
       const body = ctx.body as { email: string };
       await bc.forgotPassword.execute({ email: body.email });
-      return { message: 'If this email exists, a reset link has been sent.' };
+      return { code: 'PASSWORD_RESET_LINK_SENT' as const };
     },
   },
   {
@@ -60,7 +60,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
         currentPassword: body.currentPassword,
         newPassword: body.newPassword,
       });
-      return { message: 'Password has been changed successfully.' };
+      return { code: 'PASSWORD_CHANGED' as const };
     },
   },
   {
@@ -81,7 +81,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
         token: body.token,
         newPassword: body.newPassword,
       });
-      return { message: 'Password has been reset successfully.' };
+      return { code: 'PASSWORD_RESET' as const };
     },
   },
 ];

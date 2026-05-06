@@ -63,7 +63,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         userAgent: Array.isArray(ua) ? ua[0] : ua,
         referer: Array.isArray(referer) ? referer[0] : referer,
       });
-      return { message: 'View tracked successfully' };
+      return { code: 'RESUME_VIEW_TRACKED' as const };
     },
   },
   {

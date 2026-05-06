@@ -24,7 +24,11 @@ export const ResendCooldownShape = z.object({
 });
 
 export const SendVerificationResponseSchema = z.object({
-  message: z.string(),
+  // P1-045 — handler returns a `code` (resolved by the success-message
+  // dictionary in the i18n stage); legacy `message` kept optional for
+  // backward compat with any client that hadn't switched yet.
+  code: z.string().optional(),
+  message: z.string().optional(),
   cooldown: ResendCooldownShape,
 });
 

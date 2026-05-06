@@ -321,7 +321,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeUseCase.execute(id);
-      return { message: 'Resume deleted successfully' };
+      return { code: 'RESUME_DELETED' as const };
     },
   },
 ];

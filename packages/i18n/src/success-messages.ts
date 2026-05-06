@@ -58,6 +58,73 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
+
+  // P1-045 — entries replacing the 16 hardcoded EN strings the
+  // audit flagged in users / email-verification / account-lifecycle /
+  // password-management / resume-analytics / resumes routes.
+  PREFERENCES_UPDATED: {
+    message: {
+      en: 'Preferences updated successfully.',
+      'pt-BR': 'Preferências atualizadas com sucesso.',
+    },
+    params: [],
+  },
+  PASSWORD_RESET: {
+    message: {
+      en: 'Password reset successfully.',
+      'pt-BR': 'Senha redefinida com sucesso.',
+    },
+    params: [],
+  },
+  PASSWORD_CHANGED: {
+    message: {
+      en: 'Password has been changed successfully.',
+      'pt-BR': 'Senha alterada com sucesso.',
+    },
+    params: [],
+  },
+  PASSWORD_RESET_LINK_SENT: {
+    message: {
+      en: 'If this email exists, a reset link has been sent.',
+      'pt-BR': 'Se este e-mail existir, um link de redefinição foi enviado.',
+    },
+    params: [],
+  },
+  ROLES_UPDATED: {
+    message: {
+      en: 'Roles updated successfully.',
+      'pt-BR': 'Permissões atualizadas com sucesso.',
+    },
+    params: [],
+  },
+  ACCOUNT_DEACTIVATED: {
+    message: {
+      en: 'Account has been deactivated.',
+      'pt-BR': 'Conta desativada.',
+    },
+    params: [],
+  },
+  ACCOUNT_DELETED: {
+    message: {
+      en: 'Account has been permanently deleted.',
+      'pt-BR': 'Conta excluída permanentemente.',
+    },
+    params: [],
+  },
+  EMAIL_VERIFICATION_SENT: {
+    message: {
+      en: 'Verification email has been sent.',
+      'pt-BR': 'E-mail de verificação enviado.',
+    },
+    params: [],
+  },
+  RESUME_VIEW_TRACKED: {
+    message: {
+      en: 'View tracked successfully.',
+      'pt-BR': 'Visualização registrada com sucesso.',
+    },
+    params: [],
+  },
 } as const satisfies SuccessMessageDictionary;
 
 export type SuccessMessageCode = keyof typeof SUCCESS_MESSAGE_DICTIONARY;

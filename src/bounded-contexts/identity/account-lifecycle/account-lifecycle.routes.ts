@@ -98,7 +98,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         reason: body.reason,
       });
-      return { message: 'Account has been deactivated.' };
+      return { code: 'ACCOUNT_DEACTIVATED' as const };
     },
   },
   {
@@ -123,7 +123,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
       });
-      return { message: 'Account has been permanently deleted.' };
+      return { code: 'ACCOUNT_DELETED' as const };
     },
   },
   {

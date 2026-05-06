@@ -52,7 +52,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const cooldown = await bc.sendVerificationEmail.execute({ userId: ctx.user!.userId });
-      return { message: 'Verification email has been sent.', cooldown };
+      return { code: 'EMAIL_VERIFICATION_SENT' as const, cooldown };
     },
   },
   {
