@@ -10,7 +10,7 @@ import { ValidationException } from '@/shared-kernel/exceptions';
  * validation error.
  */
 export class QrUrlRequiredException extends ValidationException {
-  readonly code: string = 'QR_URL_REQUIRED';
+  override readonly code: string = 'QR_URL_REQUIRED';
   constructor() {
     super('A non-empty URL is required to generate the QR code');
   }

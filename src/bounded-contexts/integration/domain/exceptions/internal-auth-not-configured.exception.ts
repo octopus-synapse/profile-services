@@ -14,7 +14,7 @@ import { UnauthorizedException } from '@/shared-kernel/exceptions';
  * everyone through.
  */
 export class InternalAuthNotConfiguredException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_AUTH_NOT_CONFIGURED';
+  override readonly code: string = 'INTERNAL_AUTH_NOT_CONFIGURED';
   constructor() {
     super('Internal API token not configured. Set INTERNAL_API_TOKEN environment variable.');
   }

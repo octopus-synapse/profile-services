@@ -30,21 +30,21 @@ export class ExportPipelineFailedException extends DomainException {
 }
 
 export class UnsupportedExportFormatException extends ValidationException {
-  readonly code: string = 'UNSUPPORTED_EXPORT_FORMAT';
+  override readonly code: string = 'UNSUPPORTED_EXPORT_FORMAT';
   constructor(format: string) {
     super(`Export format "${format}" is not supported`);
   }
 }
 
 export class ExportPayloadTooLargeException extends ValidationException {
-  readonly code: string = 'EXPORT_PAYLOAD_TOO_LARGE';
+  override readonly code: string = 'EXPORT_PAYLOAD_TOO_LARGE';
   constructor(maxBytes: number) {
     super(`Export payload exceeds limit of ${maxBytes} bytes`);
   }
 }
 
 export class ExportThemeInvalidException extends ValidationException {
-  readonly code: string = 'EXPORT_THEME_INVALID';
+  override readonly code: string = 'EXPORT_THEME_INVALID';
   constructor(theme: string) {
     super(`Theme "${theme}" is not valid for export`);
   }
@@ -93,7 +93,7 @@ export class BannerElementNotFoundException extends DomainException {
 }
 
 export class TypstUserIdRequiredException extends ValidationException {
-  readonly code: string = 'TYPST_USER_ID_REQUIRED';
+  override readonly code: string = 'TYPST_USER_ID_REQUIRED';
   constructor() {
     super('userId is required for Typst PDF generation');
   }

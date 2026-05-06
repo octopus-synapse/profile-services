@@ -13,7 +13,7 @@ import { UnauthorizedException } from '@/shared-kernel/exceptions';
  * an internal endpoint.
  */
 export class InternalTokenMissingException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_TOKEN_MISSING';
+  override readonly code: string = 'INTERNAL_TOKEN_MISSING';
   constructor(headerName: string) {
     super(`Missing ${headerName} header`);
   }

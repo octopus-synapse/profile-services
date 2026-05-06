@@ -4,35 +4,35 @@
 import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
 
 export class NoPrimaryResumeException extends ConflictException {
-  readonly code: string = 'NO_PRIMARY_RESUME';
+  override readonly code: string = 'NO_PRIMARY_RESUME';
   constructor() {
     super('User has no primary resume to compute fit score against');
   }
 }
 
 export class CannotApplyToOwnJobException extends ForbiddenException {
-  readonly code: string = 'CANNOT_APPLY_TO_OWN_JOB';
+  override readonly code: string = 'CANNOT_APPLY_TO_OWN_JOB';
   constructor() {
     super('You cannot apply to your own job');
   }
 }
 
 export class CannotModifyOthersJobException extends ForbiddenException {
-  readonly code: string = 'CANNOT_MODIFY_OTHERS_JOB';
+  override readonly code: string = 'CANNOT_MODIFY_OTHERS_JOB';
   constructor(action: 'update' | 'delete') {
     super(`You can only ${action} your own jobs`);
   }
 }
 
 export class NotJobOwnerException extends ForbiddenException {
-  readonly code: string = 'NOT_JOB_OWNER';
+  override readonly code: string = 'NOT_JOB_OWNER';
   constructor() {
     super('Only the job owner can perform this action');
   }
 }
 
 export class ApplicationNotOwnedException extends ForbiddenException {
-  readonly code: string = 'APPLICATION_NOT_OWNED';
+  override readonly code: string = 'APPLICATION_NOT_OWNED';
   constructor() {
     super('You do not own this application');
   }

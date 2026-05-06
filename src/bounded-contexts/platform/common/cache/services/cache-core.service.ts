@@ -22,7 +22,7 @@ export class CacheUnavailableError extends Error {
 export class CacheReadError extends Error {
   constructor(
     message: string,
-    public readonly cause?: Error,
+    public override readonly cause?: Error,
   ) {
     super(message);
     this.name = 'CacheReadError';
@@ -35,7 +35,7 @@ export class CacheReadError extends Error {
 export class CacheWriteError extends Error {
   constructor(
     message: string,
-    public readonly cause?: Error,
+    public override readonly cause?: Error,
   ) {
     super(message);
     this.name = 'CacheWriteError';

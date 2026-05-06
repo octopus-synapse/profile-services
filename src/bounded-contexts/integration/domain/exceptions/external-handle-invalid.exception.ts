@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class ExternalHandleInvalidException extends ValidationException {
-  readonly code: string = 'EXTERNAL_HANDLE_INVALID';
+  override readonly code: string = 'EXTERNAL_HANDLE_INVALID';
   constructor(provider: string) {
     super(`The ${provider} handle provided is not valid`);
   }

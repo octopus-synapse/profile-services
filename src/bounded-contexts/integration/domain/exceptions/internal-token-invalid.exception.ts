@@ -13,7 +13,7 @@ import { UnauthorizedException } from '@/shared-kernel/exceptions';
  * configured secret (timing-safe comparison).
  */
 export class InternalTokenInvalidException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_TOKEN_INVALID';
+  override readonly code: string = 'INTERNAL_TOKEN_INVALID';
   constructor() {
     super('Invalid internal token');
   }

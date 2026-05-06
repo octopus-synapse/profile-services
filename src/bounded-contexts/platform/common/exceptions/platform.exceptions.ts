@@ -12,7 +12,7 @@ import {
 } from '@/shared-kernel/exceptions';
 
 export class RateLimitedException extends LimitExceededException {
-  readonly code: string = 'RATE_LIMITED';
+  override readonly code: string = 'RATE_LIMITED';
   constructor(retryAfterSeconds: number) {
     super('rate', 1, 1);
     (this as unknown as { retryAfterSeconds: number }).retryAfterSeconds = retryAfterSeconds;
@@ -93,7 +93,7 @@ export class InvalidMetricsApiKeyException extends DomainException {
 }
 
 export class InvalidTestSuiteException extends ValidationException {
-  readonly code: string = 'INVALID_TEST_SUITE';
+  override readonly code: string = 'INVALID_TEST_SUITE';
   constructor(
     public readonly suite: string,
     public readonly available: readonly string[],

@@ -12,7 +12,7 @@ import { ForbiddenException } from '@/shared-kernel/exceptions';
  * shadow is a leftover from the pre-split layout.
  */
 export class AnalyticsForbiddenException extends ForbiddenException {
-  readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
+  override readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
   constructor() {
     super('Analytics tracking requires explicit user consent');
   }

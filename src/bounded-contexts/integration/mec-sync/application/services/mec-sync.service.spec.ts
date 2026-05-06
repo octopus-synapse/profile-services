@@ -32,16 +32,16 @@ class FakeFileCache extends CsvFileCacheService {
   constructor() {
     super(stubLogger);
   }
-  isValid(): boolean {
+  override isValid(): boolean {
     return false;
   }
-  exists(): boolean {
+  override exists(): boolean {
     return false;
   }
-  read(): Buffer {
+  override read(): Buffer {
     throw new Error('not used');
   }
-  write(_buf: Buffer): void {
+  override write(_buf: Buffer): void {
     /* noop */
   }
 }

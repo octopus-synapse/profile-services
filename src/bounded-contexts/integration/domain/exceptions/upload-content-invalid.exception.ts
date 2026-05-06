@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UploadContentInvalidException extends ValidationException {
-  readonly code: string = 'UPLOAD_CONTENT_INVALID';
+  override readonly code: string = 'UPLOAD_CONTENT_INVALID';
   constructor(reason: 'too_small' | 'bad_magic_jpeg' | 'bad_magic_png' | 'bad_magic_webp') {
     super(
       reason === 'too_small'

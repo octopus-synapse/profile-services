@@ -6,7 +6,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UrlRequiredException extends ValidationException {
-  readonly code: string = 'URL_REQUIRED';
+  override readonly code: string = 'URL_REQUIRED';
   constructor() {
     super('A non-empty URL is required');
   }

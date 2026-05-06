@@ -19,21 +19,21 @@ export class ImportNotFoundException extends DomainException {
 }
 
 export class ImportCannotBeCancelledException extends ConflictException {
-  readonly code: string = 'IMPORT_CANNOT_BE_CANCELLED';
+  override readonly code: string = 'IMPORT_CANNOT_BE_CANCELLED';
   constructor(importId: string) {
     super(`Cannot cancel completed import ${importId}`);
   }
 }
 
 export class ImportCannotBeRetriedException extends ConflictException {
-  readonly code: string = 'IMPORT_CANNOT_BE_RETRIED';
+  override readonly code: string = 'IMPORT_CANNOT_BE_RETRIED';
   constructor(importId: string) {
     super(`Can only retry failed imports. Import ${importId} is not in FAILED state`);
   }
 }
 
 export class InvalidImportDataException extends ValidationException {
-  readonly code: string = 'INVALID_IMPORT_DATA';
+  override readonly code: string = 'INVALID_IMPORT_DATA';
   constructor(message: string) {
     super(message);
   }
@@ -46,7 +46,7 @@ export class InvalidImportDataException extends ValidationException {
  * OAuth account yet — we can't fetch any viewer data without a token.
  */
 export class GithubNotConnectedException extends ConflictException {
-  readonly code: string = 'GITHUB_NOT_CONNECTED';
+  override readonly code: string = 'GITHUB_NOT_CONNECTED';
   constructor() {
     super('GitHub account is not connected');
   }
@@ -59,7 +59,7 @@ export class GithubNotConnectedException extends ConflictException {
  * a usable buffer (field missing / empty upload).
  */
 export class PdfBufferRequiredException extends ValidationException {
-  readonly code: string = 'PDF_BUFFER_REQUIRED';
+  override readonly code: string = 'PDF_BUFFER_REQUIRED';
   constructor() {
     super('PDF file buffer is required');
   }
@@ -72,7 +72,7 @@ export class PdfBufferRequiredException extends ValidationException {
  * so a malicious upload can't blow up memory during parsing.
  */
 export class PdfTooLargeException extends ValidationException {
-  readonly code: string = 'PDF_TOO_LARGE';
+  override readonly code: string = 'PDF_TOO_LARGE';
   constructor() {
     super('PDF file exceeds the maximum allowed size');
   }
@@ -86,7 +86,7 @@ export class PdfTooLargeException extends ValidationException {
  * prompt the user to upload a text-based PDF instead.
  */
 export class PdfNoTextException extends ValidationException {
-  readonly code: string = 'PDF_NO_TEXT';
+  override readonly code: string = 'PDF_NO_TEXT';
   constructor() {
     super('PDF does not contain extractable text');
   }
@@ -94,7 +94,7 @@ export class PdfNoTextException extends ValidationException {
 
 /** Multipart upload arrived without a `file` field. */
 export class MissingPdfUploadException extends ValidationException {
-  readonly code: string = 'IMPORT_FILE_MISSING';
+  override readonly code: string = 'IMPORT_FILE_MISSING';
   constructor() {
     super('Missing file (multipart field "file")');
   }
@@ -102,7 +102,7 @@ export class MissingPdfUploadException extends ValidationException {
 
 /** JSON Resume payload is missing the required `basics` section. */
 export class JsonResumeBasicsMissingException extends ValidationException {
-  readonly code: string = 'IMPORT_MISSING_BASICS';
+  override readonly code: string = 'IMPORT_MISSING_BASICS';
   constructor() {
     super('Missing basics section');
   }
@@ -110,7 +110,7 @@ export class JsonResumeBasicsMissingException extends ValidationException {
 
 /** JSON Resume payload is missing `basics.name`. */
 export class JsonResumeNameMissingException extends ValidationException {
-  readonly code: string = 'IMPORT_MISSING_BASICS_NAME';
+  override readonly code: string = 'IMPORT_MISSING_BASICS_NAME';
   constructor() {
     super('Name is required in basics section');
   }

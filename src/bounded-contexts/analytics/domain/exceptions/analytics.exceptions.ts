@@ -19,14 +19,14 @@ export class AnalyticsConsentRequiredException extends DomainException {
 }
 
 export class InvalidDateRangeException extends ValidationException {
-  readonly code: string = 'INVALID_DATE_RANGE';
+  override readonly code: string = 'INVALID_DATE_RANGE';
   constructor() {
     super('End date must be after start date');
   }
 }
 
 export class DateRangeTooLargeException extends ValidationException {
-  readonly code: string = 'DATE_RANGE_TOO_LARGE';
+  override readonly code: string = 'DATE_RANGE_TOO_LARGE';
   constructor(maxDays: number) {
     super(`Date range exceeds maximum of ${maxDays} days`);
   }
@@ -41,7 +41,7 @@ export class AggregationBackendUnavailableException extends DomainException {
 }
 
 export class ShareAnalyticsNotAuthorizedException extends ForbiddenException {
-  readonly code: string = 'SHARE_ANALYTICS_NOT_AUTHORIZED';
+  override readonly code: string = 'SHARE_ANALYTICS_NOT_AUTHORIZED';
   constructor() {
     super('Not authorized');
   }

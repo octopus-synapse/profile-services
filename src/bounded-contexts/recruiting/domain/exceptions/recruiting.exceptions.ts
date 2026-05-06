@@ -8,14 +8,14 @@
 import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
 
 export class MatchCandidatesInvalidLimitException extends ValidationException {
-  readonly code: string = 'MATCH_CANDIDATES_INVALID_LIMIT';
+  override readonly code: string = 'MATCH_CANDIDATES_INVALID_LIMIT';
   constructor(received: number) {
     super(`limit must be between 1 and 100 (received ${received})`);
   }
 }
 
 export class MatchCandidatesNoCriteriaException extends ValidationException {
-  readonly code: string = 'MATCH_CANDIDATES_NO_CRITERIA';
+  override readonly code: string = 'MATCH_CANDIDATES_NO_CRITERIA';
   constructor() {
     super(
       'At least one matching criterion is required (jobSkills, jobMinEnglish, or jobRemotePolicy)',

@@ -36,7 +36,7 @@ export class ShadowProfileNotFoundException extends DomainException {
  * reassign an existing claim; the UI surfaces an "already merged" toast.
  */
 export class ShadowProfileAlreadyClaimedException extends ConflictException {
-  readonly code: string = 'SHADOW_PROFILE_ALREADY_CLAIMED';
+  override readonly code: string = 'SHADOW_PROFILE_ALREADY_CLAIMED';
   constructor() {
     super('Shadow profile already claimed by another user');
   }

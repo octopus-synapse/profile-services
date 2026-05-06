@@ -9,14 +9,14 @@
 import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
 
 export class CareerGraphStackRequiredException extends ValidationException {
-  readonly code: string = 'CAREER_GRAPH_STACK_REQUIRED';
+  override readonly code: string = 'CAREER_GRAPH_STACK_REQUIRED';
   constructor() {
     super('Career graph requires at least one stack skill to compare cohorts');
   }
 }
 
 export class CareerGraphInvalidMaxBucketsException extends ValidationException {
-  readonly code: string = 'CAREER_GRAPH_INVALID_MAX_BUCKETS';
+  override readonly code: string = 'CAREER_GRAPH_INVALID_MAX_BUCKETS';
   constructor(received: number) {
     super(`maxBuckets must be between 1 and 50 (received ${received})`);
   }

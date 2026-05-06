@@ -4,7 +4,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class SectionFieldKeyRequiredException extends ValidationException {
-  readonly code: string = 'SECTION_FIELD_KEY_REQUIRED';
+  override readonly code: string = 'SECTION_FIELD_KEY_REQUIRED';
   constructor(location: 'top-level' | 'nested' = 'top-level') {
     super(
       location === 'nested'

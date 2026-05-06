@@ -17,35 +17,35 @@ export class PollClosedException extends DomainException {
 }
 
 export class PollAlreadyVotedException extends ConflictException {
-  readonly code: string = 'POLL_ALREADY_VOTED';
+  override readonly code: string = 'POLL_ALREADY_VOTED';
   constructor() {
     super('You have already voted on this poll');
   }
 }
 
 export class CannotDeleteOthersPostException extends ForbiddenException {
-  readonly code: string = 'CANNOT_DELETE_OTHERS_POST';
+  override readonly code: string = 'CANNOT_DELETE_OTHERS_POST';
   constructor() {
     super('You can only delete your own posts');
   }
 }
 
 export class CannotDeleteOthersCommentException extends ForbiddenException {
-  readonly code: string = 'CANNOT_DELETE_OTHERS_COMMENT';
+  override readonly code: string = 'CANNOT_DELETE_OTHERS_COMMENT';
   constructor() {
     super('You can only delete your own comments');
   }
 }
 
 export class PostAlreadyRepostedException extends ConflictException {
-  readonly code: string = 'POST_ALREADY_REPOSTED';
+  override readonly code: string = 'POST_ALREADY_REPOSTED';
   constructor() {
     super('You have already reposted this post');
   }
 }
 
 export class PostAlreadyReportedException extends ConflictException {
-  readonly code: string = 'POST_ALREADY_REPORTED';
+  override readonly code: string = 'POST_ALREADY_REPORTED';
   constructor() {
     super('You have already reported this post');
   }
@@ -84,21 +84,21 @@ export class FileUploadUnavailableException extends DomainException {
 }
 
 export class PostNotFoundException extends EntityNotFoundException {
-  readonly code: string = 'POST_NOT_FOUND';
+  override readonly code: string = 'POST_NOT_FOUND';
   constructor(postId: string) {
     super('Post', postId);
   }
 }
 
 export class PostLikeNotFoundException extends EntityNotFoundException {
-  readonly code: string = 'POST_LIKE_NOT_FOUND';
+  override readonly code: string = 'POST_LIKE_NOT_FOUND';
   constructor(postId: string) {
     super('Like', postId);
   }
 }
 
 export class PostBookmarkNotFoundException extends EntityNotFoundException {
-  readonly code: string = 'POST_BOOKMARK_NOT_FOUND';
+  override readonly code: string = 'POST_BOOKMARK_NOT_FOUND';
   constructor(postId: string) {
     super('Bookmark', postId);
   }

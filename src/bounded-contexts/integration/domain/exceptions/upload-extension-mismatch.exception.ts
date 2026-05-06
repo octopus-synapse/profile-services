@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UploadExtensionMismatchException extends ValidationException {
-  readonly code: string = 'UPLOAD_EXTENSION_MISMATCH';
+  override readonly code: string = 'UPLOAD_EXTENSION_MISMATCH';
   constructor(ext: string, mime: string) {
     super(`File extension .${ext} does not match file type ${mime}`);
   }

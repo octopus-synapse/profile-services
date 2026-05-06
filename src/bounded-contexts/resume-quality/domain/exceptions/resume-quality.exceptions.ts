@@ -15,7 +15,7 @@ export class ResumeQualitySnapshotMissingException extends DomainException {
 
 /** Guard ran without an authenticated user populated on the request. */
 export class ResumeQualityAuthenticatedUserMissingException extends UnauthorizedException {
-  readonly code: string = 'RESUME_QUALITY_AUTHENTICATED_USER_MISSING';
+  override readonly code: string = 'RESUME_QUALITY_AUTHENTICATED_USER_MISSING';
   constructor() {
     super('Authenticated user not present on request');
   }
@@ -23,7 +23,7 @@ export class ResumeQualityAuthenticatedUserMissingException extends Unauthorized
 
 /** Resume quality score is below the threshold required for the action. */
 export class ResumeQualityBelowThresholdException extends ConflictException {
-  readonly code: string = 'RESUME_QUALITY_BELOW_THRESHOLD';
+  override readonly code: string = 'RESUME_QUALITY_BELOW_THRESHOLD';
   constructor(
     public readonly score: number,
     public readonly threshold: number,
@@ -34,7 +34,7 @@ export class ResumeQualityBelowThresholdException extends ConflictException {
 
 /** Resume quality has not been computed yet — the action requires a score. */
 export class ResumeQualityScoreUnavailableException extends ConflictException {
-  readonly code: string = 'RESUME_QUALITY_SCORE_UNAVAILABLE';
+  override readonly code: string = 'RESUME_QUALITY_SCORE_UNAVAILABLE';
   constructor() {
     super('Resume quality has not been computed yet. Trigger a recompute first.');
   }

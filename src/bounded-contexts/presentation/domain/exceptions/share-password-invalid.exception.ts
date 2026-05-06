@@ -6,7 +6,7 @@
 import { ForbiddenException } from '@/shared-kernel/exceptions';
 
 export class SharePasswordInvalidException extends ForbiddenException {
-  readonly code: string = 'SHARE_PASSWORD_INVALID';
+  override readonly code: string = 'SHARE_PASSWORD_INVALID';
   constructor() {
     super('Invalid password');
   }

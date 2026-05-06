@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class GitHubUsernameMissingException extends ValidationException {
-  readonly code: string = 'GITHUB_USERNAME_MISSING';
+  override readonly code: string = 'GITHUB_USERNAME_MISSING';
   constructor() {
     super('No GitHub username found in resume');
   }

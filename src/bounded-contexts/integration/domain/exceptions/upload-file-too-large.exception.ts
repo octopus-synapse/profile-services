@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UploadFileTooLargeException extends ValidationException {
-  readonly code: string = 'UPLOAD_FILE_TOO_LARGE';
+  override readonly code: string = 'UPLOAD_FILE_TOO_LARGE';
   constructor(maxBytes: number) {
     super(`File size exceeds maximum allowed size of ${maxBytes} bytes`);
   }

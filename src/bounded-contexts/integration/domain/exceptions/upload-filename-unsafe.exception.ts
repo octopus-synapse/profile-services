@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UploadFilenameUnsafeException extends ValidationException {
-  readonly code: string = 'UPLOAD_FILENAME_UNSAFE';
+  override readonly code: string = 'UPLOAD_FILENAME_UNSAFE';
   constructor(reason: 'null_bytes' | 'directory_traversal') {
     super(
       reason === 'null_bytes'

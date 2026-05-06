@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class SyncCooldownActiveException extends ValidationException {
-  readonly code: string = 'SYNC_COOLDOWN_ACTIVE';
+  override readonly code: string = 'SYNC_COOLDOWN_ACTIVE';
   constructor(retryAfterMinutes: number) {
     super(`Sync cooldown is active. Try again in ${retryAfterMinutes} minutes`);
   }

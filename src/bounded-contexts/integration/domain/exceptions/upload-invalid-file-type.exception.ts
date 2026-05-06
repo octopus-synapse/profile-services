@@ -7,7 +7,7 @@
 import { ValidationException } from '@/shared-kernel/exceptions';
 
 export class UploadInvalidFileTypeException extends ValidationException {
-  readonly code: string = 'UPLOAD_INVALID_FILE_TYPE';
+  override readonly code: string = 'UPLOAD_INVALID_FILE_TYPE';
   constructor(allowed: string[]) {
     super(`Invalid file type. Allowed types: ${allowed.join(', ')}`);
   }
