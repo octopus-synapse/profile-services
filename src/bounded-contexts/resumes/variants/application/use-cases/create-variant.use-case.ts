@@ -1,7 +1,7 @@
 import { LoggerPort } from '@/shared-kernel';
 import { ResumeAccessDeniedException, ResumeNotFoundException } from '../../../domain/exceptions';
-import type { CreateVariantInput, VariantData } from '../ports/variant-repository.port';
-import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import type { CreateVariantInput, VariantData } from '../../domain/ports/variant-repository.port';
+import { VariantRepositoryPort } from '../../domain/ports/variant-repository.port';
 
 export abstract class BaseResumeReader {
   abstract findById(id: string): Promise<{ id: string; userId: string; isBase: boolean } | null>;

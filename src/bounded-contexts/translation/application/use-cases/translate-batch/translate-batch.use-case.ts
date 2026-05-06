@@ -3,7 +3,7 @@
  * Handles batch translation operations
  */
 
-import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 import type {
   BatchTranslationResult,
   SourceLanguage,

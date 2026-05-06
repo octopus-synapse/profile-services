@@ -8,7 +8,7 @@ import {
   TranslationPayloadTooLargeException,
   UnsupportedLocalePairException,
 } from '../../../domain/exceptions/translation.exceptions';
-import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 import type {
   SourceLanguage,
   TranslationLanguage,

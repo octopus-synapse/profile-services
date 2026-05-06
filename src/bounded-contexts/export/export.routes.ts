@@ -11,6 +11,7 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
+import { FLAG_KEYS } from '@/bounded-contexts/platform/feature-flags/registry/flag-keys';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
@@ -67,7 +68,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     query: ResumePdfQuery,
     response: PresignedDownloadResponseSchema,
-    guards: [{ id: 'feature-flag', metadata: { key: 'resumes.export.pdf' } }],
+    guards: [{ id: 'feature-flag', metadata: { key: FLAG_KEYS.RESUMES_EXPORT_PDF } }],
     openapi: {
       summary: 'Generate resume PDF (returns signed download URL)',
       tags: ['export'],

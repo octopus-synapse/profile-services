@@ -3,7 +3,7 @@
  * Checks if the translation service is available
  */
 
-import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 
 export class CheckTranslationHealthUseCase {
   constructor(private readonly translationService: TranslationCoreService) {}
