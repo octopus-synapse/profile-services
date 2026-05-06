@@ -8,6 +8,7 @@
  * Types: ./locale-resolver.types
  */
 
+import { SECTION_FALLBACK_LABELS } from '../i18n/section-fallback-labels.const';
 import { resolveFieldsForLocale } from './field-translation.helpers';
 import {
   DEFAULT_LOCALE,
@@ -107,9 +108,9 @@ export function resolveSectionTypeForLocale(
     title: resolved.title || sectionType.title,
     description: resolved.description || sectionType.description || '',
     label: resolved.label || sectionType.key,
-    noDataLabel: resolved.noDataLabel || "I don't have items to add",
-    placeholder: resolved.placeholder || 'Add items...',
-    addLabel: resolved.addLabel || 'Add Item',
+    noDataLabel: resolved.noDataLabel || SECTION_FALLBACK_LABELS.noDataLabel,
+    placeholder: resolved.placeholder || SECTION_FALLBACK_LABELS.placeholder,
+    addLabel: resolved.addLabel || SECTION_FALLBACK_LABELS.addLabel,
     iconType: sectionType.iconType,
     icon: sectionType.icon,
     isActive: sectionType.isActive,

@@ -10,6 +10,7 @@
  * Section defaults: ./onboarding-section-defaults.config
  */
 
+import { SECTION_FALLBACK_LABELS } from '@/shared-kernel/i18n/section-fallback-labels.const';
 import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
 import { DEFAULT_SECTION_LABELS, SECTION_ORDER_KEYS } from './onboarding-section-defaults.config';
 import {
@@ -80,9 +81,11 @@ export function buildOnboardingSteps(
 
     const label = dbData?.label || fallback?.label || key;
     const icon = dbData?.icon || fallback?.icon || '📄';
-    const noDataLabel = dbData?.noDataLabel || fallback?.noDataLabel || "I don't have items to add";
-    const placeholder = dbData?.placeholder || fallback?.placeholder || 'Add items...';
-    const addLabel = dbData?.addLabel || fallback?.addLabel || 'Add Item';
+    const noDataLabel =
+      dbData?.noDataLabel || fallback?.noDataLabel || SECTION_FALLBACK_LABELS.noDataLabel;
+    const placeholder =
+      dbData?.placeholder || fallback?.placeholder || SECTION_FALLBACK_LABELS.placeholder;
+    const addLabel = dbData?.addLabel || fallback?.addLabel || SECTION_FALLBACK_LABELS.addLabel;
     const title = dbData?.title || key.replace(/_/g, ' ').replace('v1', '').trim();
     const required = fallback?.required ?? false;
 

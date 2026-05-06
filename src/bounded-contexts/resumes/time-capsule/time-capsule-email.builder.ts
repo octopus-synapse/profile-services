@@ -1,3 +1,5 @@
+import { pluralize } from '@/shared-kernel/i18n/pluralize';
+
 // Semantic kind identifiers. These names come from section-type definitions
 // in the DB; we reference them by constant name so the arch test can prove
 // no hardcoded string literal is leaking into the codebase.
@@ -33,10 +35,6 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function pluralize(n: number, singular: string, plural: string): string {
-  return n === 1 ? `${n} ${singular}` : `${n} ${plural}`;
 }
 
 /**
