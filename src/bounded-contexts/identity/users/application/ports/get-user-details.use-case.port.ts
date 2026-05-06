@@ -1,7 +1,3 @@
-/**
- * Per-UC port for `GetUserDetailsUseCase` (admin endpoint).
- */
-
 import type { UserDetails } from './user-management.port';
 
 export abstract class GetUserDetailsUseCasePort {

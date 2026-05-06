@@ -1,20 +1,3 @@
-/**
- * Validate Username Use Case.
- *
- * Multi-error format + availability check for client-side form display.
- * The signup / change-username UI shows every problem at once so the user
- * fixes them in a single iteration.
- *
- * The UC returns `DomainCode[]` (codes + params) — the route handler
- * localizes each via `localizeDomainCode` against the request's
- * `Accept-Language`. No hardcoded English in this layer (Q8b).
- *
- * Codes match `@packages/i18n/ERROR_DICTIONARY` 1:1 so the catalog is the
- * single source of truth for both this UC and any thrown
- * `DomainException` that uses the same code (e.g.
- * `UsernameTakenException`).
- */
-
 import { domainCode } from '@/shared-kernel/i18n/localize-domain-code';
 import { RESERVED_USERNAMES_SET } from '../../../domain/value-objects/reserved-usernames.const';
 import { UsernameRepositoryPort } from '../../ports/username.port';
@@ -69,8 +52,6 @@ function collectFormatErrors(trimmed: string): ReturnType<typeof domainCode>[] {
     errors.push(domainCode('USERNAME_TOO_LONG', { max: MAX_LENGTH }));
   }
 
-  // Format checks past length are guarded so a 0-char input doesn't fire
-  // every regex error at once and drown out the actionable signal.
   if (normalized.length >= MIN_LENGTH && !/^[a-z0-9_]+$/.test(normalized)) {
     errors.push(domainCode('USERNAME_INVALID_FORMAT'));
   }

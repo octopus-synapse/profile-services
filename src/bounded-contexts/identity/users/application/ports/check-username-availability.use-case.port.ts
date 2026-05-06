@@ -1,11 +1,3 @@
-/**
- * Per-UC port for `CheckUsernameAvailabilityUseCase`.
- *
- * The result is the binary "is this name claimable" plus the structured
- * reason for non-availability so the UI can render a tailored hint
- * without re-running the format check client-side.
- */
-
 export type UsernameUnavailableReason = 'taken' | 'reserved' | 'invalid_format';
 
 export interface UsernameAvailability {

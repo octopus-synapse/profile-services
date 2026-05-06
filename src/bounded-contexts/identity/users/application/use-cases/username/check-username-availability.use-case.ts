@@ -1,16 +1,3 @@
-/**
- * Check Username Availability Use Case.
- *
- * Lighter-weight cousin of `ValidateUsernameUseCase`: returns a single
- * `{ available, reason? }` shape that the UI uses for the live
- * availability indicator on the username field. When the form needs the
- * full multi-error breakdown (signup, change-username), prefer the
- * validate UC.
- *
- * Format and reserved-name checks happen first to short-circuit before
- * paying a DB roundtrip; only well-formed names hit the repository.
- */
-
 import { RESERVED_USERNAMES_SET } from '../../../domain/value-objects/reserved-usernames.const';
 import {
   CheckUsernameAvailabilityUseCasePort,
