@@ -74,12 +74,12 @@ describe('GetShareBySlugUseCase', () => {
 
   describe('getResumeWithCache', () => {
     it('should return cached resume when available', async () => {
-      const cachedResume = { id: 'resume-123', title: 'Cached' };
+      const cachedResume: unknown = { id: 'resume-123', title: 'Cached' };
       cache.get = mock(() => Promise.resolve(cachedResume));
 
       const result = await useCase.getResumeWithCache('resume-123');
 
-      expect(result).toEqual(cachedResume);
+      expect(result).toEqual(cachedResume as never);
       expect(cache.get).toHaveBeenCalledWith('public:resume:resume-123');
       expect(resumeRepo.findByIdWithSections).not.toHaveBeenCalled();
     });

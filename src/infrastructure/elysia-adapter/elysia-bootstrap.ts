@@ -417,13 +417,15 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   );
   resumeAnalytics.registerCron(cron, distributedLock);
 
-  // Feed needs notifications.useCases.createNotification + s3.
+  // Feed needs notifications.useCases.createNotification + s3 + cache
+  // (P1-028 — short-window cache around the timeline assemble).
   const feed = buildFeedComposition(
     prisma as never,
     logger,
     s3,
     { createNotification: notifications.useCases.createNotification },
     safeFetch,
+    cache,
   );
 
   // Jobs needs llm + resumeAnalytics facade + email + eventBus.
