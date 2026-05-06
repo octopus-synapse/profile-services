@@ -13,6 +13,7 @@
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { UsernameValidationErrorSchema } from '@/shared-kernel/schemas/user/user.schema';
 
 // ─── Response schemas ────────────────────────────────────────────────
 // `UserProfile` from `application/ports/user-profile.port`. JSON-serialized
@@ -49,6 +50,21 @@ export const CheckUsernameResponseSchema = z.object({
   username: z.string(),
   available: z.boolean(),
   reason: z.enum(['taken', 'reserved', 'invalid_format']).optional(),
+});
+
+// POST /v1/users/username/validate — multi-error validation for client
+// forms. Codes match `@packages/i18n/ERROR_DICTIONARY`; the route handler
+// localizes each via `localizeDomainCodes` against `Accept-Language` so
+// the `message` field is always pre-translated.
+export const ValidateUsernameRequestBodySchema = z.object({
+  username: z.string(),
+});
+
+export const ValidateUsernameResponseSchema = z.object({
+  username: z.string(),
+  valid: z.boolean(),
+  available: z.boolean().optional(),
+  errors: z.array(UsernameValidationErrorSchema),
 });
 
 export const BasicPreferencesShape = z.object({

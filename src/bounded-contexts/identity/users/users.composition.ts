@@ -1,24 +1,25 @@
 /**
  * Pure-TS wiring for the identity/users BC. Zero `@nestjs/*` imports.
  *
- * Uses the existing per-feature compositions
- * (`user-profile.composition.ts`, `user-preferences.composition.ts`,
- * `username.composition.ts`, `user-management.composition.ts`) plus
- * the BC's own facade services (`UsernameService`, `UserManagementService`).
+ * Per ADR-002, the BC exposes use cases (not service facades). The
+ * username submodule was the first to be decomposed: the legacy
+ * UsernameService is gone and routes now reach update/check/validate
+ * UCs directly via `bundle.useCases.<name>`.
  *
  * Cross-BC dependency: `authorization` (the AuthorizationService from
  * the authorization BC) — both `UsersHttpBundle` and the
- * `UserManagementService` consume it.
+ * `UserManagementService` consume it. The split into a
+ * `AuthorizationCheckPort` lives in a later commit.
  */
 
 import type { AuthorizationService } from '@/bounded-contexts/identity/authorization/application/services/authorization.service';
+import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import { UserManagementService } from './application/services/user-management.service';
-import { UsernameService } from './application/services/username.service';
 import {
   buildUserManagementUseCases,
   UserManagementUseCases,
@@ -31,7 +32,10 @@ import {
   buildUserProfileUseCases,
   UserProfileUseCases,
 } from './application/user-profile.composition';
-import { buildUsernameUseCases, UsernameUseCases } from './application/username.composition';
+import {
+  buildUsernameUseCases,
+  type UsernameUseCasesBundle,
+} from './application/username.composition';
 import {
   UserMutationRepository,
   UserQueryRepository,
@@ -45,9 +49,8 @@ export interface UsersUseCases {
   readonly bundle: UsersHttpBundle;
   readonly profile: UserProfileUseCases;
   readonly preferences: UserPreferencesUseCases;
-  readonly username: UsernameUseCases;
+  readonly username: UsernameUseCasesBundle;
   readonly management: UserManagementUseCases;
-  readonly usernameService: UsernameService;
   readonly userManagementService: UserManagementService;
   readonly usersRepository: UsersRepository;
 }
@@ -56,6 +59,7 @@ export function buildUsersUseCases(
   prisma: PrismaService,
   resumesRepository: ResumesRepository,
   authorization: AuthorizationService,
+  i18n: TranslationPort,
   logger: LoggerPort,
 ): UsersUseCases {
   // Repositories.
@@ -76,14 +80,15 @@ export function buildUsersUseCases(
     logger,
   );
 
-  // Facades that route handlers depend on.
-  const usernameService = new UsernameService(username, usersRepository, logger);
+  // Facades that route handlers depend on (UserManagementService is
+  // decomposed into UCs in a follow-up commit).
   const userManagementService = new UserManagementService(management, authorization);
 
   const bundle: UsersHttpBundle = {
     profile,
     preferences,
-    usernameService,
+    useCases: { ...username },
+    i18n,
     authorization,
     userManagement: userManagementService,
   };
@@ -94,7 +99,6 @@ export function buildUsersUseCases(
     preferences,
     username,
     management,
-    usernameService,
     userManagementService,
     usersRepository,
   };
@@ -104,9 +108,10 @@ export function buildUsersComposition(
   prisma: PrismaService,
   resumesRepository: ResumesRepository,
   authorization: AuthorizationService,
+  i18n: TranslationPort,
   logger: LoggerPort,
 ): BoundedContextComposition<UsersHttpBundle> {
-  const useCases = buildUsersUseCases(prisma, resumesRepository, authorization, logger);
+  const useCases = buildUsersUseCases(prisma, resumesRepository, authorization, i18n, logger);
 
   return {
     useCases: useCases.bundle,

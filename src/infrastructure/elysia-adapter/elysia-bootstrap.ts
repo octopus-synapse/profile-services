@@ -621,6 +621,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     prisma as never,
     resumesRepository,
     authorization.authService as never,
+    i18n.translation,
     logger,
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;

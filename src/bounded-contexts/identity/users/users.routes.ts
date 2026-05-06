@@ -11,8 +11,10 @@
  */
 
 import { z } from 'zod';
+import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { localizeDomainCodes } from '@/shared-kernel/i18n/localize-domain-code';
 import { UpdateUserSchema } from '@/shared-kernel/schemas/user/user.schema';
 import {
   UpdateFullPreferencesSchema,
@@ -53,6 +55,8 @@ import {
   UserIdParam,
   UsernameParam,
   UserProfileResponseSchema,
+  ValidateUsernameRequestBodySchema,
+  ValidateUsernameResponseSchema,
 } from './users.routes.schemas';
 
 export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
@@ -161,7 +165,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdateUsernameSchema>;
-      const result = await bundle.usernameService.updateUsername(ctx.user!.userId, body);
+      const result = await bundle.useCases.updateUsername.execute(ctx.user!.userId, body.username);
       return { username: result.username, message: 'Username updated successfully' };
     },
   },
@@ -180,7 +184,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof CheckUsernameQuery>;
-      const availability = await bundle.usernameService.checkUsernameAvailability(
+      const availability = await bundle.useCases.checkUsernameAvailability.execute(
         q.username,
         ctx.user!.userId,
       );
@@ -188,6 +192,43 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         username: availability.username,
         available: availability.available,
         ...(availability.reason ? { reason: availability.reason } : {}),
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/users/username/validate',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_READ,
+    body: ValidateUsernameRequestBodySchema,
+    response: ValidateUsernameResponseSchema,
+    openapi: {
+      summary: 'Validate username (multi-error breakdown for client forms)',
+      tags: ['users'],
+      description:
+        'Returns every format/availability problem at once. Each error carries a stable `code` plus a `message` already localized via the request `Accept-Language` header.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as z.infer<typeof ValidateUsernameRequestBodySchema>;
+      const result = await bundle.useCases.validateUsername.execute(
+        body.username,
+        ctx.user!.userId,
+      );
+      const { locale } = negotiateLocale(
+        Array.isArray(ctx.headers['accept-language'])
+          ? ctx.headers['accept-language'][0]
+          : ctx.headers['accept-language'],
+      );
+      return {
+        username: result.username,
+        valid: result.valid,
+        ...(result.available !== undefined ? { available: result.available } : {}),
+        errors: localizeDomainCodes(result.errors, bundle.i18n, locale).map((e) => ({
+          code: e.code as z.infer<typeof ValidateUsernameResponseSchema>['errors'][number]['code'],
+          ...(e.params ? { params: e.params } : {}),
+          message: e.message,
+        })),
       };
     },
   },

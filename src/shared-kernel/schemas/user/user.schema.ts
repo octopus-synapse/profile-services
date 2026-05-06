@@ -100,20 +100,30 @@ export const ValidateUsernameRequestSchema = z.object({ username: z.string().tri
 export type ValidateUsernameRequest = z.infer<typeof ValidateUsernameRequestSchema>;
 
 /**
- * Username Validation Error
+ * Username Validation Error.
+ *
+ * Codes match catalog keys in `@packages/i18n/ERROR_DICTIONARY` 1:1 so
+ * the route handler can resolve `message` via `i18n.translate(code, ...)`
+ * using the request's `Accept-Language` (Q8b in CLAUDE.md). The use case
+ * returns these codes via `DomainCode[]`; the route handler enriches
+ * them with the localized `message` before returning.
+ *
+ * `params` carries the template arguments (e.g. `{ min: 3 }` for
+ * `USERNAME_TOO_SHORT`).
  */
 export const UsernameValidationErrorSchema = z.object({
   code: z.enum([
-    'TOO_SHORT',
-    'TOO_LONG',
-    'INVALID_FORMAT',
-    'INVALID_START',
-    'INVALID_END',
-    'CONSECUTIVE_UNDERSCORES',
-    'RESERVED',
-    'UPPERCASE',
-    'ALREADY_TAKEN',
+    'USERNAME_TOO_SHORT',
+    'USERNAME_TOO_LONG',
+    'USERNAME_INVALID_FORMAT',
+    'USERNAME_INVALID_START',
+    'USERNAME_INVALID_END',
+    'USERNAME_CONSECUTIVE_UNDERSCORES',
+    'USERNAME_RESERVED',
+    'USERNAME_MUST_BE_LOWERCASE',
+    'USERNAME_TAKEN',
   ]),
+  params: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
   message: z.string(),
 });
 

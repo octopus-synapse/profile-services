@@ -6,65 +6,12 @@
  */
 
 import { z } from 'zod';
+import { RESERVED_USERNAMES } from '../value-objects/reserved-usernames.const';
 
-/**
- * Reserved Usernames
- *
- * System routes and protected identifiers.
- * Cannot be claimed by users.
- */
-export const RESERVED_USERNAMES = [
-  // System routes
-  'admin',
-  'api',
-  'app',
-  'assets',
-  'auth',
-  'blog',
-  'callback',
-  'cdn',
-  'dashboard',
-  'dev',
-  'docs',
-  'health',
-  'help',
-  'legal',
-  'login',
-  'logout',
-  'mail',
-  'me',
-  'oauth',
-  'onboarding',
-  'ping',
-  'pricing',
-  'privacy',
-  'private',
-  'profile',
-  'public',
-  'register',
-  'root',
-  'settings',
-  'signin',
-  'signup',
-  'static',
-  'status',
-  'support',
-  'system',
-  'terms',
-  'test',
-  'webhook',
-  'webhooks',
-  'www',
-  // Common protected names
-  'about',
-  'contact',
-  'home',
-  'index',
-  'null',
-  'undefined',
-  'user',
-  'users',
-] as const;
+// Re-exported for back-compat with code that imports the list via the
+// schema barrel (e.g. shared-kernel/schemas/primitives/index.ts). The
+// canonical home is `domain/value-objects/reserved-usernames.const.ts`.
+export { RESERVED_USERNAMES };
 
 /**
  * Username Format Schema

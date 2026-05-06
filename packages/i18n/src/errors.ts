@@ -1149,17 +1149,29 @@ export const ERROR_DICTIONARY = {
     en: 'Username cannot contain consecutive underscores or end with an underscore',
     'pt-BR': 'O nome de usuário não pode ter underscores consecutivos nem terminar com underscore',
   },
+  USERNAME_CONSECUTIVE_UNDERSCORES: {
+    en: 'Username cannot contain consecutive underscores',
+    'pt-BR': 'O nome de usuário não pode conter underscores consecutivos',
+  },
   USERNAME_COOLDOWN_ACTIVE: {
     en: 'Username cooldown active. Try again later.',
     'pt-BR': 'Cooldown do nome de usuário ativo. Tente novamente mais tarde.',
   },
+  USERNAME_INVALID_END: {
+    en: 'Username must end with a letter or number',
+    'pt-BR': 'O nome de usuário precisa terminar com uma letra ou número',
+  },
   USERNAME_INVALID_FORMAT: {
-    en: 'Invalid username format',
-    'pt-BR': 'Formato de nome de usuário inválido',
+    en: 'Username can only contain lowercase letters, numbers, and underscores',
+    'pt-BR': 'O nome de usuário só pode conter letras minúsculas, números e sublinhados',
+  },
+  USERNAME_INVALID_START: {
+    en: 'Username must start with a letter',
+    'pt-BR': 'O nome de usuário precisa começar com uma letra',
   },
   USERNAME_MUST_BE_LOWERCASE: {
-    en: 'Username must be lowercase',
-    'pt-BR': 'O nome de usuário precisa estar em minúsculas',
+    en: 'Username must contain only lowercase letters',
+    'pt-BR': 'O nome de usuário só pode conter letras minúsculas',
   },
   USERNAME_RESERVED: {
     en: 'This username is reserved',
@@ -1168,6 +1180,14 @@ export const ERROR_DICTIONARY = {
   USERNAME_TAKEN: {
     en: 'Username already in use',
     'pt-BR': 'Nome de usuário já está em uso',
+  },
+  USERNAME_TOO_LONG: {
+    en: 'Username cannot exceed {max} characters',
+    'pt-BR': 'O nome de usuário não pode exceder {max} caracteres',
+  },
+  USERNAME_TOO_SHORT: {
+    en: 'Username must be at least {min} characters',
+    'pt-BR': 'O nome de usuário precisa ter pelo menos {min} caracteres',
   },
   VALIDATION_ERROR: {
     en: 'Validation failed',

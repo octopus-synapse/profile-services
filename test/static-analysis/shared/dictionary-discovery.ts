@@ -29,6 +29,9 @@ const KNOWN_DOMAIN_EXCEPTION_BASES = new Set([
 
 const CLASS_DECL_RE = /export\s+(abstract\s+)?class\s+(\w+)\s+extends\s+([A-Za-z_][\w]*)/g;
 const CODE_LITERAL_RE = /readonly\s+code(?:\s*:\s*string)?\s*=\s*['"]([A-Z][A-Z0-9_]*)['"]/;
+// `domainCode('CODE', ...)` calls — the canonical builder for non-throwable
+// catalog emissions (validation results, etc — see Q8b in CLAUDE.md).
+const DOMAIN_CODE_CALL_RE = /\bdomainCode\(\s*['"]([A-Z][A-Z0-9_]*)['"]/g;
 const PRISMA_ENUM_RE = /^enum\s+(\w+)\s*\{([\s\S]*?)\}/gm;
 const NOTIFICATION_ENUM_RE = /enum\s+NotificationType\s*\{([\s\S]*?)\}/;
 const ENUM_VALUE_RE = /^[A-Z][A-Z0-9_]*$/;
@@ -86,25 +89,48 @@ function extractClassBody(src: string, from: number): string {
 }
 
 /**
- * Scan every `.ts` source file for concrete `DomainException` subclasses
- * and return the set of `code` literals they declare.
+ * Scan every `.ts` source file for codes the application emits to the
+ * i18n catalog. Two emission paths today:
+ *
+ *   1. `class XxxException extends DomainException { readonly code = 'CODE' }`
+ *      — thrown, caught by error.mapper, translated for the response.
+ *   2. `domainCode('CODE', { ...params })` calls — the non-throwable
+ *      builder used by validation results returned in 200 bodies (Q8b).
+ *
+ * Both paths land at `i18n.translate(code, params, locale)`, so the
+ * parity test must consider both as legitimate emitters before flagging
+ * a dictionary entry as orphan.
  */
 export function discoverErrorCodes(sourceRoot: string): Set<string> {
   const codes = new Set<string>();
   for (const file of listSourceFiles(sourceRoot)) {
     const src = fs.readFileSync(file, 'utf8');
-    if (!src.includes('extends ')) continue;
-    CLASS_DECL_RE.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while (true) {
-      match = CLASS_DECL_RE.exec(src);
-      if (!match) break;
-      const [, isAbstract, , parent] = match;
-      if (isAbstract) continue;
-      if (!KNOWN_DOMAIN_EXCEPTION_BASES.has(parent)) continue;
-      const body = extractClassBody(src, match.index);
-      const code = body.match(CODE_LITERAL_RE)?.[1];
-      if (code) codes.add(code);
+
+    // (1) DomainException subclasses.
+    if (src.includes('extends ')) {
+      CLASS_DECL_RE.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while (true) {
+        match = CLASS_DECL_RE.exec(src);
+        if (!match) break;
+        const [, isAbstract, , parent] = match;
+        if (isAbstract) continue;
+        if (!KNOWN_DOMAIN_EXCEPTION_BASES.has(parent)) continue;
+        const body = extractClassBody(src, match.index);
+        const code = body.match(CODE_LITERAL_RE)?.[1];
+        if (code) codes.add(code);
+      }
+    }
+
+    // (2) `domainCode('CODE', ...)` builder calls.
+    if (src.includes('domainCode(')) {
+      DOMAIN_CODE_CALL_RE.lastIndex = 0;
+      let dcMatch: RegExpExecArray | null;
+      while (true) {
+        dcMatch = DOMAIN_CODE_CALL_RE.exec(src);
+        if (!dcMatch) break;
+        codes.add(dcMatch[1]);
+      }
     }
   }
   return codes;
