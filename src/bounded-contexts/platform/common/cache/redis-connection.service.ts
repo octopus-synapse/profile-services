@@ -4,6 +4,7 @@
  */
 
 import Redis from 'ioredis';
+import type { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
@@ -16,10 +17,17 @@ export class RedisConnectionService implements Lifecycle {
   private _client: Redis | null = null;
   private _isEnabled: boolean;
 
-  constructor(private readonly logger: LoggerPort) {
-    const redisHost = process.env.REDIS_HOST;
-    const redisPort = parseInt(process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT), 10);
-    const redisPassword = process.env.REDIS_PASSWORD;
+  // P1-031 — `config` is optional so callers that haven't been
+  // updated yet keep falling back to `process.env`. The bootstrap
+  // wires the canonical `ProcessEnvConfigAdapter` here.
+  constructor(
+    private readonly logger: LoggerPort,
+    private readonly config?: ConfigPort,
+  ) {
+    const redisHost = this.readEnv('REDIS_HOST');
+    const redisPortRaw = this.readEnv('REDIS_PORT') ?? String(REDIS_DEFAULT_PORT);
+    const redisPort = parseInt(redisPortRaw, 10);
+    const redisPassword = this.readEnv('REDIS_PASSWORD');
 
     this._isEnabled = !!redisHost;
 
@@ -28,6 +36,13 @@ export class RedisConnectionService implements Lifecycle {
     } else {
       this.logger.warn('Redis not configured - caching disabled', 'RedisConnectionService');
     }
+  }
+
+  private readEnv(key: string): string | undefined {
+    if (this.config) {
+      return this.config.get<string>(key) ?? undefined;
+    }
+    return process.env[key];
   }
 
   private initializeClient(host: string, port: number, password?: string): void {
@@ -63,7 +78,7 @@ export class RedisConnectionService implements Lifecycle {
   async dispose(): Promise<void> {
     // In test environment, don't destroy the connection as tests share the app instance
     // and destroying the connection breaks subsequent tests
-    if (process.env.NODE_ENV === 'test') {
+    if ((this.readEnv('NODE_ENV') ?? '') === 'test') {
       return;
     }
 

@@ -101,6 +101,7 @@ export function buildAuthenticationUseCases(
     tokenGenerator,
     sessionStorage,
     logger,
+    config,
   );
   const terminateSession = new TerminateSessionUseCase(
     tokenGenerator,

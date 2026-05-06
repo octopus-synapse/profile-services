@@ -219,7 +219,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // deploys MUST set REDIS_HOST or this becomes a silent footgun.
   // The connection is registered with `lifecycles` below once that
   // array exists; the same instance is reused by feature-flags too.
-  const sharedRedis = new RedisConnectionService(logger as never);
+  // P1-031 — pass the canonical ConfigPort so the service stops
+  // reaching for `process.env.REDIS_*` directly. Falls back to
+  // `process.env` only if the call site doesn't pass the port.
+  const sharedRedis = new RedisConnectionService(logger as never, config);
   const distributedLock = new RedisDistributedLockAdapter(sharedRedis, logger);
   // P0-004: ownership registry — composition root populates per-BC
   // lookups below; the pipeline `ownershipGuard` stage consults this
@@ -540,7 +543,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // its own retry timers).
   const redisConnection = sharedRedis;
   lifecycles.push(redisConnection);
-  const featureFlagsCache = new RedisFlagCache(redisConnection, logger as never);
+  const featureFlagsCache = new RedisFlagCache(redisConnection, logger as never, config);
   const featureFlagsSse = new SseFlagStream(featureFlagsCache);
   const featureFlags = buildFeatureFlagsComposition({
     prisma: prisma as never,
@@ -888,16 +891,31 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // CORS + security-header defaults are wired here so they apply to
   // every route uniformly. Origin allowlist is environment-driven —
   // wildcard is rejected outside development to avoid the
-  // OWASP A05 misconfiguration.
+  // OWASP A05 misconfiguration (P1-029).
   const app = new Elysia();
   const corsOrigin = config.getOrDefault<string>('CORS_ORIGIN', '');
   const allowedOrigins = corsOrigin
     .split(',')
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+  const isProduction = config.get('NODE_ENV') === 'production';
+  // P1-029 — fail-closed when `CORS_ORIGIN` is empty in non-dev. The
+  // previous default `origin: true` echoed any caller's `Origin` back
+  // and let credentialed cross-site requests through. In production we
+  // now reject every cross-origin request (`origin: false`) until an
+  // explicit allowlist is provisioned. Dev keeps the wildcard so local
+  // tooling (Postman, Storybook on a different port) just works.
+  const corsOriginConfig: string[] | true | false =
+    allowedOrigins.length > 0 ? allowedOrigins : isProduction ? false : true;
+  if (allowedOrigins.length === 0 && isProduction) {
+    logger.warn(
+      'CORS_ORIGIN not set in production — rejecting all cross-origin requests',
+      'ElysiaBootstrap',
+    );
+  }
   enableCors(app, {
-    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
-    isProduction: config.get('NODE_ENV') === 'production',
+    origin: corsOriginConfig,
+    isProduction,
   });
   applySecurityHeaders(app);
   for (const bc of [

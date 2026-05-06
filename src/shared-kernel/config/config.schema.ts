@@ -118,6 +118,11 @@ export const EnvConfigSchema = z.object({
   PUBLIC_APP_URL: OptionalUrl,
   API_BASE_URL: OptionalUrl,
   UI_BASE_URL: OptionalUrl,
+  // P1-032 — APP_URL is the canonical link base for outbound emails
+  // (password reset, verification). Optional in the schema so dev
+  // boots don't break, but the email sender refuses to operate
+  // without it (see `EmailPasswordResetSender`).
+  APP_URL: OptionalUrl,
   APP_VERSION: z.string().optional(),
 
   // --- CORS / WebSocket origin allowlist ---
