@@ -349,9 +349,12 @@ describe('registerChatWebSocketHandlers', () => {
   // -------------------------- typing:stop ----------------------------------
 
   describe('typing:stop', () => {
-    it('broadcasts typing stop excluding sender', () => {
+    it('broadcasts typing stop excluding sender for participants', async () => {
+      // P1-043 — `typing:stop` now consults `isParticipant` like
+      // `typing:start`. The seeded conversation has user-1 + user-2
+      // so the call passes through and emits.
       const handler = wsCtl.state.messageHandlers.get('typing:stop');
-      handler?.({
+      await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -362,6 +365,22 @@ describe('registerChatWebSocketHandlers', () => {
       );
       expect(emit?.kind).toBe('roomExcept');
       expect(emit?.target).toBe('conversation:conv-1');
+    });
+
+    it('blocks non-participants from broadcasting typing:stop', async () => {
+      const handler = wsCtl.state.messageHandlers.get('typing:stop');
+      // user-3 is not seeded into conv-1 — repo says false, handler
+      // refuses to emit.
+      await handler?.({
+        userId: 'user-3',
+        socketId: 'sock-3',
+        payload: { conversationId: 'conv-1' },
+      });
+
+      const stopEmit = wsCtl.state.emits.find(
+        (e) => e.event === 'typing' && (e.payload as { isTyping: boolean }).isTyping === false,
+      );
+      expect(stopEmit).toBeUndefined();
     });
   });
 

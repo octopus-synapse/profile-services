@@ -1,6 +1,8 @@
+import { z } from 'zod';
 import type { JwtPort } from '@/shared-kernel/auth';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
+import { validateWsMessage } from '@/shared-kernel/websocket/ws-message-schema';
 import type {
   WebSocketNamespace,
   WebSocketPort,
@@ -10,6 +12,19 @@ import type { ChatUseCases } from '../application/ports/chat.port';
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';
 import type { ChatCacheService } from '../services/chat-cache.service';
+
+// P1-038 — Zod schemas for every WS event the chat handler accepts.
+// Without them the handlers cast `unknown` payloads and a malformed
+// frame crashes the namespace (or — worse — passes a `null` straight
+// into `chat.sendMessageToConversationUseCase`). We don't constrain
+// `conversationId` to a strict UUID format here because the repo
+// lookup already rejects unknown ids — the goal at this layer is
+// "shape + length", not "strong identifier validation".
+const ConversationIdSchema = z.object({ conversationId: z.string().min(1).max(64) });
+const SendMessageSchema = z.object({
+  conversationId: z.string().min(1).max(64),
+  content: z.string().min(1).max(8_000),
+});
 
 const CTX = 'ChatHandlers';
 
@@ -141,35 +156,43 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
     logger.log(`User ${userId} disconnected (socket: ${socketId})`, CTX);
   });
 
-  namespace.on<SendMessageToConversation>('message:send', async ({ userId, payload }) => {
-    try {
-      const message = await chat.sendMessageToConversationUseCase.execute(
-        userId,
-        payload.conversationId,
-        payload.content,
-      );
-      namespace.toRoom(`conversation:${payload.conversationId}`, 'message:new', {
-        id: message.id,
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-        content: message.content,
-        createdAt: message.createdAt,
-        isRead: message.isRead,
-      });
-      return { success: true, message };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error(`Failed to send message in ${payload.conversationId}: ${errorMessage}`, {
-        context: CTX,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      return { success: false, error: errorMessage };
-    }
-  });
+  // P1-038 — every WS handler now flows through `validateWsMessage`
+  // so the payload is Zod-parsed before the handler body runs.
+  // Malformed frames are silently dropped (the validator throws a
+  // typed `WsValidationError`; the WS adapter logs and replies with
+  // an error envelope rather than crashing the namespace).
+  namespace.on<SendMessageToConversation>(
+    'message:send',
+    validateWsMessage(SendMessageSchema, async ({ userId, payload }) => {
+      try {
+        const message = await chat.sendMessageToConversationUseCase.execute(
+          userId,
+          payload.conversationId,
+          payload.content,
+        );
+        namespace.toRoom(`conversation:${payload.conversationId}`, 'message:new', {
+          id: message.id,
+          conversationId: message.conversationId,
+          senderId: message.senderId,
+          content: message.content,
+          createdAt: message.createdAt,
+          isRead: message.isRead,
+        });
+        return { success: true, message };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error(`Failed to send message in ${payload.conversationId}: ${errorMessage}`, {
+          context: CTX,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        return { success: false, error: errorMessage };
+      }
+    }),
+  );
 
   namespace.on<{ conversationId: string }>(
     'typing:start',
-    async ({ userId, socketId, payload }) => {
+    validateWsMessage(ConversationIdSchema, async ({ userId, socketId, payload }) => {
       const isParticipant = await conversationRepo.isParticipant(payload.conversationId, userId);
       if (!isParticipant) return;
 
@@ -178,20 +201,29 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
         userId,
         isTyping: true,
       } satisfies WsTypingEvent);
-    },
+    }),
   );
 
-  namespace.on<{ conversationId: string }>('typing:stop', ({ userId, socketId, payload }) => {
-    namespace.toRoomExcept(socketId, `conversation:${payload.conversationId}`, 'typing', {
-      conversationId: payload.conversationId,
-      userId,
-      isTyping: false,
-    } satisfies WsTypingEvent);
-  });
+  // P1-043 — `typing:stop` previously skipped the participant check;
+  // a malicious client could broadcast typing events into any
+  // conversation room they knew the id of. Mirror `typing:start`.
+  namespace.on<{ conversationId: string }>(
+    'typing:stop',
+    validateWsMessage(ConversationIdSchema, async ({ userId, socketId, payload }) => {
+      const isParticipant = await conversationRepo.isParticipant(payload.conversationId, userId);
+      if (!isParticipant) return;
+
+      namespace.toRoomExcept(socketId, `conversation:${payload.conversationId}`, 'typing', {
+        conversationId: payload.conversationId,
+        userId,
+        isTyping: false,
+      } satisfies WsTypingEvent);
+    }),
+  );
 
   namespace.on<{ conversationId: string }>(
     'message:read',
-    async ({ userId, socketId, payload }) => {
+    validateWsMessage(ConversationIdSchema, async ({ userId, socketId, payload }) => {
       try {
         await chat.markConversationReadUseCase.execute(userId, payload.conversationId);
         namespace.toRoomExcept(
@@ -213,25 +245,34 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
         );
         return { success: false, error: errorMessage };
       }
-    },
+    }),
   );
 
   namespace.on<{ conversationId: string }>(
     'conversation:join',
-    async ({ userId, socketId, payload }) => {
+    validateWsMessage(ConversationIdSchema, async ({ userId, socketId, payload }) => {
       const isParticipant = await conversationRepo.isParticipant(payload.conversationId, userId);
       if (!isParticipant) {
         return { success: false, error: 'Not a participant' };
       }
       await namespace.joinRoom(socketId, `conversation:${payload.conversationId}`);
       return { success: true };
-    },
+    }),
   );
 
-  namespace.on<{ conversationId: string }>('conversation:leave', async ({ socketId, payload }) => {
-    await namespace.leaveRoom(socketId, `conversation:${payload.conversationId}`);
-    return { success: true };
-  });
+  // P1-043 — `conversation:leave` was idempotent at the room level
+  // but lacked an isParticipant check; a non-participant could probe
+  // existence by attempting to leave. Reject early so the handler
+  // doesn't reveal anything about rooms the user shouldn't see.
+  namespace.on<{ conversationId: string }>(
+    'conversation:leave',
+    validateWsMessage(ConversationIdSchema, async ({ userId, socketId, payload }) => {
+      const isParticipant = await conversationRepo.isParticipant(payload.conversationId, userId);
+      if (!isParticipant) return { success: false, error: 'Not a participant' };
+      await namespace.leaveRoom(socketId, `conversation:${payload.conversationId}`);
+      return { success: true };
+    }),
+  );
 
   const isUserOnline = (userId: string): boolean => {
     const set = userSockets.get(userId);

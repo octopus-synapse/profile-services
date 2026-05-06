@@ -51,6 +51,17 @@ interface ClientFrame {
   readonly ack?: string;
 }
 
+/**
+ * P1-040 — cap inbound WS frame size at 64KB. Bun's ServerWebSocket
+ * doesn't enforce a maxPayloadLength at the protocol level (it
+ * inherits Bun's defaults, currently 16MB), so a hostile client could
+ * pump 10MB JSON frames that block the parse loop. 64KB is well above
+ * the largest legitimate chat payload (8K char content + metadata
+ * overhead) and small enough that even thousands of malicious frames
+ * stay within sensible memory bounds.
+ */
+const WS_MAX_PAYLOAD_BYTES = 64 * 1024;
+
 interface ServerFrame {
   readonly event: string;
   readonly payload: unknown;
@@ -216,6 +227,21 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
         for (const h of state.connectHandlers) void h(conn);
       },
       async message(ws: ServerWebSocket<SocketState>, rawMessage: string | Buffer) {
+        // P1-040 — drop oversize frames before they hit the JSON
+        // parser. Bun keeps the upstream limit at 16MB by default;
+        // we tighten it to 64KB at the application layer.
+        const byteLength =
+          typeof rawMessage === 'string'
+            ? Buffer.byteLength(rawMessage, 'utf8')
+            : rawMessage.byteLength;
+        if (byteLength > WS_MAX_PAYLOAD_BYTES) {
+          adapter.logger?.warn(
+            `WS frame dropped: ${byteLength} bytes exceeds ${WS_MAX_PAYLOAD_BYTES} cap`,
+            'ElysiaWebSocketAdapter',
+          );
+          ws.close(1009, 'Payload too large'); // 1009 = "Message too big"
+          return;
+        }
         const text = typeof rawMessage === 'string' ? rawMessage : rawMessage.toString('utf8');
         let frame: ClientFrame;
         try {
