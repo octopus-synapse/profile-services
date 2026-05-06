@@ -92,9 +92,14 @@ model PostComment {
   parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies  PostComment[] @relation("CommentReplies")
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isDeleted Boolean   @default(false)
+  // P1-067 — `deletedAt` complements the boolean so the audit trail
+  // records WHEN the comment was soft-deleted, not just THAT it
+  // was. Old rows stay null (no information loss); new soft-deletes
+  // populate it via the `MarkPostCommentDeletedUseCase`.
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([postId, createdAt])
   @@index([parentId])

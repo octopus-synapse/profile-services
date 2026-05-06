@@ -49,9 +49,10 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
   }
 
   async markCommentDeleted(id: string): Promise<Comment> {
+    // P1-067 — record the soft-delete timestamp alongside the flag.
     return (await this.prisma.postComment.update({
       where: { id },
-      data: { isDeleted: true },
+      data: { isDeleted: true, deletedAt: new Date() },
     })) as Comment;
   }
 

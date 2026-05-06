@@ -11,6 +11,8 @@ export interface Comment {
   readonly content: string;
   readonly parentId: string | null;
   readonly isDeleted: boolean;
+  /** P1-067 — soft-delete timestamp; null on never-deleted rows. */
+  readonly deletedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
