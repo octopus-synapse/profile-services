@@ -16,7 +16,7 @@ import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-
 import { DeleteUserUseCase } from '../use-cases/user-management/delete-user.use-case';
 import { GetUserDetailsUseCase } from '../use-cases/user-management/get-user-details.use-case';
 import { ListUsersUseCase } from '../use-cases/user-management/list-users.use-case';
-import { ResetPasswordUseCase } from '../use-cases/user-management/reset-password.use-case';
+import { AdminResetUserPasswordUseCase } from '../use-cases/user-management/admin-reset-user-password.use-case';
 import { UpdateUserUseCase } from '../use-cases/user-management/update-user.use-case';
 import { UserManagementService } from './user-management.service';
 
@@ -53,7 +53,7 @@ describe('UserManagementService (Facade)', () => {
       ),
       updateUserUseCase: new UpdateUserUseCase(repository),
       deleteUserUseCase: new DeleteUserUseCase(repository),
-      resetPasswordUseCase: new ResetPasswordUseCase(
+      resetPasswordUseCase: new AdminResetUserPasswordUseCase(
         repository,
         async (password: string) => `hashed_${password}`,
         stubLogger,

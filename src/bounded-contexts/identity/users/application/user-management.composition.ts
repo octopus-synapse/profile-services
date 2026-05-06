@@ -6,7 +6,7 @@ import { CreateUserUseCase } from './use-cases/user-management/create-user.use-c
 import { DeleteUserUseCase } from './use-cases/user-management/delete-user.use-case';
 import { GetUserDetailsUseCase } from './use-cases/user-management/get-user-details.use-case';
 import { ListUsersUseCase } from './use-cases/user-management/list-users.use-case';
-import { ResetPasswordUseCase } from './use-cases/user-management/reset-password.use-case';
+import { AdminResetUserPasswordUseCase } from './use-cases/user-management/admin-reset-user-password.use-case';
 import { UpdateUserUseCase } from './use-cases/user-management/update-user.use-case';
 
 export { UserManagementUseCases };
@@ -24,6 +24,6 @@ export function buildUserManagementUseCases(
     createUserUseCase: new CreateUserUseCase(repository, hashPassword, logger),
     updateUserUseCase: new UpdateUserUseCase(repository),
     deleteUserUseCase: new DeleteUserUseCase(repository),
-    resetPasswordUseCase: new ResetPasswordUseCase(repository, hashPassword, logger),
+    resetPasswordUseCase: new AdminResetUserPasswordUseCase(repository, hashPassword, logger),
   };
 }

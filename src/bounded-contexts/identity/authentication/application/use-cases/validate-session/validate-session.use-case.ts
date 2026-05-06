@@ -93,12 +93,9 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     // E2E/dev hatch: when SKIP_EMAIL_VERIFICATION is enabled, the HTTP guard
     // bypasses enforcement — keep the session payload consistent so the
     // frontend's OnboardingGuard doesn't redirect to /identity/verify-email
-    // based on a flag the backend is ignoring. P1-031: read via the
-    // injected ConfigPort when available, else fall back to process.env
-    // for the legacy callers that haven't been updated.
-    const skipEmailVerification =
-      (this.config?.get<string>('SKIP_EMAIL_VERIFICATION') ??
-        process.env.SKIP_EMAIL_VERIFICATION) === 'true';
+    // based on a flag the backend is ignoring. P2-122: read via the
+    // injected ConfigPort only; the legacy `process.env` fallback is gone.
+    const skipEmailVerification = this.config?.get<string>('SKIP_EMAIL_VERIFICATION') === 'true';
     // Onboarding is a job-seeker invariant — admins always bypass it.
     // For everyone else the truth is `User.onboardingCompletedAt`
     // (mirrored on `hasCompletedOnboarding` while the legacy column

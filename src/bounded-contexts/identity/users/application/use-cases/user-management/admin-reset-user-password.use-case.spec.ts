@@ -1,5 +1,5 @@
 /**
- * Unit tests for ResetPasswordUseCase
+ * Unit tests for AdminResetUserPasswordUseCase
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
@@ -10,17 +10,17 @@ import {
   InMemoryUserManagementRepository,
   StubHashService,
 } from '../../../../shared-kernel/testing';
-import { ResetPasswordUseCase } from './reset-password.use-case';
+import { AdminResetUserPasswordUseCase } from './admin-reset-user-password.use-case';
 
-describe('ResetPasswordUseCase', () => {
-  let useCase: ResetPasswordUseCase;
+describe('AdminResetUserPasswordUseCase', () => {
+  let useCase: AdminResetUserPasswordUseCase;
   let repository: InMemoryUserManagementRepository;
   let hashService: StubHashService;
 
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
     hashService = new StubHashService();
-    useCase = new ResetPasswordUseCase(
+    useCase = new AdminResetUserPasswordUseCase(
       repository,
       (password: string) => hashService.hash(password),
       stubLogger,

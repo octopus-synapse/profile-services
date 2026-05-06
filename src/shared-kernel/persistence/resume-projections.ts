@@ -8,6 +8,17 @@
  */
 
 /**
+ * P2-115 — defensive cap on the items pulled per section. Without
+ * a `take:`, a malformed resume with thousands of items in one
+ * section (or a future bug-induced bulk insert) would balloon the
+ * payload size and the JSON parse time on the way out. 200 is
+ * generous — every legitimate section type in the seeders caps far
+ * below this — and keeps the ceiling explicit at the projection
+ * layer instead of relying on application-layer slicing.
+ */
+const SECTION_ITEMS_HARD_CAP = 200;
+
+/**
  * Owner / admin variant — returns ALL sections regardless of
  * visibility. Use in routes that authenticate the resume owner.
  */
@@ -18,6 +29,7 @@ export const RESUME_FULL_INCLUDE = {
       sectionType: true,
       items: {
         orderBy: { order: 'asc' as const },
+        take: SECTION_ITEMS_HARD_CAP,
       },
     },
   },
@@ -44,6 +56,7 @@ export const RESUME_PUBLIC_VISIBLE_INCLUDE = {
       items: {
         where: { isVisible: true },
         orderBy: { order: 'asc' as const },
+        take: SECTION_ITEMS_HARD_CAP,
         select: {
           id: true,
           order: true,
