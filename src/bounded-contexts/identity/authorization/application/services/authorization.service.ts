@@ -23,8 +23,13 @@ import { PermissionResolverService } from '../../domain/services/permission-reso
 // ============================================================================
 // Cache Configuration
 // ============================================================================
+//
+// P2-093 — pull the 60s TTL from the canonical `CACHE_PRESETS.EPHEMERAL`
+// instead of redeclaring it locally. Same value, single source of truth.
 
-const DEFAULT_CACHE_TTL_SECONDS = 60; // 1 minute
+import { CACHE_PRESETS } from '@/shared-kernel/cache/cache-ttl.const';
+
+const DEFAULT_CACHE_TTL_SECONDS = CACHE_PRESETS.EPHEMERAL;
 const MAX_CACHE_SIZE = 1000;
 
 interface CacheEntry {

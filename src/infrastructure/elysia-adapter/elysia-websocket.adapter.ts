@@ -76,6 +76,20 @@ const WS_MAX_PAYLOAD_BYTES = 64 * 1024;
  */
 const WS_RATE_REFILL_PER_SEC = 30;
 const WS_RATE_BUCKET_CAP = 30;
+
+/**
+ * P2-102 — per-user concurrent connection cap. A user opens at most
+ * this many sockets per namespace; further upgrades are rejected with
+ * HTTP 429. The cap covers the legitimate "browser + mobile + tab
+ * background" pattern (~6) plus headroom and prevents a logged-in
+ * attacker from saturating the server with idle connections.
+ *
+ * P2-100 (deferred) — missed-message recovery on reconnect requires
+ * a per-namespace event log keyed by an `(userId, sequence)` cursor.
+ * Out of scope for this adapter; clients today reconcile via HTTP
+ * (e.g. fetching the unread-count endpoint after onopen).
+ */
+const WS_MAX_CONNECTIONS_PER_USER = 8;
 interface RateBucket {
   tokens: number;
   lastRefillMs: number;
@@ -233,6 +247,18 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
         };
         const userId = await state.authenticate(handshake);
         if (!userId) return new Response('Unauthorized', { status: 401 });
+        // P2-102 — reject upgrade when the user is already at cap on
+        // this namespace. Done in beforeHandle so the limit is enforced
+        // at the protocol level (no half-open socket to clean up).
+        const existing = state.userSockets.get(userId);
+        if (existing && existing.size >= WS_MAX_CONNECTIONS_PER_USER) {
+          adapter.logger?.warn(
+            `WS upgrade rejected: user at connection cap (${existing.size}/${WS_MAX_CONNECTIONS_PER_USER})`,
+            'ElysiaWebSocketAdapter',
+            { userId, path },
+          );
+          return new Response('Too Many Connections', { status: 429 });
+        }
         // Pass the userId via Elysia's data slot so `open` can read it.
         (ctx as unknown as { data: { userId: string } }).data = { userId };
       },

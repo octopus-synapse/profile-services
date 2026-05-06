@@ -20,11 +20,19 @@ interface WarmingStats {
 }
 
 // --- Cache TTL Constants ---
+//
+// P2-092 — bumped the public-resume + user-profile windows. Warming
+// at 5 min / 2 min was barely faster than recomputing on demand:
+// the warmer ran every 10 minutes, so 50% / 80% of the time the
+// pre-warmed entries were already stale. The longer windows below
+// keep the warmer's output useful between ticks while still
+// expiring fast enough to absorb edits within a single browser
+// session.
 
 const CACHE_TTL = {
-  POPULAR_RESUME: 3600, // 1 hour
-  PUBLIC_RESUME: 300, // 5 minutes
-  USER_PROFILE: 120, // 2 minutes
+  POPULAR_RESUME: 3600, // 1 hour — heavily-cached, stable
+  PUBLIC_RESUME: 900, // 15 minutes — keeps public reads warm between warmer ticks
+  USER_PROFILE: 600, // 10 minutes — covers a typical admin session
 } as const;
 
 // --- Service ---
