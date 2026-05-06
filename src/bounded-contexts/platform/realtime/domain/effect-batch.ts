@@ -8,8 +8,8 @@
  * client-side logs can match a UI effect back to its source event.
  */
 import { z } from 'zod';
-import { EffectSchema } from './effect';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { EffectSchema } from './effect';
 
 export const EffectBatchSchema = z.object({
   effects: z.array(EffectSchema).min(1),

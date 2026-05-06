@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod';
-import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
 
 export const ScoreField = z.number().int().min(0).max(100).nullable();
 

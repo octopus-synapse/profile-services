@@ -17,9 +17,7 @@ function make() {
  *  `buffer` so the magic-bytes guard inside the use case accepts the
  *  upload. The body is a single byte after the signature; storage
  *  fakes don't care about content. */
-const PNG_BUFFER = Buffer.from([
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00,
-]);
+const PNG_BUFFER = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
 
 describe('UploadPostImageUseCase', () => {
   it('throws FileRequiredException when no input', async () => {

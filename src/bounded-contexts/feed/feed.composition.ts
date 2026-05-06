@@ -9,8 +9,8 @@
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
 import { AnonymousMaskService } from './application/services/anonymous-mask.service';

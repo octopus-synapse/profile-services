@@ -906,7 +906,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // explicit allowlist is provisioned. Dev keeps the wildcard so local
   // tooling (Postman, Storybook on a different port) just works.
   const corsOriginConfig: string[] | true | false =
-    allowedOrigins.length > 0 ? allowedOrigins : isProduction ? false : true;
+    allowedOrigins.length > 0 ? allowedOrigins : !isProduction;
   if (allowedOrigins.length === 0 && isProduction) {
     logger.warn(
       'CORS_ORIGIN not set in production — rejecting all cross-origin requests',

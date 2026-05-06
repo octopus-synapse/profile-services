@@ -4,9 +4,9 @@ import {
 } from '@/bounded-contexts/resumes/domain/exceptions';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class UpdateSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}

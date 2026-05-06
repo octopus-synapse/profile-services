@@ -41,7 +41,11 @@ export class FeedTimelineService {
     // window so refresh-driven storms collapse onto one DB pass per
     // unique view.
     const cacheKey = `feed:timeline:${query.userId}:${query.followingOnly ? 'follow' : 'all'}:${query.type ?? 'any'}:${query.cursor ?? 'head'}:${query.limit}`;
-    return this.cache.getOrSet(cacheKey, () => this.computeTimeline(query), FEED_TIMELINE_CACHE_TTL);
+    return this.cache.getOrSet(
+      cacheKey,
+      () => this.computeTimeline(query),
+      FEED_TIMELINE_CACHE_TTL,
+    );
   }
 
   private async computeTimeline(query: FeedQuery): Promise<FeedTimelineResult> {

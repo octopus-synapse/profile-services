@@ -3,9 +3,9 @@ import {
   SectionTypeSlugVersionTakenException,
 } from '@/bounded-contexts/resumes/domain/exceptions';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class CreateSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}

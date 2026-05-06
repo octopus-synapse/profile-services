@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { QUESTION_SET_SIZE } from '../domain/types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { QUESTION_SET_SIZE } from '../domain/types';
 
 const FitAnswerSchema = z.object({
   questionId: z.string(),

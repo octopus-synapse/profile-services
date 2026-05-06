@@ -8,8 +8,8 @@
 import type { NotificationType } from '@prisma/client';
 import type { Observable } from 'rxjs';
 import { z } from 'zod';
-import type { NotificationStreamEvent } from './domain/entities/notification.entity';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import type { NotificationStreamEvent } from './domain/entities/notification.entity';
 
 /**
  * Bundle for the notifications SSE route. Holds an Observable-returning

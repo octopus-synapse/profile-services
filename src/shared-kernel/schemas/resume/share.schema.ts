@@ -8,8 +8,8 @@
  */
 
 import { z } from 'zod';
-import { ResumeSchema } from './resume.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ResumeSchema } from './resume.types';
 
 // ============================================================================
 // Create Share

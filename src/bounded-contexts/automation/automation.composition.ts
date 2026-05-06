@@ -28,13 +28,13 @@ import { GetCurrentBatchUseCase } from './application/use-cases/get-current-batc
 import { RejectCuratedItemUseCase } from './application/use-cases/reject-curated-item/reject-curated-item.use-case';
 import { RunRageApplyUseCase } from './application/use-cases/run-rage-apply/run-rage-apply.use-case';
 import { automationRoutes } from './automation.routes';
-import { PrismaApplyModeRepository } from './infrastructure/adapters/persistence/prisma-apply-mode.repository';
-import { PrismaRageApplyRepository } from './infrastructure/adapters/persistence/prisma-rage-apply.repository';
 // P1-046 — wrap the cross-BC `ResumeTailorService` in an adapter
 // owned by automation so the use case depends on the typed port,
 // not the resumes BC's class directly. The composition still takes
 // the live service from the bootstrap so behaviour is identical.
 import { ResumeTailorAdapter } from './infrastructure/adapters/external-services/resume-tailor.adapter';
+import { PrismaApplyModeRepository } from './infrastructure/adapters/persistence/prisma-apply-mode.repository';
+import { PrismaRageApplyRepository } from './infrastructure/adapters/persistence/prisma-rage-apply.repository';
 import {
   AUTO_APPLY_QUEUE,
   type AutoApplyJobData,

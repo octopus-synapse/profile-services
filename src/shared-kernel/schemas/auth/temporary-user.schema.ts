@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { RegisterCredentialsSchema } from './register.schema';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { RegisterCredentialsSchema } from './register.schema';
 
 /**
  * Temporary User Schema

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { FIT_DIMENSIONS } from '../domain/types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { FIT_DIMENSIONS } from '../domain/types';
 
 const SliderMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
 

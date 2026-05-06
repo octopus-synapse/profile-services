@@ -1,7 +1,7 @@
 import type { ListSectionTypesQueryDto, SectionTypeListResponseDto } from '../../../dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 import type { SectionTypeFilter } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 
 export class ListSectionTypesAdminUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}

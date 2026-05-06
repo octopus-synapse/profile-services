@@ -19,7 +19,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { Glob } from 'bun';
 
 const SRC_DIR = resolve('src/bounded-contexts');
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
     IMPORT_RE.lastIndex = 0;
     while ((match = IMPORT_RE.exec(src))) {
       const spec = match[1];
-      if (!spec || !spec.startsWith('@/bounded-contexts/')) continue;
+      if (!spec?.startsWith('@/bounded-contexts/')) continue;
       const path = spec.slice('@/bounded-contexts/'.length);
       const toBc = path.split('/')[0];
       if (!toBc || toBc === fromBc) continue;
@@ -103,9 +103,7 @@ async function main(): Promise<void> {
   // platform BC is the legitimate hub) need a wider port-extraction
   // PR that this script will then gate.
   const log = strict ? console.error : console.warn;
-  log(
-    `[check-bc-isolation] ${violations.length} violation(s)${strict ? '' : ' (report-only)'}:`,
-  );
+  log(`[check-bc-isolation] ${violations.length} violation(s)${strict ? '' : ' (report-only)'}:`);
   for (const v of violations) {
     log(`  ${v.fromFile}`);
     log(`    ${v.fromBc} → ${v.toBc}: ${v.importSpec}`);

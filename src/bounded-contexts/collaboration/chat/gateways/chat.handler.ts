@@ -2,12 +2,12 @@ import { z } from 'zod';
 import type { JwtPort } from '@/shared-kernel/auth';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
-import { validateWsMessage } from '@/shared-kernel/websocket/ws-message-schema';
 import type {
   WebSocketNamespace,
   WebSocketPort,
   WsHandshake,
 } from '@/shared-kernel/websocket/websocket.port';
+import { validateWsMessage } from '@/shared-kernel/websocket/ws-message-schema';
 import type { ChatUseCases } from '../application/ports/chat.port';
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';

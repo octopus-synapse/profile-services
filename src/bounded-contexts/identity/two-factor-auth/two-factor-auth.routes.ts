@@ -13,8 +13,8 @@
 
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 
 const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) });
 

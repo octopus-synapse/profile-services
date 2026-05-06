@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {

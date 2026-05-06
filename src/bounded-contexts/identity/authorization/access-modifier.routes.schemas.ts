@@ -14,8 +14,8 @@
 
 import { z } from 'zod';
 import { DomainException } from '@/shared-kernel/exceptions';
-import type { ModifierEffect, ModifierType } from './domain/entities/access-modifier.entity';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import type { ModifierEffect, ModifierType } from './domain/entities/access-modifier.entity';
 
 export const MODIFIER_TYPES: readonly ModifierType[] = [
   'SUSPEND_EMAIL_VERIFIED',

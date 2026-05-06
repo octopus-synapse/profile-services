@@ -8,12 +8,12 @@ import {
   TranslationPayloadTooLargeException,
   UnsupportedLocalePairException,
 } from '../../../domain/exceptions/translation.exceptions';
-import type { TranslationCoreService } from '../../services/translation-core.service';
 import type {
   SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../../domain/types/translation.types';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 
 /**
  * Hard cap for a single translate call. LibreTranslate accepts large

@@ -3,8 +3,8 @@
  * Handles translation of resume objects
  */
 
-import type { TranslationCoreService } from '../../services/translation-core.service';
 import type { TranslationLanguage } from '../../../domain/types/translation.types';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 
 const NON_TRANSLATABLE_KEYS = new Set([
   'id',

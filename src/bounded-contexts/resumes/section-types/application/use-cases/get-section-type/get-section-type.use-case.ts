@@ -1,7 +1,7 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto } from '../../../dto';
-import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
+import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 
 export class GetSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { FIT_DIMENSIONS } from '../domain/types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { FIT_DIMENSIONS } from '../domain/types';
 
 const FitQuestionItemSchema = z.object({
   id: z.string(),

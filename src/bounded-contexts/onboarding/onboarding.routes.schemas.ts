@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod';
-import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const LocaleQuery = z.object({ locale: z.string().optional() });

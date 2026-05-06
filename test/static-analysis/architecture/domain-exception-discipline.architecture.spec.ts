@@ -142,6 +142,7 @@ describe('DomainException discipline', () => {
       '/pr-comment/',
       '/shared-kernel/authorization/ownership.guard.ts', // assert-never paths; typed Errors for real failures live in authorization.exceptions
       '/shared-kernel/authorization/ownership-registry.ts', // boot-time duplicate-registration guard — composition error, not user-facing
+      '/email/services/email-template.service.ts', // boot-time FRONTEND_URL assertion (P2-121); fail-fast in prod constructor, not request-time
     ];
 
     const BAD_RE = /throw\s+new\s+(Error|HttpException)\s*\(/g;

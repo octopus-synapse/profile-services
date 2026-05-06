@@ -11,9 +11,9 @@ import {
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import type { ConnectionService } from './services/connection.service';
 import type { FollowService } from './services/follow.service';
-import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class ConnectionRoutesBundle {
   abstract readonly connectionService: ConnectionService;

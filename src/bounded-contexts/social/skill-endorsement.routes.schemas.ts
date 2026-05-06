@@ -9,8 +9,8 @@ import {
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
-import type { SkillEndorsementService } from './services/skill-endorsement.service';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import type { SkillEndorsementService } from './services/skill-endorsement.service';
 
 export abstract class SkillEndorsementRoutesBundle {
   abstract readonly service: SkillEndorsementService;

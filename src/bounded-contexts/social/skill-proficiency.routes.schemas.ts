@@ -9,8 +9,8 @@
  */
 
 import { z } from 'zod';
-import type { SkillProficiencyService } from './services/skill-proficiency.service';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import type { SkillProficiencyService } from './services/skill-proficiency.service';
 
 export abstract class SkillProficiencyRoutesBundle {
   abstract readonly service: SkillProficiencyService;

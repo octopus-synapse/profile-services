@@ -1,5 +1,5 @@
-import type { SectionTypeResponseDto } from '../../dto';
 import type { SectionTypeRecord } from '../../application/ports/admin-section-types.port';
+import type { SectionTypeResponseDto } from '../../dto';
 
 /**
  * P2-095 — narrow Prisma's `JsonValue` to the typed shapes the DTO

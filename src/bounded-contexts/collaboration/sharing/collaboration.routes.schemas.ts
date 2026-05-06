@@ -8,9 +8,9 @@
 
 import { z } from 'zod';
 import { CollaboratorRoleSchema } from '@/bounded-contexts/collaboration/domain/enums';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { CollaborationUseCases } from './application/collaboration.composition';
 import type { CollabCommentService } from './services/collab-comment.service';
-import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export abstract class CollaborationHttpBundle {
   abstract readonly collaboration: CollaborationUseCases;

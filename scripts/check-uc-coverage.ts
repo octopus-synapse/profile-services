@@ -37,9 +37,16 @@ async function main(): Promise<void> {
   for (const rel of ucs) {
     const abs = join(SRC, rel);
     const specPath = abs.replace(/\.use-case\.ts$/, '.use-case.spec.ts');
-    const altSpecPath = join(dirname(abs), '__tests__', `${
-      rel.split('/').pop()?.replace(/\.use-case\.ts$/, '.use-case.spec.ts') ?? ''
-    }`);
+    const altSpecPath = join(
+      dirname(abs),
+      '__tests__',
+      `${
+        rel
+          .split('/')
+          .pop()
+          ?.replace(/\.use-case\.ts$/, '.use-case.spec.ts') ?? ''
+      }`,
+    );
     if (existsSync(specPath) || existsSync(altSpecPath)) {
       covered.push(rel);
     } else {
@@ -50,7 +57,9 @@ async function main(): Promise<void> {
   const total = ucs.length;
   const pctCovered = total === 0 ? 100 : Math.round((covered.length / total) * 100);
 
-  console.log(`[check-uc-coverage] ${covered.length}/${total} use cases have a spec (${pctCovered}%)`);
+  console.log(
+    `[check-uc-coverage] ${covered.length}/${total} use cases have a spec (${pctCovered}%)`,
+  );
   if (uncovered.length > 0) {
     console.log(`[check-uc-coverage] ${uncovered.length} uncovered:`);
     for (const rel of uncovered) {
@@ -60,12 +69,9 @@ async function main(): Promise<void> {
 
   const strict = process.argv.includes('--strict');
   const minIdx = process.argv.indexOf('--min-percent');
-  const minPercent =
-    minIdx >= 0 ? Number.parseInt(process.argv[minIdx + 1] ?? '75', 10) : 75;
+  const minPercent = minIdx >= 0 ? Number.parseInt(process.argv[minIdx + 1] ?? '75', 10) : 75;
   if (strict && pctCovered < minPercent) {
-    console.error(
-      `[check-uc-coverage] coverage ${pctCovered}% below threshold ${minPercent}%`,
-    );
+    console.error(`[check-uc-coverage] coverage ${pctCovered}% below threshold ${minPercent}%`);
     process.exit(1);
   }
 }

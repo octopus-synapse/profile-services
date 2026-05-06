@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from '../domain/types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from '../domain/types';
 
 /** Per-dimension [0,1] score map; missing dimensions are absent. */
 const DimensionScoreMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));

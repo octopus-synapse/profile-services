@@ -5,9 +5,9 @@
  */
 
 import { z } from 'zod';
-import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from './domain/types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { FIT_DIMENSIONS, QUESTION_SET_SIZE } from './domain/types';
 
 export const IdParam = IdParamSchema;
 // Param name aligned with `jobs.routes.ts` (`:id`) so both BCs can

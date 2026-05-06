@@ -12,11 +12,11 @@ import {
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { LastManagerCannotBeDeletedException } from '../../domain/exceptions/users.exceptions';
 import { UserManagementUseCases } from '../ports/user-management.port';
+import { AdminResetUserPasswordUseCase } from '../use-cases/user-management/admin-reset-user-password.use-case';
 import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-case';
 import { DeleteUserUseCase } from '../use-cases/user-management/delete-user.use-case';
 import { GetUserDetailsUseCase } from '../use-cases/user-management/get-user-details.use-case';
 import { ListUsersUseCase } from '../use-cases/user-management/list-users.use-case';
-import { AdminResetUserPasswordUseCase } from '../use-cases/user-management/admin-reset-user-password.use-case';
 import { UpdateUserUseCase } from '../use-cases/user-management/update-user.use-case';
 import { UserManagementService } from './user-management.service';
 

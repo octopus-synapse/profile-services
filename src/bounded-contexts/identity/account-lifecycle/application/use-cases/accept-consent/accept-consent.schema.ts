@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 
 // ============================================================================
 // Use-case DTOs (internal)

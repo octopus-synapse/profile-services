@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { BlockUseCases } from './application/ports/block.port';
 import { ChatUseCases } from './application/ports/chat.port';
 import {
@@ -22,7 +23,6 @@ import {
 } from './schemas/chat.schema';
 import type { ChatPreferenceService } from './services/chat-preference.service';
 import type { ChatUserSearchService } from './services/user-search.service';
-import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Aggregated bundle for the chat BC's HTTP surface. Composed in
