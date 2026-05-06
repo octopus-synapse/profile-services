@@ -33,7 +33,7 @@ import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.
 import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
 import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
 import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.schema';
-import { toConsentHistoryResponse } from './infrastructure/presenters/get-consent-history.presenter';
+import { toConsentHistoryResponseDto } from './infrastructure/presenters/get-consent-history.presenter';
 
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
   {
@@ -230,7 +230,7 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     sdk: { exported: true, name: 'getConsentHistory' },
     handler: async (ctx, bc) => {
       const result = await bc.getConsentHistory.execute({ userId: ctx.user!.userId });
-      return toConsentHistoryResponse(result);
+      return toConsentHistoryResponseDto(result);
     },
   },
 ];

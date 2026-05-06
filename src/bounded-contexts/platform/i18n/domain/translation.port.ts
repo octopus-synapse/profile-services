@@ -10,15 +10,20 @@
  * We prefer a loud failure over a silent lie.
  */
 
-// P2-082 — locale literals follow the canonical 'en' | 'pt-BR'
-// ordering used across the codebase (Q27). The previous reverse
-// ordering on the type union was a one-off — runtime semantics are
-// unchanged but reviewers expected consistency with the other 30+
-// callsites that use `['en', 'pt-BR']`.
-export type SupportedLocale = 'en' | 'pt-BR';
+// P2-135 — re-export from the canonical
+// `shared-kernel/constants/locale.constants` so the i18n BC doesn't
+// keep its own copy of the locale list. Backwards-compatible: callers
+// that import `SupportedLocale` / `SUPPORTED_LOCALES` / `DEFAULT_LOCALE`
+// from this module continue to work.
+import {
+  DEFAULT_LOCALE as CANONICAL_DEFAULT_LOCALE,
+  SUPPORTED_LOCALES as CANONICAL_SUPPORTED_LOCALES,
+  type SupportedLocale as CanonicalSupportedLocale,
+} from '@/shared-kernel/constants/locale.constants';
 
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'pt-BR'];
-export const DEFAULT_LOCALE: SupportedLocale = 'en';
+export type SupportedLocale = CanonicalSupportedLocale;
+export const SUPPORTED_LOCALES = CANONICAL_SUPPORTED_LOCALES;
+export const DEFAULT_LOCALE = CANONICAL_DEFAULT_LOCALE;
 
 export interface TranslationParams {
   readonly [key: string]: string | number | boolean | null;

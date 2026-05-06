@@ -133,7 +133,7 @@ export const ConsentStatusResponseSchema = z.object({
   latestPrivacyPolicyVersion: z.string(),
 });
 
-// `toConsentHistoryResponse` returns an array of records — see presenter.
+// `toConsentHistoryResponseDto` returns an array of records — see presenter.
 export const ConsentHistoryResponseSchema = z.array(
   z.object({
     id: z.string(),

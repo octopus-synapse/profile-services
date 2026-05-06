@@ -21,7 +21,7 @@ import {
   isSuccessMessage,
   renderSuccessMessageForRequest,
 } from '@/shared-kernel/http/success-message';
-import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.adapter';
+import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.util';
 import { runPipeline } from './elysia-pipeline';
 import { parseMultipart } from './multipart-bridge';
 import { observableToSseStream, SSE_HEADERS } from './sse-bridge';

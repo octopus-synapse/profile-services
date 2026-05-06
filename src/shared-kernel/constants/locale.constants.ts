@@ -7,3 +7,7 @@
 export const SUPPORTED_LOCALES = ['en', 'pt-BR'] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+// P2-135 — `DEFAULT_LOCALE` lives next to its sibling so callers
+// that need both can import from one place.
+export const DEFAULT_LOCALE: SupportedLocale = 'en';

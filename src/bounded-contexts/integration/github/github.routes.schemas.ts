@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import type { GitHubSummaryResult } from './application/use-cases/get-github-summary/get-github-summary.use-case';
 import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';
-import { toPinnedRepos } from './infrastructure/presenters/github.presenter';
+import { toPinnedReposResponseDto } from './infrastructure/presenters/github.presenter';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SummaryParams = z.object({ username: z.string() });
@@ -56,7 +56,7 @@ export function toGitHubSummaryDto(result: GitHubSummaryResult) {
     followers: 0,
     following: 0,
     topLanguages: [] as string[],
-    pinnedRepos: toPinnedRepos(
+    pinnedRepos: toPinnedReposResponseDto(
       result.topRepos.map((r) => ({ name: r.name, description: r.description, url: r.url })),
     ),
   };

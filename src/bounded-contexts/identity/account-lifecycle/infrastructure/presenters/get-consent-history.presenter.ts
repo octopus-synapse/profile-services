@@ -3,7 +3,7 @@ import type {
   GetConsentHistoryOutput,
 } from '../../application/use-cases/get-consent-history/get-consent-history.schema';
 
-export function toConsentHistoryResponse(
+export function toConsentHistoryResponseDto(
   records: GetConsentHistoryOutput,
 ): ConsentHistoryResponseDto[] {
   const out: ConsentHistoryResponseDto[] = [];

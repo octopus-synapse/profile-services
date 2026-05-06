@@ -2,7 +2,7 @@
  * Shared DSL Compiler Utilities
  *
  * Basic types and utilities for DSL compilation.
- * Section-specific types are now in @/shared-kernel/types/section-projection.adapter.ts
+ * Section-specific types are now in @/shared-kernel/types/section-projection.util.ts
  */
 
 /**
