@@ -226,11 +226,17 @@ jobs:
       - name: Install Dredd
         run: npm install -g dredd@14
       - name: Run Dredd
+        # Reporters intentionally limited to `cli` (console output streamed
+        # into the GHA log) + `html` artifact. The `apiary` reporter was
+        # dropped because Apiary's hosted dashboard is end-of-life
+        # (Oracle-acquired, anonymous uploads aggressively rate-limited)
+        # and was generating 100+ "Too much requests…" parse errors per
+        # run against unparseable plain-text 429 responses.
         run: |
           dredd swagger.json http://localhost:3010 \
             --hookfiles=./test/infrastructure/contract/dredd-hooks.js \
-            --reporter=apiary \
             --reporter=cli \
+            --reporter=html \
             --output=./test/infrastructure/contract/dredd-report.html
       - name: Upload Dredd report
         if: always()
