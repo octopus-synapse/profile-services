@@ -354,7 +354,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof RepostBodySchema>;
-      return bc.repostPost.execute(id, ctx.user!.userId, body.commentary);
+      const result = await bc.repostPost.execute(id, ctx.user!.userId, body.commentary);
+      if ('reposted' in result) {
+        return { kind: 'reposted' as const, ...result };
+      }
+      return { kind: 'post' as const, ...result };
     },
   },
   {

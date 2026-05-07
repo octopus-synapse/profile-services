@@ -48,20 +48,28 @@ export const SessionResponseSchema = z.object({
   user: SessionUserSchema,
 });
 
-// Server-to-server clients with explicit `refreshToken` body get the legacy
-// token shape; browser clients get `{ ok: true }`. Either is acceptable.
-export const RefreshResponseSchema = z.union([
+// Server-to-server clients with explicit `refreshToken` body get the
+// `tokens` shape; browser clients get the `cookie` shape. Discriminated
+// on `mode` so the spec carries an explicit shape per case.
+export const RefreshResponseSchema = z.discriminatedUnion('mode', [
   z.object({
+    mode: z.literal('tokens'),
     accessToken: z.string(),
     refreshToken: z.string(),
     expiresIn: z.number(),
   }),
-  z.object({ ok: z.literal(true) }),
+  z.object({
+    mode: z.literal('cookie'),
+    ok: z.literal(true),
+  }),
 ]);
 
-export const LoginResponseSchema = z.union([
+// Login returns `{userId, twoFactorRequired}` — the literal value of
+// `twoFactorRequired` discriminates the 2FA-challenge variant from the
+// session-issued variant.
+export const LoginResponseSchema = z.discriminatedUnion('twoFactorRequired', [
   z.object({ userId: z.string(), twoFactorRequired: z.literal(true) }),
-  z.object({ userId: z.string() }),
+  z.object({ userId: z.string(), twoFactorRequired: z.literal(false) }),
 ]);
 
 export const Verify2faResponseSchema = z.object({ userId: z.string() });

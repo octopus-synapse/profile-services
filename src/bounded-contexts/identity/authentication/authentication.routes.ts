@@ -62,12 +62,13 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
       if (body.refreshToken) {
         const result = await bc.refreshToken.execute({ refreshToken: body.refreshToken });
         return {
+          mode: 'tokens' as const,
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,
           expiresIn: result.expiresIn,
         };
       }
-      return { ok: true };
+      return { mode: 'cookie' as const, ok: true as const };
     },
   },
   {
@@ -106,7 +107,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         userAgent: ctx.userAgent,
       });
 
-      return { userId: result.userId };
+      return { userId: result.userId, twoFactorRequired: false as const };
     },
   },
   {

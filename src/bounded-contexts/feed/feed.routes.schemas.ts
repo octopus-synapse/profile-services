@@ -232,9 +232,13 @@ export const UnbookmarkPostResponseSchema = z.object({
   userId: z.string(),
 });
 
-export const RepostPostResponseSchema = z.union([
-  PostWithAuthorSchema,
+// A repost with commentary creates a brand-new post (full author tree);
+// without commentary it just records the action. Discriminated on `kind`
+// so each variant has an explicit shape in the spec.
+export const RepostPostResponseSchema = z.discriminatedUnion('kind', [
+  PostWithAuthorSchema.extend({ kind: z.literal('post') }),
   z.object({
+    kind: z.literal('reposted'),
     postId: z.string(),
     userId: z.string(),
     reposted: z.boolean(),
