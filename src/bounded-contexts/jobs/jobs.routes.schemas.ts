@@ -130,6 +130,11 @@ export const JobSchema = z.object({
   paymentCurrency: PaymentCurrencyEnum.nullable(),
   remotePolicy: RemotePolicyEnum.nullable(),
   minEnglishLevel: EnglishLevelEnum.nullable(),
+  requirementsStructured: z.unknown().nullable(),
+  requirementsEnrichedByAi: z.unknown().nullable(),
+  enrichedAt: IsoDateTimeSchema.nullable(),
+  enrichedBy: z.string().nullable(),
+  culturalProfileCaptured: z.boolean(),
 });
 
 // Job + denormalized author + viewer-relative flags (the "decorated"

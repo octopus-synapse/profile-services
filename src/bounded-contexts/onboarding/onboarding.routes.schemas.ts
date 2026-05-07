@@ -33,18 +33,7 @@ export type LocaleQuery = z.infer<typeof LocaleQuery>;
 // Bounded JSON-leaf type used for free-form Prisma JSON columns
 // (`fields`, `translations`, `validation`, `strengthLevels`). Two
 // levels of nesting cover every realistic shape without `z.lazy()`.
-export const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-export const JsonValueDepth1Schema = z.union([JsonLeafSchema, z.array(JsonLeafSchema)]);
-export const JsonValueDepth2Schema = z.union([
-  JsonValueDepth1Schema,
-  z.record(z.string(), JsonValueDepth1Schema),
-  z.array(z.union([JsonLeafSchema, z.record(z.string(), JsonValueDepth1Schema)])),
-]);
-export const JsonValueSchema = z.union([
-  JsonValueDepth2Schema,
-  z.record(z.string(), JsonValueDepth2Schema),
-  z.array(JsonValueDepth2Schema),
-]);
+export const JsonValueSchema = z.unknown().openapi({ example: { fields: [] } });
 
 export const OnboardingStepRowSchema = z.object({
   id: z.string(),

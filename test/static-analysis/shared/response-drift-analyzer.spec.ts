@@ -62,4 +62,23 @@ describe('analyzeDrift', () => {
     const schema = z.object({ createdAt: z.string().datetime() });
     expect(analyzeDrift(schema, { createdAt: '2026-05-07T00:00:00.000Z' })).toEqual([]);
   });
+
+  test('ZodRecord descends into each value against the value schema', () => {
+    const schema = z.object({ flags: z.record(z.boolean()) });
+    expect(analyzeDrift(schema, { flags: { a: true, b: false } })).toEqual([]);
+  });
+
+  test('ZodRecord with mismatched value type is reported', () => {
+    const schema = z.object({ counts: z.record(z.number()) });
+    expect(analyzeDrift(schema, { counts: { a: 1, b: 'x' } })).toEqual([
+      { kind: 'type-mismatch', path: ['counts', 'b'], expected: 'ZodNumber', actual: 'string' },
+    ]);
+  });
+
+  test('union containing ZodRecord accepts an object value', () => {
+    const Leaf = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+    const Node = z.union([Leaf, z.array(Leaf), z.record(z.string(), Leaf)]);
+    const schema = z.object({ definition: Node });
+    expect(analyzeDrift(schema, { definition: { category: 'core', minScore: 80 } })).toEqual([]);
+  });
 });

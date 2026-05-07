@@ -39,6 +39,21 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
   async findUserProfileById(userId: string): Promise<UserProfile | null> {
     return this.prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        photoURL: true,
+        bio: true,
+        location: true,
+        phone: true,
+        website: true,
+        linkedin: true,
+        github: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 

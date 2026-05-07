@@ -63,18 +63,9 @@ export const SectionItemBody = z.object({
 // ─── Response schemas ─────────────────────────────────────────────────
 // Bounded-depth JSON value: leaf | array of leaves | object of leaves.
 // Two levels deep covers the section item content shapes.
-export const JsonLeafSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-export const JsonNodeLevel2Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonLeafSchema),
-  z.record(z.string(), JsonLeafSchema),
-]);
-export const JsonNodeLevel1Schema = z.union([
-  JsonLeafSchema,
-  z.array(JsonNodeLevel2Schema),
-  z.record(z.string(), JsonNodeLevel2Schema),
-]);
-export const JsonObjectSchema = z.record(z.string(), JsonNodeLevel1Schema);
+export const JsonObjectSchema = z
+  .record(z.string(), z.unknown())
+  .openapi({ example: { fields: [], translations: {} } });
 
 export const ResumeBaseSchema = z.object({
   id: z.string(),

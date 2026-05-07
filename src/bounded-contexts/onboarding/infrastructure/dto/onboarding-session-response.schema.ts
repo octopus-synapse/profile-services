@@ -32,6 +32,7 @@ const StepMetaSchema = z.object({
   addLabel: z.string().optional(),
   multipleItems: z.boolean().optional(),
   sectionTypeKey: z.string().optional(),
+  data: z.unknown().optional(),
 });
 
 const StrengthSchema = z.object({

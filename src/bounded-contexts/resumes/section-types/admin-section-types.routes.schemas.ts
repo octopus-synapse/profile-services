@@ -27,7 +27,9 @@ export const JsonNodeLevel1Schema = z.union([
   z.array(JsonNodeLevel2Schema),
   z.record(z.string(), JsonNodeLevel2Schema),
 ]);
-export const JsonObjectSchema = z.record(z.string(), JsonNodeLevel1Schema);
+export const JsonObjectSchema = z
+  .record(z.string(), z.unknown())
+  .openapi({ example: { fields: [], translations: {} } });
 
 export const SectionTypeTranslationSchema = z.object({
   title: z.string(),
@@ -36,6 +38,7 @@ export const SectionTypeTranslationSchema = z.object({
   noDataLabel: z.string().optional(),
   placeholder: z.string().optional(),
   addLabel: z.string().optional(),
+  fieldLabels: z.record(z.string(), z.string()).optional(),
 });
 
 export const SectionTypeResponseSchema = z.object({

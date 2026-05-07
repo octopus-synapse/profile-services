@@ -19,6 +19,8 @@ interface ZodInternals {
     readonly innerType?: ZodSchema<unknown>;
     readonly schema?: ZodSchema<unknown>;
     readonly type?: ZodSchema<unknown>;
+    readonly keyType?: ZodSchema<unknown>;
+    readonly valueType?: ZodSchema<unknown>;
     readonly options?: readonly ZodSchema<unknown>[];
     readonly value?: unknown;
     readonly values?: readonly unknown[] | Record<string, unknown>;
@@ -166,6 +168,24 @@ function walk(
       if (!(key in shape)) {
         drifts.push({ kind: 'extra-field', path: [...path, key] });
       }
+    }
+    return;
+  }
+
+  if (typeName === 'ZodRecord' || typeName === 'ZodMap') {
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      drifts.push({
+        kind: 'type-mismatch',
+        path,
+        expected: typeName,
+        actual: actualTypeLabel(value),
+      });
+      return;
+    }
+    const valueSchema = (inner as ZodInternals)._def?.valueType;
+    if (!valueSchema) return;
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      walk(valueSchema, val, [...path, key], drifts);
     }
     return;
   }
