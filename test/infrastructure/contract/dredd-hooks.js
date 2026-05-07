@@ -130,6 +130,7 @@ function shouldSkip(name, transaction) {
   }
   const meta = lookupOperation(transaction);
   if (meta?.guards?.includes('internal-auth')) return true;
+  if (meta?.isSse) return true;
   return false;
 }
 
@@ -189,12 +190,18 @@ try {
       const pathParamExamples = (op.parameters || [])
         .filter((p) => p.in === 'path' && p.example !== undefined)
         .map((p) => ({ name: String(p.name), example: String(p.example) }));
+      const response200 = op.responses?.['200'];
+      const response200ContentTypes = Object.keys(response200?.content || {});
+      const isSse =
+        response200ContentTypes.length === 0 ||
+        response200ContentTypes.some((ct) => ct.includes('event-stream'));
       operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
         auth: op['x-auth'] || 'public',
         permission: op['x-permission'] || null,
         guards: Array.isArray(op['x-guards']) ? op['x-guards'] : [],
         requestBodySchema: op.requestBody?.content?.['application/json']?.schema || null,
         pathParamExamples,
+        isSse,
       });
     }
   }
@@ -388,6 +395,12 @@ function synthesizeDummyValue(schema) {
   }
   if (schema.example !== undefined) return schema.example;
   if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
+  if (Array.isArray(schema.anyOf) && schema.anyOf.length > 0)
+    return synthesizeDummyValue(schema.anyOf[0]);
+  if (Array.isArray(schema.oneOf) && schema.oneOf.length > 0)
+    return synthesizeDummyValue(schema.oneOf[0]);
+  if (Array.isArray(schema.allOf) && schema.allOf.length > 0)
+    return synthesizeDummyValue(schema.allOf[0]);
   switch (schema.type) {
     case 'string': {
       if (schema.pattern) {
@@ -400,7 +413,14 @@ function synthesizeDummyValue(schema) {
       if (schema.format === 'uri' || schema.format === 'url') return 'https://example.com';
       if (schema.format === 'date-time') return '2024-01-01T00:00:00.000Z';
       if (schema.format === 'date') return '2024-01-01';
-      return 'dummy';
+      {
+        const minLen = schema.minLength ?? 0;
+        const maxLen = schema.maxLength;
+        let result = 'dummy';
+        if (result.length < minLen) result = result.padEnd(minLen, '0');
+        if (maxLen !== undefined && result.length > maxLen) result = result.slice(0, maxLen);
+        return result;
+      }
     }
     case 'number':
     case 'integer': {
@@ -425,7 +445,7 @@ function synthesizeDummyValue(schema) {
       } else if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
         const subVal = synthesizeDummyValue(schema.additionalProperties);
         if (subVal !== null) {
-          obj['en'] = subVal;
+          obj.en = subVal;
           obj['pt-BR'] = subVal;
         }
       }

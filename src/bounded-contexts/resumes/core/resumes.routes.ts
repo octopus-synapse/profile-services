@@ -295,7 +295,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
   },
   {
     method: 'GET',
-    path: '/v1/resumes/manage/:id',
+    path: '/v1/resumes/manage/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
@@ -314,7 +314,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
   },
   {
     method: 'DELETE',
-    path: '/v1/resumes/manage/:id',
+    path: '/v1/resumes/manage/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
     params: ResumeIdParam,

@@ -65338,24 +65338,24 @@
         "x-permission": "resume:read"
       }
     },
-    "/api/v1/resumes/manage/{id}": {
+    "/api/v1/resumes/manage/{resumeId}": {
       "delete": {
         "summary": "Delete a resume",
         "description": "Resumes API",
         "tags": [
           "resumes"
         ],
-        "operationId": "delete_v1_resumes_manage_id",
+        "operationId": "delete_v1_resumes_manage_resumeId",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "example": "01900000-0000-7000-a000-000000000001"
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
-            "example": "01900000-0000-7000-a000-000000000001"
+            "example": "01900000-0000-7000-a000-000000000010"
           }
         ],
         "responses": {
@@ -65535,17 +65535,17 @@
         "tags": [
           "resumes"
         ],
-        "operationId": "get_v1_resumes_manage_id",
+        "operationId": "get_v1_resumes_manage_resumeId",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "example": "01900000-0000-7000-a000-000000000001"
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
-            "name": "id",
+            "name": "resumeId",
             "in": "path",
-            "example": "01900000-0000-7000-a000-000000000001"
+            "example": "01900000-0000-7000-a000-000000000010"
           }
         ],
         "responses": {
