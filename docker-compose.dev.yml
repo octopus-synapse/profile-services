@@ -99,6 +99,8 @@ services:
       # MUST set JWT_SECRET explicitly.
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+      APP_URL: ${APP_URL:-http://localhost:3001}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3001}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have
       # `SMTP_HOST=localhost` for the non-docker dev run, and compose's

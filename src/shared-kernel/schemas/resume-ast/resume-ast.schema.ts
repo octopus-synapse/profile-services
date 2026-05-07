@@ -1,10 +1,9 @@
 /**
- * Resume AST DTOs — Zod-first.
+ * Resume AST schemas — Zod-first.
  *
  * Zod schemas (with `zod-to-openapi` annotations) for the Resume Abstract
- * Syntax Tree. Each shape exports both the schema and a `createZodDto`-
- * derived class so legacy `@nestjs/swagger` discovery paths still work,
- * while route descriptors can consume the schemas directly.
+ * Syntax Tree. Each shape exports the schema plus an inferred type alias;
+ * route descriptors consume the schemas directly.
  *
  * ARCHITECTURE: The AST is fully generic. Section structure comes from
  * SectionType definitions and section item content, not from hardcoded DTOs.

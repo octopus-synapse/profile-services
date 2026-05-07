@@ -1,9 +1,9 @@
 /**
  * Route-descriptor contracts.
  *
- * Phase-2 cutover replaced the Nest `*.controller.ts` + `@ApiTags` /
- * `createZodDto` audit suite with this single spec, scoped to the
- * post-cutover invariants:
+ * Phase-2 cutover replaced the Nest `*.controller.ts` + `@ApiTags`
+ * audit suite with this single spec, scoped to the post-cutover
+ * invariants:
  *
  *  1. Every `*.routes.ts` exports at least one route array.
  *  2. Every Route with `sdk.exported: true` has a stable `sdk.name`

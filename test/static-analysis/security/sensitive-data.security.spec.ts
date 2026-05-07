@@ -198,10 +198,9 @@ describe('Sensitive Data Exposure Prevention', () => {
 
     it('should implement data minimization in responses', () => {
       const responseFiles = readAllTsFiles(SRC_DIR).filter(
-        (f) => f.includes('response') && f.includes('.dto.ts'),
+        (f) => f.includes('response') && f.includes('.schema.ts'),
       );
 
-      // Response DTOs should exist and define explicit fields
       expect(responseFiles.length).toBeGreaterThan(0);
     });
   });
