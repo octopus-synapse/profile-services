@@ -202,6 +202,27 @@ jobs:
           done
           echo "::error::App failed to boot within 40s."
           exit 1
+      # Probe each GET endpoint with the right persona and validate the
+      # response body against the declared Zod schema. Surfaces drift
+      # earlier than Dredd (which only reports per-transaction) and gives
+      # a single markdown report per run. Same booted app + DB; no extra
+      # boot cost. Job continues on drift so the Dredd report still
+      # uploads — the drift report is uploaded as an artifact below.
+      - name: Discover response drift
+        # Use `bun scripts/…` (not `bun run`) — `bun run` swallows the
+        # script's exit code, so `DRIFT_FAIL_ON=1` would never make
+        # the step fail.
+        run: bun scripts/discover-response-drift.ts
+        env:
+          DRIFT_BASE_URL: http://localhost:3010
+          DRIFT_FAIL_ON: 1
+        continue-on-error: true
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: docs/audits/response-drift-report.md
       - name: Install Dredd
         run: npm install -g dredd@14
       - name: Run Dredd

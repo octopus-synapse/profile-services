@@ -359,7 +359,7 @@ export function formatReport(reports: readonly RouteDriftReport[]): string {
   return lines.join('\n');
 }
 
-async function main(): Promise<void> {
+async function main(): Promise<number> {
   const routes = await loadRoutes();
   const probable = routes.filter((r) => isProbable(r.route));
   const swaggerInfo = loadSwaggerInfo();
@@ -401,11 +401,19 @@ async function main(): Promise<void> {
     0,
   );
   console.log(`Total drifts: ${total} (of which auth-mismatch: ${authMismatches})`);
+  // CI consumes the exit code as a gate. Set DRIFT_FAIL_ON=0 to opt out
+  // (e.g. local "show me the drifts" runs that shouldn't fail the shell).
+  return total;
 }
 
 if (import.meta.main) {
-  main().catch((err) => {
-    console.error('discover-response-drift failed', err);
-    process.exit(1);
-  });
+  main()
+    .then((total) => {
+      const failOn = Number(process.env.DRIFT_FAIL_ON ?? 1);
+      process.exit(failOn && total > 0 ? 1 : 0);
+    })
+    .catch((err) => {
+      console.error('discover-response-drift failed', err);
+      process.exit(1);
+    });
 }
