@@ -22,7 +22,7 @@ import {
   OpenAPIRegistry,
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi';
-import { type ZodSchema, z } from 'zod';
+import { type AnyZodObject, type ZodSchema, z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 
 extendZodWithOpenApi(z);
@@ -84,6 +84,68 @@ function isZodSchema(value: unknown): value is ZodSchema<unknown> {
   return typeof value === 'object' && value !== null && '_def' in value;
 }
 
+function getTypeName(schema: ZodSchema<unknown>): string | undefined {
+  return (schema as unknown as { _def?: { typeName?: string } })._def?.typeName;
+}
+
+function unwrapToZodObject(schema: unknown): AnyZodObject | undefined {
+  if (!isZodSchema(schema)) return undefined;
+  let current: ZodSchema<unknown> = schema;
+  for (let depth = 0; depth < 5; depth += 1) {
+    const typeName = getTypeName(current);
+    if (typeName === 'ZodObject') return current as unknown as AnyZodObject;
+    if (typeName === 'ZodEffects') {
+      const inner = (current as unknown as { _def: { schema: ZodSchema<unknown> } })._def.schema;
+      current = inner;
+      continue;
+    }
+    return undefined;
+  }
+  return undefined;
+}
+
+function buildPathParamsSchema(
+  route: Route,
+  pathParams: readonly string[],
+): AnyZodObject | undefined {
+  const declared = unwrapToZodObject(route.params);
+  if (declared) return declared;
+  if (pathParams.length === 0) return undefined;
+  const shape: Record<string, ZodSchema<unknown>> = {};
+  for (const name of pathParams) shape[name] = z.string();
+  return z.object(shape);
+}
+
+function buildSuccessStatus(route: Route): string {
+  if (typeof route.statusCode === 'number') return String(route.statusCode);
+  return route.method === 'POST' ? '201' : '200';
+}
+
+function buildResponses(route: Route): Record<string, unknown> {
+  const status = buildSuccessStatus(route);
+  if (route.binary) {
+    return {
+      [status]: {
+        description: 'Binary response',
+        content: {
+          [route.binary.mediaType]: {
+            schema: { type: 'string', format: 'binary' },
+          },
+        },
+      },
+    };
+  }
+  if (route.response && isZodSchema(route.response)) {
+    return {
+      [status]: {
+        description: 'Successful response',
+        content: { 'application/json': { schema: route.response } },
+      },
+    };
+  }
+  return { [status]: { description: 'Successful response' } };
+}
+
 function convertPath(input: string): { path: string; pathParams: string[] } {
   const pathParams: string[] = [];
   const path = input.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, (_match, name: string) => {
@@ -134,36 +196,9 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
     maybeRegisterNamedSchema(route.response as ZodSchema<unknown>, registry);
   }
 
-  const parameters: Array<{
-    name: string;
-    in: 'path' | 'query';
-    required: boolean;
-    schema: ZodSchema<unknown>;
-  }> = pathParams.map((name) => ({
-    name,
-    in: 'path',
-    required: true,
-    schema: z.string(),
-  }));
-
-  // Per-property query params from a ZodObject.
-  if (isZodSchema(route.query)) {
-    const def = (
-      route.query as unknown as {
-        _def?: { typeName?: string; shape?: () => Record<string, ZodSchema<unknown>> };
-      }
-    )._def;
-    if (def?.typeName === 'ZodObject' && typeof def.shape === 'function') {
-      for (const [name, sub] of Object.entries(def.shape())) {
-        parameters.push({
-          name,
-          in: 'query',
-          required: !(sub as ZodSchema<unknown>).isOptional?.(),
-          schema: sub,
-        });
-      }
-    }
-  }
+  const paramsSchema = buildPathParamsSchema(route, pathParams);
+  const querySchema = unwrapToZodObject(route.query);
+  const bodySchema = route.body && isZodSchema(route.body) ? route.body : undefined;
 
   registry.registerPath({
     method: route.method.toLowerCase() as
@@ -179,20 +214,12 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
     description: route.openapi.description,
     tags: [...route.openapi.tags],
     operationId: route.sdk?.name ?? opName,
-    parameters: parameters as never,
-    request:
-      route.body && isZodSchema(route.body)
-        ? { body: { content: { 'application/json': { schema: route.body } } } }
-        : undefined,
-    responses: {
-      200:
-        route.response && isZodSchema(route.response)
-          ? {
-              description: 'Successful response',
-              content: { 'application/json': { schema: route.response } },
-            }
-          : { description: 'Successful response' },
+    request: {
+      params: paramsSchema,
+      query: querySchema,
+      body: bodySchema ? { content: { 'application/json': { schema: bodySchema } } } : undefined,
     },
+    responses: buildResponses(route) as never,
   });
 }
 

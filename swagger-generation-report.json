@@ -1,8 +1,8 @@
 {
   "success": true,
   "generatedBy": "route-descriptors",
-  "paths": 347,
-  "operations": 415,
+  "paths": 348,
+  "operations": 416,
   "schemas": 0,
   "tags": [
     "account-lifecycle",
