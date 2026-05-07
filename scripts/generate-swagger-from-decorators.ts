@@ -52,7 +52,8 @@ interface SwaggerReport {
 }
 
 function* walk(dir: string): Generator<string> {
-  for (const entry of readdirSync(dir)) {
+  const entries = [...readdirSync(dir)].sort();
+  for (const entry of entries) {
     if (entry === 'node_modules' || entry === '__tests__' || entry === 'testing') continue;
     const full = join(dir, entry);
     const st = statSync(full);
@@ -161,15 +162,17 @@ function injectFallbackExamples(document: {
       const operation = op as OpenApiOperation;
       for (const param of operation.parameters ?? []) {
         if (param.in !== 'path' || !param.name) continue;
-        const hasExample =
-          param.example !== undefined || (param.schema && param.schema.example !== undefined);
-        if (hasExample) continue;
-        const example = fallbackExampleForParam(param.name);
-        if (param.schema) {
-          param.schema.example = example;
-        } else {
-          param.example = example;
-        }
+        const schemaExample = param.schema?.example;
+        const example =
+          (param.example as string | undefined) ??
+          (schemaExample as string | undefined) ??
+          fallbackExampleForParam(param.name);
+        // Dredd's URI template expansion reads `parameter.example` first
+        // and falls back to `parameter.schema.example`. Mirror the value
+        // to both so the spec is unambiguous regardless of which path the
+        // tooling takes.
+        param.example = example;
+        if (param.schema) param.schema.example = example;
       }
     }
   }
