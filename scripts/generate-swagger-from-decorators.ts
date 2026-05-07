@@ -328,6 +328,17 @@ async function generate(): Promise<void> {
 
   injectFallbackExamples(document);
 
+  // Final stability pass — explicitly rebuild `paths` in alphabetical
+  // order so JSON serialisation is identical across hosts regardless
+  // of how the registry walked its definitions.
+  if (document.paths) {
+    const sortedPaths: Record<string, unknown> = {};
+    for (const key of Object.keys(document.paths).sort()) {
+      sortedPaths[key] = document.paths[key];
+    }
+    document.paths = sortedPaths;
+  }
+
   const tagSet = new Set<string>();
   for (const route of routes) for (const t of route.openapi.tags) tagSet.add(t);
   document.tags = [...tagSet].sort().map((name) => ({ name }));
