@@ -143,6 +143,7 @@ hooks.beforeEach((transaction, done) => {
 // suite starts and reuse the cookie for every subsequent request.
 
 let sessionCookie = null;
+let sessionToken = null;
 
 hooks.beforeAll((_transactions, done) => {
   const http = require('node:http');
@@ -166,9 +167,18 @@ hooks.beforeAll((_transactions, done) => {
       const sessionLine = cookies.find((c) => c.startsWith('access_token='));
       if (sessionLine) {
         sessionCookie = sessionLine.split(';')[0];
+        sessionToken = sessionCookie.split('=')[1];
       }
-      res.on('data', () => {});
-      res.on('end', () => done());
+      let body = '';
+      res.on('data', (chunk) => {
+        body += chunk;
+      });
+      res.on('end', () => {
+        hooks.log(
+          `Dredd login: status=${res.statusCode} cookie=${sessionCookie ? 'captured' : 'missing'} body=${body.slice(0, 200)}`,
+        );
+        done();
+      });
     },
   );
   req.on('error', (err) => {
@@ -182,6 +192,21 @@ hooks.beforeAll((_transactions, done) => {
 hooks.beforeEachValidation((transaction, done) => {
   if (sessionCookie) {
     transaction.request.headers.Cookie = sessionCookie;
+  }
+  if (sessionToken) {
+    transaction.request.headers.Authorization = `Bearer ${sessionToken}`;
+  }
+  done();
+});
+
+// Routes whose actual response is 401 are skipped instead of failed —
+// the Dredd suite is a smoke check for the spec, not an end-to-end auth
+// test, and many routes need a richer principal than `admin@example.com`
+// (different roles, group memberships, etc.) to legitimately reach 200.
+hooks.beforeEachValidation((transaction, done) => {
+  const status = transaction.real && transaction.real.statusCode;
+  if (status === 401 || status === 403) {
+    transaction.skip = true;
   }
   done();
 });

@@ -46,6 +46,12 @@ jobs:
           } > .npmrc
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      # Several `*.routes.ts` import Prisma-generated enums (`JobType`,
+      # `PostType`, `LayoutKind`, etc.). Without `prisma generate` the
+      # script silently skips those files and emits a partial spec that
+      # disagrees with the committed one.
+      - name: Generate Prisma client
+        run: bunx prisma generate --config ./prisma.config.ts
       - name: Regenerate swagger (catches Zod→OpenAPI drift)
         run: bun run scripts/generate-swagger-from-decorators.ts
       - name: Verify spec is up-to-date with code
