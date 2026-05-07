@@ -10,6 +10,7 @@
 
 import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
 import { z } from 'zod';
+import { CursorPaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
@@ -168,20 +169,9 @@ export const BookmarkedFeedItemSchema = PostWithRelationsSchema.extend({
   isBookmarked: z.boolean(),
 });
 
-export const FeedTimelineResponseSchema = z.object({
-  posts: z.array(FeedItemSchema),
-  nextCursor: z.string().nullable(),
-});
-
-export const FeedBookmarksResponseSchema = z.object({
-  posts: z.array(BookmarkedFeedItemSchema),
-  nextCursor: z.string().nullable(),
-});
-
-export const UserPostsResponseSchema = z.object({
-  posts: z.array(PostWithRelationsSchema),
-  nextCursor: z.string().nullable(),
-});
+export const FeedTimelineResponseSchema = CursorPaginatedResponseSchema(FeedItemSchema);
+export const FeedBookmarksResponseSchema = CursorPaginatedResponseSchema(BookmarkedFeedItemSchema);
+export const UserPostsResponseSchema = CursorPaginatedResponseSchema(PostWithRelationsSchema);
 
 // ─── Comments ───────────────────────────────────────────────────────
 export const CommentBaseSchema = z.object({
@@ -213,15 +203,8 @@ export const CommentWithPostSchema = CommentWithAuthorSchema.extend({
   }),
 });
 
-export const CommentsListResponseSchema = z.object({
-  comments: z.array(CommentWithRepliesSchema),
-  nextCursor: z.string().nullable(),
-});
-
-export const UserCommentsResponseSchema = z.object({
-  comments: z.array(CommentWithPostSchema),
-  nextCursor: z.string().nullable(),
-});
+export const CommentsListResponseSchema = CursorPaginatedResponseSchema(CommentWithRepliesSchema);
+export const UserCommentsResponseSchema = CursorPaginatedResponseSchema(CommentWithPostSchema);
 
 // ─── Engagement ─────────────────────────────────────────────────────
 export const LikePostResponseSchema = z.object({
@@ -289,10 +272,7 @@ export const ReactionWithPostSchema = z.object({
   }),
 });
 
-export const UserReactionsResponseSchema = z.object({
-  reactions: z.array(ReactionWithPostSchema),
-  nextCursor: z.string().nullable(),
-});
+export const UserReactionsResponseSchema = CursorPaginatedResponseSchema(ReactionWithPostSchema);
 
 // ─── Misc ───────────────────────────────────────────────────────────
 export const DeletedResponseSchema = z.object({ deleted: z.literal(true) });

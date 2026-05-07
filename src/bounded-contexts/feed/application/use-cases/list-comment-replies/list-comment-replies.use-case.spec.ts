@@ -9,6 +9,6 @@ describe('ListCommentRepliesUseCase', () => {
     repo.seedComment({ id: 'parent', postId: 'p1', authorId: 'a' });
     repo.seedComment({ id: 'r1', postId: 'p1', authorId: 'b', parentId: 'parent' });
     const out = await new ListCommentRepliesUseCase(repo).execute('parent', undefined, 20);
-    expect(out.replies.map((r) => r.id)).toEqual(['r1']);
+    expect(out.items.map((r) => r.id)).toEqual(['r1']);
   });
 });

@@ -21,6 +21,6 @@ export class ListUserReactionsUseCase {
       reactions.length === safeLimit
         ? reactions[reactions.length - 1].createdAt.toISOString()
         : null;
-    return { reactions, nextCursor };
+    return { items: reactions, nextCursor, hasNext: nextCursor !== null };
   }
 }

@@ -55,7 +55,7 @@ export class FeedTimelineService {
       await this.repository.listFollowedAndConnectionIds(userId);
 
     if (followingOnly && followingIds.length === 0) {
-      return { posts: [], nextCursor: null };
+      return { items: [], nextCursor: null, hasNext: false };
     }
 
     const prioritizedUserIds = new Set([...followingIds, ...connectionIds, userId]);
@@ -81,7 +81,7 @@ export class FeedTimelineService {
     const trimmed = sorted.slice(0, limit);
 
     if (trimmed.length === 0) {
-      return { posts: [], nextCursor: null };
+      return { items: [], nextCursor: null, hasNext: false };
     }
 
     const postIds = trimmed.map((p) => p.id);
@@ -114,6 +114,6 @@ export class FeedTimelineService {
     const nextCursor =
       enriched.length === limit ? enriched[enriched.length - 1].createdAt.toISOString() : null;
 
-    return { posts: enriched, nextCursor };
+    return { items: enriched, nextCursor, hasNext: nextCursor !== null };
   }
 }

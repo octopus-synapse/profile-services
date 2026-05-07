@@ -16,6 +16,6 @@ export class ListPostCommentsUseCase {
     const comments = await this.repository.listTopLevelByPost(postId, cursor, limit);
     const nextCursor =
       comments.length === limit ? comments[comments.length - 1].createdAt.toISOString() : null;
-    return { comments, nextCursor };
+    return { items: comments, nextCursor, hasNext: nextCursor !== null };
   }
 }

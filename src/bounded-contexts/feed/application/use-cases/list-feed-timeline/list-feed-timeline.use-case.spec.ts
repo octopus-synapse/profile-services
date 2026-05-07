@@ -16,6 +16,6 @@ describe('ListFeedTimelineUseCase', () => {
       limit: 10,
       followingOnly: false,
     });
-    expect(out.posts.map((p) => p.id)).toContain('p1');
+    expect(out.items.map((p) => p.id)).toContain('p1');
   });
 });

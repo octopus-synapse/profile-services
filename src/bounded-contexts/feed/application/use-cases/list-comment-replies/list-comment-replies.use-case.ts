@@ -16,6 +16,6 @@ export class ListCommentRepliesUseCase {
     const replies = await this.repository.listRepliesByComment(commentId, cursor, limit);
     const nextCursor =
       replies.length === limit ? replies[replies.length - 1].createdAt.toISOString() : null;
-    return { replies, nextCursor };
+    return { items: replies, nextCursor, hasNext: nextCursor !== null };
   }
 }

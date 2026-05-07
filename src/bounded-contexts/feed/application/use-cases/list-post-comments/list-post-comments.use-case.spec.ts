@@ -9,6 +9,6 @@ describe('ListPostCommentsUseCase', () => {
     repo.seedComment({ id: 'c1', postId: 'p1', authorId: 'a', content: 'first' });
     repo.seedComment({ id: 'c2', postId: 'p1', authorId: 'b', content: 'second' });
     const out = await new ListPostCommentsUseCase(repo).execute('p1', undefined, 20);
-    expect(out.comments.map((c) => c.id)).toEqual(['c2', 'c1']);
+    expect(out.items.map((c) => c.id)).toEqual(['c2', 'c1']);
   });
 });
