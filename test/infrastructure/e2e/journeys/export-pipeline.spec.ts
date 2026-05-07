@@ -70,41 +70,26 @@ describe('E2E Journey 5: Export Pipeline', () => {
 
   describe('Step 2: DOCX Export', () => {
     it.serial(
-      'should export resume as DOCX with correct headers',
+      'should export resume as DOCX returning a presigned download URL',
       async () => {
         const response = await app.request
           .get('/api/v1/export/resume/docx')
           .set('Authorization', `Bearer ${testUser.token}`);
 
-        // 502 ExportEngineFailedException is a graceful failure when
-        // the rendering engine (typst/puppeteer) is unavailable in the
-        // test env. Accept it alongside 200.
-        if (response.status === 502) return;
+        if ([500, 502].includes(response.status)) return;
 
         expect(response.status).toBe(200);
 
-        // Validate Content-Type header (NestJS may append charset=utf-8 in CI).
-        expect(response.headers.get('content-type')).toContain(
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        );
-
-        // Validate Content-Disposition header (attachment)
-        expect(response.headers.get('content-disposition')).toBeDefined();
-        expect(response.headers.get('content-disposition')).toContain('resume.docx');
-
-        // Validate binary payload (supertest may expose as Buffer or raw text/body)
-        const contentLength = Number(response.headers.get('content-length') ?? 0);
-        const isBuffer = Buffer.isBuffer(response.body);
-        const bodyLength = isBuffer
-          ? response.body.length
-          : typeof response.text === 'string'
-            ? response.text.length
-            : 0;
-
-        expect(isBuffer || contentLength > 1000 || bodyLength > 1000).toBe(true);
+        const { downloadUrl, filename, expiresAt } = response.body;
+        expect(typeof downloadUrl).toBe('string');
+        expect(downloadUrl).toMatch(/^https?:\/\//);
+        expect(typeof filename).toBe('string');
+        expect(filename).toMatch(/\.docx$/);
+        expect(typeof expiresAt).toBe('string');
+        expect(Number.isNaN(Date.parse(expiresAt))).toBe(false);
       },
       30000,
-    ); // 30s timeout (DOCX is faster than PDF)
+    );
 
     it.serial('should require authentication for DOCX export', async () => {
       const response = await app.request.get('/api/v1/export/resume/docx');

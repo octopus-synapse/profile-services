@@ -27,7 +27,7 @@ type SystemStyleSeed = {
 
 const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
   {
-    id: 'system-ats-classic',
+    id: '01900000-0000-7000-8000-000000000001',
     name: 'ATS Classic',
     description:
       'Single-column, neutral palette, Calibri body. Optimised for ATS parsers — safe default for most online portals.',
@@ -56,7 +56,7 @@ const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
     atsSafetyBreakdown: { layout: 30, typography: 28, fileLevel: 30 },
   },
   {
-    id: 'system-ats-compact',
+    id: '01900000-0000-7000-8000-000000000002',
     name: 'ATS Compact',
     description:
       'Single-column, dense spacing, Helvetica body. Same ATS guarantees as Classic but fits more content per page.',
