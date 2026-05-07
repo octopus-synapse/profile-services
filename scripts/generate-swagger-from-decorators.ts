@@ -230,6 +230,37 @@ function buildResponseHeaders(
   return out;
 }
 
+/**
+ * Stamp each operation with `x-permission` carrying the route's
+ * declared `Permission` string (or `null` for routes with `auth: jwt`
+ * but no specific permission, or absent for `auth: public`).
+ *
+ * Consumed by `dredd-hooks.js` so the contract suite can pick the
+ * right persona (admin vs regular user) per route based on actual
+ * authorization metadata, not by guessing from the expected status.
+ */
+function applyOperationPermissionExtension(
+  document: { paths?: Record<string, Record<string, unknown>> },
+  routes: ReadonlyArray<Route>,
+): void {
+  for (const route of routes) {
+    const { path } = convertPath(route.path);
+    const fullPath = `/api${path}`;
+    const ops = document.paths?.[fullPath];
+    if (!ops) continue;
+    const op = ops[route.method.toLowerCase()] as { [key: string]: unknown } | undefined;
+    if (!op) continue;
+    if (route.auth.kind === 'public') {
+      op['x-auth'] = 'public';
+      continue;
+    }
+    op['x-auth'] = 'jwt';
+    if (route.permission !== undefined) {
+      op['x-permission'] = String(route.permission);
+    }
+  }
+}
+
 function buildResponses(route: Route): Record<string, unknown> {
   const status = buildSuccessStatus(route);
   const errors: Record<string, unknown> = {
@@ -378,6 +409,7 @@ async function generate(): Promise<void> {
   });
 
   applyParameterAutoDeriveExamples(document);
+  applyOperationPermissionExtension(document, routes);
 
   // Final stability pass — explicitly rebuild `paths` in alphabetical
   // order so JSON serialisation is identical across hosts regardless

@@ -89,7 +89,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/health/live": {
@@ -166,7 +167,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/health/ready": {
@@ -275,7 +277,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/metrics": {
@@ -327,7 +330,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/accounts": {
@@ -449,7 +453,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       },
       "post": {
         "summary": "Create new account",
@@ -570,7 +575,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/accounts/deactivate": {
@@ -688,7 +694,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/admin/alerts": {
@@ -841,7 +848,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:stats_read"
       }
     },
     "/api/v1/admin/analytics/overview": {
@@ -1226,7 +1235,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_all"
       }
     },
     "/api/v1/admin/chat/conversations": {
@@ -1503,7 +1514,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/chat/stats": {
@@ -1660,7 +1673,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/collaborations": {
@@ -1925,7 +1940,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/collaborations/stats": {
@@ -2087,7 +2104,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/collaborations/{resumeId}/{userId}": {
@@ -2287,7 +2306,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/dashboard/metrics": {
@@ -2468,7 +2489,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:stats_read"
       }
     },
     "/api/v1/admin/feature-flags": {
@@ -2662,7 +2685,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feature_flag:read"
       }
     },
     "/api/v1/admin/feature-flags/broadcast-refresh": {
@@ -2797,7 +2822,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feature_flag:manage"
       }
     },
     "/api/v1/admin/feature-flags/{key}": {
@@ -3050,7 +3077,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feature_flag:manage"
       }
     },
     "/api/v1/admin/feature-flags/{key}/impact": {
@@ -3323,7 +3352,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feature_flag:read"
       }
     },
     "/api/v1/admin/fit-questions": {
@@ -3531,7 +3562,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       },
       "post": {
         "summary": "Create a new FitQuestion",
@@ -3801,7 +3834,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/fit-questions/{id}": {
@@ -3984,7 +4019,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       },
       "get": {
         "summary": "Get one FitQuestion by id",
@@ -4229,7 +4266,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       },
       "patch": {
         "summary": "Update an existing FitQuestion",
@@ -4534,7 +4573,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/metrics/overview": {
@@ -4758,7 +4799,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:manage"
       }
     },
     "/api/v1/admin/onboarding/config": {
@@ -4930,7 +4973,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "put": {
         "summary": "Update onboarding config",
@@ -5119,7 +5164,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/onboarding/stats": {
@@ -5283,7 +5330,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/onboarding/steps": {
@@ -5498,7 +5547,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "post": {
         "summary": "Create onboarding step",
@@ -5726,7 +5777,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/onboarding/steps/{key}": {
@@ -5908,7 +5961,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "get": {
         "summary": "Get onboarding step by key",
@@ -6167,7 +6222,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "put": {
         "summary": "Update onboarding step",
@@ -6444,7 +6501,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/programming-languages": {
@@ -6745,7 +6804,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "post": {
         "summary": "Create programming language",
@@ -6987,7 +7048,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/programming-languages/{slug}": {
@@ -7171,7 +7234,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "get": {
         "summary": "Get programming language by slug",
@@ -7446,7 +7511,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "patch": {
         "summary": "Update programming language",
@@ -7737,7 +7804,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/resume-styles": {
@@ -8305,7 +8374,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/resume-styles/{id}": {
@@ -8488,7 +8559,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       },
       "patch": {
         "summary": "Update a non-system ResumeStyle",
@@ -9097,7 +9170,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/section-types": {
@@ -9470,7 +9545,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "post": {
         "summary": "Create a new section type",
@@ -9978,7 +10055,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/section-types/semantic-kinds": {
@@ -10120,7 +10199,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/section-types/{key}": {
@@ -10302,7 +10383,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "get": {
         "summary": "Get a section type by key",
@@ -10641,7 +10724,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       },
       "patch": {
         "summary": "Update a section type",
@@ -11182,7 +11267,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:manage"
       }
     },
     "/api/v1/admin/spoken-languages": {
@@ -11437,7 +11524,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "post": {
         "summary": "Create spoken language",
@@ -11633,7 +11722,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/spoken-languages/{code}": {
@@ -11817,7 +11908,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "get": {
         "summary": "Get spoken language by code",
@@ -12046,7 +12139,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "patch": {
         "summary": "Update spoken language",
@@ -12291,7 +12386,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-areas": {
@@ -12568,7 +12665,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "post": {
         "summary": "Create tech area",
@@ -12786,7 +12885,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-areas/{id}": {
@@ -12971,7 +13072,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "get": {
         "summary": "Get tech area by ID",
@@ -13223,7 +13326,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "patch": {
         "summary": "Update tech area",
@@ -13491,7 +13596,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-niches": {
@@ -13769,7 +13876,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "post": {
         "summary": "Create tech niche",
@@ -13980,7 +14089,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-niches/{id}": {
@@ -14165,7 +14276,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "get": {
         "summary": "Get tech niche by ID",
@@ -14410,7 +14523,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "patch": {
         "summary": "Update tech niche",
@@ -14671,7 +14786,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-skills": {
@@ -14997,7 +15114,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "post": {
         "summary": "Create tech skill",
@@ -15248,7 +15367,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/tech-skills/{id}": {
@@ -15433,7 +15554,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "get": {
         "summary": "Get tech skill by ID",
@@ -15718,7 +15841,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       },
       "patch": {
         "summary": "Update tech skill",
@@ -16019,7 +16144,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/admin/test/run": {
@@ -16215,7 +16342,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/test/suites": {
@@ -16358,7 +16487,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/admin/users/{userId}/access-modifiers": {
@@ -16627,7 +16758,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:manage"
       },
       "post": {
         "summary": "Apply an access modifier (suspension or grant) to a user",
@@ -16935,7 +17068,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:manage"
       }
     },
     "/api/v1/admin/users/{userId}/access-modifiers/{modifierId}": {
@@ -17122,7 +17257,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:manage"
       }
     },
     "/api/v1/analytics/{resumeId}/ats-score": {
@@ -17297,7 +17434,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/analytics/{resumeId}/live": {
@@ -17472,7 +17611,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/analytics/{resumeId}/views": {
@@ -17647,7 +17788,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/analytics/{shareId}": {
@@ -17916,7 +18059,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/analytics/{shareId}/events": {
@@ -18179,7 +18324,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/apply-mode/weekly-curated/current": {
@@ -18343,7 +18490,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/apply-mode/weekly-curated/{itemId}/approve": {
@@ -18500,7 +18648,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/apply-mode/weekly-curated/{itemId}/reject": {
@@ -18653,7 +18802,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/2fa": {
@@ -18742,7 +18892,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/2fa/backup-codes/regenerate": {
@@ -18849,7 +19000,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/2fa/setup": {
@@ -18961,7 +19113,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/2fa/status": {
@@ -19077,7 +19230,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/2fa/verify": {
@@ -19207,7 +19361,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/email-verification/resend-status": {
@@ -19317,7 +19472,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/email-verification/send": {
@@ -19441,7 +19597,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/email-verification/verify": {
@@ -19530,7 +19687,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/forgot-password": {
@@ -19615,7 +19773,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/login": {
@@ -19655,7 +19814,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -19679,10 +19838,17 @@
                       "properties": {
                         "userId": {
                           "type": "string"
+                        },
+                        "twoFactorRequired": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
                         }
                       },
                       "required": [
-                        "userId"
+                        "userId",
+                        "twoFactorRequired"
                       ]
                     }
                   ]
@@ -19727,7 +19893,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/login/verify-2fa": {
@@ -19817,7 +19984,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/logout": {
@@ -19939,7 +20107,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/oauth/available/{provider}": {
@@ -20059,7 +20228,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/oauth/github/callback": {
@@ -20111,7 +20281,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/oauth/github/start": {
@@ -20163,7 +20334,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/oauth/linkedin/callback": {
@@ -20215,7 +20387,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/oauth/linkedin/start": {
@@ -20267,7 +20440,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/oauth/providers": {
@@ -20353,7 +20527,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/refresh": {
@@ -20385,10 +20560,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "tokens"
+                          ]
+                        },
                         "accessToken": {
                           "type": "string"
                         },
@@ -20400,6 +20581,7 @@
                         }
                       },
                       "required": [
+                        "mode",
                         "accessToken",
                         "refreshToken",
                         "expiresIn"
@@ -20408,6 +20590,12 @@
                     {
                       "type": "object",
                       "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "cookie"
+                          ]
+                        },
                         "ok": {
                           "type": "boolean",
                           "enum": [
@@ -20416,6 +20604,7 @@
                         }
                       },
                       "required": [
+                        "mode",
                         "ok"
                       ]
                     }
@@ -20461,7 +20650,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/reset-password": {
@@ -20551,7 +20741,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/auth/session": {
@@ -20675,7 +20866,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/auth/sessions": {
@@ -20863,7 +21055,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/auth/sessions/{id}": {
@@ -21038,7 +21232,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/automation/rage-apply": {
@@ -21236,7 +21432,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "automation:rage_apply"
       }
     },
     "/api/v1/badges/me": {
@@ -21357,7 +21555,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/badges/user/{userId}": {
@@ -21490,7 +21689,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/career-graph/view": {
@@ -21783,7 +21983,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/chat/blocked": {
@@ -21973,7 +22174,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       },
       "post": {
         "summary": "Block a user",
@@ -22180,7 +22383,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/blocked/{userId}": {
@@ -22362,7 +22567,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/blocked/{userId}/status": {
@@ -22552,7 +22759,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversation-with/{userId}": {
@@ -22840,7 +23049,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations": {
@@ -23093,7 +23304,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations/{conversationId}": {
@@ -23362,7 +23575,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations/{conversationId}/messages": {
@@ -23642,7 +23857,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       },
       "post": {
         "summary": "Send a message to an existing conversation",
@@ -23908,7 +24125,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations/{conversationId}/preferences/mute": {
@@ -24127,7 +24346,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations/{conversationId}/preferences/pin": {
@@ -24334,7 +24555,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/conversations/{conversationId}/read": {
@@ -24524,7 +24747,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/messages": {
@@ -24562,6 +24787,36 @@
         "responses": {
           "201": {
             "description": "Successful response",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "_def": {
+                    "innerType": {
+                      "_def": {
+                        "checks": [],
+                        "typeName": "ZodString",
+                        "coerce": false
+                      },
+                      "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                      }
+                    },
+                    "typeName": "ZodOptional",
+                    "openapi": {
+                      "metadata": {
+                        "example": "/api/v1/chat/messages/01900000-0000-7000-a000-000000000050"
+                      }
+                    }
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "required": false
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -24748,7 +25003,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/unread": {
@@ -24898,7 +25155,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/chat/users/search": {
@@ -25075,7 +25334,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "chat:use"
       }
     },
     "/api/v1/connections/{id}": {
@@ -25268,7 +25529,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/connections/{id}/accept": {
@@ -25460,7 +25723,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/connections/{id}/reject": {
@@ -25652,7 +25917,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/connections/{id}/withdraw": {
@@ -25844,7 +26111,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/dsl/preview": {
@@ -26296,7 +26565,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/dsl/render/public/{slug}": {
@@ -26803,7 +27073,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/dsl/render/{resumeId}": {
@@ -27384,7 +27655,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/dsl/validate": {
@@ -27459,7 +27732,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/enums": {
@@ -27529,7 +27803,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/enums/export-formats": {
@@ -27632,7 +27907,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/enums/section-types": {
@@ -27718,7 +27994,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/enums/user-roles": {
@@ -27800,7 +28077,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/enums/{key}": {
@@ -27964,7 +28242,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/events": {
@@ -28113,7 +28392,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/events/schemas": {
@@ -28298,7 +28578,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/export/banner": {
@@ -28450,7 +28731,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:export"
       }
     },
     "/api/v1/export/resume/docx": {
@@ -28602,7 +28885,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:export"
       }
     },
     "/api/v1/export/resume/pdf": {
@@ -28788,7 +29073,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:export"
       }
     },
     "/api/v1/export/user/{userId}/resume/pdf": {
@@ -28945,7 +29232,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/export/{resumeId}/json": {
@@ -29154,7 +29442,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:export"
       }
     },
     "/api/v1/export/{resumeId}/latex": {
@@ -29363,7 +29653,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:export"
       }
     },
     "/api/v1/feature-flags/active": {
@@ -29470,7 +29762,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/feature-flags/evaluate": {
@@ -29577,7 +29870,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/feature-flags/stream": {
@@ -29666,7 +29960,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/feed": {
@@ -30906,7 +31201,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/feed/bookmarks": {
@@ -31593,7 +31890,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/feed/subscribe": {
@@ -31719,7 +32018,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/feed/subscribe/{type}": {
@@ -31894,7 +32195,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/feed/user/{userId}": {
@@ -32614,7 +32917,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/fit-profile/answers": {
@@ -32773,7 +33078,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/fit-profile/me": {
@@ -32869,7 +33175,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       },
       "get": {
         "summary": "Get the caller's Fit Profile lifecycle state",
@@ -33304,7 +33611,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/fit-profile/questions": {
@@ -33481,7 +33789,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/i18n/dictionary/enums": {
@@ -33558,7 +33867,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/i18n/dictionary/errors": {
@@ -33632,7 +33942,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/i18n/dictionary/notifications": {
@@ -33725,7 +34036,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/import/github/parse": {
@@ -33976,7 +34288,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/integrations/github/summary/{username}": {
@@ -34139,7 +34453,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/integrations/github/sync": {
@@ -34268,7 +34583,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/integrations/github/sync-status/{resumeId}": {
@@ -34437,7 +34753,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/integrations/github/sync/{resumeId}/auto": {
@@ -34594,7 +34911,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/jobs": {
@@ -35037,7 +35355,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Create a new job posting",
@@ -35146,6 +35466,36 @@
         "responses": {
           "201": {
             "description": "Successful response",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "_def": {
+                    "innerType": {
+                      "_def": {
+                        "checks": [],
+                        "typeName": "ZodString",
+                        "coerce": false
+                      },
+                      "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                      }
+                    },
+                    "typeName": "ZodOptional",
+                    "openapi": {
+                      "metadata": {
+                        "example": "/api/v1/jobs/01900000-0000-7000-a000-000000000030"
+                      }
+                    }
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "required": false
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -35407,7 +35757,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/jobs/applications": {
@@ -35844,7 +36196,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/applications/companies/{company}/response-stats": {
@@ -36055,7 +36409,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/applications/tracker": {
@@ -36305,7 +36661,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/applications/{applicationId}/events": {
@@ -36545,7 +36903,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/bookmarks": {
@@ -36936,7 +37296,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/import-from-url": {
@@ -37193,7 +37555,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/jobs/mine": {
@@ -37551,7 +37915,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/jobs/recommended": {
@@ -37946,7 +38312,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/with-fit-score": {
@@ -38436,7 +38804,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/{id}": {
@@ -38761,7 +39131,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       },
       "get": {
         "summary": "Fetch a single job by id",
@@ -39117,7 +39489,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "patch": {
         "summary": "Update a job posting",
@@ -39537,7 +39911,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/jobs/{id}/applications": {
@@ -39873,7 +40249,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/jobs/{id}/apply": {
@@ -40075,7 +40453,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Submit a quick application to a job",
@@ -40325,7 +40705,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/{id}/apply-context": {
@@ -40615,7 +40997,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/{id}/bookmark": {
@@ -40817,7 +41201,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Bookmark a job",
@@ -41014,7 +41400,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/{id}/fit": {
@@ -41258,7 +41646,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/jobs/{id}/fit-profile": {
@@ -41759,7 +42149,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:manage"
       },
       "post": {
         "summary": "Upsert the recruiter-authored Fit Profile for a job",
@@ -42367,7 +42759,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:manage"
       }
     },
     "/api/v1/jobs/{id}/similar": {
@@ -42748,7 +43142,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/match": {
@@ -43079,7 +43475,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/match/{resumeId}/{jobId}": {
@@ -43446,7 +43844,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/me/gdpr-export": {
@@ -43837,7 +44237,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/me/menu": {
@@ -44026,7 +44427,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/me/password/change": {
@@ -44153,7 +44555,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/me/skill-proficiency": {
@@ -44320,7 +44723,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/me/skill-proficiency/{skillName}": {
@@ -44502,7 +44907,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       },
       "put": {
         "summary": "Set proficiency for a skill (creates if missing).",
@@ -44722,7 +45129,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/me/ui-state": {
@@ -44855,7 +45264,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/me/ui-state/{key}": {
@@ -45011,7 +45421,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       },
       "patch": {
         "summary": "Upsert a single UI-state key/value (idempotent).",
@@ -45206,7 +45617,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/mec/areas": {
@@ -45276,7 +45688,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/courses/search": {
@@ -45418,7 +45831,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/courses/{codigoCurso}": {
@@ -45587,7 +46001,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/institutions": {
@@ -45707,7 +46122,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/institutions/search": {
@@ -45837,7 +46253,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/institutions/{codigoIes}": {
@@ -46032,7 +46449,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/institutions/{codigoIes}/courses": {
@@ -46203,7 +46621,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/internal/sync": {
@@ -46286,7 +46705,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/internal/sync/history": {
@@ -46376,7 +46796,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/internal/sync/status": {
@@ -46496,7 +46917,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/stats": {
@@ -46613,7 +47035,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/mec/ufs": {
@@ -46683,7 +47106,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/notifications": {
@@ -46945,7 +47369,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/mark-read": {
@@ -47101,7 +47527,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/preferences": {
@@ -47289,7 +47717,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/preferences/{type}": {
@@ -47541,7 +47971,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/subscribe": {
@@ -47667,7 +48099,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/types": {
@@ -47882,7 +48316,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/notifications/unread-count": {
@@ -48024,7 +48460,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "notification:read"
       }
     },
     "/api/v1/onboarding": {
@@ -48279,7 +48717,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/preview/stream": {
@@ -48368,7 +48807,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/progress": {
@@ -48728,7 +49168,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       },
       "put": {
         "summary": "[Legacy] Save onboarding progress",
@@ -49015,7 +49456,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session": {
@@ -49385,7 +49827,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/complete": {
@@ -49489,7 +49932,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/goto": {
@@ -49876,7 +50320,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/next": {
@@ -50262,7 +50707,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/previous": {
@@ -50632,7 +51078,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/restart": {
@@ -51002,7 +51449,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/session/save": {
@@ -51388,7 +51836,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/onboarding/status": {
@@ -51499,7 +51948,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/pages/me-dashboard": {
@@ -51892,7 +52342,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/pages/settings/{section}": {
@@ -52191,7 +52642,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/platform/stats": {
@@ -52354,7 +52806,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "platform:stats_read"
       }
     },
     "/api/v1/posts": {
@@ -52485,6 +52939,36 @@
         "responses": {
           "201": {
             "description": "Successful response",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "_def": {
+                    "innerType": {
+                      "_def": {
+                        "checks": [],
+                        "typeName": "ZodString",
+                        "coerce": false
+                      },
+                      "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                      }
+                    },
+                    "typeName": "ZodOptional",
+                    "openapi": {
+                      "metadata": {
+                        "example": "/api/v1/posts/01900000-0000-7000-a000-000000000040"
+                      }
+                    }
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "required": false
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -52853,7 +53337,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/comments/{id}": {
@@ -53047,7 +53533,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/composer-config": {
@@ -53239,7 +53727,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/upload-image": {
@@ -53384,7 +53874,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}": {
@@ -53578,7 +54070,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "get": {
         "summary": "Get a post by ID",
@@ -54261,7 +54755,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/bookmark": {
@@ -54456,7 +54952,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Bookmark a post",
@@ -54653,7 +55151,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/comments": {
@@ -55031,7 +55531,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Create a comment",
@@ -55308,7 +55810,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/like": {
@@ -55503,7 +56007,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       },
       "post": {
         "summary": "Like a post",
@@ -55738,7 +56244,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/poll/vote": {
@@ -55965,7 +56473,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/report": {
@@ -56195,7 +56705,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/posts/{id}/repost": {
@@ -56239,7 +56751,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -56456,6 +56968,12 @@
                             "username",
                             "photoURL"
                           ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "post"
+                          ]
                         }
                       },
                       "required": [
@@ -56489,12 +57007,19 @@
                         "anonymousCategory",
                         "createdAt",
                         "updatedAt",
-                        "author"
+                        "author",
+                        "kind"
                       ]
                     },
                     {
                       "type": "object",
                       "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "reposted"
+                          ]
+                        },
                         "postId": {
                           "type": "string"
                         },
@@ -56506,6 +57031,7 @@
                         }
                       },
                       "required": [
+                        "kind",
                         "postId",
                         "userId",
                         "reposted"
@@ -56664,7 +57190,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/profiles/{username}": {
@@ -56911,7 +57439,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/public/resumes/{slug}": {
@@ -57309,7 +57838,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/public/resumes/{slug}/download": {
@@ -57707,7 +58237,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/public/resumes/{slug}/og.png": {
@@ -57816,7 +58347,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/recruiting/jobs/form-config": {
@@ -58050,7 +58582,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/recruiting/match-candidates": {
@@ -58331,7 +58865,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "job:create"
       }
     },
     "/api/v1/resume-styles": {
@@ -58540,7 +59076,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resume-styles/{id}": {
@@ -59074,7 +59611,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resume-styles/{id}/preview.pdf": {
@@ -59221,7 +59759,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes": {
@@ -59444,7 +59983,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       },
       "post": {
         "summary": "Create a new resume",
@@ -59519,6 +60060,36 @@
         "responses": {
           "201": {
             "description": "Successful response",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "_def": {
+                    "innerType": {
+                      "_def": {
+                        "checks": [],
+                        "typeName": "ZodString",
+                        "coerce": false
+                      },
+                      "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                      }
+                    },
+                    "typeName": "ZodOptional",
+                    "openapi": {
+                      "metadata": {
+                        "example": "/api/v1/resumes/01900000-0000-7000-a000-000000000010"
+                      }
+                    }
+                  },
+                  "~standard": {
+                    "version": 1,
+                    "vendor": "zod"
+                  }
+                },
+                "required": false
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -59675,7 +60246,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:create"
       }
     },
     "/api/v1/resumes/comments/{commentId}": {
@@ -59859,7 +60432,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/comments/{commentId}/resolve": {
@@ -60139,7 +60714,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/imports": {
@@ -61308,7 +61885,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/github": {
@@ -61460,7 +62039,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/json": {
@@ -61642,7 +62223,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/linkedin": {
@@ -61806,7 +62389,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/parse": {
@@ -62472,7 +63057,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/pdf": {
@@ -62613,7 +63200,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/{importId}": {
@@ -62795,7 +63384,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       },
       "get": {
         "summary": "Get import job status",
@@ -64008,7 +64599,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/imports/{importId}/retry": {
@@ -64221,7 +64814,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:import"
       }
     },
     "/api/v1/resumes/manage/user/{userId}": {
@@ -64742,7 +65337,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/manage/{id}": {
@@ -64932,7 +65529,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:delete"
       },
       "get": {
         "summary": "Get full resume details",
@@ -65483,7 +66082,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/shared-with-me": {
@@ -65658,7 +66259,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/slots": {
@@ -65807,7 +66410,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/{resumeId}": {
@@ -66001,7 +66606,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:delete"
       },
       "get": {
         "summary": "Get a specific resume",
@@ -66331,7 +66938,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       },
       "patch": {
         "summary": "Update a resume",
@@ -66608,7 +67217,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/ats-score": {
@@ -66872,7 +67483,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/benchmark": {
@@ -67214,7 +67827,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/dashboard": {
@@ -67555,7 +68170,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/history": {
@@ -67801,7 +68418,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/keywords": {
@@ -68090,7 +68709,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/match-job": {
@@ -68362,7 +68983,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/progression": {
@@ -68582,7 +69205,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/snapshot": {
@@ -68814,7 +69439,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/track-view": {
@@ -68947,7 +69574,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/resumes/{resumeId}/analytics/views": {
@@ -69223,7 +69851,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/collaborators": {
@@ -69474,7 +70104,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       },
       "post": {
         "summary": "Invite user to collaborate on resume",
@@ -69747,7 +70379,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/{resumeId}/collaborators/{userId}": {
@@ -69941,7 +70575,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       },
       "patch": {
         "summary": "Update collaborator role",
@@ -70219,7 +70855,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/{resumeId}/comments": {
@@ -70502,7 +71140,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       },
       "post": {
         "summary": "Add a comment / reply to a resume",
@@ -70808,7 +71448,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "collaboration:use"
       }
     },
     "/api/v1/resumes/{resumeId}/diff": {
@@ -71039,7 +71681,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/full": {
@@ -71371,7 +72014,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/{resumeId}/quality": {
@@ -71663,7 +72308,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/{resumeId}/quality/recompute": {
@@ -71955,7 +72602,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/resumes/{resumeId}/sections": {
@@ -72354,7 +73003,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/sections/types": {
@@ -72678,7 +73328,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "section_type:read"
       }
     },
     "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items": {
@@ -72902,7 +73554,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}": {
@@ -73075,7 +73728,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       },
       "patch": {
         "summary": "Update section item in a dynamic section type",
@@ -73307,7 +73961,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/shares/{shareId}/analytics": {
@@ -73586,7 +74241,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/resumes/{resumeId}/skills": {
@@ -73806,7 +74463,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       },
       "post": {
         "summary": "Add a skill to a resume",
@@ -74045,7 +74704,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/resumes/{resumeId}/skills/{skillId}": {
@@ -74253,7 +74914,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       },
       "patch": {
         "summary": "Update a resume skill",
@@ -74498,7 +75161,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/resumes/{resumeId}/style": {
@@ -74660,7 +75325,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/tailor": {
@@ -74966,7 +75632,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/tailored-versions": {
@@ -75150,7 +75817,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/thumbnail.svg": {
@@ -75333,7 +76001,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/resumes/{resumeId}/versions": {
@@ -75512,7 +76182,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/resumes/{resumeId}/versions/{versionId}/restore": {
@@ -75677,7 +76348,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/search": {
@@ -75918,7 +76590,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/search/global": {
@@ -76060,7 +76733,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/search/similar/{id}": {
@@ -76248,7 +76922,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/search/suggestions": {
@@ -76340,7 +77015,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/shadow-profiles/candidates": {
@@ -76534,7 +77210,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       }
     },
     "/api/v1/shadow-profiles/github": {
@@ -76720,7 +77398,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:manage"
       }
     },
     "/api/v1/shadow-profiles/{id}/claim": {
@@ -76935,7 +77615,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/shares": {
@@ -77150,7 +77832,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/shares/aliases/{aliasId}": {
@@ -77340,7 +78024,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/shares/resume/{resumeId}": {
@@ -77574,7 +78260,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/shares/{shareId}": {
@@ -77764,7 +78452,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/shares/{shareId}/aliases": {
@@ -77973,7 +78663,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       },
       "post": {
         "summary": "Add a slug alias to a share",
@@ -78197,7 +78889,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/shares/{shareId}/qr.png": {
@@ -78391,7 +79085,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/spoken-languages": {
@@ -78560,7 +79256,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/spoken-languages/search": {
@@ -78747,7 +79445,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/spoken-languages/{code}": {
@@ -78962,7 +79662,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/stream": {
@@ -79063,7 +79765,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/success-stories": {
@@ -79206,7 +79909,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       },
       "post": {
         "summary": "Create a success story (admin).",
@@ -79406,7 +80110,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/success-stories/{id}": {
@@ -79599,7 +80305,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       },
       "patch": {
         "summary": "Update a success story (admin).",
@@ -79838,7 +80546,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "admin:full_access"
       }
     },
     "/api/v1/tech-areas": {
@@ -80037,7 +80747,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-areas/{areaType}/niches": {
@@ -80289,7 +81001,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-niches": {
@@ -80492,7 +81206,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-niches/{nicheSlug}/skills": {
@@ -80768,7 +81484,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills": {
@@ -80995,7 +81713,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/areas": {
@@ -81194,7 +81914,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/areas/{areaType}/niches": {
@@ -81446,7 +82168,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/languages": {
@@ -81650,7 +82374,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/languages/search": {
@@ -81874,7 +82600,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/niches": {
@@ -82077,7 +82805,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/niches/{nicheSlug}/skills": {
@@ -82353,7 +83083,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/search": {
@@ -82675,7 +83407,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/skills": {
@@ -82902,7 +83636,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/skills/search": {
@@ -83149,7 +83885,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/skills/type/{type}": {
@@ -83433,7 +84171,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/tech-skills/sync": {
@@ -83613,7 +84353,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:manage"
       }
     },
     "/api/v1/tech-skills/type/{type}": {
@@ -83897,7 +84639,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "skill:read"
       }
     },
     "/api/v1/translation/batch": {
@@ -84135,7 +84879,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/translation/detect": {
@@ -84309,7 +85055,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/translation/en-to-pt": {
@@ -84496,7 +85244,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/translation/health": {
@@ -84573,7 +85323,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/translation/pt-to-en": {
@@ -84760,7 +85511,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/translation/text": {
@@ -84964,7 +85717,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     },
     "/api/v1/upload/company-logo/{resumeId}": {
@@ -85159,7 +85914,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/upload/file/{key}": {
@@ -85334,7 +86091,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/upload/profile-image": {
@@ -85480,7 +86239,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/users/manage": {
@@ -85762,7 +86523,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       },
       "post": {
         "summary": "Create a new user",
@@ -85963,7 +86726,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       }
     },
     "/api/v1/users/manage/{id}": {
@@ -86154,7 +86919,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       },
       "get": {
         "summary": "Get user details by ID",
@@ -86474,7 +87241,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       },
       "patch": {
         "summary": "Update user information",
@@ -86731,7 +87500,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       }
     },
     "/api/v1/users/manage/{id}/reset-password": {
@@ -86940,7 +87711,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       }
     },
     "/api/v1/users/manage/{id}/roles": {
@@ -87151,7 +87924,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "[object Object]"
       }
     },
     "/api/v1/users/me/accept-consent": {
@@ -87327,7 +88102,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/users/me/connection-recommendations": {
@@ -87510,7 +88286,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/connections": {
@@ -87840,7 +88618,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/connections/pending": {
@@ -88170,7 +88950,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/connections/sent": {
@@ -88500,7 +89282,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/connections/suggestions": {
@@ -88757,7 +89541,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/consent-history": {
@@ -88886,7 +89672,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/users/me/consent-status": {
@@ -89006,7 +89793,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/users/me/network-summary": {
@@ -89567,7 +90355,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/permissions": {
@@ -89711,7 +90501,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       }
     },
     "/api/v1/users/me/skills": {
@@ -89872,7 +90664,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/me/social-stats": {
@@ -90028,7 +90822,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/preferences": {
@@ -90180,7 +90976,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       },
       "patch": {
         "summary": "Update user preferences (basic)",
@@ -90345,7 +91143,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/users/preferences/full": {
@@ -90657,7 +91457,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       },
       "patch": {
         "summary": "Update all user preferences",
@@ -91116,7 +91918,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/users/profile": {
@@ -91314,7 +92118,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       },
       "patch": {
         "summary": "Update current user profile",
@@ -91653,7 +92459,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/users/public": {
@@ -91786,7 +92594,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/users/username": {
@@ -91951,7 +92760,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
       }
     },
     "/api/v1/users/username/check": {
@@ -92116,7 +92927,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       }
     },
     "/api/v1/users/username/validate": {
@@ -92333,7 +93146,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
       }
     },
     "/api/v1/users/{userId}/activities": {
@@ -92635,7 +93450,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/users/{userId}/activities/by-type/{type}": {
@@ -92946,7 +93762,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/users/{userId}/comments": {
@@ -93300,7 +94117,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/users/{userId}/connect": {
@@ -93492,7 +94311,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/connection-stats": {
@@ -93608,7 +94429,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/users/{userId}/feed": {
@@ -93947,7 +94769,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/follow": {
@@ -94140,7 +94964,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       },
       "post": {
         "summary": "Follow a user",
@@ -94330,7 +95156,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/followers": {
@@ -94670,7 +95498,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/following": {
@@ -95010,7 +95840,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/is-connected": {
@@ -95205,7 +96037,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/is-following": {
@@ -95395,7 +96229,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/reactions": {
@@ -95702,7 +96538,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "feed:use"
       }
     },
     "/api/v1/users/{userId}/skills": {
@@ -95913,7 +96751,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/skills/{skill}/endorse": {
@@ -96122,7 +96962,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       },
       "post": {
         "summary": "Endorse a user for a skill",
@@ -96329,7 +97171,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/skills/{skill}/endorsers": {
@@ -96631,7 +97475,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "social:use"
       }
     },
     "/api/v1/users/{userId}/social-stats": {
@@ -96758,7 +97604,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/versions/{resumeId}": {
@@ -96937,7 +97784,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/versions/{resumeId}/restore/{versionId}": {
@@ -97102,7 +97950,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/versions/{resumeId}/{versionId}": {
@@ -97291,7 +98140,8 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt"
       }
     },
     "/api/v1/webhooks": {
@@ -97474,7 +98324,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       },
       "post": {
         "summary": "Register a new webhook subscription.",
@@ -97687,7 +98539,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/webhooks/{id}": {
@@ -97872,7 +98726,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       },
       "patch": {
         "summary": "Update a webhook subscription.",
@@ -98130,7 +98986,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:update"
       }
     },
     "/api/v1/webhooks/{id}/deliveries": {
@@ -98360,7 +99218,9 @@
               }
             }
           }
-        }
+        },
+        "x-auth": "jwt",
+        "x-permission": "resume:read"
       }
     }
   },

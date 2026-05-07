@@ -260,7 +260,7 @@ async function inventoryValidation(files: string[]): Promise<ValidationInventory
   for (const file of files) {
     const source = await readFile(file, 'utf8');
     if (!source.includes('zod')) continue;
-    if (/createZodDto|z\.object\s*\(/.test(source)) {
+    if (/z\.object\s*\(/.test(source)) {
       schemas += (source.match(/z\.object\s*\(/g) ?? []).length;
     }
     REFINEMENT_RE.lastIndex = 0;

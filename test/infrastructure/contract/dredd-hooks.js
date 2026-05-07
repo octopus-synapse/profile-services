@@ -125,10 +125,76 @@ hooks.beforeEach((transaction, done) => {
 //   - regular user (dredd-fixture@profile.local / Dredd_Fixture_Password_123!)
 //
 // The hook captures both session cookies up front, then in
-// `beforeEachValidation` picks one based on the transaction's expected
-// status: 403 means "this route is admin-gated, send regular user
-// cookie so the server actually returns 403"; 200/201 means "run with
-// the highest-privilege caller", which is admin.
+// `beforeEachValidation` picks one based on the operation's declared
+// authorization metadata (read from the `x-permission` / `x-auth`
+// extensions the swagger generator emits):
+//
+//   - `x-auth: public`          → no cookie (anonymous)
+//   - expected 401              → no cookie (assert auth is enforced)
+//   - expected 403              → regular user (assert admin gate works)
+//   - admin-level x-permission  → admin cookie (only admin can succeed)
+//   - non-admin x-permission OR plain `x-auth: jwt` → regular user cookie
+//
+// Using `route.permission` instead of guessing from the expected status
+// catches misconfigurations the status-only heuristic missed (e.g. an
+// admin-gated route declared without a 403 example).
+//
+// Permission classification: admin if the perm string ends with one of
+// MANAGE / `_ALL` / `_ASSIGN` / STATS_READ, or starts with `admin:`.
+// Everything else is a normal user permission.
+
+const ADMIN_PERMISSION_SUFFIXES = [':manage', ':read_all', ':role_assign', ':stats_read'];
+function isAdminPermission(perm) {
+  if (!perm) return false;
+  if (perm.startsWith('admin:')) return true;
+  return ADMIN_PERMISSION_SUFFIXES.some((suffix) => perm.endsWith(suffix));
+}
+
+// Parse swagger.json once and build "METHOD path" → { auth, permission }.
+// Path is the OpenAPI template (with `{id}` placeholders) so we can
+// match against `transaction.origin.resourceName` directly.
+const path = require('node:path');
+const fs = require('node:fs');
+const SWAGGER_PATH = path.resolve(__dirname, '../../../swagger.json');
+const operationMetadata = new Map();
+try {
+  const swagger = JSON.parse(fs.readFileSync(SWAGGER_PATH, 'utf8'));
+  for (const [pathTemplate, ops] of Object.entries(swagger.paths || {})) {
+    for (const [method, op] of Object.entries(ops || {})) {
+      if (typeof op !== 'object' || op === null) continue;
+      operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
+        auth: op['x-auth'] || 'public',
+        permission: op['x-permission'] || null,
+      });
+    }
+  }
+} catch (err) {
+  hooks.log(`Failed to load swagger.json metadata: ${err.message}`);
+}
+
+function lookupOperation(transaction) {
+  const method = (
+    transaction.request?.method ||
+    transaction.origin?.actionName ||
+    ''
+  ).toUpperCase();
+  // Prefer Dredd's parsed origin (carries the path template). Fallback to
+  // matching on the full path against templates if origin is absent.
+  const template = transaction.origin?.resourceName || transaction.origin?.uriTemplate;
+  if (template) {
+    const meta = operationMetadata.get(`${method} ${template}`);
+    if (meta) return meta;
+  }
+  // Last-resort fallback: regex match.
+  const fullPath = transaction.fullPath || '';
+  for (const [key, meta] of operationMetadata) {
+    const [keyMethod, keyPath] = key.split(' ');
+    if (keyMethod !== method) continue;
+    const regex = new RegExp(`^${keyPath.replace(/\{[^}]+\}/g, '[^/]+')}$`);
+    if (regex.test(fullPath)) return meta;
+  }
+  return null;
+}
 
 let adminCookie = null;
 let adminToken = null;
@@ -207,23 +273,41 @@ hooks.beforeAll((_transactions, done) => {
   );
 });
 
+function setCookieAndToken(transaction, cookie, token) {
+  if (!cookie) return;
+  transaction.request.headers.Cookie = cookie;
+  if (token) {
+    transaction.request.headers.Authorization = `Bearer ${token}`;
+  }
+}
+
 hooks.beforeEachValidation((transaction, done) => {
   const expectedStatus = Number(transaction.expected?.statusCode) || 0;
-  const useRegular = expectedStatus === 403;
-  const useAnon = expectedStatus === 401;
-  if (useAnon) {
+  const meta = lookupOperation(transaction);
+  const auth = meta?.auth || 'jwt';
+  const permission = meta?.permission;
+
+  // Anonymous: route declared as public, OR we're explicitly probing 401.
+  if (auth === 'public' || expectedStatus === 401) {
     delete transaction.request.headers.Cookie;
     delete transaction.request.headers.Authorization;
-  } else if (useRegular && regularCookie) {
-    transaction.request.headers.Cookie = regularCookie;
-    if (regularToken) {
-      transaction.request.headers.Authorization = `Bearer ${regularToken}`;
-    }
-  } else if (adminCookie) {
-    transaction.request.headers.Cookie = adminCookie;
-    if (adminToken) {
-      transaction.request.headers.Authorization = `Bearer ${adminToken}`;
-    }
+    return done();
+  }
+
+  // 403 probes use the regular user — a route that 403s for admin is a
+  // misconfiguration the contract suite SHOULD surface.
+  if (expectedStatus === 403) {
+    setCookieAndToken(transaction, regularCookie, regularToken);
+    return done();
+  }
+
+  // Success path: pick admin if the route's permission requires it,
+  // otherwise the regular user (asserts the user persona truly has the
+  // permission instead of relying on admin's universal access).
+  if (isAdminPermission(permission)) {
+    setCookieAndToken(transaction, adminCookie, adminToken);
+  } else {
+    setCookieAndToken(transaction, regularCookie, regularToken);
   }
   done();
 });
