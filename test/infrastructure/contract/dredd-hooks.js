@@ -378,6 +378,7 @@ const MISSING_SLUG_SENTINEL = 'missing-fixture-slug-sentinel';
 function synthesizeDummyValue(schema) {
   if (!schema) return null;
   if (schema.example !== undefined) return schema.example;
+  if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
   switch (schema.type) {
     case 'string':
       return 'dummy';
@@ -471,6 +472,19 @@ hooks.beforeEach((transaction, done) => {
     url = url.replace(`{${name}}`, id);
   }
   transaction.fullPath = url;
+  if (transaction.request) transaction.request.uri = url;
+
+  if (expectedStatus === 401 || expectedStatus === 403) {
+    // Body validation runs before auth/permission guards. Send a minimal
+    // valid body so the guard (not Zod) decides the outcome.
+    const metaAuth = lookupOperation(transaction);
+    const validBody = synthesizeValidBody(metaAuth);
+    if (validBody !== null) {
+      transaction.request.body = JSON.stringify(validBody);
+      transaction.request.headers['Content-Type'] = 'application/json';
+    }
+    return done();
+  }
 
   if (expectedStatus === 400) {
     const meta = lookupOperation(transaction);
