@@ -34,6 +34,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/v1/search',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=30' },
     query: SearchQuerySchema as unknown as Route<SearchServicePort>['query'],
     response: SearchResponseSchema,
     openapi: {
@@ -61,6 +62,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/v1/search/suggestions',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=30' },
     query: SuggestionsQuerySchema as unknown as Route<SearchServicePort>['query'],
     response: SuggestionsResponseSchema,
     openapi: {
@@ -79,6 +81,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/v1/search/global',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=30' },
     query: GlobalSearchQuerySchema as unknown as Route<SearchServicePort>['query'],
     response: GlobalSearchResponseSchema,
     openapi: {
@@ -97,6 +100,7 @@ export const searchRoutes: ReadonlyArray<Route<SearchServicePort>> = [
     method: 'GET',
     path: '/v1/search/similar/:id',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=30' },
     params: IdParam,
     query: SimilarQuerySchema as unknown as Route<SearchServicePort>['query'],
     response: SimilarResumesResponseSchema,

@@ -153,6 +153,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
     method: 'GET',
     path: '/v1/users/:userId/social-stats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: UserIdParam,
     response: SocialStatsResponseSchema,
     openapi: {

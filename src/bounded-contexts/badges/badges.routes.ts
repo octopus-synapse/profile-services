@@ -33,6 +33,7 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     method: 'GET',
     path: '/v1/badges/user/:userId',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: ListForUserParams,
     response: ListBadgesResponseSchema,
     openapi: {

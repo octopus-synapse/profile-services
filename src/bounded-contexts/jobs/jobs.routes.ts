@@ -420,6 +420,12 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     permission: Permission.JOB_CREATE,
     body: CreateJobSchema,
     response: JobSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/jobs/01900000-0000-7000-a000-000000000030' }),
+    }),
     openapi: {
       summary: 'Create a new job posting',
       tags: ['jobs'],

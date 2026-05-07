@@ -74,6 +74,12 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     body: CreatePostSchema,
     response: PostWithAuthorSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/posts/01900000-0000-7000-a000-000000000040' }),
+    }),
     openapi: {
       summary: 'Create a new post',
       tags: ['posts'],

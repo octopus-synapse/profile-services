@@ -70,6 +70,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'GET',
     path: '/v1/profiles/:username',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: UsernameParam,
     response: PublicProfileDataSchema,
     openapi: {
@@ -108,6 +109,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'GET',
     path: '/v1/users/public',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     query: PublicUsersListQuery,
     response: PublicUsersListResponseSchema,
     openapi: {

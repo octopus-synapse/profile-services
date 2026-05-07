@@ -25,6 +25,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     auth: { kind: 'public' },
     query: LimitQuery,
     response: SuccessStoriesListResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=300' },
     openapi: {
       summary: 'Published success stories for the landing carousel.',
       tags: ['success-stories'],

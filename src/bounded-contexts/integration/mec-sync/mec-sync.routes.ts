@@ -41,6 +41,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/courses/search',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     query: SearchQuery,
     response: CoursesListResponseSchema,
     openapi: {
@@ -60,6 +61,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/courses/:codigoCurso',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     params: CourseCodeParams,
     response: CourseResponseSchema,
     openapi: {
@@ -80,6 +82,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/institutions',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     query: ListInstitutionsQuery,
     response: InstitutionsListResponseSchema,
     openapi: {
@@ -98,6 +101,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/institutions/search',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     query: SearchQuery,
     response: InstitutionsListResponseSchema,
     openapi: {
@@ -117,6 +121,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/institutions/:codigoIes',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     params: InstitutionCodeParams,
     response: InstitutionResponseSchema,
     openapi: {
@@ -135,6 +140,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/institutions/:codigoIes/courses',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     params: InstitutionCodeParams,
     response: CoursesListResponseSchema,
     openapi: {
@@ -155,6 +161,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/ufs',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     response: StatesResponseSchema,
     openapi: {
       summary: 'List all states (UFs)',
@@ -171,6 +178,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/areas',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     response: AreasResponseSchema,
     openapi: {
       summary: 'List knowledge areas',
@@ -187,6 +195,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     method: 'GET',
     path: '/v1/mec/stats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=600' },
     response: StatsResponseSchema,
     openapi: {
       summary: 'Get MEC statistics',
@@ -231,6 +240,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/internal/sync/status',
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
+    headers: { 'Cache-Control': 'no-store' },
     response: SyncStatusResponseSchema,
     openapi: {
       summary: 'Get sync status',
@@ -252,6 +262,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     path: '/v1/mec/internal/sync/history',
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
+    headers: { 'Cache-Control': 'no-store' },
     query: z.object({ limit: z.string().optional() }),
     response: SyncHistoryResponseSchema,
     openapi: {

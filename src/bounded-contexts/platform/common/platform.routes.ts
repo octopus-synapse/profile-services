@@ -54,6 +54,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     method: 'GET',
     path: '/v1/enums/export-formats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     response: ExportFormatsResponseSchema,
     openapi: {
       summary: 'Get available export formats',
@@ -70,6 +71,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     method: 'GET',
     path: '/v1/enums/user-roles',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     response: UserRolesResponseSchema,
     openapi: {
       summary: 'Get available user roles',
@@ -86,6 +88,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     method: 'GET',
     path: '/v1/enums/section-types',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     response: SectionTypesResponseSchema,
     openapi: {
       summary: 'Get available section types',

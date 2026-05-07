@@ -53,6 +53,12 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     permission: Permission.CHAT_USE,
     body: SendMessageSchema,
     response: SendMessageResponseSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/chat/messages/01900000-0000-7000-a000-000000000050' }),
+    }),
     openapi: { summary: 'Send a message to a user', tags: ['chat'], description: 'Chat API' },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {

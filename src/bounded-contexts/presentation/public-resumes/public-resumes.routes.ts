@@ -47,6 +47,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     method: 'GET',
     path: '/v1/public/resumes/:slug',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     params: SlugParam,
     response: PublicResumeResponseSchema,
     openapi: {
@@ -73,6 +74,7 @@ export const publicResumesRoutes: ReadonlyArray<Route<PublicResumesHttpBundle>> 
     method: 'GET',
     path: '/v1/public/resumes/:slug/download',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     params: SlugParam,
     response: PublicResumeResponseSchema,
     openapi: {

@@ -141,6 +141,12 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     permission: Permission.RESUME_CREATE,
     body: CreateResumeBody,
     response: ResumeBaseSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/resumes/01900000-0000-7000-a000-000000000010' }),
+    }),
     openapi: {
       summary: 'Create a new resume',
       tags: ['resumes'],

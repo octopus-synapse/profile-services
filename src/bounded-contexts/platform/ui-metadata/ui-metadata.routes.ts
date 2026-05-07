@@ -39,6 +39,7 @@ export const uiMetadataRoutes: ReadonlyArray<Route<UiMetadataUseCases>> = [
     method: 'GET',
     path: '/v1/enums/:key',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
     params: EnumKeyParams,
     response: EnumDescriptorResponseSchema,
     openapi: {

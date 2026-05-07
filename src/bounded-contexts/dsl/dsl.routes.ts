@@ -87,6 +87,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     params: SlugParams,
     query: RenderQuerySchema,
     response: AstResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=60' },
     openapi: {
       summary: 'Get compiled AST for a public resume',
       tags: ['dsl'],

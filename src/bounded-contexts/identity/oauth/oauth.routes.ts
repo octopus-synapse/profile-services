@@ -24,6 +24,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/github/start',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
     openapi: {
       summary: 'Start GitHub OAuth sign-in.',
@@ -37,6 +38,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/github/callback',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
     openapi: {
       summary: 'GitHub OAuth callback.',
@@ -50,6 +52,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/linkedin/start',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
     openapi: {
       summary: 'Start LinkedIn OAuth sign-in.',
@@ -63,6 +66,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/linkedin/callback',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
     openapi: {
       summary: 'LinkedIn OAuth callback.',
@@ -76,6 +80,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/available/:provider',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=3600' },
     params: ProviderParam,
     response: OAuthAvailabilityResponseSchema,
     openapi: {
@@ -93,6 +98,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     method: 'GET',
     path: '/v1/auth/oauth/providers',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=3600' },
     response: OAuthProvidersResponseSchema,
     openapi: {
       summary: 'List enabled OAuth providers (server-driven catalog)',

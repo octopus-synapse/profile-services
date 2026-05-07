@@ -26,6 +26,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     path: '/v1/translation/health',
     auth: { kind: 'public' },
     response: HealthResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' },
     openapi: {
       summary: 'Check translation service health',
       tags: ['translation'],

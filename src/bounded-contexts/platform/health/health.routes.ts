@@ -63,6 +63,7 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit', 'requestLogging'],
     response: LivenessResponseSchema,
     openapi: {
@@ -80,6 +81,7 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health/live',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit', 'requestLogging'],
     response: LivenessResponseSchema,
     openapi: {
@@ -97,6 +99,7 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health/ready',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit'],
     response: ReadinessResponseSchema,
     openapi: {

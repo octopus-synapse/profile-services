@@ -23,6 +23,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     method: 'GET',
     path: '/v1/integrations/github/summary/:username',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'private, max-age=60' },
     params: SummaryParams,
     response: GitHubSummaryResponseSchema,
     openapi: {

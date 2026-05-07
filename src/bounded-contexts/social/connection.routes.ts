@@ -227,6 +227,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     method: 'GET',
     path: '/v1/users/:userId/connection-stats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: UserIdParam,
     response: ConnectionStatsResponseSchema,
     openapi: {
