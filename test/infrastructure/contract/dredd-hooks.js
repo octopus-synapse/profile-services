@@ -42,6 +42,16 @@ const UNIQUE_FIELDS_TO_SUFFIX = new Set([
   'key',
 ]);
 
+function applyUniqueSuffix(key, value) {
+  // Email values must remain RFC-5322 valid after suffixing so Zod's
+  // `.email()` accepts them; insert the run id before the `@`.
+  if (key === 'email' && value.includes('@')) {
+    const at = value.indexOf('@');
+    return `${value.slice(0, at)}+${RUN_ID}${value.slice(at)}`;
+  }
+  return `${value}-${RUN_ID}`;
+}
+
 function suffixUniqueValues(node) {
   if (Array.isArray(node)) {
     for (const item of node) suffixUniqueValues(item);
@@ -51,7 +61,7 @@ function suffixUniqueValues(node) {
   for (const key of Object.keys(node)) {
     const value = node[key];
     if (typeof value === 'string' && UNIQUE_FIELDS_TO_SUFFIX.has(key)) {
-      node[key] = `${value}-${RUN_ID}`;
+      node[key] = applyUniqueSuffix(key, value);
     } else if (value && typeof value === 'object') {
       suffixUniqueValues(value);
     }
@@ -96,12 +106,34 @@ const SKIP_PATH_FRAGMENTS = [
   '/api/health',
 ];
 
-function shouldSkip(name) {
-  return SKIP_PATH_FRAGMENTS.some((frag) => name.includes(frag));
+/** Method+path pairs that, run against the regular fixture user, corrupt
+ *  the session for every subsequent JWT-required transaction in the same
+ *  Dredd run. The seed re-arms `isActive` between runs but cannot
+ *  recover mid-run, so we exclude the destructive verbs entirely. */
+const SKIP_DESTRUCTIVE_OPS = [
+  // Match the exact route template (no trailing-segment ambiguity).
+  { method: 'DELETE', path: '/v1/accounts' },
+  { method: 'DELETE', path: '/v1/accounts/deactivate' },
+];
+
+function shouldSkip(name, transaction) {
+  if (SKIP_PATH_FRAGMENTS.some((frag) => name.includes(frag))) return true;
+  const method = (transaction?.request?.method || '').toUpperCase();
+  const template = transaction?.origin?.resourceName || transaction?.origin?.uriTemplate || '';
+  // Templates carry the `/api` prefix from the spec; strip for comparison.
+  const normalized = template.startsWith('/api') ? template.slice(4) : template;
+  const matchesDestructive = SKIP_DESTRUCTIVE_OPS.some(
+    (op) => op.method === method && op.path === normalized,
+  );
+  if (!matchesDestructive) return false;
+  // Skip only the success-path variant (would run with the regular
+  // cookie and corrupt the fixture user). Keep the 401-anonymous probe.
+  const expectedStatus = Number(transaction?.expected?.statusCode) || 0;
+  return expectedStatus === 200 || expectedStatus === 201 || expectedStatus === 204;
 }
 
 hooks.beforeEach((transaction, done) => {
-  if (shouldSkip(transaction.name)) {
+  if (shouldSkip(transaction.name, transaction)) {
     transaction.skip = true;
   }
   // Dredd v14 generates one transaction per declared response status.
@@ -279,7 +311,13 @@ function setCookieAndToken(transaction, cookie, token) {
   }
 }
 
-hooks.beforeEachValidation((transaction, done) => {
+// Auth-header injection runs in `beforeEach`, NOT `beforeEachValidation`.
+// In Dredd, `beforeEachValidation` fires AFTER the request is dispatched
+// (it runs before the response is *validated*, not before the request is
+// sent), so headers added there never reach the server — every JWT-gated
+// transaction would surface as a 401 even though login succeeded at boot.
+hooks.beforeEach((transaction, done) => {
+  if (transaction.skip) return done();
   const expectedStatus = Number(transaction.expected?.statusCode) || 0;
   const meta = lookupOperation(transaction);
   const auth = meta?.auth || 'jwt';

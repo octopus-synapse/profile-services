@@ -50,8 +50,21 @@ export async function seedDreddFixtures(
     update: {
       emailVerified: new Date(),
       onboardingCompletedAt: new Date(),
+      isActive: true,
+      passwordHash,
     },
   });
+
+  const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
+  if (userRole) {
+    await prisma.userRoleAssignment.upsert({
+      where: {
+        userId_roleId: { userId: EXAMPLE_USER_ID, roleId: userRole.id },
+      },
+      create: { userId: EXAMPLE_USER_ID, roleId: userRole.id },
+      update: {},
+    });
+  }
 
   await prisma.resume.upsert({
     where: { id: EXAMPLE_RESUME_ID },
