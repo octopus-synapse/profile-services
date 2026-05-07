@@ -120,31 +120,27 @@ function shouldSkip(name, transaction) {
   if (SKIP_PATH_FRAGMENTS.some((frag) => name.includes(frag))) return true;
   const method = (transaction?.request?.method || '').toUpperCase();
   const template = transaction?.origin?.resourceName || transaction?.origin?.uriTemplate || '';
-  // Templates carry the `/api` prefix from the spec; strip for comparison.
   const normalized = template.startsWith('/api') ? template.slice(4) : template;
   const matchesDestructive = SKIP_DESTRUCTIVE_OPS.some(
     (op) => op.method === method && op.path === normalized,
   );
-  if (!matchesDestructive) return false;
-  // Skip only the success-path variant (would run with the regular
-  // cookie and corrupt the fixture user). Keep the 401-anonymous probe.
-  const expectedStatus = Number(transaction?.expected?.statusCode) || 0;
-  return expectedStatus === 200 || expectedStatus === 201 || expectedStatus === 204;
+  if (matchesDestructive) {
+    const expectedStatus = Number(transaction?.expected?.statusCode) || 0;
+    return expectedStatus === 200 || expectedStatus === 201 || expectedStatus === 204;
+  }
+  const meta = lookupOperation(transaction);
+  if (meta?.guards?.includes('internal-auth')) return true;
+  return false;
 }
+
+const ALLOWED_STATUSES = new Set([200, 201, 204, 400, 401, 403, 404]);
 
 hooks.beforeEach((transaction, done) => {
   if (shouldSkip(transaction.name, transaction)) {
     transaction.skip = true;
   }
-  // Dredd v14 generates one transaction per declared response status.
-  // We run 200/201 (happy path with admin), 401 (anonymous request),
-  // and 403 (regular user against admin-gated route). 400 is intentional
-  // bad-input — out of scope until per-route invalid fixtures land.
-  // 404 is also out of scope — deliberate non-existent IDs need a
-  // dedicated fixture map.
   const expectedStatus = Number(transaction.expected?.statusCode) || 0;
-  const allowed = new Set([200, 201, 204, 401, 403]);
-  if (!allowed.has(expectedStatus)) {
+  if (!ALLOWED_STATUSES.has(expectedStatus)) {
     transaction.skip = true;
   }
   done();
@@ -191,6 +187,8 @@ try {
       operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
         auth: op['x-auth'] || 'public',
         permission: op['x-permission'] || null,
+        guards: Array.isArray(op['x-guards']) ? op['x-guards'] : [],
+        requestBodySchema: op.requestBody?.content?.['application/json']?.schema || null,
       });
     }
   }
@@ -370,13 +368,89 @@ const FIXTURE_IDS = {
   id: FIXTURE_GENERIC_ID,
 };
 
+const MISSING_ID_SENTINEL = '00000000-0000-0000-0000-000000000000';
+const MISSING_SLUG_SENTINEL = 'missing-fixture-slug-sentinel';
+
+function synthesizeDummyValue(schema) {
+  if (!schema) return null;
+  if (schema.example !== undefined) return schema.example;
+  switch (schema.type) {
+    case 'string':
+      return 'dummy';
+    case 'number':
+    case 'integer':
+      return 0;
+    case 'boolean':
+      return false;
+    case 'array':
+      return [];
+    case 'object':
+      return {};
+    default:
+      return null;
+  }
+}
+
+function synthesizeInvalidBody(meta) {
+  const schema = meta?.requestBodySchema;
+  if (!schema) return null;
+  const properties = schema.properties || {};
+  const required = schema.required || [];
+  if (required.length > 0) {
+    const stripped = required[0];
+    const body = {};
+    for (const [k, v] of Object.entries(properties)) {
+      if (k === stripped) continue;
+      body[k] = synthesizeDummyValue(v);
+    }
+    return body;
+  }
+  const firstKey = Object.keys(properties)[0];
+  if (!firstKey) return null;
+  const firstType = properties[firstKey]?.type;
+  return {
+    [firstKey]: firstType === 'string' ? 99999 : 'invalid-type-sentinel',
+  };
+}
+
 hooks.beforeEach((transaction, done) => {
   if (transaction.skip) return done();
+  const expectedStatus = Number(transaction.expected?.statusCode) || 0;
   let url = transaction.fullPath;
+
+  if (expectedStatus === 404) {
+    // Dredd substitutes spec examples before hooks run — the URL already
+    // carries actual UUID values, not {paramName} template vars. Replace
+    // every known fixture ID with the null sentinel so the server cannot
+    // find the entity and correctly returns 404.
+    for (const [name, id] of Object.entries(FIXTURE_IDS)) {
+      if (id) url = url.replaceAll(id, MISSING_ID_SENTINEL);
+      url = url.replace(`{${name}}`, MISSING_ID_SENTINEL);
+    }
+    // Replace any remaining un-substituted template vars (slug, key, code…)
+    // with a string sentinel that won't match any seeded row.
+    url = url.replace(/\{[^}]+\}/g, MISSING_SLUG_SENTINEL);
+    transaction.fullPath = url;
+    return done();
+  }
+
   for (const [name, id] of Object.entries(FIXTURE_IDS)) {
     url = url.replace(`{${name}}`, id);
   }
   transaction.fullPath = url;
+
+  if (expectedStatus === 400) {
+    const meta = lookupOperation(transaction);
+    const invalid = synthesizeInvalidBody(meta);
+    if (invalid !== null) {
+      transaction.request.body = JSON.stringify(invalid);
+      transaction.request.headers['Content-Type'] = 'application/json';
+    } else {
+      transaction.skip = true;
+      hooks.log(`[400-synthesis] no body schema for ${transaction.name} — skipping`);
+    }
+    return done();
+  }
 
   if (transaction.request && typeof transaction.request.body === 'string') {
     try {

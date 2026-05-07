@@ -91,7 +91,7 @@ const CURSOR_REQUIRED_KEYS = ['items', 'nextCursor', 'hasNext'] as const;
 
 function isPaginatedResponse(response: unknown): 'offset' | 'cursor' | null {
   const shape = unwrapToZodObject(response);
-  if (!shape || !shape.items) return null;
+  if (!shape?.items) return null;
   if (CURSOR_REQUIRED_KEYS.every((k) => k in shape)) return 'cursor';
   if (OFFSET_REQUIRED_KEYS.every((k) => k in shape)) return 'offset';
   return null;
