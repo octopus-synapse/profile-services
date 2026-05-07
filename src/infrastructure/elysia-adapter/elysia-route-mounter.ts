@@ -122,20 +122,19 @@ export function mountRoutes<TBundle>(
       try {
         ctx = await buildHttpCtx(route, ec);
       } catch (err) {
-        // Validation (`route.body.parse(...)`) runs in `buildHttpCtx`
-        // before the pipeline, so a ZodError here would otherwise
-        // surface as a 500. Map it to the 400 the API contract
-        // promises (`{ success: false, error: { code, message } }`).
         if (err instanceof ZodError) {
           ec.set.status = 400;
           ec.set.headers['content-type'] = 'application/json';
           return {
-            success: false,
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              details: err.issues,
-            },
+            statusCode: 400,
+            code: 'VALIDATION_ERROR',
+            message: 'Request validation failed',
+            severity: 'toast',
+            fields: err.issues.map((issue) => ({
+              path: issue.path.map(String).join('.'),
+              code: issue.code,
+              message: issue.message,
+            })),
           };
         }
         throw err;

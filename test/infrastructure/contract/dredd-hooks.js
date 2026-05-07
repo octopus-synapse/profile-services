@@ -184,11 +184,15 @@ try {
   for (const [pathTemplate, ops] of Object.entries(swagger.paths || {})) {
     for (const [method, op] of Object.entries(ops || {})) {
       if (typeof op !== 'object' || op === null) continue;
+      const pathParamExamples = (op.parameters || [])
+        .filter((p) => p.in === 'path' && p.example !== undefined)
+        .map((p) => ({ name: String(p.name), example: String(p.example) }));
       operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
         auth: op['x-auth'] || 'public',
         permission: op['x-permission'] || null,
         guards: Array.isArray(op['x-guards']) ? op['x-guards'] : [],
         requestBodySchema: op.requestBody?.content?.['application/json']?.schema || null,
+        pathParamExamples,
       });
     }
   }
@@ -391,6 +395,18 @@ function synthesizeDummyValue(schema) {
   }
 }
 
+function synthesizeValidBody(meta) {
+  const schema = meta?.requestBodySchema;
+  if (!schema) return null;
+  const properties = schema.properties || {};
+  const required = schema.required || [];
+  const body = {};
+  for (const field of required) {
+    body[field] = synthesizeDummyValue(properties[field] || {});
+  }
+  return body;
+}
+
 function synthesizeInvalidBody(meta) {
   const schema = meta?.requestBodySchema;
   if (!schema) return null;
@@ -419,18 +435,35 @@ hooks.beforeEach((transaction, done) => {
   let url = transaction.fullPath;
 
   if (expectedStatus === 404) {
-    // Dredd substitutes spec examples before hooks run — the URL already
-    // carries actual UUID values, not {paramName} template vars. Replace
-    // every known fixture ID with the null sentinel so the server cannot
-    // find the entity and correctly returns 404.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const meta404 = lookupOperation(transaction);
+
+    // Replace fixture UUIDs (already substituted from spec examples by Dredd).
     for (const [name, id] of Object.entries(FIXTURE_IDS)) {
       if (id) url = url.replaceAll(id, MISSING_ID_SENTINEL);
       url = url.replace(`{${name}}`, MISSING_ID_SENTINEL);
     }
-    // Replace any remaining un-substituted template vars (slug, key, code…)
-    // with a string sentinel that won't match any seeded row.
+    // Replace spec-example values for each path param (covers string params
+    // like {key}="fixture-slug" that aren't in FIXTURE_IDS).
+    for (const { example } of meta404?.pathParamExamples ?? []) {
+      const sentinel = UUID_RE.test(example) ? MISSING_ID_SENTINEL : MISSING_SLUG_SENTINEL;
+      url = url.replaceAll(example, sentinel);
+    }
+    // Sweep any remaining un-substituted {template} vars.
     url = url.replace(/\{[^}]+\}/g, MISSING_SLUG_SENTINEL);
+
+    // Dredd v14 uses transaction.request.uri for the actual HTTP request;
+    // fullPath alone is insufficient.
     transaction.fullPath = url;
+    if (transaction.request) transaction.request.uri = url;
+
+    // Synthesize a valid request body so body validation passes and the
+    // server reaches the entity-lookup stage (where it returns 404).
+    const validBody = synthesizeValidBody(meta404);
+    if (validBody !== null) {
+      transaction.request.body = JSON.stringify(validBody);
+      transaction.request.headers['Content-Type'] = 'application/json';
+    }
     return done();
   }
 
