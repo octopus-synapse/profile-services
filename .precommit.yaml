@@ -18,6 +18,13 @@ serial:
 checks:
   - name: lockfile
     cmd: bun install --frozen-lockfile --dry-run
+  - name: swagger-fresh
+    # Paranoia: re-run the generator and verify the staged swagger
+    # matches the source-of-truth route descriptors. The serial swagger
+    # step already does this + `stage:` adds the result, but if `stage:`
+    # ever fails to propagate the regen (rare but observed), this check
+    # blocks the commit before it reaches CI.
+    cmd: bun run scripts/generate-swagger-from-decorators.ts > /dev/null && git diff --exit-code swagger.json client-swagger.json
   - name: typecheck
     cmd: bun run typecheck
   - name: lint
