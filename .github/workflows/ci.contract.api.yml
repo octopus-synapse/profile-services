@@ -91,20 +91,11 @@ jobs:
   dredd:
     name: Dredd — contract conformance
     runs-on: ubuntu-latest
+    # Postgres is started manually because we need the project's custom
+    # image (pgvector + pg_uuidv7) — the scoring_refactor migration
+    # depends on `vector`, the uuidv7 stage migrations on `pg_uuidv7`.
+    # GHA `services:` only accept pre-built images, so we build inline.
     services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: profile_test
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
       redis:
         image: redis:7-alpine
         ports:
@@ -140,6 +131,27 @@ jobs:
           } > .npmrc
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      - name: Build custom Postgres image (pgvector + pg_uuidv7)
+        run: docker build -t profile-services-postgres:test -f infra/docker/postgres/Dockerfile .
+      - name: Start Postgres
+        run: |
+          docker run -d \
+            --name profile-services-postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=profile_test \
+            -p 5433:5432 \
+            profile-services-postgres:test
+          for i in {1..40}; do
+            if docker exec profile-services-postgres pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Postgres is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Postgres failed to become ready within 40s."
+          docker logs profile-services-postgres
+          exit 1
       - name: Setup database
         run: bun run db:setup:test
       - name: Boot app in background

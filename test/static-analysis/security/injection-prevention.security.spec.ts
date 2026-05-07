@@ -135,7 +135,14 @@ describe('SQL Injection Prevention', () => {
 describe('NoSQL Injection Prevention', () => {
   it('should not use eval or Function constructor with user input', () => {
     const evalUsage = grepCodebase('eval\\(|new Function\\(', ['node_modules', 'dist', 'test']);
-    const unsafeEval = evalUsage.filter((e) => !e.includes('.spec.ts') && !e.includes('.test.ts'));
+    const unsafeEval = evalUsage.filter(
+      (e) =>
+        !e.includes('.spec.ts') &&
+        !e.includes('.test.ts') &&
+        // Redis client.eval(...) runs a server-side Lua script — not
+        // JavaScript eval, not an RCE vector.
+        !/\b(?:client|redis|pipeline|conn)\.eval\(/i.test(e),
+    );
     expect(unsafeEval).toEqual([]);
   });
 

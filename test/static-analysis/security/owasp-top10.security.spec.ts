@@ -244,12 +244,19 @@ describe('OWASP Top 10 Security Tests', () => {
         // - String manipulation (replace operations)
         // - Internal services (libretranslate, swagger, config)
         // - Template files
+        const colonIdx = match.indexOf(':');
+        const sourceLine =
+          colonIdx >= 0 ? match.slice(match.indexOf(':', colonIdx + 1) + 1) : match;
+        const trimmedLine = sourceLine.trimStart();
+        const isJsDocComment = trimmedLine.startsWith('*');
+
         if (
           !match.includes('localhost') &&
           !match.includes('127.0.0.1') &&
           !match.includes('.spec.ts') &&
           !match.includes('.test.ts') &&
           !match.includes('// ') &&
+          !isJsDocComment &&
           !match.includes('example.com') &&
           !match.includes('xmlns') &&
           !match.includes('.replace(') &&
