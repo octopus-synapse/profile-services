@@ -63,8 +63,9 @@ function suffixUniqueValues(node) {
 // Operation names follow the pattern "<METHOD> <path> -> <statusCode> > <description>"
 // — match by includes() against the canonical path for resilience.
 
-/** Path substrings whose operations are skipped (binary, SSE, redirect,
- *  upload, complex POST bodies, file-driven endpoints). */
+/** Path substrings whose operations are *structurally unsupportable* by Dredd.
+ *  Only categories Dredd cannot validate at all belong here — never use this
+ *  list as a workaround for spec drift, missing fixtures, or auth shape. */
 const SKIP_PATH_FRAGMENTS = [
   // SSE streams — Dredd does not understand text/event-stream.
   '/v1/stream',
@@ -93,72 +94,6 @@ const SKIP_PATH_FRAGMENTS = [
   // Prometheus / health — not part of the API contract.
   '/api/metrics',
   '/api/health',
-  // Admin / privileged routes — fixture user is a regular `role_user`.
-  '/v1/admin/',
-  '/v1/users/manage',
-  // Mutations with body shapes Dredd cannot infer from the spec
-  // (refinements, oneOf, polymorphic). Covered by integration tests.
-  '/v1/posts',
-  '/v1/jobs',
-  '/v1/resumes/imports/',
-  '/v1/import/',
-  '/v1/onboarding',
-  '/v1/translation/',
-  '/v1/match',
-  '/v1/automation/',
-  '/v1/integrations/github/',
-  '/v1/dsl/validate',
-  '/v1/dsl/preview',
-  '/v1/dsl/render',
-  '/v1/recruiting/',
-  '/v1/fit-profile/',
-  '/v1/success-stories',
-  '/v1/events',
-  '/v1/webhooks',
-  '/v1/career-graph/',
-  '/v1/apply-mode/',
-  '/v1/shadow-profiles/',
-  '/v1/me/password/',
-  '/v1/auth/refresh',
-  '/v1/auth/2fa/',
-  '/v1/auth/email-verification/',
-  '/v1/auth/reset-password',
-  '/v1/auth/forgot-password',
-  '/v1/auth/login',
-  '/v1/auth/logout',
-  '/v1/users/me/accept-consent',
-  '/v1/accounts',
-  '/v1/users/username/validate',
-  '/v1/users/{userId}/skills/',
-  '/v1/users/{userId}/follow',
-  '/v1/users/{userId}/connect',
-  '/v1/resumes/{resumeId}/sections/',
-  '/v1/resumes/{resumeId}/skills',
-  '/v1/resumes/{resumeId}/style',
-  '/v1/resumes/{resumeId}/tailor',
-  '/v1/resumes/{resumeId}/versions/',
-  '/v1/resumes/{resumeId}/quality/recompute',
-  '/v1/resumes/{resumeId}/analytics/',
-  '/v1/resumes/{resumeId}/comments',
-  '/v1/resumes/{resumeId}/collaborators',
-  '/v1/resumes/comments/',
-  '/v1/versions/{resumeId}/',
-  '/v1/jobs/{id}/bookmark',
-  '/v1/jobs/{id}/apply',
-  '/v1/jobs/{id}/fit-profile',
-  '/v1/jobs/applications/',
-  '/v1/jobs/import-from-url',
-  '/v1/posts/{id}',
-  '/v1/posts/comments/',
-  '/v1/notifications/mark-read',
-  '/v1/chat/messages',
-  '/v1/chat/conversations/{conversationId}/messages',
-  '/v1/chat/conversations/{conversationId}/read',
-  '/v1/chat/conversations/{conversationId}/preferences/',
-  '/v1/chat/blocked',
-  '/v1/shares',
-  '/v1/tech-skills/sync',
-  '/v1/mec/internal/sync',
 ];
 
 function shouldSkip(name) {
@@ -293,41 +228,10 @@ hooks.beforeEachValidation((transaction, done) => {
   done();
 });
 
-// Routes whose actual response is a 4xx are skipped instead of failed.
-// The Dredd suite is a spec smoke check; per-role authorisation,
-// fixture-shape validation, and business-rule errors are covered by
-// the e2e and integration suites. Most non-2xx outcomes here are noise
-// (admin endpoints with `role_user` token, `mec/institutions/{code}`
-// rejecting `fixture-slug`, etc.) — we only care that the spec lined
-// up well enough for Dredd to *issue* the request.
-hooks.beforeEachValidation((transaction, done) => {
-  const status = (transaction.real && transaction.real.statusCode) || 0;
-  if (status >= 400 && status < 500) {
-    transaction.skip = true;
-  }
-  done();
-});
-
-// Body / header validation policy: if the status code matches, treat
-// the transaction as passing regardless of body diff. The spec is
-// auto-generated from Zod schemas; small drifts between the optimistic
-// schema and the live response (extra optional fields, content-type
-// casing like `application/json;charset=utf-8` vs `application/json`,
-// nullable handling) are not contract violations worth blocking on. The
-// guarantees the contract suite still enforces are: the route exists,
-// answers, and returns the documented status. Body parity belongs to
-// integration tests that can assert on stable fixtures.
-hooks.beforeEachValidation((transaction, done) => {
-  if (transaction.skip) return done();
-  const expectedStatus = Number(transaction.expected && transaction.expected.statusCode) || 0;
-  const actualStatus = Number(transaction.real && transaction.real.statusCode) || 0;
-  if (expectedStatus === actualStatus && transaction.real) {
-    transaction.expected.body = transaction.real.body;
-    transaction.expected.bodySchema = undefined;
-    transaction.expected.headers = transaction.real.headers;
-  }
-  done();
-});
+// Body / header validation is now strict: Dredd validates the live
+// response body against the schema declared in `swagger.json`. Drifts
+// (extra/missing fields, content-type case, nullable shape) are real
+// contract violations that this suite intentionally surfaces.
 
 // ─── Path-param substitution ────────────────────────────────────────
 //
