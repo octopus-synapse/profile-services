@@ -95,6 +95,19 @@ function applyResponseHeaders(ctx: HttpCtx, ec: ElysiaCtx): void {
   }
 }
 
+function normalizeJsonContentType(headers: Record<string, string>): void {
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() !== 'content-type') continue;
+    const value = headers[key];
+    if (typeof value !== 'string') continue;
+    if (!value.toLowerCase().startsWith('application/json')) continue;
+    if (key !== 'content-type') {
+      delete headers[key];
+    }
+    headers['content-type'] = 'application/json';
+  }
+}
+
 export function mountRoutes<TBundle>(
   app: Elysia,
   group: RouteGroupBinding<TBundle>,
@@ -115,6 +128,7 @@ export function mountRoutes<TBundle>(
         // promises (`{ success: false, error: { code, message } }`).
         if (err instanceof ZodError) {
           ec.set.status = 400;
+          ec.set.headers['content-type'] = 'application/json';
           return {
             success: false,
             error: {
@@ -197,9 +211,11 @@ export function mountRoutes<TBundle>(
       if (isSuccessMessage(body)) {
         const acceptLanguage = ec.request.headers.get('accept-language') ?? undefined;
         ec.set.headers['content-type'] = 'application/json';
+        normalizeJsonContentType(ec.set.headers);
         return renderSuccessMessageForRequest(body, acceptLanguage);
       }
       ec.set.headers['content-type'] = 'application/json';
+      normalizeJsonContentType(ec.set.headers);
       return ctx.state.responseBody;
     };
     const verb = route.method.toLowerCase() as Lowercase<HttpMethod>;

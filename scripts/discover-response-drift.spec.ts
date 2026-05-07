@@ -1,4 +1,7 @@
 import { describe, expect, test } from 'bun:test';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import {
@@ -6,7 +9,10 @@ import {
   fillPathParams,
   formatReport,
   isProbable,
+  loadSwaggerInfo,
+  pickPersona,
   type RouteDriftReport,
+  toSwaggerPathTemplate,
 } from './discover-response-drift';
 
 const FIXTURE_USER_ID = '01900000-0000-7000-a000-000000000020';
@@ -111,7 +117,9 @@ describe('bcOf', () => {
 
 describe('formatReport', () => {
   test('reports zero drifts with an explicit success line', () => {
-    const md = formatReport([{ route: 'GET /v1/foo', status: 200, drifts: [] }]);
+    const md = formatReport([
+      { route: 'GET /v1/foo', status: 200, persona: 'anonymous', drifts: [] },
+    ]);
     expect(md).toContain('Total drifts: 0');
     expect(md).toContain('All probed endpoints match their declared response schemas.');
   });
@@ -121,6 +129,7 @@ describe('formatReport', () => {
       {
         route: 'GET /v1/users/me',
         status: 200,
+        persona: 'user',
         drifts: [
           { kind: 'extra-field', path: ['secret'] },
           { kind: 'missing-field', path: ['email'], expected: 'string' },
@@ -132,7 +141,7 @@ describe('formatReport', () => {
     ];
     const md = formatReport(reports);
     expect(md).toContain('## users (5 drifts)');
-    expect(md).toContain('### GET /v1/users/me → 200');
+    expect(md).toContain('### GET /v1/users/me → 200 (persona=user)');
     expect(md).toContain('extra field: `secret`');
     expect(md).toContain('missing field: `email`');
     expect(md).toContain('should be nullable: `name`');
@@ -142,10 +151,11 @@ describe('formatReport', () => {
 
   test('omits BC sections that have zero drifts', () => {
     const reports: RouteDriftReport[] = [
-      { route: 'GET /v1/users/me', status: 200, drifts: [] },
+      { route: 'GET /v1/users/me', status: 200, persona: 'user', drifts: [] },
       {
         route: 'GET /v1/jobs',
         status: 200,
+        persona: 'admin',
         drifts: [{ kind: 'extra-field', path: ['internal'] }],
       },
     ];
@@ -159,6 +169,7 @@ describe('formatReport', () => {
       {
         route: 'GET /v1/foo',
         status: 0,
+        persona: 'anonymous',
         drifts: [],
         error: 'connection refused',
       },
@@ -173,6 +184,7 @@ describe('formatReport', () => {
       {
         route: 'GET /v1/x',
         status: 200,
+        persona: 'anonymous',
         drifts: [{ kind: 'type-mismatch', path: [], expected: 'object', actual: 'string' }],
       },
     ];
@@ -182,10 +194,16 @@ describe('formatReport', () => {
 
   test('total drifts header counts across reports', () => {
     const reports: RouteDriftReport[] = [
-      { route: 'GET /v1/a', status: 200, drifts: [{ kind: 'extra-field', path: ['x'] }] },
+      {
+        route: 'GET /v1/a',
+        status: 200,
+        persona: 'anonymous',
+        drifts: [{ kind: 'extra-field', path: ['x'] }],
+      },
       {
         route: 'GET /v1/b',
         status: 200,
+        persona: 'admin',
         drifts: [
           { kind: 'extra-field', path: ['y'] },
           { kind: 'missing-field', path: ['z'], expected: 'string' },
@@ -195,5 +213,90 @@ describe('formatReport', () => {
     const md = formatReport(reports);
     expect(md).toContain('Total drifts: 3');
     expect(md).toContain('Probed: 2 GET endpoints');
+  });
+
+  test('renders auth-mismatch drifts when the chosen persona was rejected', () => {
+    const reports: RouteDriftReport[] = [
+      {
+        route: 'GET /v1/admin/users',
+        status: 403,
+        persona: 'user',
+        drifts: [{ kind: 'auth-mismatch', path: [], persona: 'user', status: 403 }],
+      },
+    ];
+    const md = formatReport(reports);
+    expect(md).toContain('### GET /v1/admin/users → 403 (persona=user)');
+    expect(md).toContain('auth mismatch: persona=`user` got HTTP 403');
+  });
+});
+
+describe('toSwaggerPathTemplate', () => {
+  test('prepends /api when missing and converts :foo to {foo}', () => {
+    expect(toSwaggerPathTemplate('/v1/users/:userId')).toBe('/api/v1/users/{userId}');
+  });
+
+  test('keeps an existing /api prefix', () => {
+    expect(toSwaggerPathTemplate('/api/v1/health')).toBe('/api/v1/health');
+  });
+
+  test('handles multiple params', () => {
+    expect(toSwaggerPathTemplate('/v1/users/:userId/resumes/:resumeId')).toBe(
+      '/api/v1/users/{userId}/resumes/{resumeId}',
+    );
+  });
+});
+
+function writeFixtureSwagger(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'drift-swagger-'));
+  const file = join(dir, 'swagger.json');
+  writeFileSync(
+    file,
+    JSON.stringify({
+      info: { 'x-admin-permissions': ['admin:full_access', 'platform:manage'] },
+      paths: {
+        '/api/v1/health': { get: { 'x-auth': 'public' } },
+        '/api/v1/users/me': { get: { 'x-auth': 'jwt', 'x-permission': 'user:read_self' } },
+        '/api/v1/admin/users': { get: { 'x-auth': 'jwt', 'x-permission': 'admin:full_access' } },
+        '/api/v1/admin/items/{id}': {
+          get: { 'x-auth': 'jwt', 'x-permission': 'platform:manage' },
+        },
+      },
+    }),
+  );
+  return file;
+}
+
+describe('loadSwaggerInfo + pickPersona', () => {
+  test('classifies public routes as anonymous', () => {
+    const info = loadSwaggerInfo(writeFixtureSwagger());
+    const { persona, meta } = pickPersona('GET', '/v1/health', info);
+    expect(persona).toBe('anonymous');
+    expect(meta?.auth).toBe('public');
+  });
+
+  test('classifies non-admin JWT routes as user', () => {
+    const info = loadSwaggerInfo(writeFixtureSwagger());
+    const { persona, meta } = pickPersona('GET', '/v1/users/me', info);
+    expect(persona).toBe('user');
+    expect(meta?.permission).toBe('user:read_self');
+  });
+
+  test('classifies admin-permission routes as admin', () => {
+    const info = loadSwaggerInfo(writeFixtureSwagger());
+    const { persona } = pickPersona('GET', '/v1/admin/users', info);
+    expect(persona).toBe('admin');
+  });
+
+  test('matches templated paths via :param to swagger {param}', () => {
+    const info = loadSwaggerInfo(writeFixtureSwagger());
+    const { persona } = pickPersona('GET', '/v1/admin/items/:id', info);
+    expect(persona).toBe('admin');
+  });
+
+  test('falls back to admin persona when route is unknown to swagger', () => {
+    const info = loadSwaggerInfo(writeFixtureSwagger());
+    const { persona, meta } = pickPersona('GET', '/v1/missing', info);
+    expect(persona).toBe('admin');
+    expect(meta).toBeNull();
   });
 });

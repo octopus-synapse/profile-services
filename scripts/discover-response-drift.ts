@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { readdirSync, statSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ZodSchema } from 'zod';
@@ -9,10 +9,19 @@ import { analyzeDrift, type Drift } from '../test/static-analysis/shared/respons
 
 const SRC_DIR = resolve(__dirname, '../src');
 const REPORT_PATH = resolve(__dirname, '../docs/audits/response-drift-report.md');
+const SWAGGER_PATH = resolve(__dirname, '../swagger.json');
 
 const BASE_URL = process.env.DRIFT_BASE_URL ?? 'http://localhost:3010';
-const ADMIN_EMAIL = process.env.DRIFT_ADMIN_EMAIL ?? 'admin@example.com';
-const ADMIN_PASSWORD = process.env.DRIFT_ADMIN_PASSWORD ?? 'Admin123!@#';
+const ADMIN_EMAIL =
+  process.env.DRIFT_ADMIN_EMAIL ?? process.env.DREDD_ADMIN_EMAIL ?? 'admin@example.com';
+const ADMIN_PASSWORD =
+  process.env.DRIFT_ADMIN_PASSWORD ?? process.env.DREDD_ADMIN_PASSWORD ?? 'Admin123!@#';
+const USER_EMAIL =
+  process.env.DRIFT_USER_EMAIL ?? process.env.DREDD_USER_EMAIL ?? 'dredd-fixture@profile.local';
+const USER_PASSWORD =
+  process.env.DRIFT_USER_PASSWORD ??
+  process.env.DREDD_USER_PASSWORD ??
+  'Dredd_Fixture_Password_123!';
 
 interface CollectedRoute {
   readonly file: string;
@@ -60,9 +69,78 @@ async function loadRoutes(): Promise<CollectedRoute[]> {
   return out;
 }
 
+type AuthKind = 'public' | 'jwt' | 'unknown';
+
+interface OperationMetadata {
+  readonly auth: AuthKind;
+  readonly permission: string | null;
+}
+
+interface SwaggerInfo {
+  readonly operationMetadata: ReadonlyMap<string, OperationMetadata>;
+  readonly adminPermissions: ReadonlySet<string>;
+}
+
+export function loadSwaggerInfo(swaggerPath: string = SWAGGER_PATH): SwaggerInfo {
+  const operationMetadata = new Map<string, OperationMetadata>();
+  const adminPermissions = new Set<string>();
+  try {
+    const swagger = JSON.parse(readFileSync(swaggerPath, 'utf8')) as {
+      info?: { 'x-admin-permissions'?: readonly string[] };
+      paths?: Record<string, Record<string, unknown>>;
+    };
+    for (const p of swagger.info?.['x-admin-permissions'] ?? []) adminPermissions.add(p);
+    for (const [pathTemplate, ops] of Object.entries(swagger.paths ?? {})) {
+      for (const [method, op] of Object.entries(ops ?? {})) {
+        if (typeof op !== 'object' || op === null) continue;
+        const opObj = op as { 'x-auth'?: string; 'x-permission'?: string };
+        const auth: AuthKind = opObj['x-auth'] === 'public' ? 'public' : 'jwt';
+        operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
+          auth,
+          permission: opObj['x-permission'] ?? null,
+        });
+      }
+    }
+  } catch (err) {
+    console.warn(
+      `Failed to load swagger metadata from ${swaggerPath}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  return { operationMetadata, adminPermissions };
+}
+
+export function toSwaggerPathTemplate(routePath: string): string {
+  // Routes use `:foo`; swagger uses `/api/{foo}`. Both prefixes are normalised here.
+  const withApi = routePath.startsWith('/api') ? routePath : `/api${routePath}`;
+  return withApi.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, '{$1}');
+}
+
+export type Persona = 'admin' | 'user' | 'anonymous';
+
+export function pickPersona(
+  method: string,
+  routePath: string,
+  info: SwaggerInfo,
+): { readonly persona: Persona; readonly meta: OperationMetadata | null } {
+  const key = `${method.toUpperCase()} ${toSwaggerPathTemplate(routePath)}`;
+  const meta = info.operationMetadata.get(key) ?? null;
+  if (!meta) {
+    // Unknown to swagger — default to admin so we maximise coverage; the
+    // 401/403 surfacing path still flags genuine mismatches.
+    return { persona: 'admin', meta: null };
+  }
+  if (meta.auth === 'public') return { persona: 'anonymous', meta };
+  if (meta.permission && info.adminPermissions.has(meta.permission)) {
+    return { persona: 'admin', meta };
+  }
+  return { persona: 'user', meta };
+}
+
 interface ProbeTarget {
   readonly route: Route;
   readonly url: string;
+  readonly persona: Persona;
+  readonly meta: OperationMetadata | null;
 }
 
 const FIXTURE_USER_ID = '01900000-0000-7000-a000-000000000020';
@@ -89,37 +167,56 @@ export function isProbable(route: Route): boolean {
   return true;
 }
 
+export type AuthMismatchDrift = {
+  readonly kind: 'auth-mismatch';
+  readonly path: readonly string[];
+  readonly persona: Persona;
+  readonly status: number;
+};
+
+export type ReportDrift = Drift | AuthMismatchDrift;
+
 interface RouteDriftReport {
   readonly route: string;
   readonly status: number;
-  readonly drifts: readonly Drift[];
+  readonly persona: Persona;
+  readonly drifts: readonly ReportDrift[];
   readonly error?: string;
 }
 
-async function login(): Promise<string | undefined> {
+async function login(email: string, password: string): Promise<string | undefined> {
   try {
     const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+      body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      console.warn(`Login failed: ${res.status}`);
+      console.warn(`Login failed for ${email}: ${res.status}`);
       return undefined;
     }
     const setCookie = res.headers.get('set-cookie') ?? '';
     const match = /access_token=([^;]+)/.exec(setCookie);
     return match?.[1];
   } catch (err) {
-    console.warn(`Login error: ${err instanceof Error ? err.message : String(err)}`);
+    console.warn(`Login error for ${email}: ${err instanceof Error ? err.message : String(err)}`);
     return undefined;
   }
 }
 
-async function probeRoute(
-  target: ProbeTarget,
-  token: string | undefined,
-): Promise<RouteDriftReport> {
+interface PersonaTokens {
+  readonly admin?: string;
+  readonly user?: string;
+}
+
+function tokenFor(persona: Persona, tokens: PersonaTokens): string | undefined {
+  if (persona === 'anonymous') return undefined;
+  if (persona === 'admin') return tokens.admin;
+  return tokens.user;
+}
+
+async function probeRoute(target: ProbeTarget, tokens: PersonaTokens): Promise<RouteDriftReport> {
+  const token = tokenFor(target.persona, tokens);
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (token) headers.Cookie = `access_token=${token}`;
   let status = 0;
@@ -129,7 +226,12 @@ async function probeRoute(
     status = res.status;
     const text = await res.text();
     if (!text) {
-      return { route: `GET ${target.route.path}`, status, drifts: [] };
+      return {
+        route: `GET ${target.route.path}`,
+        status,
+        persona: target.persona,
+        drifts: [],
+      };
     }
     try {
       body = JSON.parse(text);
@@ -137,6 +239,7 @@ async function probeRoute(
       return {
         route: `GET ${target.route.path}`,
         status,
+        persona: target.persona,
         drifts: [],
         error: `non-JSON body (${text.slice(0, 80)})`,
       };
@@ -145,17 +248,36 @@ async function probeRoute(
     return {
       route: `GET ${target.route.path}`,
       status,
+      persona: target.persona,
       drifts: [],
       error: err instanceof Error ? err.message : String(err),
     };
   }
 
+  // Auth mismatch: the persona we picked from swagger metadata still got a
+  // 401/403. That means the spec's `x-permission` / `x-auth` no longer
+  // matches what the route actually enforces — surface it as a drift
+  // instead of skipping silently.
+  if (status === 401 || status === 403) {
+    return {
+      route: `GET ${target.route.path}`,
+      status,
+      persona: target.persona,
+      drifts: [{ kind: 'auth-mismatch', path: [], persona: target.persona, status }],
+    };
+  }
+
   if (status < 200 || status >= 300) {
-    return { route: `GET ${target.route.path}`, status, drifts: [] };
+    return {
+      route: `GET ${target.route.path}`,
+      status,
+      persona: target.persona,
+      drifts: [],
+    };
   }
   const responseSchema = target.route.response as ZodSchema<unknown>;
   const drifts = analyzeDrift(responseSchema, body);
-  return { route: `GET ${target.route.path}`, status, drifts };
+  return { route: `GET ${target.route.path}`, status, persona: target.persona, drifts };
 }
 
 export function bcOf(routePath: string): string {
@@ -192,7 +314,7 @@ export function formatReport(reports: readonly RouteDriftReport[]): string {
     lines.push('');
     for (const r of items) {
       if (r.drifts.length === 0 && !r.error) continue;
-      lines.push(`### ${r.route} → ${r.status}`);
+      lines.push(`### ${r.route} → ${r.status} (persona=${r.persona})`);
       if (r.error) {
         lines.push(`- error: ${r.error}`);
       }
@@ -220,6 +342,11 @@ export function formatReport(reports: readonly RouteDriftReport[]): string {
           case 'type-mismatch':
             lines.push(`- type mismatch: \`${path}\` (schema=${d.expected}, runtime=${d.actual})`);
             break;
+          case 'auth-mismatch':
+            lines.push(
+              `- auth mismatch: persona=\`${d.persona}\` got HTTP ${d.status} (swagger x-auth/x-permission disagrees with runtime guards)`,
+            );
+            break;
         }
       }
       lines.push('');
@@ -235,20 +362,33 @@ export function formatReport(reports: readonly RouteDriftReport[]): string {
 async function main(): Promise<void> {
   const routes = await loadRoutes();
   const probable = routes.filter((r) => isProbable(r.route));
-  const targets: ProbeTarget[] = probable.map(({ route }) => ({
-    route,
-    url: `${BASE_URL}/api${fillPathParams(route.path)}`,
-  }));
+  const swaggerInfo = loadSwaggerInfo();
+  const targets: ProbeTarget[] = probable.map(({ route }) => {
+    const { persona, meta } = pickPersona(route.method, route.path, swaggerInfo);
+    return {
+      route,
+      url: `${BASE_URL}/api${fillPathParams(route.path)}`,
+      persona,
+      meta,
+    };
+  });
 
   console.log(`Probing ${targets.length} GET endpoints against ${BASE_URL}...`);
-  const token = await login();
-  if (!token) {
-    console.warn('Continuing without auth — JWT-protected routes will report 401.');
+  const [adminToken, userToken] = await Promise.all([
+    login(ADMIN_EMAIL, ADMIN_PASSWORD),
+    login(USER_EMAIL, USER_PASSWORD),
+  ]);
+  if (!adminToken) {
+    console.warn('Admin login failed — admin-gated routes will report auth-mismatch drifts.');
   }
+  if (!userToken) {
+    console.warn('Regular user login failed — JWT routes will report auth-mismatch drifts.');
+  }
+  const tokens: PersonaTokens = { admin: adminToken, user: userToken };
 
   const reports: RouteDriftReport[] = [];
   for (const target of targets) {
-    const report = await probeRoute(target, token);
+    const report = await probeRoute(target, tokens);
     reports.push(report);
   }
 
@@ -256,7 +396,11 @@ async function main(): Promise<void> {
   writeFileSync(REPORT_PATH, md);
   console.log(`Report written to ${REPORT_PATH}`);
   const total = reports.reduce((sum, r) => sum + r.drifts.length, 0);
-  console.log(`Total drifts: ${total}`);
+  const authMismatches = reports.reduce(
+    (sum, r) => sum + r.drifts.filter((d) => d.kind === 'auth-mismatch').length,
+    0,
+  );
+  console.log(`Total drifts: ${total} (of which auth-mismatch: ${authMismatches})`);
 }
 
 if (import.meta.main) {
