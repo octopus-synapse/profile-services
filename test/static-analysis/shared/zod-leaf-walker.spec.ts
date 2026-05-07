@@ -100,6 +100,11 @@ describe('zod-leaf-walker', () => {
     expect(findOffenders(schema, { schemaName: 'Test' })).toEqual([]);
   });
 
+  test('treats ZodNull as having an implicit example (the value `null`)', () => {
+    const schema = z.object({ deletedAt: z.null() });
+    expect(findOffenders(schema, { schemaName: 'Test' })).toEqual([]);
+  });
+
   test('skips fields annotated with .openapi({ example })', () => {
     const schema = z.object({ a: z.string().openapi({ example: 'x' }) });
     expect(findOffenders(schema, { schemaName: 'Test' })).toEqual([]);

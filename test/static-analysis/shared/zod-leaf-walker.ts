@@ -56,7 +56,15 @@ const WRAPPER_VIA_INNER_TYPE = new Set([
 
 const WRAPPER_VIA_SCHEMA = new Set(['ZodEffects', 'ZodPipeline']);
 
-const IMPLICIT_EXAMPLE_TYPES = new Set(['ZodLiteral', 'ZodEnum', 'ZodNativeEnum']);
+const IMPLICIT_EXAMPLE_TYPES = new Set([
+  'ZodLiteral',
+  'ZodEnum',
+  'ZodNativeEnum',
+  'ZodNull',
+  'ZodUndefined',
+  'ZodVoid',
+  'ZodNever',
+]);
 
 function unwrapWrapper(schema: ZodSchema<unknown>): ZodSchema<unknown> | undefined {
   const def = (schema as ZodInternals)._def;
