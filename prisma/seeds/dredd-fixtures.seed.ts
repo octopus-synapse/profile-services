@@ -26,6 +26,9 @@ const FIXTURE_USER_EMAIL = 'dredd-fixture@profile.local';
 const FIXTURE_USER_NAME = 'Dredd Fixture User';
 const FIXTURE_USERNAME = 'dredd-fixture';
 
+const DREDD_NOPERMS_USER_ID = '01900000-0000-7000-a000-000000000070';
+const DREDD_NOPERMS_EMAIL = 'dredd-noperms@profile.local';
+
 export async function seedDreddFixtures(
   prisma: PrismaClient,
   participantTwoUserId: string,
@@ -148,7 +151,23 @@ export async function seedDreddFixtures(
     update: {},
   });
 
+  await prisma.user.upsert({
+    where: { id: DREDD_NOPERMS_USER_ID },
+    create: {
+      id: DREDD_NOPERMS_USER_ID,
+      email: DREDD_NOPERMS_EMAIL,
+      name: 'Dredd No-Perms User',
+      username: 'dredd-noperms',
+      passwordHash,
+      emailVerified: new Date(),
+      isActive: true,
+      onboardingCompletedAt: new Date(),
+      roles: [],
+    },
+    update: { emailVerified: new Date(), isActive: true, passwordHash },
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (user/resume/job/post/conversation/notification/feature-flag)',
+    '✅ Seeded Dredd fixture entities (user/resume/job/post/conversation/notification/feature-flag/noperms-user)',
   );
 }

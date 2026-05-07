@@ -196,6 +196,7 @@ try {
         response200 !== undefined &&
         (response200ContentTypes.length === 0 ||
           response200ContentTypes.some((ct) => ct.includes('event-stream')));
+      const queryParams = (op.parameters || []).filter((p) => p.in === 'query');
       operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
         auth: op['x-auth'] || 'public',
         permission: op['x-permission'] || null,
@@ -203,6 +204,7 @@ try {
         requestBodySchema: op.requestBody?.content?.['application/json']?.schema || null,
         pathParamExamples,
         isSse,
+        queryParams,
       });
     }
   }
@@ -242,6 +244,8 @@ let adminCookie = null;
 let adminToken = null;
 let regularCookie = null;
 let regularToken = null;
+let nonPrivCookie = null;
+let nonPrivToken = null;
 
 function login(email, password, callback) {
   const http = require('node:http');
@@ -276,7 +280,7 @@ function login(email, password, callback) {
 }
 
 hooks.beforeAll((_transactions, done) => {
-  let pending = 2;
+  let pending = 3;
   const finish = () => {
     pending -= 1;
     if (pending === 0) done();
@@ -313,6 +317,22 @@ hooks.beforeAll((_transactions, done) => {
       finish();
     },
   );
+  login(
+    process.env.DREDD_NOPERMS_EMAIL || 'dredd-noperms@profile.local',
+    process.env.DREDD_NOPERMS_PASSWORD || 'Dredd_Fixture_Password_123!',
+    (err, result) => {
+      if (err) {
+        hooks.log(`Dredd no-perms login failed: ${err.message}`);
+      } else {
+        nonPrivCookie = result.cookie;
+        nonPrivToken = result.token;
+        hooks.log(
+          `Dredd no-perms login: status=${result.status} cookie=${nonPrivCookie ? 'ok' : 'missing'}`,
+        );
+      }
+      finish();
+    },
+  );
 });
 
 function setCookieAndToken(transaction, cookie, token) {
@@ -342,10 +362,11 @@ hooks.beforeEach((transaction, done) => {
     return done();
   }
 
-  // 403 probes use the regular user — a route that 403s for admin is a
-  // misconfiguration the contract suite SHOULD surface.
+  // 403 probes use the no-perms user — authenticated (valid session) but
+  // zero role assignments, so every permission check returns 403 regardless
+  // of whether the route is admin-gated or user-level-gated.
   if (expectedStatus === 403) {
-    setCookieAndToken(transaction, regularCookie, regularToken);
+    setCookieAndToken(transaction, nonPrivCookie, nonPrivToken);
     return done();
   }
 
@@ -471,6 +492,29 @@ function synthesizeValidBody(meta) {
   return body;
 }
 
+function synthesizeInvalidQuery(url, meta) {
+  const queryParams = meta?.queryParams || [];
+  const required = queryParams.filter((p) => p.required);
+  const parsed = new URL(`http://localhost${url}`);
+  if (required.length > 0) {
+    parsed.searchParams.delete(required[0].name);
+    return parsed.pathname + (parsed.search || '');
+  }
+  const enumParam = queryParams.find((p) => Array.isArray(p.schema?.enum));
+  if (enumParam) {
+    parsed.searchParams.set(enumParam.name, '__invalid_enum__');
+    return parsed.pathname + parsed.search;
+  }
+  const numParam = queryParams.find(
+    (p) => p.schema?.type === 'integer' || p.schema?.type === 'number',
+  );
+  if (numParam) {
+    parsed.searchParams.set(numParam.name, 'notanumber');
+    return parsed.pathname + parsed.search;
+  }
+  return null;
+}
+
 function synthesizeInvalidBody(meta) {
   const schema = meta?.requestBodySchema;
   if (!schema) return null;
@@ -551,6 +595,18 @@ hooks.beforeEach((transaction, done) => {
 
   if (expectedStatus === 400) {
     const meta = lookupOperation(transaction);
+    const method = (transaction.request?.method || '').toUpperCase();
+    if (method === 'GET' || method === 'HEAD') {
+      const newUrl = synthesizeInvalidQuery(transaction.fullPath, meta);
+      if (newUrl !== null) {
+        transaction.fullPath = newUrl;
+        if (transaction.request) transaction.request.uri = newUrl;
+      } else {
+        transaction.skip = true;
+        hooks.log(`[400-synthesis] no query surface for ${transaction.name} — skipping`);
+      }
+      return done();
+    }
     const invalid = synthesizeInvalidBody(meta);
     if (invalid !== null) {
       transaction.request.body = JSON.stringify(invalid);
