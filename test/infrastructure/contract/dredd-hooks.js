@@ -163,7 +163,7 @@ hooks.beforeAll((_transactions, done) => {
     },
     (res) => {
       const cookies = res.headers['set-cookie'] || [];
-      const sessionLine = cookies.find((c) => c.startsWith('pc_session='));
+      const sessionLine = cookies.find((c) => c.startsWith('access_token='));
       if (sessionLine) {
         sessionCookie = sessionLine.split(';')[0];
       }
