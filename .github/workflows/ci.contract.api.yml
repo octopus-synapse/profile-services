@@ -112,6 +112,11 @@ jobs:
       JWT_SECRET: dredd_test_secret_key_minimum_32_characters_long
       NODE_ENV: test
       PORT: 3010
+      # EmailPasswordResetSender (P1-032) refuses to construct without
+      # APP_URL — no localhost fallback. Dredd doesn't actually send
+      # mail, but bootstrap still wires the sender, so a placeholder
+      # is required to clear the construction-time guard.
+      APP_URL: http://localhost:3010
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

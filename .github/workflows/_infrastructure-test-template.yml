@@ -49,6 +49,9 @@ env:
   NODE_ENV: test
   JWT_SECRET: test-secret-key-for-ci-tests-minimum-32-chars
   RATE_LIMIT_ENABLED: true
+  # EmailPasswordResetSender (P1-032) refuses to construct without
+  # APP_URL — no localhost fallback in the constructor.
+  APP_URL: http://localhost:3010
 
 permissions:
   contents: read
