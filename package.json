@@ -52,6 +52,7 @@
     "openapi:generate": "bun run src/scripts/generate-openapi.ts",
     "swagger:generate": "bun run scripts/generate-swagger-from-decorators.ts",
     "swagger:test": "bun test ./test/static-analysis/contracts/swagger-generation.contract.ts",
+    "drift:discover": "bun run scripts/discover-response-drift.ts",
     "lint:spec": "bunx @stoplight/spectral-cli lint --ruleset .spectral.yaml swagger.json client-swagger.json",
     "prepare": "husky"
   },
@@ -72,7 +73,6 @@
     "mammoth": "^1.12.0",
     "minio": "^8.0.7",
     "multer": "^2.1.1",
-    "nestjs-zod": "^5.2.1",
     "nodemailer": "^8.0.5",
     "openai": "^6.34.0",
     "passport-github2": "^0.1.12",

@@ -44,9 +44,7 @@ function getTypeName(schema: unknown): string | undefined {
   return (schema as ZodInternals)?._def?.typeName;
 }
 
-function unwrapToZodObject(
-  schema: unknown,
-): Record<string, ZodSchema<unknown>> | undefined {
+function unwrapToZodObject(schema: unknown): Record<string, ZodSchema<unknown>> | undefined {
   let current: unknown = schema;
   for (let depth = 0; depth < 5; depth += 1) {
     const typeName = getTypeName(current);
@@ -60,11 +58,7 @@ function unwrapToZodObject(
       current = inner;
       continue;
     }
-    if (
-      typeName === 'ZodOptional' ||
-      typeName === 'ZodNullable' ||
-      typeName === 'ZodDefault'
-    ) {
+    if (typeName === 'ZodOptional' || typeName === 'ZodNullable' || typeName === 'ZodDefault') {
       const inner = (current as ZodInternals)._def?.innerType;
       if (!inner) return undefined;
       current = inner;
