@@ -69,8 +69,10 @@ export const SectionTypeListResponseSchema = z.object({
   items: z.array(SectionTypeResponseSchema),
   total: z.number().int(),
   page: z.number().int(),
-  pageSize: z.number().int(),
+  limit: z.number().int(),
   totalPages: z.number().int(),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 export const SemanticKindsResponseSchema = z

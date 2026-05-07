@@ -27,9 +27,11 @@ export interface SearchResultItem {
 
 /** Paginated search result */
 export interface SearchResult {
-  data: SearchResultItem[];
+  items: SearchResultItem[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }

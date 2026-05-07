@@ -102,11 +102,7 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const query = ctx.query as unknown as z.infer<typeof GetConversationsRequestQuerySchema>;
-      const conversations = await bundle.chat.getConversationsUseCase.execute(
-        ctx.user!.userId,
-        query,
-      );
-      return { conversations };
+      return bundle.chat.getConversationsUseCase.execute(ctx.user!.userId, query);
     },
   },
   {
@@ -148,12 +144,11 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { conversationId } = ctx.params as { conversationId: string };
       const query = ctx.query as unknown as z.infer<typeof GetMessagesRequestQuerySchema>;
-      const messages = await bundle.chat.getMessagesUseCase.execute(ctx.user!.userId, {
+      return bundle.chat.getMessagesUseCase.execute(ctx.user!.userId, {
         conversationId,
         cursor: query.cursor,
         limit: query.limit ?? 50,
       });
-      return { messages };
     },
   },
   {

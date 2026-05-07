@@ -49,13 +49,11 @@ export const SetMuteSchema = z.object({
 // ─── Response schemas ──────────────────────────────────────────────
 export const SendMessageResponseSchema = z.object({ message: MessageResponseSchema });
 
-export const GetConversationsResponseSchema = z.object({
-  conversations: PaginatedConversationsResponseSchema,
-});
+export const GetConversationsResponseSchema = PaginatedConversationsResponseSchema;
 
 export const GetConversationResponseSchema = z.object({ conversation: ConversationResponseSchema });
 
-export const GetMessagesResponseSchema = z.object({ messages: PaginatedMessagesResponseSchema });
+export const GetMessagesResponseSchema = PaginatedMessagesResponseSchema;
 
 export const MarkConversationReadResponseSchema = z.object({ count: z.number().int() });
 

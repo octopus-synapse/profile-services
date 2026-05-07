@@ -93,8 +93,9 @@ export const NotificationViewSchema = z.object({
 });
 
 export const NotificationListResponseSchema = z.object({
-  data: z.array(NotificationViewSchema),
+  items: z.array(NotificationViewSchema),
   nextCursor: z.string().nullable(),
+  hasNext: z.boolean(),
 });
 
 export const UnreadCountResponseSchema = z.object({ count: z.number().int().min(0) });

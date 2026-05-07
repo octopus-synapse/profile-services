@@ -169,8 +169,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.connectionService.getConnections(ctx.user!.userId, pagination);
-      return { connections: result };
+      return bundle.connectionService.getConnections(ctx.user!.userId, pagination);
     },
   },
   {
@@ -187,11 +186,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.connectionService.getPendingRequests(
-        ctx.user!.userId,
-        pagination,
-      );
-      return { pendingRequests: result };
+      return bundle.connectionService.getPendingRequests(ctx.user!.userId, pagination);
     },
   },
   {
@@ -208,8 +203,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
-      return { pendingRequests: result };
+      return bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
     },
   },
   {
@@ -226,11 +220,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const parsed = PageQuery.parse(ctx.query);
       const pagination = { page: parsed.page, limit: Math.min(parsed.limit, 20) };
-      const suggestions = await bundle.connectionService.getConnectionSuggestions(
-        ctx.user!.userId,
-        pagination,
-      );
-      return { suggestions };
+      return bundle.connectionService.getConnectionSuggestions(ctx.user!.userId, pagination);
     },
   },
   {

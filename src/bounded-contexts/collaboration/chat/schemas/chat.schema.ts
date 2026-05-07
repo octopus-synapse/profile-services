@@ -136,9 +136,9 @@ export type ConversationResponse = z.infer<typeof ConversationResponseSchema>;
  * Paginated Messages Response Schema
  */
 export const PaginatedMessagesResponseSchema = z.object({
-  messages: z.array(MessageResponseSchema),
+  items: z.array(MessageResponseSchema),
   nextCursor: z.string().nullable(),
-  hasMore: z.boolean(),
+  hasNext: z.boolean(),
 });
 
 export type PaginatedMessagesResponse = z.infer<typeof PaginatedMessagesResponseSchema>;
@@ -147,9 +147,9 @@ export type PaginatedMessagesResponse = z.infer<typeof PaginatedMessagesResponse
  * Paginated Conversations Response Schema
  */
 export const PaginatedConversationsResponseSchema = z.object({
-  conversations: z.array(ConversationResponseSchema),
+  items: z.array(ConversationResponseSchema),
   nextCursor: z.string().nullable(),
-  hasMore: z.boolean(),
+  hasNext: z.boolean(),
 });
 
 export type PaginatedConversationsResponse = z.infer<typeof PaginatedConversationsResponseSchema>;

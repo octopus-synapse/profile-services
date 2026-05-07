@@ -119,7 +119,7 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
     }
     const slice = sorted.slice(start, start + limit);
     const nextCursor = slice.length === limit ? (slice[slice.length - 1]?.id ?? null) : null;
-    return { data: slice, nextCursor };
+    return { items: slice, nextCursor, hasNext: nextCursor !== null };
   }
 
   async countUnread(userId: string): Promise<number> {

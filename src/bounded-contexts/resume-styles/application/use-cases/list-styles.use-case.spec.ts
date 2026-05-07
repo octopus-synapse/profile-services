@@ -45,7 +45,15 @@ describe('ListStylesUseCase', () => {
       updatedAt: new Date(0),
     };
     const useCase = new ListStylesUseCase(
-      new FakeRepo({ items: [sample], total: 1, page: 1, limit: 20 }),
+      new FakeRepo({
+        items: [sample],
+        total: 1,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      }),
     );
     const result = await useCase.execute();
     expect(result.items).toHaveLength(1);

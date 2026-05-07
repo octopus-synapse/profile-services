@@ -398,12 +398,12 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
 
     it.serial('should paginate results', async () => {
       const res = await app.request
-        .get('/api/v1/admin/section-types?page=1&pageSize=2')
+        .get('/api/v1/admin/section-types?page=1&limit=2')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
       expect(res.body.items.length).toBeLessThanOrEqual(2);
-      expect(res.body.pageSize).toBe(2);
+      expect(res.body.limit).toBe(2);
       expect(res.body.page).toBe(1);
       expect(typeof res.body.total).toBe('number');
     });

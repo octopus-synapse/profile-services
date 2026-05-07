@@ -23,9 +23,9 @@ export class GetMessagesUseCase {
     });
 
     return {
-      messages: result.messages.map(toMessageResponseDto),
+      items: result.messages.map(toMessageResponseDto),
       nextCursor: result.nextCursor,
-      hasMore: result.hasMore,
+      hasNext: result.hasMore,
     };
   }
 }

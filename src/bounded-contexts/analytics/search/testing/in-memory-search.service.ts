@@ -66,8 +66,17 @@ export class InMemorySearchService implements SearchServicePort {
     const total = filtered.length;
     const start = (page - 1) * limit;
     const data = filtered.slice(start, start + limit);
+    const totalPages = Math.ceil(total / limit);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      items: data,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
   }
 
   async suggest(prefix: string, limit = 10): Promise<string[]> {

@@ -107,7 +107,7 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
     }));
 
     const nextCursor = data.length === limit ? (data[data.length - 1]?.id ?? null) : null;
-    return { data, nextCursor };
+    return { items: data, nextCursor, hasNext: nextCursor !== null };
   }
 
   async countUnread(userId: string): Promise<number> {

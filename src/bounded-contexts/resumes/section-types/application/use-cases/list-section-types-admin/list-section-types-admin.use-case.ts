@@ -8,9 +8,9 @@ export class ListSectionTypesAdminUseCase {
 
   async execute(query: ListSectionTypesQueryDto): Promise<SectionTypeListResponseDto> {
     const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
+    const limit = query.limit ?? 20;
     const { search, isActive, semanticKind } = query;
-    const skip = (page - 1) * pageSize;
+    const skip = (page - 1) * limit;
 
     const filter: SectionTypeFilter = {};
 
@@ -19,16 +19,20 @@ export class ListSectionTypesAdminUseCase {
     if (semanticKind) filter.semanticKind = semanticKind;
 
     const [items, total] = await Promise.all([
-      this.repository.findMany(filter, skip, pageSize),
+      this.repository.findMany(filter, skip, limit),
       this.repository.count(filter),
     ]);
+
+    const totalPages = Math.ceil(total / limit);
 
     return {
       items: items.map(toSectionTypeResponseDto),
       total,
       page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
     };
   }
 }

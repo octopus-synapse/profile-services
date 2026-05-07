@@ -78,11 +78,13 @@ export const SearchResultItemSchema = z.object({
 });
 
 export const SearchResponseSchema = z.object({
-  data: z.array(SearchResultItemSchema),
+  items: z.array(SearchResultItemSchema),
   total: z.number().int().min(0),
   page: z.number().int().min(1),
   limit: z.number().int().min(1),
   totalPages: z.number().int().min(0),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 export const SuggestionsResponseSchema = z.object({

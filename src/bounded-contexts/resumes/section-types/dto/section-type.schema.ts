@@ -243,8 +243,10 @@ export interface SectionTypeListResponseDto {
   items: SectionTypeResponseDto[];
   total: number;
   page: number;
-  pageSize: number;
+  limit: number;
   totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 /**
@@ -252,7 +254,7 @@ export interface SectionTypeListResponseDto {
  */
 export const ListSectionTypesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
-  pageSize: z.coerce.number().int().min(1).max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
   search: z.string().optional(),
   isActive: z.coerce.boolean().optional(),
   semanticKind: z.string().optional(),

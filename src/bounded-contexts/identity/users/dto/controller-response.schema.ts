@@ -33,8 +33,13 @@ const UserListItemSchema = z.object({
 });
 
 const UserManagementListDataSchema = z.object({
-  users: z.array(UserListItemSchema),
-  pagination: PaginationMetaSchema,
+  items: z.array(UserListItemSchema),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 // ============================================================================

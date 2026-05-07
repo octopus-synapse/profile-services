@@ -10,10 +10,16 @@ export class ListUsersUseCase extends ListUsersUseCasePort {
   async execute(options: UserListOptions): Promise<UserListResult> {
     const { page, limit } = options;
     const { users, total } = await this.repository.findUsers(options);
+    const totalPages = Math.ceil(total / limit);
 
     return {
-      users,
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      items: users,
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
     };
   }
 }

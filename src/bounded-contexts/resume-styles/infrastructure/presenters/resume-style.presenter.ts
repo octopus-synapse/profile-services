@@ -45,5 +45,13 @@ export function toDetailResponseDto(s: StyleDetail): StyleDetailDto {
 }
 
 export function toListResponseDto(p: PaginatedStyles): StyleListResponseDto {
-  return { items: p.items.map(toSummaryResponseDto), total: p.total, page: p.page, limit: p.limit };
+  return {
+    items: p.items.map(toSummaryResponseDto),
+    total: p.total,
+    page: p.page,
+    limit: p.limit,
+    totalPages: p.totalPages,
+    hasNext: p.hasNext,
+    hasPrev: p.hasPrev,
+  };
 }

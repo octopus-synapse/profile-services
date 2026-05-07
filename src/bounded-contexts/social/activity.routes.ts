@@ -43,8 +43,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
       const userId = ctx.user!.userId;
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.activityService.getFeed(userId, pagination);
-      return { feed: result };
+      return bundle.activityService.getFeed(userId, pagination);
     },
   },
   {
@@ -62,8 +61,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.activityService.getUserActivities(userId, pagination);
-      return { activities: result };
+      return bundle.activityService.getUserActivities(userId, pagination);
     },
   },
   {
@@ -81,12 +79,7 @@ export const activityRoutes: ReadonlyArray<Route<ActivityRoutesBundle>> = [
       const { userId, type } = ctx.params as { userId: string; type: string };
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.activityService.getActivitiesByType(
-        userId,
-        type as ActivityType,
-        pagination,
-      );
-      return { activities: result };
+      return bundle.activityService.getActivitiesByType(userId, type as ActivityType, pagination);
     },
   },
 ];

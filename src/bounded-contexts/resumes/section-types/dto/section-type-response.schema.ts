@@ -33,8 +33,10 @@ const SectionTypeListDataSchema = z.object({
   items: z.array(SectionTypeDataSchema),
   total: z.number().int(),
   page: z.number().int(),
-  pageSize: z.number().int(),
+  limit: z.number().int(),
   totalPages: z.number().int(),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 const SemanticKindsDataSchema = z.object({ kinds: z.array(z.string()) });

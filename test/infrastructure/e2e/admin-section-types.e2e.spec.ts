@@ -96,14 +96,14 @@ describe('E2E: Admin Section Types CRUD', () => {
       expect(typeof response.body.totalPages).toBe('number');
     });
 
-    it.serial('should respect pageSize parameter', async () => {
+    it.serial('should respect limit parameter', async () => {
       const response = await app.request
-        .get('/api/v1/admin/section-types?page=1&pageSize=3')
+        .get('/api/v1/admin/section-types?page=1&limit=3')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.items.length).toBeLessThanOrEqual(3);
-      expect(response.body.pageSize).toBe(3);
+      expect(response.body.limit).toBe(3);
     });
 
     it.serial('should filter by search term', async () => {

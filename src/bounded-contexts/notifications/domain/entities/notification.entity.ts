@@ -107,6 +107,7 @@ export interface FitProfileExpiringRow {
 }
 
 export interface NotificationListPage {
-  readonly data: NotificationView[];
+  readonly items: NotificationView[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }

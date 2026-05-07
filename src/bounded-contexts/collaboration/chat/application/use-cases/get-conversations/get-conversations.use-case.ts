@@ -30,9 +30,9 @@ export class GetConversationsUseCase {
     );
 
     return {
-      conversations: conversationsWithUnread,
+      items: conversationsWithUnread,
       nextCursor: result.nextCursor,
-      hasMore: result.hasMore,
+      hasNext: result.hasMore,
     };
   }
 }

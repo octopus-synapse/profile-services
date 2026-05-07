@@ -84,9 +84,12 @@ export const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({
 
 export const StyleListResponseSchema = z.object({
   items: z.array(StyleSummaryResponseSchema),
-  total: z.number().int(),
-  page: z.number().int(),
-  limit: z.number().int(),
+  total: z.number().int().min(0),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  totalPages: z.number().int().min(0),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
 export const ApplyStyleResponseSchema = z.null();

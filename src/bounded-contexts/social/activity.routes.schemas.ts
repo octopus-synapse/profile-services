@@ -81,6 +81,6 @@ export const ActivityWithUserSchema = z.object({
 
 export const ActivityPaginatedSchema = PaginatedResponseSchema(ActivityWithUserSchema);
 
-export const ActivityFeedResponseSchema = z.object({ feed: ActivityPaginatedSchema });
+export const ActivityFeedResponseSchema = ActivityPaginatedSchema;
 
-export const UserActivitiesResponseSchema = z.object({ activities: ActivityPaginatedSchema });
+export const UserActivitiesResponseSchema = ActivityPaginatedSchema;

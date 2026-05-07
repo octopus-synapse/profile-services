@@ -88,8 +88,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.followService.getFollowers(userId, pagination, ctx.user!.userId);
-      return { followers: result };
+      return bundle.followService.getFollowers(userId, pagination, ctx.user!.userId);
     },
   },
   {
@@ -108,8 +107,7 @@ export const followRoutes: ReadonlyArray<Route<FollowRoutesBundle>> = [
       const { userId } = ctx.params as { userId: string };
       const { page, limit } = PageQuery.parse(ctx.query);
       const pagination = { page, limit };
-      const result = await bundle.followService.getFollowing(userId, pagination, ctx.user!.userId);
-      return { following: result };
+      return bundle.followService.getFollowing(userId, pagination, ctx.user!.userId);
     },
   },
   {

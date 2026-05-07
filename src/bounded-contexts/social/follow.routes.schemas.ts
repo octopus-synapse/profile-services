@@ -46,15 +46,13 @@ export const FollowWithUserSchema = z.object({
   isFollowedByMe: z.boolean().optional(),
 });
 
-export const FollowPaginatedSchema = PaginatedResponseSchema(FollowWithUserSchema);
-
 export const FollowIdResponseSchema = IdParamSchema;
 
 export const UnfollowResponseSchema = z.object({ unfollowed: z.literal(true) });
 
-export const FollowersResponseSchema = z.object({ followers: FollowPaginatedSchema });
+export const FollowersResponseSchema = PaginatedResponseSchema(FollowWithUserSchema);
 
-export const FollowingResponseSchema = z.object({ following: FollowPaginatedSchema });
+export const FollowingResponseSchema = PaginatedResponseSchema(FollowWithUserSchema);
 
 export const IsFollowingResponseSchema = z.object({ isFollowing: z.boolean() });
 

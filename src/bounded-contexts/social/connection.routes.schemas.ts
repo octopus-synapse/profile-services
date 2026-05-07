@@ -75,13 +75,11 @@ export const ConnectionIdResponseSchema = IdParamSchema;
 
 export const ConnectionRemovedResponseSchema = z.object({ removed: z.literal(true) });
 
-export const ConnectionsListResponseSchema = z.object({ connections: ConnectionPaginatedSchema });
+export const ConnectionsListResponseSchema = ConnectionPaginatedSchema;
 
-export const PendingRequestsListResponseSchema = z.object({
-  pendingRequests: ConnectionPaginatedSchema,
-});
+export const PendingRequestsListResponseSchema = ConnectionPaginatedSchema;
 
-export const SuggestionsListResponseSchema = z.object({ suggestions: SuggestionsPaginatedSchema });
+export const SuggestionsListResponseSchema = SuggestionsPaginatedSchema;
 
 export const ConnectionStatsResponseSchema = z.object({ connections: z.number().int() });
 

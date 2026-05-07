@@ -65,8 +65,13 @@ export type UpdatedUser = {
 };
 
 export type UserListResult = {
-  users: UserListItem[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
+  items: UserListItem[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 };
 
 export type CreateUserData = { email: string; password: string; name?: string };

@@ -59,7 +59,16 @@ export class PrismaResumeStyleRepository extends ResumeStyleRepositoryPort {
       }),
       this.prisma.resumeStyle.count({ where }),
     ]);
-    return { items: rows.map(toSummary), total, page, limit };
+    const totalPages = Math.ceil(total / limit);
+    return {
+      items: rows.map(toSummary),
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
   }
 
   async findById(id: string): Promise<StyleDetail | null> {

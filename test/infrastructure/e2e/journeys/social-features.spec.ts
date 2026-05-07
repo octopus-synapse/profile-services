@@ -169,8 +169,8 @@ describe('E2E Journey: Social Features', () => {
 
       expect(response.status).toBe(200);
 
-      // Q1 PaginatedResponseSchema: `body.followers.items`.
-      expect(response.body.followers.items.length).toBeGreaterThanOrEqual(1);
+      // Q1 PaginatedResponseSchema: top-level `body.items`.
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should show User B in User A following list', async () => {
@@ -179,7 +179,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.following.items.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -298,7 +298,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.activities).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should show activity history for User C', async () => {
@@ -307,7 +307,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userC.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.activities).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should show feed for User B (shows activities from followed users)', async () => {
@@ -321,7 +321,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.feed).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should support pagination on feed', async () => {
@@ -330,7 +330,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.feed).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
   });
 

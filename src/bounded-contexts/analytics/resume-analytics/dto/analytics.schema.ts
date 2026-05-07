@@ -196,16 +196,13 @@ const ScoreProgressionResponseSchema = z.object({
 });
 
 // ============================================================================
-// REQUEST DTOs (using createZodDto)
-// ============================================================================
-// ============================================================================
 // COMMON RESPONSE SCHEMAS
 // ============================================================================
 
 const MessageResponseSchema = z.object({ message: z.string() });
 
 // ============================================================================
-// RESPONSE DTOs (using createZodDto)
+// INFERRED REQUEST / RESPONSE TYPES
 // ============================================================================
 
 export type TrackViewRequestDto = z.infer<typeof TrackViewRequestSchema>;

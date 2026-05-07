@@ -112,7 +112,16 @@ export class ResumeSearchService {
 
     const total = countResult[0].count;
 
-    return { data: filteredResults, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const totalPages = Math.ceil(total / limit);
+    return {
+      items: filteredResults,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
   }
 
   /**
@@ -279,7 +288,7 @@ export class ResumeSearchService {
       }),
     ]);
 
-    const resumeItems: GlobalSearchItem[] = resumeResult.data.map((row) => ({
+    const resumeItems: GlobalSearchItem[] = resumeResult.items.map((row) => ({
       id: row.id,
       title: row.fullName ?? row.jobTitle ?? 'Untitled',
       snippet: row.summary ? row.summary.slice(0, 160) : undefined,

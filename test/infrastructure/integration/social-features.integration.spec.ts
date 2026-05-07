@@ -178,13 +178,10 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userBToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.followers).toBeDefined();
+      expect(response.body.items).toBeDefined();
 
-      // Unwrap: could be { data: [...], total: N } or direct array
-      const followersData = response.body.followers;
-      const followersList = Array.isArray(followersData) ? followersData : followersData.data;
-
-      expect(followersList.length).toBeGreaterThanOrEqual(2);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(2);
+      expect(response.body.total).toBeGreaterThanOrEqual(2);
     });
 
     it('should support pagination on followers', async () => {
@@ -194,10 +191,7 @@ describeIntegration('Social Features Integration', () => {
 
       expect(response.status).toBe(200);
 
-      const followersData = response.body.followers;
-      const followersList = Array.isArray(followersData) ? followersData : followersData.data;
-
-      expect(followersList.length).toBeLessThanOrEqual(1);
+      expect(response.body.items.length).toBeLessThanOrEqual(1);
     });
 
     it('should return empty followers for user with no followers', async () => {
@@ -207,12 +201,8 @@ describeIntegration('Social Features Integration', () => {
 
       expect(response.status).toBe(200);
 
-      const followersData = response.body.followers;
-      const followersList = Array.isArray(followersData) ? followersData : followersData.data;
-      const total = Array.isArray(followersData) ? followersData.length : followersData.total;
-
-      expect(total).toBe(0);
-      expect(followersList.length).toBe(0);
+      expect(response.body.total).toBe(0);
+      expect(response.body.items.length).toBe(0);
     });
   });
 
@@ -223,11 +213,9 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      const followingData = response.body.following;
-      const followingList = Array.isArray(followingData) ? followingData : followingData.data;
 
       // User A follows User B
-      expect(followingList.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should support pagination on following', async () => {
@@ -294,7 +282,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.activities).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it('should show feed for authenticated user', async () => {
@@ -303,7 +291,7 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(userAToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.feed).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it('should support pagination on activities', async () => {
@@ -324,11 +312,8 @@ describeIntegration('Social Features Integration', () => {
         .set(authHeader(freshInDbUser.accessToken));
 
       expect(response.status).toBe(200);
-
-      const activities = response.body.activities;
-      const actList = Array.isArray(activities) ? activities : activities.data;
-
-      expect(actList.length).toBe(0);
+      expect(response.body.items).toEqual([]);
+      expect(response.body.total).toBe(0);
     });
   });
 

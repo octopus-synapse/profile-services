@@ -205,7 +205,8 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.followers).toBeDefined();
+      expect(res.body.items).toBeDefined();
+      expect(Array.isArray(res.body.items)).toBe(true);
     });
 
     it('should accept page and limit params', async () => {
@@ -222,14 +223,9 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .expect(200);
 
       // New user should have no followers
-      const followers = res.body.followers;
-      if (Array.isArray(followers)) {
-        expect(followers.length).toBe(0);
-      } else if (followers && typeof followers === 'object') {
-        // Might be paginated response with items
-        const items = followers.items || followers.data || [];
-        expect(Array.isArray(items)).toBe(true);
-      }
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBe(0);
+      expect(res.body.total).toBe(0);
     });
 
     it('should cap limit at 100', async () => {

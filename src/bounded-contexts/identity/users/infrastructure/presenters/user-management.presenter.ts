@@ -29,9 +29,17 @@ export function toUserListItem(user: UserListItem): UserListItemPayload {
 }
 
 export function toUserManagementListData(result: UserListResult): UserManagementListDataDto {
-  const users: UserListItemPayload[] = [];
-  for (const u of result.users) users.push(toUserListItem(u));
-  return { users, pagination: result.pagination };
+  const items: UserListItemPayload[] = [];
+  for (const u of result.items) items.push(toUserListItem(u));
+  return {
+    items,
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
+    hasNext: result.hasNext,
+    hasPrev: result.hasPrev,
+  };
 }
 
 export function toUserDetailsData(user: UserDetails): UserDetailsDataDto {
