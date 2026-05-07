@@ -1,6 +1,6 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { EXAMPLE_SLUG } from './example-ids.const';
+import { EXAMPLE_SLUG } from './example-values.const';
 
 extendZodWithOpenApi(z);
 

@@ -2,7 +2,7 @@
  * Dredd contract-test fixture seed.
  *
  * Materialises the deterministic UUIDs declared in
- * `src/shared-kernel/schemas/params/example-ids.const.ts` as real rows
+ * `src/shared-kernel/schemas/params/example-values.const.ts` as real rows
  * so Dredd's generated requests resolve to existing entities. Without
  * these, every transaction that hits a `/users/:id`-shaped route would
  * return 404 and the contract job would be useless.
@@ -19,7 +19,7 @@ import {
   EXAMPLE_POST_ID,
   EXAMPLE_RESUME_ID,
   EXAMPLE_USER_ID,
-} from '../../src/shared-kernel/schemas/params/example-ids.const';
+} from '../../src/shared-kernel/schemas/params/example-values.const';
 
 const FIXTURE_USER_EMAIL = 'dredd-fixture@profile.local';
 const FIXTURE_USER_NAME = 'Dredd Fixture User';

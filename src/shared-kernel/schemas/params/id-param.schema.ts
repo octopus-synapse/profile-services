@@ -1,6 +1,6 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { EXAMPLE_GENERIC_ID } from './example-ids.const';
+import { EXAMPLE_GENERIC_ID } from './example-values.const';
 
 extendZodWithOpenApi(z);
 

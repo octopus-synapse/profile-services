@@ -33,7 +33,7 @@ import {
   EXAMPLE_RESUME_ID,
   EXAMPLE_SLUG,
   EXAMPLE_USER_ID,
-} from '@/shared-kernel/schemas/params/example-ids.const';
+} from '@/shared-kernel/schemas/params/example-values.const';
 
 extendZodWithOpenApi(z);
 

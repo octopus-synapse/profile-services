@@ -14,7 +14,7 @@
 const hooks = require('hooks');
 
 // Deterministic UUIDs mirrored from
-// `src/shared-kernel/schemas/params/example-ids.const.ts`. Keep in sync;
+// `src/shared-kernel/schemas/params/example-values.const.ts`. Keep in sync;
 // the seed materialises real rows under these IDs.
 const FIXTURE_USER_ID = '01900000-0000-7000-a000-000000000020';
 const FIXTURE_RESUME_ID = '01900000-0000-7000-a000-000000000010';

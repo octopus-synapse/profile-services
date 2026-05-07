@@ -1,33 +1,24 @@
-/**
- * Social URL Validation Schemas
- *
- * Reusable URL schemas for social/professional links.
- * Used across identity and presentation bounded contexts.
- */
-
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import {
+  EXAMPLE_GITHUB_URL,
+  EXAMPLE_LINKEDIN_URL,
+  EXAMPLE_URL,
+} from '../params/example-values.const';
 
-/**
- * URL Schema for Social Links
- *
- * Validates HTTP/HTTPS URLs.
- * Used for LinkedIn, GitHub, personal websites.
- */
+extendZodWithOpenApi(z);
+
 export const SocialUrlSchema = z
   .string()
   .url('Invalid URL format')
   .regex(/^https?:\/\//, 'URL must start with http:// or https://')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional();
+  .optional()
+  .openapi({ example: EXAMPLE_URL });
 
 export type SocialUrl = z.infer<typeof SocialUrlSchema>;
 
-/**
- * LinkedIn Profile URL Schema
- *
- * Validates LinkedIn-specific URL format.
- */
 export const LinkedInUrlSchema = z
   .string()
   .url('Invalid LinkedIn URL')
@@ -37,27 +28,22 @@ export const LinkedInUrlSchema = z
   )
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional();
+  .optional()
+  .openapi({ example: EXAMPLE_LINKEDIN_URL });
 
 export type LinkedInUrl = z.infer<typeof LinkedInUrlSchema>;
 
-/**
- * GitHub Profile URL Schema
- *
- * Validates GitHub-specific URL format.
- */
 export const GitHubUrlSchema = z
   .string()
   .url('Invalid GitHub URL')
   .regex(/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/, 'Must be a valid GitHub profile URL')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional();
+  .optional()
+  .openapi({ example: EXAMPLE_GITHUB_URL });
 
 export type GitHubUrl = z.infer<typeof GitHubUrlSchema>;
 
 export type SocialUrlDto = z.infer<typeof SocialUrlSchema>;
-
 export type LinkedInUrlDto = z.infer<typeof LinkedInUrlSchema>;
-
 export type GitHubUrlDto = z.infer<typeof GitHubUrlSchema>;
