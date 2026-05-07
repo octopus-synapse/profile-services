@@ -24,16 +24,8 @@ import {
 } from '@asteasolutions/zod-to-openapi';
 import { type AnyZodObject, type ZodSchema, z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
-import {
-  EXAMPLE_CONVERSATION_ID,
-  EXAMPLE_GENERIC_ID,
-  EXAMPLE_JOB_ID,
-  EXAMPLE_NOTIFICATION_ID,
-  EXAMPLE_POST_ID,
-  EXAMPLE_RESUME_ID,
-  EXAMPLE_SLUG,
-  EXAMPLE_USER_ID,
-} from '@/shared-kernel/schemas/params/example-values.const';
+import { NAME_TO_EXAMPLE } from '@/shared-kernel/schemas/params/auto-derive-examples.const';
+import { EXAMPLE_SLUG } from '@/shared-kernel/schemas/params/example-values.const';
 
 extendZodWithOpenApi(z);
 
@@ -148,18 +140,6 @@ function buildSuccessStatus(route: Route): string {
   return route.method === 'POST' ? '201' : '200';
 }
 
-function fallbackExampleForParam(name: string): string {
-  if (name === 'userId') return EXAMPLE_USER_ID;
-  if (name === 'resumeId') return EXAMPLE_RESUME_ID;
-  if (name === 'jobId') return EXAMPLE_JOB_ID;
-  if (name === 'postId') return EXAMPLE_POST_ID;
-  if (name === 'conversationId') return EXAMPLE_CONVERSATION_ID;
-  if (name === 'notificationId') return EXAMPLE_NOTIFICATION_ID;
-  if (name === 'id' || name.endsWith('Id')) return EXAMPLE_GENERIC_ID;
-  if (name === 'q' || name === 'query' || name === 'search') return 'fixture';
-  return EXAMPLE_SLUG;
-}
-
 interface OpenApiParameter {
   name?: string;
   in?: string;
@@ -172,7 +152,18 @@ interface OpenApiOperation {
   parameters?: OpenApiParameter[];
 }
 
-function injectFallbackExamples(document: {
+/**
+ * Mirror the `NAME_TO_EXAMPLE` auto-derive map (used by the
+ * route-examples contract test) onto the generated OpenAPI parameters.
+ *
+ * The contract test treats a leaf as covered when either (a) the Zod
+ * schema declares `.openapi({ example })` or (b) the field name has an
+ * entry in NAME_TO_EXAMPLE. `zod-to-openapi` only emits (a), so this
+ * pass restores parity by injecting (b) on path + required-query
+ * parameters that arrived without an example. Single source of truth =
+ * `auto-derive-examples.const.ts`.
+ */
+function applyParameterAutoDeriveExamples(document: {
   paths?: Record<string, Record<string, unknown>>;
 }): void {
   for (const ops of Object.values(document.paths ?? {})) {
@@ -183,24 +174,21 @@ function injectFallbackExamples(document: {
         const isPath = param.in === 'path';
         const isRequiredQuery = param.in === 'query' && param.required === true;
         if (!isPath && !isRequiredQuery) continue;
-        const schemaExample = param.schema?.example;
-        // When the schema is an enum, the example must match one of the
-        // declared values — fall back to the first enum entry instead of
-        // the generic slug.
         const enumValues = param.schema?.enum;
         const enumFallback =
           Array.isArray(enumValues) && enumValues.length > 0
             ? (enumValues[0] as string)
             : undefined;
+        // Dredd's URI-template expansion reads `parameter.example` first,
+        // then `parameter.schema.example`. Mirror the value to both so
+        // every consumer sees the same example regardless of which path
+        // it walks. Precedence: explicit > schema > NAME_TO_EXAMPLE > enum > slug.
         const example =
           (param.example as string | undefined) ??
-          (schemaExample as string | undefined) ??
+          (param.schema?.example as string | undefined) ??
+          NAME_TO_EXAMPLE.get(param.name) ??
           enumFallback ??
-          fallbackExampleForParam(param.name);
-        // Dredd's URI template expansion reads `parameter.example` first
-        // and falls back to `parameter.schema.example`. Mirror the value
-        // to both so the spec is unambiguous regardless of which path the
-        // tooling takes.
+          EXAMPLE_SLUG;
         param.example = example;
         if (param.schema) param.schema.example = example;
       }
@@ -389,7 +377,7 @@ async function generate(): Promise<void> {
     servers: [{ url: 'http://localhost:3010' }],
   });
 
-  injectFallbackExamples(document);
+  applyParameterAutoDeriveExamples(document);
 
   // Final stability pass — explicitly rebuild `paths` in alphabetical
   // order so JSON serialisation is identical across hosts regardless

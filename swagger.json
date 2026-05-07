@@ -9125,7 +9125,7 @@
               "maximum": 100
             },
             "required": false,
-            "name": "pageSize",
+            "name": "limit",
             "in": "query"
           },
           {
@@ -9333,19 +9333,27 @@
                     "page": {
                       "type": "integer"
                     },
-                    "pageSize": {
+                    "limit": {
                       "type": "integer"
                     },
                     "totalPages": {
                       "type": "integer"
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "items",
                     "total",
                     "page",
-                    "pageSize",
-                    "totalPages"
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -22872,111 +22880,103 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "conversations": {
-                      "type": "object",
-                      "properties": {
-                        "conversations": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "participant": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "participant": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "photoURL",
-                                  "username"
-                                ]
+                              "name": {
+                                "type": "string",
+                                "nullable": true
                               },
-                              "lastMessage": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {
-                                  "content": {
-                                    "type": "string"
-                                  },
-                                  "senderId": {
-                                    "type": "string"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-05-07T00:00:00.000Z"
-                                  },
-                                  "isRead": {
-                                    "type": "boolean"
-                                  }
-                                },
-                                "required": [
-                                  "content",
-                                  "senderId",
-                                  "createdAt",
-                                  "isRead"
-                                ]
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
                               },
-                              "unreadCount": {
-                                "type": "integer",
-                                "minimum": 0
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "photoURL",
+                              "username"
+                            ]
+                          },
+                          "lastMessage": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "content": {
+                                "type": "string"
+                              },
+                              "senderId": {
+                                "type": "string"
                               },
                               "createdAt": {
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2026-05-07T00:00:00.000Z"
                               },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                              "isRead": {
+                                "type": "boolean"
                               }
                             },
                             "required": [
-                              "id",
-                              "participant",
-                              "lastMessage",
-                              "unreadCount",
+                              "content",
+                              "senderId",
                               "createdAt",
-                              "updatedAt"
+                              "isRead"
                             ]
+                          },
+                          "unreadCount": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
                           }
                         },
-                        "nextCursor": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "hasMore": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "conversations",
-                        "nextCursor",
-                        "hasMore"
-                      ]
+                        "required": [
+                          "id",
+                          "participant",
+                          "lastMessage",
+                          "unreadCount",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "conversations"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -23412,91 +23412,83 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "messages": {
-                      "type": "object",
-                      "properties": {
-                        "messages": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "conversationId": {
+                            "type": "string"
+                          },
+                          "senderId": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "isRead": {
+                            "type": "boolean"
+                          },
+                          "readAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "sender": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "conversationId": {
-                                "type": "string"
-                              },
-                              "senderId": {
-                                "type": "string"
-                              },
-                              "content": {
-                                "type": "string"
-                              },
-                              "isRead": {
-                                "type": "boolean"
-                              },
-                              "readAt": {
+                              "name": {
                                 "type": "string",
-                                "nullable": true,
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "createdAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "sender": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "conversationId",
-                              "senderId",
-                              "content",
-                              "isRead",
-                              "readAt",
-                              "createdAt",
-                              "sender"
+                              "name",
+                              "photoURL"
                             ]
                           }
                         },
-                        "nextCursor": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "hasMore": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "messages",
-                        "nextCursor",
-                        "hasMore"
-                      ]
+                        "required": [
+                          "id",
+                          "conversationId",
+                          "senderId",
+                          "content",
+                          "isRead",
+                          "readAt",
+                          "createdAt",
+                          "sender"
+                        ]
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "messages"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -29736,7 +29728,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "posts": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -30789,11 +30781,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "posts",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -30947,7 +30943,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "posts": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -31472,11 +31468,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "posts",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -31941,7 +31941,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "posts": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -32452,11 +32452,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "posts",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -33987,12 +33991,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "fixture-user"
             },
             "required": true,
             "name": "username",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "fixture-user"
           }
         ],
         "responses": {
@@ -35855,12 +35859,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "company",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           }
         ],
         "responses": {
@@ -44331,12 +44335,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "skillName",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           }
         ],
         "responses": {
@@ -44511,12 +44515,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "skillName",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           }
         ],
         "requestBody": {
@@ -45429,12 +45433,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "1"
             },
             "required": true,
             "name": "codigoCurso",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "1"
           }
         ],
         "responses": {
@@ -45848,12 +45852,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "1"
             },
             "required": true,
             "name": "codigoIes",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "1"
           }
         ],
         "responses": {
@@ -46043,12 +46047,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "1"
             },
             "required": true,
             "name": "codigoIes",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "1"
           }
         ],
         "responses": {
@@ -46716,7 +46720,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -46816,11 +46820,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "data",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -54693,7 +54701,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "comments": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -54861,11 +54869,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "comments",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -56667,12 +56679,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "fixture-user"
             },
             "required": true,
             "name": "username",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "fixture-user"
           }
         ],
         "responses": {
@@ -58419,20 +58431,36 @@
                       }
                     },
                     "total": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 0
                     },
                     "page": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 1
                     },
                     "limit": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "items",
                     "total",
                     "page",
-                    "limit"
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -75754,7 +75782,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "data": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -75832,14 +75860,22 @@
                     "totalPages": {
                       "type": "integer",
                       "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "data",
+                    "items",
                     "total",
                     "page",
                     "limit",
-                    "totalPages"
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -78941,12 +78977,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "fixture-tag"
             },
             "required": true,
             "name": "topics",
             "in": "query",
-            "example": "fixture-slug"
+            "example": "fixture-tag"
           }
         ],
         "responses": {
@@ -85499,7 +85535,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "users": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -85579,33 +85615,37 @@
                         ]
                       }
                     },
-                    "pagination": {
-                      "type": "object",
-                      "properties": {
-                        "page": {
-                          "type": "integer"
-                        },
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "total": {
-                          "type": "integer"
-                        },
-                        "totalPages": {
-                          "type": "integer"
-                        }
-                      },
-                      "required": [
-                        "page",
-                        "limit",
-                        "total",
-                        "totalPages"
-                      ]
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "users",
-                    "pagination"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -87532,166 +87572,158 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "connections": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "requesterId": {
+                            "type": "string"
+                          },
+                          "targetId": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING",
+                              "ACCEPTED",
+                              "REJECTED"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "requester": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "requesterId": {
-                                "type": "string"
-                              },
-                              "targetId": {
-                                "type": "string"
-                              },
-                              "status": {
+                              "name": {
                                 "type": "string",
-                                "enum": [
-                                  "PENDING",
-                                  "ACCEPTED",
-                                  "REJECTED"
-                                ]
+                                "nullable": true
                               },
-                              "createdAt": {
+                              "username": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "updatedAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "requester": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "target": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "requesterId",
-                              "targetId",
-                              "status",
-                              "createdAt",
-                              "updatedAt"
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "target": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "requesterId",
+                          "targetId",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "connections"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -87870,166 +87902,158 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pendingRequests": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "requesterId": {
+                            "type": "string"
+                          },
+                          "targetId": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING",
+                              "ACCEPTED",
+                              "REJECTED"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "requester": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "requesterId": {
-                                "type": "string"
-                              },
-                              "targetId": {
-                                "type": "string"
-                              },
-                              "status": {
+                              "name": {
                                 "type": "string",
-                                "enum": [
-                                  "PENDING",
-                                  "ACCEPTED",
-                                  "REJECTED"
-                                ]
+                                "nullable": true
                               },
-                              "createdAt": {
+                              "username": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "updatedAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "requester": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "target": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "requesterId",
-                              "targetId",
-                              "status",
-                              "createdAt",
-                              "updatedAt"
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "target": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "requesterId",
+                          "targetId",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "pendingRequests"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -88208,166 +88232,158 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pendingRequests": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "requesterId": {
+                            "type": "string"
+                          },
+                          "targetId": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING",
+                              "ACCEPTED",
+                              "REJECTED"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "requester": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "requesterId": {
-                                "type": "string"
-                              },
-                              "targetId": {
-                                "type": "string"
-                              },
-                              "status": {
+                              "name": {
                                 "type": "string",
-                                "enum": [
-                                  "PENDING",
-                                  "ACCEPTED",
-                                  "REJECTED"
-                                ]
+                                "nullable": true
                               },
-                              "createdAt": {
+                              "username": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "updatedAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "requester": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "target": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "requesterId",
-                              "targetId",
-                              "status",
-                              "createdAt",
-                              "updatedAt"
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "target": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "requesterId",
+                          "targetId",
+                          "status",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "pendingRequests"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -88546,93 +88562,85 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "suggestions": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "username": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "photoURL": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "reason": {
-                                "type": "string"
-                              },
-                              "score": {
-                                "type": "number"
-                              },
-                              "mutualCount": {
-                                "type": "integer"
-                              },
-                              "commonSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "username",
-                              "photoURL",
-                              "reason",
-                              "score",
-                              "mutualCount",
-                              "commonSkills"
-                            ]
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "username": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "photoURL": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "mutualCount": {
+                            "type": "integer"
+                          },
+                          "commonSkills": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "name",
+                          "username",
+                          "photoURL",
+                          "reason",
+                          "score",
+                          "mutualCount",
+                          "commonSkills"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "suggestions"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -91958,12 +91966,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "fixture-user"
             },
             "required": true,
             "name": "username",
             "in": "query",
-            "example": "fixture-slug"
+            "example": "fixture-user"
           }
         ],
         "responses": {
@@ -92398,127 +92406,119 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "activities": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "RESUME_CREATED",
+                              "RESUME_UPDATED",
+                              "RESUME_SHARED",
+                              "RESUME_PUBLISHED",
+                              "THEME_PUBLISHED",
+                              "ACHIEVEMENT_EARNED",
+                              "SKILL_ADDED",
+                              "PROFILE_UPDATED",
+                              "FOLLOWED_USER",
+                              "CONNECTED_USER"
+                            ]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {}
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "entityType": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "user": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "userId": {
-                                "type": "string"
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "RESUME_CREATED",
-                                  "RESUME_UPDATED",
-                                  "RESUME_SHARED",
-                                  "RESUME_PUBLISHED",
-                                  "THEME_PUBLISHED",
-                                  "ACHIEVEMENT_EARNED",
-                                  "SKILL_ADDED",
-                                  "PROFILE_UPDATED",
-                                  "FOLLOWED_USER",
-                                  "CONNECTED_USER"
-                                ]
-                              },
-                              "metadata": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
-                              },
-                              "entityId": {
+                              "name": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "entityType": {
+                              "username": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "createdAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "userId",
-                              "type",
-                              "metadata",
-                              "entityId",
-                              "entityType",
-                              "createdAt"
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "userId",
+                          "type",
+                          "metadata",
+                          "entityId",
+                          "entityType",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "activities"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -92717,127 +92717,119 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "activities": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "RESUME_CREATED",
+                              "RESUME_UPDATED",
+                              "RESUME_SHARED",
+                              "RESUME_PUBLISHED",
+                              "THEME_PUBLISHED",
+                              "ACHIEVEMENT_EARNED",
+                              "SKILL_ADDED",
+                              "PROFILE_UPDATED",
+                              "FOLLOWED_USER",
+                              "CONNECTED_USER"
+                            ]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {}
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "entityType": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "user": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "userId": {
-                                "type": "string"
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "RESUME_CREATED",
-                                  "RESUME_UPDATED",
-                                  "RESUME_SHARED",
-                                  "RESUME_PUBLISHED",
-                                  "THEME_PUBLISHED",
-                                  "ACHIEVEMENT_EARNED",
-                                  "SKILL_ADDED",
-                                  "PROFILE_UPDATED",
-                                  "FOLLOWED_USER",
-                                  "CONNECTED_USER"
-                                ]
-                              },
-                              "metadata": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
-                              },
-                              "entityId": {
+                              "name": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "entityType": {
+                              "username": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "createdAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "userId",
-                              "type",
-                              "metadata",
-                              "entityId",
-                              "entityType",
-                              "createdAt"
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "userId",
+                          "type",
+                          "metadata",
+                          "entityId",
+                          "entityType",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "activities"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -93001,7 +92993,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "comments": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -93146,11 +93138,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "comments",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -93685,127 +93681,119 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "feed": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "RESUME_CREATED",
+                              "RESUME_UPDATED",
+                              "RESUME_SHARED",
+                              "RESUME_PUBLISHED",
+                              "THEME_PUBLISHED",
+                              "ACHIEVEMENT_EARNED",
+                              "SKILL_ADDED",
+                              "PROFILE_UPDATED",
+                              "FOLLOWED_USER",
+                              "CONNECTED_USER"
+                            ]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {}
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "entityType": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "user": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "userId": {
-                                "type": "string"
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "RESUME_CREATED",
-                                  "RESUME_UPDATED",
-                                  "RESUME_SHARED",
-                                  "RESUME_PUBLISHED",
-                                  "THEME_PUBLISHED",
-                                  "ACHIEVEMENT_EARNED",
-                                  "SKILL_ADDED",
-                                  "PROFILE_UPDATED",
-                                  "FOLLOWED_USER",
-                                  "CONNECTED_USER"
-                                ]
-                              },
-                              "metadata": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
-                              },
-                              "entityId": {
+                              "name": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "entityType": {
+                              "username": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "createdAt": {
+                              "photoURL": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "user": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "userId",
-                              "type",
-                              "metadata",
-                              "entityId",
-                              "entityType",
-                              "createdAt"
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "userId",
+                          "type",
+                          "metadata",
+                          "entityId",
+                          "entityType",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "feed"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -94415,128 +94403,120 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "followers": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "followerId": {
+                            "type": "string"
+                          },
+                          "followingId": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "follower": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "followerId": {
-                                "type": "string"
-                              },
-                              "followingId": {
-                                "type": "string"
-                              },
-                              "createdAt": {
+                              "name": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "follower": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                              "username": {
+                                "type": "string",
+                                "nullable": true
                               },
-                              "following": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "isFollowedByMe": {
-                                "type": "boolean"
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "followerId",
-                              "followingId",
-                              "createdAt"
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
+                          },
+                          "following": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "isFollowedByMe": {
+                            "type": "boolean"
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "followerId",
+                          "followingId",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "followers"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -94763,128 +94743,120 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "following": {
-                      "type": "object",
-                      "properties": {
-                        "items": {
-                          "type": "array",
-                          "items": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "followerId": {
+                            "type": "string"
+                          },
+                          "followingId": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "follower": {
                             "type": "object",
                             "properties": {
                               "id": {
                                 "type": "string"
                               },
-                              "followerId": {
-                                "type": "string"
-                              },
-                              "followingId": {
-                                "type": "string"
-                              },
-                              "createdAt": {
+                              "name": {
                                 "type": "string",
-                                "format": "date-time",
-                                "example": "2026-05-07T00:00:00.000Z"
+                                "nullable": true
                               },
-                              "follower": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
+                              "username": {
+                                "type": "string",
+                                "nullable": true
                               },
-                              "following": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "username": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "photoURL": {
-                                    "type": "string",
-                                    "nullable": true
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "username",
-                                  "photoURL"
-                                ]
-                              },
-                              "isFollowedByMe": {
-                                "type": "boolean"
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
                               }
                             },
                             "required": [
                               "id",
-                              "followerId",
-                              "followingId",
-                              "createdAt"
+                              "name",
+                              "username",
+                              "photoURL"
                             ]
+                          },
+                          "following": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "username": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "photoURL": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "username",
+                              "photoURL"
+                            ]
+                          },
+                          "isFollowedByMe": {
+                            "type": "boolean"
                           }
                         },
-                        "total": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "limit": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "totalPages": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "hasNext": {
-                          "type": "boolean"
-                        },
-                        "hasPrev": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "items",
-                        "total",
-                        "page",
-                        "limit",
-                        "totalPages",
-                        "hasNext",
-                        "hasPrev"
-                      ]
+                        "required": [
+                          "id",
+                          "followerId",
+                          "followingId",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "following"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -95470,7 +95442,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "reactions": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -95568,11 +95540,15 @@
                     "nextCursor": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "hasNext": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "reactions",
-                    "nextCursor"
+                    "items",
+                    "nextCursor",
+                    "hasNext"
                   ]
                 }
               }
@@ -95962,12 +95938,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "skill",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           }
         ],
         "responses": {
@@ -96169,12 +96145,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "skill",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           }
         ],
         "responses": {
@@ -96378,12 +96354,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "Fixture User"
             },
             "required": true,
             "name": "skill",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "Fixture User"
           },
           {
             "schema": {
