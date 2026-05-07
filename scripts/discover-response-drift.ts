@@ -71,7 +71,7 @@ const FIXTURE_JOB_ID = '01900000-0000-7000-a000-000000000030';
 const FIXTURE_GENERIC_ID = '01900000-0000-7000-a000-000000000001';
 const FIXTURE_SLUG = 'fixture-slug';
 
-function fillPathParams(path: string): string {
+export function fillPathParams(path: string): string {
   return path.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, (_match, name: string) => {
     if (name === 'userId') return FIXTURE_USER_ID;
     if (name === 'resumeId') return FIXTURE_RESUME_ID;
@@ -81,7 +81,7 @@ function fillPathParams(path: string): string {
   });
 }
 
-function isProbable(route: Route): boolean {
+export function isProbable(route: Route): boolean {
   if (route.method !== 'GET') return false;
   if (route.kind === 'sse' || route.kind === 'stream' || route.kind === 'redirect') return false;
   if (route.binary) return false;
@@ -158,12 +158,14 @@ async function probeRoute(
   return { route: `GET ${target.route.path}`, status, drifts };
 }
 
-function bcOf(routePath: string): string {
+export function bcOf(routePath: string): string {
   const match = /^\/v\d+\/([a-z0-9-]+)/i.exec(routePath);
   return match?.[1] ?? 'misc';
 }
 
-function formatReport(reports: readonly RouteDriftReport[]): string {
+export type { RouteDriftReport };
+
+export function formatReport(reports: readonly RouteDriftReport[]): string {
   const totalDrifts = reports.reduce((sum, r) => sum + r.drifts.length, 0);
   const byBC = new Map<string, RouteDriftReport[]>();
   for (const r of reports) {
@@ -184,7 +186,8 @@ function formatReport(reports: readonly RouteDriftReport[]): string {
 
   for (const [bc, items] of [...byBC.entries()].sort()) {
     const bcDrifts = items.reduce((sum, r) => sum + r.drifts.length, 0);
-    if (bcDrifts === 0) continue;
+    const bcErrors = items.reduce((sum, r) => sum + (r.error ? 1 : 0), 0);
+    if (bcDrifts === 0 && bcErrors === 0) continue;
     lines.push(`## ${bc} (${bcDrifts} drifts)`);
     lines.push('');
     for (const r of items) {
@@ -256,7 +259,9 @@ async function main(): Promise<void> {
   console.log(`Total drifts: ${total}`);
 }
 
-main().catch((err) => {
-  console.error('discover-response-drift failed', err);
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error('discover-response-drift failed', err);
+    process.exit(1);
+  });
+}
