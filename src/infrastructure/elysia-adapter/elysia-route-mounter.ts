@@ -196,8 +196,10 @@ export function mountRoutes<TBundle>(
       // SuccessMessage instead of a pre-formatted `{ message }` string.
       if (isSuccessMessage(body)) {
         const acceptLanguage = ec.request.headers.get('accept-language') ?? undefined;
+        ec.set.headers['content-type'] = 'application/json';
         return renderSuccessMessageForRequest(body, acceptLanguage);
       }
+      ec.set.headers['content-type'] = 'application/json';
       return ctx.state.responseBody;
     };
     const verb = route.method.toLowerCase() as Lowercase<HttpMethod>;

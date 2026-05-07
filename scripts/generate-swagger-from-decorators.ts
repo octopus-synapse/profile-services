@@ -229,6 +229,19 @@ function buildErrorResponse(description: string): Record<string, unknown> {
   };
 }
 
+function buildResponseHeaders(
+  route: Route,
+): Record<string, { schema: ZodSchema<unknown>; required: boolean }> | undefined {
+  const headersSchema = unwrapToZodObject(route.responseHeaders);
+  if (!headersSchema) return undefined;
+  const out: Record<string, { schema: ZodSchema<unknown>; required: boolean }> = {};
+  const shape = headersSchema._def.shape() as Record<string, ZodSchema<unknown>>;
+  for (const [name, sub] of Object.entries(shape)) {
+    out[name] = { schema: sub, required: !(sub as { isOptional?: () => boolean }).isOptional?.() };
+  }
+  return out;
+}
+
 function buildResponses(route: Route): Record<string, unknown> {
   const status = buildSuccessStatus(route);
   const errors: Record<string, unknown> = {
@@ -243,6 +256,7 @@ function buildResponses(route: Route): Record<string, unknown> {
   if (/:\w+/.test(route.path)) {
     errors['404'] = buildErrorResponse('Not found');
   }
+  const headers = buildResponseHeaders(route);
   if (route.binary) {
     return {
       [status]: {
@@ -252,6 +266,7 @@ function buildResponses(route: Route): Record<string, unknown> {
             schema: { type: 'string', format: 'binary' },
           },
         },
+        ...(headers && { headers }),
       },
       ...errors,
     };
@@ -261,11 +276,15 @@ function buildResponses(route: Route): Record<string, unknown> {
       [status]: {
         description: 'Successful response',
         content: { 'application/json': { schema: route.response } },
+        ...(headers && { headers }),
       },
       ...errors,
     };
   }
-  return { [status]: { description: 'Successful response' }, ...errors };
+  return {
+    [status]: { description: 'Successful response', ...(headers && { headers }) },
+    ...errors,
+  };
 }
 
 function convertPath(input: string): { path: string; pathParams: string[] } {

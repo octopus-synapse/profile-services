@@ -175,6 +175,13 @@ export interface Route<
    *  return raw text/streams (Prometheus metrics, SSE) leave it off. */
   readonly response?: ZodSchema<unknown>;
 
+  /** Custom response headers declared in the OpenAPI spec
+   *  (`responses[<status>].headers`). Use for `Location` on POST,
+   *  `ETag` on cacheable GETs, or any header SDK consumers need to
+   *  read. Generator emits via zod-to-openapi; the runtime side is
+   *  still on `route.headers` (static) or `withHeaders(...)` (dynamic). */
+  readonly responseHeaders?: ZodSchema<unknown>;
+
   /** Binary file response (PDF/DOCX/PNG…). Mutually exclusive with
    *  `response`. Generator emits OpenAPI binary content type so Orval
    *  produces `Promise<Blob>`. */
