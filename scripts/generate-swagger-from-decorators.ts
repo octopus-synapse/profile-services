@@ -165,7 +165,7 @@ interface OpenApiParameter {
   in?: string;
   required?: boolean;
   example?: unknown;
-  schema?: { example?: unknown };
+  schema?: { example?: unknown; enum?: unknown[] };
 }
 
 interface OpenApiOperation {
@@ -184,9 +184,18 @@ function injectFallbackExamples(document: {
         const isRequiredQuery = param.in === 'query' && param.required === true;
         if (!isPath && !isRequiredQuery) continue;
         const schemaExample = param.schema?.example;
+        // When the schema is an enum, the example must match one of the
+        // declared values — fall back to the first enum entry instead of
+        // the generic slug.
+        const enumValues = param.schema?.enum;
+        const enumFallback =
+          Array.isArray(enumValues) && enumValues.length > 0
+            ? (enumValues[0] as string)
+            : undefined;
         const example =
           (param.example as string | undefined) ??
           (schemaExample as string | undefined) ??
+          enumFallback ??
           fallbackExampleForParam(param.name);
         // Dredd's URI template expansion reads `parameter.example` first
         // and falls back to `parameter.schema.example`. Mirror the value
@@ -199,8 +208,41 @@ function injectFallbackExamples(document: {
   }
 }
 
+// Standard error envelope (`ErrorResponseSchema` shape). Rendered as
+// plain OpenAPI so the generator stays self-contained and the
+// `has-4xx-response` Spectral rule clears for every route.
+const ERROR_RESPONSE_SCHEMA = {
+  type: 'object',
+  required: ['statusCode', 'code', 'message', 'severity'],
+  properties: {
+    statusCode: { type: 'integer' },
+    code: { type: 'string' },
+    message: { type: 'string' },
+    severity: { type: 'string', enum: ['toast', 'modal', 'banner', 'inline', 'silent'] },
+  },
+} as const;
+
+function buildErrorResponse(description: string): Record<string, unknown> {
+  return {
+    description,
+    content: { 'application/json': { schema: ERROR_RESPONSE_SCHEMA } },
+  };
+}
+
 function buildResponses(route: Route): Record<string, unknown> {
   const status = buildSuccessStatus(route);
+  const errors: Record<string, unknown> = {
+    '400': buildErrorResponse('Validation error'),
+  };
+  if (route.auth.kind === 'jwt') {
+    errors['401'] = buildErrorResponse('Authentication required');
+  }
+  if (route.permission !== undefined) {
+    errors['403'] = buildErrorResponse('Forbidden');
+  }
+  if (/:\w+/.test(route.path)) {
+    errors['404'] = buildErrorResponse('Not found');
+  }
   if (route.binary) {
     return {
       [status]: {
@@ -211,6 +253,7 @@ function buildResponses(route: Route): Record<string, unknown> {
           },
         },
       },
+      ...errors,
     };
   }
   if (route.response && isZodSchema(route.response)) {
@@ -219,9 +262,10 @@ function buildResponses(route: Route): Record<string, unknown> {
         description: 'Successful response',
         content: { 'application/json': { schema: route.response } },
       },
+      ...errors,
     };
   }
-  return { [status]: { description: 'Successful response' } };
+  return { [status]: { description: 'Successful response' }, ...errors };
 }
 
 function convertPath(input: string): { path: string; pathParams: string[] } {

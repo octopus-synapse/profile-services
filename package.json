@@ -52,6 +52,7 @@
     "openapi:generate": "bun run src/scripts/generate-openapi.ts",
     "swagger:generate": "bun run scripts/generate-swagger-from-decorators.ts",
     "swagger:test": "bun test ./test/static-analysis/contracts/swagger-generation.contract.ts",
+    "lint:spec": "bunx @stoplight/spectral-cli lint --ruleset .spectral.yaml swagger.json client-swagger.json",
     "prepare": "husky"
   },
   "dependencies": {
