@@ -134,6 +134,16 @@ hooks.beforeEach((transaction, done) => {
   if (shouldSkip(transaction.name)) {
     transaction.skip = true;
   }
+  // Dredd v14 generates one transaction per declared response status.
+  // The OpenAPI spec advertises 4xx envelopes for documentation, but the
+  // contract suite is only meaningful against the happy 2xx path —
+  // hitting a route with valid auth + valid params and asserting the
+  // server returns 4xx would require deliberately bad fixtures per
+  // route, which the e2e/integration suites already cover.
+  const expectedStatus = Number(transaction.expected && transaction.expected.statusCode) || 0;
+  if (expectedStatus < 200 || expectedStatus >= 300) {
+    transaction.skip = true;
+  }
   done();
 });
 
