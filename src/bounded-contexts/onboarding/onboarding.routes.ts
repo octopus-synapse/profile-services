@@ -20,6 +20,8 @@ import {
 import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.schema';
 import { buildSession } from './infrastructure/presenters/onboarding.presenter';
 import {
+  AdminConfigBody,
+  AdminStepBody,
   AuthUser,
   CompleteOnboardingResponseSchema,
   EmptyResponseSchema,
@@ -403,7 +405,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/steps',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    body: z.record(z.unknown()),
+    body: AdminStepBody,
     response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Create onboarding step',
@@ -422,7 +424,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
-    body: z.record(z.unknown()),
+    body: AdminStepBody,
     response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Update onboarding step',
@@ -475,7 +477,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/config',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    body: z.record(z.unknown()),
+    body: AdminConfigBody,
     response: OnboardingConfigUpdatedResponseSchema,
     openapi: {
       summary: 'Update onboarding config',

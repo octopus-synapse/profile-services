@@ -4,8 +4,11 @@
  * body/query schemas.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+
+extendZodWithOpenApi(z);
 
 export const KeyParam = z.object({ key: z.string() });
 
@@ -67,4 +70,6 @@ export const SectionTypeListResponseSchema = z.object({
   totalPages: z.number().int(),
 });
 
-export const SemanticKindsResponseSchema = z.array(z.string());
+export const SemanticKindsResponseSchema = z
+  .array(z.string().openapi({ example: 'work_experience' }))
+  .openapi({ example: ['work_experience', 'education', 'skills'] });

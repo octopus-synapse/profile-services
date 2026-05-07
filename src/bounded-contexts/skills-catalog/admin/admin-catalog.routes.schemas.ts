@@ -5,10 +5,13 @@
  * `AdminSpokenLanguagesController`, `AdminProgrammingLanguagesController`).
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+
+extendZodWithOpenApi(z);
 
 export const ListQuery = z.object({
   page: z.string().optional(),
@@ -28,7 +31,9 @@ export const IdParam = IdParamSchema;
 export const CodeParam = z.object({ code: z.string() });
 export const SlugParam = z.object({ slug: z.string() });
 
-export const AnyBody = z.record(z.unknown());
+export const AnyBody = z
+  .record(z.unknown())
+  .openapi({ example: { name: 'Fixture', isActive: true } });
 
 // ─── Response schemas (mirror Prisma row shapes) ──────────────────────
 export const TechAreaTypeEnum = z.enum([

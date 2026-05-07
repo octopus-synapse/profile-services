@@ -4,14 +4,27 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 
+extendZodWithOpenApi(z);
+
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const LocaleQuery = z.object({ locale: z.string().optional() });
 export const StepKeyParam = z.object({ key: z.string() });
-export const StepDataBody = z.record(z.unknown());
+export const StepDataBody = z
+  .record(z.unknown())
+  .openapi({ example: { fullName: 'Fixture User', jobTitle: 'Senior Software Engineer' } });
+
+export const AdminStepBody = z.record(z.unknown()).openapi({
+  example: { key: 'profile', titleEn: 'Profile', titlePtBr: 'Perfil', order: 1 },
+});
+
+export const AdminConfigBody = z
+  .record(z.unknown())
+  .openapi({ example: { strengthLevels: [{ key: 'beginner', threshold: 0 }] } });
 export const GotoStepBody = z.object({ stepId: z.string() });
 
 export type LocaleQuery = z.infer<typeof LocaleQuery>;
