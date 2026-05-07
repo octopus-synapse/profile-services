@@ -178,8 +178,10 @@ const fs = require('node:fs');
 const SWAGGER_PATH = path.resolve(__dirname, '../../../swagger.json');
 const operationMetadata = new Map();
 const adminPermissions = new Set();
+let swaggerDoc = null;
 try {
   const swagger = JSON.parse(fs.readFileSync(SWAGGER_PATH, 'utf8'));
+  swaggerDoc = swagger;
   for (const p of swagger.info?.['x-admin-permissions'] ?? []) adminPermissions.add(p);
   for (const [pathTemplate, ops] of Object.entries(swagger.paths || {})) {
     for (const [method, op] of Object.entries(ops || {})) {
@@ -377,20 +379,58 @@ const MISSING_SLUG_SENTINEL = 'missing-fixture-slug-sentinel';
 
 function synthesizeDummyValue(schema) {
   if (!schema) return null;
+  if (schema.$ref) {
+    if (!swaggerDoc) return null;
+    const parts = schema.$ref.replace(/^#\//, '').split('/');
+    let node = swaggerDoc;
+    for (const part of parts) node = node?.[part];
+    return node ? synthesizeDummyValue(node) : null;
+  }
   if (schema.example !== undefined) return schema.example;
   if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
   switch (schema.type) {
-    case 'string':
+    case 'string': {
+      if (schema.pattern) {
+        if (schema.pattern.includes('_v\\d+')) return 'section_v1';
+        if (schema.pattern.includes('linkedin.com')) return 'https://www.linkedin.com/in/fixture';
+        if (schema.pattern.includes('github.com')) return 'https://github.com/fixture';
+        if (schema.pattern.startsWith('^https?')) return 'https://example.com';
+      }
+      if (schema.format === 'email') return 'fixture@example.com';
+      if (schema.format === 'uri' || schema.format === 'url') return 'https://example.com';
+      if (schema.format === 'date-time') return '2024-01-01T00:00:00.000Z';
+      if (schema.format === 'date') return '2024-01-01';
       return 'dummy';
+    }
     case 'number':
-    case 'integer':
-      return 0;
+    case 'integer': {
+      const min = schema.minimum ?? 0;
+      return schema.exclusiveMinimum ? min + 1 : min;
+    }
     case 'boolean':
       return false;
-    case 'array':
+    case 'array': {
+      if (schema.items) return [synthesizeDummyValue(schema.items)];
       return [];
-    case 'object':
-      return {};
+    }
+    case 'object': {
+      const props = schema.properties || {};
+      const required = schema.required || [];
+      const obj = {};
+      if (required.length > 0) {
+        for (const field of required) {
+          const val = synthesizeDummyValue(props[field] || {});
+          if (val !== null) obj[field] = val;
+        }
+      } else if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+        const subVal = synthesizeDummyValue(schema.additionalProperties);
+        if (subVal !== null) {
+          obj['en'] = subVal;
+          obj['pt-BR'] = subVal;
+        }
+      }
+      return obj;
+    }
     default:
       return null;
   }
@@ -399,11 +439,13 @@ function synthesizeDummyValue(schema) {
 function synthesizeValidBody(meta) {
   const schema = meta?.requestBodySchema;
   if (!schema) return null;
+  if (schema.example !== undefined) return schema.example;
   const properties = schema.properties || {};
   const required = schema.required || [];
   const body = {};
   for (const field of required) {
-    body[field] = synthesizeDummyValue(properties[field] || {});
+    const val = synthesizeDummyValue(properties[field] || {});
+    if (val !== null) body[field] = val;
   }
   return body;
 }
