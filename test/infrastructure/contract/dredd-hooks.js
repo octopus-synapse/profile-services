@@ -193,8 +193,9 @@ try {
       const response200 = op.responses?.['200'];
       const response200ContentTypes = Object.keys(response200?.content || {});
       const isSse =
-        response200ContentTypes.length === 0 ||
-        response200ContentTypes.some((ct) => ct.includes('event-stream'));
+        response200 !== undefined &&
+        (response200ContentTypes.length === 0 ||
+          response200ContentTypes.some((ct) => ct.includes('event-stream')));
       operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
         auth: op['x-auth'] || 'public',
         permission: op['x-permission'] || null,
