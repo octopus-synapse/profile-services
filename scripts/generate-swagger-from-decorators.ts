@@ -88,6 +88,14 @@ async function loadRoutes(): Promise<Route[]> {
       console.warn(`Skipped ${file}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
+  // Stable, host-independent ordering. `readdirSync` order is filesystem-
+  // defined (ext4 vs the runner's mount differ), so sort by the values
+  // that actually shape the spec instead of trusting the walk order.
+  all.sort((a, b) => {
+    const pathCmp = a.path.localeCompare(b.path, 'en');
+    if (pathCmp !== 0) return pathCmp;
+    return a.method.localeCompare(b.method, 'en');
+  });
   return all;
 }
 
@@ -119,11 +127,19 @@ function buildPathParamsSchema(
   route: Route,
   pathParams: readonly string[],
 ): AnyZodObject | undefined {
-  const declared = unwrapToZodObject(route.params);
-  if (declared) return declared;
   if (pathParams.length === 0) return undefined;
+  const declared = unwrapToZodObject(route.params);
+  // Re-key against the path tokens — some legacy routes declare
+  // `params: ResumeIdParam` (keyed by `resumeId`) on a `/:id` path.
+  // The URL template is the source of truth; trust it and reuse the
+  // declared sub-schema only when the names line up.
+  const declaredShape = declared
+    ? (declared._def.shape() as Record<string, ZodSchema<unknown>>)
+    : {};
   const shape: Record<string, ZodSchema<unknown>> = {};
-  for (const name of pathParams) shape[name] = z.string();
+  for (const name of pathParams) {
+    shape[name] = declaredShape[name] ?? z.string();
+  }
   return z.object(shape);
 }
 
@@ -140,12 +156,14 @@ function fallbackExampleForParam(name: string): string {
   if (name === 'conversationId') return EXAMPLE_CONVERSATION_ID;
   if (name === 'notificationId') return EXAMPLE_NOTIFICATION_ID;
   if (name === 'id' || name.endsWith('Id')) return EXAMPLE_GENERIC_ID;
+  if (name === 'q' || name === 'query' || name === 'search') return 'fixture';
   return EXAMPLE_SLUG;
 }
 
 interface OpenApiParameter {
   name?: string;
   in?: string;
+  required?: boolean;
   example?: unknown;
   schema?: { example?: unknown };
 }
@@ -161,7 +179,10 @@ function injectFallbackExamples(document: {
     for (const op of Object.values(ops)) {
       const operation = op as OpenApiOperation;
       for (const param of operation.parameters ?? []) {
-        if (param.in !== 'path' || !param.name) continue;
+        if (!param.name) continue;
+        const isPath = param.in === 'path';
+        const isRequiredQuery = param.in === 'query' && param.required === true;
+        if (!isPath && !isRequiredQuery) continue;
         const schemaExample = param.schema?.example;
         const example =
           (param.example as string | undefined) ??
