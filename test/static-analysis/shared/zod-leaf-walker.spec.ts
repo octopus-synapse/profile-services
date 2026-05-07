@@ -173,4 +173,15 @@ describe('zod-leaf-walker', () => {
       { schemaName: 'Test', path: ['authors', '[*]', 'bio'], zodType: 'ZodString' },
     ]);
   });
+
+  test('auto-derive matches the array name when leaf path ends with [*]', () => {
+    const schema = z.object({ tags: z.array(z.string()), other: z.array(z.string()) });
+    const offenders = findOffenders(schema, {
+      schemaName: 'Test',
+      nameToExample: new Map([['tags', 'fixture-tag']]),
+    });
+    expect(offenders).toEqual([
+      { schemaName: 'Test', path: ['other', '[*]'], zodType: 'ZodString' },
+    ]);
+  });
 });

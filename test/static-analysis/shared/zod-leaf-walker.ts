@@ -180,9 +180,11 @@ function emitOffender(
   zodType: string,
   nameToExample: ReadonlyMap<string, string>,
 ): void {
-  const fieldName = path[path.length - 1];
-  if (fieldName !== undefined && nameToExample.has(fieldName)) {
-    return;
+  for (let i = path.length - 1; i >= 0; i -= 1) {
+    const segment = path[i];
+    if (segment === '[*]' || segment === undefined) continue;
+    if (nameToExample.has(segment)) return;
+    break;
   }
   offenders.push({ schemaName, path, zodType });
 }
