@@ -60,6 +60,8 @@ export class FollowService extends FollowReaderPort {
   }
 
   async unfollow(followerId: string, followingId: string): Promise<void> {
+    const existing = await this.followRepo.findFollow(followerId, followingId);
+    if (!existing) throw new EntityNotFoundException('Follow', followingId);
     await this.followRepo.deleteFollow(followerId, followingId);
     this.logger.debug(`User ${followerId} unfollowed ${followingId}`, 'FollowService');
   }

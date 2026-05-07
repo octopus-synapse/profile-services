@@ -85,9 +85,10 @@ describe('FollowService', () => {
       expect(followRepo.getAll()).toHaveLength(0);
     });
 
-    it('should not throw when not following', async () => {
-      const result = await service.unfollow('user-1', 'user-2');
-      expect(result).toBeUndefined();
+    it('throws EntityNotFoundException when follow relationship does not exist', async () => {
+      await expect(service.unfollow('user-1', 'user-2')).rejects.toBeInstanceOf(
+        EntityNotFoundException,
+      );
     });
   });
 

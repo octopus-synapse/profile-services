@@ -213,8 +213,10 @@ export function mountRoutes<TBundle>(
         normalizeJsonContentType(ec.set.headers);
         return renderSuccessMessageForRequest(body, acceptLanguage);
       }
-      ec.set.headers['content-type'] = 'application/json';
-      normalizeJsonContentType(ec.set.headers);
+      if (ctx.state.responseBody !== undefined) {
+        ec.set.headers['content-type'] = 'application/json';
+        normalizeJsonContentType(ec.set.headers);
+      }
       return ctx.state.responseBody;
     };
     const verb = route.method.toLowerCase() as Lowercase<HttpMethod>;
