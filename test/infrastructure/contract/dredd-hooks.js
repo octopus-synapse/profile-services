@@ -37,6 +37,7 @@ const SKIP_PATH_FRAGMENTS = [
   '/v1/feature-flags/stream',
   '/v1/notifications/subscribe',
   '/v1/onboarding/preview/stream',
+  '/v1/feed/subscribe',
   // Binary downloads — Dredd compares JSON bodies; binary diffs are not useful.
   '/export/banner',
   '/export/resume/pdf',
