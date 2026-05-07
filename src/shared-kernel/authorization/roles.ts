@@ -34,6 +34,7 @@ export const ROLES = {
       'grp_catalog_reader',
       'grp_collaborator',
       'grp_social',
+      'grp_feed_user',
     ],
     isSystem: true,
   },

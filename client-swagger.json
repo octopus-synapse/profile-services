@@ -3,7 +3,25 @@
   "info": {
     "title": "Profile Services API",
     "version": "0.2.3",
-    "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime)."
+    "description": "Generated from framework-free Route descriptors (Elysia + Bun runtime).",
+    "x-admin-permissions": [
+      "admin:full_access",
+      "analytics:read_all",
+      "automation:rage_apply",
+      "feature_flag:manage",
+      "feature_flag:read",
+      "job:manage",
+      "platform:manage",
+      "platform:stats_read",
+      "section_type:manage",
+      "skill:manage",
+      "user:create",
+      "user:delete",
+      "user:manage",
+      "user:read",
+      "user:role_assign",
+      "user:update"
+    ]
   },
   "servers": [
     {
@@ -86525,7 +86543,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:read"
       },
       "post": {
         "summary": "Create a new user",
@@ -86728,7 +86746,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:create"
       }
     },
     "/api/v1/users/manage/{id}": {
@@ -86921,7 +86939,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:delete"
       },
       "get": {
         "summary": "Get user details by ID",
@@ -87243,7 +87261,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:read"
       },
       "patch": {
         "summary": "Update user information",
@@ -87502,7 +87520,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:update"
       }
     },
     "/api/v1/users/manage/{id}/reset-password": {
@@ -87713,7 +87731,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:update"
       }
     },
     "/api/v1/users/manage/{id}/roles": {
@@ -87926,7 +87944,7 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "[object Object]"
+        "x-permission": "user:role_assign"
       }
     },
     "/api/v1/users/me/accept-consent": {

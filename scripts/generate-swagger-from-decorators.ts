@@ -23,9 +23,43 @@ import {
   OpenApiGeneratorV3,
 } from '@asteasolutions/zod-to-openapi';
 import { type AnyZodObject, type ZodSchema, z } from 'zod';
+import { PERMISSION_GROUPS, ROLES } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route';
 import { NAME_TO_EXAMPLE } from '@/shared-kernel/schemas/params/auto-derive-examples.const';
 import { EXAMPLE_SLUG } from '@/shared-kernel/schemas/params/example-values.const';
+
+/**
+ * Permissions that the standard `role_user` does NOT have — i.e.
+ * routes guarded by these require the admin persona to succeed. The
+ * admin role carries `admin:full_access` which bypasses every check,
+ * so any permission outside the user's explicit grant is effectively
+ * admin-only. Emitted into `swagger.info['x-admin-permissions']` for
+ * the Dredd hook to consume.
+ */
+function permissionToString(perm: Route['permission']): string | null {
+  if (perm === undefined) return null;
+  if (typeof perm === 'string') return perm;
+  if (typeof perm === 'object' && 'resource' in perm && 'action' in perm) {
+    return `${perm.resource}:${perm.action}`;
+  }
+  return null;
+}
+
+function computeAdminOnlyPermissions(routes: ReadonlyArray<Route>): string[] {
+  const userPerms = new Set<string>();
+  for (const gid of ROLES.USER.groups) {
+    const grp = Object.values(PERMISSION_GROUPS).find((g) => g.id === gid);
+    if (!grp) continue;
+    for (const p of grp.permissions) userPerms.add(String(p));
+  }
+  const adminOnly = new Set<string>();
+  for (const route of routes) {
+    const perm = permissionToString(route.permission);
+    if (!perm) continue;
+    if (!userPerms.has(perm)) adminOnly.add(perm);
+  }
+  return [...adminOnly].sort();
+}
 
 extendZodWithOpenApi(z);
 
@@ -255,8 +289,9 @@ function applyOperationPermissionExtension(
       continue;
     }
     op['x-auth'] = 'jwt';
-    if (route.permission !== undefined) {
-      op['x-permission'] = String(route.permission);
+    const permStr = permissionToString(route.permission);
+    if (permStr !== null) {
+      op['x-permission'] = permStr;
     }
   }
 }
@@ -404,7 +439,8 @@ async function generate(): Promise<void> {
       title: 'Profile Services API',
       version: '0.2.3',
       description: 'Generated from framework-free Route descriptors (Elysia + Bun runtime).',
-    },
+      'x-admin-permissions': computeAdminOnlyPermissions(routes),
+    } as never,
     servers: [{ url: 'http://localhost:3010' }],
   });
 

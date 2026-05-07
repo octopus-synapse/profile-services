@@ -139,26 +139,20 @@ hooks.beforeEach((transaction, done) => {
 // catches misconfigurations the status-only heuristic missed (e.g. an
 // admin-gated route declared without a 403 example).
 //
-// Permission classification: admin if the perm string ends with one of
-// MANAGE / `_ALL` / `_ASSIGN` / STATS_READ, or starts with `admin:`.
-// Everything else is a normal user permission.
+// Permission classification: an authoritative set is emitted into
+// `swagger.info['x-admin-permissions']` by the swagger generator —
+// computed from the role/group definitions so it always matches the
+// runtime authorization model. Anything not in that set is treated as
+// granted to the regular fixture user (role_user).
 
-const ADMIN_PERMISSION_SUFFIXES = [':manage', ':read_all', ':role_assign', ':stats_read'];
-function isAdminPermission(perm) {
-  if (!perm) return false;
-  if (perm.startsWith('admin:')) return true;
-  return ADMIN_PERMISSION_SUFFIXES.some((suffix) => perm.endsWith(suffix));
-}
-
-// Parse swagger.json once and build "METHOD path" → { auth, permission }.
-// Path is the OpenAPI template (with `{id}` placeholders) so we can
-// match against `transaction.origin.resourceName` directly.
 const path = require('node:path');
 const fs = require('node:fs');
 const SWAGGER_PATH = path.resolve(__dirname, '../../../swagger.json');
 const operationMetadata = new Map();
+const adminPermissions = new Set();
 try {
   const swagger = JSON.parse(fs.readFileSync(SWAGGER_PATH, 'utf8'));
+  for (const p of swagger.info?.['x-admin-permissions'] ?? []) adminPermissions.add(p);
   for (const [pathTemplate, ops] of Object.entries(swagger.paths || {})) {
     for (const [method, op] of Object.entries(ops || {})) {
       if (typeof op !== 'object' || op === null) continue;
@@ -170,6 +164,10 @@ try {
   }
 } catch (err) {
   hooks.log(`Failed to load swagger.json metadata: ${err.message}`);
+}
+
+function isAdminPermission(perm) {
+  return perm !== null && perm !== undefined && adminPermissions.has(perm);
 }
 
 function lookupOperation(transaction) {
