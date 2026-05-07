@@ -170,32 +170,39 @@ hooks.beforeEach((transaction, done) => {
     transaction.skip = true;
   }
   // Dredd v14 generates one transaction per declared response status.
-  // The OpenAPI spec advertises 4xx envelopes for documentation, but the
-  // contract suite is only meaningful against the happy 2xx path —
-  // hitting a route with valid auth + valid params and asserting the
-  // server returns 4xx would require deliberately bad fixtures per
-  // route, which the e2e/integration suites already cover.
-  const expectedStatus = Number(transaction.expected && transaction.expected.statusCode) || 0;
-  if (expectedStatus < 200 || expectedStatus >= 300) {
+  // We run 200/201 (happy path with admin), 401 (anonymous request),
+  // and 403 (regular user against admin-gated route). 400 is intentional
+  // bad-input — out of scope until per-route invalid fixtures land.
+  // 404 is also out of scope — deliberate non-existent IDs need a
+  // dedicated fixture map.
+  const expectedStatus = Number(transaction.expected?.statusCode) || 0;
+  const allowed = new Set([200, 201, 204, 401, 403]);
+  if (!allowed.has(expectedStatus)) {
     transaction.skip = true;
   }
   done();
 });
 
-// ─── Auth: login once, propagate cookie ─────────────────────────────
+// ─── Auth: login once per persona, propagate cookie ───────────────────
 //
-// The seed user comes from `prisma/seed.ts`. We log in before the
-// suite starts and reuse the cookie for every subsequent request.
+// Two personas are seeded:
+//   - admin (admin@example.com / Admin123!@#)
+//   - regular user (dredd-fixture@profile.local / Dredd_Fixture_Password_123!)
+//
+// The hook captures both session cookies up front, then in
+// `beforeEachValidation` picks one based on the transaction's expected
+// status: 403 means "this route is admin-gated, send regular user
+// cookie so the server actually returns 403"; 200/201 means "run with
+// the highest-privilege caller", which is admin.
 
-let sessionCookie = null;
-let sessionToken = null;
+let adminCookie = null;
+let adminToken = null;
+let regularCookie = null;
+let regularToken = null;
 
-hooks.beforeAll((_transactions, done) => {
+function login(email, password, callback) {
   const http = require('node:http');
-  const postData = JSON.stringify({
-    email: process.env.DREDD_TEST_EMAIL || 'admin@example.com',
-    password: process.env.DREDD_TEST_PASSWORD || 'Admin123!@#',
-  });
+  const postData = JSON.stringify({ email, password });
   const req = http.request(
     {
       host: 'localhost',
@@ -210,36 +217,78 @@ hooks.beforeAll((_transactions, done) => {
     (res) => {
       const cookies = res.headers['set-cookie'] || [];
       const sessionLine = cookies.find((c) => c.startsWith('access_token='));
+      let cookie = null;
+      let token = null;
       if (sessionLine) {
-        sessionCookie = sessionLine.split(';')[0];
-        sessionToken = sessionCookie.split('=')[1];
+        cookie = sessionLine.split(';')[0];
+        token = cookie.split('=')[1];
       }
-      let body = '';
-      res.on('data', (chunk) => {
-        body += chunk;
-      });
-      res.on('end', () => {
-        hooks.log(
-          `Dredd login: status=${res.statusCode} cookie=${sessionCookie ? 'captured' : 'missing'} body=${body.slice(0, 200)}`,
-        );
-        done();
-      });
+      res.on('data', () => {});
+      res.on('end', () => callback(null, { status: res.statusCode, cookie, token }));
     },
   );
-  req.on('error', (err) => {
-    hooks.log(`Dredd login failed: ${err.message}. JWT routes will return 401.`);
-    done();
-  });
+  req.on('error', (err) => callback(err));
   req.write(postData);
   req.end();
+}
+
+hooks.beforeAll((_transactions, done) => {
+  let pending = 2;
+  const finish = () => {
+    pending -= 1;
+    if (pending === 0) done();
+  };
+  login(
+    process.env.DREDD_ADMIN_EMAIL || 'admin@example.com',
+    process.env.DREDD_ADMIN_PASSWORD || 'Admin123!@#',
+    (err, result) => {
+      if (err) {
+        hooks.log(`Dredd admin login failed: ${err.message}`);
+      } else {
+        adminCookie = result.cookie;
+        adminToken = result.token;
+        hooks.log(
+          `Dredd admin login: status=${result.status} cookie=${adminCookie ? 'ok' : 'missing'}`,
+        );
+      }
+      finish();
+    },
+  );
+  login(
+    process.env.DREDD_USER_EMAIL || 'dredd-fixture@profile.local',
+    process.env.DREDD_USER_PASSWORD || 'Dredd_Fixture_Password_123!',
+    (err, result) => {
+      if (err) {
+        hooks.log(`Dredd regular login failed: ${err.message}`);
+      } else {
+        regularCookie = result.cookie;
+        regularToken = result.token;
+        hooks.log(
+          `Dredd user login: status=${result.status} cookie=${regularCookie ? 'ok' : 'missing'}`,
+        );
+      }
+      finish();
+    },
+  );
 });
 
 hooks.beforeEachValidation((transaction, done) => {
-  if (sessionCookie) {
-    transaction.request.headers.Cookie = sessionCookie;
-  }
-  if (sessionToken) {
-    transaction.request.headers.Authorization = `Bearer ${sessionToken}`;
+  const expectedStatus = Number(transaction.expected?.statusCode) || 0;
+  const useRegular = expectedStatus === 403;
+  const useAnon = expectedStatus === 401;
+  if (useAnon) {
+    delete transaction.request.headers.Cookie;
+    delete transaction.request.headers.Authorization;
+  } else if (useRegular && regularCookie) {
+    transaction.request.headers.Cookie = regularCookie;
+    if (regularToken) {
+      transaction.request.headers.Authorization = `Bearer ${regularToken}`;
+    }
+  } else if (adminCookie) {
+    transaction.request.headers.Cookie = adminCookie;
+    if (adminToken) {
+      transaction.request.headers.Authorization = `Bearer ${adminToken}`;
+    }
   }
   done();
 });
