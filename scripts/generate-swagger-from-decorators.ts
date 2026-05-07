@@ -24,6 +24,13 @@ import {
 } from '@asteasolutions/zod-to-openapi';
 import { type AnyZodObject, type ZodSchema, z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
+import {
+  EXAMPLE_GENERIC_ID,
+  EXAMPLE_JOB_ID,
+  EXAMPLE_RESUME_ID,
+  EXAMPLE_SLUG,
+  EXAMPLE_USER_ID,
+} from '@/shared-kernel/schemas/params/example-ids.const';
 
 extendZodWithOpenApi(z);
 
@@ -119,6 +126,47 @@ function buildPathParamsSchema(
 function buildSuccessStatus(route: Route): string {
   if (typeof route.statusCode === 'number') return String(route.statusCode);
   return route.method === 'POST' ? '201' : '200';
+}
+
+function fallbackExampleForParam(name: string): string {
+  if (name === 'userId') return EXAMPLE_USER_ID;
+  if (name === 'resumeId') return EXAMPLE_RESUME_ID;
+  if (name === 'jobId') return EXAMPLE_JOB_ID;
+  if (name === 'id') return EXAMPLE_GENERIC_ID;
+  return EXAMPLE_SLUG;
+}
+
+interface OpenApiParameter {
+  name?: string;
+  in?: string;
+  example?: unknown;
+  schema?: { example?: unknown };
+}
+
+interface OpenApiOperation {
+  parameters?: OpenApiParameter[];
+}
+
+function injectFallbackExamples(document: {
+  paths?: Record<string, Record<string, unknown>>;
+}): void {
+  for (const ops of Object.values(document.paths ?? {})) {
+    for (const op of Object.values(ops)) {
+      const operation = op as OpenApiOperation;
+      for (const param of operation.parameters ?? []) {
+        if (param.in !== 'path' || !param.name) continue;
+        const hasExample =
+          param.example !== undefined || (param.schema && param.schema.example !== undefined);
+        if (hasExample) continue;
+        const example = fallbackExampleForParam(param.name);
+        if (param.schema) {
+          param.schema.example = example;
+        } else {
+          param.example = example;
+        }
+      }
+    }
+  }
 }
 
 function buildResponses(route: Route): Record<string, unknown> {
@@ -247,6 +295,8 @@ async function generate(): Promise<void> {
     },
     servers: [{ url: 'http://localhost:3010' }],
   });
+
+  injectFallbackExamples(document);
 
   const tagSet = new Set<string>();
   for (const route of routes) for (const t of route.openapi.tags) tagSet.add(t);

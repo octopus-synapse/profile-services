@@ -72,7 +72,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -128,7 +129,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -324,7 +326,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -519,7 +522,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -527,7 +531,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "type",
@@ -738,7 +743,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "type",
@@ -818,7 +824,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skillName",
@@ -888,7 +895,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skillName",
@@ -971,7 +979,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1031,7 +1040,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1039,7 +1049,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skill",
@@ -1086,7 +1097,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1094,7 +1106,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skill",
@@ -1143,7 +1156,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1151,7 +1165,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skill",
@@ -1292,7 +1307,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1309,7 +1325,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -1331,7 +1348,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1374,7 +1392,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1571,7 +1590,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1768,7 +1788,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -1853,7 +1874,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -2422,7 +2444,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -2439,7 +2462,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -2463,7 +2487,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -2480,7 +2505,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -2504,7 +2530,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -2521,7 +2548,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -2545,7 +2573,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -2562,7 +2591,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -2586,7 +2616,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -3458,7 +3489,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -3498,7 +3530,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -4454,7 +4487,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -4985,7 +5019,8 @@
                 "billing",
                 "preferences",
                 "one-click-apply"
-              ]
+              ],
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "section",
@@ -5332,7 +5367,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -5438,7 +5474,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -5473,7 +5510,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -5700,7 +5738,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -5823,7 +5862,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -6418,7 +6458,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -6849,7 +6890,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -7281,7 +7323,8 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -7433,7 +7476,8 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -7548,7 +7592,8 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -7557,7 +7602,8 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "modifierId",
@@ -7741,7 +7787,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -7864,7 +7911,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -7946,7 +7994,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -7989,7 +8038,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "username",
@@ -9702,7 +9752,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -9866,7 +9917,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -9972,7 +10024,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -10013,7 +10066,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -10072,7 +10126,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -11549,7 +11604,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -11638,7 +11694,8 @@
               "enum": [
                 "github",
                 "linkedin"
-              ]
+              ],
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "provider",
@@ -12509,7 +12566,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -12804,7 +12862,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -12861,7 +12920,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -12983,7 +13043,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13097,7 +13158,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13234,7 +13296,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13356,7 +13419,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13546,7 +13610,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13737,7 +13802,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13818,7 +13884,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13913,7 +13980,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -13982,7 +14050,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -14007,7 +14076,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -14032,7 +14102,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -14057,7 +14128,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -14065,7 +14137,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -14183,7 +14256,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -14301,7 +14375,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -14413,7 +14488,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -15163,7 +15239,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -16451,7 +16528,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -16459,7 +16537,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "sectionTypeKey",
@@ -16702,7 +16781,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -16710,7 +16790,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "sectionTypeKey",
@@ -16718,7 +16799,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "itemId",
@@ -16959,7 +17041,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -16967,7 +17050,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "sectionTypeKey",
@@ -16975,7 +17059,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "itemId",
@@ -17015,7 +17100,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -18386,7 +18472,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -19787,7 +19874,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20093,7 +20181,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20417,7 +20506,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20739,7 +20829,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20864,7 +20955,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20908,7 +21000,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -20941,7 +21034,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21006,7 +21100,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21014,7 +21109,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "versionId",
@@ -21055,7 +21151,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21120,7 +21217,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21128,7 +21226,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "versionId",
@@ -21193,7 +21292,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21201,7 +21301,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "versionId",
@@ -21242,7 +21343,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21312,7 +21414,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -21428,7 +21531,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -23433,7 +23537,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -24190,7 +24295,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -25149,7 +25255,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -25518,7 +25625,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -25936,7 +26044,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -26441,7 +26550,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -26898,7 +27008,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -26931,7 +27042,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -27051,7 +27163,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "itemId",
@@ -27091,7 +27204,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "itemId",
@@ -27222,7 +27336,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -27541,7 +27656,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -27962,7 +28078,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -28044,7 +28161,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -28084,7 +28202,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -28158,7 +28277,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -28217,7 +28337,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "aliasId",
@@ -28257,7 +28378,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -28290,7 +28412,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "shareId",
@@ -28369,7 +28492,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -28414,7 +28538,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -28542,7 +28667,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "codigoCurso",
@@ -28809,7 +28935,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "codigoIes",
@@ -28928,7 +29055,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "codigoIes",
@@ -29266,7 +29394,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "format": "uuid"
+                          "format": "uuid",
+                          "example": "01900000-0000-7000-a000-000000000001"
                         }
                       },
                       "required": [
@@ -29319,7 +29448,8 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "format": "uuid"
+                            "format": "uuid",
+                            "example": "01900000-0000-7000-a000-000000000001"
                           }
                         },
                         "required": [
@@ -29349,7 +29479,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "username",
@@ -29491,7 +29622,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -29535,7 +29667,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -30157,7 +30290,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -30505,7 +30639,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -31220,7 +31355,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -31315,7 +31451,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -31470,7 +31607,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -31721,7 +31859,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -31729,7 +31868,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000030"
             },
             "required": true,
             "name": "jobId",
@@ -32614,7 +32754,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "importId",
@@ -33677,7 +33818,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "importId",
@@ -34767,7 +34909,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "importId",
@@ -35210,7 +35353,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -35235,7 +35379,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -35300,7 +35445,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -35323,7 +35469,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -35340,7 +35487,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -37294,7 +37442,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -37479,7 +37628,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -37685,7 +37835,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -37866,7 +38017,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38110,7 +38262,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38260,7 +38413,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38354,7 +38508,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38494,7 +38649,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38541,7 +38697,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38593,7 +38750,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38692,7 +38850,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -38880,7 +39039,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "applicationId",
@@ -38968,7 +39128,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "company",
@@ -39639,7 +39800,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -40162,7 +40324,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -41871,7 +42034,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -42428,7 +42592,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42646,7 +42811,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42773,7 +42939,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42817,7 +42984,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42902,7 +43070,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42947,7 +43116,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -42994,7 +43164,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -43039,7 +43210,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -43353,7 +43525,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -43432,7 +43605,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -43507,7 +43681,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -43705,7 +43880,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -44294,7 +44470,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "type",
@@ -44526,7 +44703,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -44610,7 +44788,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -44668,7 +44847,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -50248,7 +50428,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -51717,7 +51898,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -53198,7 +53380,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "key",
@@ -55313,7 +55496,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -55413,7 +55597,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -55525,7 +55710,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -55819,7 +56005,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -55912,7 +56099,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -56017,7 +56205,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -56399,7 +56588,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -56532,7 +56722,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -56677,7 +56868,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "id",
@@ -56932,7 +57124,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "code",
@@ -57009,7 +57202,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "code",
@@ -57098,7 +57292,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "code",
@@ -57445,7 +57640,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -57568,7 +57764,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -57703,7 +57900,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "slug",
@@ -57825,7 +58023,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "areaType",
@@ -58019,7 +58218,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "nicheSlug",
@@ -58261,7 +58461,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "type",
@@ -58575,7 +58776,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "areaType",
@@ -59131,7 +59333,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "nicheSlug",
@@ -59257,7 +59460,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "type",
@@ -59803,7 +60007,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "code",
@@ -59868,7 +60073,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -59957,7 +60163,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60027,7 +60234,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60035,7 +60243,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skillId",
@@ -60120,7 +60329,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60128,7 +60338,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "skillId",
@@ -60588,7 +60799,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60596,7 +60808,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -60636,7 +60849,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60757,7 +60971,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60856,7 +61071,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60864,7 +61080,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -60980,7 +61197,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -60988,7 +61206,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -61085,7 +61304,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -61213,7 +61433,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -61368,7 +61589,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "commentId",
@@ -61495,7 +61717,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "commentId",
@@ -61640,7 +61863,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -61754,7 +61978,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -62037,7 +62262,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -62153,7 +62379,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -62232,7 +62459,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -62433,7 +62661,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -62490,7 +62719,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "fixture-slug"
             },
             "required": true,
             "name": "conversationId",
@@ -62730,7 +62960,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -62762,7 +62993,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
             "name": "userId",
@@ -62803,7 +63035,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
@@ -62944,7 +63177,8 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
             "name": "resumeId",
