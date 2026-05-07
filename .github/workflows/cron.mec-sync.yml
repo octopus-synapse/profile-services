@@ -8,6 +8,10 @@ on:
     - cron: "0 3 1 7 *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
   download-and-sync:
     name: Download MEC CSV & Sync
@@ -25,6 +29,13 @@ jobs:
       # Reads version from .bun-version file
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+
+      - name: Configure GitHub Packages auth
+        run: |
+          {
+            echo "@octopus-synapse:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+          } > .npmrc
 
       - name: Restore Dependencies Cache
         id: cache-deps
