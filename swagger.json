@@ -24808,29 +24808,8 @@
             "headers": {
               "Location": {
                 "schema": {
-                  "_def": {
-                    "innerType": {
-                      "_def": {
-                        "checks": [],
-                        "typeName": "ZodString",
-                        "coerce": false
-                      },
-                      "~standard": {
-                        "version": 1,
-                        "vendor": "zod"
-                      }
-                    },
-                    "typeName": "ZodOptional",
-                    "openapi": {
-                      "metadata": {
-                        "example": "/api/v1/chat/messages/01900000-0000-7000-a000-000000000050"
-                      }
-                    }
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
+                  "type": "string",
+                  "example": "/api/v1/chat/messages/01900000-0000-7000-a000-000000000050"
                 },
                 "required": false
               }
@@ -35487,29 +35466,8 @@
             "headers": {
               "Location": {
                 "schema": {
-                  "_def": {
-                    "innerType": {
-                      "_def": {
-                        "checks": [],
-                        "typeName": "ZodString",
-                        "coerce": false
-                      },
-                      "~standard": {
-                        "version": 1,
-                        "vendor": "zod"
-                      }
-                    },
-                    "typeName": "ZodOptional",
-                    "openapi": {
-                      "metadata": {
-                        "example": "/api/v1/jobs/01900000-0000-7000-a000-000000000030"
-                      }
-                    }
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
+                  "type": "string",
+                  "example": "/api/v1/jobs/01900000-0000-7000-a000-000000000030"
                 },
                 "required": false
               }
@@ -52960,29 +52918,8 @@
             "headers": {
               "Location": {
                 "schema": {
-                  "_def": {
-                    "innerType": {
-                      "_def": {
-                        "checks": [],
-                        "typeName": "ZodString",
-                        "coerce": false
-                      },
-                      "~standard": {
-                        "version": 1,
-                        "vendor": "zod"
-                      }
-                    },
-                    "typeName": "ZodOptional",
-                    "openapi": {
-                      "metadata": {
-                        "example": "/api/v1/posts/01900000-0000-7000-a000-000000000040"
-                      }
-                    }
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
+                  "type": "string",
+                  "example": "/api/v1/posts/01900000-0000-7000-a000-000000000040"
                 },
                 "required": false
               }
@@ -60081,29 +60018,8 @@
             "headers": {
               "Location": {
                 "schema": {
-                  "_def": {
-                    "innerType": {
-                      "_def": {
-                        "checks": [],
-                        "typeName": "ZodString",
-                        "coerce": false
-                      },
-                      "~standard": {
-                        "version": 1,
-                        "vendor": "zod"
-                      }
-                    },
-                    "typeName": "ZodOptional",
-                    "openapi": {
-                      "metadata": {
-                        "example": "/api/v1/resumes/01900000-0000-7000-a000-000000000010"
-                      }
-                    }
-                  },
-                  "~standard": {
-                    "version": 1,
-                    "vendor": "zod"
-                  }
+                  "type": "string",
+                  "example": "/api/v1/resumes/01900000-0000-7000-a000-000000000010"
                 },
                 "required": false
               }

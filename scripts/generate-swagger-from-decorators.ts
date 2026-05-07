@@ -251,15 +251,72 @@ function buildErrorResponse(description: string): Record<string, unknown> {
   };
 }
 
+interface OpenApiHeaderSchema {
+  type: 'string' | 'number' | 'integer' | 'boolean';
+  format?: string;
+  example?: unknown;
+}
+
+/**
+ * Convert a single header's Zod schema into an OpenAPI 3.0 Schema
+ * Object. `zod-to-openapi` only auto-converts Zod schemas placed
+ * inside `content[mediaType].schema`; the `responses[].headers[].schema`
+ * path receives whatever we hand it untouched, so we'd otherwise leak
+ * `_def` / `~standard` Zod internals into the spec (Spectral fails the
+ * `oas3-schema` rule on those keys).
+ */
+function zodHeaderToOpenApi(zod: ZodSchema<unknown>): OpenApiHeaderSchema {
+  type ZodInternals = {
+    _def?: {
+      typeName?: string;
+      innerType?: ZodSchema<unknown>;
+      openapi?: { metadata?: { example?: unknown; format?: string } };
+    };
+  };
+  let current = zod as ZodInternals;
+  let collectedExample: unknown;
+  let collectedFormat: string | undefined;
+  for (let depth = 0; depth < 5; depth += 1) {
+    const meta = current._def?.openapi?.metadata;
+    if (collectedExample === undefined && meta?.example !== undefined) {
+      collectedExample = meta.example;
+    }
+    if (collectedFormat === undefined && meta?.format !== undefined) {
+      collectedFormat = meta.format;
+    }
+    const tn = current._def?.typeName;
+    if (tn === 'ZodOptional' || tn === 'ZodNullable' || tn === 'ZodDefault') {
+      current = current._def?.innerType as unknown as ZodInternals;
+      continue;
+    }
+    break;
+  }
+  const typeName = current._def?.typeName;
+  const out: OpenApiHeaderSchema =
+    typeName === 'ZodNumber'
+      ? { type: 'number' }
+      : typeName === 'ZodBoolean'
+        ? { type: 'boolean' }
+        : typeName === 'ZodBigInt' || typeName === 'ZodInt'
+          ? { type: 'integer' }
+          : { type: 'string' };
+  if (collectedFormat) out.format = collectedFormat;
+  if (collectedExample !== undefined) out.example = collectedExample;
+  return out;
+}
+
 function buildResponseHeaders(
   route: Route,
-): Record<string, { schema: ZodSchema<unknown>; required: boolean }> | undefined {
+): Record<string, { schema: OpenApiHeaderSchema; required: boolean }> | undefined {
   const headersSchema = unwrapToZodObject(route.responseHeaders);
   if (!headersSchema) return undefined;
-  const out: Record<string, { schema: ZodSchema<unknown>; required: boolean }> = {};
+  const out: Record<string, { schema: OpenApiHeaderSchema; required: boolean }> = {};
   const shape = headersSchema._def.shape() as Record<string, ZodSchema<unknown>>;
   for (const [name, sub] of Object.entries(shape)) {
-    out[name] = { schema: sub, required: !(sub as { isOptional?: () => boolean }).isOptional?.() };
+    out[name] = {
+      schema: zodHeaderToOpenApi(sub),
+      required: !(sub as { isOptional?: () => boolean }).isOptional?.(),
+    };
   }
   return out;
 }
