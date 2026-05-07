@@ -2857,12 +2857,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "jobs"
             },
             "required": true,
             "name": "key",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "jobs"
           }
         ],
         "requestBody": {
@@ -3112,12 +3112,12 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "jobs"
             },
             "required": true,
             "name": "key",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "jobs"
           }
         ],
         "responses": {

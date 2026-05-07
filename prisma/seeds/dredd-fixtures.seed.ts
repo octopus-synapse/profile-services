@@ -18,6 +18,7 @@ import {
   EXAMPLE_NOTIFICATION_ID,
   EXAMPLE_POST_ID,
   EXAMPLE_RESUME_ID,
+  EXAMPLE_SLUG,
   EXAMPLE_USER_ID,
 } from '../../src/shared-kernel/schemas/params/example-values.const';
 
@@ -133,5 +134,21 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  console.log('✅ Seeded Dredd fixture entities (user/resume/job/post/conversation/notification)');
+  // Feature flag keyed by EXAMPLE_SLUG so admin feature-flag routes
+  // (`/v1/admin/feature-flags/{key}`, `/.../impact`) resolve to a real
+  // row instead of 404'ing under Dredd's slug substitution.
+  await prisma.featureFlag.upsert({
+    where: { key: EXAMPLE_SLUG },
+    create: {
+      key: EXAMPLE_SLUG,
+      name: 'Dredd Fixture Feature Flag',
+      description: 'Materialised by the Dredd seed so admin feature-flag routes resolve.',
+      enabled: false,
+    },
+    update: {},
+  });
+
+  console.log(
+    '✅ Seeded Dredd fixture entities (user/resume/job/post/conversation/notification/feature-flag)',
+  );
 }
