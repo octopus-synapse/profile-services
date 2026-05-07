@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemorySuccessStoriesRepository } from '../../../testing';
 import { DeleteSuccessStoryUseCase } from './delete-success-story.use-case';
 
@@ -17,8 +18,10 @@ describe('DeleteSuccessStoryUseCase', () => {
     expect(repo.rows).toHaveLength(0);
   });
 
-  it('is a no-op when the id does not exist', async () => {
+  it('throws EntityNotFoundException when the id does not exist', async () => {
     const repo = new InMemorySuccessStoriesRepository();
-    await expect(new DeleteSuccessStoryUseCase(repo).execute('nope')).resolves.toBeUndefined();
+    await expect(new DeleteSuccessStoryUseCase(repo).execute('nope')).rejects.toBeInstanceOf(
+      EntityNotFoundException,
+    );
   });
 });
