@@ -343,12 +343,20 @@ function applyOperationPermissionExtension(
     if (!op) continue;
     if (route.auth.kind === 'public') {
       op['x-auth'] = 'public';
-      continue;
+    } else {
+      op['x-auth'] = 'jwt';
+      const permStr = permissionToString(route.permission);
+      if (permStr !== null) {
+        op['x-permission'] = permStr;
+      }
     }
-    op['x-auth'] = 'jwt';
-    const permStr = permissionToString(route.permission);
-    if (permStr !== null) {
-      op['x-permission'] = permStr;
+    // Emit `x-guards` so consumers (Dredd hook, drift script, SDK
+    // generators) know about additional gates on top of `x-auth`/
+    // `x-permission` — e.g. `internal-auth` (service-to-service
+    // token), `rate-limit`, `skip-tos-check`. The guards array
+    // mirrors the route descriptor's `guards` property.
+    if (route.guards && route.guards.length > 0) {
+      op['x-guards'] = route.guards.map((g) => g.id);
     }
   }
 }

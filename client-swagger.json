@@ -349,7 +349,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "metrics-key"
+        ]
       }
     },
     "/api/v1/accounts": {
@@ -472,7 +475,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check"
+        ]
       },
       "post": {
         "summary": "Create new account",
@@ -18667,7 +18673,11 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "fit-profile",
+          "min-quality"
+        ]
       }
     },
     "/api/v1/apply-mode/weekly-curated/{itemId}/reject": {
@@ -19491,7 +19501,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/auth/email-verification/send": {
@@ -19616,7 +19629,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/auth/email-verification/verify": {
@@ -19792,7 +19808,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "throttle"
+        ]
       }
     },
     "/api/v1/auth/login": {
@@ -20003,7 +20022,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/logout": {
@@ -20126,7 +20148,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/auth/oauth/available/{provider}": {
@@ -21452,7 +21477,11 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "automation:rage_apply"
+        "x-permission": "automation:rage_apply",
+        "x-guards": [
+          "fit-profile",
+          "min-quality"
+        ]
       }
     },
     "/api/v1/badges/me": {
@@ -22002,7 +22031,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/chat/blocked": {
@@ -29072,7 +29104,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:export"
+        "x-permission": "resume:export",
+        "x-guards": [
+          "feature-flag"
+        ]
       }
     },
     "/api/v1/export/user/{userId}/resume/pdf": {
@@ -29230,7 +29265,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/export/{resumeId}/json": {
@@ -29441,7 +29479,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:export"
+        "x-permission": "resume:export",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/export/{resumeId}/latex": {
@@ -29652,7 +29693,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:export"
+        "x-permission": "resume:export",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/feature-flags/active": {
@@ -37533,7 +37577,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "job:create"
+        "x-permission": "job:create",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/jobs/mine": {
@@ -44214,7 +44261,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check"
+        ]
       }
     },
     "/api/v1/me/menu": {
@@ -46682,7 +46732,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "internal-auth"
+        ]
       }
     },
     "/api/v1/mec/internal/sync/history": {
@@ -46773,7 +46826,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "internal-auth"
+        ]
       }
     },
     "/api/v1/mec/internal/sync/status": {
@@ -46894,7 +46950,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "internal-auth"
+        ]
       }
     },
     "/api/v1/mec/stats": {
@@ -58822,7 +58881,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "job:create"
+        "x-permission": "job:create",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/resume-styles": {
@@ -75567,7 +75629,11 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "fit-profile",
+          "min-quality"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/tailored-versions": {
@@ -88037,7 +88103,11 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check",
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/users/me/connection-recommendations": {
@@ -89607,7 +89677,11 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check",
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/users/me/consent-status": {
@@ -89728,7 +89802,11 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "skip-tos-check",
+          "allow-unverified-email"
+        ]
       }
     },
     "/api/v1/users/me/network-summary": {

@@ -22,6 +22,7 @@ import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import {
+  toMgmtResumeListResponseDto,
   toPaginatedResumesData,
   toResumeFullResponseDto,
   toResumeResponseDto,
@@ -288,8 +289,8 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
-      const resumes = await bc.listResumesForUserUseCase.execute(userId);
-      return { resumes: resumes.resumes };
+      const result = await bc.listResumesForUserUseCase.execute(userId);
+      return toMgmtResumeListResponseDto(result.resumes);
     },
   },
   {

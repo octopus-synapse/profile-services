@@ -49,6 +49,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'chat:use',
       'social:use',
       'feed:use',
+      'job:create',
       'notification:read',
       'analytics:read_own',
       'section_type:read',

@@ -74,6 +74,7 @@ type AuthKind = 'public' | 'jwt' | 'unknown';
 interface OperationMetadata {
   readonly auth: AuthKind;
   readonly permission: string | null;
+  readonly guards: readonly string[];
 }
 
 interface SwaggerInfo {
@@ -93,11 +94,16 @@ export function loadSwaggerInfo(swaggerPath: string = SWAGGER_PATH): SwaggerInfo
     for (const [pathTemplate, ops] of Object.entries(swagger.paths ?? {})) {
       for (const [method, op] of Object.entries(ops ?? {})) {
         if (typeof op !== 'object' || op === null) continue;
-        const opObj = op as { 'x-auth'?: string; 'x-permission'?: string };
+        const opObj = op as {
+          'x-auth'?: string;
+          'x-permission'?: string;
+          'x-guards'?: readonly string[];
+        };
         const auth: AuthKind = opObj['x-auth'] === 'public' ? 'public' : 'jwt';
         operationMetadata.set(`${method.toUpperCase()} ${pathTemplate}`, {
           auth,
           permission: opObj['x-permission'] ?? null,
+          guards: opObj['x-guards'] ?? [],
         });
       }
     }
@@ -143,9 +149,14 @@ interface ProbeTarget {
   readonly meta: OperationMetadata | null;
 }
 
+// Mirrors `test/infrastructure/contract/dredd-hooks.js` so both probes
+// resolve to the same materialised rows in `prisma/seeds/dredd-fixtures.seed.ts`.
 const FIXTURE_USER_ID = '01900000-0000-7000-a000-000000000020';
 const FIXTURE_RESUME_ID = '01900000-0000-7000-a000-000000000010';
 const FIXTURE_JOB_ID = '01900000-0000-7000-a000-000000000030';
+const FIXTURE_POST_ID = '01900000-0000-7000-a000-000000000040';
+const FIXTURE_CONVERSATION_ID = '01900000-0000-7000-a000-000000000050';
+const FIXTURE_NOTIFICATION_ID = '01900000-0000-7000-a000-000000000060';
 const FIXTURE_GENERIC_ID = '01900000-0000-7000-a000-000000000001';
 const FIXTURE_SLUG = 'fixture-slug';
 
@@ -154,6 +165,9 @@ export function fillPathParams(path: string): string {
     if (name === 'userId') return FIXTURE_USER_ID;
     if (name === 'resumeId') return FIXTURE_RESUME_ID;
     if (name === 'jobId') return FIXTURE_JOB_ID;
+    if (name === 'postId') return FIXTURE_POST_ID;
+    if (name === 'conversationId') return FIXTURE_CONVERSATION_ID;
+    if (name === 'notificationId') return FIXTURE_NOTIFICATION_ID;
     if (name.endsWith('Id') || name === 'id') return FIXTURE_GENERIC_ID;
     return FIXTURE_SLUG;
   });
@@ -363,14 +377,25 @@ async function main(): Promise<number> {
   const routes = await loadRoutes();
   const probable = routes.filter((r) => isProbable(r.route));
   const swaggerInfo = loadSwaggerInfo();
-  const targets: ProbeTarget[] = probable.map(({ route }) => {
+  // Routes guarded by service-to-service tokens (e.g. `internal-auth`)
+  // are not reachable by either the admin or regular fixture cookie;
+  // probing them just spams 401 noise. Skipping is the right move —
+  // the contract for those routes is exercised by the operator at
+  // deploy time, not the test suite.
+  const SKIP_GUARDS = new Set(['internal-auth']);
+  const targets: ProbeTarget[] = probable.flatMap(({ route }) => {
     const { persona, meta } = pickPersona(route.method, route.path, swaggerInfo);
-    return {
-      route,
-      url: `${BASE_URL}/api${fillPathParams(route.path)}`,
-      persona,
-      meta,
-    };
+    if (meta?.guards?.some((g) => SKIP_GUARDS.has(g))) {
+      return [];
+    }
+    return [
+      {
+        route,
+        url: `${BASE_URL}/api${fillPathParams(route.path)}`,
+        persona,
+        meta,
+      },
+    ];
   });
 
   console.log(`Probing ${targets.length} GET endpoints against ${BASE_URL}...`);
