@@ -12,6 +12,7 @@
  */
 
 const hooks = require('hooks');
+const crypto = require('node:crypto');
 
 // Deterministic UUIDs mirrored from
 // `src/shared-kernel/schemas/params/example-values.const.ts`. Keep in sync;
@@ -23,6 +24,39 @@ const FIXTURE_POST_ID = '01900000-0000-7000-a000-000000000040';
 const FIXTURE_CONVERSATION_ID = '01900000-0000-7000-a000-000000000050';
 const FIXTURE_NOTIFICATION_ID = '01900000-0000-7000-a000-000000000060';
 const FIXTURE_GENERIC_ID = '01900000-0000-7000-a000-000000000001';
+
+// ─── Per-run uniqueness guard (Workstream D) ─────────────────────────
+//
+// Every Dredd run gets a fresh `RUN_ID` (8 hex chars). POST bodies that
+// would otherwise hit unique constraints (email/username/slug) are
+// rewritten in `beforeEach` to include the suffix, so re-running the
+// suite against the same DB never 409's on the second attempt.
+const RUN_ID = crypto.randomBytes(4).toString('hex');
+const UNIQUE_FIELDS_TO_SUFFIX = new Set([
+  'email',
+  'username',
+  'slug',
+  'handle',
+  'name',
+  'title',
+  'key',
+]);
+
+function suffixUniqueValues(node) {
+  if (Array.isArray(node)) {
+    for (const item of node) suffixUniqueValues(item);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  for (const key of Object.keys(node)) {
+    const value = node[key];
+    if (typeof value === 'string' && UNIQUE_FIELDS_TO_SUFFIX.has(key)) {
+      node[key] = `${value}-${RUN_ID}`;
+    } else if (value && typeof value === 'object') {
+      suffixUniqueValues(value);
+    }
+  }
+}
 
 // ─── Skip lists ──────────────────────────────────────────────────────
 //
@@ -270,5 +304,20 @@ hooks.beforeEach((transaction, done) => {
     url = url.replace(`{${name}}`, id);
   }
   transaction.fullPath = url;
+
+  if (transaction.request && typeof transaction.request.body === 'string') {
+    try {
+      const parsed = JSON.parse(transaction.request.body);
+      suffixUniqueValues(parsed);
+      transaction.request.body = JSON.stringify(parsed);
+    } catch {
+      // Non-JSON body (form-data, plain text, etc.) — leave untouched.
+    }
+  }
+  done();
+});
+
+hooks.beforeAll((_transactions, done) => {
+  hooks.log(`Dredd run id: ${RUN_ID} (used to suffix unique fields)`);
   done();
 });

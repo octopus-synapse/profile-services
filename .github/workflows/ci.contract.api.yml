@@ -119,6 +119,14 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # Mailcatcher (Mailpit) — captures outbound SMTP from the booted
+      # app so password-reset / verification emails don't bounce. Same
+      # tool used by `make dev` locally.
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5433/profile_test
       REDIS_HOST: localhost
@@ -131,6 +139,13 @@ jobs:
       # mail, but bootstrap still wires the sender, so a placeholder
       # is required to clear the construction-time guard.
       APP_URL: http://localhost:3010
+      # Mailpit captures outbound SMTP so the boot's
+      # EmailPasswordResetSender / verification emails land in a sink
+      # rather than failing the dredd-hook login flow.
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      EMAIL_FROM: noreply@profile.local
+      EMAIL_FROM_NAME: ProFile
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
