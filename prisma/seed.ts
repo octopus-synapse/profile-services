@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedDreddFixtures } from './seeds/dredd-fixtures.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
 import { seedFitQuestions } from './seeds/fit-questions.seed';
 import { seedJobs } from './seeds/job.seed';
@@ -153,6 +154,10 @@ async function main() {
 
   // Seed enzoferracini fixture user (patch-careers-ui e2e resume-download + search-people tests)
   await seedEnzoferracini(prisma);
+
+  if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
+    await seedDreddFixtures(prisma, admin.id);
+  }
 }
 
 main()

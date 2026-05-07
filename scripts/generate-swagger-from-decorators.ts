@@ -25,8 +25,11 @@ import {
 import { type AnyZodObject, type ZodSchema, z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route';
 import {
+  EXAMPLE_CONVERSATION_ID,
   EXAMPLE_GENERIC_ID,
   EXAMPLE_JOB_ID,
+  EXAMPLE_NOTIFICATION_ID,
+  EXAMPLE_POST_ID,
   EXAMPLE_RESUME_ID,
   EXAMPLE_SLUG,
   EXAMPLE_USER_ID,
@@ -132,7 +135,10 @@ function fallbackExampleForParam(name: string): string {
   if (name === 'userId') return EXAMPLE_USER_ID;
   if (name === 'resumeId') return EXAMPLE_RESUME_ID;
   if (name === 'jobId') return EXAMPLE_JOB_ID;
-  if (name === 'id') return EXAMPLE_GENERIC_ID;
+  if (name === 'postId') return EXAMPLE_POST_ID;
+  if (name === 'conversationId') return EXAMPLE_CONVERSATION_ID;
+  if (name === 'notificationId') return EXAMPLE_NOTIFICATION_ID;
+  if (name === 'id' || name.endsWith('Id')) return EXAMPLE_GENERIC_ID;
   return EXAMPLE_SLUG;
 }
 

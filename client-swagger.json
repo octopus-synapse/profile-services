@@ -7603,7 +7603,7 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "modifierId",
@@ -14138,7 +14138,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -14257,7 +14257,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -14376,7 +14376,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -16800,7 +16800,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "itemId",
@@ -17060,7 +17060,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "itemId",
@@ -21110,7 +21110,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "versionId",
@@ -21227,7 +21227,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "versionId",
@@ -21302,7 +21302,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "versionId",
@@ -27164,7 +27164,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "itemId",
@@ -27205,7 +27205,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "itemId",
@@ -28162,7 +28162,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -28203,7 +28203,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -28278,7 +28278,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -28338,7 +28338,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "aliasId",
@@ -28413,7 +28413,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "shareId",
@@ -32755,7 +32755,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "importId",
@@ -33819,7 +33819,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "importId",
@@ -34910,7 +34910,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "importId",
@@ -39040,7 +39040,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "applicationId",
@@ -60244,7 +60244,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "skillId",
@@ -60339,7 +60339,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "skillId",
@@ -61590,7 +61590,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "commentId",
@@ -61718,7 +61718,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
             "name": "commentId",
@@ -61864,7 +61864,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
@@ -61979,7 +61979,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
@@ -62263,7 +62263,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
@@ -62380,7 +62380,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
@@ -62662,7 +62662,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
@@ -62720,7 +62720,7 @@
           {
             "schema": {
               "type": "string",
-              "example": "fixture-slug"
+              "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
             "name": "conversationId",
