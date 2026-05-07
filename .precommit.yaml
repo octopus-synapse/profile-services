@@ -16,6 +16,8 @@ serial:
       - generated/schema.graphql
 
 checks:
+  - name: lockfile
+    cmd: bun install --frozen-lockfile --dry-run
   - name: typecheck
     cmd: bun run typecheck
   - name: lint
