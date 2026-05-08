@@ -3,8 +3,17 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { CommentsResult, CommentWithReplies } from '../../../domain/entities';
+import type {
+  CommentsResult,
+  CommentWithAuthor,
+  CommentWithReplies,
+} from '../../../domain/entities';
 import { CommentRepositoryPort } from '../../../domain/ports/comment.repository.port';
+
+function stripDeletedAt<T extends CommentWithAuthor>(c: T): Omit<T, 'deletedAt'> {
+  const { deletedAt: _omit, ...rest } = c;
+  return rest;
+}
 
 export class ListPostCommentsUseCase {
   constructor(private readonly repository: CommentRepositoryPort) {}
@@ -21,6 +30,10 @@ export class ListPostCommentsUseCase {
     const comments = await this.repository.listTopLevelByPost(postId, cursor, limit);
     const nextCursor =
       comments.length === limit ? comments[comments.length - 1].createdAt.toISOString() : null;
-    return { items: comments, nextCursor, hasNext: nextCursor !== null };
+    const sanitized = comments.map((c) => ({
+      ...stripDeletedAt(c),
+      replies: c.replies.map((r) => stripDeletedAt(r)),
+    })) as unknown as CommentWithReplies[];
+    return { items: sanitized, nextCursor, hasNext: nextCursor !== null };
   }
 }

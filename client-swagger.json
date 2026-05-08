@@ -8021,309 +8021,13 @@
                     "styleConfig": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "sectionStyles": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "atsSafetyBreakdown": {
@@ -8784,309 +8488,13 @@
                     "styleConfig": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "sectionStyles": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "atsSafetyBreakdown": {
@@ -18040,6 +17448,26 @@
                             ]
                           }
                         },
+                        "byDeviceType": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "deviceType": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "count": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "deviceType",
+                              "count"
+                            ]
+                          }
+                        },
                         "recentEvents": {
                           "type": "array",
                           "items": {
@@ -18081,6 +17509,7 @@
                         "totalDownloads",
                         "uniqueVisitors",
                         "byCountry",
+                        "byDeviceType",
                         "recentEvents"
                       ]
                     }
@@ -36238,6 +35667,11 @@
                             "format": "date-time",
                             "example": "2026-05-07T00:00:00.000Z"
                           },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          },
                           "job": {
                             "type": "object",
                             "properties": {
@@ -36420,6 +35854,7 @@
                           "resumeId",
                           "tailoredVersionId",
                           "createdAt",
+                          "updatedAt",
                           "job"
                         ]
                       }
@@ -40932,6 +40367,11 @@
                       "format": "date-time",
                       "example": "2026-05-07T00:00:00.000Z"
                     },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-05-07T00:00:00.000Z"
+                    },
                     "alreadyApplied": {
                       "type": "boolean"
                     }
@@ -40945,6 +40385,7 @@
                     "resumeId",
                     "tailoredVersionId",
                     "createdAt",
+                    "updatedAt",
                     "alreadyApplied"
                   ]
                 }
@@ -44474,7 +43915,9 @@
                                           },
                                           {
                                             "type": "object",
-                                            "properties": {}
+                                            "additionalProperties": {
+                                              "nullable": true
+                                            }
                                           },
                                           {
                                             "nullable": true
@@ -45590,7 +45033,9 @@
                           },
                           {
                             "type": "object",
-                            "properties": {}
+                            "additionalProperties": {
+                              "nullable": true
+                            }
                           },
                           {
                             "nullable": true
@@ -45912,7 +45357,9 @@
                         },
                         {
                           "type": "object",
-                          "properties": {}
+                          "additionalProperties": {
+                            "nullable": true
+                          }
                         },
                         {
                           "nullable": true
@@ -57821,10 +57268,14 @@
                           "nullable": true
                         },
                         "createdAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         },
                         "updatedAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         }
                       },
                       "required": [
@@ -57985,6 +57436,33 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "contentPtBr": {
+                          "nullable": true
+                        },
+                        "contentEn": {
+                          "nullable": true
+                        },
+                        "primaryLanguage": {
+                          "type": "string"
+                        },
+                        "techPersona": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "techArea": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "primaryStack": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "experienceYears": {
+                          "type": "integer",
+                          "nullable": true
+                        },
                         "fullName": {
                           "type": "string",
                           "nullable": true
@@ -58017,13 +57495,57 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "currentCompanyLogo": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "twitter": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "medium": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "devto": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stackoverflow": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "kaggle": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "hackerrank": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "leetcode": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "accentColor": {
                           "type": "string",
+                          "nullable": true
+                        },
+                        "customTheme": {
                           "nullable": true
                         },
                         "styleId": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "profileViews": {
+                          "type": "integer"
+                        },
+                        "totalStars": {
+                          "type": "integer"
+                        },
+                        "totalCommits": {
+                          "type": "integer"
                         },
                         "createdAt": {
                           "type": "string",
@@ -58032,6 +57554,12 @@
                         },
                         "updatedAt": {
                           "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "publishedAt": {
+                          "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2026-05-07T00:00:00.000Z"
                         },
@@ -58212,6 +57740,11 @@
                         "language",
                         "isPublic",
                         "slug",
+                        "primaryLanguage",
+                        "techPersona",
+                        "techArea",
+                        "primaryStack",
+                        "experienceYears",
                         "fullName",
                         "jobTitle",
                         "phone",
@@ -58220,10 +57753,22 @@
                         "github",
                         "website",
                         "summary",
+                        "currentCompanyLogo",
+                        "twitter",
+                        "medium",
+                        "devto",
+                        "stackoverflow",
+                        "kaggle",
+                        "hackerrank",
+                        "leetcode",
                         "accentColor",
                         "styleId",
+                        "profileViews",
+                        "totalStars",
+                        "totalCommits",
                         "createdAt",
                         "updatedAt",
+                        "publishedAt",
                         "sections"
                       ]
                     },
@@ -58384,6 +57929,33 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "contentPtBr": {
+                          "nullable": true
+                        },
+                        "contentEn": {
+                          "nullable": true
+                        },
+                        "primaryLanguage": {
+                          "type": "string"
+                        },
+                        "techPersona": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "techArea": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "primaryStack": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "experienceYears": {
+                          "type": "integer",
+                          "nullable": true
+                        },
                         "fullName": {
                           "type": "string",
                           "nullable": true
@@ -58416,13 +57988,57 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "currentCompanyLogo": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "twitter": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "medium": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "devto": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stackoverflow": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "kaggle": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "hackerrank": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "leetcode": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "accentColor": {
                           "type": "string",
+                          "nullable": true
+                        },
+                        "customTheme": {
                           "nullable": true
                         },
                         "styleId": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "profileViews": {
+                          "type": "integer"
+                        },
+                        "totalStars": {
+                          "type": "integer"
+                        },
+                        "totalCommits": {
+                          "type": "integer"
                         },
                         "createdAt": {
                           "type": "string",
@@ -58431,6 +58047,12 @@
                         },
                         "updatedAt": {
                           "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "publishedAt": {
+                          "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2026-05-07T00:00:00.000Z"
                         },
@@ -58611,6 +58233,11 @@
                         "language",
                         "isPublic",
                         "slug",
+                        "primaryLanguage",
+                        "techPersona",
+                        "techArea",
+                        "primaryStack",
+                        "experienceYears",
                         "fullName",
                         "jobTitle",
                         "phone",
@@ -58619,10 +58246,22 @@
                         "github",
                         "website",
                         "summary",
+                        "currentCompanyLogo",
+                        "twitter",
+                        "medium",
+                        "devto",
+                        "stackoverflow",
+                        "kaggle",
+                        "hackerrank",
+                        "leetcode",
                         "accentColor",
                         "styleId",
+                        "profileViews",
+                        "totalStars",
+                        "totalCommits",
                         "createdAt",
                         "updatedAt",
+                        "publishedAt",
                         "sections"
                       ]
                     },
@@ -59661,309 +59300,13 @@
                     "styleConfig": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "sectionStyles": {
                       "type": "object",
                       "additionalProperties": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "nullable": true
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "additionalProperties": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "boolean"
-                                },
-                                {
-                                  "nullable": true
-                                },
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "type": "object",
-                                  "additionalProperties": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      },
-                                      {
-                                        "nullable": true
-                                      },
-                                      {
-                                        "nullable": true
-                                      }
-                                    ]
-                                  }
-                                },
-                                {
-                                  "nullable": true
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "nullable": true
-                          }
-                        ]
+                        "nullable": true
                       }
                     },
                     "atsSafetyBreakdown": {
@@ -66110,6 +65453,33 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "contentPtBr": {
+                          "nullable": true
+                        },
+                        "contentEn": {
+                          "nullable": true
+                        },
+                        "primaryLanguage": {
+                          "type": "string"
+                        },
+                        "techPersona": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "techArea": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "primaryStack": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "experienceYears": {
+                          "type": "integer",
+                          "nullable": true
+                        },
                         "fullName": {
                           "type": "string",
                           "nullable": true
@@ -66142,13 +65512,57 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "currentCompanyLogo": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "twitter": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "medium": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "devto": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "stackoverflow": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "kaggle": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "hackerrank": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "leetcode": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "accentColor": {
                           "type": "string",
+                          "nullable": true
+                        },
+                        "customTheme": {
                           "nullable": true
                         },
                         "styleId": {
                           "type": "string",
                           "nullable": true
+                        },
+                        "profileViews": {
+                          "type": "integer"
+                        },
+                        "totalStars": {
+                          "type": "integer"
+                        },
+                        "totalCommits": {
+                          "type": "integer"
                         },
                         "createdAt": {
                           "type": "string",
@@ -66157,6 +65571,12 @@
                         },
                         "updatedAt": {
                           "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
+                        },
+                        "publishedAt": {
+                          "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2026-05-07T00:00:00.000Z"
                         },
@@ -66437,6 +65857,11 @@
                         "language",
                         "isPublic",
                         "slug",
+                        "primaryLanguage",
+                        "techPersona",
+                        "techArea",
+                        "primaryStack",
+                        "experienceYears",
                         "fullName",
                         "jobTitle",
                         "phone",
@@ -66445,10 +65870,22 @@
                         "github",
                         "website",
                         "summary",
+                        "currentCompanyLogo",
+                        "twitter",
+                        "medium",
+                        "devto",
+                        "stackoverflow",
+                        "kaggle",
+                        "hackerrank",
+                        "leetcode",
                         "accentColor",
                         "styleId",
+                        "profileViews",
+                        "totalStars",
+                        "totalCommits",
                         "createdAt",
                         "updatedAt",
+                        "publishedAt",
                         "user",
                         "resumeSections"
                       ]
@@ -74608,6 +74045,26 @@
                             ]
                           }
                         },
+                        "byDeviceType": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "deviceType": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "count": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "deviceType",
+                              "count"
+                            ]
+                          }
+                        },
                         "recentEvents": {
                           "type": "array",
                           "items": {
@@ -74649,6 +74106,7 @@
                         "totalDownloads",
                         "uniqueVisitors",
                         "byCountry",
+                        "byDeviceType",
                         "recentEvents"
                       ]
                     }
@@ -87684,7 +87142,9 @@
                         "preferences": {
                           "type": "object",
                           "nullable": true,
-                          "properties": {}
+                          "additionalProperties": {
+                            "nullable": true
+                          }
                         },
                         "counts": {
                           "type": "object",
@@ -91977,10 +91437,14 @@
                           ]
                         },
                         "createdAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         },
                         "updatedAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         }
                       },
                       "required": [
@@ -92448,10 +91912,14 @@
                           ]
                         },
                         "createdAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         },
                         "updatedAt": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2026-05-07T00:00:00.000Z"
                         }
                       },
                       "required": [
@@ -93946,7 +93414,9 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "properties": {}
+                            "additionalProperties": {
+                              "nullable": true
+                            }
                           },
                           "entityId": {
                             "type": "string",
@@ -94258,7 +93728,9 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "properties": {}
+                            "additionalProperties": {
+                              "nullable": true
+                            }
                           },
                           "entityId": {
                             "type": "string",
@@ -95228,7 +94700,9 @@
                           "metadata": {
                             "type": "object",
                             "nullable": true,
-                            "properties": {}
+                            "additionalProperties": {
+                              "nullable": true
+                            }
                           },
                           "entityId": {
                             "type": "string",

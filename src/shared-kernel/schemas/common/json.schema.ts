@@ -14,7 +14,7 @@ export const JsonPrimitiveSchema = z.union([z.string(), z.number(), z.boolean(),
 export const JsonValueSchema = z.union([
   JsonPrimitiveSchema,
   z.array(z.unknown()),
-  z.object({}).passthrough(),
+  z.record(z.string(), z.unknown()),
 ]);
 
 export type JsonPrimitive = z.infer<typeof JsonPrimitiveSchema>;

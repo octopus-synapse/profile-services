@@ -19,6 +19,7 @@ export class ListUserCommentsUseCase {
     const comments = await this.repository.listByAuthor(userId, cursor, safeLimit);
     const nextCursor =
       comments.length === safeLimit ? comments[comments.length - 1].createdAt.toISOString() : null;
-    return { items: comments, nextCursor, hasNext: nextCursor !== null };
+    const sanitized = comments.map(({ deletedAt: _omit, ...rest }) => rest) as CommentWithPost[];
+    return { items: sanitized, nextCursor, hasNext: nextCursor !== null };
   }
 }

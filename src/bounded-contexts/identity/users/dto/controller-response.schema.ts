@@ -138,8 +138,8 @@ const PublicProfileResumeSchema = z.object({
   website: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const PublicProfileDataSchema = z.object({
@@ -160,8 +160,8 @@ const UserProfileSchema = z.object({
   linkedin: z.string().nullable().optional(),
   github: z.string().nullable().optional(),
   twitter: z.string().nullable().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const UserProfileDataSchema = z.object({ profile: UserProfileSchema });
@@ -214,8 +214,8 @@ const FullUserPreferencesSchema = z.object({
   includePhotoInExport: z.boolean(),
   applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']),
   applyCriteria: UserApplyCriteriaSchema.nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 const UserPreferencesDataSchema = z.object({ preferences: BasicUserPreferencesSchema });

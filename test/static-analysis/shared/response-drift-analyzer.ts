@@ -39,6 +39,7 @@ function isNullable(schema: ZodSchema<unknown>): boolean {
   const def = getDef(schema);
   if (!def) return false;
   if (def.typeName === 'ZodNullable' || def.typeName === 'ZodNull') return true;
+  if (def.typeName === 'ZodAny' || def.typeName === 'ZodUnknown') return true;
   if (def.typeName === 'ZodOptional' || def.typeName === 'ZodDefault') {
     return def.innerType ? isNullable(def.innerType) : false;
   }

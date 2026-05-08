@@ -985,7 +985,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     { bundle: passwordManagement, routes: passwordManagementRoutes },
     { bundle: (users as { bundle: unknown }).bundle, routes: usersRoutes },
     {
-      bundle: (shadowProfile as { shadowProfileService: unknown }).shadowProfileService,
+      bundle: shadowProfile,
       routes: shadowProfileRoutes,
     },
     { bundle: uiState, routes: uiStateRoutes },

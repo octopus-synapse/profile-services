@@ -190,6 +190,7 @@ export const JobApplicationSchema = z.object({
   resumeId: z.string().nullable(),
   tailoredVersionId: z.string().nullable(),
   createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export const ApplicationWithJobSchema = JobApplicationSchema.extend({

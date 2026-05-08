@@ -37,6 +37,12 @@ export const ShareAnalyticsSummarySchema = z.object({
       count: z.number().int().min(0),
     }),
   ),
+  byDeviceType: z.array(
+    z.object({
+      deviceType: z.string().nullable(),
+      count: z.number().int().min(0),
+    }),
+  ),
   recentEvents: z.array(ShareAnalyticsRecentEventSchema),
 });
 

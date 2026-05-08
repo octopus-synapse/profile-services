@@ -58,10 +58,12 @@ export function renderSuccessMessageForRequest(
 
 /** Type-guard so adapters can detect the envelope before serialising. */
 export function isSuccessMessage(value: unknown): value is SuccessMessageEnvelope {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as { code?: unknown }).code === 'string' &&
-    !('message' in value)
-  );
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  if (typeof v.code !== 'string') return false;
+  if ('message' in v) return false;
+  for (const key of Object.keys(v)) {
+    if (key !== 'code' && key !== 'params') return false;
+  }
+  return true;
 }

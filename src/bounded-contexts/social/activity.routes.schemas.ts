@@ -38,17 +38,18 @@ import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const UserIdParam = UserIdParamSchema;
-export const UserIdAndTypeParam = z.object({ userId: z.string(), type: z.string() });
+export const UserIdAndTypeParam = z.object({ userId: z.string(), type: z.string() }).openapi({
+  example: { userId: '01900000-0000-7000-a000-000000000020', type: 'RESUME_CREATED' },
+});
 export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ─────────────────────────────────────────────────
 //
 // `metadata` is a Prisma JSON column whose shape varies per `ActivityType`
 // (e.g. `{followedUserId, followedUserName}` for `FOLLOWED_USER`). We
-// model it as a permissive `passthrough()` object — the same pattern
-// `feed/dto/create-post-request.dto.ts` uses for similarly-typed JSON
-// payloads.
-export const ActivityMetadataSchema = z.object({}).passthrough().nullable();
+// model it as a permissive `record(unknown)` so contract drift checks
+// don't flag per-type fields as extras.
+export const ActivityMetadataSchema = z.record(z.string(), z.unknown()).nullable();
 
 export const ActivityUserSchema = z.object({
   id: z.string(),

@@ -10,7 +10,9 @@ import type { GitHubSummaryResult } from './application/use-cases/get-github-sum
 import type { GitHubSyncResult } from './application/use-cases/sync-github/sync-github.use-case';
 import { toPinnedReposResponseDto } from './infrastructure/presenters/github.presenter';
 
-export const SummaryParams = z.object({ username: z.string() });
+export const SummaryParams = z
+  .object({ username: z.string() })
+  .openapi({ example: { username: 'octocat' } });
 export const ResumeIdParams = z.object({ resumeId: z.string() });
 export const SyncBody = z
   .object({

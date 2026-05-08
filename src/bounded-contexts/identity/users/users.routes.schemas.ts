@@ -143,7 +143,7 @@ export const ManagedUserDetailsResponseSchema = z.object({
     lastLoginAt: IsoDateTimeSchema.nullable(),
     roles: z.array(z.string()),
     resumes: z.array(ManagedUserResumeItemSchema),
-    preferences: z.object({}).passthrough().nullable(),
+    preferences: z.record(z.string(), z.unknown()).nullable(),
     counts: z.object({
       accounts: z.number().int(),
       sessions: z.number().int(),

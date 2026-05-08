@@ -82,7 +82,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { username } = ctx.params as { username: string };
       const data = await bundle.profile.getPublicProfileUseCase.execute(username);
-      return PublicProfileDataSchema.parse({ user: data.user, resume: data.resume });
+      return { user: data.user, resume: data.resume };
     },
   },
   {
@@ -287,7 +287,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const preferences = await bundle.preferences.getFullPreferencesUseCase.execute(
         ctx.user!.userId,
       );
-      return UserFullPreferencesDataSchema.parse({ preferences });
+      return { preferences };
     },
   },
   {

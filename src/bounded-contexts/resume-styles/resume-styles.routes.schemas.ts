@@ -85,7 +85,7 @@ export const JsonNodeLevel1Schema = z.union([
   z.array(JsonNodeLevel2Schema),
   z.record(z.string(), JsonNodeLevel2Schema),
 ]);
-export const StyleConfigSchema = z.record(z.string(), JsonNodeLevel1Schema);
+export const StyleConfigSchema = z.record(z.string(), z.unknown());
 
 export const StyleSummaryResponseSchema = z.object({
   id: z.string(),
