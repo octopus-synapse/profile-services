@@ -4,6 +4,9 @@ import type { ZodSchema } from 'zod';
 import type { OperationMetadata, SwaggerInfo } from '../engine';
 import {
   analyzeDrift,
+  buildQueryString,
+  extractParamsExample,
+  extractQueryExample,
   fillPathParams,
   isHappyPathProbable,
   loadRoutes,
@@ -44,7 +47,9 @@ describe('Contract — GET 200: response matches Zod schema', () => {
     if (meta?.guards?.some((g: string) => SKIP_GUARDS.has(g))) continue;
 
     it(`GET ${route.path}`, async () => {
-      const url = `${BASE_URL}/api${fillPathParams(route.path)}`;
+      const paramsExample = extractParamsExample(route.params) as Record<string, unknown> | null;
+      const queryExample = extractQueryExample(route.query);
+      const url = `${BASE_URL}/api${fillPathParams(route.path, paramsExample ?? undefined)}${buildQueryString(queryExample)}`;
       const outcome = await probe({ method: 'GET', url, token: pool.tokenFor(persona) });
 
       expect(outcome.error).toBeUndefined();

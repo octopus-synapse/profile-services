@@ -8,12 +8,17 @@
  */
 
 import { randomBytes } from 'node:crypto';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import { withRedirect } from '@/shared-kernel/http/route.types';
 import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 
-export const ProviderParam = z.object({ provider: z.enum(['github', 'linkedin']) });
+extendZodWithOpenApi(z);
+
+export const ProviderParam = z
+  .object({ provider: z.enum(['github', 'linkedin']) })
+  .openapi({ example: { provider: 'github' } });
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const OAuthAvailabilityResponseSchema = z.object({ available: z.boolean() });

@@ -18,7 +18,9 @@ export const ResumeIdAndVersionIdParam = z.object({
   versionId: z.string(),
 });
 
-export const VersionIdQuery = z.object({ versionId: z.string() });
+export const VersionIdQuery = z
+  .object({ versionId: z.string() })
+  .openapi({ example: { versionId: '01900000-0000-7000-a000-000000000001' } });
 
 export const TailorResumeBody = z
   .object({

@@ -37,10 +37,12 @@ export const SimilarQuerySchema = z.object({
 });
 export type SimilarQuery = z.infer<typeof SimilarQuerySchema>;
 
-export const GlobalSearchQuerySchema = z.object({
-  q: z.string().min(1).max(200),
-  limit: z.coerce.number().int().min(1).max(20).default(5),
-});
+export const GlobalSearchQuerySchema = z
+  .object({
+    q: z.string().min(1).max(200),
+    limit: z.coerce.number().int().min(1).max(20).default(5),
+  })
+  .openapi({ example: { q: 'react' } });
 export type GlobalSearchQuery = z.infer<typeof GlobalSearchQuerySchema>;
 
 export const IdParam = IdParamSchema;

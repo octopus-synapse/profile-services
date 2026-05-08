@@ -9,12 +9,17 @@
  *  - `TechSkillsSyncService` for the admin-only sync endpoint.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-export const SearchQuery = z.object({
-  q: z.string(),
-  limit: z.string().optional(),
-});
+extendZodWithOpenApi(z);
+
+export const SearchQuery = z
+  .object({
+    q: z.string(),
+    limit: z.string().optional(),
+  })
+  .openapi({ example: { q: 'react' } });
 
 export const TypeParams = z.object({ type: z.string() });
 export const AreaParams = z.object({ areaType: z.string() });

@@ -1,5 +1,10 @@
-export { extractBodyExample } from './body-builder';
 export {
+  extractBodyExample,
+  extractParamsExample,
+  extractQueryExample,
+} from './example-extractor';
+export {
+  buildQueryString,
   FIXTURE_CONVERSATION_ID,
   FIXTURE_GENERIC_ID,
   FIXTURE_JOB_ID,

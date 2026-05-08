@@ -9,6 +9,7 @@
  * mirror the original parseInt validation semantics.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { ValidationException } from '@/shared-kernel';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
@@ -19,6 +20,8 @@ import {
   MecStatsSchema,
   SyncMetadataSchema,
 } from './schemas/mec.schema';
+
+extendZodWithOpenApi(z);
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const CoursesListResponseSchema = z.object({ courses: z.array(CourseSchema) });
@@ -81,14 +84,20 @@ export function parseCodeOrThrow(raw: string): number {
   return parsed;
 }
 
-export const SearchQuery = z.object({
-  q: z.string(),
-  limit: z.string().optional(),
-});
+export const SearchQuery = z
+  .object({
+    q: z.string(),
+    limit: z.string().optional(),
+  })
+  .openapi({ example: { q: 'engenharia' } });
 
 export const ListInstitutionsQuery = z.object({
   uf: z.string().optional(),
 });
 
-export const CourseCodeParams = z.object({ codigoCurso: z.string() });
-export const InstitutionCodeParams = z.object({ codigoIes: z.string() });
+export const CourseCodeParams = z
+  .object({ codigoCurso: z.string() })
+  .openapi({ example: { codigoCurso: '1' } });
+export const InstitutionCodeParams = z
+  .object({ codigoIes: z.string() })
+  .openapi({ example: { codigoIes: '1' } });

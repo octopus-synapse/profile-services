@@ -45,11 +45,13 @@ export const TrackViewBody = z
   });
 
 export const PeriodEnum = z.enum(['day', 'week', 'month', 'year']);
-export const ViewStatsQuery = z.object({
-  period: PeriodEnum,
-  startDate: IsoDateTimeSchema.optional(),
-  endDate: IsoDateTimeSchema.optional(),
-});
+export const ViewStatsQuery = z
+  .object({
+    period: PeriodEnum,
+    startDate: IsoDateTimeSchema.optional(),
+    endDate: IsoDateTimeSchema.optional(),
+  })
+  .openapi({ example: { period: 'month' } });
 
 export const IndustryEnum = z.enum([
   'software_engineering',
@@ -73,10 +75,12 @@ export const ExperienceLevelEnum = z.enum([
   'executive',
 ]);
 
-export const KeywordOptionsQuery = z.object({
-  industry: IndustryEnum,
-  targetRole: z.string().optional(),
-});
+export const KeywordOptionsQuery = z
+  .object({
+    industry: IndustryEnum,
+    targetRole: z.string().optional(),
+  })
+  .openapi({ example: { industry: 'software_engineering' } });
 
 export const JobMatchBody = z.object({ jobDescription: z.string().min(10) }).openapi({
   example: {
@@ -85,10 +89,12 @@ export const JobMatchBody = z.object({ jobDescription: z.string().min(10) }).ope
   },
 });
 
-export const BenchmarkOptionsQuery = z.object({
-  industry: IndustryEnum,
-  experienceLevel: ExperienceLevelEnum.optional(),
-});
+export const BenchmarkOptionsQuery = z
+  .object({
+    industry: IndustryEnum,
+    experienceLevel: ExperienceLevelEnum.optional(),
+  })
+  .openapi({ example: { industry: 'software_engineering' } });
 
 export const HistoryQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(10),

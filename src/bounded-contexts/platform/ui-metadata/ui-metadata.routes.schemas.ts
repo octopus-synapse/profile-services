@@ -7,20 +7,24 @@ import { z } from 'zod';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const EnumKeyParams = z.object({ key: z.string() });
+export const EnumKeyParams = z
+  .object({ key: z.string() })
+  .openapi({ example: { key: 'notification-types' } });
 
-export const SettingsSectionParams = z.object({
-  section: z.enum([
-    'profile',
-    'security',
-    'notifications',
-    'privacy',
-    'integrations',
-    'billing',
-    'preferences',
-    'one-click-apply',
-  ]),
-});
+export const SettingsSectionParams = z
+  .object({
+    section: z.enum([
+      'profile',
+      'security',
+      'notifications',
+      'privacy',
+      'integrations',
+      'billing',
+      'preferences',
+      'one-click-apply',
+    ]),
+  })
+  .openapi({ example: { section: 'profile' } });
 
 export interface SettingsField {
   readonly key: string;

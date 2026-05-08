@@ -178,8 +178,12 @@ export const UpdatedUserResponseSchema = z.object({
   message: z.string(),
 });
 
-export const UsernameParam = z.object({ username: z.string() });
-export const CheckUsernameQuery = z.object({ username: z.string() });
+export const UsernameParam = z
+  .object({ username: z.string() })
+  .openapi({ example: { username: 'janedoe' } });
+export const CheckUsernameQuery = z
+  .object({ username: z.string() })
+  .openapi({ example: { username: 'janedoe' } });
 
 // Public users listing — used by the SEO sitemap. No auth.
 export const PublicUserItemSchema = z.object({

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  buildQueryString,
   FIXTURE_GENERIC_ID,
   FIXTURE_JOB_ID,
   FIXTURE_RESUME_ID,
@@ -47,6 +48,44 @@ describe('fillPathParams', () => {
 
   test('leaves a token-free path unchanged', () => {
     expect(fillPathParams('/v1/health')).toBe('/v1/health');
+  });
+
+  test('honors per-token overrides over fixture defaults', () => {
+    expect(fillPathParams('/v1/auth/oauth/available/:provider', { provider: 'github' })).toBe(
+      '/v1/auth/oauth/available/github',
+    );
+    expect(fillPathParams('/v1/users/:userId', { userId: 'custom-user' })).toBe(
+      '/v1/users/custom-user',
+    );
+  });
+
+  test('falls back to the fixture when an override is undefined or null', () => {
+    expect(fillPathParams('/v1/users/:userId', { userId: undefined })).toBe(
+      `/v1/users/${FIXTURE_USER_ID}`,
+    );
+    expect(fillPathParams('/v1/users/:userId', { userId: null })).toBe(
+      `/v1/users/${FIXTURE_USER_ID}`,
+    );
+  });
+});
+
+describe('buildQueryString', () => {
+  test('returns an empty string when there is nothing to encode', () => {
+    expect(buildQueryString(undefined)).toBe('');
+    expect(buildQueryString(null)).toBe('');
+    expect(buildQueryString({})).toBe('');
+  });
+
+  test('encodes scalar values with a leading question mark', () => {
+    expect(buildQueryString({ q: 'react', limit: 10 })).toBe('?q=react&limit=10');
+  });
+
+  test('skips undefined and null members', () => {
+    expect(buildQueryString({ q: 'react', period: undefined, industry: null })).toBe('?q=react');
+  });
+
+  test('repeats keys for array values', () => {
+    expect(buildQueryString({ tag: ['ts', 'go'] })).toBe('?tag=ts&tag=go');
   });
 });
 

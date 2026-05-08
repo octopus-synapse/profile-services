@@ -29,8 +29,12 @@ function findExample(schema: ZodSchema<unknown>): unknown | undefined {
   return undefined;
 }
 
-export function extractBodyExample(bodySchema: ZodSchema<unknown> | undefined): unknown | null {
-  if (!bodySchema) return null;
-  const example = findExample(bodySchema);
+function extract(schema: ZodSchema<unknown> | undefined): unknown | null {
+  if (!schema) return null;
+  const example = findExample(schema);
   return example !== undefined ? example : null;
 }
+
+export const extractBodyExample = extract;
+export const extractQueryExample = extract;
+export const extractParamsExample = extract;

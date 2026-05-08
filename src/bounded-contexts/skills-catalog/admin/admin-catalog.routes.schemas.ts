@@ -28,7 +28,7 @@ export const SkillListQuery = ListQuery.extend({
 });
 
 export const IdParam = IdParamSchema;
-export const CodeParam = z.object({ code: z.string() });
+export const CodeParam = z.object({ code: z.string() }).openapi({ example: { code: 'en' } });
 export const SlugParam = z.object({ slug: z.string() });
 
 export const AnyBody = z.record(z.unknown()).openapi({
