@@ -254,6 +254,6 @@ export const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8
 
 export const AssignRolesSchema = z.object({ roles: z.array(z.string()) }).openapi({
   example: {
-    roles: ['USER', 'EDITOR'],
+    roles: ['role_user'],
   },
 });

@@ -71,7 +71,7 @@ export const SubmitFitAnswersSchema = z
       questionSetId: '01900000-0000-7000-a000-000000000020',
       answers: Array.from({ length: QUESTION_SET_SIZE }, (_, i) => ({
         questionId: `01900000-0000-7000-a000-${String(i + 1).padStart(12, '0')}`,
-        rawValue: 3,
+        rawValue: ((i * 7) % 5) + 1,
       })),
     },
   });

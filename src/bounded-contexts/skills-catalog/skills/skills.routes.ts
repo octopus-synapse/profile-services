@@ -24,7 +24,7 @@ const CreateSkillBody = z
   .openapi({
     example: {
       name: 'TypeScript',
-      category: 'programming-languages',
+      category: 'Language',
       level: 4,
     },
   });

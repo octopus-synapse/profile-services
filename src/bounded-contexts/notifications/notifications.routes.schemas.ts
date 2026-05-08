@@ -27,12 +27,37 @@ export abstract class NotificationsSseBundle {
   abstract subscribeToUserStream(userId: string): Observable<NotificationsSseEvent>;
 }
 
+// Mirrors `NotificationType` from the Prisma enum — keep in sync with
+// `src/bounded-contexts/notifications/domain/entities/notification.ts`.
+export const NOTIFICATION_TYPES = [
+  'POST_LIKED',
+  'POST_COMMENTED',
+  'POST_REPOSTED',
+  'POST_BOOKMARKED',
+  'COMMENT_REPLIED',
+  'CONNECTION_REQUEST',
+  'CONNECTION_ACCEPTED',
+  'FOLLOW_NEW',
+  'CONNECTION_RECOMMENDATION',
+  'SKILL_DECAY',
+  'APPLICATION_STALE',
+  'FIT_PROFILE_EXPIRED',
+  'FIT_PROFILE_EXPIRY_REMINDER',
+  'MATCH_RECOMMENDATIONS_READY',
+  'RESUME_QUALITY_IMPROVED',
+  'RESUME_QUALITY_REGRESSED',
+] as const satisfies readonly NotificationType[];
+
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),
   limit: z.string().optional(),
 });
 
-export const TypeParam = z.object({ type: z.string() });
+export const TypeParam = z.object({ type: z.enum(NOTIFICATION_TYPES) }).openapi({
+  example: {
+    type: 'POST_LIKED',
+  },
+});
 
 export const MarkReadBody = z
   .object({
@@ -59,26 +84,6 @@ export const SetPreferenceBody = z
   });
 
 // ─── Response schemas ────────────────────────────────────────────────
-// Mirrors `NotificationType` from the Prisma enum — keep in sync with
-// `src/bounded-contexts/notifications/domain/entities/notification.ts`.
-export const NOTIFICATION_TYPES = [
-  'POST_LIKED',
-  'POST_COMMENTED',
-  'POST_REPOSTED',
-  'POST_BOOKMARKED',
-  'COMMENT_REPLIED',
-  'CONNECTION_REQUEST',
-  'CONNECTION_ACCEPTED',
-  'FOLLOW_NEW',
-  'CONNECTION_RECOMMENDATION',
-  'SKILL_DECAY',
-  'APPLICATION_STALE',
-  'FIT_PROFILE_EXPIRED',
-  'FIT_PROFILE_EXPIRY_REMINDER',
-  'MATCH_RECOMMENDATIONS_READY',
-  'RESUME_QUALITY_IMPROVED',
-  'RESUME_QUALITY_REGRESSED',
-] as const satisfies readonly NotificationType[];
 
 export const NotificationTypeSchema = z.enum(NOTIFICATION_TYPES);
 

@@ -14,8 +14,8 @@ export const CreateAccountSchema = z
       name: 'Jane Doe',
       email: 'jane.doe@example.com',
       password: 'SecurePass123!',
-      acceptedTosVersion: '2026-01-01',
-      acceptedPrivacyVersion: '2026-01-01',
+      acceptedTosVersion: '1.0.0',
+      acceptedPrivacyVersion: '1.0.0',
     },
   });
 

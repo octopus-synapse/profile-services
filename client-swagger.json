@@ -523,8 +523,8 @@
                   "name": "Jane Doe",
                   "email": "jane.doe@example.com",
                   "password": "SecurePass123!",
-                  "acceptedTosVersion": "2026-01-01",
-                  "acceptedPrivacyVersion": "2026-01-01"
+                  "acceptedTosVersion": "1.0.0",
+                  "acceptedPrivacyVersion": "1.0.0"
                 }
               }
             }
@@ -16342,7 +16342,7 @@
                   "suite"
                 ],
                 "example": {
-                  "suite": "smoke"
+                  "suite": "seed-check"
                 }
               }
             }
@@ -33237,7 +33237,7 @@
                   "answers": [
                     {
                       "questionId": "01900000-0000-7000-a000-000000000001",
-                      "rawValue": 3
+                      "rawValue": 1
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000002",
@@ -33245,19 +33245,19 @@
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000003",
-                      "rawValue": 3
+                      "rawValue": 5
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000004",
-                      "rawValue": 3
+                      "rawValue": 2
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000005",
-                      "rawValue": 3
+                      "rawValue": 4
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000006",
-                      "rawValue": 3
+                      "rawValue": 1
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000007",
@@ -33265,19 +33265,19 @@
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000008",
-                      "rawValue": 3
+                      "rawValue": 5
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000009",
-                      "rawValue": 3
+                      "rawValue": 2
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000010",
-                      "rawValue": 3
+                      "rawValue": 4
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000011",
-                      "rawValue": 3
+                      "rawValue": 1
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000012",
@@ -33285,19 +33285,19 @@
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000013",
-                      "rawValue": 3
+                      "rawValue": 5
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000014",
-                      "rawValue": 3
+                      "rawValue": 2
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000015",
-                      "rawValue": 3
+                      "rawValue": 4
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000016",
-                      "rawValue": 3
+                      "rawValue": 1
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000017",
@@ -33305,19 +33305,19 @@
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000018",
-                      "rawValue": 3
+                      "rawValue": 5
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000019",
-                      "rawValue": 3
+                      "rawValue": 2
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000020",
-                      "rawValue": 3
+                      "rawValue": 4
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000021",
-                      "rawValue": 3
+                      "rawValue": 1
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000022",
@@ -33325,15 +33325,15 @@
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000023",
-                      "rawValue": 3
+                      "rawValue": 5
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000024",
-                      "rawValue": 3
+                      "rawValue": 2
                     },
                     {
                       "questionId": "01900000-0000-7000-a000-000000000025",
-                      "rawValue": 3
+                      "rawValue": 4
                     }
                   ]
                 }
@@ -44867,7 +44867,7 @@
                   "newPassword"
                 ],
                 "example": {
-                  "currentPassword": "OldPass123!",
+                  "currentPassword": "NotTheRealPassword!",
                   "newPassword": "NewSecurePass456!"
                 }
               }
@@ -48168,6 +48168,24 @@
           {
             "schema": {
               "type": "string",
+              "enum": [
+                "POST_LIKED",
+                "POST_COMMENTED",
+                "POST_REPOSTED",
+                "POST_BOOKMARKED",
+                "COMMENT_REPLIED",
+                "CONNECTION_REQUEST",
+                "CONNECTION_ACCEPTED",
+                "FOLLOW_NEW",
+                "CONNECTION_RECOMMENDATION",
+                "SKILL_DECAY",
+                "APPLICATION_STALE",
+                "FIT_PROFILE_EXPIRED",
+                "FIT_PROFILE_EXPIRY_REMINDER",
+                "MATCH_RECOMMENDATIONS_READY",
+                "RESUME_QUALITY_IMPROVED",
+                "RESUME_QUALITY_REGRESSED"
+              ],
               "example": "fixture-slug"
             },
             "required": true,
@@ -75057,7 +75075,7 @@
                 ],
                 "example": {
                   "name": "TypeScript",
-                  "category": "programming-languages",
+                  "category": "Language",
                   "level": 4
                 }
               }
@@ -88383,8 +88401,7 @@
                 ],
                 "example": {
                   "roles": [
-                    "USER",
-                    "EDITOR"
+                    "role_user"
                   ]
                 }
               }

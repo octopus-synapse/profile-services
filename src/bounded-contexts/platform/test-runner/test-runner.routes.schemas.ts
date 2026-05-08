@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 export const RunTestsBody = z.object({ suite: z.string() }).openapi({
   example: {
-    suite: 'smoke',
+    suite: 'seed-check',
   },
 });
 

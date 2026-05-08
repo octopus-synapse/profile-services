@@ -2,7 +2,10 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { resolve } from 'node:path';
 import type { OperationMetadata, SwaggerInfo } from '../engine';
 import {
+  buildQueryString,
   extractBodyExample,
+  extractParamsExample,
+  extractQueryExample,
   fillPathParams,
   isMutationProbable,
   loadRoutes,
@@ -54,7 +57,9 @@ describe('Contract — POST/PUT/PATCH: valid body returns success status', () =>
         );
       }
 
-      const url = `${BASE_URL}/api${fillPathParams(route.path)}`;
+      const paramsExample = extractParamsExample(route.params) as Record<string, unknown> | null;
+      const queryExample = extractQueryExample(route.query);
+      const url = `${BASE_URL}/api${fillPathParams(route.path, paramsExample ?? undefined)}${buildQueryString(queryExample)}`;
       const outcome = await probe({
         method: route.method,
         url,

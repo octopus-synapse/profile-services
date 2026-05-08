@@ -8,7 +8,7 @@ export const ChangePasswordSchema = z
   })
   .openapi({
     example: {
-      currentPassword: 'OldPass123!',
+      currentPassword: 'NotTheRealPassword!',
       newPassword: 'NewSecurePass456!',
     },
   });
