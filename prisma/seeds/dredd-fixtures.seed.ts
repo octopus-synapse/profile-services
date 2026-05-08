@@ -13,8 +13,13 @@
 
 import {
   FitDimension,
+  ImportSource,
+  ImportStatus,
+  JobApplicationStatus,
   JobType,
   LayoutKind,
+  ModifierEffect,
+  ModifierType,
   NotificationType,
   PostType,
   type PrismaClient,
@@ -32,7 +37,7 @@ import {
 
 const FIXTURE_USER_EMAIL = 'dredd-fixture@profile.local';
 const FIXTURE_USER_NAME = 'Dredd Fixture User';
-const FIXTURE_USERNAME = 'dredd-fixture';
+const FIXTURE_USERNAME = 'fixture-user';
 
 const DREDD_NOPERMS_USER_ID = '01900000-0000-7000-a000-000000000070';
 const DREDD_NOPERMS_EMAIL = 'dredd-noperms@profile.local';
@@ -64,6 +69,7 @@ export async function seedDreddFixtures(
       roles: ['role_user'],
     },
     update: {
+      username: FIXTURE_USERNAME,
       emailVerified: new Date(),
       onboardingCompletedAt: new Date(),
       isActive: true,
@@ -309,10 +315,10 @@ export async function seedDreddFixtures(
 
   // TechNiche with id = EXAMPLE_GENERIC_ID (references the 'OTHER' area)
   await prisma.techNiche.upsert({
-    where: { slug: 'fixture-niche' },
+    where: { slug: EXAMPLE_SLUG },
     create: {
       id: EXAMPLE_GENERIC_ID,
-      slug: 'fixture-niche',
+      slug: EXAMPLE_SLUG,
       nameEn: 'Fixture Niche',
       namePtBr: 'Nicho Fixture',
       descriptionEn: 'Dredd fixture tech niche.',
@@ -368,7 +374,145 @@ export async function seedDreddFixtures(
     update: {},
   });
 
+  // ── ResumeShare (for {shareId} routes) ───────────────────────────────
+  await prisma.resumeShare.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      resumeId: EXAMPLE_RESUME_ID,
+      slug: `${EXAMPLE_SLUG}-share`,
+    },
+    update: {},
+  });
+
+  // ── ResumeShareAlias (for {aliasId} routes) ────────────────────────
+  await prisma.resumeShareAlias.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      shareId: EXAMPLE_GENERIC_ID,
+      slug: `${EXAMPLE_SLUG}-alias`,
+    },
+    update: {},
+  });
+
+  // ── ResumeImport (for {importId} routes) ──────────────────────────
+  await prisma.resumeImport.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      userId: EXAMPLE_USER_ID,
+      source: ImportSource.JSON,
+      status: ImportStatus.COMPLETED,
+    },
+    update: {},
+  });
+
+  // ── ResumeVersion (for {versionId} routes) ────────────────────────
+  await prisma.resumeVersion.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      resumeId: EXAMPLE_RESUME_ID,
+      versionNumber: 1,
+      snapshot: {},
+    },
+    update: {},
+  });
+
+  // ── ResumeSection + SectionItem (for {itemId}/{skillId} routes) ───
+  const fixtureSectionType = await prisma.sectionType.findUnique({ where: { key: EXAMPLE_SLUG } });
+  if (fixtureSectionType) {
+    const fixtureSection = await prisma.resumeSection.upsert({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId: EXAMPLE_RESUME_ID,
+          sectionTypeId: fixtureSectionType.id,
+        },
+      },
+      create: {
+        resumeId: EXAMPLE_RESUME_ID,
+        sectionTypeId: fixtureSectionType.id,
+        order: 0,
+      },
+      update: {},
+    });
+    await prisma.sectionItem.upsert({
+      where: { id: EXAMPLE_GENERIC_ID },
+      create: {
+        id: EXAMPLE_GENERIC_ID,
+        resumeSectionId: fixtureSection.id,
+        content: {},
+        order: 0,
+      },
+      update: {},
+    });
+  }
+
+  // ── CollaborationComment (for {commentId} routes) ─────────────────
+  await prisma.collaborationComment.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      resumeId: EXAMPLE_RESUME_ID,
+      authorId: EXAMPLE_USER_ID,
+      content: 'Dredd fixture comment.',
+    },
+    update: {},
+  });
+
+  // ── WeeklyCuratedBatch + WeeklyCuratedItem (for apply-mode {itemId} routes) ─
+  const fixtureBatch = await prisma.weeklyCuratedBatch.upsert({
+    where: {
+      userId_weekOf: {
+        userId: EXAMPLE_USER_ID,
+        weekOf: new Date('2026-01-05T00:00:00.000Z'),
+      },
+    },
+    create: {
+      userId: EXAMPLE_USER_ID,
+      weekOf: new Date('2026-01-05T00:00:00.000Z'),
+    },
+    update: {},
+  });
+  await prisma.weeklyCuratedItem.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      batchId: fixtureBatch.id,
+      jobId: EXAMPLE_JOB_ID,
+      matchScore: 80,
+    },
+    update: {},
+  });
+
+  // ── JobApplication (for {applicationId} routes) ───────────────────
+  await prisma.jobApplication.upsert({
+    where: { jobId_userId: { jobId: EXAMPLE_JOB_ID, userId: EXAMPLE_USER_ID } },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      jobId: EXAMPLE_JOB_ID,
+      userId: EXAMPLE_USER_ID,
+      status: JobApplicationStatus.SUBMITTED,
+    },
+    update: {},
+  });
+
+  // ── AccessModifier (for {modifierId} routes) ──────────────────────
+  await prisma.accessModifier.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      userId: EXAMPLE_GENERIC_ID,
+      modifierType: ModifierType.SUSPEND_EMAIL_VERIFIED,
+      effect: ModifierEffect.DENY,
+      reason: 'Dredd fixture modifier.',
+      createdBy: EXAMPLE_USER_ID,
+    },
+    update: {},
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog)',
+    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode)',
   );
 }

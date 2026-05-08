@@ -114,6 +114,9 @@ const SKIP_DESTRUCTIVE_OPS = [
   // Match the exact route template (no trailing-segment ambiguity).
   { method: 'DELETE', path: '/v1/accounts' },
   { method: 'DELETE', path: '/v1/accounts/deactivate' },
+  // Protects the generic fixture user (EXAMPLE_GENERIC_ID) from being
+  // destroyed mid-run — it must remain for /users/manage/{id} GET routes.
+  { method: 'DELETE', path: '/v1/users/manage/{id}' },
 ];
 
 function shouldSkip(name, transaction) {
@@ -400,7 +403,17 @@ const FIXTURE_IDS = {
   postId: process.env.DREDD_FIXTURE_POST_ID || FIXTURE_POST_ID,
   conversationId: process.env.DREDD_FIXTURE_CONVERSATION_ID || FIXTURE_CONVERSATION_ID,
   notificationId: process.env.DREDD_FIXTURE_NOTIFICATION_ID || FIXTURE_NOTIFICATION_ID,
+  // All entity types with {id} or UUID-typed params use EXAMPLE_GENERIC_ID.
   id: FIXTURE_GENERIC_ID,
+  shareId: FIXTURE_GENERIC_ID,
+  aliasId: FIXTURE_GENERIC_ID,
+  importId: FIXTURE_GENERIC_ID,
+  versionId: FIXTURE_GENERIC_ID,
+  itemId: FIXTURE_GENERIC_ID,
+  commentId: FIXTURE_GENERIC_ID,
+  applicationId: FIXTURE_GENERIC_ID,
+  modifierId: FIXTURE_GENERIC_ID,
+  skillId: FIXTURE_GENERIC_ID,
 };
 
 const MISSING_ID_SENTINEL = '00000000-0000-0000-0000-000000000000';
