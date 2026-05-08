@@ -30,10 +30,8 @@ export const GotoStepBody = z.object({ stepId: z.string() });
 export type LocaleQuery = z.infer<typeof LocaleQuery>;
 
 // ─── Response schemas ─────────────────────────────────────────────────
-// Bounded JSON-leaf type used for free-form Prisma JSON columns
-// (`fields`, `translations`, `validation`, `strengthLevels`). Two
-// levels of nesting cover every realistic shape without `z.lazy()`.
-export const JsonValueSchema = z.unknown().openapi({ example: { fields: [] } });
+export const JsonArrayValueSchema = z.array(z.unknown()).openapi({ example: [] });
+export const JsonObjectValueSchema = z.record(z.unknown()).openapi({ example: {} });
 
 export const OnboardingStepRowSchema = z.object({
   id: z.string(),
@@ -43,9 +41,9 @@ export const OnboardingStepRowSchema = z.object({
   icon: z.string(),
   required: z.boolean(),
   sectionTypeKey: z.string().nullable(),
-  fields: JsonValueSchema,
-  translations: JsonValueSchema,
-  validation: JsonValueSchema,
+  fields: JsonArrayValueSchema,
+  translations: JsonObjectValueSchema,
+  validation: JsonObjectValueSchema,
   strengthWeight: z.number().int(),
   isActive: z.boolean(),
   createdAt: IsoDateTimeSchema,
@@ -72,7 +70,7 @@ export const OnboardingStatsResponseSchema = z.object({
 export const OnboardingConfigRowSchema = z.object({
   id: z.string(),
   key: z.string(),
-  strengthLevels: JsonValueSchema,
+  strengthLevels: JsonArrayValueSchema,
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });

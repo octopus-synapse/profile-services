@@ -59,15 +59,18 @@ export class PrismaAdminAnalyticsRepository extends AdminAnalyticsRepositoryPort
     const results = await this.prisma.$queryRaw<{ bucket: string; count: bigint }[]>`
       SELECT
         CASE
-          WHEN "atsScore" <= 20 THEN '0-20'
-          WHEN "atsScore" <= 40 THEN '21-40'
-          WHEN "atsScore" <= 60 THEN '41-60'
-          WHEN "atsScore" <= 80 THEN '61-80'
+          WHEN score <= 20 THEN '0-20'
+          WHEN score <= 40 THEN '21-40'
+          WHEN score <= 60 THEN '41-60'
+          WHEN score <= 80 THEN '61-80'
           ELSE '81-100'
         END as bucket,
         COUNT(*)::bigint as count
-      FROM "ResumeAnalytics"
-      WHERE "atsScore" IS NOT NULL
+      FROM (
+        SELECT "overallScore" AS score
+        FROM "ResumeQualityScoreHistory"
+        WHERE "overallScore" IS NOT NULL
+      ) AS scores
       GROUP BY bucket
       ORDER BY bucket
     `;

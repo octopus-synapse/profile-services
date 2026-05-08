@@ -31,9 +31,25 @@ export const IdParam = IdParamSchema;
 export const CodeParam = z.object({ code: z.string() });
 export const SlugParam = z.object({ slug: z.string() });
 
-export const AnyBody = z
-  .record(z.unknown())
-  .openapi({ example: { name: 'Fixture', isActive: true } });
+export const AnyBody = z.record(z.unknown()).openapi({
+  example: {
+    slug: 'fixture-slug',
+    nameEn: 'Fixture',
+    namePtBr: 'Fixture PT',
+    isActive: true,
+    areaId: '01900000-0000-7000-a000-000000000001',
+  },
+});
+
+export const SpokenLanguageBody = z.record(z.unknown()).openapi({
+  example: {
+    code: 'fixture-slug',
+    nameEn: 'Fixture',
+    namePtBr: 'Fixture PT',
+    nameEs: 'Fixture ES',
+    isActive: true,
+  },
+});
 
 // ─── Response schemas (mirror Prisma row shapes) ──────────────────────
 export const TechAreaTypeEnum = z.enum([

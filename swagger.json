@@ -3667,7 +3667,17 @@
                   "textEn",
                   "textPtBr",
                   "scaleType"
-                ]
+                ],
+                "example": {
+                  "key": "fixture-fit-q",
+                  "dimension": "BIG_FIVE_OPENNESS",
+                  "textEn": "I enjoy new experiences.",
+                  "textPtBr": "Gosto de novas experiências.",
+                  "scaleType": "likert5",
+                  "weight": 1,
+                  "isActive": true,
+                  "reverseScored": false
+                }
               }
             }
           }
@@ -4855,10 +4865,11 @@
                           "type": "string"
                         },
                         "strengthLevels": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "array",
+                          "items": {
+                            "nullable": true
+                          },
+                          "example": []
                         },
                         "createdAt": {
                           "type": "string",
@@ -4874,6 +4885,7 @@
                       "required": [
                         "id",
                         "key",
+                        "strengthLevels",
                         "createdAt",
                         "updatedAt"
                       ]
@@ -5046,10 +5058,11 @@
                           "type": "string"
                         },
                         "strengthLevels": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "array",
+                          "items": {
+                            "nullable": true
+                          },
+                          "example": []
                         },
                         "createdAt": {
                           "type": "string",
@@ -5065,6 +5078,7 @@
                       "required": [
                         "id",
                         "key",
+                        "strengthLevels",
                         "createdAt",
                         "updatedAt"
                       ]
@@ -5403,22 +5417,25 @@
                             "nullable": true
                           },
                           "fields": {
-                            "nullable": true,
-                            "example": {
-                              "fields": []
-                            }
+                            "type": "array",
+                            "items": {
+                              "nullable": true
+                            },
+                            "example": []
                           },
                           "translations": {
-                            "nullable": true,
-                            "example": {
-                              "fields": []
-                            }
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "example": {}
                           },
                           "validation": {
-                            "nullable": true,
-                            "example": {
-                              "fields": []
-                            }
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "example": {}
                           },
                           "strengthWeight": {
                             "type": "integer"
@@ -5445,6 +5462,9 @@
                           "icon",
                           "required",
                           "sectionTypeKey",
+                          "fields",
+                          "translations",
+                          "validation",
                           "strengthWeight",
                           "isActive",
                           "createdAt",
@@ -5634,22 +5654,25 @@
                           "nullable": true
                         },
                         "fields": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "array",
+                          "items": {
+                            "nullable": true
+                          },
+                          "example": []
                         },
                         "translations": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "validation": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "strengthWeight": {
                           "type": "integer"
@@ -5676,6 +5699,9 @@
                         "icon",
                         "required",
                         "sectionTypeKey",
+                        "fields",
+                        "translations",
+                        "validation",
                         "strengthWeight",
                         "isActive",
                         "createdAt",
@@ -6042,22 +6068,25 @@
                           "nullable": true
                         },
                         "fields": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "array",
+                          "items": {
+                            "nullable": true
+                          },
+                          "example": []
                         },
                         "translations": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "validation": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "strengthWeight": {
                           "type": "integer"
@@ -6084,6 +6113,9 @@
                         "icon",
                         "required",
                         "sectionTypeKey",
+                        "fields",
+                        "translations",
+                        "validation",
                         "strengthWeight",
                         "isActive",
                         "createdAt",
@@ -6321,22 +6353,25 @@
                           "nullable": true
                         },
                         "fields": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "array",
+                          "items": {
+                            "nullable": true
+                          },
+                          "example": []
                         },
                         "translations": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "validation": {
-                          "nullable": true,
-                          "example": {
-                            "fields": []
-                          }
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          },
+                          "example": {}
                         },
                         "strengthWeight": {
                           "type": "integer"
@@ -6363,6 +6398,9 @@
                         "icon",
                         "required",
                         "sectionTypeKey",
+                        "fields",
+                        "translations",
+                        "validation",
                         "strengthWeight",
                         "isActive",
                         "createdAt",
@@ -6848,8 +6886,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -7567,8 +7608,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -9793,7 +9837,18 @@
                   "semanticKind",
                   "definition",
                   "translations"
-                ]
+                ],
+                "example": {
+                  "key": "fixture_v1",
+                  "slug": "fixture-slug",
+                  "title": "Fixture Section",
+                  "semanticKind": "experience",
+                  "definition": {},
+                  "translations": {
+                    "en": { "title": "Fixture Section", "label": "Fixture" },
+                    "pt-BR": { "title": "Seção Fixture", "label": "Fixture" }
+                  }
+                }
               }
             }
           }
@@ -11568,7 +11623,10 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
+                  "code": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "nameEs": "Fixture ES",
                   "isActive": true
                 }
               }
@@ -12195,7 +12253,10 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
+                  "code": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "nameEs": "Fixture ES",
                   "isActive": true
                 }
               }
@@ -12709,8 +12770,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -13383,8 +13447,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -13920,8 +13987,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -14580,8 +14650,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -15158,8 +15231,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -15898,8 +15974,11 @@
                   "nullable": true
                 },
                 "example": {
-                  "name": "Fixture",
-                  "isActive": true
+                  "slug": "fixture-slug",
+                  "nameEn": "Fixture",
+                  "namePtBr": "Fixture PT",
+                  "isActive": true,
+                  "areaId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }

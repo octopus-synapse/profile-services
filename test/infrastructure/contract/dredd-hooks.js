@@ -36,6 +36,7 @@ const UNIQUE_FIELDS_TO_SUFFIX = new Set([
   'email',
   'username',
   'slug',
+  'code',
   'handle',
   'name',
   'title',
@@ -48,6 +49,12 @@ function applyUniqueSuffix(key, value) {
   if (key === 'email' && value.includes('@')) {
     const at = value.indexOf('@');
     return `${value.slice(0, at)}+${RUN_ID}${value.slice(at)}`;
+  }
+  // Keys following the section-type versioned pattern (e.g. "my_section_v1")
+  // must end with _v<digit(s)> — appending "-RUN_ID" breaks the pattern.
+  // Embed the run id before the version suffix instead.
+  if (key === 'key' && /_v\d+$/.test(value)) {
+    return value.replace(/_v(\d+)$/, `_${RUN_ID}_v$1`);
   }
   return `${value}-${RUN_ID}`;
 }
@@ -139,6 +146,17 @@ const SKIP_DESTRUCTIVE_OPS = [
   { method: 'DELETE', path: '/v1/webhooks/{id}' },
   // Protects the generic post and post comments.
   { method: 'DELETE', path: '/v1/posts/comments/{id}' },
+  // Admin catalog DELETE routes: each entity is seeded exactly once per
+  // run. The DELETE probe runs before GET/PATCH in Dredd's alphabetical
+  // order, destroying the fixture and causing those probes to 404.
+  { method: 'DELETE', path: '/v1/admin/programming-languages/{slug}' },
+  { method: 'DELETE', path: '/v1/admin/tech-skills/{id}' },
+  { method: 'DELETE', path: '/v1/admin/resume-styles/{id}' },
+  { method: 'DELETE', path: '/v1/admin/tech-niches/{id}' },
+  { method: 'DELETE', path: '/v1/admin/tech-areas/{id}' },
+  { method: 'DELETE', path: '/v1/admin/spoken-languages/{code}' },
+  { method: 'DELETE', path: '/v1/admin/fit-questions/{id}' },
+  { method: 'DELETE', path: '/v1/admin/section-types/{key}' },
   // Token-verification routes need a live token from a prior step (password
   // reset, email verification, 2FA setup). Dredd synthesizes a generic
   // string body — no valid token exists in the DB → handler returns 400/404
@@ -668,6 +686,23 @@ hooks.beforeEach((transaction, done) => {
       hooks.log(`[400-synthesis] no body schema for ${transaction.name} — skipping`);
     }
     return done();
+  }
+
+  // When the request body schema carries a top-level `example`, prefer it
+  // over whatever Dredd's faker synthesized — Dredd synthesizes empty strings
+  // for fields with minLength > 0 and ignores pattern constraints, causing
+  // spurious 400s on routes like fit-questions (textEn/textPtBr minLength:1)
+  // and section-types (key pattern ^[a-z][a-z0-9_]*_v\d+$).
+  const metaSuccess = lookupOperation(transaction);
+  const schemaHasExample = metaSuccess?.requestBodySchema?.example !== undefined;
+  if (schemaHasExample) {
+    const canonical = synthesizeValidBody(metaSuccess);
+    if (canonical !== null) {
+      suffixUniqueValues(canonical);
+      transaction.request.body = JSON.stringify(canonical);
+      transaction.request.headers['Content-Type'] = 'application/json';
+      return done();
+    }
   }
 
   if (transaction.request && typeof transaction.request.body === 'string') {

@@ -190,6 +190,10 @@ export function mountRoutes<TBundle>(
         for (const [k, v] of Object.entries(route.headers)) ec.set.headers[k] = v;
       }
       applyResponseHeaders(ctx, ec);
+      const effectiveStatus = ec.set.status as number | undefined;
+      if (effectiveStatus === 204 || effectiveStatus === 205) {
+        return new Response(null, { status: effectiveStatus, headers: ec.set.headers });
+      }
       // Unwrap `StreamableFile` (src/shared-kernel/http/streamable-file.ts)
       // so binary endpoints (`*.png`, PDF exports) emit raw bytes
       // instead of JSON-serialized objects.

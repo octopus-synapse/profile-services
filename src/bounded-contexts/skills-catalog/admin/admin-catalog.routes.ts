@@ -19,6 +19,7 @@ import {
   ProgrammingLanguageRowSchema,
   SkillListQuery,
   SlugParam,
+  SpokenLanguageBody,
   SpokenLanguageListResponseSchema,
   SpokenLanguageRowSchema,
   TechAreaListResponseSchema,
@@ -338,7 +339,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     path: '/v1/admin/spoken-languages',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
-    body: AnyBody,
+    body: SpokenLanguageBody,
     response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Create spoken language',
@@ -355,7 +356,7 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: CodeParam,
-    body: AnyBody,
+    body: SpokenLanguageBody,
     response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Update spoken language',

@@ -243,6 +243,7 @@ export async function seedDreddFixtures(
   // EXAMPLE_SLUG (for {key}/{slug}/{code} routes).
 
   // SectionType with key = fixture-slug (for admin section-type routes)
+  // isSystem must be false so the DELETE (204) contract test can delete it.
   await prisma.sectionType.upsert({
     where: { key: EXAMPLE_SLUG },
     create: {
@@ -251,15 +252,21 @@ export async function seedDreddFixtures(
       title: 'Fixture Section',
       description: 'Dredd fixture section type.',
       semanticKind: 'experience',
-      definition: {},
-      uiSchema: undefined,
-      renderHints: {},
+      isSystem: false,
+      definition: { fields: [], translations: {} },
+      uiSchema: { fields: [], translations: {} },
+      renderHints: { fields: [], translations: {} },
       fieldStyles: {},
       iconType: 'emoji',
       icon: '📄',
       translations: {},
     },
-    update: {},
+    update: {
+      isSystem: false,
+      definition: { fields: [], translations: {} },
+      uiSchema: { fields: [], translations: {} },
+      renderHints: { fields: [], translations: {} },
+    },
   });
 
   // OnboardingStep with key = fixture-slug
@@ -306,7 +313,8 @@ export async function seedDreddFixtures(
   });
 
   // TechArea: update 'OTHER' area's id to EXAMPLE_GENERIC_ID so Dredd's
-  // {id} → EXAMPLE_GENERIC_ID routes resolve. No niches reference 'OTHER'.
+  // {id} → EXAMPLE_GENERIC_ID routes resolve. No niches reference 'OTHER'
+  // (the niche below uses DEVELOPMENT) so the DELETE (200) contract test works.
   await prisma.$executeRaw`
     UPDATE "TechArea"
     SET id = ${EXAMPLE_GENERIC_ID}
@@ -314,7 +322,10 @@ export async function seedDreddFixtures(
       AND id != ${EXAMPLE_GENERIC_ID}
   `;
 
-  // TechNiche with id = EXAMPLE_GENERIC_ID (references the 'OTHER' area)
+  const developmentArea = await prisma.techArea.findUnique({ where: { type: 'DEVELOPMENT' } });
+
+  // TechNiche with id = EXAMPLE_GENERIC_ID references DEVELOPMENT (not OTHER/EXAMPLE_GENERIC_ID)
+  // so the OTHER area remains niche-free and the DELETE (200) contract test can delete it.
   await prisma.techNiche.upsert({
     where: { slug: EXAMPLE_SLUG },
     create: {
@@ -324,9 +335,9 @@ export async function seedDreddFixtures(
       namePtBr: 'Nicho Fixture',
       descriptionEn: 'Dredd fixture tech niche.',
       descriptionPtBr: 'Nicho técnico fixture do Dredd.',
-      areaId: EXAMPLE_GENERIC_ID,
+      areaId: developmentArea!.id,
     },
-    update: {},
+    update: { areaId: developmentArea!.id },
   });
 
   // TechSkill with id = EXAMPLE_GENERIC_ID
@@ -421,34 +432,6 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  // ── ResumeSection + SectionItem (for {itemId}/{skillId} routes) ───
-  const fixtureSectionType = await prisma.sectionType.findUnique({ where: { key: EXAMPLE_SLUG } });
-  if (fixtureSectionType) {
-    const fixtureSection = await prisma.resumeSection.upsert({
-      where: {
-        resumeId_sectionTypeId: {
-          resumeId: EXAMPLE_RESUME_ID,
-          sectionTypeId: fixtureSectionType.id,
-        },
-      },
-      create: {
-        resumeId: EXAMPLE_RESUME_ID,
-        sectionTypeId: fixtureSectionType.id,
-        order: 0,
-      },
-      update: {},
-    });
-    await prisma.sectionItem.upsert({
-      where: { id: EXAMPLE_GENERIC_ID },
-      create: {
-        id: EXAMPLE_GENERIC_ID,
-        resumeSectionId: fixtureSection.id,
-        content: {},
-        order: 0,
-      },
-      update: {},
-    });
-  }
 
   // ── CollaborationComment (for {commentId} routes) ─────────────────
   await prisma.collaborationComment.upsert({
