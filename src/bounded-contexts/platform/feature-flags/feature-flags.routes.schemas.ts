@@ -20,7 +20,7 @@ export abstract class FeatureFlagsSseBundle {
 }
 
 export const KeyParam = z.object({ key: z.string() }).openapi({
-  example: { key: 'fixture-toggleable-flag' },
+  example: { key: 'jobs.search' },
 });
 
 export const ToggleFeatureFlagSchema = z

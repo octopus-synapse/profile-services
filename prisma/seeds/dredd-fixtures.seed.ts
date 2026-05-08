@@ -613,13 +613,13 @@ export async function seedDreddFixtures(
   });
 
   // ── ResumeVersion (for {versionId} routes) ────────────────────────
-  // versionNumber is set to 999_999 so the fixture row stays inside the
-  // trailing 30-version window (`CreateSnapshotUseCase.cleanupOldVersions`
-  // deletes anything past the top 30 by versionNumber desc). Without this,
-  // the contract suite's `POST /v1/versions/:resumeId/restore/:versionId`
-  // probe forces a snapshot whose cleanup wipes our fixture row and the
-  // subsequent GET probe 404s.
-  const FIXTURE_VERSION_NUMBER = 999_999;
+  // versionNumber is pinned to MAX_SAFE_INTEGER so the fixture row stays
+  // inside the trailing 30-version window forever
+  // (`CreateSnapshotUseCase.cleanupOldVersions` deletes anything past the
+  // top 30 by versionNumber desc). Earlier values like 999_999 got pushed
+  // out once the suite ran enough snapshot-creating probes that the
+  // auto-incremented version numbers exceeded that ceiling.
+  const FIXTURE_VERSION_NUMBER = 2_000_000_000;
   const existingFixtureVersionNumber = await prisma.resumeVersion.findUnique({
     where: {
       resumeId_versionNumber: {

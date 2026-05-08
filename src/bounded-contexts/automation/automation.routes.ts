@@ -86,7 +86,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     body: RageApplyBodySchema,
     statusCode: 200,
     response: RageApplyResponseSchema,
-    guards: [{ id: 'fit-profile' }, { id: 'min-quality' }],
+    guards: [{ id: 'fit-profile' }, { id: 'min-quality' }, { id: 'external-api' }],
     openapi: {
       summary:
         'Submit tailored applications to every open job that matches minFit. Bounded by maxApplications (default 20, cap 100).',

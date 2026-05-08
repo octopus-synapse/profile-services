@@ -78,6 +78,7 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
     auth: { kind: 'jwt' },
     body: SubmitFitAnswersSchema,
     response: SubmittedFitProfileResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Commit the 25 Fit Answers; compute and persist vector',
       tags: ['fit-profile'],

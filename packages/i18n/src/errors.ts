@@ -38,6 +38,14 @@ export const ERROR_DICTIONARY = {
     en: 'Number of submitted answers does not match the question set',
     'pt-BR': 'Número de respostas enviadas não corresponde ao conjunto de perguntas',
   },
+  FIT_ANSWER_MISMATCH: {
+    en: 'Submitted answers do not align with the sampled question set',
+    'pt-BR': 'Respostas enviadas não correspondem ao conjunto de perguntas amostrado',
+  },
+  FIT_QUESTION_SET_ALREADY_COMPLETED: {
+    en: 'Fit question set has already been submitted',
+    'pt-BR': 'O conjunto de perguntas de fit já foi enviado',
+  },
   FIT_QUESTION_SET_NOT_FOUND: {
     en: 'Fit question set not found',
     'pt-BR': 'Conjunto de perguntas de fit não encontrado',

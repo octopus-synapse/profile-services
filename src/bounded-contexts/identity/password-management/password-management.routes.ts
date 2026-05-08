@@ -70,6 +70,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     auth: { kind: 'public' },
     body: ResetPasswordSchema,
     response: PasswordMessageResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Reset password with token',
       tags: ['password-management'],

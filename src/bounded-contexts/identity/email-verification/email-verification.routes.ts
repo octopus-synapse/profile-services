@@ -25,6 +25,7 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     auth: { kind: 'public' },
     body: VerifyEmailSchema,
     response: VerifyEmailResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Verify email with token',
       tags: ['email-verification'],

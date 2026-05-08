@@ -49,17 +49,21 @@ export class FitQuestionSetOwnershipError extends DomainException {
   }
 }
 
-export class FitQuestionSetAlreadyCompletedError extends Error {
-  constructor() {
-    super('Fit question set has already been submitted.');
-    this.name = 'FitQuestionSetAlreadyCompletedError';
+export class FitQuestionSetAlreadyCompletedError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_ALREADY_COMPLETED';
+  readonly statusHint = 409;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Fit question set has already been submitted.', options);
   }
 }
 
-export class FitAnswerMismatchError extends Error {
-  constructor() {
-    super('Submitted answers do not align with the sampled question set.');
-    this.name = 'FitAnswerMismatchError';
+export class FitAnswerMismatchError extends DomainException {
+  readonly code = 'FIT_ANSWER_MISMATCH';
+  readonly statusHint = 400;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Submitted answers do not align with the sampled question set.', options);
   }
 }
 

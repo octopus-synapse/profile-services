@@ -172,6 +172,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     guards: [
       { id: 'fit-profile' },
       { id: 'min-quality', metadata: { min: 50, resumeParam: 'resumeId' } },
+      { id: 'external-api' },
     ],
     response: TailorResumeResponseSchema,
     openapi: {

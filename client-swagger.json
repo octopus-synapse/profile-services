@@ -19325,7 +19325,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/auth/forgot-password": {
@@ -20315,7 +20318,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/auth/reset-password": {
@@ -20410,7 +20416,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/auth/session": {
@@ -21110,7 +21119,8 @@
         "x-permission": "automation:rage_apply",
         "x-guards": [
           "fit-profile",
-          "min-quality"
+          "min-quality",
+          "external-api"
         ]
       }
     },
@@ -32893,7 +32903,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/fit-profile/me": {
@@ -75702,7 +75715,8 @@
         "x-auth": "jwt",
         "x-guards": [
           "fit-profile",
-          "min-quality"
+          "min-quality",
+          "external-api"
         ]
       }
     },

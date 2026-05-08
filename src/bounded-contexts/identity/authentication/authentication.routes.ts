@@ -46,6 +46,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'public' },
     body: RefreshTokenSchema,
     response: RefreshResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Refresh access token',
       tags: ['auth'],
