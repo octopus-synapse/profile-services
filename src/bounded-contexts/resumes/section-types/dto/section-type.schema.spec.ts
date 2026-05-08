@@ -4,7 +4,6 @@ import { CreateSectionTypeSchema, UpdateSectionTypeSchema } from './section-type
 const validTranslations = {
   en: { title: 'Work Experience', label: 'work' },
   'pt-BR': { title: 'Experiência Profissional', label: 'trabalho' },
-  es: { title: 'Experiencia Laboral', label: 'trabajo' },
 };
 
 const validCreateInput = {
@@ -52,7 +51,6 @@ describe('CreateSectionTypeSchema', () => {
       translations: {
         en: { title: '', label: 'work' },
         'pt-BR': { title: 'Experiência', label: 'trabalho' },
-        es: { title: 'Experiencia', label: 'trabajo' },
       },
     });
 
@@ -65,7 +63,6 @@ describe('CreateSectionTypeSchema', () => {
       translations: {
         en: { title: 'Work', label: '' },
         'pt-BR': { title: 'Experiência', label: 'trabalho' },
-        es: { title: 'Experiencia', label: 'trabajo' },
       },
     });
 
@@ -78,7 +75,6 @@ describe('CreateSectionTypeSchema', () => {
       translations: {
         en: { title: 'Work' },
         'pt-BR': { title: 'Experiência', label: 'trabalho' },
-        es: { title: 'Experiencia', label: 'trabajo' },
       },
     });
 
@@ -104,7 +100,6 @@ describe('CreateSectionTypeSchema', () => {
           addLabel: 'Add experience',
         },
         'pt-BR': { title: 'Experiência', label: 'trabalho' },
-        es: { title: 'Experiencia', label: 'trabajo' },
       },
     });
 
@@ -163,7 +158,6 @@ describe('UpdateSectionTypeSchema', () => {
     const result = UpdateSectionTypeSchema.safeParse({
       translations: {
         en: { title: 'Work', label: 'work' },
-        es: { title: 'Experiencia', label: 'trabajo' },
       },
     });
 

@@ -44,11 +44,6 @@ on the migration path.
   `z.enum([...])` next to it.
 - **IDs (Q11):** validate with `z.string().uuid()`. The Prisma migration
   to UUID v7 is staged separately (see `prisma/migrations/`).
-- **Locale (Q27):** the project supports **only `en` and `pt-BR`**.
-  No `'es'` / `'fr'` etc. — locale-content models for resume bodies are
-  the only place where a wider language list is allowed (resumes can be
-  authored in any language, but the *app UI* is restricted).
-
 ## Mappers / Presenters (Q9)
 
 Functions converting domain → response DTO follow:
@@ -94,10 +89,29 @@ No `findAll*`. The `get*` variant wraps the `find*` query so the
 - **Session endpoint (Q19):** authenticated routes return the entity
   directly; throw `UnauthorizedException` on auth failure. No
   `{ authenticated: bool }` envelopes.
-- **Success messages (Q8):** routes return `{ code, params? }` and the
-  mounter renders via `packages/i18n/SUCCESS_MESSAGE_DICTIONARY`
-  using the request's `Accept-Language` header. Don't return
-  `{ message: 'X deleted successfully.' }` strings inline.
+- **i18n parity universal (Q8):** every user-facing string in a 2xx
+  response comes from a dictionary in `@packages/i18n` with a matching
+  parity arch spec in `test/static-analysis/i18n/`. Supported locales
+  are `LOCALES = ['en', 'pt-BR']` — the single source of truth lives in
+  `packages/i18n/src/types.ts`. No other locale definition may exist.
+  Dictionaries and their parity specs:
+  - `ERROR_DICTIONARY` — domain exception codes → `i18n-error-parity.spec.ts`
+  - `ENUM_DICTIONARY` — Prisma enum labels → `i18n-enum-parity.spec.ts`
+  - `NOTIFICATION_DICTIONARY` — notification templates → `i18n-notification-parity.spec.ts`
+  - `SUCCESS_MESSAGE_DICTIONARY` — 2xx confirmations → `i18n-success-message-parity.spec.ts`
+  - `STATIC_STEP_DICTIONARY` — onboarding step content → `i18n-static-step-parity.spec.ts`
+
+  Entity content (section types, field translations) uses
+  `createLocalizedSchema(SCHEMA, LOCALES)` on the write path and has
+  boot-time Zod validation in the seed files. Parity specs:
+  `i18n-section-type-translations-parity.spec.ts` and
+  `i18n-field-translations-parity.spec.ts`.
+
+  Adding a new translated surface = new dictionary + new parity spec.
+  Every string is served in the locale from `Accept-Language` / `?locale=`.
+- **Success messages (Q8 detail):** routes return `{ code, params? }` and
+  the mounter renders via `renderSuccessMessage` using the request's
+  `Accept-Language`. Don't return `{ message: 'X deleted successfully.' }` inline.
 - **Validation results in 200 bodies (Q8b):** when a use case returns a
   structured validation outcome (multi-error array — e.g. "username has
   3 problems, show them all"), it returns `errors: DomainCode[]` from

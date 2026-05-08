@@ -159,7 +159,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
 
     it.serial('should reject regular user create (403)', async () => {
       // Send a payload that satisfies the create schema (all 3
-      // SUPPORTED_LOCALES required) so Zod validation doesn't 400
+      // LOCALES required) so Zod validation doesn't 400
       // before the auth/permission stage runs.
       const translation = {
         title: 'Hacker',
@@ -181,7 +181,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
             kind: 'CUSTOM',
             fields: [{ key: 'name', type: 'string', required: true }],
           },
-          translations: { en: translation, 'pt-BR': translation, es: translation },
+          translations: { en: translation, 'pt-BR': translation },
         });
 
       expect(res.status).toBe(403);
@@ -246,13 +246,6 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
               placeholder: 'Adicionar item...',
               addLabel: 'Adicionar Item',
             },
-            es: {
-              title: 'Seccion de Prueba de Viaje',
-              label: 'viaje',
-              noDataLabel: 'Sin datos de viaje',
-              placeholder: 'Agregar item...',
-              addLabel: 'Agregar Item',
-            },
           },
         })
         .expect(201);
@@ -279,7 +272,6 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
           translations: {
             en: { title: 'Dup', label: 'dup' },
             'pt-BR': { title: 'Dup', label: 'dup' },
-            es: { title: 'Dup', label: 'dup' },
           },
         });
 
@@ -425,7 +417,6 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
           translations: {
             en: { title: 'Delete Me', label: 'delete' },
             'pt-BR': { title: 'Delete Me', label: 'delete' },
-            es: { title: 'Delete Me', label: 'delete' },
           },
         });
 

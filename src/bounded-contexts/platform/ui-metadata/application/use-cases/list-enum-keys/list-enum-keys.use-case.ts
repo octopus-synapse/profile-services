@@ -4,7 +4,7 @@
  * (POJO) rather than reaching into `application/services` directly.
  */
 
-import { listEnumKeys } from '../../services/enum-catalog.service';
+import { listEnumKeys } from '../../services/enum-catalog';
 
 export class ListEnumKeysUseCase {
   execute(): { keys: string[] } {

@@ -13,7 +13,7 @@
  */
 
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 
 export abstract class ResumeDslRepositoryPort {
   /** Owned read — returns null when the resume doesn't exist or doesn't
@@ -21,7 +21,7 @@ export abstract class ResumeDslRepositoryPort {
   abstract findOwnedResume(
     resumeId: string,
     userId: string,
-    locale: SupportedLocale,
+    locale: Locale,
   ): Promise<GenericResume | null>;
 
   /** Public read by share slug. Returns null when:
@@ -29,12 +29,9 @@ export abstract class ResumeDslRepositoryPort {
    *   - the share is disabled, or
    *   - the share has expired.
    *  Adapters MUST enforce these gates. */
-  abstract findPublicResumeBySlug(
-    slug: string,
-    locale: SupportedLocale,
-  ): Promise<GenericResume | null>;
+  abstract findPublicResumeBySlug(slug: string, locale: Locale): Promise<GenericResume | null>;
 
   /** Returns the locale-translated title for every active section type.
    *  Map key is the `SectionType.key`. */
-  abstract getSectionTypeTitles(locale: SupportedLocale): Promise<Map<string, string>>;
+  abstract getSectionTypeTitles(locale: Locale): Promise<Map<string, string>>;
 }

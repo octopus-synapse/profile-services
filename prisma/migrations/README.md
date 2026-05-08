@@ -38,7 +38,10 @@ Phase 2 is split out because it touches every model in the schema and
 needs a coordinated app deploy + DB migration window. The lint rule
 that enforces `z.string().uuid()` lands with the same PR.
 
-## 'es' locale removal (Q27)
+## 'es' locale removal
 
-No DB migration needed — the `Locale` type was a pure TS union, never
-a Postgres enum. The data already only contained `en` and `pt-BR`.
+Migration `20260508000000_strip_es_locale_from_translations` strips the
+`es` key from `SectionType.translations` and `OnboardingStep.translations`
+JSONB columns. Idempotent — only updates rows that contain the `es` key.
+The `Locale` type was already a pure TS union; this migration cleans up
+data that was written before the type was tightened.

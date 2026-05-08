@@ -34,7 +34,7 @@ checks:
   # `spectral` removed: the underlying `lint:spec` script was deleted in
   # the `chore(cleanup): F5.G` cleanup but this hook entry was missed.
   - name: unit
-    cmd: bun test src ./scripts/discover-response-drift.spec.ts
+    cmd: bun test src
     runner: bun
   - name: arch
     cmd: bun test ./test/static-analysis/architecture

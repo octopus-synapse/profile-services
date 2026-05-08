@@ -1,24 +1,24 @@
 import { describe, expect, it } from 'bun:test';
+import type { Locale } from '@packages/i18n';
 import {
   MissingTranslationError,
-  type SupportedLocale,
   type TranslationParams,
   TranslationPort,
 } from '@/bounded-contexts/platform/i18n/domain/translation.port';
 import { domainCode, localizeDomainCode, localizeDomainCodes } from '../localize-domain-code';
 
 class FakeTranslator extends TranslationPort {
-  constructor(private readonly entries: Record<string, Record<SupportedLocale, string>>) {
+  constructor(private readonly entries: Record<string, Record<Locale, string>>) {
     super();
   }
 
-  translate(code: string, params: TranslationParams, locale: SupportedLocale): string {
+  translate(code: string, params: TranslationParams, locale: Locale): string {
     const entry = this.entries[code];
     if (!entry) throw new MissingTranslationError(code, locale);
     return entry[locale].replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`));
   }
 
-  has(code: string, _locale: SupportedLocale): boolean {
+  has(code: string, _locale: Locale): boolean {
     return Object.hasOwn(this.entries, code);
   }
 }

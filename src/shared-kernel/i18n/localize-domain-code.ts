@@ -16,8 +16,8 @@
  * placeholder string to prod).
  */
 
+import type { Locale } from '@packages/i18n';
 import type {
-  SupportedLocale,
   TranslationParams,
   TranslationPort,
 } from '@/bounded-contexts/platform/i18n/domain/translation.port';
@@ -26,7 +26,7 @@ import type { DomainCode, DomainCodeParam, LocalizedDomainCode } from './domain-
 export function localizeDomainCode(
   dc: DomainCode,
   i18n: TranslationPort,
-  locale: SupportedLocale,
+  locale: Locale,
 ): LocalizedDomainCode {
   const params = (dc.params ?? {}) as TranslationParams;
   const message = i18n.translate(dc.code, params, locale);
@@ -41,7 +41,7 @@ export function localizeDomainCode(
 export function localizeDomainCodes(
   codes: readonly DomainCode[],
   i18n: TranslationPort,
-  locale: SupportedLocale,
+  locale: Locale,
 ): LocalizedDomainCode[] {
   return codes.map((dc) => localizeDomainCode(dc, i18n, locale));
 }

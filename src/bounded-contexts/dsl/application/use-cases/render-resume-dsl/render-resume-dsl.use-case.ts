@@ -13,7 +13,7 @@
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeNoActiveStyleException } from '../../../domain/exceptions/dsl.exceptions';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
 import type { ResumeAst } from '../../../domain/schemas/ast/resume-ast.schema';
@@ -28,7 +28,7 @@ export interface RenderResumeDslInput {
   readonly resumeId: string;
   readonly userId: string;
   readonly target: RenderTarget;
-  readonly locale: SupportedLocale;
+  readonly locale: Locale;
   /** When the controller is rendering a draft theme that isn't yet
    *  saved as the resume's active style, it can pass the candidate
    *  styleConfig here and the use case merges that against the

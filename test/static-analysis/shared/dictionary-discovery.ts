@@ -3,9 +3,10 @@
  *
  * Centralises the file-walking, AST-ish parsing, and Prisma-enum scraping
  * that previously lived inline in
- *   - i18n-catalog-parity.architecture.spec.ts
- *   - i18n-enum-parity.architecture.spec.ts
- *   - i18n-notification-parity.architecture.spec.ts
+ *   - test/static-analysis/i18n/i18n-error-parity.spec.ts
+ *   - test/static-analysis/i18n/i18n-enum-parity.spec.ts
+ *   - test/static-analysis/i18n/i18n-notification-parity.spec.ts
+ *   - test/static-analysis/i18n/i18n-success-message-parity.spec.ts
  *
  * Q60 in the duplication audit. Each spec stays small and assertion-only.
  */
@@ -182,4 +183,45 @@ function parseEnumBody(body: string): Set<string> {
       .map((l) => l.replace(/\/\/.*$/, '').trim())
       .filter((l) => l.length > 0 && ENUM_VALUE_RE.test(l)),
   );
+}
+
+// ─── Success-message code discovery ───────────────────────────────────
+
+const SUCCESS_CODE_AFTER_KEY_RE =
+  /code:[^,;}\n]*?'([A-Z][A-Z0-9_]{3,})'(?:[^,;}\n]*?'([A-Z][A-Z0-9_]{3,})')?/g;
+
+/**
+ * Scan route files for `{ code: 'X' }` patterns that flow into
+ * `renderSuccessMessageForRequest`. Only captures string literals directly
+ * after a `code:` key (handles ternaries like `code: flag ? 'A' : 'B'`)
+ * within `return {` context, and skips lines that look like error-code
+ * arrays (`blockers.push`, `errors:`, etc.).
+ */
+export function discoverSuccessMessageCodes(sourceRoot: string): Set<string> {
+  const codes = new Set<string>();
+  const files = listSourceFiles(sourceRoot, {
+    filter: (name) => name.endsWith('.routes.ts') && !name.endsWith('.spec.ts'),
+  });
+  for (const file of files) {
+    const src = fs.readFileSync(file, 'utf8');
+    if (!src.includes('code:')) continue;
+    const lines = src.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.includes('code:')) continue;
+      if (/\b(?:blockers|errors|issues|warnings)\b/.test(line)) continue;
+      if (/\.push\s*\(/.test(line)) continue;
+      const window = lines.slice(Math.max(0, i - 3), i + 1).join('\n');
+      if (!/return\s*\{/.test(window)) continue;
+      SUCCESS_CODE_AFTER_KEY_RE.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while (true) {
+        m = SUCCESS_CODE_AFTER_KEY_RE.exec(line);
+        if (!m) break;
+        if (m[1]) codes.add(m[1]);
+        if (m[2]) codes.add(m[2]);
+      }
+    }
+  }
+  return codes;
 }

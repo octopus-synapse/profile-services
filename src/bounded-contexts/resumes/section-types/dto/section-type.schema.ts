@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SUPPORTED_LOCALES, VALIDATION_PATTERNS } from '@/shared-kernel/constants';
+import { LOCALES, VALIDATION_PATTERNS } from '@/shared-kernel/constants';
 
 /**
  * Style DSL - Render hints for section layout
@@ -89,23 +89,24 @@ export const SectionTypeTranslationUpdateSchema = z.object({
   addLabel: z.string().min(1).optional(),
 });
 
-/**
- * Translations for all supported locales.
- * On create, every locale in SUPPORTED_LOCALES must be present.
- */
 export const SectionTypeTranslationsSchema = z
   .record(z.string(), SectionTypeTranslationSchema)
-  .refine((translations) => SUPPORTED_LOCALES.every((locale) => locale in translations), {
-    message: `Translations must include all supported locales: ${SUPPORTED_LOCALES.join(', ')}`,
-  });
+  .refine((translations) => LOCALES.every((locale) => locale in translations), {
+    message: `Translations must include all supported locales: ${LOCALES.join(', ')}`,
+  })
+  .refine(
+    (translations) =>
+      Object.keys(translations).every((locale) => (LOCALES as readonly string[]).includes(locale)),
+    { message: `Translations must only include supported locales: ${LOCALES.join(', ')}` },
+  );
 
-/**
- * Translations for updates (partial updates allowed)
- */
-export const SectionTypeTranslationsUpdateSchema = z.record(
-  z.string(), // locale key (en, pt-BR, es)
-  SectionTypeTranslationUpdateSchema,
-);
+export const SectionTypeTranslationsUpdateSchema = z
+  .record(z.string(), SectionTypeTranslationUpdateSchema)
+  .refine(
+    (translations) =>
+      Object.keys(translations).every((locale) => (LOCALES as readonly string[]).includes(locale)),
+    { message: `Translations must only include supported locales: ${LOCALES.join(', ')}` },
+  );
 
 export type SectionTypeTranslationsDto = z.infer<typeof SectionTypeTranslationsSchema>;
 

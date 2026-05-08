@@ -567,7 +567,19 @@ export async function seedDreddFixtures(
     update: {},
   });
 
+  // ── Reset auth lockout state for fixture users ───────────────────────
+  // The contract test SessionPool logs in as these users on every run.
+  // PrismaLoginAttemptsAdapter computes the lock from the trailing chain
+  // of failed LoginAttempt rows, so wiping them here guarantees the next
+  // run starts unlocked even if a prior run hammered the wrong password.
+  await prisma.loginAttempt.deleteMany({
+    where: {
+      email: { in: [FIXTURE_USER_EMAIL, DREDD_NOPERMS_EMAIL, DREDD_GENERIC_USER_EMAIL] },
+      success: false,
+    },
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode/connections/webhooks)',
+    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode/connections/webhooks) and cleared lockout state',
   );
 }

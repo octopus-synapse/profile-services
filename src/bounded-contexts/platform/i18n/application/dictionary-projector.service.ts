@@ -9,7 +9,7 @@
  */
 
 import { ENUM_DICTIONARY, ERROR_DICTIONARY, NOTIFICATION_DICTIONARY } from '@packages/i18n';
-import type { SupportedLocale } from '../domain/translation.port';
+import type { Locale } from '../domain/translation.port';
 
 export interface ProjectedNotification {
   title: string;
@@ -18,13 +18,13 @@ export interface ProjectedNotification {
 }
 
 export class DictionaryProjectorService {
-  projectErrors(locale: SupportedLocale): Record<string, string> {
+  projectErrors(locale: Locale): Record<string, string> {
     return Object.fromEntries(
       Object.entries(ERROR_DICTIONARY).map(([code, entry]) => [code, entry[locale]]),
     );
   }
 
-  projectEnums(locale: SupportedLocale): Record<string, Record<string, string>> {
+  projectEnums(locale: Locale): Record<string, Record<string, string>> {
     return Object.fromEntries(
       Object.entries(ENUM_DICTIONARY).map(([enumName, values]) => [
         enumName,
@@ -38,7 +38,7 @@ export class DictionaryProjectorService {
     );
   }
 
-  projectNotifications(locale: SupportedLocale): Record<string, ProjectedNotification> {
+  projectNotifications(locale: Locale): Record<string, ProjectedNotification> {
     return Object.fromEntries(
       Object.entries(NOTIFICATION_DICTIONARY).map(([type, tpl]) => [
         type,

@@ -6,14 +6,14 @@
  * needs to hide/show items based on roles or feature flags.
  */
 
+import type { Locale } from '@packages/i18n';
 import type { Permission } from '@/shared-kernel/authorization';
-import type { SupportedLocale } from './enum-catalog.service';
 
 export interface MenuNode {
   id: string;
   path: string;
   icon: string;
-  labels: Record<SupportedLocale, string>;
+  labels: Record<Locale, string>;
   children?: MenuNode[];
   requires?: Permission[];
 }

@@ -5,7 +5,7 @@
  * Session/Commands API — backend drives the entire flow.
  *
  * Types: ./onboarding-steps.types
- * Translations: ./onboarding-translations.config
+ * Translations: @packages/i18n (STATIC_STEP_DICTIONARY)
  * Static step bases: ./onboarding-static-steps.config
  * Section defaults: ./onboarding-section-defaults.config
  */

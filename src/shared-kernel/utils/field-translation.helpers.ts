@@ -1,21 +1,14 @@
-/**
- * Field-level i18n resolvers — resolve `meta.translations` into the field's
- * label/placeholder/helpText. Recursive over nested fields + array items.
- * Extracted from locale-resolver.util.ts to keep the main module focused
- * on top-level (SectionType) translation resolution.
- */
-
+import type { Locale } from '@packages/i18n';
 import type {
   FieldDefinition,
   FieldTranslation,
   FieldTranslationsJson,
-  SupportedLocale,
 } from './locale-resolver.types';
 
 /** Resolve field translation with fallback chain. */
 function resolveFieldTranslation(
   translations: FieldTranslationsJson | undefined,
-  locale: SupportedLocale,
+  locale: Locale,
 ): FieldTranslation {
   if (!translations) return {};
   if (translations[locale]) return translations[locale];
@@ -26,10 +19,7 @@ function resolveFieldTranslation(
 }
 
 /** Resolve a single field's meta for locale; returns new meta object. */
-function resolveFieldMeta(
-  meta: FieldDefinition['meta'],
-  locale: SupportedLocale,
-): Record<string, unknown> {
+function resolveFieldMeta(meta: FieldDefinition['meta'], locale: Locale): Record<string, unknown> {
   if (!meta) return {};
   const { translations, label, placeholder, helpText, ...rest } = meta;
   const resolved = resolveFieldTranslation(
@@ -50,7 +40,7 @@ function resolveFieldMeta(
  */
 export function resolveFieldsForLocale(
   fields: FieldDefinition[] | undefined,
-  locale: SupportedLocale,
+  locale: Locale,
 ): FieldDefinition[] | undefined {
   if (!fields || !Array.isArray(fields)) return fields;
 

@@ -64,8 +64,6 @@ export const paletteFromKebab = (value: PaletteKebab): Palette => {
 // UI Language
 // ============================================================================
 
-// Supported UI languages — 'ES' removed per Q27 in the duplication audit;
-// the project supports only English and Brazilian Portuguese for now.
 export const UILanguageSchema = z.enum(['EN', 'PT_BR']);
 export type UILanguage = z.infer<typeof UILanguageSchema>;
 

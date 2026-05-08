@@ -1,9 +1,6 @@
 /**
  * Badges integration sample — boots the full Elysia stack and hits
  * the public badges endpoint plus the JWT-gated viewer endpoint.
- *
- * Other integration suites under `test/infrastructure/_legacy/` are
- * still on supertest + AppModule and need to be migrated one-by-one.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';

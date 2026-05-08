@@ -18,8 +18,6 @@ describe('locale-resolver', () => {
     });
 
     test('returns default for invalid locale', () => {
-      // 'es' was a supported locale until Q27 — it now falls back like
-      // any other unsupported tag.
       expect(parseLocale('es')).toBe('en');
       expect(parseLocale('fr')).toBe('en');
       expect(parseLocale('invalid')).toBe('en');
@@ -78,7 +76,6 @@ describe('locale-resolver', () => {
             translations: {
               en: { label: 'Company', placeholder: 'e.g., Google' },
               'pt-BR': { label: 'Empresa', placeholder: 'ex: Google' },
-              es: { label: 'Empresa', placeholder: 'ej: Google' },
             },
           },
         },

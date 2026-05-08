@@ -7,7 +7,7 @@
 
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver.util';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeDslRepositoryPort } from '../domain/ports/resume-dsl.repository.port';
 
 /** Mock AST result */
@@ -52,17 +52,14 @@ export class InMemoryResumeDslRepository extends ResumeDslRepositoryPort {
   async findOwnedResume(
     resumeId: string,
     userId: string,
-    _locale: SupportedLocale,
+    _locale: Locale,
   ): Promise<GenericResume | null> {
     const resume = this.resumes.get(resumeId);
     if (!resume || resume.userId !== userId) return null;
     return resume;
   }
 
-  async findPublicResumeBySlug(
-    slug: string,
-    _locale: SupportedLocale,
-  ): Promise<GenericResume | null> {
+  async findPublicResumeBySlug(slug: string, _locale: Locale): Promise<GenericResume | null> {
     const share = this.shares.get(slug);
     if (!share) return null;
     if (!share.isActive) return null;
@@ -70,7 +67,7 @@ export class InMemoryResumeDslRepository extends ResumeDslRepositoryPort {
     return this.resumes.get(share.resumeId) ?? null;
   }
 
-  async getSectionTypeTitles(_locale: SupportedLocale): Promise<Map<string, string>> {
+  async getSectionTypeTitles(_locale: Locale): Promise<Map<string, string>> {
     return new Map(this.sectionTypeTitles);
   }
 

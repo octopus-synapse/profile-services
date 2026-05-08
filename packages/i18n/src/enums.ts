@@ -2,7 +2,7 @@
  * Prisma-enum label dictionary.
  *
  * One entry per `(enumName, value)` pair declared in `prisma/schema/*.prisma`.
- * Parity is enforced by `i18n-enum-parity.architecture.spec.ts` against the
+ * Parity is enforced by `test/static-analysis/i18n/i18n-enum-parity.spec.ts` against the
  * live schema, so a new enum value is a compile-time break until the
  * translations exist.
  *

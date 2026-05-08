@@ -2,7 +2,7 @@
  * Error-message dictionary.
  *
  * One entry per concrete `DomainException.code` string literal declared in
- * `src/**\/*.exceptions.ts`. The `i18n-catalog-parity` architecture test
+ * `src/**\/*.exceptions.ts`. The `i18n-error-parity` arch test
  * enforces that every literal code has an entry here in BOTH locales and
  * that no orphan keys exist.
  *

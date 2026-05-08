@@ -8,7 +8,7 @@
  * payload type is a discriminated union on `kind`.
  */
 
-import type { SupportedLocale } from '../../../domain/translation.port';
+import type { Locale } from '../../../domain/translation.port';
 import {
   DictionaryProjectorService,
   type ProjectedNotification,
@@ -24,7 +24,7 @@ export type DictionaryPayload =
 export class GetDictionaryUseCase {
   constructor(private readonly projector: DictionaryProjectorService) {}
 
-  execute(kind: DictionaryKind, locale: SupportedLocale): DictionaryPayload {
+  execute(kind: DictionaryKind, locale: Locale): DictionaryPayload {
     switch (kind) {
       case 'errors':
         return { kind, entries: this.projector.projectErrors(locale) };

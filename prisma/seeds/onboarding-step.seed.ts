@@ -1,3 +1,4 @@
+import { LOCALES } from '@packages/i18n';
 import type { Prisma, PrismaClient } from '@prisma/client';
 
 interface OnboardingStepSeed {
@@ -25,7 +26,6 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: { label: 'Welcome', description: 'Welcome to ProFile' },
       'pt-BR': { label: 'Início', description: 'Bem-vindo ao ProFile' },
-      es: { label: 'Inicio', description: 'Bienvenido a ProFile' },
     },
     validation: {},
     strengthWeight: 0,
@@ -76,15 +76,6 @@ const steps: OnboardingStepSeed[] = [
           location: 'Localização',
         },
       },
-      es: {
-        label: 'Datos Personales',
-        description: 'Información Personal',
-        fieldLabels: {
-          fullName: 'Nombre Completo',
-          phone: 'Teléfono',
-          location: 'Ubicación',
-        },
-      },
     },
     validation: { requiredFields: ['fullName', 'phone'] },
     strengthWeight: 15,
@@ -114,11 +105,6 @@ const steps: OnboardingStepSeed[] = [
         label: 'Usuário',
         description: 'Escolha seu Usuário',
         fieldLabels: { username: 'Nome de Usuário' },
-      },
-      es: {
-        label: 'Usuario',
-        description: 'Elige tu Usuario',
-        fieldLabels: { username: 'Nombre de Usuario' },
       },
     },
     validation: {
@@ -178,17 +164,6 @@ const steps: OnboardingStepSeed[] = [
           website: 'Website',
         },
       },
-      es: {
-        label: 'Perfil',
-        description: 'Perfil Profesional',
-        fieldLabels: {
-          jobTitle: 'Puesto',
-          summary: 'Resumen',
-          linkedin: 'LinkedIn',
-          github: 'GitHub',
-          website: 'Sitio Web',
-        },
-      },
     },
     validation: { requiredFields: ['jobTitle'] },
     strengthWeight: 10,
@@ -215,13 +190,6 @@ const steps: OnboardingStepSeed[] = [
         noDataLabel: 'Não tenho experiência profissional',
         placeholder: 'Adicione sua experiência...',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Experiencia',
-        description: 'Experiencia Laboral',
-        noDataLabel: 'No tengo experiencia laboral',
-        placeholder: 'Agrega tu experiencia...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
@@ -250,13 +218,6 @@ const steps: OnboardingStepSeed[] = [
         placeholder: 'Adicione sua formação...',
         addLabel: 'Adicionar',
       },
-      es: {
-        label: 'Educación',
-        description: 'Formación Académica',
-        noDataLabel: 'No tengo formación académica',
-        placeholder: 'Agrega tu formación...',
-        addLabel: 'Agregar',
-      },
     },
     validation: {},
     strengthWeight: 10,
@@ -283,13 +244,6 @@ const steps: OnboardingStepSeed[] = [
         noDataLabel: 'Ainda estou desenvolvendo minhas habilidades',
         placeholder: 'Adicione suas habilidades...',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Habilidades',
-        description: 'Habilidades',
-        noDataLabel: 'Todavía estoy desarrollando mis habilidades',
-        placeholder: 'Agrega tus habilidades...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
@@ -318,13 +272,6 @@ const steps: OnboardingStepSeed[] = [
         placeholder: 'Adicione idiomas que fala...',
         addLabel: 'Adicionar',
       },
-      es: {
-        label: 'Idiomas',
-        description: 'Idiomas',
-        noDataLabel: 'No tengo idiomas para agregar',
-        placeholder: 'Agrega idiomas que hablas...',
-        addLabel: 'Agregar',
-      },
     },
     validation: {},
     strengthWeight: 5,
@@ -351,11 +298,6 @@ const steps: OnboardingStepSeed[] = [
         description: 'Escolha seu Tema',
         fieldLabels: { templateId: 'Modelo', colorScheme: 'Esquema de Cores' },
       },
-      es: {
-        label: 'Tema',
-        description: 'Elige tu Tema',
-        fieldLabels: { templateId: 'Plantilla', colorScheme: 'Esquema de Colores' },
-      },
     },
     validation: { requiredFields: ['colorScheme'] },
     strengthWeight: 10,
@@ -371,7 +313,6 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: { label: 'Review', description: 'Review & Submit' },
       'pt-BR': { label: 'Revisão', description: 'Revisar e Enviar' },
-      es: { label: 'Revisión', description: 'Revisar y Enviar' },
     },
     validation: {},
     strengthWeight: 0,
@@ -387,7 +328,6 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: { label: 'Done', description: 'Setup Complete' },
       'pt-BR': { label: 'Pronto', description: 'Configuração Completa' },
-      es: { label: 'Listo', description: 'Configuración Completa' },
     },
     validation: {},
     strengthWeight: 0,
@@ -418,6 +358,22 @@ const sectionExamples: Record<string, Record<string, string[]>> = {
     name: ['English', 'Spanish', 'Portuguese', 'French'],
   },
 };
+
+for (const step of steps) {
+  const t = step.translations as Record<string, unknown>;
+  for (const locale of LOCALES) {
+    if (!(locale in t)) {
+      console.error(`[onboarding-step.seed] step '${step.key}' missing locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+  for (const locale of Object.keys(t)) {
+    if (!(LOCALES as readonly string[]).includes(locale)) {
+      console.error(`[onboarding-step.seed] step '${step.key}' has rogue locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+}
 
 export async function seedOnboardingSteps(prisma: PrismaClient) {
   console.log('🚀 Seeding onboarding steps...');

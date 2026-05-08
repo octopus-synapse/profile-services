@@ -1,15 +1,7 @@
 /**
- * Compat layer for migrated integration suites.
- *
- * Exposes the same surface the legacy `_legacy/integration/setup.ts`
- * exported, but delegates to the new `TestApp` harness (Elysia
- * bootstrap on an ephemeral port). Each migrated spec file just
- * keeps its existing `from './setup'` import — no per-file
- * conversion needed.
- *
- * The `getRequest()` legacy callers used `request(app.getHttpServer())
- * .post(...).send(...)` chains. Our `TestRequest` wrapper has the same
- * shape so those calls land unchanged.
+ * Integration suite setup. Delegates to the `TestApp` harness (Elysia
+ * bootstrap on an ephemeral port). Suites use `getRequest()` returning
+ * a `TestRequest` wrapper with `.post(...).send(...)` chains.
  */
 
 import { setDefaultTimeout } from 'bun:test';

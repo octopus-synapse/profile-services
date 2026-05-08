@@ -94,21 +94,9 @@ jobs:
         # upstream tooling is upgraded — the diff is informational only.
         continue-on-error: true
 
-  dredd:
-    name: Dredd — contract conformance
+  contract:
+    name: Contract — runtime conformance
     runs-on: ubuntu-latest
-    # Dredd is informational while the spec/runtime alignment is being
-    # tightened. The infrastructure pieces (deterministic generator,
-    # OpenAPI examples, fixture seed, hook auth) all pass — what's left
-    # is per-route discipline (response shape parity, content-type
-    # casing, business-rule validation) that needs a sweep. Until then
-    # the job runs to surface diagnostics but does not block the merge,
-    # mirroring the `optic` job's pattern below.
-    continue-on-error: true
-    # Postgres is started manually because we need the project's custom
-    # image (pgvector + pg_uuidv7) — the scoring_refactor migration
-    # depends on `vector`, the uuidv7 stage migrations on `pg_uuidv7`.
-    # GHA `services:` only accept pre-built images, so we build inline.
     services:
       redis:
         image: redis:7-alpine
@@ -131,17 +119,17 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5433/profile_test
       REDIS_HOST: localhost
       REDIS_PORT: 6380
-      JWT_SECRET: dredd_test_secret_key_minimum_32_characters_long
+      JWT_SECRET: contract_test_secret_key_minimum_32_characters_long
       NODE_ENV: test
       PORT: 3010
       # EmailPasswordResetSender (P1-032) refuses to construct without
-      # APP_URL — no localhost fallback. Dredd doesn't actually send
-      # mail, but bootstrap still wires the sender, so a placeholder
-      # is required to clear the construction-time guard.
+      # APP_URL — no localhost fallback. The contract suite doesn't
+      # actually send mail, but bootstrap still wires the sender, so a
+      # placeholder is required to clear the construction-time guard.
       APP_URL: http://localhost:3010
       # Mailpit captures outbound SMTP so the boot's
       # EmailPasswordResetSender / verification emails land in a sink
-      # rather than failing the dredd-hook login flow.
+      # rather than failing the SessionPool login flow.
       SMTP_HOST: localhost
       SMTP_PORT: 1025
       EMAIL_FROM: noreply@profile.local
@@ -203,15 +191,14 @@ jobs:
           echo "::error::App failed to boot within 40s."
           exit 1
       # Probe each GET endpoint with the right persona and validate the
-      # response body against the declared Zod schema. Surfaces drift
-      # earlier than Dredd (which only reports per-transaction) and gives
-      # a single markdown report per run. Same booted app + DB; no extra
-      # boot cost. Job continues on drift so the Dredd report still
-      # uploads — the drift report is uploaded as an artifact below.
+      # response body against the declared Zod schema. Produces a single
+      # markdown report per run. Same booted app + DB used by the
+      # contract test suite below; no extra boot cost. Job continues on
+      # drift so the report uploads as an artifact regardless.
+      - name: Check body schema examples
+        run: bun run scripts/check-body-schema-examples.ts
+        continue-on-error: true
       - name: Discover response drift
-        # Use `bun scripts/…` (not `bun run`) — `bun run` swallows the
-        # script's exit code, so `DRIFT_FAIL_ON=1` would never make
-        # the step fail.
         run: bun scripts/discover-response-drift.ts
         env:
           DRIFT_BASE_URL: http://localhost:3010
@@ -223,27 +210,10 @@ jobs:
         with:
           name: drift-report
           path: docs/audits/response-drift-report.md
-      - name: Install Dredd
-        run: npm install -g dredd@14
-      - name: Run Dredd
-        # Reporters intentionally limited to `cli` (console output streamed
-        # into the GHA log) + `html` artifact. The `apiary` reporter was
-        # dropped because Apiary's hosted dashboard is end-of-life
-        # (Oracle-acquired, anonymous uploads aggressively rate-limited)
-        # and was generating 100+ "Too much requests…" parse errors per
-        # run against unparseable plain-text 429 responses.
-        run: |
-          dredd swagger.json http://localhost:3010 \
-            --hookfiles=./test/infrastructure/contract/dredd-hooks.js \
-            --reporter=cli \
-            --reporter=html \
-            --output=./test/infrastructure/contract/dredd-report.html
-      - name: Upload Dredd report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dredd-report
-          path: test/infrastructure/contract/dredd-report.html
+      - name: Run contract test suite
+        run: bun test --config=bunfig.contract.toml
+        env:
+          DRIFT_BASE_URL: http://localhost:3010
       - name: Stop app
         if: always()
         run: |

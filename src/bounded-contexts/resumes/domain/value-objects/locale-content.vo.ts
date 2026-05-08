@@ -1,18 +1,9 @@
+import { LOCALES, type Locale } from '@packages/i18n';
 import { z } from 'zod';
 
-export const SupportedLocaleSchema = z.enum([
-  'pt-BR',
-  'en',
-  'es',
-  'fr',
-  'de',
-  'it',
-  'ja',
-  'ko',
-  'zh',
-]);
+export const SupportedLocaleSchema = z.enum(LOCALES as unknown as [string, ...string[]]);
 
-export type SupportedLocale = z.infer<typeof SupportedLocaleSchema>;
+export type SupportedLocale = Locale;
 
 export const LocalizedSectionSchema = z.object({
   title: z.string(),

@@ -15,8 +15,8 @@ import type {
   SemanticKind,
 } from '@/shared-kernel/schemas/sections';
 import {
+  type Locale,
   resolveTranslation,
-  type SupportedLocale,
   type TranslationsJson,
 } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
@@ -64,7 +64,7 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
   async findOwnedResume(
     resumeId: string,
     userId: string,
-    locale: SupportedLocale,
+    locale: Locale,
   ): Promise<GenericResume | null> {
     const resume = await this.prisma.resume.findFirst({
       where: { id: resumeId, userId },
@@ -74,10 +74,7 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
     return this.normalizeToGenericResume(resume as PrismaResumeData, locale);
   }
 
-  async findPublicResumeBySlug(
-    slug: string,
-    locale: SupportedLocale,
-  ): Promise<GenericResume | null> {
+  async findPublicResumeBySlug(slug: string, locale: Locale): Promise<GenericResume | null> {
     const share = await this.prisma.resumeShare.findUnique({
       where: { slug },
       include: { resume: { include: RESUME_RELATIONS_INCLUDE } },
@@ -87,7 +84,7 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
     return this.normalizeToGenericResume(share.resume as unknown as PrismaResumeData, locale);
   }
 
-  async getSectionTypeTitles(locale: SupportedLocale): Promise<Map<string, string>> {
+  async getSectionTypeTitles(locale: Locale): Promise<Map<string, string>> {
     const sectionTypes = await this.prisma.sectionType.findMany({
       where: { isActive: true },
       select: { key: true, title: true, translations: true },
@@ -102,10 +99,7 @@ export class PrismaResumeDslRepository extends ResumeDslRepositoryPort {
   }
 
   /** The single canonical Prisma → GenericResume transformation. */
-  private normalizeToGenericResume(
-    resume: PrismaResumeData,
-    locale: SupportedLocale,
-  ): GenericResume {
+  private normalizeToGenericResume(resume: PrismaResumeData, locale: Locale): GenericResume {
     const sections: GenericResumeSection[] = (resume.resumeSections ?? [])
       .filter((section) => section.isVisible)
       .sort((a, b) => a.order - b.order)

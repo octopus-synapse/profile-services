@@ -326,9 +326,9 @@ function buildResponseHeaders(
  * declared `Permission` string (or `null` for routes with `auth: jwt`
  * but no specific permission, or absent for `auth: public`).
  *
- * Consumed by `dredd-hooks.js` so the contract suite can pick the
- * right persona (admin vs regular user) per route based on actual
- * authorization metadata, not by guessing from the expected status.
+ * Consumed by the contract test engine (`pickPersona` in
+ * `test/infrastructure/contract/engine/route-classifier.ts`) so probes
+ * pick the right persona per route from actual authorization metadata.
  */
 function applyOperationPermissionExtension(
   document: { paths?: Record<string, Record<string, unknown>> },

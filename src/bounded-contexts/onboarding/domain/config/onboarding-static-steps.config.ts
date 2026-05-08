@@ -1,5 +1,5 @@
+import { renderStaticStep as resolveStaticStep } from '@packages/i18n';
 import type { StaticStepBase, StepMeta } from './onboarding-steps.types';
-import { resolveStaticStep } from './onboarding-translations.config';
 
 export const STATIC_STEPS_BEFORE: StaticStepBase[] = [
   {

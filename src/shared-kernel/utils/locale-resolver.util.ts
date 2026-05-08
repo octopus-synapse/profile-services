@@ -12,11 +12,11 @@ import { SECTION_FALLBACK_LABELS } from '../i18n/section-fallback-labels.const';
 import { resolveFieldsForLocale } from './field-translation.helpers';
 import {
   DEFAULT_LOCALE,
+  LOCALES,
+  type Locale,
   type ResolvedSectionType,
   type SectionDefinitionJson,
   type SectionTypeTranslation,
-  SUPPORTED_LOCALES,
-  type SupportedLocale,
   type TranslationsJson,
 } from './locale-resolver.types';
 
@@ -24,6 +24,7 @@ export type {
   FieldDefinition,
   FieldTranslation,
   FieldTranslationsJson,
+  Locale,
   ResolvedSectionType,
   SectionDefinitionJson,
   SectionTypeTranslation,
@@ -32,16 +33,17 @@ export type {
 } from './locale-resolver.types';
 export {
   DEFAULT_LOCALE,
+  LOCALES,
   SUPPORTED_LOCALES,
 } from './locale-resolver.types';
 
 /** Validates if a string is a supported locale. */
-export function isSupportedLocale(locale: string): locale is SupportedLocale {
-  return SUPPORTED_LOCALES.includes(locale as SupportedLocale);
+export function isSupportedLocale(locale: string): locale is Locale {
+  return LOCALES.includes(locale as Locale);
 }
 
 /** Parse and validate locale from request, defaulting to 'en'. */
-export function parseLocale(locale: string | undefined): SupportedLocale {
+export function parseLocale(locale: string | undefined): Locale {
   if (!locale) return DEFAULT_LOCALE;
   const normalized = locale.trim();
   return isSupportedLocale(normalized) ? normalized : DEFAULT_LOCALE;
@@ -53,7 +55,7 @@ export function parseLocale(locale: string | undefined): SupportedLocale {
  */
 export function resolveTranslation(
   translations: TranslationsJson | null | undefined,
-  locale: SupportedLocale,
+  locale: Locale,
 ): SectionTypeTranslation {
   const empty: SectionTypeTranslation = {
     title: '',
@@ -94,7 +96,7 @@ export function resolveSectionTypeForLocale(
     fieldStyles: unknown;
     translations: unknown;
   },
-  locale: SupportedLocale,
+  locale: Locale,
 ): ResolvedSectionType {
   const translations = sectionType.translations as TranslationsJson | null;
   const resolved = resolveTranslation(translations, locale);
@@ -126,10 +128,7 @@ export function resolveSectionTypeForLocale(
 }
 
 /** Resolve entire definition JSON for locale. */
-export function resolveDefinitionFieldsForLocale(
-  definition: unknown,
-  locale: SupportedLocale,
-): unknown {
+export function resolveDefinitionFieldsForLocale(definition: unknown, locale: Locale): unknown {
   if (!definition || typeof definition !== 'object') return definition;
   const def = definition as SectionDefinitionJson;
   if (!def.fields) return definition;

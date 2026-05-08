@@ -1,7 +1,5 @@
 [test]
-# E2E configuration. Only the migrated suites under
-# `test/infrastructure/e2e/` run here — `_legacy/` stays excluded
-# until each suite is converted to the new `TestApp` harness.
+# E2E configuration. Migrated suites under `test/infrastructure/e2e/`.
 root = "./test/infrastructure/e2e"
 timeout = 60000
 

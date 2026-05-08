@@ -4,7 +4,7 @@
  * case to a `404`.
  */
 
-import { type EnumDescriptor, getEnum } from '../../services/enum-catalog.service';
+import { type EnumDescriptor, getEnum } from '../../services/enum-catalog';
 
 export class GetEnumDescriptorUseCase {
   execute(key: string): EnumDescriptor | null {

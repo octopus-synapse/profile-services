@@ -223,13 +223,6 @@ describe('E2E: Admin Section Types CRUD', () => {
             placeholder: 'Adicionar teste...',
             addLabel: 'Adicionar Teste',
           },
-          es: {
-            title: 'Prueba E2E',
-            label: 'prueba',
-            noDataLabel: 'Sin datos de prueba',
-            placeholder: 'Agregar prueba...',
-            addLabel: 'Agregar Prueba',
-          },
         },
       };
 
@@ -268,7 +261,7 @@ describe('E2E: Admin Section Types CRUD', () => {
             kind: 'CUSTOM',
             fields: [{ key: 'name', type: 'string', required: true }],
           },
-          translations: { en: translation, 'pt-BR': translation, es: translation },
+          translations: { en: translation, 'pt-BR': translation },
         });
 
       expect(response.status).toBe(409);

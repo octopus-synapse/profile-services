@@ -30,13 +30,6 @@ export const SUCCESS_MESSAGE_DICTIONARY = {
     },
     params: [],
   },
-  RESUME_UPDATED: {
-    message: {
-      en: 'Resume updated successfully.',
-      'pt-BR': 'Currículo atualizado com sucesso.',
-    },
-    params: [],
-  },
   USER_DELETED: {
     message: {
       en: 'Account deleted successfully.',

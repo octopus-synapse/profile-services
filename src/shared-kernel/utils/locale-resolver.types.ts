@@ -1,17 +1,15 @@
-// P2-135 — `SupportedLocale` / `SUPPORTED_LOCALES` / `DEFAULT_LOCALE`
-// re-exported from the canonical `shared-kernel/constants/locale.constants`
-// instead of redeclaring them here. Keeping a forward-compatible
-// alias means callers that already import from this file don't have
-// to change.
 import {
   DEFAULT_LOCALE as CANONICAL_DEFAULT_LOCALE,
-  SUPPORTED_LOCALES as CANONICAL_SUPPORTED_LOCALES,
-  type SupportedLocale as CanonicalSupportedLocale,
-} from '@/shared-kernel/constants/locale.constants';
+  LOCALES as CANONICAL_LOCALES,
+  type Locale as CanonicalLocale,
+} from '@packages/i18n';
 
-export type SupportedLocale = CanonicalSupportedLocale;
+export type Locale = CanonicalLocale;
 export const DEFAULT_LOCALE = CANONICAL_DEFAULT_LOCALE;
-export const SUPPORTED_LOCALES: readonly SupportedLocale[] = CANONICAL_SUPPORTED_LOCALES;
+export const LOCALES: readonly Locale[] = CANONICAL_LOCALES;
+
+export type SupportedLocale = Locale;
+export const SUPPORTED_LOCALES: readonly Locale[] = CANONICAL_LOCALES;
 
 /** Translation structure stored in SectionType.translations JSON */
 export interface SectionTypeTranslation {
