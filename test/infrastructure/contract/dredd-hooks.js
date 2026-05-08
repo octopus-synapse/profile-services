@@ -117,6 +117,19 @@ const SKIP_DESTRUCTIVE_OPS = [
   // Protects the generic fixture user (EXAMPLE_GENERIC_ID) from being
   // destroyed mid-run — it must remain for /users/manage/{id} GET routes.
   { method: 'DELETE', path: '/v1/users/manage/{id}' },
+  // Protects the fixture resume (EXAMPLE_RESUME_ID). Deleting it cascades
+  // to SectionItems, ResumeVersions, ResumeShares, CollaborationComments
+  // and all other resume-owned entities seeded for Dredd.
+  { method: 'DELETE', path: '/v1/resumes/{resumeId}' },
+  { method: 'DELETE', path: '/v1/resumes/manage/{resumeId}' },
+  // Protects shared-ID fixture entities seeded under EXAMPLE_GENERIC_ID.
+  { method: 'DELETE', path: '/v1/jobs/{id}' },
+  { method: 'DELETE', path: '/v1/posts/{id}' },
+  { method: 'DELETE', path: '/v1/shares/{shareId}' },
+  { method: 'DELETE', path: '/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}' },
+  { method: 'DELETE', path: '/v1/resumes/{resumeId}/skills/{skillId}' },
+  { method: 'DELETE', path: '/v1/resumes/imports/{importId}' },
+  { method: 'DELETE', path: '/v1/resumes/comments/{commentId}' },
 ];
 
 function shouldSkip(name, transaction) {
