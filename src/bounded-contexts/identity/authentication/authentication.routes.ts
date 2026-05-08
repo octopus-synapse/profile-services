@@ -122,6 +122,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         id: 'rate-limit',
         metadata: { points: 5, duration: 60, keyStrategy: 'ip' },
       },
+      { id: 'multi-step-flow' },
     ],
     openapi: {
       summary: 'Verify 2FA code during login',

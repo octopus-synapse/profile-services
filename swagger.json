@@ -6908,7 +6908,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -7630,7 +7631,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -12251,7 +12253,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -12928,7 +12931,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -13468,7 +13472,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -14131,7 +14136,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -14712,7 +14718,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -15455,7 +15462,8 @@
                   "nameEn": "Fixture",
                   "namePtBr": "Fixture PT",
                   "isActive": true,
-                  "areaId": "01900000-0000-7000-a000-000000000001"
+                  "areaId": "01900000-0000-7000-a000-000000000001",
+                  "type": "OTHER"
                 }
               }
             }
@@ -18979,7 +18987,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/auth/email-verification/resend-status": {
@@ -19247,7 +19258,7 @@
                   "token"
                 ],
                 "example": {
-                  "token": "01900000-0000-7000-a000-000000000001"
+                  "token": "fixture-email-verify-token-bbbbbbbbbbbb"
                 }
               }
             }
@@ -19437,8 +19448,8 @@
                   "password"
                 ],
                 "example": {
-                  "email": "user@example.com",
-                  "password": "SecurePass123!"
+                  "email": "dredd-fixture@profile.local",
+                  "password": "Dredd_Fixture_Password_123!"
                 }
               }
             }
@@ -19627,7 +19638,8 @@
         },
         "x-auth": "public",
         "x-guards": [
-          "rate-limit"
+          "rate-limit",
+          "multi-step-flow"
         ]
       }
     },
@@ -20200,7 +20212,7 @@
                   }
                 },
                 "example": {
-                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.token"
+                  "refreshToken": "fixture-refresh-token-aaaaaaaaaaaaaaaa"
                 }
               }
             }
@@ -20334,7 +20346,7 @@
                   "newPassword"
                 ],
                 "example": {
-                  "token": "01900000-0000-7000-a000-000000000001",
+                  "token": "fixture-pw-reset-token-cccccccccccccccc",
                   "newPassword": "NewSecurePass456!"
                 }
               }
@@ -44421,7 +44433,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "multi-step-flow"
+        ]
       }
     },
     "/api/v1/me/skill-proficiency": {
@@ -75243,7 +75258,7 @@
                   "styleId"
                 ],
                 "example": {
-                  "styleId": "01900000-0000-7000-a000-000000000004"
+                  "styleId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }

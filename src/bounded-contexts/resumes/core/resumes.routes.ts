@@ -413,7 +413,13 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     method: 'PATCH',
     path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId',
     auth: { kind: 'jwt' },
-    params: ResumeIdAndTypeKeyAndItemIdParam,
+    params: ResumeIdAndTypeKeyAndItemIdParam.openapi({
+      example: {
+        resumeId: '01900000-0000-7000-a000-000000000010',
+        sectionTypeKey: 'fixture-slug',
+        itemId: '01900000-0000-7000-a000-000000000087',
+      },
+    }),
     body: SectionItemBody,
     response: ResumeSectionItemDataResponseSchema,
     openapi: {
@@ -443,7 +449,13 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     method: 'DELETE',
     path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId',
     auth: { kind: 'jwt' },
-    params: ResumeIdAndTypeKeyAndItemIdParam,
+    params: ResumeIdAndTypeKeyAndItemIdParam.openapi({
+      example: {
+        resumeId: '01900000-0000-7000-a000-000000000010',
+        sectionTypeKey: 'fixture-slug',
+        itemId: '01900000-0000-7000-a000-000000000087',
+      },
+    }),
     response: ResumeSectionItemDeletedResponseSchema,
     openapi: {
       summary: 'Delete section item from a dynamic section type',

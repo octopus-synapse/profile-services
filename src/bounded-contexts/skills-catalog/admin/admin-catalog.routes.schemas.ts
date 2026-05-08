@@ -38,6 +38,7 @@ export const AnyBody = z.record(z.unknown()).openapi({
     namePtBr: 'Fixture PT',
     isActive: true,
     areaId: '01900000-0000-7000-a000-000000000001',
+    type: 'OTHER',
   },
 });
 

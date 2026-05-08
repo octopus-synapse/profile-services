@@ -19,7 +19,9 @@ export abstract class FeatureFlagsSseBundle {
   abstract readonly flagStream: { observe(): Observable<FlagStreamMessage> };
 }
 
-export const KeyParam = z.object({ key: z.string() });
+export const KeyParam = z.object({ key: z.string() }).openapi({
+  example: { key: 'fixture-toggleable-flag' },
+});
 
 export const ToggleFeatureFlagSchema = z
   .object({

@@ -43,6 +43,7 @@ const IMPLEMENTED_GUARDS = new Set<string>([
   'fit-profile',
   'min-quality',
   'external-api',
+  'multi-step-flow',
 ]);
 
 // Empty after the NEW-1 follow-up shipped. Kept for future declarations

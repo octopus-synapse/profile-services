@@ -377,7 +377,9 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
     path: '/v1/jobs/:id/apply',
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
-    params: IdParam,
+    params: z
+      .object({ id: z.string().uuid('ID must be a valid UUID') })
+      .openapi({ example: { id: '01900000-0000-7000-a000-000000000031' } }),
     body: ApplyToJobSchema,
     response: ApplyToJobResponseSchema,
     openapi: {

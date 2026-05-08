@@ -24,6 +24,7 @@ import {
   ModifierType,
   NotificationType,
   PostType,
+  type Prisma,
   type PrismaClient,
 } from '@prisma/client';
 import {
@@ -54,6 +55,24 @@ const DREDD_GENERIC_USER_EMAIL = 'dredd-generic@profile.local';
 const JANEDOE_USER_ID = '01900000-0000-7000-a000-000000000084';
 const JANEDOE_RESUME_ID = '01900000-0000-7000-a000-000000000085';
 const JANEDOE_EMAIL = 'janedoe@profile.local';
+
+const FIXTURE_REFRESH_TOKEN_ID = '01900000-0000-7000-a000-000000000A01';
+const FIXTURE_REFRESH_TOKEN_VALUE = 'fixture-refresh-token-aaaaaaaaaaaaaaaa';
+const FIXTURE_EMAIL_VERIFY_TOKEN_ID = '01900000-0000-7000-a000-000000000A02';
+const FIXTURE_EMAIL_VERIFY_TOKEN_VALUE = 'fixture-email-verify-token-bbbbbbbbbbbb';
+const FIXTURE_PW_RESET_TOKEN_ID = '01900000-0000-7000-a000-000000000A03';
+const FIXTURE_PW_RESET_TOKEN_VALUE = 'fixture-pw-reset-token-cccccccccccccccc';
+
+// Dedicated user for the reset-password contract probe. Tying the reset
+// token to EXAMPLE_USER_ID would invalidate that user's session (via the
+// `auth:token_valid_after:*` cache key) and cascade-401 every subsequent
+// authenticated probe in the same suite run. This isolated user has no
+// other contract-test responsibility, so its session can be wiped freely.
+const FIXTURE_PW_RESET_USER_ID = '01900000-0000-7000-a000-000000000071';
+const FIXTURE_PW_RESET_USER_EMAIL = 'dredd-pwreset@profile.local';
+
+const FIXTURE_THIRDPARTY_JOB_ID = '01900000-0000-7000-a000-000000000031';
+const FIXTURE_TOGGLEABLE_FLAG_KEY = 'fixture-toggleable-flag';
 
 export async function seedDreddFixtures(
   prisma: PrismaClient,
@@ -311,6 +330,22 @@ export async function seedDreddFixtures(
 
   // SectionType with key = fixture-slug (for admin section-type routes)
   // isSystem must be false so the DELETE (204) contract test can delete it.
+  // The definition shape must satisfy `SectionDefinitionSchema` (kind +
+  // schemaVersion + fields[]) — without this the section-item POST/PATCH
+  // contract probes 400 with INVALID_SECTION_TYPE_DEFINITION.
+  const fixtureSectionDefinition: Prisma.InputJsonValue = {
+    schemaVersion: 1,
+    kind: 'EXPERIENCE',
+    fields: [
+      {
+        key: 'title',
+        type: 'string',
+        required: false,
+        semanticRole: 'JOB_TITLE',
+        meta: { label: 'Title' },
+      },
+    ],
+  };
   await prisma.sectionType.upsert({
     where: { key: EXAMPLE_SLUG },
     create: {
@@ -320,7 +355,7 @@ export async function seedDreddFixtures(
       description: 'Dredd fixture section type.',
       semanticKind: 'experience',
       isSystem: false,
-      definition: { fields: [], translations: {} },
+      definition: fixtureSectionDefinition,
       uiSchema: { fields: [], translations: {} },
       renderHints: { fields: [], translations: {} },
       fieldStyles: {},
@@ -330,7 +365,7 @@ export async function seedDreddFixtures(
     },
     update: {
       isSystem: false,
-      definition: { fields: [], translations: {} },
+      definition: fixtureSectionDefinition,
       uiSchema: { fields: [], translations: {} },
       renderHints: { fields: [], translations: {} },
     },
@@ -781,6 +816,21 @@ export async function seedDreddFixtures(
     update: { vectorJson: fitVectorJson, version: 1, expiresAt: fitExpiresAt },
   });
 
+  // Admin also needs a UserFitProfile because the contract suite picks the
+  // admin persona for /v1/automation/rage-apply (its permission isn't in
+  // the `user` role's groups, so swagger marks it admin-only). The
+  // fit-profile guard then 403s without this row.
+  await prisma.userFitProfile.upsert({
+    where: { userId: participantTwoUserId },
+    create: {
+      userId: participantTwoUserId,
+      vectorJson: fitVectorJson,
+      version: 1,
+      expiresAt: fitExpiresAt,
+    },
+    update: { vectorJson: fitVectorJson, version: 1, expiresAt: fitExpiresAt },
+  });
+
   // ── ResumeCollaborator (for PATCH /resumes/:resumeId/collaborators/:userId) ─
   // The path resolver fills both `:resumeId` and `:userId` with their fixture
   // constants, so the collaborator is the fixture user themself. The owner
@@ -935,10 +985,216 @@ export async function seedDreddFixtures(
   // would unblock POST /v1/jobs/:id/apply (CANNOT_APPLY_TO_OWN_JOB), it
   // simultaneously regresses PATCH /v1/jobs/:id and
   // GET /v1/jobs/:id/applications because the user-persona contract
-  // probes are no longer the job's author. The apply route stays a
-  // known limitation of the contract suite — a custom paramOverride
-  // would let us split the two but the engine doesn't support it for
-  // this route today.
+  // probes are no longer the job's author. The third-party job below
+  // (FIXTURE_THIRDPARTY_JOB_ID, owned by admin) is referenced by the
+  // /v1/jobs/:id/apply contract probe via a per-route params override
+  // so apply succeeds without breaking the owner-only routes.
+
+  // ── Third-party job (owned by admin) for /v1/jobs/:id/apply ──────────
+  // POST /v1/jobs/:id/apply must hit a job NOT authored by the requester
+  // to avoid CANNOT_APPLY_TO_OWN_JOB. The route descriptor's params
+  // example overrides `:id` to this constant.
+  await prisma.job.upsert({
+    where: { id: FIXTURE_THIRDPARTY_JOB_ID },
+    create: {
+      id: FIXTURE_THIRDPARTY_JOB_ID,
+      authorId: participantTwoUserId,
+      title: 'Dredd Third-Party Job',
+      company: 'Third Party Co',
+      jobType: JobType.FULL_TIME,
+      description: 'Third-party fixture job for the apply route contract probe.',
+      requirements: [],
+      skills: [],
+    },
+    update: { authorId: participantTwoUserId },
+  });
+
+  // ── Auth tokens (refresh / email-verification / password-reset) ──────
+  // The contract probes for /v1/auth/refresh, /v1/auth/email-verification/verify
+  // and /v1/auth/reset-password need real, unexpired token rows so the use
+  // case validation passes. Token values are deterministic literals other
+  // agents reference; expiry is well into the future.
+  const refreshExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const emailVerifyExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const passwordResetExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await prisma.refreshToken.upsert({
+    where: { id: FIXTURE_REFRESH_TOKEN_ID },
+    create: {
+      id: FIXTURE_REFRESH_TOKEN_ID,
+      token: FIXTURE_REFRESH_TOKEN_VALUE,
+      userId: EXAMPLE_USER_ID,
+      expiresAt: refreshExpiresAt,
+    },
+    update: {
+      token: FIXTURE_REFRESH_TOKEN_VALUE,
+      userId: EXAMPLE_USER_ID,
+      expiresAt: refreshExpiresAt,
+      revokedAt: null,
+    },
+  });
+
+  await prisma.emailVerificationToken.upsert({
+    where: { id: FIXTURE_EMAIL_VERIFY_TOKEN_ID },
+    create: {
+      id: FIXTURE_EMAIL_VERIFY_TOKEN_ID,
+      token: FIXTURE_EMAIL_VERIFY_TOKEN_VALUE,
+      userId: EXAMPLE_USER_ID,
+      email: FIXTURE_USER_EMAIL,
+      expiresAt: emailVerifyExpiresAt,
+    },
+    update: {
+      token: FIXTURE_EMAIL_VERIFY_TOKEN_VALUE,
+      userId: EXAMPLE_USER_ID,
+      email: FIXTURE_USER_EMAIL,
+      expiresAt: emailVerifyExpiresAt,
+      usedAt: null,
+    },
+  });
+
+  // Dedicated reset-password fixture user (isolated from the other suite
+  // users so the use case's `invalidateAllSessions` write doesn't 401-cascade
+  // every subsequent JWT probe).
+  await prisma.user.upsert({
+    where: { id: FIXTURE_PW_RESET_USER_ID },
+    create: {
+      id: FIXTURE_PW_RESET_USER_ID,
+      email: FIXTURE_PW_RESET_USER_EMAIL,
+      name: 'Dredd Password Reset User',
+      username: 'dredd-pwreset',
+      passwordHash,
+      emailVerified: new Date(),
+      isActive: true,
+      onboardingCompletedAt: new Date(),
+      roles: ['role_user'],
+    },
+    update: { isActive: true, passwordHash },
+  });
+
+  await prisma.passwordResetToken.upsert({
+    where: { id: FIXTURE_PW_RESET_TOKEN_ID },
+    create: {
+      id: FIXTURE_PW_RESET_TOKEN_ID,
+      token: FIXTURE_PW_RESET_TOKEN_VALUE,
+      userId: FIXTURE_PW_RESET_USER_ID,
+      expiresAt: passwordResetExpiresAt,
+    },
+    update: {
+      token: FIXTURE_PW_RESET_TOKEN_VALUE,
+      userId: FIXTURE_PW_RESET_USER_ID,
+      expiresAt: passwordResetExpiresAt,
+      usedAt: null,
+    },
+  });
+
+  // ── Grant `automation:rage_apply` permission to role_user ────────────
+  // The fixture user has roles ['role_user'] and Permission.RAGE_APPLY
+  // is required by /v1/automation/rage-apply. Editing system-roles.ts to
+  // add it globally would change production behaviour, so we attach it
+  // only to the seeded `user` role (idempotent).
+  const rageApplyPermission = await prisma.permission.findUnique({
+    where: { resource_action: { resource: 'automation', action: 'rage_apply' } },
+  });
+  const userRoleForRageApply = await prisma.role.findUnique({ where: { name: 'user' } });
+  if (rageApplyPermission && userRoleForRageApply) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: userRoleForRageApply.id,
+          permissionId: rageApplyPermission.id,
+        },
+      },
+      create: { roleId: userRoleForRageApply.id, permissionId: rageApplyPermission.id },
+      update: {},
+    });
+  }
+
+  // ── Resume-tailor feature flag ───────────────────────────────────────
+  // POST /v1/resumes/:resumeId/tailor uses `resumes.ai-rewrite` (the
+  // closest registered flag). Force-enable it so the contract probe is
+  // not gated by an admin OFF-toggle in CI.
+  await prisma.featureFlag.upsert({
+    where: { key: 'resumes.ai-rewrite' },
+    create: {
+      key: 'resumes.ai-rewrite',
+      name: 'Reescrita por IA',
+      description: 'IA reescreve o currículo para cada vaga (forced enabled by Dredd seed).',
+      enabled: true,
+    },
+    update: { enabled: true },
+  });
+
+  // ── Toggleable feature flag for PATCH /v1/admin/feature-flags/:key ──
+  // Distinct from the deprecated `EXAMPLE_SLUG` flag so the toggle test
+  // doesn't have to fight with the legacy fixture's seeded state.
+  // `deprecated: false` is explicit on update because the boot-time
+  // BootstrapFlagsUseCase marks any non-registry key as deprecated, and
+  // the toggle endpoint refuses to flip a deprecated flag.
+  await prisma.featureFlag.upsert({
+    where: { key: FIXTURE_TOGGLEABLE_FLAG_KEY },
+    create: {
+      key: FIXTURE_TOGGLEABLE_FLAG_KEY,
+      name: 'Dredd Toggleable Flag',
+      description: 'Materialised by the Dredd seed for the admin toggle contract probe.',
+      enabled: true,
+      deprecated: false,
+    },
+    update: { enabled: true, deprecated: false },
+  });
+
+  // ── ResumeSection + SectionItem under `fixture-slug` SectionType ─────
+  // PATCH/DELETE /v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId
+  // contract probes resolve `:sectionTypeKey=fixture-slug` and need a
+  // SectionItem whose parent ResumeSection points to the fixture-slug
+  // SectionType. The route descriptor params example overrides `:itemId`
+  // to `FIXTURE_SECTION_ITEM_ID` so the test hits this row.
+  const fixtureSectionType = await prisma.sectionType.findUnique({
+    where: { key: EXAMPLE_SLUG },
+  });
+  if (fixtureSectionType) {
+    const FIXTURE_SECTION_ID = '01900000-0000-7000-a000-000000000086';
+    const FIXTURE_SECTION_ITEM_ID = '01900000-0000-7000-a000-000000000087';
+    await prisma.resumeSection.upsert({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId: EXAMPLE_RESUME_ID,
+          sectionTypeId: fixtureSectionType.id,
+        },
+      },
+      create: {
+        id: FIXTURE_SECTION_ID,
+        resumeId: EXAMPLE_RESUME_ID,
+        sectionTypeId: fixtureSectionType.id,
+        order: 99,
+        isVisible: true,
+      },
+      update: {},
+    });
+    const fixtureSectionRow = await prisma.resumeSection.findUnique({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId: EXAMPLE_RESUME_ID,
+          sectionTypeId: fixtureSectionType.id,
+        },
+      },
+    });
+    if (fixtureSectionRow) {
+      await prisma.sectionItem.upsert({
+        where: { id: FIXTURE_SECTION_ITEM_ID },
+        create: {
+          id: FIXTURE_SECTION_ITEM_ID,
+          resumeSectionId: fixtureSectionRow.id,
+          content: { title: 'Fixture Title' },
+          order: 0,
+          isVisible: true,
+        },
+        update: {
+          resumeSectionId: fixtureSectionRow.id,
+          content: { title: 'Fixture Title' },
+        },
+      });
+    }
+  }
 
   // ── Reset auth lockout state for fixture users ───────────────────────
   // The contract test SessionPool logs in as these users on every run.
@@ -954,7 +1210,22 @@ export async function seedDreddFixtures(
     },
   });
 
+  // ── Clear stale state pollution from prior contract suite runs ───────
+  // A prior probe run may have left FitAnswer rows / completed
+  // FitQuestionSet rows / BlockedUser entries that flip later runs into
+  // 409 territory. Wiping them here keeps each run deterministic.
+  await prisma.fitAnswer.deleteMany({ where: { userId: EXAMPLE_USER_ID } });
+  await prisma.fitQuestionSet.updateMany({
+    where: { userId: EXAMPLE_USER_ID, completedAt: { not: null } },
+    data: { completedAt: null },
+  });
+  await prisma.blockedUser.deleteMany({
+    where: {
+      OR: [{ blockerId: EXAMPLE_USER_ID }, { blockedId: EXAMPLE_USER_ID }],
+    },
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode/connections/webhooks) and cleared lockout state',
+    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode/connections/webhooks/auth-tokens) and cleared lockout state + state pollution',
   );
 }

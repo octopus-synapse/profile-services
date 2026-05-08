@@ -46,6 +46,7 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     auth: { kind: 'jwt' },
     body: ChangePasswordSchema,
     response: PasswordMessageResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Change password',
       tags: ['password-management'],

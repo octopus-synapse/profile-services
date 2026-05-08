@@ -22,7 +22,7 @@ export const ListQuerySchema = z.object({
 
 export const ApplyStyleBodySchema = z.object({ styleId: z.string() }).openapi({
   example: {
-    styleId: '01900000-0000-7000-a000-000000000004',
+    styleId: '01900000-0000-7000-a000-000000000001',
   },
 });
 

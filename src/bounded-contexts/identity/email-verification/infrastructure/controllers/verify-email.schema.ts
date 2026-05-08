@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Request Schema
 export const VerifyEmailSchema = z.object({ token: z.string().min(1) }).openapi({
   example: {
-    token: '01900000-0000-7000-a000-000000000001',
+    token: 'fixture-email-verify-token-bbbbbbbbbbbb',
   },
 });
 

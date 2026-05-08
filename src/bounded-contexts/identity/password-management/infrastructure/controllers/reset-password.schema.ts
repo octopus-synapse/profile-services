@@ -8,7 +8,7 @@ export const ResetPasswordSchema = z
   })
   .openapi({
     example: {
-      token: '01900000-0000-7000-a000-000000000001',
+      token: 'fixture-pw-reset-token-cccccccccccccccc',
       newPassword: 'NewSecurePass456!',
     },
   });

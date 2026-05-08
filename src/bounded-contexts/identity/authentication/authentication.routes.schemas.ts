@@ -25,7 +25,7 @@ import { IdParamSchema } from '@/shared-kernel/schemas/params';
 
 export const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() }).openapi({
   example: {
-    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.token',
+    refreshToken: 'fixture-refresh-token-aaaaaaaaaaaaaaaa',
   },
 });
 export const LogoutSchema = z

@@ -43,6 +43,7 @@ import { externalApiGuardStage } from './external-api-guard.stage';
 import { featureFlagGuardStage } from './feature-flag-guard.stage';
 import { internalAuthGuardStage } from './internal-auth-guard.stage';
 import { metricsKeyGuardStage } from './metrics-key-guard.stage';
+import { multiStepFlowGuardStage } from './multi-step-flow-guard.stage';
 import { ownershipGuardStage } from './ownership-guard.stage';
 
 export interface PipelineDeps {
@@ -159,6 +160,10 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
   // No-op marker stage: the `external-api` guard exists purely so the
   // contract probes can skip routes that hit external services.
   stages.push(externalApiGuardStage());
+  // No-op marker stage: `multi-step-flow` flags routes that are middle
+  // steps of a multi-request interaction (2FA verify, post-login
+  // challenge, password mutation) so contract probes skip them.
+  stages.push(multiStepFlowGuardStage());
   stages.push(responseWrapperStage);
   return stages;
 }

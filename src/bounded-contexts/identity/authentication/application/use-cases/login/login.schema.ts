@@ -8,8 +8,8 @@ export const LoginSchema = z
   .object({ email: z.string().email(), password: z.string().min(1) })
   .openapi({
     example: {
-      email: 'user@example.com',
-      password: 'SecurePass123!',
+      email: 'dredd-fixture@profile.local',
+      password: 'Dredd_Fixture_Password_123!',
     },
   });
 

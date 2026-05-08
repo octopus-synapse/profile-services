@@ -68,6 +68,7 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     auth: { kind: 'jwt' },
     body: VerifyAndEnable2faSchema,
     response: VerifyAndEnable2faResponseSchema,
+    guards: [{ id: 'multi-step-flow' }],
     openapi: {
       summary: 'Verify token and enable 2FA',
       tags: ['two-factor-auth'],

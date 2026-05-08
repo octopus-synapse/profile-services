@@ -4,7 +4,7 @@ import { fillPathParams, isForbiddenProbable, loadRoutes, probe, SessionPool } f
 
 const BASE_URL = process.env.DRIFT_BASE_URL;
 const SRC_DIR = resolve(import.meta.dir, '../../../../src');
-const SKIP_GUARDS = new Set(['internal-auth', 'external-api']);
+const SKIP_GUARDS = new Set(['internal-auth', 'external-api', 'multi-step-flow']);
 
 const routes = BASE_URL ? await loadRoutes(SRC_DIR) : [];
 const probable = routes.filter((r) => isForbiddenProbable(r.route));
