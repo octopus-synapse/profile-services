@@ -49,7 +49,7 @@ export const BlockUserSchema = z
   })
   .openapi({
     example: {
-      userId: '01900000-0000-7000-a000-000000000003',
+      userId: '01900000-0000-7000-a000-000000000001',
       reason: 'Repeated unsolicited messages.',
     },
   });

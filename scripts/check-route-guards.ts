@@ -42,6 +42,7 @@ const IMPLEMENTED_GUARDS = new Set<string>([
   'metrics-key',
   'fit-profile',
   'min-quality',
+  'external-api',
 ]);
 
 // Empty after the NEW-1 follow-up shipped. Kept for future declarations

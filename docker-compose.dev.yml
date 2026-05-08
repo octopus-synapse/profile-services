@@ -114,7 +114,12 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
-      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      # The minio SDK performs an HTTP region-discovery call against
+      # this endpoint when signing GETs, so it must resolve from inside
+      # the backend container. The bridge name `minio:9000` works inside
+      # the docker network; override via .env for a host-reachable value
+      # when serving the URL to a real browser on the host.
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://minio:9000}
       LIBRETRANSLATE_URL: http://libretranslate:5000
       LOG_LEVEL: debug
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-mec-sync-token-123}

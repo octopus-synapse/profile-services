@@ -68,11 +68,34 @@ export const SubmitFitAnswersSchema = z
   })
   .openapi({
     example: {
-      questionSetId: '01900000-0000-7000-a000-000000000020',
-      answers: Array.from({ length: QUESTION_SET_SIZE }, (_, i) => ({
-        questionId: `01900000-0000-7000-a000-${String(i + 1).padStart(12, '0')}`,
-        rawValue: ((i * 7) % 5) + 1,
-      })),
+      questionSetId: '019e0391-20f3-737f-a14d-4082bcab7238',
+      answers: [
+        { questionId: '019df8b0-d678-738d-a9c6-608c6d944ef6', rawValue: 3 },
+        { questionId: '019df8b0-d688-7b06-853b-2ac3096ea143', rawValue: 4 },
+        { questionId: '019df8b0-d68f-7085-8f15-18c3e1f6cb38', rawValue: 5 },
+        { questionId: '019df8b0-d6a0-7d0e-a3c5-27254be0e399', rawValue: 2 },
+        { questionId: '019df8b0-d6a7-74e3-8f0e-93e23002838a', rawValue: 1 },
+        { questionId: '019df8b0-d676-7620-90d2-95346177b4cf', rawValue: 3 },
+        { questionId: '019df8b0-d686-78f1-8fda-59ccebeaaf44', rawValue: 4 },
+        { questionId: '019df8b0-d6b5-789a-8de7-785d1fc552e6', rawValue: 5 },
+        { questionId: '019df8b0-d6c1-7f78-8144-199144b87ed1', rawValue: 2 },
+        { questionId: '019df8b0-d6c8-7df3-a0cf-048dd8dce3d2', rawValue: 1 },
+        { questionId: '019df8b0-d6d6-7d7d-a371-95abdfe1dca5', rawValue: 3 },
+        { questionId: '019df8b0-d6dc-7dcc-89c9-3c343f82ba0d', rawValue: 4 },
+        { questionId: '019df8b0-d6eb-769a-877a-cc8aa42d67c3', rawValue: 5 },
+        { questionId: '019df8b0-d6f6-7a5b-9c0f-f8b9cb9f874b', rawValue: 2 },
+        { questionId: '019df8b0-d6ff-7ee3-a3ff-48f24300f59a', rawValue: 1 },
+        { questionId: '019df8b0-d708-7953-a5e2-b3b0a2564bb0', rawValue: 3 },
+        { questionId: '019df8b0-d716-7a83-8a58-57cf46b429da', rawValue: 4 },
+        { questionId: '019df8b0-d6b7-701e-84e9-aca3d1ef6973', rawValue: 5 },
+        { questionId: '019df8b0-d6ba-7183-b5f0-ea70b5db7cf6', rawValue: 2 },
+        { questionId: '019df8b0-d6c6-7690-8ab1-0e4ca8c86c49', rawValue: 1 },
+        { questionId: '019df8b0-d719-765e-95c5-bc4a547b5746', rawValue: 3 },
+        { questionId: '019df8b0-d72b-7d56-88c6-44309c05e068', rawValue: 4 },
+        { questionId: '019df8b0-d736-75b9-9031-d486e9404e6b', rawValue: 5 },
+        { questionId: '019df8b0-d720-7080-bcc6-fa84c3cd75d4', rawValue: 2 },
+        { questionId: '019df8b0-d728-7da4-ad78-526a792ee4b9', rawValue: 1 },
+      ],
     },
   });
 

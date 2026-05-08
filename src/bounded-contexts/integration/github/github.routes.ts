@@ -26,6 +26,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     headers: { 'Cache-Control': 'private, max-age=60' },
     params: SummaryParams,
     response: GitHubSummaryResponseSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary: 'Get GitHub profile summary for a username',
       tags: ['github'],
@@ -44,6 +45,7 @@ export const githubRoutes: ReadonlyArray<Route<GitHubIntegrationUseCases>> = [
     auth: { kind: 'jwt' },
     body: SyncBody,
     response: GitHubSyncResponseSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary: 'Sync GitHub data to user resume',
       tags: ['github'],

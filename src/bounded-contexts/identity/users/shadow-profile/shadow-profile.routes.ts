@@ -18,6 +18,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileUseCasesBundl
     permission: Permission.USER_MANAGE,
     body: UpsertGithubBody,
     response: ShadowProfileSnapshotSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary:
         'Admin: build or refresh a GitHub-based shadow profile. Call once per login; idempotent.',

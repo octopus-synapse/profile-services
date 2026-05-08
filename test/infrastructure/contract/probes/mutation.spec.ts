@@ -18,7 +18,7 @@ import {
 const BASE_URL = process.env.DRIFT_BASE_URL;
 const SRC_DIR = resolve(import.meta.dir, '../../../../src');
 const SWAGGER_PATH = resolve(import.meta.dir, '../../../../swagger.json');
-const SKIP_GUARDS = new Set(['internal-auth']);
+const SKIP_GUARDS = new Set(['internal-auth', 'external-api']);
 
 const DEFAULT_SUCCESS_STATUS: Record<string, number> = { POST: 201, PUT: 200, PATCH: 200 };
 

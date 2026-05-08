@@ -39,11 +39,7 @@ export const UpdateUserSchema = z
   })
   .openapi({
     example: {
-      name: 'Jane Doe',
-      bio: 'Senior backend engineer focused on distributed systems.',
-      location: 'San Francisco, CA',
-      title: 'Senior Backend Engineer',
-      company: 'Acme Corp',
+      name: 'Dredd Fixture User',
     },
   });
 

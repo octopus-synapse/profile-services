@@ -564,6 +564,7 @@ export const jobsRoutes: ReadonlyArray<Route<JobsUseCases>> = [
         id: 'rate-limit',
         metadata: { points: 5, duration: 600, keyStrategy: 'user' },
       },
+      { id: 'external-api' },
     ],
     openapi: {
       summary: 'Fetch a careers page and return an LLM-extracted job preview (not persisted)',

@@ -39,6 +39,7 @@ import {
   fitProfileGuardStage,
   minQualityGuardStage,
 } from './domain-gate-guard.stage';
+import { externalApiGuardStage } from './external-api-guard.stage';
 import { featureFlagGuardStage } from './feature-flag-guard.stage';
 import { internalAuthGuardStage } from './internal-auth-guard.stage';
 import { metricsKeyGuardStage } from './metrics-key-guard.stage';
@@ -155,6 +156,9 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
   // wired (returns 503 instead of silently allowing the route to run).
   stages.push(fitProfileGuardStage(deps.hasValidFitProfile));
   stages.push(minQualityGuardStage(deps.meetsMinQuality));
+  // No-op marker stage: the `external-api` guard exists purely so the
+  // contract probes can skip routes that hit external services.
+  stages.push(externalApiGuardStage());
   stages.push(responseWrapperStage);
   return stages;
 }

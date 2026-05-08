@@ -4,6 +4,7 @@ import { fillPathParams, isForbiddenProbable, loadRoutes, probe, SessionPool } f
 
 const BASE_URL = process.env.DRIFT_BASE_URL;
 const SRC_DIR = resolve(import.meta.dir, '../../../../src');
+const SKIP_GUARDS = new Set(['internal-auth', 'external-api']);
 
 const routes = BASE_URL ? await loadRoutes(SRC_DIR) : [];
 const probable = routes.filter((r) => isForbiddenProbable(r.route));
@@ -19,6 +20,7 @@ describe('Contract — permission-gated routes: 403 for unprivileged user', () =
 
   for (const { route } of probable) {
     if (route.kind === 'sse' || route.kind === 'stream' || route.kind === 'multipart') continue;
+    if (route.guards?.some((g) => SKIP_GUARDS.has(g.id))) continue;
 
     if (!noPermsToken) {
       it.todo(`${route.method} ${route.path} — no-perms user unavailable (seed with SEED_DREDD_FIXTURES=1)`, () => {});

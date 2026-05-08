@@ -199,6 +199,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     body: GithubImportBodySchema,
     response: GithubParsedProfileResponseSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary:
         'Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.',

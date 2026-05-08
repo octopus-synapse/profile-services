@@ -14,7 +14,7 @@ const SendMessageSchema = z
   })
   .openapi({
     example: {
-      recipientId: '01900000-0000-7000-a000-000000000002',
+      recipientId: '01900000-0000-7000-a000-000000000070',
       content: 'Hey, are you available for a quick call this week?',
     },
   });
