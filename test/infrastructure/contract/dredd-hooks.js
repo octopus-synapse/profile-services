@@ -139,6 +139,14 @@ const SKIP_DESTRUCTIVE_OPS = [
   { method: 'DELETE', path: '/v1/webhooks/{id}' },
   // Protects the generic post and post comments.
   { method: 'DELETE', path: '/v1/posts/comments/{id}' },
+  // Seeded JobApplication uses EXAMPLE_JOB_ID not EXAMPLE_GENERIC_ID
+  // (the generic {id} is the job id here), so the 200 probe would 404.
+  { method: 'DELETE', path: '/v1/jobs/{id}/apply' },
+  // Connection state: ACCEPT changes status → REJECT 200 would fail.
+  // WITHDRAW is by the requester (generic user) but we authenticate as
+  // the fixture user (target) — 403, not 200.
+  { method: 'PUT', path: '/v1/connections/{id}/reject' },
+  { method: 'DELETE', path: '/v1/connections/{id}/withdraw' },
 ];
 
 function shouldSkip(name, transaction) {
