@@ -47671,12 +47671,12 @@
                 "RESUME_QUALITY_IMPROVED",
                 "RESUME_QUALITY_REGRESSED"
               ],
-              "example": "fixture-slug"
+              "example": "POST_LIKED"
             },
             "required": true,
             "name": "type",
             "in": "path",
-            "example": "fixture-slug"
+            "example": "POST_LIKED"
           }
         ],
         "requestBody": {

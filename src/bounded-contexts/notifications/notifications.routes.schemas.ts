@@ -53,11 +53,13 @@ export const PaginationQuery = z.object({
   limit: z.string().optional(),
 });
 
-export const TypeParam = z.object({ type: z.enum(NOTIFICATION_TYPES) }).openapi({
-  example: {
-    type: 'POST_LIKED',
-  },
-});
+export const TypeParam = z
+  .object({ type: z.enum(NOTIFICATION_TYPES).openapi({ example: 'POST_LIKED' }) })
+  .openapi({
+    example: {
+      type: 'POST_LIKED',
+    },
+  });
 
 export const MarkReadBody = z
   .object({
