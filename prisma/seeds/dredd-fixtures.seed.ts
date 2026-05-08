@@ -11,9 +11,17 @@
  * sharing a database with other tests) is safe.
  */
 
-import { JobType, NotificationType, PostType, type PrismaClient } from '@prisma/client';
+import {
+  FitDimension,
+  JobType,
+  LayoutKind,
+  NotificationType,
+  PostType,
+  type PrismaClient,
+} from '@prisma/client';
 import {
   EXAMPLE_CONVERSATION_ID,
+  EXAMPLE_GENERIC_ID,
   EXAMPLE_JOB_ID,
   EXAMPLE_NOTIFICATION_ID,
   EXAMPLE_POST_ID,
@@ -29,6 +37,9 @@ const FIXTURE_USERNAME = 'dredd-fixture';
 const DREDD_NOPERMS_USER_ID = '01900000-0000-7000-a000-000000000070';
 const DREDD_NOPERMS_EMAIL = 'dredd-noperms@profile.local';
 
+const DREDD_GENERIC_USER_ID = EXAMPLE_GENERIC_ID;
+const DREDD_GENERIC_USER_EMAIL = 'dredd-generic@profile.local';
+
 export async function seedDreddFixtures(
   prisma: PrismaClient,
   participantTwoUserId: string,
@@ -38,6 +49,7 @@ export async function seedDreddFixtures(
     cost: Number.parseInt(process.env.BCRYPT_COST ?? '10', 10),
   });
 
+  // ── Primary fixture user (has role_user permissions) ─────────────────
   await prisma.user.upsert({
     where: { id: EXAMPLE_USER_ID },
     create: {
@@ -70,87 +82,27 @@ export async function seedDreddFixtures(
     });
   }
 
-  await prisma.resume.upsert({
-    where: { id: EXAMPLE_RESUME_ID },
+  // ── Generic-id fixture user (for /users/manage/{id} routes) ──────────
+  // This user has EXAMPLE_GENERIC_ID so admin manage-user routes resolve.
+  // It must not be destroyed during the Dredd run; the DELETE is in
+  // SKIP_DESTRUCTIVE_OPS in dredd-hooks.js.
+  await prisma.user.upsert({
+    where: { id: DREDD_GENERIC_USER_ID },
     create: {
-      id: EXAMPLE_RESUME_ID,
-      userId: EXAMPLE_USER_ID,
-      title: 'Dredd Fixture Resume',
-      fullName: FIXTURE_USER_NAME,
-      jobTitle: 'Contract Test Subject',
-      language: 'pt-br',
-      isPublic: true,
-      slug: 'dredd-fixture-resume',
+      id: DREDD_GENERIC_USER_ID,
+      email: DREDD_GENERIC_USER_EMAIL,
+      name: 'Dredd Generic User',
+      username: 'dredd-generic',
+      passwordHash,
+      emailVerified: new Date(),
+      isActive: true,
+      onboardingCompletedAt: new Date(),
+      roles: ['role_user'],
     },
-    update: {},
+    update: { emailVerified: new Date(), isActive: true, passwordHash },
   });
 
-  await prisma.job.upsert({
-    where: { id: EXAMPLE_JOB_ID },
-    create: {
-      id: EXAMPLE_JOB_ID,
-      authorId: EXAMPLE_USER_ID,
-      title: 'Dredd Fixture Job',
-      company: 'Fixture Co',
-      jobType: JobType.FULL_TIME,
-      description: 'Contract-test placeholder job listing.',
-      requirements: [],
-      skills: [],
-    },
-    update: {},
-  });
-
-  await prisma.post.upsert({
-    where: { id: EXAMPLE_POST_ID },
-    create: {
-      id: EXAMPLE_POST_ID,
-      authorId: EXAMPLE_USER_ID,
-      type: PostType.ACHIEVEMENT,
-      content: 'Dredd fixture post body.',
-    },
-    update: {},
-  });
-
-  const [participant1Id, participant2Id] =
-    EXAMPLE_USER_ID < participantTwoUserId
-      ? [EXAMPLE_USER_ID, participantTwoUserId]
-      : [participantTwoUserId, EXAMPLE_USER_ID];
-
-  await prisma.conversation.upsert({
-    where: { id: EXAMPLE_CONVERSATION_ID },
-    create: {
-      id: EXAMPLE_CONVERSATION_ID,
-      participant1Id,
-      participant2Id,
-    },
-    update: {},
-  });
-
-  await prisma.notification.upsert({
-    where: { id: EXAMPLE_NOTIFICATION_ID },
-    create: {
-      id: EXAMPLE_NOTIFICATION_ID,
-      userId: EXAMPLE_USER_ID,
-      type: NotificationType.POST_LIKED,
-      message: 'Dredd fixture notification.',
-    },
-    update: {},
-  });
-
-  // Feature flag keyed by EXAMPLE_SLUG so admin feature-flag routes
-  // (`/v1/admin/feature-flags/{key}`, `/.../impact`) resolve to a real
-  // row instead of 404'ing under Dredd's slug substitution.
-  await prisma.featureFlag.upsert({
-    where: { key: EXAMPLE_SLUG },
-    create: {
-      key: EXAMPLE_SLUG,
-      name: 'Dredd Fixture Feature Flag',
-      description: 'Materialised by the Dredd seed so admin feature-flag routes resolve.',
-      enabled: false,
-    },
-    update: {},
-  });
-
+  // ── No-permissions fixture user (for 403 probes) ──────────────────────
   await prisma.user.upsert({
     where: { id: DREDD_NOPERMS_USER_ID },
     create: {
@@ -167,7 +119,256 @@ export async function seedDreddFixtures(
     update: { emailVerified: new Date(), isActive: true, passwordHash },
   });
 
+  // ── Resume (slug = fixture-slug for public-resume routes) ────────────
+  await prisma.resume.upsert({
+    where: { id: EXAMPLE_RESUME_ID },
+    create: {
+      id: EXAMPLE_RESUME_ID,
+      userId: EXAMPLE_USER_ID,
+      title: 'Dredd Fixture Resume',
+      fullName: FIXTURE_USER_NAME,
+      jobTitle: 'Contract Test Subject',
+      language: 'pt-br',
+      isPublic: true,
+      slug: EXAMPLE_SLUG,
+    },
+    update: { slug: EXAMPLE_SLUG },
+  });
+
+  // ── Primary fixture job (with EXAMPLE_JOB_ID for {jobId} routes) ─────
+  await prisma.job.upsert({
+    where: { id: EXAMPLE_JOB_ID },
+    create: {
+      id: EXAMPLE_JOB_ID,
+      authorId: EXAMPLE_USER_ID,
+      title: 'Dredd Fixture Job',
+      company: 'Fixture Co',
+      jobType: JobType.FULL_TIME,
+      description: 'Contract-test placeholder job listing.',
+      requirements: [],
+      skills: [],
+    },
+    update: {},
+  });
+
+  // ── Generic-id job (for /jobs/{id} routes that use EXAMPLE_GENERIC_ID) ─
+  await prisma.job.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      authorId: EXAMPLE_USER_ID,
+      title: 'Dredd Generic Job',
+      company: 'Fixture Co',
+      jobType: JobType.FULL_TIME,
+      description: 'Generic fixture job for Dredd {id} param routes.',
+      requirements: [],
+      skills: [],
+    },
+    update: {},
+  });
+
+  // ── Primary fixture post (with EXAMPLE_POST_ID for {postId} routes) ──
+  await prisma.post.upsert({
+    where: { id: EXAMPLE_POST_ID },
+    create: {
+      id: EXAMPLE_POST_ID,
+      authorId: EXAMPLE_USER_ID,
+      type: PostType.ACHIEVEMENT,
+      content: 'Dredd fixture post body.',
+    },
+    update: {},
+  });
+
+  // ── Generic-id post (for /posts/{id} routes that use EXAMPLE_GENERIC_ID) ─
+  await prisma.post.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      authorId: EXAMPLE_USER_ID,
+      type: PostType.ACHIEVEMENT,
+      content: 'Dredd generic post body.',
+    },
+    update: {},
+  });
+
+  // ── Conversation (already seeded) ─────────────────────────────────────
+  const [participant1Id, participant2Id] =
+    EXAMPLE_USER_ID < participantTwoUserId
+      ? [EXAMPLE_USER_ID, participantTwoUserId]
+      : [participantTwoUserId, EXAMPLE_USER_ID];
+
+  await prisma.conversation.upsert({
+    where: { id: EXAMPLE_CONVERSATION_ID },
+    create: {
+      id: EXAMPLE_CONVERSATION_ID,
+      participant1Id,
+      participant2Id,
+    },
+    update: {},
+  });
+
+  // ── Notification (already seeded) ─────────────────────────────────────
+  await prisma.notification.upsert({
+    where: { id: EXAMPLE_NOTIFICATION_ID },
+    create: {
+      id: EXAMPLE_NOTIFICATION_ID,
+      userId: EXAMPLE_USER_ID,
+      type: NotificationType.POST_LIKED,
+      message: 'Dredd fixture notification.',
+    },
+    update: {},
+  });
+
+  // ── Feature flag (keyed by EXAMPLE_SLUG for admin feature-flag routes) ─
+  await prisma.featureFlag.upsert({
+    where: { key: EXAMPLE_SLUG },
+    create: {
+      key: EXAMPLE_SLUG,
+      name: 'Dredd Fixture Feature Flag',
+      description: 'Materialised by the Dredd seed so admin feature-flag routes resolve.',
+      enabled: false,
+    },
+    update: {},
+  });
+
+  // ── Admin catalog fixtures ─────────────────────────────────────────────
+  // Each entity needs either EXAMPLE_GENERIC_ID (for {id} routes) or
+  // EXAMPLE_SLUG (for {key}/{slug}/{code} routes).
+
+  // SectionType with key = fixture-slug (for admin section-type routes)
+  await prisma.sectionType.upsert({
+    where: { key: EXAMPLE_SLUG },
+    create: {
+      key: EXAMPLE_SLUG,
+      slug: EXAMPLE_SLUG,
+      title: 'Fixture Section',
+      description: 'Dredd fixture section type.',
+      semanticKind: 'experience',
+      definition: {},
+      uiSchema: undefined,
+      renderHints: {},
+      fieldStyles: {},
+      iconType: 'emoji',
+      icon: '📄',
+      translations: {},
+    },
+    update: {},
+  });
+
+  // OnboardingStep with key = fixture-slug
+  await prisma.onboardingStep.upsert({
+    where: { key: EXAMPLE_SLUG },
+    create: {
+      key: EXAMPLE_SLUG,
+      order: 99,
+      component: 'FixtureStep',
+      icon: '📄',
+      required: false,
+      fields: [],
+      translations: {},
+    },
+    update: {},
+  });
+
+  // ProgrammingLanguage with slug = fixture-slug
+  await prisma.programmingLanguage.upsert({
+    where: { slug: EXAMPLE_SLUG },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      slug: EXAMPLE_SLUG,
+      nameEn: 'Fixture Language',
+      namePtBr: 'Linguagem Fixture',
+      descriptionEn: 'Dredd fixture programming language.',
+      descriptionPtBr: 'Linguagem de programação fixture do Dredd.',
+    },
+    update: {},
+  });
+
+  // SpokenLanguage with code = fixture-slug
+  await prisma.spokenLanguage.upsert({
+    where: { code: EXAMPLE_SLUG },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      code: EXAMPLE_SLUG,
+      nameEn: 'Fixture Language',
+      namePtBr: 'Língua Fixture',
+      nameEs: 'Idioma Fixture',
+      nativeName: 'Fixture',
+    },
+    update: {},
+  });
+
+  // TechArea: update 'OTHER' area's id to EXAMPLE_GENERIC_ID so Dredd's
+  // {id} → EXAMPLE_GENERIC_ID routes resolve. No niches reference 'OTHER'.
+  await prisma.$executeRaw`
+    UPDATE "TechArea"
+    SET id = ${EXAMPLE_GENERIC_ID}
+    WHERE type = 'OTHER'::"TechAreaType"
+      AND id != ${EXAMPLE_GENERIC_ID}
+  `;
+
+  // TechNiche with id = EXAMPLE_GENERIC_ID (references the 'OTHER' area)
+  await prisma.techNiche.upsert({
+    where: { slug: 'fixture-niche' },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      slug: 'fixture-niche',
+      nameEn: 'Fixture Niche',
+      namePtBr: 'Nicho Fixture',
+      descriptionEn: 'Dredd fixture tech niche.',
+      descriptionPtBr: 'Nicho técnico fixture do Dredd.',
+      areaId: EXAMPLE_GENERIC_ID,
+    },
+    update: {},
+  });
+
+  // TechSkill with id = EXAMPLE_GENERIC_ID
+  await prisma.techSkill.upsert({
+    where: { slug: 'fixture-skill' },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      slug: 'fixture-skill',
+      nameEn: 'Fixture Skill',
+      namePtBr: 'Habilidade Fixture',
+      descriptionEn: 'Dredd fixture tech skill.',
+      descriptionPtBr: 'Habilidade técnica fixture do Dredd.',
+    },
+    update: {},
+  });
+
+  // FitQuestion with id = EXAMPLE_GENERIC_ID
+  await prisma.fitQuestion.upsert({
+    where: { key: 'fixture-fit-q' },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      key: 'fixture-fit-q',
+      dimension: FitDimension.BIG_FIVE_OPENNESS,
+      textEn: 'I enjoy exploring new ideas.',
+      textPtBr: 'Gosto de explorar novas ideias.',
+      scaleType: 'likert5',
+      weight: 1.0,
+      isActive: true,
+    },
+    update: {},
+  });
+
+  // ResumeStyle with id = EXAMPLE_GENERIC_ID
+  await prisma.resumeStyle.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      name: 'Dredd Fixture Style',
+      description: 'Fixture resume style for Dredd contract tests.',
+      authorId: participantTwoUserId,
+      layoutKind: LayoutKind.SINGLE_COLUMN,
+      typstTemplate: 'fixture.typ',
+      styleScore: 0,
+      styleConfig: {},
+    },
+    update: {},
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (user/resume/job/post/conversation/notification/feature-flag/noperms-user)',
+    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog)',
   );
 }
