@@ -139,6 +139,15 @@ const SKIP_DESTRUCTIVE_OPS = [
   { method: 'DELETE', path: '/v1/webhooks/{id}' },
   // Protects the generic post and post comments.
   { method: 'DELETE', path: '/v1/posts/comments/{id}' },
+  // Token-verification routes need a live token from a prior step (password
+  // reset, email verification, 2FA setup). Dredd synthesizes a generic
+  // string body — no valid token exists in the DB → handler returns 400/404
+  // instead of 2xx. Skip the success transaction; 400/401 probes still run.
+  { method: 'POST', path: '/v1/auth/reset-password' },
+  { method: 'POST', path: '/v1/auth/email-verification/verify' },
+  { method: 'POST', path: '/v1/auth/2fa/verify' },
+  { method: 'POST', path: '/v1/auth/login/verify-2fa' },
+  { method: 'POST', path: '/v1/auth/2fa/setup' },
   // Seeded JobApplication uses EXAMPLE_JOB_ID not EXAMPLE_GENERIC_ID
   // (the generic {id} is the job id here), so the 200 probe would 404.
   { method: 'DELETE', path: '/v1/jobs/{id}/apply' },
