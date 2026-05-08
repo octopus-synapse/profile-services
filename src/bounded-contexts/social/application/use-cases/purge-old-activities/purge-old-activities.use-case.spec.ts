@@ -33,6 +33,9 @@ class StubActivityRepository implements ActivityRepositoryPort {
   async findUserActivitiesByType() {
     return { items: [], total: 0 };
   }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('PurgeOldActivitiesUseCase', () => {

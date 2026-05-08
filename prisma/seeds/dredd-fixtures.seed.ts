@@ -322,7 +322,9 @@ export async function seedDreddFixtures(
       AND id != ${EXAMPLE_GENERIC_ID}
   `;
 
-  const developmentArea = await prisma.techArea.findUnique({ where: { type: 'DEVELOPMENT' } });
+  const developmentArea = await prisma.techArea.findUniqueOrThrow({
+    where: { type: 'DEVELOPMENT' },
+  });
 
   // TechNiche with id = EXAMPLE_GENERIC_ID references DEVELOPMENT (not OTHER/EXAMPLE_GENERIC_ID)
   // so the OTHER area remains niche-free and the DELETE (200) contract test can delete it.
@@ -335,9 +337,9 @@ export async function seedDreddFixtures(
       namePtBr: 'Nicho Fixture',
       descriptionEn: 'Dredd fixture tech niche.',
       descriptionPtBr: 'Nicho técnico fixture do Dredd.',
-      areaId: developmentArea!.id,
+      areaId: developmentArea.id,
     },
-    update: { areaId: developmentArea!.id },
+    update: { areaId: developmentArea.id },
   });
 
   // TechSkill with id = EXAMPLE_GENERIC_ID
@@ -431,7 +433,6 @@ export async function seedDreddFixtures(
     },
     update: {},
   });
-
 
   // ── CollaborationComment (for {commentId} routes) ─────────────────
   await prisma.collaborationComment.upsert({

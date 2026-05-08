@@ -67,6 +67,8 @@ export abstract class ActivityRepositoryPort {
   ): Promise<{ items: ActivityWithUser[]; total: number }>;
 
   abstract deleteOlderThan(date: Date): Promise<number>;
+
+  abstract userExists(userId: string): Promise<boolean>;
 }
 
 // ============================================================================

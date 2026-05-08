@@ -3667,17 +3667,7 @@
                   "textEn",
                   "textPtBr",
                   "scaleType"
-                ],
-                "example": {
-                  "key": "fixture-fit-q",
-                  "dimension": "BIG_FIVE_OPENNESS",
-                  "textEn": "I enjoy new experiences.",
-                  "textPtBr": "Gosto de novas experiências.",
-                  "scaleType": "likert5",
-                  "weight": 1,
-                  "isActive": true,
-                  "reverseScored": false
-                }
+                ]
               }
             }
           }
@@ -9837,18 +9827,7 @@
                   "semanticKind",
                   "definition",
                   "translations"
-                ],
-                "example": {
-                  "key": "fixture_v1",
-                  "slug": "fixture-slug",
-                  "title": "Fixture Section",
-                  "semanticKind": "experience",
-                  "definition": {},
-                  "translations": {
-                    "en": { "title": "Fixture Section", "label": "Fixture" },
-                    "pt-BR": { "title": "Seção Fixture", "label": "Fixture" }
-                  }
-                }
+                ]
               }
             }
           }

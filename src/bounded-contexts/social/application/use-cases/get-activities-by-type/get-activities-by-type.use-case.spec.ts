@@ -36,6 +36,9 @@ class StubActivityRepository implements ActivityRepositoryPort {
   async deleteOlderThan() {
     return 0;
   }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('GetActivitiesByTypeUseCase', () => {

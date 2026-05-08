@@ -39,6 +39,9 @@ class StubActivityRepository implements ActivityRepositoryPort {
   async deleteOlderThan() {
     return 0;
   }
+  async userExists() {
+    return true;
+  }
 }
 
 class StubFollowRepository implements FollowRepositoryPort {

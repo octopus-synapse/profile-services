@@ -147,6 +147,7 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
 
 export class InMemoryActivityRepository extends ActivityRepositoryPort {
   private activities: ActivityWithUser[] = [];
+  private users: UserRecord[] = [];
   private idCounter = 0;
 
   async createActivity(data: {
@@ -213,6 +214,18 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
     return before - this.activities.length;
   }
 
+  async userExists(userId: string): Promise<boolean> {
+    return this.users.some((u) => u.id === userId);
+  }
+
+  seedUser(user: UserRecord): void {
+    this.users.push(user);
+  }
+
+  seedUsers(users: UserRecord[]): void {
+    this.users.push(...users);
+  }
+
   seedActivity(activity: Partial<ActivityWithUser> & { userId: string; type: ActivityType }): void {
     this.activities.push({
       id: activity.id ?? `activity-${++this.idCounter}`,
@@ -228,6 +241,7 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
 
   clear(): void {
     this.activities = [];
+    this.users = [];
     this.idCounter = 0;
   }
 

@@ -1,3 +1,4 @@
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type { ActivityType, ActivityWithUser } from '../../ports/activity.port';
 import { ActivityRepositoryPort } from '../../ports/activity.port';
@@ -11,6 +12,9 @@ export class GetActivitiesByTypeUseCase {
     type: ActivityType,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
+    const exists = await this.repository.userExists(userId);
+    if (!exists) throw new EntityNotFoundException('User', userId);
+
     const { items, total } = await this.repository.findUserActivitiesByType(
       userId,
       type,

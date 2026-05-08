@@ -75,6 +75,34 @@ function suffixUniqueValues(node) {
   }
 }
 
+// ─── Route-specific body overrides ───────────────────────────────────
+// Routes where Dredd's faker cannot produce a valid body (minLength:1 fields,
+// pattern-constrained keys, etc.). Unique fields are run-id-suffixed by
+// suffixUniqueValues() after the override is cloned.
+const ROUTE_BODY_OVERRIDES = {
+  'POST /v1/admin/fit-questions': {
+    key: 'fixture-fit-q',
+    dimension: 'BIG_FIVE_OPENNESS',
+    textEn: 'I enjoy new experiences.',
+    textPtBr: 'Gosto de novas experiências.',
+    scaleType: 'likert5',
+    weight: 1,
+    isActive: true,
+    reverseScored: false,
+  },
+  'POST /v1/admin/section-types': {
+    key: 'fixture_v1',
+    slug: 'fixture-slug',
+    title: 'Fixture Section',
+    semanticKind: 'experience',
+    definition: { fields: [], translations: {} },
+    translations: {
+      en: { title: 'Fixture Section', label: 'Fixture' },
+      'pt-BR': { title: 'Seção Fixture', label: 'Fixture' },
+    },
+  },
+};
+
 // ─── Skip lists ──────────────────────────────────────────────────────
 //
 // Operation names follow the pattern "<METHOD> <path> -> <statusCode> > <description>"
@@ -688,21 +716,19 @@ hooks.beforeEach((transaction, done) => {
     return done();
   }
 
-  // When the request body schema carries a top-level `example`, prefer it
-  // over whatever Dredd's faker synthesized — Dredd synthesizes empty strings
-  // for fields with minLength > 0 and ignores pattern constraints, causing
-  // spurious 400s on routes like fit-questions (textEn/textPtBr minLength:1)
-  // and section-types (key pattern ^[a-z][a-z0-9_]*_v\d+$).
-  const metaSuccess = lookupOperation(transaction);
-  const schemaHasExample = metaSuccess?.requestBodySchema?.example !== undefined;
-  if (schemaHasExample) {
-    const canonical = synthesizeValidBody(metaSuccess);
-    if (canonical !== null) {
-      suffixUniqueValues(canonical);
-      transaction.request.body = JSON.stringify(canonical);
-      transaction.request.headers['Content-Type'] = 'application/json';
-      return done();
-    }
+  // Routes whose body Dredd's faker cannot synthesise correctly (empty strings
+  // for minLength:1 fields, invalid patterns like _vN key suffix). Hard-coded
+  // here so swagger.json stays clean (no manually injected `example` blocks
+  // that get stripped by the swagger-fresh pre-commit check).
+  const path = transaction.request?.uri?.split('?')[0] ?? '';
+  const method = (transaction.request?.method ?? '').toUpperCase();
+  const routeKey = `${method} ${path}`;
+  if (ROUTE_BODY_OVERRIDES[routeKey]) {
+    const override = JSON.parse(JSON.stringify(ROUTE_BODY_OVERRIDES[routeKey]));
+    suffixUniqueValues(override);
+    transaction.request.body = JSON.stringify(override);
+    transaction.request.headers['Content-Type'] = 'application/json';
+    return done();
   }
 
   if (transaction.request && typeof transaction.request.body === 'string') {

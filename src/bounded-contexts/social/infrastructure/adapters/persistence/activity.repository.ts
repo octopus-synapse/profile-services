@@ -106,4 +106,9 @@ export class ActivityRepository extends ActivityRepositoryPort {
     });
     return result.count;
   }
+
+  async userExists(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    return user !== null;
+  }
 }

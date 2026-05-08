@@ -88,6 +88,11 @@ export class InMemoryAdminCollaborationsRepository extends AdminCollaborationsRe
     return paginateInMemory(this.rows, query);
   }
 
+  async findCollaborator(resumeId: string, userId: string): Promise<{ id: string } | null> {
+    const found = this.rows.find((r) => r.resumeId === resumeId && r.userId === userId);
+    return found ? { id: found.id } : null;
+  }
+
   async removeCollaborator(resumeId: string, userId: string): Promise<void> {
     this.rows = this.rows.filter((r) => !(r.resumeId === resumeId && r.userId === userId));
   }
