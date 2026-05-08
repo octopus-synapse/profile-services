@@ -12,6 +12,7 @@
  */
 
 import {
+  ConnectionStatus,
   FitDimension,
   ImportSource,
   ImportStatus,
@@ -512,7 +513,77 @@ export async function seedDreddFixtures(
     update: {},
   });
 
+  // ── Connection (for /connections/{id}/accept|reject|withdraw|delete) ─
+  await prisma.connection.upsert({
+    where: { requesterId_targetId: { requesterId: EXAMPLE_GENERIC_ID, targetId: EXAMPLE_USER_ID } },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      requesterId: EXAMPLE_GENERIC_ID,
+      targetId: EXAMPLE_USER_ID,
+      status: ConnectionStatus.PENDING,
+    },
+    update: { status: ConnectionStatus.PENDING },
+  });
+
+  // ── PostComment (for /posts/comments/{id} DELETE) ─────────────────
+  await prisma.postComment.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      postId: EXAMPLE_GENERIC_ID,
+      authorId: EXAMPLE_USER_ID,
+      content: 'Dredd fixture post comment.',
+    },
+    update: {},
+  });
+
+  // ── SuccessStory (for /success-stories/{id} PATCH/DELETE) ─────────
+  await prisma.successStory.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      userId: EXAMPLE_USER_ID,
+      headline: 'Dredd Fixture Story',
+      beforeText: 'Before the fixture.',
+      afterText: 'After the fixture.',
+      quote: 'Dredd fixture quote.',
+    },
+    update: {},
+  });
+
+  // ── WebhookConfig (for /webhooks/{id} PATCH/DELETE/deliveries) ────
+  await prisma.webhookConfig.upsert({
+    where: { id: EXAMPLE_GENERIC_ID },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      userId: EXAMPLE_USER_ID,
+      url: 'https://fixture.example.com/webhook',
+      secret: 'dredd-fixture-secret',
+      events: ['resume.created'],
+    },
+    update: {},
+  });
+
+  // ── ShadowProfile (for /shadow-profiles/{id}/claim POST) ─────────
+  await prisma.shadowProfile.upsert({
+    where: { source_externalHandle: { source: 'github', externalHandle: 'dredd-fixture' } },
+    create: {
+      id: EXAMPLE_GENERIC_ID,
+      source: 'github',
+      externalHandle: 'dredd-fixture',
+      payload: { login: 'dredd-fixture', name: 'Dredd Fixture', publicRepos: 0 },
+    },
+    update: {},
+  });
+
+  // ── UserSkillProficiency (for /users/{userId}/skills/{skill}/* routes) ─
+  await prisma.userSkillProficiency.upsert({
+    where: { userId_skillName: { userId: EXAMPLE_USER_ID, skillName: 'Fixture User' } },
+    create: { userId: EXAMPLE_USER_ID, skillName: 'Fixture User' },
+    update: {},
+  });
+
   console.log(
-    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode)',
+    '✅ Seeded Dredd fixture entities (users/resume/jobs/posts/conversation/notification/feature-flag/catalog/shares/imports/versions/sections/comments/apply-mode/connections/webhooks)',
   );
 }

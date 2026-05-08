@@ -130,6 +130,15 @@ const SKIP_DESTRUCTIVE_OPS = [
   { method: 'DELETE', path: '/v1/resumes/{resumeId}/skills/{skillId}' },
   { method: 'DELETE', path: '/v1/resumes/imports/{importId}' },
   { method: 'DELETE', path: '/v1/resumes/comments/{commentId}' },
+  // Protects Connection fixture — reject/accept/withdraw/delete are
+  // different paths in Dredd; if DELETE runs first, the others 404.
+  { method: 'DELETE', path: '/v1/connections/{id}' },
+  { method: 'DELETE', path: '/v1/connections/{id}/withdraw' },
+  // Protects the SuccessStory and WebhookConfig fixtures.
+  { method: 'DELETE', path: '/v1/success-stories/{id}' },
+  { method: 'DELETE', path: '/v1/webhooks/{id}' },
+  // Protects the generic post and post comments.
+  { method: 'DELETE', path: '/v1/posts/comments/{id}' },
 ];
 
 function shouldSkip(name, transaction) {
