@@ -12,6 +12,7 @@
  */
 
 import {
+  CollaboratorRole,
   ConnectionStatus,
   FitDimension,
   ImportSource,
@@ -45,6 +46,14 @@ const DREDD_NOPERMS_EMAIL = 'dredd-noperms@profile.local';
 
 const DREDD_GENERIC_USER_ID = EXAMPLE_GENERIC_ID;
 const DREDD_GENERIC_USER_EMAIL = 'dredd-generic@profile.local';
+
+// `janedoe` is the hardcoded username inside several `.openapi({ example })`
+// blocks (UsernameParam, CheckUsernameQuery, schema sample resumes). Several
+// public profile routes (/v1/profiles/:username) feed `:username` from this
+// example, so we materialise a real user with that username + a public resume.
+const JANEDOE_USER_ID = '01900000-0000-7000-a000-000000000084';
+const JANEDOE_RESUME_ID = '01900000-0000-7000-a000-000000000085';
+const JANEDOE_EMAIL = 'janedoe@profile.local';
 
 export async function seedDreddFixtures(
   prisma: PrismaClient,
@@ -126,7 +135,53 @@ export async function seedDreddFixtures(
     update: { emailVerified: new Date(), isActive: true, passwordHash },
   });
 
+  // ── `janedoe` fixture user (matches `.openapi({ example })` username) ─
+  // GET /v1/profiles/:username derives `:username` from UsernameParam's
+  // example (`janedoe`). We materialise a real public profile for it.
+  await prisma.user.upsert({
+    where: { id: JANEDOE_USER_ID },
+    create: {
+      id: JANEDOE_USER_ID,
+      email: JANEDOE_EMAIL,
+      name: 'Jane Doe',
+      username: 'janedoe',
+      passwordHash,
+      emailVerified: new Date(),
+      isActive: true,
+      onboardingCompletedAt: new Date(),
+      roles: ['role_user'],
+    },
+    update: {
+      username: 'janedoe',
+      emailVerified: new Date(),
+      isActive: true,
+      passwordHash,
+    },
+  });
+  await prisma.resume.upsert({
+    where: { id: JANEDOE_RESUME_ID },
+    create: {
+      id: JANEDOE_RESUME_ID,
+      userId: JANEDOE_USER_ID,
+      title: 'Jane Doe Public Resume',
+      fullName: 'Jane Doe',
+      jobTitle: 'Software Engineer',
+      language: 'pt-br',
+      isPublic: true,
+      slug: 'janedoe',
+      primaryStack: ['typescript', 'postgresql'],
+      experienceYears: 4,
+    },
+    update: { isPublic: true, slug: 'janedoe' },
+  });
+  await prisma.user.update({
+    where: { id: JANEDOE_USER_ID },
+    data: { primaryResumeId: JANEDOE_RESUME_ID },
+  });
+
   // ── Resume (slug = fixture-slug for public-resume routes) ────────────
+  // primaryStack is populated with the career-graph default example stack
+  // so the cohort lookup (intersection ≥ 60%) finds at least one peer.
   await prisma.resume.upsert({
     where: { id: EXAMPLE_RESUME_ID },
     create: {
@@ -138,8 +193,15 @@ export async function seedDreddFixtures(
       language: 'pt-br',
       isPublic: true,
       slug: EXAMPLE_SLUG,
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 5,
     },
-    update: { slug: EXAMPLE_SLUG },
+    update: {
+      slug: EXAMPLE_SLUG,
+      isPublic: true,
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 5,
+    },
   });
 
   // ── Primary fixture job (with EXAMPLE_JOB_ID for {jobId} routes) ─────
@@ -159,6 +221,11 @@ export async function seedDreddFixtures(
   });
 
   // ── Generic-id job (for /jobs/{id} routes that use EXAMPLE_GENERIC_ID) ─
+  // Authored by the fixture user so the user-persona contract probes
+  // (PATCH /v1/jobs/:id, GET /v1/jobs/:id/applications) treat the
+  // requester as the owner. The trade-off: POST /v1/jobs/:id/apply
+  // returns 403 (CANNOT_APPLY_TO_OWN_JOB) instead of 201 — see comment
+  // below for the rationale.
   await prisma.job.upsert({
     where: { id: EXAMPLE_GENERIC_ID },
     create: {
@@ -171,7 +238,7 @@ export async function seedDreddFixtures(
       requirements: [],
       skills: [],
     },
-    update: {},
+    update: { authorId: EXAMPLE_USER_ID },
   });
 
   // ── Primary fixture post (with EXAMPLE_POST_ID for {postId} routes) ──
@@ -344,7 +411,7 @@ export async function seedDreddFixtures(
 
   // TechSkill with id = EXAMPLE_GENERIC_ID
   await prisma.techSkill.upsert({
-    where: { slug: 'fixture-skill' },
+    where: { id: EXAMPLE_GENERIC_ID },
     create: {
       id: EXAMPLE_GENERIC_ID,
       slug: 'fixture-skill',
@@ -372,7 +439,41 @@ export async function seedDreddFixtures(
     update: {},
   });
 
-  // ResumeStyle with id = EXAMPLE_GENERIC_ID
+  // ResumeStyle with id = EXAMPLE_GENERIC_ID. styleConfig MUST be a fully
+  // schema-valid ResumeDsl payload (version + layout + tokens + sections),
+  // otherwise the DSL render use case fails with `DSL_RESUME_NO_ACTIVE_STYLE`
+  // (empty config) or `DSL_VALIDATION_FAILED` (wrong shape).
+  const fixtureStyleConfig = {
+    version: '1.0.0',
+    layout: {
+      type: 'single-column',
+      paperSize: 'a4',
+      margins: 'normal',
+      pageBreakBehavior: 'auto',
+    },
+    tokens: {
+      typography: {
+        fontFamily: { heading: 'calibri', body: 'calibri' },
+        fontSize: 'base',
+        headingStyle: 'bold',
+      },
+      colors: {
+        colors: {
+          primary: '#111111',
+          secondary: '#444444',
+          background: '#FFFFFF',
+          surface: '#F5F5F5',
+          text: { primary: '#111111', secondary: '#444444', accent: '#222222' },
+          border: '#CCCCCC',
+          divider: '#EEEEEE',
+        },
+        borderRadius: 'sm',
+        shadows: 'none',
+      },
+      spacing: { density: 'comfortable', sectionGap: 'md', itemGap: 'md', contentPadding: 'md' },
+    },
+    sections: [],
+  };
   await prisma.resumeStyle.upsert({
     where: { id: EXAMPLE_GENERIC_ID },
     create: {
@@ -381,14 +482,56 @@ export async function seedDreddFixtures(
       description: 'Fixture resume style for Dredd contract tests.',
       authorId: participantTwoUserId,
       layoutKind: LayoutKind.SINGLE_COLUMN,
-      typstTemplate: 'fixture.typ',
+      typstTemplate: 'default',
       styleScore: 0,
-      styleConfig: {},
+      styleConfig: fixtureStyleConfig,
     },
-    update: {},
+    update: {
+      typstTemplate: 'default',
+      styleConfig: fixtureStyleConfig,
+    },
+  });
+
+  // ── Pin the fixture style to the fixture resume (active style) ───────
+  // The DSL render use case rejects the resume otherwise.
+  await prisma.resume.update({
+    where: { id: EXAMPLE_RESUME_ID },
+    data: { styleId: EXAMPLE_GENERIC_ID },
+  });
+
+  // ── Mark the fixture resume as the user's primary resume ─────────────
+  // Required by export PDF, /v1/jobs/:id/fit, and the min-quality guard.
+  await prisma.user.update({
+    where: { id: EXAMPLE_USER_ID },
+    data: { primaryResumeId: EXAMPLE_RESUME_ID },
+  });
+
+  // ── ResumeQualityScoreHistory ≥ 70 (min-quality guard) ────────────────
+  // The min-quality stage reads the latest row for the user's primary resume
+  // and rejects with RESUME_QUALITY_TOO_LOW when overallScore < 70. Insert
+  // a synthetic row so guard-protected mutations (resume tailor, auto-apply)
+  // see a passing score. Idempotent via deleteMany + create.
+  await prisma.resumeQualityScoreHistory.deleteMany({
+    where: { resumeId: EXAMPLE_RESUME_ID, scoringRulesVersion: 'fixture-1.0.0' },
+  });
+  await prisma.resumeQualityScoreHistory.create({
+    data: {
+      resumeId: EXAMPLE_RESUME_ID,
+      overallScore: 80,
+      completenessScore: 80,
+      contentQualityScore: 80,
+      issuesJson: [],
+      scoringRulesVersion: 'fixture-1.0.0',
+    },
   });
 
   // ── ResumeShare (for {shareId} routes) ───────────────────────────────
+  // The original share keeps its `${EXAMPLE_SLUG}-share` slug so admin
+  // {shareId} routes resolve. A second share carries `EXAMPLE_SLUG` itself
+  // so the public-resume routes (/v1/public/resumes/:slug,
+  // /v1/dsl/render/public/:slug, /v1/public/resumes/:slug/download)
+  // resolve to a real share when the param resolver fills `:slug` with
+  // `fixture-slug`.
   await prisma.resumeShare.upsert({
     where: { id: EXAMPLE_GENERIC_ID },
     create: {
@@ -397,6 +540,18 @@ export async function seedDreddFixtures(
       slug: `${EXAMPLE_SLUG}-share`,
     },
     update: {},
+  });
+
+  const PUBLIC_SHARE_ID = '01900000-0000-7000-a000-000000000080';
+  await prisma.resumeShare.upsert({
+    where: { id: PUBLIC_SHARE_ID },
+    create: {
+      id: PUBLIC_SHARE_ID,
+      resumeId: EXAMPLE_RESUME_ID,
+      slug: EXAMPLE_SLUG,
+      isActive: true,
+    },
+    update: { resumeId: EXAMPLE_RESUME_ID, slug: EXAMPLE_SLUG, isActive: true },
   });
 
   // ── ResumeShareAlias (for {aliasId} routes) ────────────────────────
@@ -423,15 +578,34 @@ export async function seedDreddFixtures(
   });
 
   // ── ResumeVersion (for {versionId} routes) ────────────────────────
+  // versionNumber is set to 999_999 so the fixture row stays inside the
+  // trailing 30-version window (`CreateSnapshotUseCase.cleanupOldVersions`
+  // deletes anything past the top 30 by versionNumber desc). Without this,
+  // the contract suite's `POST /v1/versions/:resumeId/restore/:versionId`
+  // probe forces a snapshot whose cleanup wipes our fixture row and the
+  // subsequent GET probe 404s.
+  const FIXTURE_VERSION_NUMBER = 999_999;
+  const existingFixtureVersionNumber = await prisma.resumeVersion.findUnique({
+    where: {
+      resumeId_versionNumber: {
+        resumeId: EXAMPLE_RESUME_ID,
+        versionNumber: FIXTURE_VERSION_NUMBER,
+      },
+    },
+    select: { id: true },
+  });
+  if (existingFixtureVersionNumber && existingFixtureVersionNumber.id !== EXAMPLE_GENERIC_ID) {
+    await prisma.resumeVersion.delete({ where: { id: existingFixtureVersionNumber.id } });
+  }
   await prisma.resumeVersion.upsert({
     where: { id: EXAMPLE_GENERIC_ID },
     create: {
       id: EXAMPLE_GENERIC_ID,
       resumeId: EXAMPLE_RESUME_ID,
-      versionNumber: 1,
+      versionNumber: FIXTURE_VERSION_NUMBER,
       snapshot: {},
     },
-    update: {},
+    update: { versionNumber: FIXTURE_VERSION_NUMBER },
   });
 
   // ── CollaborationComment (for {commentId} routes) ─────────────────
@@ -567,6 +741,205 @@ export async function seedDreddFixtures(
     update: {},
   });
 
+  // ── UserFitProfile (for routes guarded by `fit-profile` + match BC) ──
+  // The fit-profile stage admits the user only when status === 'responded',
+  // which requires (a) a UserFitProfile row, (b) a non-null vector, and
+  // (c) `expiresAt` in the future. Match use cases also require the same
+  // row for the requester. The vector shape is loose JSON so any non-empty
+  // structure satisfies the persisted contract.
+  const fitVectorJson = {
+    bigFive: {
+      BIG_FIVE_OPENNESS: 0.7,
+      BIG_FIVE_CONSCIENTIOUSNESS: 0.7,
+      BIG_FIVE_EXTRAVERSION: 0.5,
+      BIG_FIVE_AGREEABLENESS: 0.6,
+      BIG_FIVE_NEUROTICISM: 0.4,
+    },
+    schwartz: {
+      SCHWARTZ_SELF_DIRECTION: 0.7,
+      SCHWARTZ_STIMULATION: 0.5,
+      SCHWARTZ_HEDONISM: 0.5,
+      SCHWARTZ_ACHIEVEMENT: 0.7,
+      SCHWARTZ_POWER: 0.4,
+      SCHWARTZ_SECURITY: 0.6,
+      SCHWARTZ_CONFORMITY: 0.5,
+      SCHWARTZ_TRADITION: 0.4,
+      SCHWARTZ_BENEVOLENCE: 0.7,
+      SCHWARTZ_UNIVERSALISM: 0.7,
+    },
+    sdt: { SDT_AUTONOMY: 0.7, SDT_COMPETENCE: 0.7, SDT_RELATEDNESS: 0.6 },
+  };
+  const fitExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  await prisma.userFitProfile.upsert({
+    where: { userId: EXAMPLE_USER_ID },
+    create: {
+      userId: EXAMPLE_USER_ID,
+      vectorJson: fitVectorJson,
+      version: 1,
+      expiresAt: fitExpiresAt,
+    },
+    update: { vectorJson: fitVectorJson, version: 1, expiresAt: fitExpiresAt },
+  });
+
+  // ── ResumeCollaborator (for PATCH /resumes/:resumeId/collaborators/:userId) ─
+  // The path resolver fills both `:resumeId` and `:userId` with their fixture
+  // constants, so the collaborator is the fixture user themself. The owner
+  // check inside the use case is satisfied because requester = owner.
+  await prisma.resumeCollaborator.upsert({
+    where: { resumeId_userId: { resumeId: EXAMPLE_RESUME_ID, userId: EXAMPLE_USER_ID } },
+    create: {
+      resumeId: EXAMPLE_RESUME_ID,
+      userId: EXAMPLE_USER_ID,
+      role: CollaboratorRole.EDITOR,
+      invitedBy: EXAMPLE_USER_ID,
+      joinedAt: new Date(),
+    },
+    update: { role: CollaboratorRole.EDITOR },
+  });
+
+  // ── Resume skill SectionItem (for PATCH/DELETE /resumes/:resumeId/skills/:skillId) ─
+  // The update use case looks up a SectionItem by `:skillId`, asserts that the
+  // parent ResumeSection's SectionType.key === 'skill_set_v1'. We materialise
+  // a `skill_set_v1` section on the fixture resume + a SectionItem with id =
+  // EXAMPLE_GENERIC_ID. The seed is best-effort: if `skill_set_v1` is absent
+  // (e.g. minimal local seed) the block is skipped rather than crashing.
+  const skillSectionType = await prisma.sectionType.findUnique({
+    where: { key: 'skill_set_v1' },
+  });
+  if (skillSectionType) {
+    const SKILL_SECTION_ID = '01900000-0000-7000-a000-000000000081';
+    await prisma.resumeSection.upsert({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId: EXAMPLE_RESUME_ID,
+          sectionTypeId: skillSectionType.id,
+        },
+      },
+      create: {
+        id: SKILL_SECTION_ID,
+        resumeId: EXAMPLE_RESUME_ID,
+        sectionTypeId: skillSectionType.id,
+        order: 0,
+        isVisible: true,
+      },
+      update: {},
+    });
+    const skillSectionRow = await prisma.resumeSection.findUnique({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId: EXAMPLE_RESUME_ID,
+          sectionTypeId: skillSectionType.id,
+        },
+      },
+    });
+    if (skillSectionRow) {
+      await prisma.sectionItem.upsert({
+        where: { id: EXAMPLE_GENERIC_ID },
+        create: {
+          id: EXAMPLE_GENERIC_ID,
+          resumeSectionId: skillSectionRow.id,
+          content: { name: 'TypeScript', category: 'language', level: 4 },
+          order: 0,
+          isVisible: true,
+        },
+        update: { resumeSectionId: skillSectionRow.id },
+      });
+    }
+  } else {
+    console.log('⚠️  Skipping resume skill SectionItem fixture: skill_set_v1 SectionType missing');
+  }
+
+  // ── TwoFactorAuth (for POST /v1/auth/2fa/verify) ──────────────────────
+  // The route requires an existing TwoFactorAuth row whose secret a TOTP
+  // probe could match. We store a deterministic test secret; the contract
+  // probe still posts an arbitrary code (likely fails the totp check at the
+  // application level — that's acceptable, the route returns 401 in that
+  // case which the contract suite tolerates). Importantly, the row exists,
+  // so the response is no longer the upstream-blocking 404.
+  await prisma.twoFactorAuth.upsert({
+    where: { userId: EXAMPLE_USER_ID },
+    create: {
+      userId: EXAMPLE_USER_ID,
+      secret: 'JBSWY3DPEHPK3PXP',
+      enabled: false,
+    },
+    update: { secret: 'JBSWY3DPEHPK3PXP', enabled: false },
+  });
+
+  // ── Recruiting opt-in fixtures (for POST /v1/recruiting/match-candidates) ─
+  // The pool is computed from `User.preferences.profileVisibility ∈
+  // {public, link}` AND `isActive` AND `onboardingCompletedAt`. The
+  // requester (EXAMPLE_USER_ID) is excluded, so we flip the generic and
+  // no-perms users to opt-in. We also seed minimal `primaryStack` entries
+  // on their primaryResume so the cohort/recruiting algorithms have data.
+  await prisma.userPreferences.upsert({
+    where: { userId: DREDD_GENERIC_USER_ID },
+    create: { userId: DREDD_GENERIC_USER_ID, profileVisibility: 'public' },
+    update: { profileVisibility: 'public' },
+  });
+  await prisma.userPreferences.upsert({
+    where: { userId: DREDD_NOPERMS_USER_ID },
+    create: { userId: DREDD_NOPERMS_USER_ID, profileVisibility: 'link' },
+    update: { profileVisibility: 'link' },
+  });
+
+  // Career-graph cohort peers — give the generic + no-perms users primary
+  // resumes whose `primaryStack` overlaps the example career-graph stack
+  // ['typescript', 'postgresql', 'aws', 'kubernetes'] above the 60% Jaccard
+  // threshold so the cohort is non-empty.
+  const COHORT_PEER_RESUME_ONE_ID = '01900000-0000-7000-a000-000000000082';
+  const COHORT_PEER_RESUME_TWO_ID = '01900000-0000-7000-a000-000000000083';
+  await prisma.resume.upsert({
+    where: { id: COHORT_PEER_RESUME_ONE_ID },
+    create: {
+      id: COHORT_PEER_RESUME_ONE_ID,
+      userId: DREDD_GENERIC_USER_ID,
+      title: 'Cohort Peer Resume',
+      jobTitle: 'Senior Engineer',
+      language: 'pt-br',
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 6,
+    },
+    update: {
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 6,
+    },
+  });
+  await prisma.user.update({
+    where: { id: DREDD_GENERIC_USER_ID },
+    data: { primaryResumeId: COHORT_PEER_RESUME_ONE_ID },
+  });
+  await prisma.resume.upsert({
+    where: { id: COHORT_PEER_RESUME_TWO_ID },
+    create: {
+      id: COHORT_PEER_RESUME_TWO_ID,
+      userId: DREDD_NOPERMS_USER_ID,
+      title: 'Cohort Peer Resume Two',
+      jobTitle: 'Staff Engineer',
+      language: 'pt-br',
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 8,
+    },
+    update: {
+      primaryStack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      experienceYears: 8,
+    },
+  });
+  await prisma.user.update({
+    where: { id: DREDD_NOPERMS_USER_ID },
+    data: { primaryResumeId: COHORT_PEER_RESUME_TWO_ID },
+  });
+
+  // ── Generic-id job: keep authored by the fixture user ────────────────
+  // We deliberately do NOT re-point this job to the admin: while that
+  // would unblock POST /v1/jobs/:id/apply (CANNOT_APPLY_TO_OWN_JOB), it
+  // simultaneously regresses PATCH /v1/jobs/:id and
+  // GET /v1/jobs/:id/applications because the user-persona contract
+  // probes are no longer the job's author. The apply route stays a
+  // known limitation of the contract suite — a custom paramOverride
+  // would let us split the two but the engine doesn't support it for
+  // this route today.
+
   // ── Reset auth lockout state for fixture users ───────────────────────
   // The contract test SessionPool logs in as these users on every run.
   // PrismaLoginAttemptsAdapter computes the lock from the trailing chain
@@ -574,7 +947,9 @@ export async function seedDreddFixtures(
   // run starts unlocked even if a prior run hammered the wrong password.
   await prisma.loginAttempt.deleteMany({
     where: {
-      email: { in: [FIXTURE_USER_EMAIL, DREDD_NOPERMS_EMAIL, DREDD_GENERIC_USER_EMAIL] },
+      email: {
+        in: [FIXTURE_USER_EMAIL, DREDD_NOPERMS_EMAIL, DREDD_GENERIC_USER_EMAIL, JANEDOE_EMAIL],
+      },
       success: false,
     },
   });
