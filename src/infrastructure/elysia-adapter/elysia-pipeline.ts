@@ -29,6 +29,7 @@ import type { AuthExtractorPort } from '@/shared-kernel/http/auth-extractor.port
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
 import type { NextFn, PipelineStage } from '@/shared-kernel/http/pipeline';
+import { mapPrismaErrorToHttp } from '@/shared-kernel/http/prisma-error.mapper';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { responseWrapperStage } from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
@@ -176,6 +177,16 @@ export function errorMapperStage(deps: PipelineDeps): PipelineStage {
             ctx.state.responseBody = mapped.body;
             return;
           }
+        }
+        const prismaMapped = mapPrismaErrorToHttp(err);
+        if (prismaMapped) {
+          ctx.state.responseStatus = prismaMapped.status;
+          ctx.state.responseHeaders = {
+            ...((ctx.state.responseHeaders as Record<string, string> | undefined) ?? {}),
+            ...prismaMapped.headers,
+          };
+          ctx.state.responseBody = prismaMapped.body;
+          return;
         }
         // Unknown error: surface a 500 with a generic shape.
         deps.logger.error(err instanceof Error ? err.message : String(err), {
