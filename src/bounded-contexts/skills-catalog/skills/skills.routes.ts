@@ -15,17 +15,31 @@ import type { CreateSkillData, UpdateSkillData } from './domain/ports/skill-mana
 const ResumeIdParams = z.object({ resumeId: z.string() });
 const SkillRefParams = z.object({ resumeId: z.string(), skillId: z.string() });
 
-const CreateSkillBody = z.object({
-  name: z.string(),
-  category: z.string(),
-  level: z.number().int().optional(),
-});
+const CreateSkillBody = z
+  .object({
+    name: z.string(),
+    category: z.string(),
+    level: z.number().int().optional(),
+  })
+  .openapi({
+    example: {
+      name: 'TypeScript',
+      category: 'programming-languages',
+      level: 4,
+    },
+  });
 
-const UpdateSkillBody = z.object({
-  name: z.string().optional(),
-  category: z.string().optional(),
-  level: z.number().int().optional(),
-});
+const UpdateSkillBody = z
+  .object({
+    name: z.string().optional(),
+    category: z.string().optional(),
+    level: z.number().int().optional(),
+  })
+  .openapi({
+    example: {
+      level: 5,
+    },
+  });
 
 // ─── Response schemas (mirror Skill domain interface) ────────────────
 const SkillSchema = z.object({

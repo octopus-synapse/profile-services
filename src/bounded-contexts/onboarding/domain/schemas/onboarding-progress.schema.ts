@@ -9,6 +9,7 @@
  * Content schemas here are permissive to allow partial saves.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import {
   OnboardingSectionItemSchema,
@@ -17,6 +18,8 @@ import {
 } from './onboarding-data.schema';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
+
+extendZodWithOpenApi(z);
 
 const StaticOnboardingStepSchema = z.enum([
   'welcome',
@@ -82,15 +85,26 @@ const SectionProgressSchema = z.object({
  * ARCHITECTURE: Uses generic sections format. Section progress is data-driven
  * through sectionTypeKey and dynamic section steps.
  */
-export const OnboardingProgressSchema = z.object({
-  currentStep: OnboardingStepSchema,
-  completedSteps: z.array(OnboardingStepSchema),
-  username: UsernameSchema.optional(),
-  personalInfo: PartialPersonalInfoSchema.optional(),
-  professionalProfile: PartialProfessionalProfileSchema.optional(),
-  sections: z.array(SectionProgressSchema).optional(),
-  templateSelection: PartialTemplateSelectionSchema.optional(),
-});
+export const OnboardingProgressSchema = z
+  .object({
+    currentStep: OnboardingStepSchema,
+    completedSteps: z.array(OnboardingStepSchema),
+    username: UsernameSchema.optional(),
+    personalInfo: PartialPersonalInfoSchema.optional(),
+    professionalProfile: PartialProfessionalProfileSchema.optional(),
+    sections: z.array(SectionProgressSchema).optional(),
+    templateSelection: PartialTemplateSelectionSchema.optional(),
+  })
+  .openapi({
+    example: {
+      currentStep: 'personal-info',
+      completedSteps: ['welcome'],
+      personalInfo: {
+        fullName: 'Jane Doe',
+        email: 'jane.doe@example.com',
+      },
+    },
+  });
 
 export type OnboardingProgress = z.infer<typeof OnboardingProgressSchema>;
 

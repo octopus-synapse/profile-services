@@ -1,5 +1,8 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
+
+extendZodWithOpenApi(z);
 
 // Local schemas
 const PhoneSchema = z.string().max(20).optional();
@@ -32,12 +35,20 @@ export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;
  * Update Preferences Schema
  * Used for updating user UI preferences.
  */
-export const UpdatePreferencesSchema = z.object({
-  palette: z.string().optional(),
-  bannerColor: z.string().optional(),
-  name: z.string().max(100, 'Name too long').optional(),
-  photoURL: UrlSchema.optional(),
-});
+export const UpdatePreferencesSchema = z
+  .object({
+    palette: z.string().optional(),
+    bannerColor: z.string().optional(),
+    name: z.string().max(100, 'Name too long').optional(),
+    photoURL: UrlSchema.optional(),
+  })
+  .openapi({
+    example: {
+      palette: 'ocean',
+      bannerColor: '#0ea5e9',
+      name: 'Jane Doe',
+    },
+  });
 
 export type UpdatePreferences = z.infer<typeof UpdatePreferencesSchema>;
 /**
@@ -60,39 +71,56 @@ export type UpdateApplyCriteria = z.infer<typeof UpdateApplyCriteriaSchema>;
  * Update Full Preferences Schema
  * Extended preferences including all user preference fields.
  */
-export const UpdateFullPreferencesSchema = z.object({
-  // Appearance
-  theme: z.string().optional(),
-  palette: z.string().optional(),
-  bannerColor: z.string().optional(),
-  name: z.string().max(100).optional(),
-  photoURL: UrlSchema.optional(), // Localization
-  language: z.string().max(10).optional(),
-  dateFormat: z.string().optional(),
-  timezone: z.string().max(50).optional(), // Notifications
-  emailNotifications: z.boolean().optional(),
-  resumeExpiryAlerts: z.boolean().optional(),
-  weeklyDigest: z.boolean().optional(),
-  marketingEmails: z.boolean().optional(),
-  emailMilestones: z.boolean().optional(),
-  emailShareExpiring: z.boolean().optional(),
-  digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(), // Privacy
-  profileVisibility: z.string().optional(),
-  showEmail: z.boolean().optional(),
-  showPhone: z.boolean().optional(),
-  allowSearchEngineIndex: z.boolean().optional(), // Export defaults
-  defaultExportFormat: z.string().optional(),
-  includePhotoInExport: z.boolean().optional(), // Apply mode
-  applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']).optional(),
-  applyCriteria: UpdateApplyCriteriaSchema.optional(),
-});
+export const UpdateFullPreferencesSchema = z
+  .object({
+    // Appearance
+    theme: z.string().optional(),
+    palette: z.string().optional(),
+    bannerColor: z.string().optional(),
+    name: z.string().max(100).optional(),
+    photoURL: UrlSchema.optional(), // Localization
+    language: z.string().max(10).optional(),
+    dateFormat: z.string().optional(),
+    timezone: z.string().max(50).optional(), // Notifications
+    emailNotifications: z.boolean().optional(),
+    resumeExpiryAlerts: z.boolean().optional(),
+    weeklyDigest: z.boolean().optional(),
+    marketingEmails: z.boolean().optional(),
+    emailMilestones: z.boolean().optional(),
+    emailShareExpiring: z.boolean().optional(),
+    digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(), // Privacy
+    profileVisibility: z.string().optional(),
+    showEmail: z.boolean().optional(),
+    showPhone: z.boolean().optional(),
+    allowSearchEngineIndex: z.boolean().optional(), // Export defaults
+    defaultExportFormat: z.string().optional(),
+    includePhotoInExport: z.boolean().optional(), // Apply mode
+    applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']).optional(),
+    applyCriteria: UpdateApplyCriteriaSchema.optional(),
+  })
+  .openapi({
+    example: {
+      theme: 'dark',
+      palette: 'ocean',
+      language: 'en',
+      timezone: 'America/Sao_Paulo',
+      emailNotifications: true,
+      digestFrequency: 'WEEKLY',
+      profileVisibility: 'public',
+      applyMode: 'ONE_CLICK',
+    },
+  });
 
 export type UpdateFullPreferences = z.infer<typeof UpdateFullPreferencesSchema>;
 /**
  * Update Username Schema
  * Used for changing user's username.
  */
-export const UpdateUsernameSchema = z.object({ username: UsernameSchema });
+export const UpdateUsernameSchema = z.object({ username: UsernameSchema }).openapi({
+  example: {
+    username: 'janedoe',
+  },
+});
 
 export type UpdateUsername = z.infer<typeof UpdateUsernameSchema>;
 

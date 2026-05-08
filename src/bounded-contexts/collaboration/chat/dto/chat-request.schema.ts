@@ -1,17 +1,33 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+
+extendZodWithOpenApi(z);
 
 // ============================================================================
 // Message Schemas
 // ============================================================================
 
-const SendMessageSchema = z.object({
-  recipientId: z.string().min(1, 'Recipient ID is required'),
-  content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
-});
+const SendMessageSchema = z
+  .object({
+    recipientId: z.string().min(1, 'Recipient ID is required'),
+    content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
+  })
+  .openapi({
+    example: {
+      recipientId: '01900000-0000-7000-a000-000000000002',
+      content: 'Hey, are you available for a quick call this week?',
+    },
+  });
 
-const SendMessageToConversationSchema = z.object({
-  content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
-});
+const SendMessageToConversationSchema = z
+  .object({
+    content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
+  })
+  .openapi({
+    example: {
+      content: 'Sounds great, looking forward to it.',
+    },
+  });
 
 // ============================================================================
 // Query Schemas

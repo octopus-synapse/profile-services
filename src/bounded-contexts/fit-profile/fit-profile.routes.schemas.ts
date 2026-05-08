@@ -15,40 +15,78 @@ export const IdParam = IdParamSchema;
 // divergence at a shared path prefix).
 export const JobIdParam = IdParamSchema;
 
-export const CreateFitQuestionSchema = z.object({
-  key: z.string().min(1).max(120),
-  dimension: z.enum(FIT_DIMENSIONS),
-  textEn: z.string().min(1),
-  textPtBr: z.string().min(1),
-  scaleType: z.enum(['likert5', 'binary']),
-  weight: z.number().positive().default(1),
-  isActive: z.boolean().default(true),
-  reverseScored: z.boolean().default(false),
-});
+export const CreateFitQuestionSchema = z
+  .object({
+    key: z.string().min(1).max(120),
+    dimension: z.enum(FIT_DIMENSIONS),
+    textEn: z.string().min(1),
+    textPtBr: z.string().min(1),
+    scaleType: z.enum(['likert5', 'binary']),
+    weight: z.number().positive().default(1),
+    isActive: z.boolean().default(true),
+    reverseScored: z.boolean().default(false),
+  })
+  .openapi({
+    example: {
+      key: 'openness_curiosity_v1',
+      dimension: 'BIG_FIVE_OPENNESS',
+      textEn: 'I enjoy exploring new ideas and concepts.',
+      textPtBr: 'Gosto de explorar novas ideias e conceitos.',
+      scaleType: 'likert5',
+      weight: 1,
+      isActive: true,
+      reverseScored: false,
+    },
+  });
 
-export const UpdateFitQuestionSchema = z.object({
-  dimension: z.enum(FIT_DIMENSIONS).optional(),
-  textEn: z.string().min(1).optional(),
-  textPtBr: z.string().min(1).optional(),
-  scaleType: z.enum(['likert5', 'binary']).optional(),
-  weight: z.number().positive().optional(),
-  isActive: z.boolean().optional(),
-  reverseScored: z.boolean().optional(),
-});
+export const UpdateFitQuestionSchema = z
+  .object({
+    dimension: z.enum(FIT_DIMENSIONS).optional(),
+    textEn: z.string().min(1).optional(),
+    textPtBr: z.string().min(1).optional(),
+    scaleType: z.enum(['likert5', 'binary']).optional(),
+    weight: z.number().positive().optional(),
+    isActive: z.boolean().optional(),
+    reverseScored: z.boolean().optional(),
+  })
+  .openapi({
+    example: {
+      textEn: 'Updated question text in English.',
+      isActive: false,
+    },
+  });
 
 export const FitAnswerSchema = z.object({
   questionId: z.string(),
   rawValue: z.number().int().min(0).max(5),
 });
 
-export const SubmitFitAnswersSchema = z.object({
-  questionSetId: z.string(),
-  answers: z.array(FitAnswerSchema).length(QUESTION_SET_SIZE),
-});
+export const SubmitFitAnswersSchema = z
+  .object({
+    questionSetId: z.string(),
+    answers: z.array(FitAnswerSchema).length(QUESTION_SET_SIZE),
+  })
+  .openapi({
+    example: {
+      questionSetId: '01900000-0000-7000-a000-000000000020',
+      answers: Array.from({ length: QUESTION_SET_SIZE }, (_, i) => ({
+        questionId: `01900000-0000-7000-a000-${String(i + 1).padStart(12, '0')}`,
+        rawValue: 3,
+      })),
+    },
+  });
 
 export const SliderMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));
 
-export const UpsertJobFitProfileSchema = z.object({ sliders: SliderMapSchema });
+export const UpsertJobFitProfileSchema = z.object({ sliders: SliderMapSchema }).openapi({
+  example: {
+    sliders: {
+      BIG_FIVE_OPENNESS: 0.8,
+      BIG_FIVE_CONSCIENTIOUSNESS: 0.7,
+      SDT_AUTONOMY: 0.6,
+    },
+  },
+});
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const DimensionScoreMapSchema = z.record(z.enum(FIT_DIMENSIONS), z.number().min(0).max(1));

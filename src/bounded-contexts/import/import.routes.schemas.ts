@@ -11,6 +11,7 @@
  * alongside the pure use-cases.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ImportSource, ImportStatus } from '@prisma/client';
 import { z } from 'zod';
 import {
@@ -20,20 +21,50 @@ import {
 import { JsonResumeParser } from './domain/services/json-resume.parser';
 import type { JsonResumeSchema } from './domain/types/import.types';
 
-export const ImportIdParams = z.object({ importId: z.string() });
-export const JsonImportBodySchema = z.object({
-  // `data` must be present — without it the handler immediately
-  // throws a 500 inside `validateJsonResume(undefined)`. Forcing
-  // an object here keeps the failure mode at the schema layer
-  // (400 Bad Request).
-  data: z.object({}).passthrough(),
-});
+extendZodWithOpenApi(z);
 
-export const GithubImportBodySchema = z.object({
-  token: z.string(),
-  username: z.string().optional(),
-  repoLimit: z.number().optional(),
-});
+export const ImportIdParams = z.object({ importId: z.string() });
+export const JsonImportBodySchema = z
+  .object({
+    // `data` must be present — without it the handler immediately
+    // throws a 500 inside `validateJsonResume(undefined)`. Forcing
+    // an object here keeps the failure mode at the schema layer
+    // (400 Bad Request).
+    data: z.object({}).passthrough(),
+  })
+  .openapi({
+    example: {
+      data: {
+        basics: {
+          name: 'Jane Doe',
+          email: 'jane.doe@example.com',
+          summary: 'Backend engineer with 8+ years of experience.',
+        },
+        work: [
+          {
+            company: 'Acme Corp',
+            position: 'Senior Backend Engineer',
+            startDate: '2022-01',
+            summary: 'Led the migration of the payments service.',
+          },
+        ],
+      },
+    },
+  });
+
+export const GithubImportBodySchema = z
+  .object({
+    token: z.string(),
+    username: z.string().optional(),
+    repoLimit: z.number().optional(),
+  })
+  .openapi({
+    example: {
+      token: 'ghp_examplePersonalAccessToken1234567890',
+      username: 'janedoe',
+      repoLimit: 10,
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const ImportSourceEnumSchema = z.nativeEnum(ImportSource);

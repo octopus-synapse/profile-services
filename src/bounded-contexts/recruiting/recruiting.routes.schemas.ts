@@ -11,14 +11,24 @@ import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/ra
 
 export { RATE_LIMIT_KEY };
 
-export const MatchCandidatesRequestSchema = z.object({
-  jobTitle: z.string().max(200).optional(),
-  jobDescription: z.string().max(20_000).optional(),
-  skills: z.array(z.string().min(1).max(60)).max(40).optional(),
-  minEnglishLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']).optional(),
-  remotePolicy: z.enum(['REMOTE', 'HYBRID', 'ONSITE']).optional(),
-  limit: z.number().int().min(1).max(25).default(10),
-});
+export const MatchCandidatesRequestSchema = z
+  .object({
+    jobTitle: z.string().max(200).optional(),
+    jobDescription: z.string().max(20_000).optional(),
+    skills: z.array(z.string().min(1).max(60)).max(40).optional(),
+    minEnglishLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']).optional(),
+    remotePolicy: z.enum(['REMOTE', 'HYBRID', 'ONSITE']).optional(),
+    limit: z.number().int().min(1).max(25).default(10),
+  })
+  .openapi({
+    example: {
+      jobTitle: 'Senior Backend Engineer',
+      skills: ['typescript', 'postgresql', 'kubernetes'],
+      minEnglishLevel: 'ADVANCED',
+      remotePolicy: 'REMOTE',
+      limit: 10,
+    },
+  });
 
 export type MatchCandidatesRequest = z.infer<typeof MatchCandidatesRequestSchema>;
 

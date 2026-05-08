@@ -157,6 +157,38 @@ export const CreateSectionTypeSchema = z
         message: 'Icon must be a valid emoji when iconType is "emoji"',
       });
     }
+  })
+  .openapi({
+    example: {
+      key: 'work_experience_v1',
+      slug: 'work-experience',
+      title: 'Work Experience',
+      description: 'Professional work history with role, company, and achievements.',
+      semanticKind: 'work_experience',
+      version: 1,
+      isRepeatable: true,
+      minItems: 0,
+      definition: {
+        fields: [
+          { key: 'role', type: 'string' },
+          { key: 'company', type: 'string' },
+        ],
+      },
+      iconType: 'lucide',
+      icon: 'briefcase',
+      translations: {
+        en: {
+          title: 'Work Experience',
+          label: 'Experience',
+          description: 'Professional history',
+        },
+        'pt-BR': {
+          title: 'Experiência Profissional',
+          label: 'Experiência',
+          description: 'Histórico profissional',
+        },
+      },
+    },
   });
 
 export type CreateSectionTypeDto = z.infer<typeof CreateSectionTypeSchema>;
@@ -206,6 +238,15 @@ export const UpdateSectionTypeSchema = z
         });
       }
     }
+  })
+  .openapi({
+    example: {
+      title: 'Professional Experience',
+      description: 'Updated description for the section.',
+      isActive: true,
+      iconType: 'lucide',
+      icon: 'briefcase',
+    },
   });
 
 export type UpdateSectionTypeDto = z.infer<typeof UpdateSectionTypeSchema>;

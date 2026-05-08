@@ -17,10 +17,17 @@ export abstract class SkillProficiencyRoutesBundle {
 }
 
 export const SkillNameParam = z.object({ skillName: z.string() });
-export const SetProficiencyBody = z.object({
-  proficiency: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']),
-  yearsOfExperience: z.number().int().min(0).max(80).optional(),
-});
+export const SetProficiencyBody = z
+  .object({
+    proficiency: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']),
+    yearsOfExperience: z.number().int().min(0).max(80).optional(),
+  })
+  .openapi({
+    example: {
+      proficiency: 'ADVANCED',
+      yearsOfExperience: 5,
+    },
+  });
 
 export const SkillProficiencyEntrySchema = z.object({
   skillName: z.string(),

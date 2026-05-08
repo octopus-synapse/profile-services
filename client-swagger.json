@@ -518,7 +518,14 @@
                   "password",
                   "acceptedTosVersion",
                   "acceptedPrivacyVersion"
-                ]
+                ],
+                "example": {
+                  "name": "Jane Doe",
+                  "email": "jane.doe@example.com",
+                  "password": "SecurePass123!",
+                  "acceptedTosVersion": "2026-01-01",
+                  "acceptedPrivacyVersion": "2026-01-01"
+                }
               }
             }
           }
@@ -2887,7 +2894,14 @@
                     }
                   }
                 },
-                "additionalProperties": false
+                "additionalProperties": false,
+                "example": {
+                  "enabled": true,
+                  "enabledForRoles": [
+                    "admin",
+                    "beta-tester"
+                  ]
+                }
               }
             }
           }
@@ -3667,7 +3681,17 @@
                   "textEn",
                   "textPtBr",
                   "scaleType"
-                ]
+                ],
+                "example": {
+                  "key": "openness_curiosity_v1",
+                  "dimension": "BIG_FIVE_OPENNESS",
+                  "textEn": "I enjoy exploring new ideas and concepts.",
+                  "textPtBr": "Gosto de explorar novas ideias e conceitos.",
+                  "scaleType": "likert5",
+                  "weight": 1,
+                  "isActive": true,
+                  "reverseScored": false
+                }
               }
             }
           }
@@ -4369,6 +4393,10 @@
                   "reverseScored": {
                     "type": "boolean"
                   }
+                },
+                "example": {
+                  "textEn": "Updated question text in English.",
+                  "isActive": false
                 }
               }
             }
@@ -7917,7 +7945,22 @@
                   "layoutKind",
                   "styleConfig",
                   "sectionStyles"
-                ]
+                ],
+                "example": {
+                  "name": "Modern Minimal",
+                  "description": "Clean single-column layout with generous whitespace.",
+                  "typstTemplate": "#set page(margin: 1in)\n#text(weight: \"bold\")[Resume]",
+                  "layoutKind": "SINGLE_COLUMN",
+                  "styleConfig": {
+                    "fontFamily": "Inter",
+                    "accentColor": "#0ea5e9"
+                  },
+                  "sectionStyles": {
+                    "experience": {
+                      "spacing": 1.2
+                    }
+                  }
+                }
               }
             }
           }
@@ -8676,6 +8719,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "name": "Modern Minimal v2",
+                  "description": "Updated layout with refined typography."
                 }
               }
             }
@@ -9827,7 +9874,43 @@
                   "semanticKind",
                   "definition",
                   "translations"
-                ]
+                ],
+                "example": {
+                  "key": "work_experience_v1",
+                  "slug": "work-experience",
+                  "title": "Work Experience",
+                  "description": "Professional work history with role, company, and achievements.",
+                  "semanticKind": "work_experience",
+                  "version": 1,
+                  "isRepeatable": true,
+                  "minItems": 0,
+                  "definition": {
+                    "fields": [
+                      {
+                        "key": "role",
+                        "type": "string"
+                      },
+                      {
+                        "key": "company",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "iconType": "lucide",
+                  "icon": "briefcase",
+                  "translations": {
+                    "en": {
+                      "title": "Work Experience",
+                      "label": "Experience",
+                      "description": "Professional history"
+                    },
+                    "pt-BR": {
+                      "title": "Experiência Profissional",
+                      "label": "Experiência",
+                      "description": "Histórico profissional"
+                    }
+                  }
+                }
               }
             }
           }
@@ -11002,6 +11085,13 @@
                       ]
                     }
                   }
+                },
+                "example": {
+                  "title": "Professional Experience",
+                  "description": "Updated description for the section.",
+                  "isActive": true,
+                  "iconType": "lucide",
+                  "icon": "briefcase"
                 }
               }
             }
@@ -16250,7 +16340,10 @@
                 },
                 "required": [
                   "suite"
-                ]
+                ],
+                "example": {
+                  "suite": "smoke"
+                }
               }
             }
           }
@@ -16911,7 +17004,13 @@
                   "modifierType",
                   "effect",
                   "reason"
-                ]
+                ],
+                "example": {
+                  "modifierType": "SUSPEND_ROLE_USER",
+                  "effect": "DENY",
+                  "reason": "Account under investigation for policy violation.",
+                  "endsAt": "2026-06-01T00:00:00.000Z"
+                }
               }
             }
           }
@@ -19342,7 +19441,10 @@
                 },
                 "required": [
                   "code"
-                ]
+                ],
+                "example": {
+                  "code": "123456"
+                }
               }
             }
           }
@@ -19714,7 +19816,10 @@
                 },
                 "required": [
                   "token"
-                ]
+                ],
+                "example": {
+                  "token": "01900000-0000-7000-a000-000000000001"
+                }
               }
             }
           }
@@ -19804,7 +19909,10 @@
                 },
                 "required": [
                   "email"
-                ]
+                ],
+                "example": {
+                  "email": "user@example.com"
+                }
               }
             }
           }
@@ -19898,7 +20006,11 @@
                 "required": [
                   "email",
                   "password"
-                ]
+                ],
+                "example": {
+                  "email": "user@example.com",
+                  "password": "SecurePass123!"
+                }
               }
             }
           }
@@ -20018,7 +20130,11 @@
                 "required": [
                   "userId",
                   "code"
-                ]
+                ],
+                "example": {
+                  "userId": "01900000-0000-7000-a000-000000000001",
+                  "code": "123456"
+                }
               }
             }
           }
@@ -20107,6 +20223,9 @@
                     "type": "boolean",
                     "default": false
                   }
+                },
+                "example": {
+                  "logoutAllSessions": false
                 }
               }
             }
@@ -20650,6 +20769,9 @@
                     "type": "string",
                     "minLength": 1
                   }
+                },
+                "example": {
+                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.token"
                 }
               }
             }
@@ -20781,7 +20903,11 @@
                 "required": [
                   "token",
                   "newPassword"
-                ]
+                ],
+                "example": {
+                  "token": "01900000-0000-7000-a000-000000000001",
+                  "newPassword": "NewSecurePass456!"
+                }
               }
             }
           }
@@ -21368,6 +21494,11 @@
                     "minimum": 1,
                     "maximum": 90
                   }
+                },
+                "example": {
+                  "minFit": 70,
+                  "maxApplications": 25,
+                  "sinceDays": 14
                 }
               }
             }
@@ -21831,7 +21962,16 @@
                 },
                 "required": [
                   "stack"
-                ]
+                ],
+                "example": {
+                  "stack": [
+                    "typescript",
+                    "postgresql",
+                    "aws",
+                    "kubernetes"
+                  ],
+                  "maxBuckets": 20
+                }
               }
             }
           }
@@ -22310,7 +22450,11 @@
                 },
                 "required": [
                   "userId"
-                ]
+                ],
+                "example": {
+                  "userId": "01900000-0000-7000-a000-000000000003",
+                  "reason": "Repeated unsolicited messages."
+                }
               }
             }
           }
@@ -24002,7 +24146,10 @@
                 },
                 "required": [
                   "content"
-                ]
+                ],
+                "example": {
+                  "content": "Sounds great, looking forward to it."
+                }
               }
             }
           }
@@ -24275,7 +24422,11 @@
                 },
                 "required": [
                   "muted"
-                ]
+                ],
+                "example": {
+                  "muted": true,
+                  "mutedUntil": "2026-06-01T00:00:00Z"
+                }
               }
             }
           }
@@ -24491,7 +24642,10 @@
                 },
                 "required": [
                   "pinned"
-                ]
+                ],
+                "example": {
+                  "pinned": true
+                }
               }
             }
           }
@@ -24887,7 +25041,11 @@
                 "required": [
                   "recipientId",
                   "content"
-                ]
+                ],
+                "example": {
+                  "recipientId": "01900000-0000-7000-a000-000000000002",
+                  "content": "Hey, are you available for a quick call this week?"
+                }
               }
             }
           }
@@ -28380,7 +28538,18 @@
                 },
                 "required": [
                   "events"
-                ]
+                ],
+                "example": {
+                  "events": [
+                    {
+                      "event": "page_view",
+                      "props": {
+                        "path": "/dashboard"
+                      },
+                      "occurredAt": "2026-05-08T12:00:00.000Z"
+                    }
+                  ]
+                }
               }
             }
           }
@@ -33062,7 +33231,112 @@
                 "required": [
                   "questionSetId",
                   "answers"
-                ]
+                ],
+                "example": {
+                  "questionSetId": "01900000-0000-7000-a000-000000000020",
+                  "answers": [
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000001",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000002",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000003",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000004",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000005",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000006",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000007",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000008",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000009",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000010",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000011",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000012",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000013",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000014",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000015",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000016",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000017",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000018",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000019",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000020",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000021",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000022",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000023",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000024",
+                      "rawValue": 3
+                    },
+                    {
+                      "questionId": "01900000-0000-7000-a000-000000000025",
+                      "rawValue": 3
+                    }
+                  ]
+                }
               }
             }
           }
@@ -34165,7 +34439,12 @@
                 },
                 "required": [
                   "token"
-                ]
+                ],
+                "example": {
+                  "token": "ghp_examplePersonalAccessToken1234567890",
+                  "username": "janedoe",
+                  "repoLimit": 10
+                }
               }
             }
           }
@@ -34580,7 +34859,11 @@
                 "required": [
                   "githubUsername",
                   "resumeId"
-                ]
+                ],
+                "example": {
+                  "githubUsername": "octocat",
+                  "resumeId": "01900000-0000-7000-a000-000000000001"
+                }
               }
             }
           }
@@ -35557,7 +35840,21 @@
                   "company",
                   "jobType",
                   "description"
-                ]
+                ],
+                "example": {
+                  "title": "Senior Backend Engineer",
+                  "company": "Acme Corp",
+                  "location": "Remote",
+                  "jobType": "FULL_TIME",
+                  "description": "We are looking for a senior backend engineer to join our team.",
+                  "skills": [
+                    "typescript",
+                    "nodejs",
+                    "postgresql"
+                  ],
+                  "remotePolicy": "REMOTE",
+                  "paymentCurrency": "USD"
+                }
               }
             }
           }
@@ -36794,7 +37091,12 @@
                 },
                 "required": [
                   "type"
-                ]
+                ],
+                "example": {
+                  "type": "INTERVIEW_SCHEDULED",
+                  "note": "Initial screening with the hiring manager.",
+                  "occurredAt": "2026-05-15T14:00:00Z"
+                }
               }
             }
           }
@@ -37401,7 +37703,10 @@
                 },
                 "required": [
                   "url"
-                ]
+                ],
+                "example": {
+                  "url": "https://careers.example.com/jobs/senior-backend-engineer"
+                }
               }
             }
           }
@@ -39686,6 +39991,10 @@
                       "FLUENT"
                     ]
                   }
+                },
+                "example": {
+                  "title": "Senior Backend Engineer (Updated)",
+                  "isActive": true
                 }
               }
             }
@@ -40570,6 +40879,10 @@
                   "resumeId": {
                     "type": "string"
                   }
+                },
+                "example": {
+                  "coverLetter": "I am excited about this role because of your engineering culture.",
+                  "resumeId": "01900000-0000-7000-a000-000000000010"
                 }
               }
             }
@@ -42358,7 +42671,14 @@
                 },
                 "required": [
                   "sliders"
-                ]
+                ],
+                "example": {
+                  "sliders": {
+                    "BIG_FIVE_OPENNESS": 0.8,
+                    "BIG_FIVE_CONSCIENTIOUSNESS": 0.7,
+                    "SDT_AUTONOMY": 0.6
+                  }
+                }
               }
             }
           }
@@ -43254,7 +43574,11 @@
                 "required": [
                   "resumeId",
                   "jobId"
-                ]
+                ],
+                "example": {
+                  "resumeId": "01900000-0000-7000-a000-000000000001",
+                  "jobId": "01900000-0000-7000-a000-000000000002"
+                }
               }
             }
           }
@@ -44541,7 +44865,11 @@
                 "required": [
                   "currentPassword",
                   "newPassword"
-                ]
+                ],
+                "example": {
+                  "currentPassword": "OldPass123!",
+                  "newPassword": "NewSecurePass456!"
+                }
               }
             }
           }
@@ -45037,7 +45365,11 @@
                 },
                 "required": [
                   "proficiency"
-                ]
+                ],
+                "example": {
+                  "proficiency": "ADVANCED",
+                  "yearsOfExperience": 5
+                }
               }
             }
           }
@@ -45535,6 +45867,12 @@
                 "properties": {
                   "value": {
                     "nullable": true
+                  }
+                },
+                "example": {
+                  "value": {
+                    "sidebarCollapsed": true,
+                    "theme": "dark"
                   }
                 }
               }
@@ -47484,6 +47822,9 @@
                   "notificationId": {
                     "type": "string"
                   }
+                },
+                "example": {
+                  "notificationId": "01900000-0000-7000-a000-000000000001"
                 }
               }
             }
@@ -47856,6 +48197,11 @@
                       "OFF"
                     ]
                   }
+                },
+                "example": {
+                  "enabled": true,
+                  "emailEnabled": true,
+                  "emailDelivery": "DAILY"
                 }
               }
             }
@@ -48712,7 +49058,25 @@
                   "personalInfo",
                   "professionalProfile",
                   "templateSelection"
-                ]
+                ],
+                "example": {
+                  "username": "janedoe",
+                  "personalInfo": {
+                    "fullName": "Jane Doe",
+                    "email": "jane.doe@example.com",
+                    "phone": "+1 415 555 1234",
+                    "location": "San Francisco, CA"
+                  },
+                  "professionalProfile": {
+                    "jobTitle": "Senior Backend Engineer",
+                    "summary": "Backend engineer with 8+ years building distributed systems."
+                  },
+                  "templateSelection": {
+                    "templateId": "professional",
+                    "colorScheme": "ocean"
+                  },
+                  "sections": []
+                }
               }
             }
           }
@@ -49444,7 +49808,17 @@
                 "required": [
                   "currentStep",
                   "completedSteps"
-                ]
+                ],
+                "example": {
+                  "currentStep": "personal-info",
+                  "completedSteps": [
+                    "welcome"
+                  ],
+                  "personalInfo": {
+                    "fullName": "Jane Doe",
+                    "email": "jane.doe@example.com"
+                  }
+                }
               }
             }
           }
@@ -50059,7 +50433,10 @@
                 },
                 "required": [
                   "stepId"
-                ]
+                ],
+                "example": {
+                  "stepId": "personal-info"
+                }
               }
             }
           }
@@ -53024,7 +53401,15 @@
                 },
                 "required": [
                   "type"
-                ]
+                ],
+                "example": {
+                  "type": "ACHIEVEMENT",
+                  "content": "Excited to share that I just shipped my first open-source library!",
+                  "hardSkills": [
+                    "typescript",
+                    "nodejs"
+                  ]
+                }
               }
             }
           }
@@ -55642,7 +56027,10 @@
                 },
                 "required": [
                   "content"
-                ]
+                ],
+                "example": {
+                  "content": "Congrats on the launch! What stack did you use?"
+                }
               }
             }
           }
@@ -56119,6 +56507,9 @@
                       "CURIOUS"
                     ]
                   }
+                },
+                "example": {
+                  "reactionType": "LIKE"
                 }
               }
             }
@@ -56355,7 +56746,10 @@
                 },
                 "required": [
                   "optionIndex"
-                ]
+                ],
+                "example": {
+                  "optionIndex": 0
+                }
               }
             }
           }
@@ -56583,7 +56977,10 @@
                 },
                 "required": [
                   "reason"
-                ]
+                ],
+                "example": {
+                  "reason": "Spam or misleading content."
+                }
               }
             }
           }
@@ -56812,6 +57209,9 @@
                   "commentary": {
                     "type": "string"
                   }
+                },
+                "example": {
+                  "commentary": "Great insights, sharing this with my network."
                 }
               }
             }
@@ -58713,6 +59113,17 @@
                     "maximum": 25,
                     "default": 10
                   }
+                },
+                "example": {
+                  "jobTitle": "Senior Backend Engineer",
+                  "skills": [
+                    "typescript",
+                    "postgresql",
+                    "kubernetes"
+                  ],
+                  "minEnglishLevel": "ADVANCED",
+                  "remotePolicy": "REMOTE",
+                  "limit": 10
                 }
               }
             }
@@ -60127,7 +60538,17 @@
                 },
                 "required": [
                   "title"
-                ]
+                ],
+                "example": {
+                  "title": "Senior Software Engineer Resume",
+                  "summary": "Backend engineer with 8+ years of experience building distributed systems.",
+                  "isPublic": false,
+                  "fullName": "Jane Doe",
+                  "jobTitle": "Senior Backend Engineer",
+                  "location": "San Francisco, CA",
+                  "linkedin": "https://www.linkedin.com/in/janedoe",
+                  "github": "https://github.com/janedoe"
+                }
               }
             }
           }
@@ -62119,7 +62540,24 @@
                 },
                 "required": [
                   "data"
-                ]
+                ],
+                "example": {
+                  "data": {
+                    "basics": {
+                      "name": "Jane Doe",
+                      "email": "jane.doe@example.com",
+                      "summary": "Backend engineer with 8+ years of experience."
+                    },
+                    "work": [
+                      {
+                        "company": "Acme Corp",
+                        "position": "Senior Backend Engineer",
+                        "startDate": "2022-01",
+                        "summary": "Led the migration of the payments service."
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -62469,7 +62907,24 @@
                 },
                 "required": [
                   "data"
-                ]
+                ],
+                "example": {
+                  "data": {
+                    "basics": {
+                      "name": "Jane Doe",
+                      "email": "jane.doe@example.com",
+                      "summary": "Backend engineer with 8+ years of experience."
+                    },
+                    "work": [
+                      {
+                        "company": "Acme Corp",
+                        "position": "Senior Backend Engineer",
+                        "startDate": "2022-01",
+                        "summary": "Led the migration of the payments service."
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -67070,6 +67525,11 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "title": "Updated Resume Title",
+                  "summary": "Updated professional summary.",
+                  "isPublic": true
                 }
               }
             }
@@ -68801,7 +69261,10 @@
                 },
                 "required": [
                   "jobDescription"
-                ]
+                ],
+                "example": {
+                  "jobDescription": "We are hiring a senior backend engineer with 5+ years of experience in TypeScript, PostgreSQL, and distributed systems."
+                }
               }
             }
           }
@@ -69530,6 +69993,10 @@
                   "referer": {
                     "type": "string"
                   }
+                },
+                "example": {
+                  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+                  "referer": "https://www.linkedin.com/feed/"
                 }
               }
             }
@@ -70203,7 +70670,11 @@
                 "required": [
                   "userId",
                   "role"
-                ]
+                ],
+                "example": {
+                  "userId": "01900000-0000-7000-a000-000000000001",
+                  "role": "EDITOR"
+                }
               }
             }
           }
@@ -70679,7 +71150,10 @@
                 },
                 "required": [
                   "role"
-                ]
+                ],
+                "example": {
+                  "role": "VIEWER"
+                }
               }
             }
           }
@@ -71240,7 +71714,10 @@
                 },
                 "required": [
                   "content"
-                ]
+                ],
+                "example": {
+                  "content": "Consider expanding on the impact of this project."
+                }
               }
             }
           }
@@ -73429,6 +73906,15 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "content": {
+                    "title": "Software Engineer",
+                    "company": "Acme Corp",
+                    "startDate": "2022-01-01",
+                    "endDate": "2024-06-01",
+                    "description": "Led the migration of the payments service to a new architecture."
+                  }
                 }
               }
             }
@@ -73835,6 +74321,15 @@
                     "additionalProperties": {
                       "nullable": true
                     }
+                  }
+                },
+                "example": {
+                  "content": {
+                    "title": "Software Engineer",
+                    "company": "Acme Corp",
+                    "startDate": "2022-01-01",
+                    "endDate": "2024-06-01",
+                    "description": "Led the migration of the payments service to a new architecture."
                   }
                 }
               }
@@ -74559,7 +75054,12 @@
                 "required": [
                   "name",
                   "category"
-                ]
+                ],
+                "example": {
+                  "name": "TypeScript",
+                  "category": "programming-languages",
+                  "level": 4
+                }
               }
             }
           }
@@ -75016,6 +75516,9 @@
                   "level": {
                     "type": "integer"
                   }
+                },
+                "example": {
+                  "level": 5
                 }
               }
             }
@@ -75252,7 +75755,10 @@
                 },
                 "required": [
                   "styleId"
-                ]
+                ],
+                "example": {
+                  "styleId": "01900000-0000-7000-a000-000000000004"
+                }
               }
             }
           }
@@ -75425,6 +75931,11 @@
                     "type": "string",
                     "maxLength": 200
                   }
+                },
+                "example": {
+                  "jobTitle": "Senior Backend Engineer",
+                  "jobCompany": "Acme Corp",
+                  "jobDescription": "We are hiring a backend engineer to design distributed systems on AWS using TypeScript and PostgreSQL."
                 }
               }
             }
@@ -77297,7 +77808,11 @@
                 "required": [
                   "token",
                   "username"
-                ]
+                ],
+                "example": {
+                  "token": "ghp_exampletokenvalueforgithubapi1234567",
+                  "username": "octocat"
+                }
               }
             }
           }
@@ -77714,7 +78229,11 @@
                 },
                 "required": [
                   "resumeId"
-                ]
+                ],
+                "example": {
+                  "resumeId": "01900000-0000-7000-a000-000000000001",
+                  "slug": "jane-doe-senior-engineer"
+                }
               }
             }
           }
@@ -78759,7 +79278,10 @@
                 },
                 "required": [
                   "slug"
-                ]
+                ],
+                "example": {
+                  "slug": "jane-doe-2026"
+                }
               }
             }
           }
@@ -80031,7 +80553,16 @@
                   "beforeText",
                   "afterText",
                   "quote"
-                ]
+                ],
+                "example": {
+                  "userId": "01900000-0000-7000-a000-000000000001",
+                  "headline": "From bootcamp grad to senior engineer in 18 months",
+                  "beforeText": "Self-taught developer struggling to land first role.",
+                  "afterText": "Senior backend engineer at a Series B startup.",
+                  "quote": "Patch Careers helped me focus my resume on what hiring managers actually care about.",
+                  "timeframeDays": 540,
+                  "status": "PUBLISHED"
+                }
               }
             }
           }
@@ -80430,6 +80961,10 @@
                       "ARCHIVED"
                     ]
                   }
+                },
+                "example": {
+                  "headline": "From bootcamp grad to staff engineer in two years",
+                  "status": "PUBLISHED"
                 }
               }
             }
@@ -84744,7 +85279,15 @@
                 "required": [
                   "texts",
                   "targetLanguage"
-                ]
+                ],
+                "example": {
+                  "texts": [
+                    "Built scalable microservices on AWS.",
+                    "Led a team of five backend engineers."
+                  ],
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
               }
             }
           }
@@ -84963,7 +85506,10 @@
                 },
                 "required": [
                   "text"
-                ]
+                ],
+                "example": {
+                  "text": "Engenheiro de software com experiência em sistemas distribuídos."
+                }
               }
             }
           }
@@ -85139,7 +85685,10 @@
                 },
                 "required": [
                   "text"
-                ]
+                ],
+                "example": {
+                  "text": "Engenheiro de software com experiência em sistemas distribuídos."
+                }
               }
             }
           }
@@ -85406,7 +85955,10 @@
                 },
                 "required": [
                   "text"
-                ]
+                ],
+                "example": {
+                  "text": "Engenheiro de software com experiência em sistemas distribuídos."
+                }
               }
             }
           }
@@ -85612,7 +86164,12 @@
                 "required": [
                   "text",
                   "targetLanguage"
-                ]
+                ],
+                "example": {
+                  "text": "Senior Backend Engineer with 8 years of experience.",
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
               }
             }
           }
@@ -86621,7 +87178,13 @@
                 "required": [
                   "email",
                   "password"
-                ]
+                ],
+                "example": {
+                  "email": "new.user@example.com",
+                  "password": "SecurePass123!",
+                  "name": "Jane Doe",
+                  "role": "USER"
+                }
               }
             }
           }
@@ -87349,6 +87912,10 @@
                   "isEmailVerified": {
                     "type": "boolean"
                   }
+                },
+                "example": {
+                  "name": "Jane Doe",
+                  "isActive": true
                 }
               }
             }
@@ -87597,7 +88164,10 @@
                 },
                 "required": [
                   "newPassword"
-                ]
+                ],
+                "example": {
+                  "newPassword": "NewSecurePass456!"
+                }
               }
             }
           }
@@ -87810,7 +88380,13 @@
                 },
                 "required": [
                   "roles"
-                ]
+                ],
+                "example": {
+                  "roles": [
+                    "USER",
+                    "EDITOR"
+                  ]
+                }
               }
             }
           }
@@ -88019,7 +88595,12 @@
                 },
                 "required": [
                   "documentType"
-                ]
+                ],
+                "example": {
+                  "documentType": "TERMS_OF_SERVICE",
+                  "ipAddress": "203.0.113.42",
+                  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+                }
               }
             }
           }
@@ -91078,6 +91659,11 @@
                     "maxLength": 500,
                     "format": "uri"
                   }
+                },
+                "example": {
+                  "palette": "ocean",
+                  "bannerColor": "#0ea5e9",
+                  "name": "Jane Doe"
                 }
               }
             }
@@ -91682,6 +92268,16 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "theme": "dark",
+                  "palette": "ocean",
+                  "language": "en",
+                  "timezone": "America/Sao_Paulo",
+                  "emailNotifications": true,
+                  "digestFrequency": "WEEKLY",
+                  "profileVisibility": "public",
+                  "applyMode": "ONE_CLICK"
                 }
               }
             }
@@ -92268,6 +92864,13 @@
                     "type": "string",
                     "format": "uri"
                   }
+                },
+                "example": {
+                  "name": "Jane Doe",
+                  "bio": "Senior backend engineer focused on distributed systems.",
+                  "location": "San Francisco, CA",
+                  "title": "Senior Backend Engineer",
+                  "company": "Acme Corp"
                 }
               }
             }
@@ -92691,7 +93294,10 @@
                 },
                 "required": [
                   "username"
-                ]
+                ],
+                "example": {
+                  "username": "janedoe"
+                }
               }
             }
           }
@@ -93022,7 +93628,10 @@
                 },
                 "required": [
                   "username"
-                ]
+                ],
+                "example": {
+                  "username": "johndoe"
+                }
               }
             }
           }
@@ -98431,7 +99040,14 @@
                 "required": [
                   "url",
                   "events"
-                ]
+                ],
+                "example": {
+                  "url": "https://hooks.example.com/patch-careers/webhook",
+                  "events": [
+                    "resume.created",
+                    "resume.published"
+                  ]
+                }
               }
             }
           }
@@ -98845,6 +99461,12 @@
                   "enabled": {
                     "type": "boolean"
                   }
+                },
+                "example": {
+                  "events": [
+                    "ats.score.updated"
+                  ],
+                  "enabled": false
                 }
               }
             }

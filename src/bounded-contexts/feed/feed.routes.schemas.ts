@@ -27,20 +27,46 @@ export const TimelineQuery = PaginationQuery.extend({
   followingOnly: z.string().optional(),
 });
 
-export const LikeBodySchema = z.object({
-  reactionType: z.enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const).optional(),
+export const LikeBodySchema = z
+  .object({
+    reactionType: z
+      .enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const)
+      .optional(),
+  })
+  .openapi({
+    example: {
+      reactionType: 'LIKE',
+    },
+  });
+
+export const RepostBodySchema = z.object({ commentary: z.string().optional() }).openapi({
+  example: {
+    commentary: 'Great insights, sharing this with my network.',
+  },
 });
 
-export const RepostBodySchema = z.object({ commentary: z.string().optional() });
-
-export const ReportBodySchema = z.object({ reason: z.string() });
-
-export const VoteBodySchema = z.object({ optionIndex: z.number().int().nonnegative() });
-
-export const CreateCommentBodySchema = z.object({
-  content: z.string(),
-  parentId: z.string().optional(),
+export const ReportBodySchema = z.object({ reason: z.string() }).openapi({
+  example: {
+    reason: 'Spam or misleading content.',
+  },
 });
+
+export const VoteBodySchema = z.object({ optionIndex: z.number().int().nonnegative() }).openapi({
+  example: {
+    optionIndex: 0,
+  },
+});
+
+export const CreateCommentBodySchema = z
+  .object({
+    content: z.string(),
+    parentId: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      content: 'Congrats on the launch! What stack did you use?',
+    },
+  });
 
 /**
  * Cap on `?limit=` for cursor-paginated feed/comment listings.

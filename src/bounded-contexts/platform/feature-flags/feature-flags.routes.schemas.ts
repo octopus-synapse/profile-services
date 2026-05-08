@@ -26,7 +26,13 @@ export const ToggleFeatureFlagSchema = z
     enabled: z.boolean().optional(),
     enabledForRoles: z.array(z.string()).optional(),
   })
-  .strict();
+  .strict()
+  .openapi({
+    example: {
+      enabled: true,
+      enabledForRoles: ['admin', 'beta-tester'],
+    },
+  });
 
 export const ActiveFlagsResponseSchema = z.object({
   flags: z.record(z.boolean()),

@@ -20,29 +20,56 @@ export const ListQuerySchema = z.object({
   limit: z.string().optional(),
 });
 
-export const ApplyStyleBodySchema = z.object({ styleId: z.string() });
+export const ApplyStyleBodySchema = z.object({ styleId: z.string() }).openapi({
+  example: {
+    styleId: '01900000-0000-7000-a000-000000000004',
+  },
+});
 
 export const SectionStylesSchema = z.record(z.string(), z.unknown());
 
 export const LayoutKindSchema = z.nativeEnum(LayoutKind);
 
-export const CreateStyleBodySchema = z.object({
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string(),
-  layoutKind: LayoutKindSchema,
-  styleConfig: z.record(z.string(), z.unknown()),
-  sectionStyles: SectionStylesSchema,
-});
+export const CreateStyleBodySchema = z
+  .object({
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    typstTemplate: z.string(),
+    layoutKind: LayoutKindSchema,
+    styleConfig: z.record(z.string(), z.unknown()),
+    sectionStyles: SectionStylesSchema,
+  })
+  .openapi({
+    example: {
+      name: 'Modern Minimal',
+      description: 'Clean single-column layout with generous whitespace.',
+      typstTemplate: '#set page(margin: 1in)\n#text(weight: "bold")[Resume]',
+      layoutKind: 'SINGLE_COLUMN',
+      styleConfig: {
+        fontFamily: 'Inter',
+        accentColor: '#0ea5e9',
+      },
+      sectionStyles: {
+        experience: { spacing: 1.2 },
+      },
+    },
+  });
 
-export const UpdateStyleBodySchema = z.object({
-  name: z.string().optional(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string().optional(),
-  layoutKind: LayoutKindSchema.optional(),
-  styleConfig: z.record(z.string(), z.unknown()).optional(),
-  sectionStyles: SectionStylesSchema.optional(),
-});
+export const UpdateStyleBodySchema = z
+  .object({
+    name: z.string().optional(),
+    description: z.string().nullable().optional(),
+    typstTemplate: z.string().optional(),
+    layoutKind: LayoutKindSchema.optional(),
+    styleConfig: z.record(z.string(), z.unknown()).optional(),
+    sectionStyles: SectionStylesSchema.optional(),
+  })
+  .openapi({
+    example: {
+      name: 'Modern Minimal v2',
+      description: 'Updated layout with refined typography.',
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 // Bounded-depth JSON value: leaf | object | array. Two levels deep is

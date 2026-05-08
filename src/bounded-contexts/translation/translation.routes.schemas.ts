@@ -8,19 +8,39 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const TranslateTextSchema = z.object({
-  text: z.string().min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
+export const TranslateTextSchema = z
+  .object({
+    text: z.string().min(1),
+    sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
+    targetLanguage: z.enum(['pt', 'en']),
+  })
+  .openapi({
+    example: {
+      text: 'Senior Backend Engineer with 8 years of experience.',
+      sourceLanguage: 'en',
+      targetLanguage: 'pt',
+    },
+  });
+
+export const TranslateSimpleSchema = z.object({ text: z.string().min(1) }).openapi({
+  example: {
+    text: 'Engenheiro de software com experiência em sistemas distribuídos.',
+  },
 });
 
-export const TranslateSimpleSchema = z.object({ text: z.string().min(1) });
-
-export const TranslateBatchSchema = z.object({
-  texts: z.array(z.string().min(1)).min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
-});
+export const TranslateBatchSchema = z
+  .object({
+    texts: z.array(z.string().min(1)).min(1),
+    sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
+    targetLanguage: z.enum(['pt', 'en']),
+  })
+  .openapi({
+    example: {
+      texts: ['Built scalable microservices on AWS.', 'Led a team of five backend engineers.'],
+      sourceLanguage: 'en',
+      targetLanguage: 'pt',
+    },
+  });
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const TranslationLanguageSchema = z.enum(['pt', 'en']);

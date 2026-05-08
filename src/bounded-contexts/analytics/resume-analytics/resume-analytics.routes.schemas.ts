@@ -32,10 +32,17 @@ export abstract class AnalyticsSseBundle {
 
 export const ResumeIdParam = z.object({ resumeId: z.string() });
 
-export const TrackViewBody = z.object({
-  userAgent: z.string().optional(),
-  referer: z.string().optional(),
-});
+export const TrackViewBody = z
+  .object({
+    userAgent: z.string().optional(),
+    referer: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+      referer: 'https://www.linkedin.com/feed/',
+    },
+  });
 
 export const PeriodEnum = z.enum(['day', 'week', 'month', 'year']);
 export const ViewStatsQuery = z.object({
@@ -71,7 +78,12 @@ export const KeywordOptionsQuery = z.object({
   targetRole: z.string().optional(),
 });
 
-export const JobMatchBody = z.object({ jobDescription: z.string().min(10) });
+export const JobMatchBody = z.object({ jobDescription: z.string().min(10) }).openapi({
+  example: {
+    jobDescription:
+      'We are hiring a senior backend engineer with 5+ years of experience in TypeScript, PostgreSQL, and distributed systems.',
+  },
+});
 
 export const BenchmarkOptionsQuery = z.object({
   industry: IndustryEnum,

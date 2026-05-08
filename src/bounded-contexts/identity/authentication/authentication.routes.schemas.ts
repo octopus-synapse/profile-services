@@ -23,11 +23,21 @@
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 
-export const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() });
-export const LogoutSchema = z.object({
-  refreshToken: z.string().optional(),
-  logoutAllSessions: z.boolean().default(false),
+export const RefreshTokenSchema = z.object({ refreshToken: z.string().min(1).optional() }).openapi({
+  example: {
+    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh.token',
+  },
 });
+export const LogoutSchema = z
+  .object({
+    refreshToken: z.string().optional(),
+    logoutAllSessions: z.boolean().default(false),
+  })
+  .openapi({
+    example: {
+      logoutAllSessions: false,
+    },
+  });
 export const RevokeSessionParams = IdParamSchema;
 
 export const SessionUserSchema = z.object({

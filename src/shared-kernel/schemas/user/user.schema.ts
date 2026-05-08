@@ -22,20 +22,30 @@ const UserLocationSchema = z.string().max(100).optional();
 /**
  * Update User Profile Schema
  */
-export const UpdateUserSchema = z.object({
-  name: FullNameSchema.optional(),
-  username: UsernameSchema.optional(),
-  bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
-  location: UserLocationSchema.optional(),
-  website: SocialUrlSchema.optional(),
-  company: z.string().max(100, 'Company must be 100 characters or less').optional(),
-  title: z.string().max(100, 'Title must be 100 characters or less').optional(),
-  phone: PhoneSchema.optional(),
-  linkedin: LinkedInUrlSchema.optional(),
-  github: GitHubUrlSchema.optional(),
-  twitter: SocialUrlSchema.optional(),
-  image: z.string().url().optional(),
-});
+export const UpdateUserSchema = z
+  .object({
+    name: FullNameSchema.optional(),
+    username: UsernameSchema.optional(),
+    bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
+    location: UserLocationSchema.optional(),
+    website: SocialUrlSchema.optional(),
+    company: z.string().max(100, 'Company must be 100 characters or less').optional(),
+    title: z.string().max(100, 'Title must be 100 characters or less').optional(),
+    phone: PhoneSchema.optional(),
+    linkedin: LinkedInUrlSchema.optional(),
+    github: GitHubUrlSchema.optional(),
+    twitter: SocialUrlSchema.optional(),
+    image: z.string().url().optional(),
+  })
+  .openapi({
+    example: {
+      name: 'Jane Doe',
+      bio: 'Senior backend engineer focused on distributed systems.',
+      location: 'San Francisco, CA',
+      title: 'Senior Backend Engineer',
+      company: 'Acme Corp',
+    },
+  });
 
 export type UpdateUser = z.infer<typeof UpdateUserSchema>;
 

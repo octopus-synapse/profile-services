@@ -15,11 +15,19 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 
 export const ItemIdParam = z.object({ itemId: z.string() });
 
-export const RageApplyBodySchema = z.object({
-  minFit: z.coerce.number().int().min(0).max(100).optional(),
-  maxApplications: z.coerce.number().int().min(1).max(100).optional(),
-  sinceDays: z.coerce.number().int().min(1).max(90).optional(),
-});
+export const RageApplyBodySchema = z
+  .object({
+    minFit: z.coerce.number().int().min(0).max(100).optional(),
+    maxApplications: z.coerce.number().int().min(1).max(100).optional(),
+    sinceDays: z.coerce.number().int().min(1).max(90).optional(),
+  })
+  .openapi({
+    example: {
+      minFit: 70,
+      maxApplications: 25,
+      sinceDays: 14,
+    },
+  });
 
 export type RageApplyBody = z.infer<typeof RageApplyBodySchema>;
 

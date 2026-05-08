@@ -40,11 +40,22 @@ export const UserIdParam = z.object({ userId: z.string() });
 
 export const SearchQuerySchema = z.object({ q: z.string().optional() });
 
-export const SetPinSchema = z.object({ pinned: z.boolean() });
-export const SetMuteSchema = z.object({
-  muted: z.boolean(),
-  mutedUntil: IsoDateTimeSchema.optional(),
+export const SetPinSchema = z.object({ pinned: z.boolean() }).openapi({
+  example: {
+    pinned: true,
+  },
 });
+export const SetMuteSchema = z
+  .object({
+    muted: z.boolean(),
+    mutedUntil: IsoDateTimeSchema.optional(),
+  })
+  .openapi({
+    example: {
+      muted: true,
+      mutedUntil: '2026-06-01T00:00:00Z',
+    },
+  });
 
 // ─── Response schemas ──────────────────────────────────────────────
 export const SendMessageResponseSchema = z.object({ message: MessageResponseSchema });

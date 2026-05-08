@@ -51,6 +51,13 @@ export const CreatePostSchema = z
         message: 'anonymousCategory cannot be set unless isAnonymous is true',
       });
     }
+  })
+  .openapi({
+    example: {
+      type: PostType.ACHIEVEMENT,
+      content: 'Excited to share that I just shipped my first open-source library!',
+      hardSkills: ['typescript', 'nodejs'],
+    },
   });
 
 export type CreatePostDto = z.infer<typeof CreatePostSchema>;

@@ -5,7 +5,11 @@
 
 import { z } from 'zod';
 
-export const RunTestsBody = z.object({ suite: z.string() });
+export const RunTestsBody = z.object({ suite: z.string() }).openapi({
+  example: {
+    suite: 'smoke',
+  },
+});
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const TestResultSchema = z.object({

@@ -21,11 +21,19 @@ import { z } from 'zod';
 import { JsonValueSchema } from '@/shared-kernel/schemas/common/json.schema';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const AcceptConsentRequestSchema = z.object({
-  documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
-  ipAddress: z.string().ip().optional(),
-  userAgent: z.string().optional(),
-});
+export const AcceptConsentRequestSchema = z
+  .object({
+    documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
+    ipAddress: z.string().ip().optional(),
+    userAgent: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      documentType: 'TERMS_OF_SERVICE',
+      ipAddress: '203.0.113.42',
+      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+    },
+  });
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const MessageResponseSchema = z.object({ message: z.string() });

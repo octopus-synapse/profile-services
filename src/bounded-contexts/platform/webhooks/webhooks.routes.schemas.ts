@@ -14,16 +14,30 @@ export const SUPPORTED_EVENTS = [
 
 export const IdParam = IdParamSchema;
 
-export const CreateWebhookSchema = z.object({
-  url: z.string().url(),
-  events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
-});
+export const CreateWebhookSchema = z
+  .object({
+    url: z.string().url(),
+    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
+  })
+  .openapi({
+    example: {
+      url: 'https://hooks.example.com/patch-careers/webhook',
+      events: ['resume.created', 'resume.published'],
+    },
+  });
 
-export const UpdateWebhookSchema = z.object({
-  url: z.string().url().optional(),
-  events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
-  enabled: z.boolean().optional(),
-});
+export const UpdateWebhookSchema = z
+  .object({
+    url: z.string().url().optional(),
+    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
+    enabled: z.boolean().optional(),
+  })
+  .openapi({
+    example: {
+      events: ['ats.score.updated'],
+      enabled: false,
+    },
+  });
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const WebhookViewSchema = z.object({

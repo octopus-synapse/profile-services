@@ -11,7 +11,11 @@
 
 import { z } from 'zod';
 
-export const ForgotPasswordSchema = z.object({ email: z.string().email() });
+export const ForgotPasswordSchema = z.object({ email: z.string().email() }).openapi({
+  example: {
+    email: 'user@example.com',
+  },
+});
 
 // ─── Response schemas ────────────────────────────────────────────────
 // All three endpoints return the same `{ message }` envelope.

@@ -21,19 +21,36 @@ export const ResumeIdParam = z.object({ resumeId: z.string() });
 export const ResumeAndUserIdParams = z.object({ resumeId: z.string(), userId: z.string() });
 export const CommentIdParam = z.object({ commentId: z.string() });
 
-export const InviteCollaboratorSchema = z.object({
-  userId: z.string().min(1),
-  role: CollaboratorRoleSchema,
+export const InviteCollaboratorSchema = z
+  .object({
+    userId: z.string().min(1),
+    role: CollaboratorRoleSchema,
+  })
+  .openapi({
+    example: {
+      userId: '01900000-0000-7000-a000-000000000001',
+      role: 'EDITOR',
+    },
+  });
+
+export const UpdateRoleSchema = z.object({ role: CollaboratorRoleSchema }).openapi({
+  example: {
+    role: 'VIEWER',
+  },
 });
 
-export const UpdateRoleSchema = z.object({ role: CollaboratorRoleSchema });
-
-export const CreateCommentSchema = z.object({
-  content: z.string().min(1).max(4000),
-  parentId: z.string().optional(),
-  sectionId: z.string().optional(),
-  itemId: z.string().optional(),
-});
+export const CreateCommentSchema = z
+  .object({
+    content: z.string().min(1).max(4000),
+    parentId: z.string().optional(),
+    sectionId: z.string().optional(),
+    itemId: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      content: 'Consider expanding on the impact of this project.',
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const CollaboratorUserSchema = z.object({

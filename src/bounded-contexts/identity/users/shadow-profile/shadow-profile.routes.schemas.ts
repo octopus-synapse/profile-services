@@ -6,10 +6,17 @@
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 
-export const UpsertGithubBody = z.object({
-  token: z.string(),
-  username: z.string(),
-});
+export const UpsertGithubBody = z
+  .object({
+    token: z.string(),
+    username: z.string(),
+  })
+  .openapi({
+    example: {
+      token: 'ghp_exampletokenvalueforgithubapi1234567',
+      username: 'octocat',
+    },
+  });
 
 export const FindCandidatesQuery = z.object({
   email: z.string().optional(),

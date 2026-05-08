@@ -34,15 +34,29 @@ export const PaginationQuery = z.object({
 
 export const TypeParam = z.object({ type: z.string() });
 
-export const MarkReadBody = z.object({
-  notificationId: z.string().optional(),
-});
+export const MarkReadBody = z
+  .object({
+    notificationId: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      notificationId: '01900000-0000-7000-a000-000000000001',
+    },
+  });
 
-export const SetPreferenceBody = z.object({
-  enabled: z.boolean().optional(),
-  emailEnabled: z.boolean().optional(),
-  emailDelivery: z.enum(['INSTANT', 'DAILY', 'WEEKLY', 'OFF']).optional(),
-});
+export const SetPreferenceBody = z
+  .object({
+    enabled: z.boolean().optional(),
+    emailEnabled: z.boolean().optional(),
+    emailDelivery: z.enum(['INSTANT', 'DAILY', 'WEEKLY', 'OFF']).optional(),
+  })
+  .openapi({
+    example: {
+      enabled: true,
+      emailEnabled: true,
+      emailDelivery: 'DAILY',
+    },
+  });
 
 // ─── Response schemas ────────────────────────────────────────────────
 // Mirrors `NotificationType` from the Prisma enum — keep in sync with

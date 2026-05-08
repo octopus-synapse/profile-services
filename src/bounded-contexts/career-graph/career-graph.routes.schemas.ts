@@ -11,10 +11,17 @@ import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/ra
 
 export { RATE_LIMIT_KEY };
 
-export const ViewCareerGraphRequestSchema = z.object({
-  stack: z.array(z.string().min(1).max(60)).min(1).max(40),
-  maxBuckets: z.number().int().min(1).max(40).default(20),
-});
+export const ViewCareerGraphRequestSchema = z
+  .object({
+    stack: z.array(z.string().min(1).max(60)).min(1).max(40),
+    maxBuckets: z.number().int().min(1).max(40).default(20),
+  })
+  .openapi({
+    example: {
+      stack: ['typescript', 'postgresql', 'aws', 'kubernetes'],
+      maxBuckets: 20,
+    },
+  });
 
 export type ViewCareerGraphRequest = z.infer<typeof ViewCareerGraphRequestSchema>;
 

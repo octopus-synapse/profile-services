@@ -10,10 +10,13 @@
  * since those permissions are not in the `Permission` enum.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { UsernameValidationErrorSchema } from '@/shared-kernel/schemas/user/user.schema';
+
+extendZodWithOpenApi(z);
 
 // ─── Response schemas ────────────────────────────────────────────────
 // `UserProfile` from `application/ports/user-profile.port`. JSON-serialized
@@ -56,9 +59,15 @@ export const CheckUsernameResponseSchema = z.object({
 // forms. Codes match `@packages/i18n/ERROR_DICTIONARY`; the route handler
 // localizes each via `localizeDomainCodes` against `Accept-Language` so
 // the `message` field is always pre-translated.
-export const ValidateUsernameRequestBodySchema = z.object({
-  username: z.string(),
-});
+export const ValidateUsernameRequestBodySchema = z
+  .object({
+    username: z.string(),
+  })
+  .openapi({
+    example: {
+      username: 'johndoe',
+    },
+  });
 
 export const ValidateUsernameResponseSchema = z.object({
   username: z.string(),
@@ -202,21 +211,45 @@ export const ListUsersQuery = z.object({
   roleName: z.string().optional(),
 });
 
-export const AdminCreateUserSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().optional(),
-  role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
+export const AdminCreateUserSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(8),
+    name: z.string().optional(),
+    role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
+  })
+  .openapi({
+    example: {
+      email: 'new.user@example.com',
+      password: 'SecurePass123!',
+      name: 'Jane Doe',
+      role: 'USER',
+    },
+  });
+
+export const AdminUpdateUserSchema = z
+  .object({
+    email: z.string().email().optional(),
+    name: z.string().optional(),
+    role: z.enum(['USER', 'ADMIN']).optional(),
+    isActive: z.boolean().optional(),
+    isEmailVerified: z.boolean().optional(),
+  })
+  .openapi({
+    example: {
+      name: 'Jane Doe',
+      isActive: true,
+    },
+  });
+
+export const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) }).openapi({
+  example: {
+    newPassword: 'NewSecurePass456!',
+  },
 });
 
-export const AdminUpdateUserSchema = z.object({
-  email: z.string().email().optional(),
-  name: z.string().optional(),
-  role: z.enum(['USER', 'ADMIN']).optional(),
-  isActive: z.boolean().optional(),
-  isEmailVerified: z.boolean().optional(),
+export const AssignRolesSchema = z.object({ roles: z.array(z.string()) }).openapi({
+  example: {
+    roles: ['USER', 'EDITOR'],
+  },
 });
-
-export const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) });
-
-export const AssignRolesSchema = z.object({ roles: z.array(z.string()) });

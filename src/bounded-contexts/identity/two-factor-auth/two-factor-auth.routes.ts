@@ -16,7 +16,11 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
 
-const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) });
+const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) }).openapi({
+  example: {
+    code: '123456',
+  },
+});
 
 // ─── Response schemas ────────────────────────────────────────────────
 const Setup2faResponseSchema = z.object({

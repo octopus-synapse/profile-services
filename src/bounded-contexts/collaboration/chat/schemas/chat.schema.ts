@@ -42,10 +42,17 @@ export const GetConversationsQuerySchema = z.object({
 
 export type GetConversationsQuery = z.infer<typeof GetConversationsQuerySchema>;
 
-export const BlockUserSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-  reason: z.string().max(500, 'Reason too long').optional(),
-});
+export const BlockUserSchema = z
+  .object({
+    userId: z.string().min(1, 'User ID is required'),
+    reason: z.string().max(500, 'Reason too long').optional(),
+  })
+  .openapi({
+    example: {
+      userId: '01900000-0000-7000-a000-000000000003',
+      reason: 'Repeated unsolicited messages.',
+    },
+  });
 
 export type BlockUser = z.infer<typeof BlockUserSchema>;
 

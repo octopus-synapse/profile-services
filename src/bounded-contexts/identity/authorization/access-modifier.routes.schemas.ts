@@ -50,6 +50,14 @@ export const ApplyModifierBody = z
         message: 'permissionId is required when modifierType is GRANT_PERMISSION',
       });
     }
+  })
+  .openapi({
+    example: {
+      modifierType: 'SUSPEND_ROLE_USER',
+      effect: 'DENY',
+      reason: 'Account under investigation for policy violation.',
+      endsAt: '2026-06-01T00:00:00.000Z',
+    },
   });
 
 export class SelfDemoteForbiddenException extends DomainException {

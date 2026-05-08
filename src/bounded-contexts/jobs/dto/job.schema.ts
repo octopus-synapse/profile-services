@@ -20,51 +20,82 @@ const JobApplicationStatusEnum = z.nativeEnum(JobApplicationStatus);
 // ============================================================================
 // Create job
 // ============================================================================
-export const CreateJobSchema = z.object({
-  title: z.string().min(1).max(200),
-  company: z.string().min(1).max(200),
-  location: z.string().max(200).optional(),
-  jobType: JobTypeEnum,
-  description: z.string().min(1),
-  requirements: z.array(z.string()).optional(),
-  skills: z.array(z.string()).optional(),
-  salaryRange: z.string().max(100).optional(),
-  applyUrl: z.string().url().optional(),
-  expiresAt: IsoDateTimeSchema.optional(),
-  paymentCurrency: PaymentCurrencyEnum.optional(),
-  remotePolicy: RemotePolicyEnum.optional(),
-  minEnglishLevel: EnglishLevelEnum.optional(),
-});
+export const CreateJobSchema = z
+  .object({
+    title: z.string().min(1).max(200),
+    company: z.string().min(1).max(200),
+    location: z.string().max(200).optional(),
+    jobType: JobTypeEnum,
+    description: z.string().min(1),
+    requirements: z.array(z.string()).optional(),
+    skills: z.array(z.string()).optional(),
+    salaryRange: z.string().max(100).optional(),
+    applyUrl: z.string().url().optional(),
+    expiresAt: IsoDateTimeSchema.optional(),
+    paymentCurrency: PaymentCurrencyEnum.optional(),
+    remotePolicy: RemotePolicyEnum.optional(),
+    minEnglishLevel: EnglishLevelEnum.optional(),
+  })
+  .openapi({
+    example: {
+      title: 'Senior Backend Engineer',
+      company: 'Acme Corp',
+      location: 'Remote',
+      jobType: 'FULL_TIME',
+      description: 'We are looking for a senior backend engineer to join our team.',
+      skills: ['typescript', 'nodejs', 'postgresql'],
+      remotePolicy: 'REMOTE',
+      paymentCurrency: 'USD',
+    },
+  });
 // ============================================================================
 // Update job (all optional + nullable for the enums users can clear)
 // ============================================================================
-export const UpdateJobSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  company: z.string().min(1).max(200).optional(),
-  location: z.string().max(200).optional(),
-  jobType: JobTypeEnum.optional(),
-  description: z.string().min(1).optional(),
-  requirements: z.array(z.string()).optional(),
-  skills: z.array(z.string()).optional(),
-  salaryRange: z.string().max(100).optional(),
-  applyUrl: z.string().url().optional(),
-  isActive: z.boolean().optional(),
-  expiresAt: IsoDateTimeSchema.optional(),
-  paymentCurrency: PaymentCurrencyEnum.nullable().optional(),
-  remotePolicy: RemotePolicyEnum.nullable().optional(),
-  minEnglishLevel: EnglishLevelEnum.nullable().optional(),
-});
+export const UpdateJobSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    company: z.string().min(1).max(200).optional(),
+    location: z.string().max(200).optional(),
+    jobType: JobTypeEnum.optional(),
+    description: z.string().min(1).optional(),
+    requirements: z.array(z.string()).optional(),
+    skills: z.array(z.string()).optional(),
+    salaryRange: z.string().max(100).optional(),
+    applyUrl: z.string().url().optional(),
+    isActive: z.boolean().optional(),
+    expiresAt: IsoDateTimeSchema.optional(),
+    paymentCurrency: PaymentCurrencyEnum.nullable().optional(),
+    remotePolicy: RemotePolicyEnum.nullable().optional(),
+    minEnglishLevel: EnglishLevelEnum.nullable().optional(),
+  })
+  .openapi({
+    example: {
+      title: 'Senior Backend Engineer (Updated)',
+      isActive: true,
+    },
+  });
 // ============================================================================
 // Quick apply
 // ============================================================================
-export const ApplyToJobSchema = z.object({
-  coverLetter: z.string().optional(),
-  resumeId: z.string().optional(),
-});
+export const ApplyToJobSchema = z
+  .object({
+    coverLetter: z.string().optional(),
+    resumeId: z.string().optional(),
+  })
+  .openapi({
+    example: {
+      coverLetter: 'I am excited about this role because of your engineering culture.',
+      resumeId: '01900000-0000-7000-a000-000000000010',
+    },
+  });
 // ============================================================================
 // Import-from-URL (LLM preview)
 // ============================================================================
-export const ImportJobFromUrlSchema = z.object({ url: z.string().url().max(2000) });
+export const ImportJobFromUrlSchema = z.object({ url: z.string().url().max(2000) }).openapi({
+  example: {
+    url: 'https://careers.example.com/jobs/senior-backend-engineer',
+  },
+});
 // ============================================================================
 // Response: a single job (matches what the service returns)
 // ============================================================================

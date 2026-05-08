@@ -20,12 +20,21 @@ export const ResumeIdAndVersionIdParam = z.object({
 
 export const VersionIdQuery = z.object({ versionId: z.string() });
 
-export const TailorResumeBody = z.object({
-  jobId: z.string().min(1).optional(),
-  jobDescription: z.string().min(10).optional(),
-  jobTitle: z.string().max(200).optional(),
-  jobCompany: z.string().max(200).optional(),
-});
+export const TailorResumeBody = z
+  .object({
+    jobId: z.string().min(1).optional(),
+    jobDescription: z.string().min(10).optional(),
+    jobTitle: z.string().max(200).optional(),
+    jobCompany: z.string().max(200).optional(),
+  })
+  .openapi({
+    example: {
+      jobTitle: 'Senior Backend Engineer',
+      jobCompany: 'Acme Corp',
+      jobDescription:
+        'We are hiring a backend engineer to design distributed systems on AWS using TypeScript and PostgreSQL.',
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const ResumeVersionListItemSchema = z.object({

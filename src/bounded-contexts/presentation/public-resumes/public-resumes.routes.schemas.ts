@@ -19,25 +19,38 @@ export const ResumeIdParam = z.object({ resumeId: z.string() });
 export const ShareIdParam = z.object({ shareId: z.string() });
 export const AliasIdParam = z.object({ aliasId: z.string() });
 
-export const CreateShareSchema = z.object({
-  resumeId: z.string().min(1),
-  slug: z
-    .string()
-    .min(3)
-    .max(80)
-    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
-    .optional(),
-  password: z.string().min(4).max(200).optional(),
-  expiresAt: z.coerce.date().optional(),
-});
+export const CreateShareSchema = z
+  .object({
+    resumeId: z.string().min(1),
+    slug: z
+      .string()
+      .min(3)
+      .max(80)
+      .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
+      .optional(),
+    password: z.string().min(4).max(200).optional(),
+    expiresAt: z.coerce.date().optional(),
+  })
+  .openapi({
+    example: {
+      resumeId: '01900000-0000-7000-a000-000000000001',
+      slug: 'jane-doe-senior-engineer',
+    },
+  });
 
-export const AddAliasSchema = z.object({
-  slug: z
-    .string()
-    .min(3)
-    .max(80)
-    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
-});
+export const AddAliasSchema = z
+  .object({
+    slug: z
+      .string()
+      .min(3)
+      .max(80)
+      .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
+  })
+  .openapi({
+    example: {
+      slug: 'jane-doe-2026',
+    },
+  });
 
 export const QrSizeSchema = z.object({
   size: z.coerce.number().int().min(64).max(1024).default(256),

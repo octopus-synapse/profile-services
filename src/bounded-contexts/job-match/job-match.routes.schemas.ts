@@ -67,10 +67,17 @@ export const ResumeJobParams = z.object({
   jobId: z.string(),
 });
 
-export const ComputeMatchSchema = z.object({
-  resumeId: z.string().min(1),
-  jobId: z.string().min(1),
-});
+export const ComputeMatchSchema = z
+  .object({
+    resumeId: z.string().min(1),
+    jobId: z.string().min(1),
+  })
+  .openapi({
+    example: {
+      resumeId: '01900000-0000-7000-a000-000000000001',
+      jobId: '01900000-0000-7000-a000-000000000002',
+    },
+  });
 
 export function pickUserId(ctx: { user: { userId: string } | null }): string {
   const id = ctx.user?.userId;

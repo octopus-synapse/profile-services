@@ -40,25 +40,56 @@ export const ResumeIdAndTypeKeyAndItemIdParam = z.object({
 
 export const LocaleQuery = z.object({ locale: z.string().optional() });
 
-export const CreateResumeBody = z.object({
-  title: z.string().min(1).max(100),
-  summary: z.string().max(2000).optional(),
-  isPublic: z.boolean().optional(),
-  fullName: z.string().max(100).optional(),
-  jobTitle: z.string().max(100).optional(),
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
-  linkedin: z.string().url().optional(),
-  github: z.string().url().optional(),
-  website: z.string().url().optional(),
-  sections: z.array(z.record(z.unknown())).optional(),
+export const CreateResumeBody = z
+  .object({
+    title: z.string().min(1).max(100),
+    summary: z.string().max(2000).optional(),
+    isPublic: z.boolean().optional(),
+    fullName: z.string().max(100).optional(),
+    jobTitle: z.string().max(100).optional(),
+    phone: z.string().max(20).optional(),
+    location: z.string().max(100).optional(),
+    linkedin: z.string().url().optional(),
+    github: z.string().url().optional(),
+    website: z.string().url().optional(),
+    sections: z.array(z.record(z.unknown())).optional(),
+  })
+  .openapi({
+    example: {
+      title: 'Senior Software Engineer Resume',
+      summary: 'Backend engineer with 8+ years of experience building distributed systems.',
+      isPublic: false,
+      fullName: 'Jane Doe',
+      jobTitle: 'Senior Backend Engineer',
+      location: 'San Francisco, CA',
+      linkedin: 'https://www.linkedin.com/in/janedoe',
+      github: 'https://github.com/janedoe',
+    },
+  });
+
+export const UpdateResumeBody = CreateResumeBody.partial().openapi({
+  example: {
+    title: 'Updated Resume Title',
+    summary: 'Updated professional summary.',
+    isPublic: true,
+  },
 });
 
-export const UpdateResumeBody = CreateResumeBody.partial();
-
-export const SectionItemBody = z.object({
-  content: z.record(z.unknown()).optional(),
-});
+export const SectionItemBody = z
+  .object({
+    content: z.record(z.unknown()).optional(),
+  })
+  .openapi({
+    example: {
+      content: {
+        title: 'Software Engineer',
+        company: 'Acme Corp',
+        startDate: '2022-01-01',
+        endDate: '2024-06-01',
+        description: 'Led the migration of the payments service to a new architecture.',
+      },
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 // Bounded-depth JSON value: leaf | array of leaves | object of leaves.

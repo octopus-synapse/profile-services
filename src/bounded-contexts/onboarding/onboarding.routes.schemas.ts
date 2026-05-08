@@ -25,7 +25,11 @@ export const AdminStepBody = z.record(z.unknown()).openapi({
 export const AdminConfigBody = z
   .record(z.unknown())
   .openapi({ example: { strengthLevels: [{ key: 'beginner', threshold: 0 }] } });
-export const GotoStepBody = z.object({ stepId: z.string() });
+export const GotoStepBody = z.object({ stepId: z.string() }).openapi({
+  example: {
+    stepId: 'personal-info',
+  },
+});
 
 export type LocaleQuery = z.infer<typeof LocaleQuery>;
 

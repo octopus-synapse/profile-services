@@ -12,10 +12,17 @@ import { toPinnedReposResponseDto } from './infrastructure/presenters/github.pre
 
 export const SummaryParams = z.object({ username: z.string() });
 export const ResumeIdParams = z.object({ resumeId: z.string() });
-export const SyncBody = z.object({
-  githubUsername: z.string(),
-  resumeId: z.string(),
-});
+export const SyncBody = z
+  .object({
+    githubUsername: z.string(),
+    resumeId: z.string(),
+  })
+  .openapi({
+    example: {
+      githubUsername: 'octocat',
+      resumeId: '01900000-0000-7000-a000-000000000001',
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const PinnedRepoSchema = z.object({

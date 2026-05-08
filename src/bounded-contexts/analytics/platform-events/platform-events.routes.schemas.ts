@@ -14,9 +14,21 @@ export const PlatformEventSchema = z.object({
   occurredAt: IsoDateTimeSchema,
 });
 
-export const TrackEventsBodySchema = z.object({
-  events: z.array(PlatformEventSchema).min(1).max(100),
-});
+export const TrackEventsBodySchema = z
+  .object({
+    events: z.array(PlatformEventSchema).min(1).max(100),
+  })
+  .openapi({
+    example: {
+      events: [
+        {
+          event: 'page_view',
+          props: { path: '/dashboard' },
+          occurredAt: '2026-05-08T12:00:00.000Z',
+        },
+      ],
+    },
+  });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 // JSON Schema fragment for an event's `propsSchema`. Bounded-depth so the
