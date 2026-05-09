@@ -115,28 +115,12 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
-      # MinIO — S3-compatible storage for resume export presigned URLs.
-      # The 4 export routes (pdf/docx/json/latex) need a working object
-      # store; without it the routes return 500. We use bitnami/minio
-      # because it (a) auto-runs `minio server` as its default command
-      # (the official minio/minio image needs command override which
-      # GHA service containers don't support cleanly) and (b) creates
-      # any bucket listed in `MINIO_DEFAULT_BUCKETS` at startup, so we
-      # don't need a separate `mc mb` step.
-      minio:
-        image: bitnami/minio:latest
-        ports:
-          - 9000:9000
-          - 9001:9001
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-          MINIO_DEFAULT_BUCKETS: profile-uploads
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+      # MinIO — started via a separate `docker run` step below instead of
+      # a GHA `services:` entry. We need a custom command (`minio server
+      # /data`) and bucket creation; GHA service containers don't accept
+      # a command override and the bitnami image that auto-creates
+      # buckets was de-listed from Docker Hub. Running it ourselves keeps
+      # full control with the upstream `minio/minio` image.
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5433/profile_test
       REDIS_HOST: localhost
@@ -196,6 +180,25 @@ jobs:
           tar -xf /tmp/typst.tar.xz -C /tmp/typst --strip-components=1
           sudo install -m 0755 /tmp/typst/typst /usr/local/bin/typst
           typst --version
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name profile-services-minio \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            minio/minio:latest server /data --console-address ":9001"
+          for i in {1..40}; do
+            if curl -fs http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "MinIO is ready."
+              break
+            fi
+            sleep 1
+          done
+          docker run --rm --network host \
+            -e MC_HOST_local="http://minioadmin:minioadmin@localhost:9000" \
+            minio/mc:latest mb local/profile-uploads --ignore-existing
       - name: Build custom Postgres image (pgvector + pg_uuidv7)
         run: docker build -t profile-services-postgres:test -f infra/docker/postgres/Dockerfile .
       - name: Start Postgres
