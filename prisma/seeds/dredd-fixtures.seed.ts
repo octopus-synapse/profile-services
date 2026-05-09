@@ -260,6 +260,21 @@ export async function seedDreddFixtures(
     update: { authorId: EXAMPLE_USER_ID },
   });
 
+  // ── JobFitProfile for the generic-id job ────────────────────────────
+  // GET /v1/jobs/:id/fit-profile is admin-only and probes :id with the
+  // generic-id job. Without a JobFitProfile row, the route 404s. The
+  // mutation probe (POST /v1/jobs/:id/fit-profile) would create one,
+  // but the GET probe runs first.
+  await prisma.jobFitProfile.upsert({
+    where: { jobId: EXAMPLE_GENERIC_ID },
+    create: {
+      jobId: EXAMPLE_GENERIC_ID,
+      vectorJson: { bigFive: {}, schwartz: {}, sdt: {} },
+      editedByUserId: participantTwoUserId,
+    },
+    update: {},
+  });
+
   // ── Primary fixture post (with EXAMPLE_POST_ID for {postId} routes) ──
   await prisma.post.upsert({
     where: { id: EXAMPLE_POST_ID },
@@ -922,6 +937,11 @@ export async function seedDreddFixtures(
   // requester (EXAMPLE_USER_ID) is excluded, so we flip the generic and
   // no-perms users to opt-in. We also seed minimal `primaryStack` entries
   // on their primaryResume so the cohort/recruiting algorithms have data.
+  await prisma.userPreferences.upsert({
+    where: { userId: EXAMPLE_USER_ID },
+    create: { userId: EXAMPLE_USER_ID, profileVisibility: 'public' },
+    update: { profileVisibility: 'public' },
+  });
   await prisma.userPreferences.upsert({
     where: { userId: DREDD_GENERIC_USER_ID },
     create: { userId: DREDD_GENERIC_USER_ID, profileVisibility: 'public' },
