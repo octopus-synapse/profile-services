@@ -4,8 +4,26 @@
  * Domain types and validation schemas for 2FA setup and verification.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+
+extendZodWithOpenApi(z);
+
+/**
+ * 6-digit numeric TOTP code. Single source of truth for both 2FA enrolment
+ * (`verify-and-enable`) and recurring login verification.
+ */
+export const TwoFactorCodeSchema = z
+  .string()
+  .length(6, 'Code must be 6 digits')
+  .regex(/^\d{6}$/, 'Code must be 6 digits')
+  .openapi({
+    example: '123456',
+    description: '6-digit numeric TOTP code from the authenticator app.',
+  });
+
+export type TwoFactorCode = z.infer<typeof TwoFactorCodeSchema>;
 
 // ============================================================================
 // Setup 2FA
@@ -24,10 +42,7 @@ export type SetupTwoFactorResponse = z.infer<typeof SetupTwoFactorResponseSchema
 // ============================================================================
 
 export const VerifyTwoFactorTokenSchema = z.object({
-  token: z
-    .string()
-    .length(6)
-    .regex(/^\d{6}$/, 'Token must be 6 digits'),
+  token: TwoFactorCodeSchema,
 });
 
 export type VerifyTwoFactorToken = z.infer<typeof VerifyTwoFactorTokenSchema>;

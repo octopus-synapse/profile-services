@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { PasswordSchema } from '@/shared-kernel/schemas/primitives';
 
 // Request Schema
 export const ResetPasswordSchema = z
   .object({
     token: z.string().min(1),
-    newPassword: z.string().min(8),
+    newPassword: PasswordSchema,
   })
   .openapi({
     example: {

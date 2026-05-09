@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { PasswordInputSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 
 // Request Schema
 export const ChangePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1),
-    newPassword: z.string().min(8),
+    currentPassword: PasswordInputSchema,
+    newPassword: PasswordSchema,
   })
   .openapi({
     example: {

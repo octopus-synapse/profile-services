@@ -8,14 +8,18 @@ import {
 
 extendZodWithOpenApi(z);
 
+// Each schema is required by default. Callers chain `.optional()` /
+// `.nullable()` as their endpoint requires.
 export const SocialUrlSchema = z
   .string()
   .url('Invalid URL format')
   .regex(/^https?:\/\//, 'URL must start with http:// or https://')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional()
-  .openapi({ example: EXAMPLE_URL });
+  .openapi({
+    example: EXAMPLE_URL,
+    description: 'Public HTTP(S) URL (max 500 chars). Trimmed on submit.',
+  });
 
 export type SocialUrl = z.infer<typeof SocialUrlSchema>;
 
@@ -28,8 +32,11 @@ export const LinkedInUrlSchema = z
   )
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional()
-  .openapi({ example: EXAMPLE_LINKEDIN_URL });
+  .openapi({
+    example: EXAMPLE_LINKEDIN_URL,
+    description:
+      'LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).',
+  });
 
 export type LinkedInUrl = z.infer<typeof LinkedInUrlSchema>;
 
@@ -39,8 +46,10 @@ export const GitHubUrlSchema = z
   .regex(/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/, 'Must be a valid GitHub profile URL')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .optional()
-  .openapi({ example: EXAMPLE_GITHUB_URL });
+  .openapi({
+    example: EXAMPLE_GITHUB_URL,
+    description: 'GitHub profile URL (e.g. `https://github.com/<handle>`).',
+  });
 
 export type GitHubUrl = z.infer<typeof GitHubUrlSchema>;
 

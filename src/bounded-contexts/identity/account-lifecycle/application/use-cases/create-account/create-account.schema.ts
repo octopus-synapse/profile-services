@@ -1,11 +1,13 @@
 import { z } from 'zod';
+import { EmailSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 
-// Request Schema
+// LGPD: explicit consent required at signup. Versions must match current
+// TOS_VERSION / PRIVACY_POLICY_VERSION.
 export const CreateAccountSchema = z
   .object({
     name: z.string().optional(),
-    email: z.string().email(),
-    password: z.string().min(8), // LGPD: explicit consent required at signup. Versions must match current TOS_VERSION/PRIVACY_POLICY_VERSION.
+    email: EmailSchema,
+    password: PasswordSchema,
     acceptedTosVersion: z.string().min(1),
     acceptedPrivacyVersion: z.string().min(1),
   })

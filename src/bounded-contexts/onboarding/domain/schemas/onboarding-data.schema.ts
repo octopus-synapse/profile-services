@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { EmailSchema } from '@/shared-kernel/schemas/primitives';
+import { EmailSchema, PhoneSchema, UserLocationSchema } from '@/shared-kernel/schemas/primitives';
 import { normalizeSectionTypeKey } from '@/shared-kernel/utils/section-type-key.util';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
@@ -36,8 +36,8 @@ export const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 export const PersonalInfoSchema = z.object({
   fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   email: EmailSchema,
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
+  phone: PhoneSchema,
+  location: UserLocationSchema,
 });
 
 /**

@@ -28,7 +28,10 @@ export const CreateShareSchema = z
       .max(80)
       .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
       .optional(),
-    password: z.string().min(4).max(200).optional(),
+    password: z.string().min(4).max(200).optional().openapi({
+      description:
+        'Optional share-link access password (4-200 chars). Distinct from user account password — applies only to viewers of this share link.',
+    }),
     expiresAt: z.coerce.date().optional(),
   })
   .openapi({

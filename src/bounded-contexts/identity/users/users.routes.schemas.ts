@@ -13,6 +13,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { EmailSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { UsernameValidationErrorSchema } from '@/shared-kernel/schemas/user/user.schema';
 
@@ -217,8 +218,8 @@ export const ListUsersQuery = z.object({
 
 export const AdminCreateUserSchema = z
   .object({
-    email: z.string().email(),
-    password: z.string().min(8),
+    email: EmailSchema,
+    password: PasswordSchema,
     name: z.string().optional(),
     role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
   })
@@ -233,7 +234,7 @@ export const AdminCreateUserSchema = z
 
 export const AdminUpdateUserSchema = z
   .object({
-    email: z.string().email().optional(),
+    email: EmailSchema.optional(),
     name: z.string().optional(),
     role: z.enum(['USER', 'ADMIN']).optional(),
     isActive: z.boolean().optional(),
@@ -246,7 +247,7 @@ export const AdminUpdateUserSchema = z
     },
   });
 
-export const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) }).openapi({
+export const AdminResetPasswordSchema = z.object({ newPassword: PasswordSchema }).openapi({
   example: {
     newPassword: 'NewSecurePass456!',
   },

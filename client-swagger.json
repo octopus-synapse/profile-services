@@ -498,11 +498,19 @@
                   },
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "format": "email",
+                    "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                    "example": "fixture@profile.local"
                   },
                   "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@\\$!%\\*\\?&]).{8,128}$",
+                    "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+                    "example": "Fixture_Password_123!"
                   },
                   "acceptedTosVersion": {
                     "type": "string",
@@ -16095,7 +16103,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -16364,7 +16372,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -16399,7 +16407,9 @@
                   "reason": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "description": "Short free-text description (1-500 characters).",
+                    "example": "A short description of the resource."
                   },
                   "permissionId": {
                     "type": "string",
@@ -16682,7 +16692,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -16693,7 +16703,7 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -19347,7 +19357,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "format": "email",
+                    "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                    "example": "fixture@profile.local"
                   }
                 },
                 "required": [
@@ -19439,11 +19453,18 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "format": "email",
+                    "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                    "example": "fixture@profile.local"
                   },
                   "password": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Account password for authentication. Lenient validation (1-128 chars) to support legacy accounts; new passwords must satisfy the stricter PasswordSchema policy.",
+                    "example": "Fixture_Password_123!"
                   }
                 },
                 "required": [
@@ -20344,7 +20365,11 @@
                   },
                   "newPassword": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@\\$!%\\*\\?&]).{8,128}$",
+                    "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+                    "example": "Fixture_Password_123!"
                   }
                 },
                 "required": [
@@ -21258,6 +21283,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -35264,7 +35290,11 @@
                   },
                   "applyUrl": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "expiresAt": {
                     "type": "string",
@@ -37167,7 +37197,8 @@
                   "url": {
                     "type": "string",
                     "maxLength": 2000,
-                    "format": "uri"
+                    "format": "uri",
+                    "description": "Public URL of an external job posting to import (max 2000 chars)."
                   }
                 },
                 "required": [
@@ -39422,7 +39453,11 @@
                   },
                   "applyUrl": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "isActive": {
                     "type": "boolean"
@@ -44333,11 +44368,18 @@
                 "properties": {
                   "currentPassword": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Account password for authentication. Lenient validation (1-128 chars) to support legacy accounts; new passwords must satisfy the stricter PasswordSchema policy.",
+                    "example": "Fixture_Password_123!"
                   },
                   "newPassword": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@\\$!%\\*\\?&]).{8,128}$",
+                    "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+                    "example": "Fixture_Password_123!"
                   }
                 },
                 "required": [
@@ -48440,15 +48482,19 @@
                         "minLength": 5,
                         "maxLength": 255,
                         "format": "email",
+                        "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
                         "example": "fixture@profile.local"
                       },
                       "phone": {
                         "type": "string",
-                        "maxLength": 20
+                        "maxLength": 20,
+                        "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                        "example": "+5511999990000"
                       },
                       "location": {
                         "type": "string",
-                        "maxLength": 100
+                        "maxLength": 100,
+                        "example": "São Paulo, Brazil"
                       }
                     },
                     "required": [
@@ -48479,6 +48525,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/(www\\.)?linkedin\\.com\\/(in|company)\\/",
+                        "description": "LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).",
                         "example": "https://www.linkedin.com/in/fixture-user"
                       },
                       "github": {
@@ -48486,6 +48533,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9_-]+",
+                        "description": "GitHub profile URL (e.g. `https://github.com/<handle>`).",
                         "example": "https://github.com/fixture-user"
                       },
                       "website": {
@@ -48493,6 +48541,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/",
+                        "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
                         "example": "https://fixture.profile.local"
                       }
                     },
@@ -48961,13 +49010,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -49206,15 +49264,19 @@
                         "minLength": 5,
                         "maxLength": 255,
                         "format": "email",
+                        "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
                         "example": "fixture@profile.local"
                       },
                       "phone": {
                         "type": "string",
-                        "maxLength": 20
+                        "maxLength": 20,
+                        "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                        "example": "+5511999990000"
                       },
                       "location": {
                         "type": "string",
-                        "maxLength": 100
+                        "maxLength": 100,
+                        "example": "São Paulo, Brazil"
                       }
                     }
                   },
@@ -49241,6 +49303,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/(www\\.)?linkedin\\.com\\/(in|company)\\/",
+                        "description": "LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).",
                         "example": "https://www.linkedin.com/in/fixture-user"
                       },
                       "github": {
@@ -49248,6 +49311,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9_-]+",
+                        "description": "GitHub profile URL (e.g. `https://github.com/<handle>`).",
                         "example": "https://github.com/fixture-user"
                       },
                       "website": {
@@ -49255,6 +49319,7 @@
                         "maxLength": 500,
                         "format": "uri",
                         "pattern": "^https?:\\/\\/",
+                        "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
                         "example": "https://fixture.profile.local"
                       }
                     }
@@ -49630,13 +49695,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -50126,13 +50200,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -50513,13 +50596,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -50884,13 +50976,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -51255,13 +51356,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -51642,13 +51752,22 @@
                         },
                         "email": {
                           "type": "string",
-                          "format": "email"
+                          "minLength": 5,
+                          "maxLength": 255,
+                          "format": "email",
+                          "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                          "example": "fixture@profile.local"
                         },
                         "phone": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 20,
+                          "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                          "example": "+5511999990000"
                         },
                         "location": {
-                          "type": "string"
+                          "type": "string",
+                          "maxLength": 100,
+                          "example": "São Paulo, Brazil"
                         }
                       },
                       "required": [
@@ -52840,11 +52959,19 @@
                   },
                   "imageUrl": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "linkUrl": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "originalPostId": {
                     "type": "string",
@@ -59892,7 +60019,10 @@
                   },
                   "summary": {
                     "type": "string",
-                    "maxLength": 2000
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Long free-text bio or summary (1-2000 characters).",
+                    "example": "Engineer interested in building robust systems."
                   },
                   "isPublic": {
                     "type": "boolean"
@@ -59907,23 +60037,38 @@
                   },
                   "phone": {
                     "type": "string",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                    "example": "+5511999990000"
                   },
                   "location": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "São Paulo, Brazil"
                   },
                   "linkedin": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/(www\\.)?linkedin\\.com\\/(in|company)\\/",
+                    "description": "LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).",
+                    "example": "https://www.linkedin.com/in/fixture-user"
                   },
                   "github": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9_-]+",
+                    "description": "GitHub profile URL (e.g. `https://github.com/<handle>`).",
+                    "example": "https://github.com/fixture-user"
                   },
                   "website": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "sections": {
                     "type": "array",
@@ -64739,6 +64884,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -65262,6 +65408,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -65452,6 +65599,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -66429,6 +66577,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -66623,6 +66772,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -66955,6 +67105,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -66976,7 +67127,10 @@
                   },
                   "summary": {
                     "type": "string",
-                    "maxLength": 2000
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "description": "Long free-text bio or summary (1-2000 characters).",
+                    "example": "Engineer interested in building robust systems."
                   },
                   "isPublic": {
                     "type": "boolean"
@@ -66991,23 +67145,38 @@
                   },
                   "phone": {
                     "type": "string",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                    "example": "+5511999990000"
                   },
                   "location": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "São Paulo, Brazil"
                   },
                   "linkedin": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/(www\\.)?linkedin\\.com\\/(in|company)\\/",
+                    "description": "LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).",
+                    "example": "https://www.linkedin.com/in/fixture-user"
                   },
                   "github": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9_-]+",
+                    "description": "GitHub profile URL (e.g. `https://github.com/<handle>`).",
+                    "example": "https://github.com/fixture-user"
                   },
                   "website": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "sections": {
                     "type": "array",
@@ -71721,6 +71890,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -72643,6 +72813,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -73043,6 +73214,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -73369,6 +73541,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -73603,6 +73776,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -73775,6 +73949,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -75917,6 +76092,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -77738,7 +77914,8 @@
                   "password": {
                     "type": "string",
                     "minLength": 4,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "description": "Optional share-link access password (4-200 chars). Distinct from user account password — applies only to viewers of this share link."
                   },
                   "expiresAt": {
                     "type": "string",
@@ -86675,11 +86852,19 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "format": "email",
+                    "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                    "example": "fixture@profile.local"
                   },
                   "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@\\$!%\\*\\?&]).{8,128}$",
+                    "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+                    "example": "Fixture_Password_123!"
                   },
                   "name": {
                     "type": "string"
@@ -87414,7 +87599,11 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "format": "email",
+                    "description": "Email address used for authentication and notifications. Trimmed and lowercased on submit.",
+                    "example": "fixture@profile.local"
                   },
                   "name": {
                     "type": "string"
@@ -87679,7 +87868,11 @@
                 "properties": {
                   "newPassword": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@\\$!%\\*\\?&]).{8,128}$",
+                    "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+                    "example": "Fixture_Password_123!"
                   }
                 },
                 "required": [
@@ -91176,7 +91369,10 @@
                   "photoURL": {
                     "type": "string",
                     "maxLength": 500,
-                    "format": "uri"
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   }
                 },
                 "example": {
@@ -91669,7 +91865,10 @@
                   "photoURL": {
                     "type": "string",
                     "maxLength": 500,
-                    "format": "uri"
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "language": {
                     "type": "string",
@@ -92331,7 +92530,8 @@
                   "name": {
                     "type": "string",
                     "minLength": 2,
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "Fixture User"
                   },
                   "username": {
                     "type": "string",
@@ -92341,17 +92541,22 @@
                   },
                   "bio": {
                     "type": "string",
-                    "maxLength": 500
+                    "minLength": 1,
+                    "maxLength": 500,
+                    "description": "Short free-text description (1-500 characters).",
+                    "example": "A short description of the resource."
                   },
                   "location": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "São Paulo, Brazil"
                   },
                   "website": {
                     "type": "string",
                     "maxLength": 500,
                     "format": "uri",
                     "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
                     "example": "https://fixture.profile.local"
                   },
                   "company": {
@@ -92364,13 +92569,16 @@
                   },
                   "phone": {
                     "type": "string",
-                    "maxLength": 20
+                    "maxLength": 20,
+                    "description": "Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).",
+                    "example": "+5511999990000"
                   },
                   "linkedin": {
                     "type": "string",
                     "maxLength": 500,
                     "format": "uri",
                     "pattern": "^https?:\\/\\/(www\\.)?linkedin\\.com\\/(in|company)\\/",
+                    "description": "LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).",
                     "example": "https://www.linkedin.com/in/fixture-user"
                   },
                   "github": {
@@ -92378,6 +92586,7 @@
                     "maxLength": 500,
                     "format": "uri",
                     "pattern": "^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9_-]+",
+                    "description": "GitHub profile URL (e.g. `https://github.com/<handle>`).",
                     "example": "https://github.com/fixture-user"
                   },
                   "twitter": {
@@ -92385,11 +92594,16 @@
                     "maxLength": 500,
                     "format": "uri",
                     "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
                     "example": "https://fixture.profile.local"
                   },
                   "image": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   }
                 },
                 "example": {
@@ -93669,6 +93883,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -96976,6 +97191,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -97185,6 +97401,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -97396,6 +97613,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -98551,7 +98769,11 @@
                 "properties": {
                   "url": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "events": {
                     "type": "array",
@@ -98973,7 +99195,11 @@
                 "properties": {
                   "url": {
                     "type": "string",
-                    "format": "uri"
+                    "maxLength": 500,
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/",
+                    "description": "Public HTTP(S) URL (max 500 chars). Trimmed on submit.",
+                    "example": "https://fixture.profile.local"
                   },
                   "events": {
                     "type": "array",

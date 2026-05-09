@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { SocialUrlSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SUPPORTED_EVENTS = [
@@ -16,7 +17,7 @@ export const IdParam = IdParamSchema;
 
 export const CreateWebhookSchema = z
   .object({
-    url: z.string().url(),
+    url: SocialUrlSchema,
     events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
   })
   .openapi({
@@ -28,7 +29,7 @@ export const CreateWebhookSchema = z
 
 export const UpdateWebhookSchema = z
   .object({
-    url: z.string().url().optional(),
+    url: SocialUrlSchema.optional(),
     events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
     enabled: z.boolean().optional(),
   })

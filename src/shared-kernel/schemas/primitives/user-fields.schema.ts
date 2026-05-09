@@ -17,7 +17,11 @@ export const PhoneSchema = z
   .string()
   .max(20, 'Phone number cannot exceed 20 characters')
   .optional()
-  .openapi({ example: EXAMPLE_PHONE });
+  .openapi({
+    example: EXAMPLE_PHONE,
+    description:
+      'Phone number, free-form up to 20 characters. Recommended format: E.164 (e.g. `+5511999990000`).',
+  });
 
 export type Phone = z.infer<typeof PhoneSchema>;
 

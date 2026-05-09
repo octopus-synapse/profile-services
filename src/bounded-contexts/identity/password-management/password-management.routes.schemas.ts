@@ -10,8 +10,9 @@
  */
 
 import { z } from 'zod';
+import { EmailSchema } from '@/shared-kernel/schemas/primitives';
 
-export const ForgotPasswordSchema = z.object({ email: z.string().email() }).openapi({
+export const ForgotPasswordSchema = z.object({ email: EmailSchema }).openapi({
   example: {
     email: 'user@example.com',
   },

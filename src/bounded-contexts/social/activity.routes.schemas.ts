@@ -38,7 +38,7 @@ import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const UserIdParam = UserIdParamSchema;
-export const UserIdAndTypeParam = z.object({ userId: z.string(), type: z.string() }).openapi({
+export const UserIdAndTypeParam = UserIdParamSchema.extend({ type: z.string() }).openapi({
   example: { userId: '01900000-0000-7000-a000-000000000020', type: 'RESUME_CREATED' },
 });
 export const PageQuery = PaginationQuerySchema;

@@ -6,6 +6,7 @@ import {
   RemotePolicy,
 } from '@prisma/client';
 import { z } from 'zod';
+import { SocialUrlSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // Use the Prisma enum values as the source of truth so the DTO type matches
@@ -30,7 +31,7 @@ export const CreateJobSchema = z
     requirements: z.array(z.string()).optional(),
     skills: z.array(z.string()).optional(),
     salaryRange: z.string().max(100).optional(),
-    applyUrl: z.string().url().optional(),
+    applyUrl: SocialUrlSchema.optional(),
     expiresAt: IsoDateTimeSchema.optional(),
     paymentCurrency: PaymentCurrencyEnum.optional(),
     remotePolicy: RemotePolicyEnum.optional(),
@@ -61,7 +62,7 @@ export const UpdateJobSchema = z
     requirements: z.array(z.string()).optional(),
     skills: z.array(z.string()).optional(),
     salaryRange: z.string().max(100).optional(),
-    applyUrl: z.string().url().optional(),
+    applyUrl: SocialUrlSchema.optional(),
     isActive: z.boolean().optional(),
     expiresAt: IsoDateTimeSchema.optional(),
     paymentCurrency: PaymentCurrencyEnum.nullable().optional(),
@@ -91,11 +92,17 @@ export const ApplyToJobSchema = z
 // ============================================================================
 // Import-from-URL (LLM preview)
 // ============================================================================
-export const ImportJobFromUrlSchema = z.object({ url: z.string().url().max(2000) }).openapi({
-  example: {
-    url: 'https://careers.example.com/jobs/senior-backend-engineer',
-  },
-});
+export const ImportJobFromUrlSchema = z
+  .object({
+    url: z.string().url().max(2000).openapi({
+      description: 'Public URL of an external job posting to import (max 2000 chars).',
+    }),
+  })
+  .openapi({
+    example: {
+      url: 'https://careers.example.com/jobs/senior-backend-engineer',
+    },
+  });
 // ============================================================================
 // Response: a single job (matches what the service returns)
 // ============================================================================

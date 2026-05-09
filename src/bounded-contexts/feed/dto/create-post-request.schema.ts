@@ -1,5 +1,6 @@
 import { PostType } from '@prisma/client';
 import { z } from 'zod';
+import { SocialUrlSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const CreatePostSchema = z
@@ -14,8 +15,8 @@ export const CreatePostSchema = z
     // while still allowing arbitrary keys; per-type validation is delegated
     // to the consuming service (BUILD wants previewUrl/repoUrl/stack, etc.).
     data: z.object({}).passthrough().optional(),
-    imageUrl: z.string().url().optional(),
-    linkUrl: z.string().url().optional(),
+    imageUrl: SocialUrlSchema.optional(),
+    linkUrl: SocialUrlSchema.optional(),
     originalPostId: z.string().min(1).optional(),
     coAuthors: z.array(z.string().min(1)).max(8).optional(),
     scheduledAt: IsoDateTimeSchema.optional(),

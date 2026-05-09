@@ -17,7 +17,7 @@ export abstract class SkillEndorsementRoutesBundle {
 }
 
 export const UserIdParam = UserIdParamSchema;
-export const UserIdAndSkillParam = z.object({ userId: z.string(), skill: z.string() });
+export const UserIdAndSkillParam = UserIdParamSchema.extend({ skill: z.string() });
 export const PageQuery = PaginationQuerySchema;
 
 // ─── Response schemas ────────────────────────────────────────────────

@@ -11,7 +11,11 @@ export const EmailSchema = z
   .email('Invalid email format')
   .min(5, 'Email must be at least 5 characters')
   .max(255, 'Email must not exceed 255 characters')
-  .openapi({ example: EXAMPLE_EMAIL });
+  .openapi({
+    example: EXAMPLE_EMAIL,
+    description:
+      'Email address used for authentication and notifications. Trimmed and lowercased on submit.',
+  });
 
 export type Email = z.infer<typeof EmailSchema>;
 export type EmailDto = z.infer<typeof EmailSchema>;
