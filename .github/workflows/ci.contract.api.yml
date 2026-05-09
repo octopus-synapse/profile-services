@@ -115,6 +115,28 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
+      # MinIO — S3-compatible storage for resume export presigned URLs.
+      # The 4 export routes (pdf/docx/json/latex) need a working object
+      # store; without it the routes return 500. We use bitnami/minio
+      # because it (a) auto-runs `minio server` as its default command
+      # (the official minio/minio image needs command override which
+      # GHA service containers don't support cleanly) and (b) creates
+      # any bucket listed in `MINIO_DEFAULT_BUCKETS` at startup, so we
+      # don't need a separate `mc mb` step.
+      minio:
+        image: bitnami/minio:latest
+        ports:
+          - 9000:9000
+          - 9001:9001
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+          MINIO_DEFAULT_BUCKETS: profile-uploads
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5433/profile_test
       REDIS_HOST: localhost
@@ -134,6 +156,14 @@ jobs:
       SMTP_PORT: 1025
       EMAIL_FROM: noreply@profile.local
       EMAIL_FROM_NAME: ProFile
+      # MinIO connection — matches the service definition above. The
+      # bucket is created by the `Setup MinIO bucket` step before the
+      # app boots.
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: profile-uploads
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
