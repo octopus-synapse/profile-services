@@ -4,7 +4,12 @@ import { EXAMPLE_DATE_ONLY, EXAMPLE_ISO_DATETIME } from '../params/example-value
 
 extendZodWithOpenApi(z);
 
-export const IsoDateTimeSchema = z.string().datetime({ offset: true }).openapi('IsoDateTime', {
+// Intentionally NOT registered as a `components.schemas` entry: many
+// response shapes use `IsoDateTimeSchema.nullable()` and the kubb code
+// generator currently emits broken zod when `$ref` is combined with
+// `nullable: true` (allOf wrapping). Inline emission keeps the
+// description and format intact while sidestepping that bug.
+export const IsoDateTimeSchema = z.string().datetime({ offset: true }).openapi({
   example: EXAMPLE_ISO_DATETIME,
   description: 'ISO-8601 timestamp with timezone offset (RFC 3339).',
 });
