@@ -33,7 +33,7 @@ export const CreateShareSchema = z
   })
   .openapi({
     example: {
-      resumeId: '01900000-0000-7000-a000-000000000001',
+      resumeId: '01900000-0000-7000-a000-000000000010',
       slug: 'jane-doe-senior-engineer',
     },
   });

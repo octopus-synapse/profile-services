@@ -1,50 +1,50 @@
 {
   "version": "3",
-  "tree_hash": "742ba1d01f02805476fedd97fd737ea0cdf842e5",
+  "tree_hash": "1787d9eb17ac54955678a2842c69e357c8e28e99",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 89
+      "time_ms": 70
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 1112
+      "time_ms": 1335
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 6298
+      "time_ms": 5250
     },
     "lint": {
       "status": "ok",
-      "time_ms": 2174
+      "time_ms": 2150
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 555
+      "time_ms": 1397
     },
     "unit": {
       "status": "ok",
-      "time_ms": 4794,
+      "time_ms": 4522,
       "passed": 2642,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 2436,
+      "time_ms": 2478,
       "passed": 55,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1870,
+      "time_ms": 1661,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     }
   },
-  "timestamp": "2026-05-09T04:39:32Z",
+  "timestamp": "2026-05-09T15:31:46Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }

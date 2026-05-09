@@ -117,9 +117,6 @@ async function main() {
   // Seed usernames for existing users without one
   await seedUsernames(prisma);
 
-  // Seed analytics projections from existing resumes
-  await seedAnalyticsProjections(prisma);
-
   // Seed E2E test user for performance testing
   const e2eTestEmail = 'e2e-test@profile.local';
   const existingE2eUser = await prisma.user.findFirst({
@@ -158,6 +155,12 @@ async function main() {
   if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
     await seedDreddFixtures(prisma, admin.id);
   }
+
+  // Seed analytics projections from existing resumes (runs LAST so it
+  // picks up the dredd fixture resumes — otherwise the contract probes
+  // for /v1/resumes/:resumeId/analytics/* would 404 on missing
+  // AnalyticsResumeProjection rows).
+  await seedAnalyticsProjections(prisma);
 }
 
 main()

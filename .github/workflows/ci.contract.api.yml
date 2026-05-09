@@ -183,6 +183,19 @@ jobs:
           } > .npmrc
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      # Typst is the binary the resume export pipeline shells out to for
+      # PDF generation (see TypstPdfGeneratorService). Without it, the
+      # 5 export routes (pdf/docx/json/latex/user-pdf) return 502
+      # EXPORT_PDF_GENERATION_FAILED. The dev image bakes Typst into the
+      # backend container; the CI workflow runs the app directly on the
+      # GitHub-hosted runner, so we install the binary here.
+      - name: Install Typst
+        run: |
+          curl -fsSL "https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz" -o /tmp/typst.tar.xz
+          mkdir -p /tmp/typst
+          tar -xf /tmp/typst.tar.xz -C /tmp/typst --strip-components=1
+          sudo install -m 0755 /tmp/typst/typst /usr/local/bin/typst
+          typst --version
       - name: Build custom Postgres image (pgvector + pg_uuidv7)
         run: docker build -t profile-services-postgres:test -f infra/docker/postgres/Dockerfile .
       - name: Start Postgres
