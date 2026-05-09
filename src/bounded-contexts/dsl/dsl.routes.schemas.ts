@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { ResumeIdParamSchema, SlugParamSchema } from '@/shared-kernel/schemas/params';
 import { ResumeAstSchema } from './domain/schemas/ast/resume-ast.schema';
 
 // ─── Response schemas ────────────────────────────────────────────────
@@ -28,5 +29,5 @@ export const RenderQuerySchema = z.object({
   locale: z.string().optional(),
 });
 
-export const ResumeIdParams = z.object({ resumeId: z.string() });
-export const SlugParams = z.object({ slug: z.string() });
+export const ResumeIdParams = ResumeIdParamSchema;
+export const SlugParams = SlugParamSchema;

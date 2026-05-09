@@ -39,7 +39,7 @@ export const ApplyModifierBody = z
     modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
     effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
     reason: ShortDescriptionSchema,
-    permissionId: z.string().min(1).optional(),
+    permissionId: z.string().uuid('permissionId must be a valid UUID').optional(),
     startsAt: IsoDateTimeSchema.optional(),
     endsAt: IsoDateTimeSchema.optional(),
   })

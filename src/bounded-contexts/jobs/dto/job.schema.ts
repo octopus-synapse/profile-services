@@ -28,8 +28,8 @@ export const CreateJobSchema = z
     location: z.string().max(200).optional(),
     jobType: JobTypeEnum,
     description: z.string().min(1),
-    requirements: z.array(z.string()).optional(),
-    skills: z.array(z.string()).optional(),
+    requirements: z.array(z.string().max(200)).max(40).optional(),
+    skills: z.array(z.string().max(60)).max(40).optional(),
     salaryRange: z.string().max(100).optional(),
     applyUrl: SocialUrlSchema.optional(),
     expiresAt: IsoDateTimeSchema.optional(),
@@ -61,8 +61,8 @@ export const UpdateJobSchema = z
     location: z.string().max(200).optional(),
     jobType: JobTypeEnum.optional(),
     description: z.string().min(1).optional(),
-    requirements: z.array(z.string()).optional(),
-    skills: z.array(z.string()).optional(),
+    requirements: z.array(z.string().max(200)).max(40).optional(),
+    skills: z.array(z.string().max(60)).max(40).optional(),
     salaryRange: z.string().max(100).optional(),
     applyUrl: SocialUrlSchema.optional(),
     isActive: z.boolean().optional(),
@@ -83,10 +83,12 @@ export const UpdateJobSchema = z
 // ============================================================================
 export const ApplyToJobSchema = z
   .object({
-    coverLetter: z.string().optional(),
-    resumeId: z.string().optional(),
+    coverLetter: z.string().max(5000).optional(),
+    resumeId: z.string().uuid().optional(),
   })
-  .openapi({
+  .openapi('ApplyToJobRequest', {
+    description:
+      'Submit a job application. `resumeId` references the resume the candidate wants to apply with; if omitted, the primary resume is used.',
     example: {
       coverLetter: 'I am excited about this role because of your engineering culture.',
       resumeId: '01900000-0000-7000-a000-000000000010',

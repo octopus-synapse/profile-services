@@ -220,14 +220,18 @@
           "requirements": {
             "type": "array",
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 200
+            },
+            "maxItems": 40
           },
           "skills": {
             "type": "array",
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 40
           },
           "salaryRange": {
             "type": "string",
@@ -323,14 +327,18 @@
           "requirements": {
             "type": "array",
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 200
+            },
+            "maxItems": 40
           },
           "skills": {
             "type": "array",
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 60
+            },
+            "maxItems": 40
           },
           "salaryRange": {
             "type": "string",
@@ -379,6 +387,24 @@
         "example": {
           "title": "Senior Backend Engineer (Updated)",
           "isActive": true
+        }
+      },
+      "ApplyToJobRequest": {
+        "type": "object",
+        "properties": {
+          "coverLetter": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "resumeId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "description": "Submit a job application. `resumeId` references the resume the candidate wants to apply with; if omitted, the primary resume is used.",
+        "example": {
+          "coverLetter": "I am excited about this role because of your engineering culture.",
+          "resumeId": "01900000-0000-7000-a000-000000000010"
         }
       },
       "ChangePasswordRequest": {
@@ -16868,7 +16894,7 @@
                   },
                   "permissionId": {
                     "type": "string",
-                    "minLength": 1
+                    "format": "uuid"
                   },
                   "startsAt": {
                     "$ref": "#/components/schemas/IsoDateTime"
@@ -26677,6 +26703,9 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z0-9-]+$",
+              "description": "URL-safe public identifier (lowercase alphanumerics and dashes).",
               "example": "fixture-slug"
             },
             "required": true,
@@ -27185,6 +27214,8 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
+              "description": "Resume UUID (path parameter).",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -40629,19 +40660,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "coverLetter": {
-                    "type": "string"
-                  },
-                  "resumeId": {
-                    "type": "string"
-                  }
-                },
-                "example": {
-                  "coverLetter": "I am excited about this role because of your engineering culture.",
-                  "resumeId": "01900000-0000-7000-a000-000000000010"
-                }
+                "$ref": "#/components/schemas/ApplyToJobRequest"
               }
             }
           }
@@ -53038,13 +53057,13 @@
                   },
                   "originalPostId": {
                     "type": "string",
-                    "minLength": 1
+                    "format": "uuid"
                   },
                   "coAuthors": {
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "minLength": 1
+                      "format": "uuid"
                     },
                     "maxItems": 8
                   },
@@ -53053,7 +53072,7 @@
                   },
                   "threadId": {
                     "type": "string",
-                    "minLength": 1
+                    "format": "uuid"
                   },
                   "codeSnippet": {
                     "type": "object",

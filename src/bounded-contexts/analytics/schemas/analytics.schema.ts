@@ -30,7 +30,7 @@ export const PriorityEnum = z.enum(['low', 'medium', 'high']);
 export const TrendEnum = z.enum(['improving', 'stable', 'declining']);
 
 export const TrackViewSchema = z.object({
-  resumeId: z.string().min(1),
+  resumeId: z.string().uuid(),
   userAgent: z.string().optional(),
   referer: z.string().optional(),
 });

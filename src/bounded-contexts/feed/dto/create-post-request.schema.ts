@@ -17,10 +17,10 @@ export const CreatePostSchema = z
     data: z.object({}).passthrough().optional(),
     imageUrl: SocialUrlSchema.optional(),
     linkUrl: SocialUrlSchema.optional(),
-    originalPostId: z.string().min(1).optional(),
-    coAuthors: z.array(z.string().min(1)).max(8).optional(),
+    originalPostId: z.string().uuid().optional(),
+    coAuthors: z.array(z.string().uuid()).max(8).optional(),
     scheduledAt: IsoDateTimeSchema.optional(),
-    threadId: z.string().min(1).optional(),
+    threadId: z.string().uuid().optional(),
     codeSnippet: z
       .object({
         language: z.string().max(40),
