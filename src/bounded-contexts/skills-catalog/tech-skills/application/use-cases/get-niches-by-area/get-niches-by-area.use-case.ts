@@ -1,5 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
-import type { TechNiche } from '../../../dto/tech-niche.dto';
+import type { TechNiche } from '../../../dto/tech-niche.schema';
 import {
   TECH_SKILLS_CACHE_KEYS,
   TECH_SKILLS_CACHE_TTL,

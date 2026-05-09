@@ -68,11 +68,9 @@ export class TypstCompilerService {
       );
 
       if (result.exitCode !== 0) {
-        this.logger.error(
-          `Typst compilation failed: ${result.stderr}`,
-          undefined,
-          'TypstCompilerService',
-        );
+        this.logger.error(`Typst compilation failed: ${result.stderr}`, {
+          context: 'TypstCompilerService',
+        });
         throw new TypstCompilationFailedException('pdf', this.parseTypstError(result.stderr));
       }
 

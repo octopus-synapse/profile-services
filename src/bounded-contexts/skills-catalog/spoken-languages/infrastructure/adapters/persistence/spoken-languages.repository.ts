@@ -9,7 +9,7 @@ export class SpokenLanguagesRepository extends SpokenLanguagesRepositoryPort {
     super();
   }
 
-  async findAllActive(): Promise<SpokenLanguage[]> {
+  async listActive(): Promise<SpokenLanguage[]> {
     return this.prisma.spokenLanguage.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },

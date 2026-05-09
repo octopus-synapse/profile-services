@@ -21,7 +21,6 @@ import { z } from 'zod';
 export const StandardResources = [
   'user',
   'resume',
-  'theme',
   'section',
   'section-item',
   'stats',
@@ -114,3 +113,13 @@ export const ListPermissionsQuerySchema = z.object({
 });
 
 export type ListPermissionsQuery = z.infer<typeof ListPermissionsQuerySchema>;
+
+export type CreatePermissionDto = z.infer<typeof CreatePermissionSchema>;
+
+export type UpdatePermissionDto = z.infer<typeof UpdatePermissionSchema>;
+
+export type PermissionResponseDto = z.infer<typeof PermissionResponseSchema>;
+
+export type PermissionIdentifierDto = z.infer<typeof PermissionIdentifierSchema>;
+
+export type ListPermissionsQueryDto = z.infer<typeof ListPermissionsQuerySchema>;

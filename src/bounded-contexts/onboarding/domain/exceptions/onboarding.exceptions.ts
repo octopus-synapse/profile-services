@@ -15,9 +15,9 @@ export interface OnboardingValidationError {
 }
 
 /**
- * Shared base carrying the structured `details` payload and the legacy
- * `getResponse()` contract that the filter still reads. Subclasses below
- * declare the concrete `code` / `statusHint` / default message.
+ * Shared base carrying the structured `details` payload that the error
+ * mapper serialises into the response envelope. Subclasses below declare
+ * the concrete `code` / `statusHint` / default message.
  */
 export abstract class OnboardingValidationException extends DomainException {
   readonly statusHint = 400;
@@ -28,16 +28,6 @@ export abstract class OnboardingValidationException extends DomainException {
   ) {
     super(message);
     this.name = this.constructor.name;
-  }
-
-  getResponse() {
-    return {
-      statusCode: this.statusHint,
-      error: 'Onboarding Validation Failed',
-      code: this.code,
-      message: this.message,
-      details: this.details,
-    };
   }
 
   // --- Factory helpers preserved for call-site compatibility ---------------
@@ -60,10 +50,6 @@ export abstract class OnboardingValidationException extends DomainException {
 
   static invalidUsername(reason: string): OnboardingInvalidUsernameException {
     return new OnboardingInvalidUsernameException(reason);
-  }
-
-  static usernameAlreadyTaken(username: string): OnboardingUsernameAlreadyTakenException {
-    return new OnboardingUsernameAlreadyTakenException(username);
   }
 
   static stepNotCompleted(stepId: string): OnboardingStepNotCompletedException {
@@ -101,15 +87,6 @@ export class OnboardingInvalidUsernameException extends OnboardingValidationExce
   readonly code = 'INVALID_USERNAME';
   constructor(reason: string) {
     super(reason, [{ code: 'INVALID_USERNAME', field: 'username', message: reason }]);
-  }
-}
-
-export class OnboardingUsernameAlreadyTakenException extends OnboardingValidationException {
-  readonly code = 'USERNAME_TAKEN';
-  constructor(username: string) {
-    super(`Username "${username}" is already taken`, [
-      { code: 'USERNAME_TAKEN', field: 'username', message: 'This username is already taken' },
-    ]);
   }
 }
 

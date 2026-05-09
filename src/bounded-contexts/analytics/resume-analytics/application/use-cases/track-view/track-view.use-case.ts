@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { LoggerPort } from '@/shared-kernel';
+import { AnalyticsConsentRequiredException } from '../../../../domain/exceptions/analytics.exceptions';
 import { TRAFFIC_SOURCES } from '../../../domain/value-objects/traffic-sources';
 import type { TrackView } from '../../../interfaces';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
@@ -14,6 +15,9 @@ export class TrackViewUseCase {
   ) {}
 
   async execute(input: TrackView): Promise<void> {
+    if (input.consent === false) {
+      throw new AnalyticsConsentRequiredException();
+    }
     await this.ownership.verifyResumeExists(input.resumeId);
 
     const ipHash = this.anonymizeIP(input.ip);

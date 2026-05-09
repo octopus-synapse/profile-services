@@ -78,3 +78,15 @@ export type InviteCollaborator = z.infer<typeof InviteCollaboratorSchema>;
 export const UpdateCollaboratorRoleSchema = z.object({ role: CollaboratorRoleSchema });
 
 export type UpdateCollaboratorRole = z.infer<typeof UpdateCollaboratorRoleSchema>;
+
+export type CollaboratorUserDto = z.infer<typeof CollaboratorUserSchema>;
+
+export type CollaboratorDto = z.infer<typeof CollaboratorSchema>;
+
+export type SharedResumeOwnerDto = z.infer<typeof SharedResumeOwnerSchema>;
+
+export type SharedResumeDto = z.infer<typeof SharedResumeSchema>;
+
+export type InviteCollaboratorDto = z.infer<typeof InviteCollaboratorSchema>;
+
+export type UpdateCollaboratorRoleDto = z.infer<typeof UpdateCollaboratorRoleSchema>;

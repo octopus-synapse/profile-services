@@ -26,7 +26,7 @@ export class UserMutationRepository {
     name?: string;
     photoURL?: string;
   }): Promise<User> {
-    this.logger.log(`Creating user account: ${userData.email}`, CTX);
+    this.logger.log(`Creating user account: ${userData.id}`, CTX);
     return await this.prisma.user.create({ data: userData });
   }
 

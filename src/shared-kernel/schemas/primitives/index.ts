@@ -6,6 +6,7 @@
  */
 
 export * from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
+export * from './datetime.schema';
 export * from './email.schema';
 export * from './password.schema';
 export * from './professional-profile.schema';

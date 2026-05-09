@@ -7,8 +7,9 @@
  */
 
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { MetricsUseCases } from './application/ports/metrics.port';
+import { MetricsOverviewResponseSchema } from './metrics.routes.schemas';
 
 export const metricsRoutes: ReadonlyArray<Route<MetricsUseCases>> = [
   {
@@ -16,6 +17,7 @@ export const metricsRoutes: ReadonlyArray<Route<MetricsUseCases>> = [
     path: '/v1/admin/metrics/overview',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_MANAGE,
+    response: MetricsOverviewResponseSchema,
     openapi: {
       summary: 'Get all metrics as JSON',
       tags: ['admin-metrics'],
@@ -30,9 +32,11 @@ export const metricsRoutes: ReadonlyArray<Route<MetricsUseCases>> = [
     auth: { kind: 'public' },
     guards: [{ id: 'metrics-key' }],
     headers: { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' },
+    // No `response` schema: this endpoint serves the Prometheus exposition
+    // format (`text/plain`), not JSON.
     openapi: {
       summary: 'Get Prometheus metrics',
-      tags: ['Metrics'],
+      tags: ['metrics'],
       description: 'Returns service metrics in Prometheus exposition format.',
     },
     sdk: { exported: true },

@@ -1,6 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionAcceptedEvent } from '../../../domain/events';
 import {
   ConnectionNotPendingException,
@@ -17,10 +16,7 @@ export class AcceptConnectionUseCase {
   ) {}
 
   async execute(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.repository.findConnectionById(connectionId);
-    if (!connection) {
-      throw new EntityNotFoundException('Connection', connectionId);
-    }
+    const connection = await this.repository.getConnectionById(connectionId);
 
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();

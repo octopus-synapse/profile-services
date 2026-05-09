@@ -77,7 +77,7 @@ export class SendWeeklyDigestsUseCase {
         usersEmailed += 1;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'unknown';
-        this.logger.error(`Weekly digest failed for user ${user.id}: ${message}`, undefined, CTX);
+        this.logger.error(`Weekly digest failed for user ${user.id}: ${message}`, { context: CTX });
       }
     }
 

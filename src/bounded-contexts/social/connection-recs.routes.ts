@@ -5,14 +5,14 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import type { ConnectionRecsService } from './services/connection-recs.service';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  ConnectionRecommendationsResponseSchema,
+  ConnectionRecsRoutesBundle,
+  LimitQuery,
+} from './connection-recs.routes.schemas';
 
-export abstract class ConnectionRecsRoutesBundle {
-  abstract readonly service: ConnectionRecsService;
-}
-
-const LimitQuery = z.object({ limit: z.string().optional() });
+export type { ConnectionRecsRoutesBundle } from './connection-recs.routes.schemas';
 
 export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundle>> = [
   {
@@ -21,6 +21,7 @@ export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundl
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: LimitQuery,
+    response: ConnectionRecommendationsResponseSchema,
     openapi: {
       summary: 'Users sharing the most skills with you',
       tags: ['social'],
@@ -33,7 +34,7 @@ export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundl
       const recs = await bundle.service.getRecommendationsFor(ctx.user!.userId, {
         limit: Number.isFinite(parsed) ? parsed : undefined,
       });
-      return { success: true, data: { recommendations: recs } };
+      return { recommendations: recs };
     },
   },
 ];

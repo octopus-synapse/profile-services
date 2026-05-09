@@ -13,7 +13,7 @@ import {
   hasRole,
   isAdmin,
   resolvePermissions,
-} from './permission-resolver';
+} from './permission-resolver.service';
 import { ROLES } from './roles';
 
 describe('PermissionResolver', () => {
@@ -43,7 +43,7 @@ describe('PermissionResolver', () => {
       // Should NOT have admin permissions
       expect(result.has(Permission.ADMIN_FULL_ACCESS)).toBe(false);
       expect(result.has(Permission.USER_MANAGE)).toBe(false);
-      expect(result.has(Permission.THEME_CREATE)).toBe(false);
+      expect(result.has(Permission.SKILL_MANAGE)).toBe(false);
     });
 
     it('should resolve all permissions for ADMIN role', () => {
@@ -56,7 +56,6 @@ describe('PermissionResolver', () => {
       // Admin permissions
       expect(result.has(Permission.ADMIN_FULL_ACCESS)).toBe(true);
       expect(result.has(Permission.USER_MANAGE)).toBe(true);
-      expect(result.has(Permission.THEME_CREATE)).toBe(true);
       expect(result.has(Permission.SKILL_MANAGE)).toBe(true);
       expect(result.has(Permission.PLATFORM_MANAGE)).toBe(true);
     });
@@ -72,11 +71,11 @@ describe('PermissionResolver', () => {
     });
 
     it('should return false for missing permission', () => {
-      expect(hasPermission([ROLES.USER.id], Permission.THEME_CREATE)).toBe(false);
+      expect(hasPermission([ROLES.USER.id], Permission.SKILL_MANAGE)).toBe(false);
     });
 
     it('should return true for ADMIN on any permission', () => {
-      expect(hasPermission([ROLES.ADMIN.id], Permission.THEME_CREATE)).toBe(true);
+      expect(hasPermission([ROLES.ADMIN.id], Permission.SKILL_MANAGE)).toBe(true);
       expect(hasPermission([ROLES.ADMIN.id], Permission.USER_MANAGE)).toBe(true);
       expect(hasPermission([ROLES.ADMIN.id], Permission.PLATFORM_MANAGE)).toBe(true);
     });
@@ -86,7 +85,7 @@ describe('PermissionResolver', () => {
     it('should return true if any permission matches', () => {
       const result = hasAnyPermission(
         [ROLES.USER.id],
-        [Permission.RESUME_CREATE, Permission.THEME_CREATE],
+        [Permission.RESUME_CREATE, Permission.SKILL_MANAGE],
       );
       expect(result).toBe(true);
     });
@@ -94,7 +93,7 @@ describe('PermissionResolver', () => {
     it('should return false if no permission matches', () => {
       const result = hasAnyPermission(
         [ROLES.USER.id],
-        [Permission.THEME_CREATE, Permission.USER_MANAGE],
+        [Permission.SKILL_MANAGE, Permission.USER_MANAGE],
       );
       expect(result).toBe(false);
     });
@@ -112,7 +111,7 @@ describe('PermissionResolver', () => {
     it('should return false if any permission is missing', () => {
       const result = hasAllPermissions(
         [ROLES.USER.id],
-        [Permission.RESUME_CREATE, Permission.THEME_CREATE],
+        [Permission.RESUME_CREATE, Permission.SKILL_MANAGE],
       );
       expect(result).toBe(false);
     });
@@ -145,8 +144,8 @@ describe('PermissionResolver', () => {
       expect(roles).toContain(ROLES.ADMIN.id);
     });
 
-    it('should find roles that have THEME_CREATE', () => {
-      const roles = getRolesWithPermission(Permission.THEME_CREATE);
+    it('should find roles that have admin-only SKILL_MANAGE', () => {
+      const roles = getRolesWithPermission(Permission.SKILL_MANAGE);
       expect(roles).toContain(ROLES.ADMIN.id);
       expect(roles).not.toContain(ROLES.USER.id);
     });

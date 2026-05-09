@@ -1,13 +1,21 @@
 import * as winston from 'winston';
 import { z } from 'zod';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 const LogLevelSchema = z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']);
 
-export class AppLoggerService {
+/**
+ * Winston-backed `LoggerPort` implementation.
+ *
+ * @internal Wire this only at the composition root. Application code
+ * should depend on `LoggerPort` (Q20 in the duplication audit).
+ */
+export class AppLoggerService extends LoggerPort {
   private logger: winston.Logger;
   private context?: string;
 
   constructor() {
+    super();
     const isProduction = process.env.NODE_ENV === 'production';
     const defaultLevel = isProduction ? 'info' : 'debug';
     const parsedLevel = LogLevelSchema.safeParse(process.env.LOG_LEVEL);
@@ -76,8 +84,9 @@ export class AppLoggerService {
     this.logger.info(message, { context, ...meta });
   }
 
-  error(message: string, trace?: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.error(message, { context, stack: trace, ...meta });
+  error(message: string, options: Record<string, unknown> = {}): void {
+    const { context, stack, ...rest } = options;
+    this.logger.error(message, { context, stack, ...rest });
   }
 
   warn(message: string, context?: string, meta?: Record<string, unknown>): void {

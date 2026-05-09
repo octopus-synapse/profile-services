@@ -8,6 +8,6 @@ export class ListStateCodesUseCase {
   constructor(private readonly institutionQuery: InstitutionQueryService) {}
 
   execute(): Promise<string[]> {
-    return this.institutionQuery.findAllStateCodes();
+    return this.institutionQuery.listStateCodes();
   }
 }

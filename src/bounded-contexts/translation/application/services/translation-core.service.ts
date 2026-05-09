@@ -92,8 +92,7 @@ export class TranslationCoreService {
     } catch (error) {
       this.logger.error(
         `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
       return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
@@ -113,8 +112,7 @@ export class TranslationCoreService {
     } catch (error) {
       this.logger.error(
         `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
       return [];
     }

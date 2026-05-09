@@ -7,6 +7,8 @@
 
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   ActivityRepositoryPort,
   type ActivityType,
@@ -18,7 +20,6 @@ import {
   ActivityReaderPort,
 } from '../application/ports/facade.ports';
 import { FollowRepositoryPort } from '../application/ports/follow.port';
-import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
 import { ActivityCreatedEvent, type SocialActivityType } from '../domain/events';
 import type { PaginatedResult, PaginationParams } from './follow.service';
 
@@ -33,7 +34,7 @@ export class ActivityService
     private readonly followRepo: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
     private readonly logger: LoggerPort,
-    private readonly eventBus: SocialEventBusPort,
+    private readonly sse: SseStreamPort,
   ) {
     super();
   }
@@ -65,7 +66,7 @@ export class ActivityService
 
     const followerIds = await this.followRepo.findFollowerIds(userId);
     for (const followerId of followerIds) {
-      this.eventBus.emit(`feed:user:${followerId}`, activityWithUser);
+      this.sse.publish(`feed:user:${followerId}`, activityWithUser);
     }
 
     this.logger.debug(
@@ -96,29 +97,26 @@ export class ActivityService
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-
     const followingIds = await this.followRepo.findFollowingIds(userId);
 
     if (followingIds.length === 0) {
-      return { data: [], total: 0, page, limit, totalPages: 0 };
+      return buildPaginatedResponse<ActivityWithUser>([], 0, pagination);
     }
 
-    const { data, total } = await this.activityRepo.findActivitiesByUserIds(
+    const { items, total } = await this.activityRepo.findActivitiesByUserIds(
       followingIds,
       pagination,
     );
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async getUserActivities(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.activityRepo.findUserActivities(userId, pagination);
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const { items, total } = await this.activityRepo.findUserActivities(userId, pagination);
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async getActivitiesByType(
@@ -126,13 +124,12 @@ export class ActivityService
     type: ActivityType,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.activityRepo.findUserActivitiesByType(
+    const { items, total } = await this.activityRepo.findUserActivitiesByType(
       userId,
       type,
       pagination,
     );
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 
   async deleteOldActivities(days: number): Promise<number> {

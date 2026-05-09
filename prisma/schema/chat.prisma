@@ -8,7 +8,7 @@
  */
 
 model Conversation {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("uuidv7()"))
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -38,7 +38,7 @@ model Conversation {
 }
 
 model Message {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("uuidv7()"))
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -85,7 +85,7 @@ model ConversationPreference {
 }
 
 model BlockedUser {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("uuidv7()"))
   createdAt DateTime @default(now())
 
   // Blocker and blocked user

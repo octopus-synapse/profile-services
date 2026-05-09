@@ -3,11 +3,11 @@ import type { DomainEvent } from '@/shared-kernel/event-bus/domain';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
-  ShareExpiredException,
-  ShareNotFoundException,
+  PublicResumeNotFoundException,
+  ShareLinkExpiredException,
   SharePasswordInvalidException,
   SharePasswordRequiredException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import {
   AccessPublicResumeUseCase,
   type PublicResumeShareLoader,
@@ -86,17 +86,17 @@ describe('AccessPublicResumeUseCase', () => {
     expect(events.published).toHaveLength(1);
   });
 
-  it('throws ShareNotFoundException when missing or inactive', async () => {
+  it('throws PublicResumeNotFoundException when missing or inactive', async () => {
     loader.share = null;
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(ShareNotFoundException);
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(PublicResumeNotFoundException);
 
     loader.share = { ...baseShare, isActive: false };
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(ShareNotFoundException);
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(PublicResumeNotFoundException);
   });
 
-  it('throws ShareExpiredException when past expiresAt', async () => {
+  it('throws ShareLinkExpiredException with slug when past expiresAt', async () => {
     loader.share = { ...baseShare, expiresAt: new Date('2020-01-01') };
-    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(ShareExpiredException);
+    await expect(useCase.execute(baseInput)).rejects.toBeInstanceOf(ShareLinkExpiredException);
   });
 
   it('rejects when password is required but missing', async () => {

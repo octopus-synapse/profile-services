@@ -5,39 +5,24 @@
  * `FollowService`).
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import type { ConnectionService } from './services/connection.service';
-import type { FollowService } from './services/follow.service';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  ConnectionIdResponseSchema,
+  ConnectionRemovedResponseSchema,
+  ConnectionRoutesBundle,
+  ConnectionStatsResponseSchema,
+  ConnectionStatusResponseSchema,
+  ConnectionsListResponseSchema,
+  IdParam,
+  NetworkSummaryResponseSchema,
+  PageQuery,
+  PendingRequestsListResponseSchema,
+  SuggestionsListResponseSchema,
+  UserIdParam,
+} from './connection.routes.schemas';
 
-export abstract class ConnectionRoutesBundle {
-  abstract readonly connectionService: ConnectionService;
-  abstract readonly followService: FollowService;
-}
-
-const UserIdParam = z.object({ userId: z.string() });
-const IdParam = z.object({ id: z.string() });
-const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-function num(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function paginate(
-  q: { page?: string; limit?: string },
-  defaults: { page?: number; limit?: number; cap?: number } = {},
-): { page: number; limit: number } {
-  return {
-    page: num(q.page, defaults.page ?? 1),
-    limit: Math.min(num(q.limit, defaults.limit ?? 10), defaults.cap ?? 100),
-  };
-}
+export type { ConnectionRoutesBundle } from './connection.routes.schemas';
 
 export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
   {
@@ -45,6 +30,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     path: '/v1/users/me/network-summary',
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
+    response: NetworkSummaryResponseSchema,
     openapi: {
       summary: 'Get network summary for authenticated user',
       tags: ['social-connections'],
@@ -63,18 +49,15 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ]);
 
       return {
-        success: true,
-        data: {
-          stats: {
-            connections: socialStats.connections,
-            followers: socialStats.followers,
-            following: socialStats.following,
-            pendingInvitations: pendingCount.total,
-          },
-          pendingRequests,
-          connections,
-          suggestions,
+        stats: {
+          connections: socialStats.connections,
+          followers: socialStats.followers,
+          following: socialStats.following,
+          pendingInvitations: pendingCount.total,
         },
+        pendingRequests,
+        connections,
+        suggestions,
       };
     },
   },
@@ -84,6 +67,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Send a connection request',
       tags: ['social-connections'],
@@ -94,11 +78,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         targetUserId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request sent successfully',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -107,6 +87,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Accept a connection request',
       tags: ['social-connections'],
@@ -117,11 +98,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         connectionId,
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request accepted',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -130,6 +107,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Reject a connection request',
       tags: ['social-connections'],
@@ -140,11 +118,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         connectionId,
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: { id: connection.id },
-        message: 'Connection request rejected',
-      };
+      return { id: connection.id };
     },
   },
   {
@@ -153,6 +127,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionIdResponseSchema,
     openapi: {
       summary: 'Withdraw a sent (pending) connection request',
       tags: ['social-connections'],
@@ -160,11 +135,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { id: connectionId } = ctx.params as { id: string };
       await bundle.connectionService.withdrawSentRequest(connectionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { id: connectionId },
-        message: 'Connection request withdrawn',
-      };
+      return { id: connectionId };
     },
   },
   {
@@ -173,6 +144,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: IdParam,
+    response: ConnectionRemovedResponseSchema,
     openapi: {
       summary: 'Remove a connection',
       tags: ['social-connections'],
@@ -180,11 +152,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { id: connectionId } = ctx.params as { id: string };
       await bundle.connectionService.removeConnection(connectionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { removed: true },
-        message: 'Connection removed successfully',
-      };
+      return { removed: true };
     },
   },
   {
@@ -193,14 +161,15 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: ConnectionsListResponseSchema,
     openapi: {
       summary: 'Get accepted connections',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
-      const result = await bundle.connectionService.getConnections(ctx.user!.userId, pagination);
-      return { success: true, data: { connections: result } };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
+      return bundle.connectionService.getConnections(ctx.user!.userId, pagination);
     },
   },
   {
@@ -209,17 +178,15 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get pending connection requests',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
-      const result = await bundle.connectionService.getPendingRequests(
-        ctx.user!.userId,
-        pagination,
-      );
-      return { success: true, data: { pendingRequests: result } };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
+      return bundle.connectionService.getPendingRequests(ctx.user!.userId, pagination);
     },
   },
   {
@@ -228,14 +195,15 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: PendingRequestsListResponseSchema,
     openapi: {
       summary: 'Get sent (pending) connection requests',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>);
-      const result = await bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
-      return { success: true, data: { pendingRequests: result } };
+      const { page, limit } = PageQuery.parse(ctx.query);
+      const pagination = { page, limit };
+      return bundle.connectionService.getSentRequests(ctx.user!.userId, pagination);
     },
   },
   {
@@ -244,27 +212,24 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     query: PageQuery,
+    response: SuggestionsListResponseSchema,
     openapi: {
       summary: 'Get connection suggestions',
       tags: ['social-connections'],
     },
     handler: async (ctx, bundle) => {
-      const pagination = paginate(ctx.query as z.infer<typeof PageQuery>, {
-        limit: 20,
-        cap: 20,
-      });
-      const suggestions = await bundle.connectionService.getConnectionSuggestions(
-        ctx.user!.userId,
-        pagination,
-      );
-      return { success: true, data: { suggestions } };
+      const parsed = PageQuery.parse(ctx.query);
+      const pagination = { page: parsed.page, limit: Math.min(parsed.limit, 20) };
+      return bundle.connectionService.getConnectionSuggestions(ctx.user!.userId, pagination);
     },
   },
   {
     method: 'GET',
     path: '/v1/users/:userId/connection-stats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: UserIdParam,
+    response: ConnectionStatsResponseSchema,
     openapi: {
       summary: 'Get connection stats for a user',
       tags: ['social-connections'],
@@ -272,7 +237,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
       const stats = await bundle.connectionService.getConnectionStats(userId);
-      return { success: true, data: stats };
+      return stats;
     },
   },
   {
@@ -281,6 +246,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: ConnectionStatusResponseSchema,
     openapi: {
       summary: 'Check connection status',
       tags: ['social-connections'],
@@ -291,7 +257,7 @@ export const connectionRoutes: ReadonlyArray<Route<ConnectionRoutesBundle>> = [
         ctx.user!.userId,
         targetUserId,
       );
-      return { success: true, data: status };
+      return status;
     },
   },
 ];

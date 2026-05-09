@@ -7,7 +7,7 @@ export class GetRemainingSlotsUseCase {
   constructor(private readonly repository: ResumesRepositoryPort) {}
 
   async execute(userId: string): Promise<ResumeSlots> {
-    const existing = await this.repository.findAllUserResumes(userId);
+    const existing = await this.repository.listUserResumes(userId);
     return {
       used: existing.length,
       limit: MAX_RESUMES_PER_USER,

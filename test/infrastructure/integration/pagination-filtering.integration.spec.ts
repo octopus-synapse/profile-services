@@ -6,7 +6,7 @@
  *
  * Endpoints tested:
  * - GET /api/v1/resumes (authenticated)
- * - GET /api/v1/themes (public, paginated)
+ * - GET /api/v1/resume-styles (authenticated, paginated)
  * - GET /api/v1/spoken-languages (search with limit)
  * - GET /api/v1/users/:userId/followers (paginated)
  */
@@ -69,9 +69,8 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
       // The response wraps data in data.data for list endpoints
-      const listData = res.body.data.data || res.body.data;
+      const listData = res.body || res.body;
       expect(Array.isArray(listData)).toBe(true);
       expect(listData.length).toBe(3);
     });
@@ -81,12 +80,9 @@ describeIntegration('Pagination & Filtering Integration', () => {
     });
   });
 
-  // ── Themes Pagination ──────────────────────────────────────────────
+  // ── Resume Styles Pagination ───────────────────────────────────────
 
-  // The legacy `/api/v1/themes` BC was renamed and reshaped into
-  // `/api/v1/resume-styles`. The new contract returns
-  // `{ items, total, page, limit }` (no nested `pagination`, no
-  // `themes` array, no category/search/sort filters).
+  // `/api/v1/resume-styles` returns `{ items, total, page, limit }`.
   describe('GET /api/v1/resume-styles - pagination', () => {
     const auth = (): { Authorization: string } => ({ Authorization: `Bearer ${userToken}` });
 
@@ -96,12 +92,11 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set(auth())
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.page).toBe(1);
-      expect(typeof res.body.data.limit).toBe('number');
-      expect(typeof res.body.data.total).toBe('number');
-      expect(Array.isArray(res.body.data.items)).toBe(true);
-      expect(res.body.data.items.length).toBeLessThanOrEqual(5);
+      expect(res.body.page).toBe(1);
+      expect(typeof res.body.limit).toBe('number');
+      expect(typeof res.body.total).toBe('number');
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBeLessThanOrEqual(5);
     });
 
     it('should return page 2 correctly', async () => {
@@ -114,11 +109,11 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set(auth())
         .expect(200);
 
-      expect(page2.body.data.page).toBe(2);
+      expect(page2.body.page).toBe(2);
 
-      if (page1.body.data.total > 2 && page2.body.data.items.length > 0) {
-        const page1Ids = page1.body.data.items.map((t: { id: string }) => t.id);
-        const page2Ids = page2.body.data.items.map((t: { id: string }) => t.id);
+      if (page1.body.total > 2 && page2.body.items.length > 0) {
+        const page1Ids = page1.body.items.map((t: { id: string }) => t.id);
+        const page2Ids = page2.body.items.map((t: { id: string }) => t.id);
         const overlap = page1Ids.filter((id: string) => page2Ids.includes(id));
         expect(overlap.length).toBe(0);
       }
@@ -130,9 +125,8 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set(auth())
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.items.length).toBe(0);
-      expect(res.body.data.page).toBe(9999);
+      expect(res.body.items.length).toBe(0);
+      expect(res.body.page).toBe(9999);
     });
 
     it('should handle limit=1', async () => {
@@ -141,7 +135,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set(auth())
         .expect(200);
 
-      expect(res.body.data.items.length).toBeLessThanOrEqual(1);
+      expect(res.body.items.length).toBeLessThanOrEqual(1);
     });
   });
 
@@ -154,9 +148,8 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data.languages)).toBe(true);
-      expect(res.body.data.languages.length).toBeGreaterThan(0);
+      expect(Array.isArray(res.body.languages)).toBe(true);
+      expect(res.body.languages.length).toBeGreaterThan(0);
     });
 
     it('should search languages by name', async () => {
@@ -165,8 +158,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages.length).toBeGreaterThan(0);
+      expect(res.body.languages.length).toBeGreaterThan(0);
     });
 
     it('should respect limit on search', async () => {
@@ -175,7 +167,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.data.languages.length).toBeLessThanOrEqual(2);
+      expect(res.body.languages.length).toBeLessThanOrEqual(2);
     });
 
     it('should reject invalid limit (negative)', async () => {
@@ -200,7 +192,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.data.languages).toEqual([]);
+      expect(res.body.languages).toEqual([]);
     });
   });
 
@@ -213,17 +205,15 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.followers).toBeDefined();
+      expect(res.body.items).toBeDefined();
+      expect(Array.isArray(res.body.items)).toBe(true);
     });
 
     it('should accept page and limit params', async () => {
-      const res = await app.request
+      await app.request
         .get(`/api/v1/users/${userId}/followers?page=1&limit=5`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
-
-      expect(res.body.success).toBe(true);
     });
 
     it('should return empty followers for new user', async () => {
@@ -233,24 +223,17 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .expect(200);
 
       // New user should have no followers
-      const followers = res.body.data.followers;
-      if (Array.isArray(followers)) {
-        expect(followers.length).toBe(0);
-      } else if (followers && typeof followers === 'object') {
-        // Might be paginated response with items
-        const items = followers.items || followers.data || [];
-        expect(Array.isArray(items)).toBe(true);
-      }
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBe(0);
+      expect(res.body.total).toBe(0);
     });
 
     it('should cap limit at 100', async () => {
-      const res = await app.request
+      // Should not error; the limit is capped at 100 in the controller.
+      await app.request
         .get(`/api/v1/users/${userId}/followers?page=1&limit=500`)
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
-
-      // Should not error, limit is capped at 100 in controller
-      expect(res.body.success).toBe(true);
     });
   });
 
@@ -260,11 +243,10 @@ describeIntegration('Pagination & Filtering Integration', () => {
     it('should return social stats for user', async () => {
       const res = await app.request.get(`/api/v1/users/${userId}/social-stats`).expect(200);
 
-      expect(res.body.success).toBe(true);
-      expect(typeof res.body.data.followers).toBe('number');
-      expect(typeof res.body.data.following).toBe('number');
-      expect(res.body.data.followers).toBe(0);
-      expect(res.body.data.following).toBe(0);
+      expect(typeof res.body.followers).toBe('number');
+      expect(typeof res.body.following).toBe('number');
+      expect(res.body.followers).toBe(0);
+      expect(res.body.following).toBe(0);
     });
   });
 });

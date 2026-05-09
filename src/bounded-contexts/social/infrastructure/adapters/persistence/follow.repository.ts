@@ -36,11 +36,11 @@ export class FollowRepository extends FollowRepositoryPort {
   async findFollowers(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.follow.findMany({
         where: { followingId: userId },
         include: { follower: { select: USER_SELECT } },
@@ -51,17 +51,17 @@ export class FollowRepository extends FollowRepositoryPort {
       this.prisma.follow.count({ where: { followingId: userId } }),
     ]);
 
-    return { data, total };
+    return { items, total };
   }
 
   async findFollowing(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.follow.findMany({
         where: { followerId: userId },
         include: { following: { select: USER_SELECT } },
@@ -72,7 +72,7 @@ export class FollowRepository extends FollowRepositoryPort {
       this.prisma.follow.count({ where: { followerId: userId } }),
     ]);
 
-    return { data, total };
+    return { items, total };
   }
 
   async countFollowers(userId: string): Promise<number> {

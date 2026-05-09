@@ -13,7 +13,7 @@ import {
   ResumeShareSlugTakenException,
   ShareAliasNotFoundException,
   ShareNotFoundException,
-} from '../../domain/exceptions/presentation.exceptions';
+} from '../../domain/exceptions';
 
 interface CreateShare {
   resumeId: string;

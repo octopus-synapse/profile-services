@@ -65,6 +65,7 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
       content: partial.content ?? '',
       parentId: partial.parentId ?? null,
       isDeleted: partial.isDeleted ?? false,
+      deletedAt: partial.deletedAt ?? null,
       createdAt: now,
       updatedAt: now,
     };
@@ -116,7 +117,10 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
   async markCommentDeleted(id: string): Promise<Comment> {
     const idx = this.comments.findIndex((c) => c.id === id);
     if (idx < 0) throw new Error(`Comment ${id} not found`);
-    const next = { ...this.comments[idx], isDeleted: true };
+    // P1-067 — mirror the prisma adapter: write `deletedAt` alongside
+    // the boolean so specs that exercise the audit-trail behaviour
+    // see the same shape.
+    const next = { ...this.comments[idx], isDeleted: true, deletedAt: new Date() };
     this.comments[idx] = next;
     return next;
   }

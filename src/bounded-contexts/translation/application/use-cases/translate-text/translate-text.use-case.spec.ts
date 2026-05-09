@@ -3,6 +3,11 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import {
+  TranslationBackendUnavailableException,
+  TranslationPayloadTooLargeException,
+  UnsupportedLocalePairException,
+} from '../../../domain/exceptions/translation.exceptions';
 import { TranslateTextUseCase } from './translate-text.use-case';
 
 describe('TranslateTextUseCase', () => {
@@ -41,5 +46,34 @@ describe('TranslateTextUseCase', () => {
     await useCase.execute('Hello', 'en', 'pt');
 
     expect(fakeTranslationService.translate).toHaveBeenCalledWith('Hello', 'en', 'pt');
+  });
+
+  it('throws UnsupportedLocalePairException for an unknown source language', async () => {
+    await expect(useCase.execute('Hello', 'fr' as never, 'pt')).rejects.toBeInstanceOf(
+      UnsupportedLocalePairException,
+    );
+  });
+
+  it('throws UnsupportedLocalePairException for an unknown target language', async () => {
+    await expect(useCase.execute('Hello', 'en', 'es' as never)).rejects.toBeInstanceOf(
+      UnsupportedLocalePairException,
+    );
+  });
+
+  it('throws TranslationPayloadTooLargeException when text is over the cap', async () => {
+    const huge = 'a'.repeat(50_001);
+    await expect(useCase.execute(huge, 'en', 'pt')).rejects.toBeInstanceOf(
+      TranslationPayloadTooLargeException,
+    );
+  });
+
+  it('wraps backend failures in TranslationBackendUnavailableException', async () => {
+    fakeTranslationService.translate.mockImplementationOnce(() =>
+      Promise.reject(new Error('connection refused')),
+    );
+
+    await expect(useCase.execute('Hello', 'en', 'pt')).rejects.toBeInstanceOf(
+      TranslationBackendUnavailableException,
+    );
   });
 });

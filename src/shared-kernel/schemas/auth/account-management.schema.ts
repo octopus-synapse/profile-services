@@ -19,3 +19,7 @@ export const DeleteAccountSchema = z.object({
 });
 
 export type DeleteAccount = z.infer<typeof DeleteAccountSchema>;
+
+export type ChangeEmailDto = z.infer<typeof ChangeEmailSchema>;
+
+export type DeleteAccountDto = z.infer<typeof DeleteAccountSchema>;

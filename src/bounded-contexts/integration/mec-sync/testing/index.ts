@@ -4,9 +4,9 @@
  * them in without spinning up Prisma or puppeteer.
  */
 
-export { InMemoryMecCache } from './in-memory-mec-cache';
 export {
   InMemoryMecCourseRepository,
   InMemoryMecInstitutionRepository,
-} from './in-memory-mec-repositories';
+} from './in-memory-mec.repository';
+export { InMemoryMecCache } from './in-memory-mec-cache';
 export { InMemoryMecSyncLogRepository } from './in-memory-mec-sync-log.repository';

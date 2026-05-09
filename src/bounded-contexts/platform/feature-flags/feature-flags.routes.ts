@@ -6,43 +6,53 @@
  * `FeatureFlagsSseBundle`).
  */
 
-import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { FeatureFlagsUseCases } from './application/ports/feature-flags.port';
-import type { FlagStreamMessage } from './infrastructure/sse/sse-flag-stream.service';
+import {
+  ActiveFlagsResponseSchema,
+  BroadcastRefreshResponseSchema,
+  FeatureFlagsSseBundle,
+  ImpactResponseSchema,
+  KeyParam,
+  ListFlagsResponseSchema,
+  ToggleFeatureFlagSchema,
+  ToggleFlagResponseSchema,
+} from './feature-flags.routes.schemas';
 
-/**
- * Bundle for the feature-flags SSE route. Holds the local hub that
- * fans out flag-invalidate broadcasts to connected clients (wired in
- * `feature-flags.module.ts`).
- */
-export abstract class FeatureFlagsSseBundle {
-  abstract readonly flagStream: { observe(): Observable<FlagStreamMessage> };
-}
-
-const KeyParam = z.object({ key: z.string() });
-
-const ToggleFeatureFlagSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    enabledForRoles: z.array(z.string()).optional(),
-  })
-  .strict();
+export type { FeatureFlagsSseBundle } from './feature-flags.routes.schemas';
 
 export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
   {
     method: 'GET',
-    path: '/v1/feature-flags/evaluate',
+    path: '/v1/feature-flags/active',
     auth: { kind: 'jwt' },
+    response: ActiveFlagsResponseSchema,
     openapi: {
-      summary: 'Evaluate effective flag state for the current user',
+      summary: 'Active flags for the current user',
       tags: ['feature-flags'],
       description:
-        'Returns a map of flag key to boolean. The boolean is the effective value: a flag is true only if its own enabled state, every ancestor, and the role restriction all allow it.',
+        'Returns `{flags: Record<string, boolean>}`. A flag is `true` only if its own enabled state, every ancestor, and the role restriction all allow it. Frontend uses `flags[key]` directly without per-key resolution.',
     },
     sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const flags = await bc.featureFlagService.snapshotFor(ctx.user!.userId);
+      return { flags };
+    },
+  },
+  // Legacy alias retained while clients migrate.
+  {
+    method: 'GET',
+    path: '/v1/feature-flags/evaluate',
+    auth: { kind: 'jwt' },
+    response: ActiveFlagsResponseSchema,
+    openapi: {
+      summary: '[Deprecated] Use /v1/feature-flags/active',
+      tags: ['feature-flags'],
+      description: 'Same payload as /v1/feature-flags/active. Kept for transition.',
+    },
+    sdk: { exported: false },
     handler: async (ctx, bc) => {
       const flags = await bc.featureFlagService.snapshotFor(ctx.user!.userId);
       return { flags };
@@ -54,6 +64,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     path: '/v1/admin/feature-flags',
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_READ,
+    response: ListFlagsResponseSchema,
     openapi: {
       summary: 'List all feature flags with metadata and blocking info',
       tags: ['admin-feature-flags'],
@@ -71,6 +82,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_READ,
     params: KeyParam,
+    response: ImpactResponseSchema,
     openapi: {
       summary: 'Preview transitive descendants affected when a flag is turned OFF',
       tags: ['admin-feature-flags'],
@@ -89,6 +101,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     permission: Permission.FEATURE_FLAG_MANAGE,
     params: KeyParam,
     body: ToggleFeatureFlagSchema,
+    response: ToggleFlagResponseSchema,
     openapi: {
       summary: 'Toggle a flag or update its role restriction',
       tags: ['admin-feature-flags'],
@@ -113,6 +126,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     path: '/v1/admin/feature-flags/broadcast-refresh',
     auth: { kind: 'jwt' },
     permission: Permission.FEATURE_FLAG_MANAGE,
+    response: BroadcastRefreshResponseSchema,
     openapi: {
       summary: 'Invalidate all client flag snapshots',
       tags: ['admin-feature-flags'],
@@ -122,7 +136,7 @@ export const featureFlagsRoutes: ReadonlyArray<Route<FeatureFlagsUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       await bc.broadcastRefresh.execute();
-      return { success: true };
+      return {};
     },
   },
 ];

@@ -3,10 +3,10 @@ import type { FitQuestionRecord } from '../../domain/ports/fit-question.reposito
 import type {
   FitQuestionListResponseDto,
   FitQuestionResponseDto,
-} from '../../dto/admin-fit-question.dto';
-import type { FitQuestionsResponseDto } from '../../dto/fit-questions-response.dto';
+} from '../../dto/admin-fit-question.schema';
+import type { FitQuestionsResponseDto } from '../../dto/fit-questions-response.schema';
 
-export function presentFitQuestions(view: QuestionSetView): FitQuestionsResponseDto {
+export function toFitQuestionsResponseDto(view: QuestionSetView): FitQuestionsResponseDto {
   return {
     questionSetId: view.set.id,
     seed: view.set.seed,
@@ -23,7 +23,7 @@ export function presentFitQuestions(view: QuestionSetView): FitQuestionsResponse
   };
 }
 
-export function presentFitQuestion(q: FitQuestionRecord): FitQuestionResponseDto {
+export function toFitQuestionResponseDto(q: FitQuestionRecord): FitQuestionResponseDto {
   return {
     id: q.id,
     key: q.key,
@@ -37,8 +37,8 @@ export function presentFitQuestion(q: FitQuestionRecord): FitQuestionResponseDto
   };
 }
 
-export function presentFitQuestionList(
+export function toFitQuestionListResponseDto(
   rows: readonly FitQuestionRecord[],
 ): FitQuestionListResponseDto {
-  return { items: rows.map((q) => presentFitQuestion(q)) };
+  return { items: rows.map((q) => toFitQuestionResponseDto(q)) };
 }

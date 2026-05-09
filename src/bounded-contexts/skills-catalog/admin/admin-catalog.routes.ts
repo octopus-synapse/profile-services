@@ -7,44 +7,30 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  AnyBody,
+  CodeParam,
+  DeleteAckResponseSchema,
+  IdParam,
+  ListQuery,
+  NicheListQuery,
+  ProgrammingLanguageListResponseSchema,
+  ProgrammingLanguageRowSchema,
+  SkillListQuery,
+  SlugParam,
+  SpokenLanguageBody,
+  SpokenLanguageListResponseSchema,
+  SpokenLanguageRowSchema,
+  TechAreaListResponseSchema,
+  TechAreaRowSchema,
+  TechNicheListResponseSchema,
+  TechNicheRowSchema,
+  TechSkillListResponseSchema,
+  TechSkillRowSchema,
+  toListInput,
+} from './admin-catalog.routes.schemas';
 import { AdminCatalogUseCases } from './application/ports/admin-catalog.port';
-
-const ListQuery = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
-  search: z.string().optional(),
-  isActive: z.string().optional(),
-});
-
-const NicheListQuery = ListQuery.extend({ areaId: z.string().optional() });
-
-const SkillListQuery = ListQuery.extend({
-  nicheId: z.string().optional(),
-  type: z.string().optional(),
-});
-
-const IdParam = z.object({ id: z.string() });
-const CodeParam = z.object({ code: z.string() });
-const SlugParam = z.object({ slug: z.string() });
-
-const AnyBody = z.record(z.unknown());
-
-type ListInput = {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  isActive?: boolean;
-};
-
-function toListInput(q: z.infer<typeof ListQuery>): ListInput {
-  return {
-    page: q.page ? Number(q.page) : undefined,
-    pageSize: q.pageSize ? Number(q.pageSize) : undefined,
-    search: q.search,
-    isActive: q.isActive !== undefined ? String(q.isActive) === 'true' : undefined,
-  };
-}
 
 export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
   // ─── Tech Areas ───────────────────────────────────────────────────
@@ -54,9 +40,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     query: ListQuery,
+    response: TechAreaListResponseSchema,
     openapi: {
       summary: 'List all tech areas',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -69,9 +56,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: TechAreaRowSchema,
     openapi: {
       summary: 'Get tech area by ID',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -83,9 +71,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     body: AnyBody,
+    response: TechAreaRowSchema,
     openapi: {
       summary: 'Create tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -98,9 +87,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
     body: AnyBody,
+    response: TechAreaRowSchema,
     openapi: {
       summary: 'Update tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
@@ -116,15 +106,16 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech area',
-      tags: ['Admin - Tech Areas'],
+      tags: ['admin-tech-areas'],
       description: 'Admin Tech Areas API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechArea.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return {};
     },
   },
 
@@ -135,9 +126,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     query: NicheListQuery,
+    response: TechNicheListResponseSchema,
     openapi: {
       summary: 'List all tech niches',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -152,9 +144,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: TechNicheRowSchema,
     openapi: {
       summary: 'Get tech niche by ID',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -166,9 +159,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     body: AnyBody,
+    response: TechNicheRowSchema,
     openapi: {
       summary: 'Create tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -182,9 +176,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
     body: AnyBody,
+    response: TechNicheRowSchema,
     openapi: {
       summary: 'Update tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
@@ -200,15 +195,16 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech niche',
-      tags: ['Admin - Tech Niches'],
+      tags: ['admin-tech-niches'],
       description: 'Admin Tech Niches API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechNiche.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return {};
     },
   },
 
@@ -219,9 +215,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     query: SkillListQuery,
+    response: TechSkillListResponseSchema,
     openapi: {
       summary: 'List all tech skills',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -240,9 +237,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: TechSkillRowSchema,
     openapi: {
       summary: 'Get tech skill by ID',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -254,9 +252,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     body: AnyBody,
+    response: TechSkillRowSchema,
     openapi: {
       summary: 'Create tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -270,9 +269,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
     body: AnyBody,
+    response: TechSkillRowSchema,
     openapi: {
       summary: 'Update tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
@@ -288,15 +288,16 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: IdParam,
+    response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete tech skill',
-      tags: ['Admin - Tech Skills'],
+      tags: ['admin-tech-skills'],
       description: 'Admin Tech Skills API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminTechSkill.execute((ctx.params as { id: string }).id);
-      return { success: true };
+      return {};
     },
   },
 
@@ -307,9 +308,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     query: ListQuery,
+    response: SpokenLanguageListResponseSchema,
     openapi: {
       summary: 'List all spoken languages',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -322,9 +324,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: CodeParam,
+    response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Get spoken language by code',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -336,10 +339,11 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     path: '/v1/admin/spoken-languages',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
-    body: AnyBody,
+    body: SpokenLanguageBody,
+    response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Create spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -352,10 +356,11 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: CodeParam,
-    body: AnyBody,
+    body: SpokenLanguageBody,
+    response: SpokenLanguageRowSchema,
     openapi: {
       summary: 'Update spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
@@ -371,15 +376,16 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: CodeParam,
+    response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete spoken language',
-      tags: ['Admin - Spoken Languages'],
+      tags: ['admin-spoken-languages'],
       description: 'Admin Spoken Languages API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminSpokenLanguage.execute((ctx.params as { code: string }).code);
-      return { success: true };
+      return {};
     },
   },
 
@@ -390,9 +396,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     query: ListQuery,
+    response: ProgrammingLanguageListResponseSchema,
     openapi: {
       summary: 'List all programming languages',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -405,9 +412,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: SlugParam,
+    response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Get programming language by slug',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -420,9 +428,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     body: AnyBody,
+    response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Create programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -436,9 +445,10 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     permission: Permission.SKILL_MANAGE,
     params: SlugParam,
     body: AnyBody,
+    response: ProgrammingLanguageRowSchema,
     openapi: {
       summary: 'Update programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
@@ -454,15 +464,16 @@ export const adminCatalogRoutes: ReadonlyArray<Route<AdminCatalogUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
     params: SlugParam,
+    response: DeleteAckResponseSchema,
     openapi: {
       summary: 'Delete programming language',
-      tags: ['Admin - Programming Languages'],
+      tags: ['admin-programming-languages'],
       description: 'Admin Programming Languages API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       await bc.deleteAdminProgrammingLanguage.execute((ctx.params as { slug: string }).slug);
-      return { success: true };
+      return {};
     },
   },
 ];

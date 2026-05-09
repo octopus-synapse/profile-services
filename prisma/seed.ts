@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
+import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedDreddFixtures } from './seeds/dredd-fixtures.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
 import { seedFitQuestions } from './seeds/fit-questions.seed';
 import { seedJobs } from './seeds/job.seed';
@@ -116,9 +117,6 @@ async function main() {
   // Seed usernames for existing users without one
   await seedUsernames(prisma);
 
-  // Seed analytics projections from existing resumes
-  await seedAnalyticsProjections(prisma);
-
   // Seed E2E test user for performance testing
   const e2eTestEmail = 'e2e-test@profile.local';
   const existingE2eUser = await prisma.user.findFirst({
@@ -153,6 +151,16 @@ async function main() {
 
   // Seed enzoferracini fixture user (patch-careers-ui e2e resume-download + search-people tests)
   await seedEnzoferracini(prisma);
+
+  if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
+    await seedDreddFixtures(prisma, admin.id);
+  }
+
+  // Seed analytics projections from existing resumes (runs LAST so it
+  // picks up the dredd fixture resumes — otherwise the contract probes
+  // for /v1/resumes/:resumeId/analytics/* would 404 on missing
+  // AnalyticsResumeProjection rows).
+  await seedAnalyticsProjections(prisma);
 }
 
 main()

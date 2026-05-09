@@ -106,11 +106,10 @@ export class ExportProcessor {
 
       return { downloadUrl: uploadResult.url };
     } catch (error) {
-      this.logger?.error(
-        `Export job ${job.id} failed: ${(error as Error).message}`,
-        (error as Error).stack,
-        CTX,
-      );
+      this.logger?.error(`Export job ${job.id} failed: ${(error as Error).message}`, {
+        context: CTX,
+        stack: (error as Error).stack,
+      });
 
       const isFinalAttempt = job.attemptsMade >= (job.opts.attempts ?? 3);
 

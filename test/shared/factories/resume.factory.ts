@@ -87,7 +87,7 @@ const defaultResume: Resume = {
   updatedAt: new Date('2024-01-01'),
 };
 
-export function createMockResume(options: CreateMockResumeOptions = {}): Resume {
+export function buildResume(options: CreateMockResumeOptions = {}): Resume {
   const result: Resume = {
     ...defaultResume,
     ...options,
@@ -97,8 +97,8 @@ export function createMockResume(options: CreateMockResumeOptions = {}): Resume 
   return result;
 }
 
-export function createMockPublicResume(options: CreateMockResumeOptions = {}): Resume {
-  return createMockResume({ ...options, isPublic: true, publishedAt: new Date() });
+export function buildPublicResume(options: CreateMockResumeOptions = {}): Resume {
+  return buildResume({ ...options, isPublic: true, publishedAt: new Date() });
 }
 
 /**
@@ -120,12 +120,12 @@ export interface ResumeWithSections extends Resume {
   }>;
 }
 
-export function createMockResumeWithSections(
+export function buildResumeWithSections(
   options: Partial<ResumeWithSections> = {},
 ): ResumeWithSections {
   const { resumeSections, ...resumeOptions } = options;
   return {
-    ...createMockResume(resumeOptions as CreateMockResumeOptions),
+    ...buildResume(resumeOptions as CreateMockResumeOptions),
     resumeSections: resumeSections ?? [],
   };
 }

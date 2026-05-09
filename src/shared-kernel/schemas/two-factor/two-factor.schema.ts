@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Setup 2FA
@@ -37,7 +38,13 @@ export type VerifyTwoFactorToken = z.infer<typeof VerifyTwoFactorTokenSchema>;
 
 export const TwoFactorStatusSchema = z.object({
   enabled: z.boolean(),
-  verifiedAt: z.string().datetime().nullable(),
+  verifiedAt: IsoDateTimeSchema.nullable(),
 });
 
 export type TwoFactorStatus = z.infer<typeof TwoFactorStatusSchema>;
+
+export type SetupTwoFactorResponseDto = z.infer<typeof SetupTwoFactorResponseSchema>;
+
+export type VerifyTwoFactorTokenDto = z.infer<typeof VerifyTwoFactorTokenSchema>;
+
+export type TwoFactorStatusDto = z.infer<typeof TwoFactorStatusSchema>;

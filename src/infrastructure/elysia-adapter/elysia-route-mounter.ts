@@ -14,10 +14,14 @@ import type { Observable } from 'rxjs';
 import { ZodError } from 'zod';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import type { PipelineStage } from '@/shared-kernel/http/pipeline';
-import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route';
-import { isRedirect, isResponseWithHeaders } from '@/shared-kernel/http/route';
+import type { HttpMethod, Route, RouteKind } from '@/shared-kernel/http/route.types';
+import { isRedirect, isResponseWithHeaders } from '@/shared-kernel/http/route.types';
 import type { SseEvent } from '@/shared-kernel/http/sse-stream.port';
-import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge';
+import {
+  isSuccessMessage,
+  renderSuccessMessageForRequest,
+} from '@/shared-kernel/http/success-message';
+import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.util';
 import { runPipeline } from './elysia-pipeline';
 import { parseMultipart } from './multipart-bridge';
 import { observableToSseStream, SSE_HEADERS } from './sse-bridge';
@@ -91,6 +95,19 @@ function applyResponseHeaders(ctx: HttpCtx, ec: ElysiaCtx): void {
   }
 }
 
+function normalizeJsonContentType(headers: Record<string, string>): void {
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() !== 'content-type') continue;
+    const value = headers[key];
+    if (typeof value !== 'string') continue;
+    if (!value.toLowerCase().startsWith('application/json')) continue;
+    if (key !== 'content-type') {
+      delete headers[key];
+    }
+    headers['content-type'] = 'application/json';
+  }
+}
+
 export function mountRoutes<TBundle>(
   app: Elysia,
   group: RouteGroupBinding<TBundle>,
@@ -105,19 +122,19 @@ export function mountRoutes<TBundle>(
       try {
         ctx = await buildHttpCtx(route, ec);
       } catch (err) {
-        // Validation (`route.body.parse(...)`) runs in `buildHttpCtx`
-        // before the pipeline, so a ZodError here would otherwise
-        // surface as a 500. Map it to the 400 the API contract
-        // promises (`{ success: false, error: { code, message } }`).
         if (err instanceof ZodError) {
           ec.set.status = 400;
+          ec.set.headers['content-type'] = 'application/json';
           return {
-            success: false,
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              details: err.issues,
-            },
+            statusCode: 400,
+            code: 'VALIDATION_ERROR',
+            message: 'Request validation failed',
+            severity: 'toast',
+            fields: err.issues.map((issue) => ({
+              path: issue.path.map(String).join('.'),
+              code: issue.code,
+              message: issue.message,
+            })),
           };
         }
         throw err;
@@ -163,11 +180,20 @@ export function mountRoutes<TBundle>(
         ec.set.status = ctx.state.responseStatus as number;
       } else if (route.statusCode !== undefined) {
         ec.set.status = route.statusCode;
+      } else if (route.method === 'POST') {
+        // Honour the documented contract on `Route.statusCode`
+        // (route.types.ts:43-45): POST defaults to 201 Created. Any
+        // route that wants 200 must declare `statusCode: 200` explicitly.
+        ec.set.status = 201;
       }
       if (route.headers) {
         for (const [k, v] of Object.entries(route.headers)) ec.set.headers[k] = v;
       }
       applyResponseHeaders(ctx, ec);
+      const effectiveStatus = ec.set.status as number | undefined;
+      if (effectiveStatus === 204 || effectiveStatus === 205) {
+        return new Response(null, { status: effectiveStatus, headers: ec.set.headers });
+      }
       // Unwrap `StreamableFile` (src/shared-kernel/http/streamable-file.ts)
       // so binary endpoints (`*.png`, PDF exports) emit raw bytes
       // instead of JSON-serialized objects.
@@ -180,6 +206,20 @@ export function mountRoutes<TBundle>(
           (body as { source: unknown }).source instanceof ArrayBuffer)
       ) {
         return (body as { source: Uint8Array | ArrayBuffer }).source;
+      }
+      // Q8 — translate `{ code, params? }` success envelopes via the
+      // i18n SUCCESS_MESSAGE_DICTIONARY using the request's
+      // Accept-Language header. Routes opt in by returning a
+      // SuccessMessage instead of a pre-formatted `{ message }` string.
+      if (isSuccessMessage(body)) {
+        const acceptLanguage = ec.request.headers.get('accept-language') ?? undefined;
+        ec.set.headers['content-type'] = 'application/json';
+        normalizeJsonContentType(ec.set.headers);
+        return renderSuccessMessageForRequest(body, acceptLanguage);
+      }
+      if (ctx.state.responseBody !== undefined) {
+        ec.set.headers['content-type'] = 'application/json';
+        normalizeJsonContentType(ec.set.headers);
       }
       return ctx.state.responseBody;
     };

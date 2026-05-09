@@ -10,18 +10,17 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import type { SkillProficiencyService } from './services/skill-proficiency.service';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  ClearProficiencyResponseSchema,
+  ListProficiencyResponseSchema,
+  SetProficiencyBody,
+  SetProficiencyResponseSchema,
+  SkillNameParam,
+  SkillProficiencyRoutesBundle,
+} from './skill-proficiency.routes.schemas';
 
-export abstract class SkillProficiencyRoutesBundle {
-  abstract readonly service: SkillProficiencyService;
-}
-
-const SkillNameParam = z.object({ skillName: z.string() });
-const SetProficiencyBody = z.object({
-  proficiency: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']),
-  yearsOfExperience: z.number().int().min(0).max(80).optional(),
-});
+export type { SkillProficiencyRoutesBundle } from './skill-proficiency.routes.schemas';
 
 export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesBundle>> = [
   {
@@ -29,15 +28,16 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     path: '/v1/me/skill-proficiency',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
+    response: ListProficiencyResponseSchema,
     openapi: {
       summary: 'List my declared skill proficiencies.',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const proficiencies = await bundle.service.listForUser(ctx.user!.userId);
-      return { success: true, data: { proficiencies } };
+      return { proficiencies };
     },
   },
   {
@@ -47,9 +47,10 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     permission: Permission.USER_PROFILE_UPDATE,
     params: SkillNameParam,
     body: SetProficiencyBody,
+    response: SetProficiencyResponseSchema,
     openapi: {
       summary: 'Set proficiency for a skill (creates if missing).',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },
@@ -62,7 +63,7 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
         body.proficiency,
         body.yearsOfExperience ?? null,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -71,16 +72,17 @@ export const skillProficiencyRoutes: ReadonlyArray<Route<SkillProficiencyRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     params: SkillNameParam,
+    response: ClearProficiencyResponseSchema,
     openapi: {
       summary: 'Clear proficiency for a skill.',
-      tags: ['Skills'],
+      tags: ['skills'],
       description: 'Self-declared skill proficiency',
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { skillName } = ctx.params as { skillName: string };
       await bundle.service.clearForUser(ctx.user!.userId, skillName);
-      return { success: true };
+      return undefined;
     },
   },
 ];

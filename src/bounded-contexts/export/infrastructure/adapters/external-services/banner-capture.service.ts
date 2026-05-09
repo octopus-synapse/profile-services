@@ -45,7 +45,7 @@ export class BannerCaptureService {
   private async captureBannerElement(page: Page): Promise<Buffer> {
     const banner = await page.$('#banner');
     if (!banner) {
-      this.logger.error('#banner element not found', undefined, CTX);
+      this.logger.error('#banner element not found', { context: CTX });
       throw new BannerElementNotFoundException();
     }
 

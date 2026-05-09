@@ -152,8 +152,8 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sectionTypes');
-      const types = res.body.data.sectionTypes as Array<{ key: string; isActive: boolean }>;
+      expect(res.body).toHaveProperty('sectionTypes');
+      const types = res.body.sectionTypes as Array<{ key: string; isActive: boolean }>;
 
       const customType = types.find((t) => t.key === sectionTypeKey);
       expect(customType).toBeDefined();
@@ -167,7 +167,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      const types = res.body.data.sectionTypes as Array<{
+      const types = res.body.sectionTypes as Array<{
         key: string;
         definition?: { schemaVersion?: number; fields?: Array<unknown> };
       }>;
@@ -196,7 +196,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      const types = res.body.data.sectionTypes as Array<{ key: string }>;
+      const types = res.body.sectionTypes as Array<{ key: string }>;
 
       const inactiveType = types.find((t) => t.key === sectionTypeKey);
       expect(inactiveType).toBeUndefined();
@@ -573,9 +573,9 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sections');
+      expect(res.body).toHaveProperty('sections');
 
-      const sections = res.body.data.sections as Array<{
+      const sections = res.body.sections as Array<{
         sectionType: { key: string };
         items: Array<unknown>;
       }>;
@@ -596,7 +596,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.body).toHaveProperty('data');
-      const sections = res.body.data.sections as Array<{
+      const sections = res.body.sections as Array<{
         sectionType: { key: string };
         items: Array<{ content: { title: string } }>;
       }>;
@@ -618,8 +618,8 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect([200, 201]).toContain(res.status);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('item');
-      singletonItemId = res.body.data.item.id;
+      expect(res.body).toHaveProperty('item');
+      singletonItemId = res.body.item.id;
     });
 
     it('should update singleton item', async () => {

@@ -1,7 +1,7 @@
 // Email Notification Models
 
 model EmailLog {
-  id        String      @id @default(cuid())
+  id        String      @id @default(dbgenerated("uuidv7()"))
   userId    String?
   user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   to        String

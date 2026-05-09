@@ -18,27 +18,31 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ctxCookieWriter } from '../authentication/application/services/ctx-cookie-bridge';
+import {
+  AcceptConsentRequestSchema,
+  AcceptConsentResponseSchema,
+  ConsentHistoryResponseSchema,
+  ConsentStatusResponseSchema,
+  CreateAccountResponseSchema,
+  GdprExportResponseSchema,
+  MessageResponseSchema,
+} from './account-lifecycle.routes.schemas';
 import { AccountLifecycleUseCases } from './application/ports/account-lifecycle.port';
-import { CreateAccountSchema } from './application/use-cases/create-account/create-account.dto';
-import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.dto';
-import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.dto';
-import { toConsentHistoryResponse } from './infrastructure/presenters/get-consent-history.presenter';
-
-const AcceptConsentRequestSchema = z.object({
-  documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
-  ipAddress: z.string().ip().optional(),
-  userAgent: z.string().optional(),
-});
+import { CreateAccountSchema } from './application/use-cases/create-account/create-account.schema';
+import { DeactivateAccountSchema } from './application/use-cases/deactivate-account/deactivate-account.schema';
+import { DeleteAccountSchema } from './application/use-cases/delete-account/delete-account.schema';
+import { toConsentHistoryResponseDto } from './infrastructure/presenters/get-consent-history.presenter';
 
 export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCases>> = [
   {
     method: 'POST',
-    path: '/accounts',
+    path: '/v1/accounts',
     statusCode: 201,
     auth: { kind: 'public' },
     body: CreateAccountSchema,
+    response: CreateAccountResponseSchema,
     openapi: {
       summary: 'Create new account',
       tags: ['accounts'],
@@ -67,26 +71,24 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       });
 
       return {
-        success: true,
-        data: {
-          userId: result.userId,
-          email: result.email,
-          message: 'Account created successfully.',
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          expiresIn: result.expiresIn,
-        },
+        userId: result.userId,
+        email: result.email,
+        message: 'Account created successfully.',
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
       };
     },
   },
   {
     method: 'DELETE',
-    path: '/accounts/deactivate',
+    path: '/v1/accounts/deactivate',
     auth: { kind: 'jwt' },
     body: DeactivateAccountSchema,
+    response: MessageResponseSchema,
     openapi: {
       summary: 'Deactivate account',
-      tags: ['Account Lifecycle'],
+      tags: ['account-lifecycle'],
       description: 'Deactivates the authenticated user account (soft delete).',
     },
     sdk: { exported: true },
@@ -96,23 +98,21 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         reason: body.reason,
       });
-      return {
-        success: true,
-        data: { message: 'Account has been deactivated.' },
-      };
+      return { code: 'ACCOUNT_DEACTIVATED' as const };
     },
   },
   {
     method: 'DELETE',
-    path: '/accounts',
+    path: '/v1/accounts',
     auth: { kind: 'jwt' },
     body: DeleteAccountSchema,
     // SkipTosCheck — the user can't be forced to accept new TOS before
     // deleting their account (LGPD parity).
     guards: [{ id: 'skip-tos-check' }],
+    response: MessageResponseSchema,
     openapi: {
       summary: 'Delete account permanently',
-      tags: ['Account Lifecycle'],
+      tags: ['account-lifecycle'],
       description:
         'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT".',
     },
@@ -123,23 +123,21 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
       });
-      return {
-        success: true,
-        data: { message: 'Account has been permanently deleted.' },
-      };
+      return { code: 'ACCOUNT_DELETED' as const };
     },
   },
   {
     method: 'GET',
-    path: '/gdpr/export',
+    path: '/v1/me/gdpr-export',
     auth: { kind: 'jwt' },
     // GDPR export must be reachable even if the user hasn't accepted
     // the latest TOS revision — they're exercising their right to
     // their own data, not consenting to processing.
     guards: [{ id: 'skip-tos-check' }],
+    response: GdprExportResponseSchema,
     openapi: {
       summary: 'Export user data (GDPR Article 20)',
-      tags: ['GDPR'],
+      tags: ['gdpr'],
       description: 'Exports all user data in machine-readable JSON format.',
     },
     sdk: { exported: true },
@@ -158,9 +156,10 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     body: AcceptConsentRequestSchema,
     statusCode: 201,
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: AcceptConsentResponseSchema,
     openapi: {
       summary: 'Accept Terms of Service or Privacy Policy',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description:
         'Records user acceptance of legal documents with IP and user agent for audit trail. ' +
         'Required before accessing protected API endpoints.',
@@ -187,18 +186,15 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
             : 'Marketing Consent';
 
       return {
-        success: true,
-        data: {
-          message: `${documentName} accepted successfully`,
-          consent: {
-            id: consent.id,
-            userId: consent.userId,
-            documentType: consent.documentType,
-            version: consent.version,
-            acceptedAt: consent.acceptedAt.toISOString(),
-            ipAddress,
-            userAgent,
-          },
+        message: `${documentName} accepted successfully`,
+        consent: {
+          id: consent.id,
+          userId: consent.userId,
+          documentType: consent.documentType,
+          version: consent.version,
+          acceptedAt: consent.acceptedAt.toISOString(),
+          ipAddress,
+          userAgent,
         },
       };
     },
@@ -208,15 +204,16 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     path: '/v1/users/me/consent-status',
     auth: { kind: 'jwt' },
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: ConsentStatusResponseSchema,
     openapi: {
       summary: 'Check consent acceptance status',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description: 'Returns which documents the user has accepted for the current versions',
     },
     sdk: { exported: true, name: 'getConsentStatus' },
     handler: async (ctx, bc) => {
       const result = await bc.getConsentStatus.execute({ userId: ctx.user!.userId });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -224,15 +221,16 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     path: '/v1/users/me/consent-history',
     auth: { kind: 'jwt' },
     guards: [{ id: 'skip-tos-check' }, { id: 'allow-unverified-email' }],
+    response: ConsentHistoryResponseSchema,
     openapi: {
       summary: 'Get consent acceptance history',
-      tags: ['User Consent'],
+      tags: ['user-consent'],
       description: 'Retrieves all consent records for the authenticated user',
     },
     sdk: { exported: true, name: 'getConsentHistory' },
     handler: async (ctx, bc) => {
       const result = await bc.getConsentHistory.execute({ userId: ctx.user!.userId });
-      return { success: true, data: toConsentHistoryResponse(result) };
+      return toConsentHistoryResponseDto(result);
     },
   },
 ];

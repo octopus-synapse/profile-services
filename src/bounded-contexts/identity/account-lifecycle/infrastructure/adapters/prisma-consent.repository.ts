@@ -55,7 +55,7 @@ export class PrismaConsentRepository implements ConsentRepositoryPort {
     });
   }
 
-  async findAllByUser(userId: string): Promise<ConsentRecord[]> {
+  async listByUser(userId: string): Promise<ConsentRecord[]> {
     return this.prisma.userConsent.findMany({
       where: { userId },
       orderBy: { acceptedAt: 'desc' },

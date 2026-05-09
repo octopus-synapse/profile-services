@@ -120,3 +120,27 @@ export const SyncStatusSchema = z.object({
 });
 
 export type SyncStatus = z.infer<typeof SyncStatusSchema>;
+
+export type InstitutionDto = z.infer<typeof InstitutionSchema>;
+
+export type CourseBasicDto = z.infer<typeof CourseBasicSchema>;
+
+export type InstitutionWithCoursesDto = z.infer<typeof InstitutionWithCoursesSchema>;
+
+export type InstitutionBasicDto = z.infer<typeof InstitutionBasicSchema>;
+
+export type CourseDto = z.infer<typeof CourseSchema>;
+
+export type GrauCountDto = z.infer<typeof GrauCountSchema>;
+
+export type UfCountDto = z.infer<typeof UfCountSchema>;
+
+export type MecStatsDto = z.infer<typeof MecStatsSchema>;
+
+export type SyncResultDto = z.infer<typeof SyncResultSchema>;
+
+export type SyncMetadataDto = z.infer<typeof SyncMetadataSchema>;
+
+export type SyncLogDto = z.infer<typeof SyncLogSchema>;
+
+export type SyncStatusDto = z.infer<typeof SyncStatusSchema>;

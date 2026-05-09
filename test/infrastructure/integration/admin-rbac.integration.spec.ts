@@ -176,9 +176,8 @@ describeIntegration('Admin RBAC Integration', () => {
       const response = await getRequest().get('/api/v1/users/manage').set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.users).toBeArray();
-      expect(response.body.data.pagination).toBeDefined();
+      expect(response.body.users).toBeArray();
+      expect(response.body.pagination).toBeDefined();
     });
 
     it('should support pagination parameters', async () => {
@@ -187,8 +186,8 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.users.length).toBeLessThanOrEqual(5);
-      expect(response.body.data.pagination).toBeDefined();
+      expect(response.body.users.length).toBeLessThanOrEqual(5);
+      expect(response.body.pagination).toBeDefined();
     });
 
     it('should support search parameter', async () => {
@@ -197,7 +196,7 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.users).toBeArray();
+      expect(response.body.users).toBeArray();
     });
   });
 
@@ -208,9 +207,8 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.user.id).toBe(regularUserId);
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.id).toBe(regularUserId);
     });
 
     it('should return 404 for non-existent user', async () => {
@@ -235,13 +233,12 @@ describeIntegration('Admin RBAC Integration', () => {
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.message).toContain('created');
+      expect(response.body.user).toBeDefined();
+      expect(response.body.message).toContain('created');
 
       // Track for cleanup
-      if (response.body.data.user?.id) {
-        createdUserIds.push(response.body.data.user.id);
+      if (response.body.user?.id) {
+        createdUserIds.push(response.body.user.id);
       }
     });
 
@@ -293,8 +290,8 @@ describeIntegration('Admin RBAC Integration', () => {
           name: 'First User',
         });
 
-      if (first.body.data?.user?.id) {
-        createdUserIds.push(first.body.data.user.id);
+      if (first.body?.user?.id) {
+        createdUserIds.push(first.body.user.id);
       }
 
       // Try to create second user with same email
@@ -319,8 +316,7 @@ describeIntegration('Admin RBAC Integration', () => {
         .send({ name: 'Updated Name' });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.user).toBeDefined();
+      expect(response.body.user).toBeDefined();
     });
 
     it('should update user active status', async () => {
@@ -335,8 +331,8 @@ describeIntegration('Admin RBAC Integration', () => {
           name: 'Deactivation Target',
         });
 
-      if (createResp.body.data?.user?.id) {
-        const targetId = createResp.body.data.user.id;
+      if (createResp.body?.user?.id) {
+        const targetId = createResp.body.user.id;
         createdUserIds.push(targetId);
 
         const response = await getRequest()
@@ -366,8 +362,7 @@ describeIntegration('Admin RBAC Integration', () => {
         .send({ newPassword: 'ResetPass123!' });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.message).toContain('reset');
+      expect(response.body.message).toContain('reset');
     });
 
     it('should reject password reset with short password', async () => {
@@ -403,14 +398,13 @@ describeIntegration('Admin RBAC Integration', () => {
         });
 
       expect(createResp.status).toBe(201);
-      const deleteTargetId = createResp.body.data.user.id;
+      const deleteTargetId = createResp.body.user.id;
 
       const response = await getRequest()
         .delete(`/api/v1/users/manage/${deleteTargetId}`)
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it('should return error when deleting non-existent user', async () => {
@@ -462,9 +456,9 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.users).toBeArray();
+      expect(response.body.users).toBeArray();
       // Should return empty array for out-of-range page
-      expect(response.body.data.users.length).toBe(0);
+      expect(response.body.users.length).toBe(0);
     });
 
     it('should handle negative pagination values', async () => {

@@ -1,7 +1,7 @@
 import { LoggerPort } from '@/shared-kernel';
-import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
-import type { VariantData } from '../ports/variant-repository.port';
-import { VariantRepositoryPort } from '../ports/variant-repository.port';
+import { VariantNotFoundException } from '../../../domain/exceptions';
+import type { VariantData } from '../../domain/ports/variant-repository.port';
+import { VariantRepositoryPort } from '../../domain/ports/variant-repository.port';
 
 interface GenericResumeSection {
   id: string;

@@ -6,7 +6,7 @@
  * repository from growing unrelated reads.
  */
 
-import type { WeeklyDigestStats } from '../entities/notification';
+import type { WeeklyDigestStats } from '../entities/notification.entity';
 
 export abstract class WeeklyDigestStatsPort {
   abstract collect(userId: string, since: Date): Promise<WeeklyDigestStats>;

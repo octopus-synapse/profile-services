@@ -7,15 +7,6 @@
 export { AuthorizationServicePort } from './application/ports/authorization-service.port';
 // Application Services & Ports
 export { AuthorizationService } from './application/services/authorization.service';
-export { AuthorizationManagementService } from './application/services/authorization-management.service';
-// Module
-export {
-  type CreateGroupInput,
-  Group,
-  type GroupId,
-  type GroupProps,
-  type UpdateGroupInput,
-} from './domain/entities/group.entity';
 // Domain Entities
 export {
   type CreatePermissionInput,
@@ -40,8 +31,8 @@ export {
   UserAuthContext,
   type UserId,
 } from './domain/entities/user-auth-context.entity';
-export { GroupRepository } from './infrastructure/repositories/group.repository';
-// Repositories (for admin use)
+// Repositories (for admin use). P0-009: GroupRepository removed (legacy
+// hierarchy dropped by `20260430040810_authz_refactor`).
 export { PermissionRepository } from './infrastructure/repositories/permission.repository';
 export { RoleRepository } from './infrastructure/repositories/role.repository';
 export { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';

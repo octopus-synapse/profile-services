@@ -7,12 +7,12 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  AdminAnalyticsOverviewResponseSchema,
+  OverviewQuerySchema,
+} from './admin-analytics.routes.schemas';
 import { GetAdminAnalyticsOverviewUseCase } from './application/use-cases/get-admin-analytics-overview/get-admin-analytics-overview.use-case';
-
-const OverviewQuerySchema = z.object({
-  period: z.enum(['day', 'week', 'month']).optional(),
-});
 
 export const adminAnalyticsRoutes: ReadonlyArray<Route<GetAdminAnalyticsOverviewUseCase>> = [
   {
@@ -21,6 +21,7 @@ export const adminAnalyticsRoutes: ReadonlyArray<Route<GetAdminAnalyticsOverview
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_ALL,
     query: OverviewQuerySchema,
+    response: AdminAnalyticsOverviewResponseSchema,
     openapi: {
       summary: 'Get platform-wide analytics overview',
       tags: ['admin-analytics'],

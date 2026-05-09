@@ -55,7 +55,7 @@ export class CacheServicePortAdapter extends CachePort {
   /** Override the base impl to delegate to `CacheService.getOrSet` (which
    *  uses Redis SETNX-style locking under the hood — preferable to the
    *  base port's get-then-set race-prone fallback). */
-  async getOrSet<T>(key: string, fn: () => Promise<T>, ttlSeconds?: number): Promise<T> {
+  override async getOrSet<T>(key: string, fn: () => Promise<T>, ttlSeconds?: number): Promise<T> {
     return this.inner.getOrSet(key, fn, ttlSeconds);
   }
 }

@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { FlagCachePort } from '../../application/ports/flag-cache.port';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
 
@@ -23,22 +24,32 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
   private subscriber: Redis | null = null;
   private readonly localListeners = new Set<() => void>();
 
+  // P1-031 — `config` is optional so legacy callers keep working;
+  // the bootstrap supplies the canonical port so we stop reading
+  // `process.env.REDIS_*` directly.
   constructor(
     private readonly connection: RedisConnectionService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
+    private readonly config?: ConfigPort,
   ) {}
 
   async init(): Promise<void> {
     if (!this.connection.isEnabled) return;
 
-    const host = process.env.REDIS_HOST;
+    const host = this.config?.get<string>('REDIS_HOST') ?? process.env.REDIS_HOST;
     if (!host) return;
+
+    const portRaw =
+      this.config?.get<string>('REDIS_PORT') ??
+      process.env.REDIS_PORT ??
+      String(REDIS_DEFAULT_PORT);
+    const password = this.config?.get<string>('REDIS_PASSWORD') ?? process.env.REDIS_PASSWORD;
 
     try {
       this.subscriber = new Redis({
         host,
-        port: parseInt(process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT), 10),
-        password: process.env.REDIS_PASSWORD,
+        port: parseInt(portRaw, 10),
+        password,
         // Match RedisConnectionService: cap retry delay so a misconfigured
         // host doesn't produce unbounded error spam or crash loops.
         retryStrategy: (times) => Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
@@ -87,9 +98,6 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
     }
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically.
-  // The Nest adapter's `nest-bootstrap.ts` should register a SIGTERM handler
-  // that walks all `Lifecycle` instances. Out of scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
     if (this.subscriber) {

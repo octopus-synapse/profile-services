@@ -21,13 +21,13 @@ export interface InstitutionWithCoursesRow {
 }
 
 export abstract class MecInstitutionRepositoryPort {
-  abstract findAllActiveInstitutions(): Promise<Institution[]>;
+  abstract listActiveInstitutions(): Promise<Institution[]>;
   abstract findInstitutionsByUf(uf: string): Promise<Institution[]>;
   abstract findInstitutionByCode(codigoIes: number): Promise<InstitutionWithCoursesRow | null>;
   abstract searchInstitutionsByName(query: string, limit: number): Promise<Institution[]>;
-  abstract findAllDistinctUfs(): Promise<string[]>;
+  abstract listDistinctUfs(): Promise<string[]>;
   abstract countInstitutionsByUf(): Promise<Array<{ uf: string; _count: number }>>;
   abstract countActiveInstitutions(): Promise<number>;
-  abstract findAllExistingInstitutionCodes(): Promise<Set<number>>;
+  abstract listExistingInstitutionCodes(): Promise<Set<number>>;
   abstract bulkCreateInstitutions(rows: NormalizedInstitution[]): Promise<number>;
 }

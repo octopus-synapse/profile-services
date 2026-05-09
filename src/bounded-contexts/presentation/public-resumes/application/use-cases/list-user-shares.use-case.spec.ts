@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../../../domain/exceptions/presentation.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../../../domain/exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
   type ShareEntity,

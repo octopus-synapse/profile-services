@@ -1,4 +1,4 @@
-import type { TechSkill } from '../../../dto/tech-skill.dto';
+import type { TechSkill } from '../../../dto/tech-skill.schema';
 import type { SkillType } from '../../../interfaces';
 import { TechSkillRepositoryPort } from '../../ports/tech-skills.port';
 

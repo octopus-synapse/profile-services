@@ -1,0 +1,180 @@
+name: _infrastructure-test-template (local)
+
+# Local mirror of octopus-synapse/octopus-workflows/.../@v1 with the
+# only delta being the postgres image: this project's migrations
+# require both pgvector AND pg_uuidv7. The upstream template hardcodes
+# `pgvector/pgvector:pg16` (no pg_uuidv7), so the
+# `20260503120000_install_pg_uuidv7` migration fails there.
+#
+# Builds infra/docker/postgres/Dockerfile inline and runs it as a
+# manual container instead of a `services:` entry — GHA service blocks
+# can't reference a built image.
+
+on:
+  workflow_call:
+    inputs:
+      test-command:
+        description: "Command to run tests"
+        required: true
+        type: string
+      test-name:
+        description: "Test name for summary"
+        required: true
+        type: string
+      db-name:
+        description: "Database name"
+        required: false
+        type: string
+        default: "test_db"
+      timeout:
+        description: "Timeout in minutes"
+        required: false
+        type: number
+        default: 15
+      extra-env-vars:
+        description: "Extra KEY=value env (one per line)."
+        required: false
+        type: string
+        default: ""
+      db-init-sql:
+        description: "SQL run against postgres before the test step."
+        required: false
+        type: string
+        default: ""
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5433/${{ inputs.db-name }}
+  REDIS_HOST: localhost
+  REDIS_PORT: 6380
+  NODE_ENV: test
+  JWT_SECRET: test-secret-key-for-ci-tests-minimum-32-chars
+  RATE_LIMIT_ENABLED: true
+  # EmailPasswordResetSender (P1-032) refuses to construct without
+  # APP_URL — no localhost fallback in the constructor.
+  APP_URL: http://localhost:3010
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    name: ${{ inputs.test-name }} Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout }}
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/octopus-workflows
+          ref: v1
+          path: _shared
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      - name: Configure GitHub Packages auth
+        run: |
+          {
+            echo "@octopus-synapse:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+          } > .npmrc
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build custom Postgres image (pgvector + pg_uuidv7)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/postgres/Dockerfile
+          tags: profile-services-postgres:test
+          load: true
+          cache-from: type=gha,scope=postgres-test-${{ inputs.test-name }}
+          cache-to: type=gha,mode=max,scope=postgres-test-${{ inputs.test-name }}
+
+      - name: Start Postgres
+        env:
+          DB: ${{ inputs.db-name }}
+        run: |
+          docker run -d \
+            --name profile-services-postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB="$DB" \
+            -p 5433:5432 \
+            profile-services-postgres:test
+          for i in {1..40}; do
+            if docker exec profile-services-postgres pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Postgres is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Postgres failed to become ready within 40s."
+          docker logs profile-services-postgres
+          exit 1
+
+      - name: Apply test-only postgres tunings
+        if: inputs.db-init-sql != ''
+        env:
+          PGPASSWORD: postgres
+          DB: ${{ inputs.db-name }}
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5433 -U postgres -d "$DB" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          psql -h localhost -p 5433 -U postgres -d "$DB" \
+               -v ON_ERROR_STOP=on <<'SQL'
+          ${{ inputs.db-init-sql }}
+          SQL
+
+      - name: Export extra env vars
+        if: inputs.extra-env-vars != ''
+        run: |
+          while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            echo "$line" >> "$GITHUB_ENV"
+          done <<'ENV'
+          ${{ inputs.extra-env-vars }}
+          ENV
+
+      - name: Run tests
+        id: tests
+        uses: ./_shared/.github/actions/run-test-suite
+        with:
+          test-command: ${{ inputs.test-command }}
+          test-name: ${{ inputs.test-name }}
+          artifact-name: ${{ inputs.test-name }}-results
+          needs-db: 'true'
+
+      - name: Summary
+        if: always()
+        run: |
+          _shared/.github/scripts/generate-summary.sh \
+            "${{ steps.tests.outputs.status || 'failure' }}" \
+            "${{ inputs.test-name }} Tests" \
+            "${{ steps.tests.outputs.pass || '0' }}" \
+            "${{ steps.tests.outputs.fail || '0' }}" \
+            "${{ steps.tests.outputs.skip || '0' }}" \
+            "${{ steps.tests.outputs.duration || '0' }}" \
+            test-output.txt
+
+      - name: Stop Postgres
+        if: always()
+        run: docker rm -f profile-services-postgres || true

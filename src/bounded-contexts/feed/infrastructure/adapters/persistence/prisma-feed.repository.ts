@@ -169,7 +169,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
 
     const nextCursor =
       posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
-    return { posts, nextCursor };
+    return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 
   async listBookmarks(

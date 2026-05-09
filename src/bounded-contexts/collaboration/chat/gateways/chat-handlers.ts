@@ -159,11 +159,10 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
       return { success: true, message };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error(
-        `Failed to send message in ${payload.conversationId}: ${errorMessage}`,
-        error instanceof Error ? error.stack : undefined,
-        CTX,
-      );
+      logger.error(`Failed to send message in ${payload.conversationId}: ${errorMessage}`, {
+        context: CTX,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return { success: false, error: errorMessage };
     }
   });
@@ -210,8 +209,10 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         logger.error(
           `Failed to mark conversation ${payload.conversationId} read: ${errorMessage}`,
-          error instanceof Error ? error.stack : undefined,
-          CTX,
+          {
+            context: CTX,
+            stack: error instanceof Error ? error.stack : undefined,
+          },
         );
         return { success: false, error: errorMessage };
       }

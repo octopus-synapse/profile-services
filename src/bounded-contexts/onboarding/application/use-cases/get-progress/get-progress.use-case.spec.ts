@@ -6,6 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { OnboardingSessionExpiredException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type {
   OnboardingProgressData,
   ProgressRecord,
@@ -106,5 +107,14 @@ describe('GetProgressUseCase', () => {
 
     expect(repository.deleteProgressCalledWith).toBe('user-1');
     expect(result).toEqual(INITIAL_PROGRESS);
+  });
+
+  it('throws OnboardingSessionExpiredException in strict mode when progress is expired', async () => {
+    const expiredDate = new Date(Date.now() - 37 * 60 * 60 * 1000);
+    repository.setProgress('user-1', { ...mockProgress, updatedAt: expiredDate });
+
+    await expect(useCase.execute('user-1', { strict: true })).rejects.toThrow(
+      OnboardingSessionExpiredException,
+    );
   });
 });

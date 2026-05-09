@@ -8,17 +8,16 @@
  * each `Route` into a Nest `@Controller` at boot.
  */
 
-import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { BadgesUseCases } from './application/ports/badges.port';
-
-const ListForUserParams = z.object({ userId: z.string() });
+import { ListBadgesResponseSchema, ListForUserParams } from './badges.routes.schemas';
 
 export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
   {
     method: 'GET',
     path: '/v1/badges/me',
     auth: { kind: 'jwt' },
+    response: ListBadgesResponseSchema,
     openapi: {
       summary: 'Badges awarded to the viewer.',
       tags: ['badges'],
@@ -27,14 +26,16 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const badges = await bc.listUserBadges.execute(ctx.user!.userId);
-      return { success: true, data: { badges } };
+      return { badges };
     },
   },
   {
     method: 'GET',
     path: '/v1/badges/user/:userId',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: ListForUserParams,
+    response: ListBadgesResponseSchema,
     openapi: {
       summary: 'Public list of badges for a given user.',
       tags: ['badges'],
@@ -44,7 +45,7 @@ export const badgesRoutes: ReadonlyArray<Route<BadgesUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const badges = await bc.listUserBadges.execute(userId);
-      return { success: true, data: { badges } };
+      return { badges };
     },
   },
 ];

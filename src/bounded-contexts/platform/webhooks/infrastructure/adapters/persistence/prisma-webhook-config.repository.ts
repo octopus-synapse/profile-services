@@ -134,8 +134,7 @@ export class PrismaWebhookConfigRepository extends WebhookConfigRepositoryPort {
     } catch (err) {
       this.logger.error(
         `Failed to log webhook delivery: ${err instanceof Error ? err.message : 'unknown'}`,
-        undefined,
-        'PrismaWebhookConfigRepository',
+        { context: 'PrismaWebhookConfigRepository' },
       );
     }
   }

@@ -1,4 +1,3 @@
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ConnectionNotPendingException,
   NotConnectionTargetException,
@@ -10,10 +9,7 @@ export class RejectConnectionUseCase {
   constructor(private readonly repository: ConnectionRepositoryPort) {}
 
   async execute(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.repository.findConnectionById(connectionId);
-    if (!connection) {
-      throw new EntityNotFoundException('Connection', connectionId);
-    }
+    const connection = await this.repository.getConnectionById(connectionId);
 
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();

@@ -79,13 +79,21 @@ describe('Sensitive Data Exposure Prevention', () => {
         'dist',
         'test',
       ]);
+      // A real hardcoded connection string carries `user@host` or
+      // `user:password@host`. Bare scheme mentions (Zod/validator
+      // error messages, JSDoc examples) carry neither — they are
+      // documentation of a URL shape, not a credential.
+      const looksLikeRealConnectionString = (line: string): boolean =>
+        /(?:postgresql|mysql|mongodb|redis):\/\/[^\s'"`]*@/.test(line);
+
       const violations = connStrings.filter(
         (c) =>
           !c.includes('process.env') &&
           !c.includes('localhost') &&
           !c.includes('127.0.0.1') &&
           !c.includes('example') &&
-          !c.includes('.env'),
+          !c.includes('.env') &&
+          looksLikeRealConnectionString(c),
       );
       expect(violations).toEqual([]);
     });
@@ -190,10 +198,9 @@ describe('Sensitive Data Exposure Prevention', () => {
 
     it('should implement data minimization in responses', () => {
       const responseFiles = readAllTsFiles(SRC_DIR).filter(
-        (f) => f.includes('response') && f.includes('.dto.ts'),
+        (f) => f.includes('response') && f.includes('.schema.ts'),
       );
 
-      // Response DTOs should exist and define explicit fields
       expect(responseFiles.length).toBeGreaterThan(0);
     });
   });

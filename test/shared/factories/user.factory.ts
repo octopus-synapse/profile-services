@@ -58,7 +58,7 @@ const defaultUser: User = {
   roles: ['role_user'],
 };
 
-export function createMockUser(options: CreateMockUserOptions = {}): User {
+export function buildUser(options: CreateMockUserOptions = {}): User {
   return {
     ...defaultUser,
     ...options,
@@ -71,8 +71,8 @@ export function createMockUser(options: CreateMockUserOptions = {}): User {
  * Creates a mock user that would have admin permissions.
  * Uses the simplified RBAC system with roles array.
  */
-export function createMockAdmin(options: CreateMockUserOptions = {}): User {
-  return createMockUser({
+export function buildAdmin(options: CreateMockUserOptions = {}): User {
+  return buildUser({
     ...options,
     id: options.id ?? 'admin-user-123',
     roles: options.roles ?? ['role_user', 'role_admin'],
@@ -82,14 +82,14 @@ export function createMockAdmin(options: CreateMockUserOptions = {}): User {
 /**
  * Creates a mock user with super admin access.
  */
-export function createMockSuperAdmin(options: CreateMockUserOptions = {}): User {
-  return createMockUser({
+export function buildSuperAdmin(options: CreateMockUserOptions = {}): User {
+  return buildUser({
     ...options,
     id: options.id ?? 'super-admin-123',
     roles: options.roles ?? ['role_user', 'role_super_admin'],
   });
 }
 
-export function createMockVerifiedUser(options: CreateMockUserOptions = {}): User {
-  return createMockUser({ ...options, emailVerified: new Date() });
+export function buildVerifiedUser(options: CreateMockUserOptions = {}): User {
+  return buildUser({ ...options, emailVerified: new Date() });
 }

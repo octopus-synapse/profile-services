@@ -9,6 +9,7 @@
  * Content schemas here are permissive to allow partial saves.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import {
   OnboardingSectionItemSchema,
@@ -17,6 +18,8 @@ import {
 } from './onboarding-data.schema';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
+
+extendZodWithOpenApi(z);
 
 const StaticOnboardingStepSchema = z.enum([
   'welcome',
@@ -82,15 +85,26 @@ const SectionProgressSchema = z.object({
  * ARCHITECTURE: Uses generic sections format. Section progress is data-driven
  * through sectionTypeKey and dynamic section steps.
  */
-export const OnboardingProgressSchema = z.object({
-  currentStep: OnboardingStepSchema,
-  completedSteps: z.array(OnboardingStepSchema),
-  username: UsernameSchema.optional(),
-  personalInfo: PartialPersonalInfoSchema.optional(),
-  professionalProfile: PartialProfessionalProfileSchema.optional(),
-  sections: z.array(SectionProgressSchema).optional(),
-  templateSelection: PartialTemplateSelectionSchema.optional(),
-});
+export const OnboardingProgressSchema = z
+  .object({
+    currentStep: OnboardingStepSchema,
+    completedSteps: z.array(OnboardingStepSchema),
+    username: UsernameSchema.optional(),
+    personalInfo: PartialPersonalInfoSchema.optional(),
+    professionalProfile: PartialProfessionalProfileSchema.optional(),
+    sections: z.array(SectionProgressSchema).optional(),
+    templateSelection: PartialTemplateSelectionSchema.optional(),
+  })
+  .openapi({
+    example: {
+      currentStep: 'personal-info',
+      completedSteps: ['welcome'],
+      personalInfo: {
+        fullName: 'Jane Doe',
+        email: 'jane.doe@example.com',
+      },
+    },
+  });
 
 export type OnboardingProgress = z.infer<typeof OnboardingProgressSchema>;
 
@@ -174,3 +188,35 @@ export const OnboardingCompleteResponseSchema = z.object({
 });
 
 export type OnboardingCompleteResponseEnvelope = z.infer<typeof OnboardingCompleteResponseSchema>;
+
+export type OnboardingStepDto = z.infer<typeof OnboardingStepSchema>;
+
+export type OnboardingProgressDto = z.infer<typeof OnboardingProgressSchema>;
+
+export type OnboardingStatusDto = z.infer<typeof OnboardingStatusSchema>;
+
+export type OnboardingResultDto = z.infer<typeof OnboardingResultSchema>;
+
+export type SaveProgressResultDto = z.infer<typeof SaveProgressResultSchema>;
+
+export type SubmitOnboardingDtoDto = z.infer<typeof SubmitOnboardingDtoSchema>;
+
+export type OnboardingStatusResponseDto = z.infer<typeof OnboardingStatusResponseSchema>;
+
+export type OnboardingProgressResponseDto = z.infer<typeof OnboardingProgressResponseSchema>;
+
+export type OnboardingCompleteResponseDto = z.infer<typeof OnboardingCompleteResponseSchema>;
+
+export type StaticOnboardingStepDto = z.infer<typeof StaticOnboardingStepSchema>;
+
+export type DynamicSectionOnboardingStepDto = z.infer<typeof DynamicSectionOnboardingStepSchema>;
+
+export type PartialSectionItemDto = z.infer<typeof PartialSectionItemSchema>;
+
+export type PartialPersonalInfoDto = z.infer<typeof PartialPersonalInfoSchema>;
+
+export type PartialProfessionalProfileDto = z.infer<typeof PartialProfessionalProfileSchema>;
+
+export type PartialTemplateSelectionDto = z.infer<typeof PartialTemplateSelectionSchema>;
+
+export type SectionProgressDto = z.infer<typeof SectionProgressSchema>;

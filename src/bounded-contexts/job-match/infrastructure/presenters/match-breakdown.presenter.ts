@@ -1,7 +1,7 @@
 import type { MatchBreakdown } from '../../domain/types';
-import type { MatchBreakdownDto } from '../../dto/match-breakdown.dto';
+import type { MatchBreakdownDto } from '../../dto/match-breakdown.schema';
 
-export function presentMatchBreakdown(b: MatchBreakdown): MatchBreakdownDto {
+export function toMatchBreakdownResponseDto(b: MatchBreakdown): MatchBreakdownDto {
   return {
     overallScore: b.overallScore,
     subScores: {

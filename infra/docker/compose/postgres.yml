@@ -1,9 +1,14 @@
 services:
   postgres:
-    # pgvector/pgvector ships the `vector` extension required by the
-    # scoring subsystem (Job.embeddingVector). The image is wire- and
-    # data-compatible with stock postgres:16, so existing volumes work.
-    image: pgvector/pgvector:pg16
+    # Local image bundling pgvector + pg_uuidv7. Built from
+    # `infra/docker/postgres/Dockerfile`. pgvector underpins the
+    # `Job.embeddingVector` column; pg_uuidv7 is required by the
+    # `20260503120000_install_pg_uuidv7` migration. Production uses a
+    # managed Postgres where both extensions are enabled via the
+    # provider's allowlist (see `scripts/check-pg-extensions.ts`).
+    build:
+      context: ../../..
+      dockerfile: infra/docker/postgres/Dockerfile
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}

@@ -1,10 +1,7 @@
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../domain/exceptions/resumes.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../domain/exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 const CTX = 'ResumesRepository';
@@ -32,7 +29,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
     super();
   }
 
-  async findAllUserResumes(userId: string): Promise<Resume[]> {
+  async listUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
@@ -107,7 +104,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   /**
    * BUG-015 FIX: Proper database pagination
    */
-  async findAllUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
+  async listUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },

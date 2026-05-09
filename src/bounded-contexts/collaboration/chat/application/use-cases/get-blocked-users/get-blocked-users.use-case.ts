@@ -1,5 +1,5 @@
 import type { BlockedUserResponse } from '../../../schemas/chat.schema';
-import { mapBlockedUserToResponse } from '../../mappers/chat.mapper';
+import { toBlockedUserResponseDto } from '../../mappers/chat.mapper';
 import { BlockRepositoryPort } from '../../ports/block.port';
 
 export class GetBlockedUsersUseCase {
@@ -8,6 +8,6 @@ export class GetBlockedUsersUseCase {
   async execute(userId: string): Promise<BlockedUserResponse[]> {
     const records = await this.repository.getBlockedUsers(userId);
 
-    return records.map(mapBlockedUserToResponse);
+    return records.map(toBlockedUserResponseDto);
   }
 }

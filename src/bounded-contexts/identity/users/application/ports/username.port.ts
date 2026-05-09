@@ -1,46 +1,10 @@
 /**
- * Username Port
+ * Username Repository Port.
  *
- * Defines domain types and repository abstraction for username operations.
+ * Per-UC ports (UpdateUsernameUseCasePort, CheckUsernameAvailabilityUseCasePort,
+ * ValidateUsernameUseCasePort) live in their own files alongside this
+ * one — see ADR-002.
  */
-
-// ============================================================================
-// Domain Types
-// ============================================================================
-
-export type UpdatedUsername = { username: string };
-
-export type UsernameUnavailableReason = 'taken' | 'reserved' | 'invalid_format';
-
-export type UsernameAvailability = {
-  username: string;
-  available: boolean;
-  reason?: UsernameUnavailableReason;
-};
-
-export type UsernameValidationErrorCode =
-  | 'TOO_SHORT'
-  | 'TOO_LONG'
-  | 'INVALID_FORMAT'
-  | 'INVALID_START'
-  | 'INVALID_END'
-  | 'CONSECUTIVE_UNDERSCORES'
-  | 'RESERVED'
-  | 'UPPERCASE'
-  | 'ALREADY_TAKEN';
-
-export type UsernameValidationError = { code: UsernameValidationErrorCode; message: string };
-
-export type UsernameValidationResult = {
-  username: string;
-  valid: boolean;
-  available?: boolean;
-  errors: UsernameValidationError[];
-};
-
-// ============================================================================
-// Repository Port (Abstraction)
-// ============================================================================
 
 export abstract class UsernameRepositoryPort {
   abstract findUserById(userId: string): Promise<{ id: string; username: string | null } | null>;
@@ -52,12 +16,11 @@ export abstract class UsernameRepositoryPort {
   abstract isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean>;
 }
 
-// ============================================================================
-// Use Cases Interface
-// ============================================================================
-
-export abstract class UsernameUseCases {
-  abstract readonly updateUsernameUseCase: {
-    execute: (userId: string, username: string) => Promise<UpdatedUsername>;
-  };
-}
+export type {
+  UsernameAvailability,
+  UsernameUnavailableReason,
+} from './check-username-availability.use-case.port';
+// Re-exports kept for downstream importers that consumed types from this
+// barrel — the canonical homes are the per-UC port files.
+export type { UpdatedUsername } from './update-username.use-case.port';
+export type { UsernameValidationResult } from './validate-username.use-case.port';

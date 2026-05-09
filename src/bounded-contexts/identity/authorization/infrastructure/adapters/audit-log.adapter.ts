@@ -1,44 +1,48 @@
 /**
  * Thin AuditLogPort adapter that writes directly to the `AuditLog`
  * Prisma table. Used by AccessModifier use cases to record
- * APPLY/REVOKE events. A write failure is logged via LoggerPort and
- * swallowed — never blocks the caller's main path because audit is
- * a best-effort observability concern.
+ * APPLY/REVOKE role-change events.
+ *
+ * Q51 in the duplication audit: role/permission changes are GDPR-
+ * critical, so a write failure now propagates as
+ * `AuditLogFailedException` instead of being silently swallowed. The
+ * caller use case decides whether to roll back the parent operation.
  */
 
 import type { Prisma } from '@prisma/client';
+import { AuditLogFailedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
-import type { AuditLogPort } from '../../application/use-cases/access-modifier/apply-access-modifier.use-case';
+import { type AuditLogEntry, type AuditLogOptions, AuditLogPort } from '@/shared-kernel/audit';
+import type { LoggerPort } from '@/shared-kernel/logger';
 
-export class AccessModifierAuditLogAdapter implements AuditLogPort {
+export class AccessModifierAuditLogAdapter extends AuditLogPort {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    super();
+  }
 
-  async log(input: {
-    userId: string;
-    action: string;
-    entityType: string;
-    entityId: string;
-    metadata?: Record<string, unknown>;
-  }): Promise<void> {
+  async log(entry: AuditLogEntry, options: AuditLogOptions = {}): Promise<void> {
     try {
       await this.prisma.auditLog.create({
         data: {
-          userId: input.userId,
-          action: input.action as never,
-          entityType: input.entityType,
-          entityId: input.entityId,
-          metadata: (input.metadata ?? {}) as Prisma.InputJsonValue,
+          userId: entry.userId,
+          action: entry.action as never,
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+          metadata: (entry.metadata ?? {}) as Prisma.InputJsonValue,
         },
       });
     } catch (err) {
-      this.logger.warn(
-        `AuditLog write failed (action=${input.action}): ${err instanceof Error ? err.message : 'unknown'}`,
-        'AccessModifierAuditLogAdapter',
-      );
+      const reason = err instanceof Error ? err.message : 'unknown';
+      this.logger.error(`AuditLog write failed (action=${entry.action}): ${reason}`, {
+        context: 'AccessModifierAuditLogAdapter',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      if (!options.lenient) {
+        throw new AuditLogFailedException(reason);
+      }
     }
   }
 }

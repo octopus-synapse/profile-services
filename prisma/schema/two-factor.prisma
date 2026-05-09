@@ -1,7 +1,7 @@
 // Two-Factor Authentication Models
 
 model TwoFactorAuth {
-  id         String    @id @default(cuid())
+  id         String    @id @default(dbgenerated("uuidv7()"))
   userId     String    @unique
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   secret     String // TOTP secret (encrypted at application level)
@@ -14,7 +14,7 @@ model TwoFactorAuth {
 }
 
 model TwoFactorBackupCode {
-  id        String    @id @default(cuid())
+  id        String    @id @default(dbgenerated("uuidv7()"))
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   codeHash  String // Hashed backup code

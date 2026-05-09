@@ -11,7 +11,8 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
-import type { FitProfileReminderDaysLeft } from '../../../domain/entities/notification';
+import { pluralize } from '@/shared-kernel/i18n/pluralize';
+import type { FitProfileReminderDaysLeft } from '../../../domain/entities/notification.entity';
 import { ReminderStatePort } from '../../../domain/ports/reminder-state.port';
 import { CreateNotificationUseCase } from '../create-notification/create-notification.use-case';
 import { flagKeyFor } from '../enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
@@ -42,7 +43,7 @@ export class SendExpiryReminderUseCase {
         userId: input.userId,
         type: 'FIT_PROFILE_EXPIRY_REMINDER',
         actorId: SYSTEM_ACTOR,
-        message: `Seu perfil de fit expira em ${input.daysLeft} ${input.daysLeft === 1 ? 'dia' : 'dias'} (${input.expiresAt}). Refaça o questionário antes para não perder o match.`,
+        message: `Seu perfil de fit expira em ${pluralize(input.daysLeft, 'dia', 'dias')} (${input.expiresAt}). Refaça o questionário antes para não perder o match.`,
         entityType: 'UserFitProfile',
         entityId: input.userId,
       });

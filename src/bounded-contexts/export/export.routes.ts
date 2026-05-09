@@ -8,44 +8,29 @@
  * `StreamableFile` flow through Nest's response interceptor unchanged.
  */
 
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+import { FLAG_KEYS } from '@/bounded-contexts/platform/feature-flags/registry/flag-keys';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
+import {
+  BANNER_HEADERS,
+  BannerQuery,
+  JsonExportQuery,
+  LatexExportQuery,
+  PdfBase64ResponseSchema,
+  PresignedDownloadResponseSchema,
+  ResumeIdParams,
+  ResumePdfQuery,
+  UserIdParams,
+} from './export.routes.schemas';
 import { sanitizeQueryParam } from './infrastructure/helpers';
-import { presentPdfAsBase64 } from './infrastructure/presenters/pdf-base64.presenter';
+import { toPdfBase64ResponseDto } from './infrastructure/presenters/pdf-base64.presenter';
 
-// ─── Schemas ─────────────────────────────────────────────────────────
-const BannerQuery = z.object({
-  palette: z.string().optional(),
-  logo: z.string().optional(),
-});
-const ResumePdfQuery = z.object({
-  palette: z.string().optional(),
-  lang: z.string().optional(),
-  bannerColor: z.string().optional(),
-  template: z.string().optional(),
-});
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const UserIdParams = z.object({ userId: z.string() });
-const JsonExportQuery = z.object({ format: z.string().optional() });
-const LatexExportQuery = z.object({ template: z.string().optional() });
-
-const PDF_HEADERS = {
-  'Content-Type': 'application/pdf',
-  'Content-Disposition': 'attachment; filename="resume.pdf"',
-} as const;
-
-const DOCX_HEADERS = {
-  'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'Content-Disposition': 'attachment; filename="resume.docx"',
-} as const;
-
-const BANNER_HEADERS = {
-  'Content-Type': 'image/png',
-  'Content-Disposition': 'attachment; filename="linkedin-banner.png"',
-} as const;
+const DOWNLOAD_TTL_SECONDS = 300;
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   // ─── Banner ────────────────────────────────────────────────────────
@@ -56,6 +41,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     permission: Permission.RESUME_EXPORT,
     query: BannerQuery,
     headers: BANNER_HEADERS,
+    binary: { mediaType: 'image/png', filename: 'linkedin-banner.png' },
     openapi: {
       summary: 'Export LinkedIn banner image',
       tags: ['export'],
@@ -72,16 +58,19 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
   },
 
   // ─── PDF ───────────────────────────────────────────────────────────
+  // Returns a pre-signed MinIO URL the browser uses for native download.
+  // Backend uploads the rendered binary with a private ACL + short TTL,
+  // so the frontend never touches Blob/atob/MIME.
   {
     method: 'GET',
     path: '/v1/export/resume/pdf',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
     query: ResumePdfQuery,
-    headers: PDF_HEADERS,
-    guards: [{ id: 'feature-flag', metadata: { key: 'resumes.export.pdf' } }],
+    response: PresignedDownloadResponseSchema,
+    guards: [{ id: 'feature-flag', metadata: { key: FLAG_KEYS.RESUMES_EXPORT_PDF } }],
     openapi: {
-      summary: 'Export resume as PDF document',
+      summary: 'Generate resume PDF (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -114,16 +103,28 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
             }),
         ),
       );
-      return new StreamableFile(buffer);
+      const filename = `resume-${userId}-${Date.now()}.pdf`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${userId}/${randomUUID()}.pdf`,
+        body: buffer,
+        contentType: 'application/pdf',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
+      });
+      return { ...signed, filename };
     },
   },
   {
     method: 'GET',
     path: '/v1/export/user/:userId/resume/pdf',
     auth: { kind: 'jwt' },
+    // P0-004: ownership guard — only the user themself can export their resume
+    // through this endpoint. Cross-user exports were possible before the guard.
+    guards: [{ id: 'ownership', metadata: { entity: 'user', paramKey: 'userId' } }],
     params: UserIdParams,
+    response: PdfBase64ResponseSchema,
     openapi: {
-      summary: "Generate another user's resume as PDF (base64)",
+      summary: "Generate the authenticated user's resume as PDF (base64)",
       tags: ['export'],
       description: 'Export API',
     },
@@ -135,7 +136,7 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
           bundle.useCases.exportPdfUseCase.execute({ userId: targetUserId }),
         ),
       );
-      return { success: true, data: presentPdfAsBase64(buffer) };
+      return toPdfBase64ResponseDto(buffer);
     },
   },
 
@@ -145,9 +146,9 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     path: '/v1/export/resume/docx',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
-    headers: DOCX_HEADERS,
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as DOCX document',
+      summary: 'Generate resume DOCX (returns signed download URL)',
       tags: ['export'],
       description: 'Export API',
     },
@@ -157,21 +158,32 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
       const buffer = await bundle.pipeline.run('docx', userId, () =>
         bundle.useCases.exportDocxUseCase.execute({ userId }),
       );
-      return new StreamableFile(buffer);
+      const filename = `resume-${userId}-${Date.now()}.docx`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${userId}/${randomUUID()}.docx`,
+        body: buffer,
+        contentType: DOCX_MIME,
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
+      });
+      return { ...signed, filename };
     },
   },
 
   // ─── Multi-format (JSON / LaTeX) ───────────────────────────────────
   {
     method: 'GET',
-    path: '/api/v1/export/:resumeId/json',
+    path: '/v1/export/:resumeId/json',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
+    // P0-004: ownership guard — only the resume owner can export it.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     query: JsonExportQuery,
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as JSON',
-      tags: ['Export'],
+      summary: 'Generate resume JSON (returns signed download URL)',
+      tags: ['export'],
       description: 'Export API',
     },
     sdk: { exported: true },
@@ -183,28 +195,30 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         resumeId,
         format,
       });
-      const headers = {
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="resume-${resumeId}.json"`,
-      };
-      // Wrap as StreamableFile so the response interceptor passes it
-      // through unchanged.
-      return new StreamableFile(buffer, {
-        type: headers['Content-Type'],
-        disposition: headers['Content-Disposition'],
+      const filename = `resume-${resumeId}.json`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${resumeId}/${randomUUID()}.json`,
+        body: buffer,
+        contentType: 'application/json',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
+      return { ...signed, filename };
     },
   },
   {
     method: 'GET',
-    path: '/api/v1/export/:resumeId/latex',
+    path: '/v1/export/:resumeId/latex',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
+    // P0-004: ownership guard — only the resume owner can export it.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     query: LatexExportQuery,
+    response: PresignedDownloadResponseSchema,
     openapi: {
-      summary: 'Export resume as LaTeX',
-      tags: ['Export'],
+      summary: 'Generate resume LaTeX (returns signed download URL)',
+      tags: ['export'],
       description: 'Export API',
     },
     sdk: { exported: true },
@@ -216,10 +230,15 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         resumeId,
         template,
       });
-      return new StreamableFile(buffer, {
-        type: 'application/x-latex',
-        disposition: `attachment; filename="resume-${resumeId}.tex"`,
+      const filename = `resume-${resumeId}.tex`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${resumeId}/${randomUUID()}.tex`,
+        body: buffer,
+        contentType: 'application/x-tex',
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
+      return { ...signed, filename };
     },
   },
 ];

@@ -54,7 +54,7 @@ describe('Cache Integration', () => {
         });
 
       if (createRes.status === 201) {
-        resumeId = createRes.body.data.id;
+        resumeId = createRes.body.id;
       }
     });
 
@@ -123,7 +123,7 @@ describe('Cache Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(firstFetch.status).toBe(200);
-      expect(firstFetch.body.data).toHaveProperty('id', userId);
+      expect(firstFetch.body).toHaveProperty('id', userId);
 
       // Second fetch
       const secondFetch = await getRequest()
@@ -131,7 +131,7 @@ describe('Cache Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(secondFetch.status).toBe(200);
-      expect(secondFetch.body.data).toHaveProperty('id', userId);
+      expect(secondFetch.body).toHaveProperty('id', userId);
     });
   });
 

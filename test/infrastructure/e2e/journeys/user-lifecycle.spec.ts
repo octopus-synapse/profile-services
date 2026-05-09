@@ -22,8 +22,8 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createMinimalOnboardingData } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -63,7 +63,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
     });
 
     it.serial('should reject duplicate email', async () => {
-      const response = await app.request.post('/api/accounts').send({
+      const response = await app.request.post('/api/v1/accounts').send({
         email: testUser.email,
         password: testUser.password,
         name: testUser.name,
@@ -82,7 +82,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(false);
+      expect(response.body.hasCompletedOnboarding).toBe(false);
     });
   });
 
@@ -95,11 +95,10 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resumeId).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.resumeId).toBeDefined();
 
-      resumeId = response.body.data.resumeId;
+      resumeId = response.body.resumeId;
     });
 
     it.serial('should have updated onboarding status', async () => {
@@ -108,7 +107,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(true);
+      expect(response.body.hasCompletedOnboarding).toBe(true);
     });
 
     it.serial('should prevent duplicate onboarding', async () => {
@@ -130,8 +129,9 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
-      expect(Array.isArray(response.body.data.data)).toBe(true);
+      // Q1 PaginatedResponseSchema: `{ items, total, page, limit, ... }`.
+      expect(Array.isArray(response.body.items)).toBe(true);
+      expect(response.body.items.length).toBeGreaterThan(0);
     });
 
     it.serial('should retrieve resume with sections', async () => {
@@ -140,11 +140,11 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.id).toBe(resumeId);
+      expect(response.body).toBeDefined();
+      expect(response.body.id).toBe(resumeId);
       // Resume has skills, experiences, education arrays
-      expect(response.body.data).toHaveProperty('resumeSections');
-      expect(Array.isArray(response.body.data.resumeSections)).toBe(true);
+      expect(response.body).toHaveProperty('resumeSections');
+      expect(Array.isArray(response.body.resumeSections)).toBe(true);
     });
   });
 
@@ -157,12 +157,12 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
       expect(response.status).toBe(201);
       // Shares return wrapped in data.share
-      expect(response.body.data.share.slug).toBeDefined();
-      expect(response.body.data.share.resumeId).toBe(resumeId);
-      expect(response.body.data.share.isActive).toBe(true);
+      expect(response.body.share.slug).toBeDefined();
+      expect(response.body.share.resumeId).toBe(resumeId);
+      expect(response.body.share.isActive).toBe(true);
 
-      shareSlug = response.body.data.share.slug;
-      shareId = response.body.data.share.id;
+      shareSlug = response.body.share.slug;
+      shareId = response.body.share.id;
     });
 
     it.serial('should list shares for resume', async () => {
@@ -172,9 +172,9 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
       expect(response.status).toBe(200);
       // Returns wrapped in data.shares
-      expect(Array.isArray(response.body.data.shares)).toBe(true);
-      expect(response.body.data.shares.length).toBeGreaterThanOrEqual(1);
-      expect(response.body.data.shares[0]).toHaveProperty('slug');
+      expect(Array.isArray(response.body.shares)).toBe(true);
+      expect(response.body.shares.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.shares[0]).toHaveProperty('slug');
     });
   });
 
@@ -184,8 +184,8 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
       expect(response.status).toBe(200);
       // Public resume returns { success, data: { resume: { ... } } }
-      expect(response.body.data).toHaveProperty('resume');
-      expect(response.body.data.resume.id).toBe(resumeId);
+      expect(response.body).toHaveProperty('resume');
+      expect(response.body.resume.id).toBe(resumeId);
     });
 
     it.serial('should fail with invalid slug', async () => {

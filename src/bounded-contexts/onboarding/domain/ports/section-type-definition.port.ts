@@ -7,5 +7,5 @@
 import type { SectionTypeData } from '../config/onboarding-steps.config';
 
 export abstract class SectionTypeDefinitionPort {
-  abstract findAll(locale?: string): Promise<SectionTypeData[]>;
+  abstract listAll(locale?: string): Promise<SectionTypeData[]>;
 }

@@ -21,8 +21,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -77,11 +77,10 @@ describe('E2E Journey: Analytics Pipeline', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(onboardingResponse.status).toBe(200);
-      expect(onboardingResponse.body.success).toBe(true);
-      expect(onboardingResponse.body.data.resumeId).toBeDefined();
+      expect(onboardingResponse.status).toBe(201);
+      expect(onboardingResponse.body.resumeId).toBeDefined();
 
-      resumeId = onboardingResponse.body.data.resumeId;
+      resumeId = onboardingResponse.body.resumeId;
 
       // Verify the analytics projection was created (by event handler)
       // If not, create it manually for the test
@@ -105,17 +104,16 @@ describe('E2E Journey: Analytics Pipeline', () => {
   describe('Step 2: Take Initial Snapshot', () => {
     it.serial('should take initial analytics snapshot', async () => {
       const response = await app.request
-        .post(`/api/resume-analytics/${resumeId}/snapshot`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
-      expect(typeof response.body.data.atsScore).toBe('number');
-      expect(response.body.data.atsScore).toBeGreaterThanOrEqual(0);
-      expect(response.body.data.atsScore).toBeLessThanOrEqual(100);
+      expect(response.body).toBeDefined();
+      expect(typeof response.body.atsScore).toBe('number');
+      expect(response.body.atsScore).toBeGreaterThanOrEqual(0);
+      expect(response.body.atsScore).toBeLessThanOrEqual(100);
 
-      _firstSnapshotAtsScore = response.body.data.atsScore;
+      _firstSnapshotAtsScore = response.body.atsScore;
     });
   });
 
@@ -135,7 +133,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
       for (const source of viewSources) {
         const req = app.request
-          .post(`/api/resume-analytics/${resumeId}/track-view`)
+          .post(`/api/v1/resumes/${resumeId}/analytics/track-view`)
           .send({})
           .set('User-Agent', source.userAgent)
           .set('X-Forwarded-For', source.ip);
@@ -146,13 +144,12 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
         const response = await req;
         expect(response.status).toBe(201);
-        expect(response.body.success).toBe(true);
       }
     });
 
     it.serial('should track view without authentication (public endpoint)', async () => {
       const response = await app.request
-        .post(`/api/resume-analytics/${resumeId}/track-view`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/track-view`)
         .send({});
 
       expect(response.status).toBe(201);
@@ -162,20 +159,19 @@ describe('E2E Journey: Analytics Pipeline', () => {
   describe('Step 4: Get Dashboard', () => {
     it.serial('should return dashboard with analytics data', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/dashboard`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/dashboard`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
 
-      const dashboard = response.body.data;
+      const dashboard = response.body;
       // Dashboard should contain relevant analytics info
       expect(dashboard).toBeDefined();
     });
 
     it.serial('should require authentication for dashboard', async () => {
-      const response = await app.request.get(`/api/resume-analytics/${resumeId}/dashboard`);
+      const response = await app.request.get(`/api/v1/resumes/${resumeId}/analytics/dashboard`);
 
       expect(response.status).toBe(401);
     });
@@ -184,13 +180,11 @@ describe('E2E Journey: Analytics Pipeline', () => {
   describe('Step 5: Check ATS Score', () => {
     it.serial('should calculate and return ATS score', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/ats-score`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
-      const atsData = response.body.data;
+      const atsData = response.body;
       expect(atsData.score).toBeDefined();
       expect(typeof atsData.score).toBe('number');
       expect(atsData.score).toBeGreaterThanOrEqual(0);
@@ -209,25 +203,22 @@ describe('E2E Journey: Analytics Pipeline', () => {
   describe('Step 6: Take Another Snapshot', () => {
     it.serial('should take a second snapshot', async () => {
       const response = await app.request
-        .post(`/api/resume-analytics/${resumeId}/snapshot`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(typeof response.body.data.atsScore).toBe('number');
+      expect(typeof response.body.atsScore).toBe('number');
     });
   });
 
   describe('Step 7: Verify Score Progression', () => {
     it.serial('should show progression with both snapshots', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/progression`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/progression`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
-      const progression = response.body.data;
+      const progression = response.body;
       expect(progression.snapshots).toBeDefined();
       expect(Array.isArray(progression.snapshots)).toBe(true);
       expect(progression.snapshots.length).toBeGreaterThanOrEqual(2);
@@ -246,13 +237,11 @@ describe('E2E Journey: Analytics Pipeline', () => {
   describe('Step 8: View History', () => {
     it.serial('should show all snapshots in history', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/history`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/history`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
-      const history = response.body.data;
+      const history = response.body;
       expect(Array.isArray(history)).toBe(true);
       expect(history.length).toBeGreaterThanOrEqual(2);
 
@@ -270,26 +259,24 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
     it.serial('should support limit parameter in history', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/history`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/history`)
         .query({ limit: 1 })
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.length).toBe(1);
+      expect(response.body.length).toBe(1);
     });
   });
 
   describe('Step 9: View Stats', () => {
     it.serial('should return view statistics', async () => {
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/views`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/views`)
         .query({ period: 'month' })
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
   });
 
@@ -298,7 +285,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
 
       const response = await app.request
-        .get(`/api/resume-analytics/${fakeResumeId}/dashboard`)
+        .get(`/api/v1/resumes/${fakeResumeId}/analytics/dashboard`)
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(404);
@@ -310,7 +297,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       const otherResult = await authHelper.registerAndLogin(otherUser, { skipOnboarding: true });
 
       const response = await app.request
-        .get(`/api/resume-analytics/${resumeId}/ats-score`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
         .set('Authorization', `Bearer ${otherResult.token}`);
 
       // Should not reveal resume existence - return 404 or 403

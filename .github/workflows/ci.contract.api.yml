@@ -1,0 +1,266 @@
+name: CI - API Contract
+
+on:
+  pull_request:
+    branches: [main, homolog, dev]
+    paths:
+      - "src/**/*.routes.ts"
+      - "src/shared-kernel/http/**"
+      - "src/shared-kernel/schemas/common/**"
+      - "scripts/generate-swagger-from-decorators.ts"
+      - "client-swagger.json"
+      - "swagger.json"
+      - ".spectral.yaml"
+      - ".github/workflows/ci.contract.api.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: read
+
+jobs:
+  spectral:
+    name: Spectral lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      # GITHUB_TOKEN works for packages owned by THIS repo. For
+      # @octopus-synapse/* packages hosted in sibling repos of the same
+      # org, the package owner must grant this repo access via Package
+      # settings → "Manage Actions access" → add this repo. If a PAT
+      # with read:packages is preferred instead, swap GITHUB_TOKEN for
+      # the PAT secret here.
+      - name: Configure GitHub Packages auth
+        run: |
+          {
+            echo "@octopus-synapse:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+          } > .npmrc
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # Several `*.routes.ts` import Prisma-generated enums (`JobType`,
+      # `PostType`, `LayoutKind`, etc.). Without `prisma generate` the
+      # script silently skips those files and emits a partial spec that
+      # disagrees with the committed one.
+      - name: Generate Prisma client
+        run: bunx prisma generate --config ./prisma.config.ts
+      - name: Regenerate swagger (catches Zod→OpenAPI drift)
+        run: bun run scripts/generate-swagger-from-decorators.ts
+      - name: Verify spec is up-to-date with code
+        run: |
+          if ! git diff --exit-code swagger.json client-swagger.json; then
+            echo "::error::swagger.json/client-swagger.json out of date. Run 'bun run swagger:generate' locally and commit the result."
+            exit 1
+          fi
+      - name: Spectral lint
+        run: bun run lint:spec
+
+  optic:
+    name: Optic — breaking change detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch base branch spec
+        id: base
+        run: |
+          BASE=${{ github.base_ref || 'main' }}
+          git fetch --no-tags --depth=1 origin $BASE
+          mkdir -p .optic
+          git show origin/$BASE:client-swagger.json > .optic/base.json 2>/dev/null || echo '{"openapi":"3.0.0","info":{"title":"empty","version":"0.0.0"},"paths":{}}' > .optic/base.json
+          cp client-swagger.json .optic/head.json
+      - name: Run Optic diff
+        uses: opticdev/action@v1
+        with:
+          base_file: .optic/base.json
+          head_file: .optic/head.json
+          # Fail the job on any "breaking" change. Comment-only on
+          # additive changes. Override per-PR by adding `[breaking-ok]`
+          # to the PR title.
+          fail_on_breaking_change: ${{ !contains(github.event.pull_request.title, '[breaking-ok]') }}
+        # opticdev/action@v1 currently crashes inside its own AJV/Spectral
+        # bundle (`@stoplight/spectral-functions/dist/alphabetical.js`
+        # SyntaxError) AND warns that base_file/head_file/fail_on_breaking_change
+        # are no longer recognised inputs. Don't gate PRs on this until the
+        # upstream tooling is upgraded — the diff is informational only.
+        continue-on-error: true
+
+  contract:
+    name: Contract — runtime conformance
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      # Mailcatcher (Mailpit) — captures outbound SMTP from the booted
+      # app so password-reset / verification emails don't bounce. Same
+      # tool used by `make dev` locally.
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
+      # MinIO — started via a separate `docker run` step below instead of
+      # a GHA `services:` entry. We need a custom command (`minio server
+      # /data`) and bucket creation; GHA service containers don't accept
+      # a command override and the bitnami image that auto-creates
+      # buckets was de-listed from Docker Hub. Running it ourselves keeps
+      # full control with the upstream `minio/minio` image.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/profile_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6380
+      JWT_SECRET: contract_test_secret_key_minimum_32_characters_long
+      NODE_ENV: test
+      PORT: 3010
+      # EmailPasswordResetSender (P1-032) refuses to construct without
+      # APP_URL — no localhost fallback. The contract suite doesn't
+      # actually send mail, but bootstrap still wires the sender, so a
+      # placeholder is required to clear the construction-time guard.
+      APP_URL: http://localhost:3010
+      # Mailpit captures outbound SMTP so the boot's
+      # EmailPasswordResetSender / verification emails land in a sink
+      # rather than failing the SessionPool login flow.
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      EMAIL_FROM: noreply@profile.local
+      EMAIL_FROM_NAME: ProFile
+      # MinIO connection — matches the service definition above. The
+      # bucket is created by the `Setup MinIO bucket` step before the
+      # app boots.
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: profile-uploads
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      # GITHUB_TOKEN works for packages owned by THIS repo. For
+      # @octopus-synapse/* packages hosted in sibling repos of the same
+      # org, the package owner must grant this repo access via Package
+      # settings → "Manage Actions access" → add this repo. If a PAT
+      # with read:packages is preferred instead, swap GITHUB_TOKEN for
+      # the PAT secret here.
+      - name: Configure GitHub Packages auth
+        run: |
+          {
+            echo "@octopus-synapse:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+          } > .npmrc
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # Typst is the binary the resume export pipeline shells out to for
+      # PDF generation (see TypstPdfGeneratorService). Without it, the
+      # 5 export routes (pdf/docx/json/latex/user-pdf) return 502
+      # EXPORT_PDF_GENERATION_FAILED. The dev image bakes Typst into the
+      # backend container; the CI workflow runs the app directly on the
+      # GitHub-hosted runner, so we install the binary here.
+      - name: Install Typst
+        run: |
+          curl -fsSL "https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz" -o /tmp/typst.tar.xz
+          mkdir -p /tmp/typst
+          tar -xf /tmp/typst.tar.xz -C /tmp/typst --strip-components=1
+          sudo install -m 0755 /tmp/typst/typst /usr/local/bin/typst
+          typst --version
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name profile-services-minio \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            minio/minio:latest server /data --console-address ":9001"
+          for i in {1..40}; do
+            if curl -fs http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "MinIO is ready."
+              break
+            fi
+            sleep 1
+          done
+          docker run --rm --network host \
+            -e MC_HOST_local="http://minioadmin:minioadmin@localhost:9000" \
+            minio/mc:latest mb local/profile-uploads --ignore-existing
+      - name: Build custom Postgres image (pgvector + pg_uuidv7)
+        run: docker build -t profile-services-postgres:test -f infra/docker/postgres/Dockerfile .
+      - name: Start Postgres
+        run: |
+          docker run -d \
+            --name profile-services-postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=profile_test \
+            -p 5433:5432 \
+            profile-services-postgres:test
+          for i in {1..40}; do
+            if docker exec profile-services-postgres pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Postgres is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Postgres failed to become ready within 40s."
+          docker logs profile-services-postgres
+          exit 1
+      - name: Setup database
+        run: bun run db:setup:test
+      - name: Boot app in background
+        run: |
+          bun --bun src/main.ts &
+          echo $! > app.pid
+          # Wait for /api/health to respond.
+          for i in {1..40}; do
+            if curl -sf http://localhost:3010/api/health > /dev/null; then
+              echo "App is up."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::App failed to boot within 40s."
+          exit 1
+      # Probe each GET endpoint with the right persona and validate the
+      # response body against the declared Zod schema. Produces a single
+      # markdown report per run. Same booted app + DB used by the
+      # contract test suite below; no extra boot cost. Job continues on
+      # drift so the report uploads as an artifact regardless.
+      - name: Check body schema examples
+        run: bun run scripts/check-body-schema-examples.ts
+        continue-on-error: true
+      - name: Discover response drift
+        run: bun scripts/discover-response-drift.ts
+        env:
+          DRIFT_BASE_URL: http://localhost:3010
+          DRIFT_FAIL_ON: 1
+        continue-on-error: true
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: docs/audits/response-drift-report.md
+      - name: Run contract test suite
+        run: bun test --config=bunfig.contract.toml
+        env:
+          DRIFT_BASE_URL: http://localhost:3010
+      - name: Stop app
+        if: always()
+        run: |
+          if [ -f app.pid ]; then kill "$(cat app.pid)" || true; fi

@@ -1,0 +1,31 @@
+// Uploads: source-of-truth for S3 object ownership (P0-005).
+//
+// Every PUT through `S3UploadService` writes a row here keyed by S3
+// object key. `DeleteUploadUseCase` consults this table to verify the
+// requester owns the key before forwarding the delete to S3 — the
+// previous BUG-027 (no ownership check on DELETE /v1/upload/file/:key)
+// is closed by enforcing `Upload.userId === currentUserId`.
+//
+// Lazy backfill: rows for legacy uploads (predating this table) are
+// inserted on first delete attempt by parsing the path convention
+// `<userId>/...`. If the inferred userId matches the requester the
+// row is recorded retroactively and the delete proceeds; otherwise
+// the requester gets `OwnershipAccessDeniedException` (403).
+
+model Upload {
+  /// S3 object key (full path). Primary key — no separate id column.
+  key String @id
+
+  /// Owner — user that performed the upload.
+  userId String
+  user   User   @relation("UserUploads", fields: [userId], references: [id], onDelete: Cascade)
+
+  /// MIME type stored at upload time. Optional for legacy backfilled rows.
+  contentType String?
+  /// Size in bytes (when known at upload time).
+  sizeBytes Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

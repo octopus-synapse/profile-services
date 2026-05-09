@@ -98,3 +98,17 @@ export const ListRolesQuerySchema = z.object({
 });
 
 export type ListRolesQuery = z.infer<typeof ListRolesQuerySchema>;
+
+export type CreateRoleDto = z.infer<typeof CreateRoleSchema>;
+
+export type UpdateRoleDto = z.infer<typeof UpdateRoleSchema>;
+
+export type RoleResponseDto = z.infer<typeof RoleResponseSchema>;
+
+export type RoleWithPermissionsResponseDto = z.infer<typeof RoleWithPermissionsResponseSchema>;
+
+export type AssignRolePermissionsDto = z.infer<typeof AssignRolePermissionsSchema>;
+
+export type RemoveRolePermissionsDto = z.infer<typeof RemoveRolePermissionsSchema>;
+
+export type ListRolesQueryDto = z.infer<typeof ListRolesQuerySchema>;

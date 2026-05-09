@@ -53,20 +53,22 @@ export abstract class ActivityRepositoryPort {
   abstract findActivitiesByUserIds(
     userIds: string[],
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }>;
+  ): Promise<{ items: ActivityWithUser[]; total: number }>;
 
   abstract findUserActivities(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }>;
+  ): Promise<{ items: ActivityWithUser[]; total: number }>;
 
   abstract findUserActivitiesByType(
     userId: string,
     type: ActivityType,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }>;
+  ): Promise<{ items: ActivityWithUser[]; total: number }>;
 
   abstract deleteOlderThan(date: Date): Promise<number>;
+
+  abstract userExists(userId: string): Promise<boolean>;
 }
 
 // ============================================================================

@@ -15,7 +15,7 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import {
   type MarkReadResult,
   NotificationsRepositoryPort,
@@ -107,7 +107,7 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
     }));
 
     const nextCursor = data.length === limit ? (data[data.length - 1]?.id ?? null) : null;
-    return { data, nextCursor };
+    return { items: data, nextCursor, hasNext: nextCursor !== null };
   }
 
   async countUnread(userId: string): Promise<number> {
@@ -127,6 +127,14 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
       data: { read: true },
     });
     return { count: r.count };
+  }
+
+  async findOwnerById(notificationId: string): Promise<string | null> {
+    const row = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: { userId: true },
+    });
+    return row?.userId ?? null;
   }
 
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {

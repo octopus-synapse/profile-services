@@ -64,8 +64,7 @@ export class SkillDecayService {
       } catch (err) {
         this.logger.error(
           `Skill decay flag failed for ${row.userId}/${row.skillName}: ${err instanceof Error ? err.message : 'unknown'}`,
-          undefined,
-          CTX,
+          { context: CTX },
         );
       }
     }

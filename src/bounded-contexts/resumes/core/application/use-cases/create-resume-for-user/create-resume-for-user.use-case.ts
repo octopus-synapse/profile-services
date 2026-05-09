@@ -1,5 +1,5 @@
 import type { CreateResume, LoggerPort } from '@/shared-kernel';
-import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';
@@ -35,7 +35,7 @@ export class CreateResumeForUserUseCase {
   }
 
   private async ensureUserHasSlots(userId: string): Promise<void> {
-    const existing = await this.repository.findAllUserResumes(userId);
+    const existing = await this.repository.listUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
       throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
     }

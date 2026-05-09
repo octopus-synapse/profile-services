@@ -11,6 +11,9 @@ export interface PaginatedStyles {
   readonly total: number;
   readonly page: number;
   readonly limit: number;
+  readonly totalPages: number;
+  readonly hasNext: boolean;
+  readonly hasPrev: boolean;
 }
 
 export abstract class ResumeStyleRepositoryPort {

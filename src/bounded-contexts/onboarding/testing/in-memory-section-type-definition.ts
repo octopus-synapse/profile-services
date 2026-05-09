@@ -4,7 +4,7 @@ import { SectionTypeDefinitionPort } from '../domain/ports/section-type-definiti
 export class InMemorySectionTypeDefinition extends SectionTypeDefinitionPort {
   private sectionTypes = new Map<string, SectionTypeData>();
 
-  async findAll(_locale?: string): Promise<SectionTypeData[]> {
+  async listAll(_locale?: string): Promise<SectionTypeData[]> {
     return Array.from(this.sectionTypes.values());
   }
 

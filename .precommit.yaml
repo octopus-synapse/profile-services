@@ -16,10 +16,23 @@ serial:
       - generated/schema.graphql
 
 checks:
+  - name: lockfile
+    cmd: bun install --frozen-lockfile --dry-run
+  - name: swagger-fresh
+    # Paranoia: re-run the generator and verify the staged swagger
+    # matches the source-of-truth route descriptors. The serial swagger
+    # step already does this + `stage:` adds the result, but if `stage:`
+    # ever fails to propagate the regen (rare but observed), this check
+    # blocks the commit before it reaches CI.
+    cmd: bun run scripts/generate-swagger-from-decorators.ts > /dev/null && git diff --exit-code swagger.json client-swagger.json
   - name: typecheck
     cmd: bun run typecheck
   - name: lint
     cmd: bun run lint:fast
+  - name: route-coverage
+    cmd: SDK_COVERAGE_MODE=error bun run src/scripts/validate-swagger-coverage.ts
+  # `spectral` removed: the underlying `lint:spec` script was deleted in
+  # the `chore(cleanup): F5.G` cleanup but this hook entry was missed.
   - name: unit
     cmd: bun test src
     runner: bun

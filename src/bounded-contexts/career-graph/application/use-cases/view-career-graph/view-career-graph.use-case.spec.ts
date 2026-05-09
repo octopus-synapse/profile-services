@@ -1,4 +1,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  CareerCohortEmptyException,
+  CareerGraphInvalidMaxBucketsException,
+  CareerGraphRepositoryUnavailableException,
+  CareerGraphStackRequiredException,
+} from '../../../domain/exceptions/career-graph.exceptions';
 import { InMemoryCareerCohortRepository } from '../../../testing';
 import { ViewCareerGraphUseCase } from './view-career-graph.use-case';
 
@@ -77,16 +83,42 @@ describe('ViewCareerGraphUseCase', () => {
     expect(out.totalPeers).toBe(3);
   });
 
-  it('returns empty outputs when no peers exist', async () => {
+  it('throws CareerCohortEmptyException when no peers exist', async () => {
     repo.setRequesterSnapshot({ experienceYears: 5, jobTitle: null });
-    const out = await useCase.execute({
-      requesterId: 'user-1',
-      stack: ['obscure-framework'],
-      maxBuckets: 20,
-    });
-    expect(out.totalPeers).toBe(0);
-    expect(out.current).toBeNull();
-    expect(out.buckets).toEqual([]);
-    expect(out.projections.every((p) => p.bucket === null)).toBe(true);
+    await expect(
+      useCase.execute({
+        requesterId: 'user-1',
+        stack: ['obscure-framework'],
+        maxBuckets: 20,
+      }),
+    ).rejects.toBeInstanceOf(CareerCohortEmptyException);
+  });
+
+  it('throws CareerGraphStackRequiredException when stack is empty', async () => {
+    await expect(
+      useCase.execute({ requesterId: 'user-1', stack: [], maxBuckets: 20 }),
+    ).rejects.toBeInstanceOf(CareerGraphStackRequiredException);
+  });
+
+  it('throws CareerGraphInvalidMaxBucketsException for out-of-range maxBuckets', async () => {
+    await expect(
+      useCase.execute({ requesterId: 'user-1', stack: ['react'], maxBuckets: 0 }),
+    ).rejects.toBeInstanceOf(CareerGraphInvalidMaxBucketsException);
+    await expect(
+      useCase.execute({ requesterId: 'user-1', stack: ['react'], maxBuckets: 51 }),
+    ).rejects.toBeInstanceOf(CareerGraphInvalidMaxBucketsException);
+  });
+
+  it('throws CareerGraphRepositoryUnavailableException when the repo rejects', async () => {
+    const failingRepo = {
+      loadRequesterSnapshot: async () => {
+        throw new Error('db down');
+      },
+      loadCohortBuckets: async () => [],
+    } as never;
+    const uc = new ViewCareerGraphUseCase(failingRepo);
+    await expect(
+      uc.execute({ requesterId: 'user-1', stack: ['react'], maxBuckets: 20 }),
+    ).rejects.toBeInstanceOf(CareerGraphRepositoryUnavailableException);
   });
 });

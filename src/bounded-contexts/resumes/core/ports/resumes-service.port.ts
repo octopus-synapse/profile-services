@@ -57,7 +57,7 @@ export type ResumeResult = {
 };
 
 export abstract class ResumesServicePort {
-  abstract findAllUserResumes(
+  abstract listUserResumes(
     userId: string,
     page?: number,
     limit?: number,

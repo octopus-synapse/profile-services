@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain';
 import { type EventPublisher, EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
+import {
+  ExportBannerGenerationFailedException,
+  ExportEngineFailedException,
+  ExportPdfGenerationFailedException,
+  ExportPipelineFailedException,
+} from '../../domain/exceptions/export.exceptions';
 import { ExportPipelineService } from './export-pipeline.service';
 
 class RecordingEventPublisher extends EventPublisherPort {
@@ -33,7 +38,7 @@ describe('ExportPipelineService', () => {
       expect(events.published[1]?.constructor.name).toBe('ExportCompletedEvent');
     });
 
-    it('emits Failed and throws ExportPipelineFailedException when the task throws', async () => {
+    it('emits Failed and wraps raw errors in ExportEngineFailedException when the task throws', async () => {
       const events = new RecordingEventPublisher();
       const pipeline = new ExportPipelineService(asPublisher(events));
 
@@ -41,7 +46,19 @@ describe('ExportPipelineService', () => {
         throw new Error('boom');
       });
 
-      await expect(promise).rejects.toBeInstanceOf(ExportPipelineFailedException);
+      await expect(promise).rejects.toBeInstanceOf(ExportEngineFailedException);
+      expect(events.published[1]?.constructor.name).toBe('ExportFailedEvent');
+    });
+
+    it('preserves typed domain exceptions raised inside the task', async () => {
+      const events = new RecordingEventPublisher();
+      const pipeline = new ExportPipelineService(asPublisher(events));
+
+      const promise = pipeline.run('pdf', 'user-1', async () => {
+        throw new ExportPdfGenerationFailedException('renderer down');
+      });
+
+      await expect(promise).rejects.toBeInstanceOf(ExportPdfGenerationFailedException);
       expect(events.published[1]?.constructor.name).toBe('ExportFailedEvent');
     });
   });
@@ -58,7 +75,7 @@ describe('ExportPipelineService', () => {
       expect(events.published).toHaveLength(0);
     });
 
-    it('rethrows failures as ExportPipelineFailedException("banner")', async () => {
+    it('rethrows failures as ExportBannerGenerationFailedException', async () => {
       const events = new RecordingEventPublisher();
       const pipeline = new ExportPipelineService(asPublisher(events));
 
@@ -66,7 +83,12 @@ describe('ExportPipelineService', () => {
         throw new Error('render fail');
       });
 
-      await expect(promise).rejects.toBeInstanceOf(ExportPipelineFailedException);
+      await expect(promise).rejects.toBeInstanceOf(ExportBannerGenerationFailedException);
     });
   });
 });
+
+// `ExportPipelineFailedException` is still exported for callers that
+// orchestrate the pipeline themselves; the assertion below keeps a test-time
+// reference so the import is not flagged as unused.
+void ExportPipelineFailedException;

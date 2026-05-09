@@ -63,12 +63,12 @@ describe('Public Resumes Integration', () => {
       // envelope by the backend-audit hardening PR (#213). The duplicated
       // top-level fields (slug, resumeId, isActive, publicUrl) are gone.
       expect(response.status).toBe(201);
-      expect(response.body.data.share.slug).toBe('my-awesome-resume');
-      expect(response.body.data.share.resumeId).toBe(resumeId);
-      expect(response.body.data.share.isActive).toBe(true);
-      expect(response.body.data.share).toHaveProperty('publicUrl');
+      expect(response.body.share.slug).toBe('my-awesome-resume');
+      expect(response.body.share.resumeId).toBe(resumeId);
+      expect(response.body.share.isActive).toBe(true);
+      expect(response.body.share).toHaveProperty('publicUrl');
 
-      shareSlug = response.body.data.share.slug;
+      shareSlug = response.body.share.slug;
     });
 
     it('should create a password-protected share', async () => {
@@ -78,8 +78,8 @@ describe('Public Resumes Integration', () => {
         .send({ resumeId, password: 'secret123' });
 
       expect(response.status).toBe(201);
-      expect(response.body.data.share).toHaveProperty('slug');
-      expect(response.body.data.share.hasPassword).toBe(true);
+      expect(response.body.share).toHaveProperty('slug');
+      expect(response.body.share.hasPassword).toBe(true);
     });
 
     it('should list user shares for a resume', async () => {
@@ -88,10 +88,10 @@ describe('Public Resumes Integration', () => {
         .set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body.data.shares)).toBe(true);
-      expect(response.body.data.shares.length).toBeGreaterThanOrEqual(2);
-      expect(response.body.data.shares[0]).toHaveProperty('slug');
-      expect(response.body.data.shares[0]).toHaveProperty('resumeId');
+      expect(Array.isArray(response.body.shares)).toBe(true);
+      expect(response.body.shares.length).toBeGreaterThanOrEqual(2);
+      expect(response.body.shares[0]).toHaveProperty('slug');
+      expect(response.body.shares[0]).toHaveProperty('resumeId');
     });
 
     it('should access public resume via slug', async () => {
@@ -182,8 +182,8 @@ describe('Public Resumes Integration', () => {
         .send({ slug: aliasSlug });
 
       expect(response.status).toBe(201);
-      expect(response.body.data.alias.slug).toBe(aliasSlug);
-      expect(response.body.data.alias.shareId).toBe(aliasShareId);
+      expect(response.body.alias.slug).toBe(aliasSlug);
+      expect(response.body.alias.shareId).toBe(aliasShareId);
     });
 
     it('should resolve the public resume via alias slug', async () => {
@@ -211,17 +211,15 @@ describe('Public Resumes Integration', () => {
         .set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(response.body.data.aliases.length).toBeGreaterThanOrEqual(1);
-      expect(response.body.data.aliases.some((a: { slug: string }) => a.slug === aliasSlug)).toBe(
-        true,
-      );
+      expect(response.body.aliases.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.aliases.some((a: { slug: string }) => a.slug === aliasSlug)).toBe(true);
     });
 
     it('should remove the alias and stop resolving', async () => {
       const list = await getRequest()
         .get(`/api/v1/shares/${aliasShareId}/aliases`)
         .set(authHeader());
-      const target = list.body.data.aliases.find((a: { slug: string }) => a.slug === aliasSlug);
+      const target = list.body.aliases.find((a: { slug: string }) => a.slug === aliasSlug);
       expect(target).toBeDefined();
 
       const del = await getRequest()
@@ -246,7 +244,7 @@ describe('Public Resumes Integration', () => {
       expect(response.status).toBe(201);
       const prisma = getPrisma();
       const share = await prisma.resumeShare.findUnique({
-        where: { slug: response.body.data.share.slug },
+        where: { slug: response.body.share.slug },
       });
       if (!share) throw new Error('share was not persisted');
       qrShareId = share.id;

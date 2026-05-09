@@ -27,6 +27,7 @@ interface StoredUser {
   emailVerified: Date | null;
   passwordHash: string | null;
   role: 'USER' | 'ADMIN';
+  roles: string[];
   isActive: boolean;
   lastLoginAt: Date | null;
   resumes: {
@@ -63,6 +64,7 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       emailVerified: user.emailVerified ?? null,
       passwordHash: user.passwordHash ?? null,
       role: user.role ?? 'USER',
+      roles: user.roles ?? [user.role === 'ADMIN' ? 'role_admin' : 'role_user'],
       isActive: user.isActive ?? true,
       lastLoginAt: user.lastLoginAt ?? null,
       resumes: user.resumes ?? [],
@@ -153,9 +155,7 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       emailVerified: user.emailVerified,
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt ?? null,
-      roles: (user as { roles?: string[] }).roles ?? [
-        user.role === 'ADMIN' ? 'role_admin' : 'role_user',
-      ],
+      roles: user.roles,
       resumes: user.resumes,
       preferences: user.preferences,
       counts: user.counts,
@@ -181,6 +181,7 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       emailVerified: null,
       passwordHash: data.hashedPassword,
       role: 'USER',
+      roles: ['role_user'],
       isActive: true,
       lastLoginAt: null,
       resumes: [],
@@ -222,6 +223,14 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
     const user = this.users.get(userId);
     if (user) {
       user.passwordHash = hashedPassword;
+      user.updatedAt = new Date();
+    }
+  }
+
+  async setUserRoles(userId: string, roles: readonly string[]): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.roles = [...roles];
       user.updatedAt = new Date();
     }
   }

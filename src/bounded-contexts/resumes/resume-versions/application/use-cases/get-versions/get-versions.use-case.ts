@@ -6,7 +6,7 @@
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import type { ResumeVersionListItem } from '../../../domain/entities/resume-version';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
 

@@ -13,3 +13,5 @@ export const LoginCredentialsSchema = z.object({
 });
 
 export type LoginCredentials = z.infer<typeof LoginCredentialsSchema>;
+
+export type LoginCredentialsDto = z.infer<typeof LoginCredentialsSchema>;

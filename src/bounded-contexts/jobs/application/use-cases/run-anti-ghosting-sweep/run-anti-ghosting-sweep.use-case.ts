@@ -107,8 +107,7 @@ export class RunAntiGhostingSweepUseCase {
         `Anti-ghosting reminder failed for app ${candidate.id}: ${
           err instanceof Error ? err.message : 'unknown'
         }`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
       );
     }
   }

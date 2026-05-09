@@ -5,15 +5,18 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { SuccessStoriesUseCases } from './application/ports/success-stories.port';
 import {
   CreateSuccessStorySchema,
   UpdateSuccessStorySchema,
-} from './dto/success-story-request.dto';
-
-const IdParam = z.object({ id: z.string() });
-const LimitQuery = z.object({ limit: z.string().optional() });
+} from './dto/success-story-request.schema';
+import {
+  IdParam,
+  LimitQuery,
+  SuccessStoriesListResponseSchema,
+  SuccessStoryIdResponseSchema,
+} from './success-stories.routes.schemas';
 
 export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> = [
   {
@@ -21,6 +24,8 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     path: '/v1/success-stories',
     auth: { kind: 'public' },
     query: LimitQuery,
+    response: SuccessStoriesListResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=300' },
     openapi: {
       summary: 'Published success stories for the landing carousel.',
       tags: ['success-stories'],
@@ -30,7 +35,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const { limit } = ctx.query as { limit?: string };
       const stories = await bc.listPublished.execute(limit ? Number(limit) : undefined);
-      return { success: true, data: { stories } };
+      return { stories };
     },
   },
   {
@@ -39,6 +44,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: CreateSuccessStorySchema,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Create a success story (admin).',
       tags: ['success-stories'],
@@ -48,7 +54,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const body = ctx.body as z.infer<typeof CreateSuccessStorySchema>;
       const created = await bc.create.execute(body);
-      return { success: true, data: { id: created.id } };
+      return { id: created.id };
     },
   },
   {
@@ -58,6 +64,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
     body: UpdateSuccessStorySchema,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Update a success story (admin).',
       tags: ['success-stories'],
@@ -68,7 +75,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof UpdateSuccessStorySchema>;
       const updated = await bc.update.execute(id, body);
-      return { success: true, data: { id: updated.id } };
+      return { id: updated.id };
     },
   },
   {
@@ -77,6 +84,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParam,
+    response: SuccessStoryIdResponseSchema,
     openapi: {
       summary: 'Delete a success story (admin).',
       tags: ['success-stories'],
@@ -86,7 +94,7 @@ export const successStoriesRoutes: ReadonlyArray<Route<SuccessStoriesUseCases>> 
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.delete.execute(id);
-      return { success: true, data: { id } };
+      return { id };
     },
   },
 ];

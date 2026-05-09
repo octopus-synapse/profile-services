@@ -11,23 +11,11 @@ import { AuditAction, Prisma } from '@prisma/client';
 import type { Request } from 'express';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { AuditLogFailedException } from '../exceptions/platform.exceptions';
+import { extractAuditMetadata } from './audit-log.helpers';
+import type { AuditMetadata, RequestMetadataSource } from './audit-log.types';
 
-export interface AuditMetadata {
-  ipAddress?: string;
-  userAgent?: string;
-  referer?: string;
-  geo?: string;
-  [key: string]: string | undefined;
-}
-
-export interface RequestMetadataSource {
-  ip?: string;
-  headers?: Request['headers'];
-  method?: string;
-  originalUrl?: string;
-  path?: string;
-  socket?: { remoteAddress?: string };
-}
+export type { AuditMetadata, RequestMetadataSource };
 
 export class AuditLogService {
   constructor(
@@ -36,13 +24,18 @@ export class AuditLogService {
   ) {}
 
   /**
-   * Log an audit event
+   * Log an audit event.
+   *
    * @param userId User performing the action
    * @param action Type of action performed
    * @param entityType Entity type affected (e.g., 'User', 'Resume')
    * @param entityId ID of affected entity
    * @param changes Optional before/after state snapshot
    * @param request Optional Express request object for metadata extraction
+   * @param options.lenient When `true`, audit-write failures are logged
+   *   and swallowed (the parent operation continues). Default `false` —
+   *   per Q51+Q52 in the duplication audit, audit failures are
+   *   compliance failures and propagate as `AuditLogFailedException`.
    */
   async log(
     userId: string,
@@ -51,9 +44,10 @@ export class AuditLogService {
     entityId: string,
     changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
     request?: RequestMetadataSource,
+    options: { lenient?: boolean } = {},
   ): Promise<void> {
     try {
-      const metadata = this.extractMetadata(request);
+      const metadata = extractAuditMetadata(request);
 
       await this.prisma.auditLog.create({
         data: {
@@ -76,20 +70,41 @@ export class AuditLogService {
         entityId,
       });
     } catch (error) {
-      // Never fail the main operation due to audit logging
+      const reason = error instanceof Error ? error.message : 'unknown error';
       this.logger.error(
-        'Failed to create audit log',
-        error instanceof Error ? error.stack : 'Unknown error',
-        'AuditLogService',
+        options.lenient
+          ? 'Audit log write failed (lenient — swallowed)'
+          : 'Audit log write failed — propagating to caller',
         {
+          context: 'AuditLogService',
+          stack: error instanceof Error ? error.stack : 'Unknown error',
           userId,
           action,
           entityType,
           entityId,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          reason,
         },
       );
+      if (!options.lenient) {
+        throw new AuditLogFailedException(reason);
+      }
     }
+  }
+
+  /**
+   * @deprecated Strict is now the default for `log()`. Kept as a
+   * source-compat facade per Q52 in the duplication audit; remove
+   * after callers migrate.
+   */
+  async logStrict(
+    userId: string,
+    action: AuditAction,
+    entityType: string,
+    entityId: string,
+    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue },
+    request?: RequestMetadataSource,
+  ): Promise<void> {
+    return this.log(userId, action, entityType, entityId, changes, request);
   }
 
   /**
@@ -250,44 +265,6 @@ export class AuditLogService {
         },
       },
     });
-  }
-
-  /**
-   * Extract metadata from Express request
-   */
-  private extractMetadata(request?: RequestMetadataSource): {
-    ipAddress?: string;
-    userAgent?: string;
-    metadata?: Prisma.InputJsonValue;
-  } {
-    if (!request) {
-      return {};
-    }
-
-    const headers = request.headers ?? {};
-    const forwardedForValue = headers['x-forwarded-for'];
-    const forwardedFor = Array.isArray(forwardedForValue)
-      ? forwardedForValue[0]
-      : forwardedForValue;
-    const userAgentValue = headers['user-agent'];
-    const userAgent = Array.isArray(userAgentValue) ? userAgentValue[0] : userAgentValue;
-    const refererValue = headers.referer;
-    const referer = Array.isArray(refererValue) ? refererValue[0] : refererValue;
-
-    const ipAddress =
-      (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : undefined) ??
-      request.ip ??
-      request.socket?.remoteAddress;
-
-    return {
-      ipAddress,
-      userAgent: typeof userAgent === 'string' ? userAgent : undefined,
-      metadata: {
-        referer: typeof referer === 'string' ? referer : undefined,
-        method: request.method,
-        path: request.path,
-      },
-    };
   }
 
   /**

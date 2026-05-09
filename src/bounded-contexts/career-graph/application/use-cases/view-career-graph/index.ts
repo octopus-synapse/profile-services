@@ -3,5 +3,5 @@ export type {
   CareerGraphProjectionOutput,
   ViewCareerGraphInput,
   ViewCareerGraphOutput,
-} from './view-career-graph.dto';
+} from './view-career-graph.schema';
 export { ViewCareerGraphUseCase } from './view-career-graph.use-case';

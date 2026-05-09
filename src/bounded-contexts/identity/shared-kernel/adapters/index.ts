@@ -3,5 +3,3 @@
  */
 
 export type { EventBusPort } from '../ports/event-bus.port';
-
-export * from './services';

@@ -5,10 +5,10 @@
  * TechSkillsQueryService depends on abstractions instead of concrete siblings.
  */
 
-import type { ProgrammingLanguage } from '../../dto/programming-language.dto';
-import type { TechArea } from '../../dto/tech-area.dto';
-import type { TechNiche } from '../../dto/tech-niche.dto';
-import type { TechSkill } from '../../dto/tech-skill.dto';
+import type { ProgrammingLanguage } from '../../dto/programming-language.schema';
+import type { TechArea } from '../../dto/tech-area.schema';
+import type { TechNiche } from '../../dto/tech-niche.schema';
+import type { TechSkill } from '../../dto/tech-skill.schema';
 import type { SkillType, TechAreaType } from '../../interfaces';
 
 export abstract class TechAreaQueryPort {

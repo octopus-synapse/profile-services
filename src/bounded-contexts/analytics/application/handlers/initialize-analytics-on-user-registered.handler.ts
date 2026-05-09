@@ -10,7 +10,7 @@
  */
 
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
-import type { LoggerPort } from '@/shared-kernel';
+import { type LoggerPort, redactEmail } from '@/shared-kernel';
 
 export class InitializeAnalyticsOnUserRegisteredHandler {
   constructor(private readonly logger: LoggerPort) {}
@@ -19,7 +19,7 @@ export class InitializeAnalyticsOnUserRegisteredHandler {
     // Future: Initialize user-level analytics aggregations
     // Current design: Analytics projections are per-resume, created by SyncProjectionOnResumeCreatedHandler
     this.logger.debug(
-      `User registered: ${event.aggregateId} (${event.payload.email}) - analytics will be initialized per-resume`,
+      `User registered: ${event.aggregateId} (${redactEmail(event.payload.email)}) - analytics will be initialized per-resume`,
     );
   }
 }

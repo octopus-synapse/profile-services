@@ -6,6 +6,12 @@
  * and converted to HTTP responses by the application layer.
  */
 
+import type {
+  ErrorSeverity,
+  SuggestedAction,
+} from '@/bounded-contexts/platform/i18n/domain/error-envelope';
+import type { DomainCode, DomainCodeParam } from '@/shared-kernel/i18n/domain-code';
+
 /**
  * Base class for all domain exceptions.
  *
@@ -14,16 +20,32 @@
  * - `statusHint`: the HTTP status the filter should emit when this class
  *   reaches the HTTP boundary unhandled.
  *
- * Both fields are `abstract readonly` so TypeScript breaks compilation if a
- * new exception class forgets either. That is the first line of enforcement;
- * the arch test in `test/static-analysis/architecture/` is the second.
+ * `severity` and `suggestedAction` carry UX hints to the frontend. The base
+ * class supplies safe defaults (`'toast'`, no action) so adding the fields
+ * across the codebase is non-breaking; specific subclasses override.
  */
+export interface DomainExceptionOptions {
+  /**
+   * Original error this exception wraps. Preserves the upstream
+   * stack and message in the cause chain so logs surface the real
+   * fault even when it's been re-thrown as a typed domain exception.
+   * Forwarded straight to the native `Error` constructor (ES2022).
+   */
+  readonly cause?: unknown;
+}
+
 export abstract class DomainException extends Error {
   abstract readonly code: string;
   abstract readonly statusHint: number;
+  readonly severity: ErrorSeverity = 'toast';
+  readonly suggestedAction?: SuggestedAction;
 
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options: DomainExceptionOptions = {}) {
+    // ES2022 `Error` accepts `{ cause }`; pass through verbatim so
+    // `err.cause` is populated on the native Error chain. Subclasses
+    // that previously called `super(message)` continue to work because
+    // the second arg is optional.
+    super(message, options.cause !== undefined ? { cause: options.cause } : undefined);
     this.name = this.constructor.name;
     // Maintains proper stack trace in V8 environments
     Error.captureStackTrace?.(this, this.constructor);
@@ -31,8 +53,89 @@ export abstract class DomainException extends Error {
 
   /** Plain-object representation used by the exception filter and logs. */
   toJSON(): Record<string, unknown> {
-    return { code: this.code, message: this.message, name: this.name };
+    const json: Record<string, unknown> = {
+      code: this.code,
+      message: this.message,
+      name: this.name,
+    };
+    if (this.cause !== undefined) {
+      json.cause =
+        this.cause instanceof Error
+          ? { name: this.cause.name, message: this.cause.message }
+          : this.cause;
+    }
+    return json;
   }
+
+  /**
+   * View this exception as a `DomainCode` so route handlers / mappers can
+   * pass it to `localizeDomainCode` and produce a `{ code, message, params }`
+   * envelope identical to one assembled from a non-throwable code (e.g. a
+   * validation result inside a 200 response). The shared primitive keeps
+   * the i18n pipeline single-pathway.
+   *
+   * Subclasses do not need to override — the params come from own
+   * enumerable properties via `extractDomainCodeParams`. Override only when
+   * the default field-walking is wrong (rare).
+   */
+  toDomainCode(): DomainCode {
+    return {
+      code: this.code,
+      params: extractDomainCodeParams(this),
+      severity: this.severity,
+    };
+  }
+}
+
+/**
+ * Field-denylist for `extractDomainCodeParams`. These belong to the
+ * exception envelope shape, not to the i18n template's params.
+ */
+const FRAMEWORK_FIELDS = new Set([
+  'code',
+  'statusHint',
+  'severity',
+  'suggestedAction',
+  'message',
+  'name',
+  'stack',
+  'cause',
+]);
+
+function isPrimitiveParam(value: unknown): value is DomainCodeParam {
+  return (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
+/**
+ * Pull i18n template params from a `DomainException` instance by reading
+ * its own enumerable properties (skipping the framework envelope fields).
+ *
+ * Lifted out of `error.mapper.ts` so both `DomainException.toDomainCode()`
+ * and the mapper can share a single implementation; the mapper now imports
+ * this helper instead of redefining its own.
+ */
+export function extractDomainCodeParams(
+  exception: DomainException,
+): Readonly<Record<string, DomainCodeParam>> {
+  const out: Record<string, DomainCodeParam> = {};
+  for (const key of Object.keys(exception)) {
+    if (FRAMEWORK_FIELDS.has(key)) continue;
+    const value = Reflect.get(exception, key);
+    if (isPrimitiveParam(value)) {
+      out[key] = value;
+    } else if (Array.isArray(value)) {
+      const scalars = value.filter(isPrimitiveParam);
+      if (scalars.length === value.length) {
+        out[key] = scalars.join(', ');
+      }
+    }
+  }
+  return out;
 }
 
 /**
@@ -42,6 +145,7 @@ export abstract class DomainException extends Error {
 export class EntityNotFoundException extends DomainException {
   readonly code: string = 'ENTITY_NOT_FOUND';
   readonly statusHint = 404;
+  override readonly severity: ErrorSeverity = 'inline';
 
   constructor(
     public readonly entityType: string,
@@ -62,6 +166,7 @@ export class EntityNotFoundException extends DomainException {
 export class ConflictException extends DomainException {
   readonly code: string = 'CONFLICT';
   readonly statusHint = 409;
+  override readonly severity: ErrorSeverity = 'toast';
 
   constructor(message: string) {
     super(message);
@@ -75,6 +180,7 @@ export class ConflictException extends DomainException {
 export class UnauthorizedException extends DomainException {
   readonly code: string = 'UNAUTHORIZED';
   readonly statusHint = 401;
+  override readonly severity: ErrorSeverity = 'modal';
 
   constructor(message = 'Unauthorized') {
     super(message);
@@ -88,6 +194,7 @@ export class UnauthorizedException extends DomainException {
 export class ForbiddenException extends DomainException {
   readonly code: string = 'FORBIDDEN';
   readonly statusHint = 403;
+  override readonly severity: ErrorSeverity = 'toast';
 
   constructor(message = 'Access denied') {
     super(message);
@@ -101,6 +208,7 @@ export class ForbiddenException extends DomainException {
 export class ValidationException extends DomainException {
   readonly code: string = 'VALIDATION_ERROR';
   readonly statusHint = 400;
+  override readonly severity: ErrorSeverity = 'inline';
 
   constructor(
     message: string,
@@ -117,6 +225,7 @@ export class ValidationException extends DomainException {
 export class BusinessRuleViolationException extends DomainException {
   readonly code: string = 'BUSINESS_RULE_VIOLATION';
   readonly statusHint = 422;
+  override readonly severity: ErrorSeverity = 'banner';
 
   constructor(message: string) {
     super(message);
@@ -129,7 +238,8 @@ export class BusinessRuleViolationException extends DomainException {
  */
 export class LimitExceededException extends DomainException {
   readonly code: string = 'LIMIT_EXCEEDED';
-  readonly statusHint = 422;
+  readonly statusHint = 429;
+  override readonly severity: ErrorSeverity = 'modal';
 
   constructor(
     public readonly limitType: string,

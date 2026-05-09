@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import JSZip from 'jszip';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { BundleAssemblyPartialException } from '../../../domain/exceptions/export.exceptions';
 import { ExportBundleUseCase } from './export-bundle.use-case';
 
 const pdfStub = { execute: async () => Buffer.from('%PDF-1.4 stub', 'utf-8') };
@@ -95,5 +96,18 @@ describe('ExportBundleUseCase', () => {
     expect(names).toContain('resume.pdf');
     expect(names).toContain('resume.docx');
     expect(names).toContain('resume.json');
+  });
+
+  it('throws BundleAssemblyPartialException in strict mode when a format fails', async () => {
+    const failingDocx = {
+      execute: async () => {
+        throw new Error('docx engine down');
+      },
+    };
+    const useCase = new ExportBundleUseCase(pdfStub, failingDocx, jsonStub, stubLogger);
+
+    await expect(
+      useCase.execute({ userId: 'user-1', resumeId: 'resume-1', strict: true }),
+    ).rejects.toBeInstanceOf(BundleAssemblyPartialException);
   });
 });

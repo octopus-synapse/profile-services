@@ -15,7 +15,7 @@ export interface AdminTechNichesListQuery {
 }
 
 export abstract class AdminTechNichesRepositoryPort {
-  abstract findAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>>;
+  abstract listAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>>;
   abstract findOne(id: string): Promise<TechNiche | null>;
   abstract create(input: Record<string, unknown>): Promise<TechNiche>;
   abstract update(id: string, input: Record<string, unknown>): Promise<TechNiche>;

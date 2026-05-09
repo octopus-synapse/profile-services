@@ -26,8 +26,9 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed-runner';
+import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
+import { seedDreddFixtures } from '../../../prisma/seeds/dredd-fixtures.seed';
 import { seedOnboardingSteps } from '../../../prisma/seeds/onboarding-step.seed';
 import { seedResumeStyles } from '../../../prisma/seeds/resume-styles.seed';
 import { seedSectionTypes } from '../../../prisma/seeds/section-type.seed';
@@ -157,6 +158,7 @@ export async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
     seedResumeStyles(prisma, adminId),
   ];
   await Promise.all(tasks);
+  await seedDreddFixtures(prisma, adminId);
 }
 
 async function ensureAdminUser(prisma: PrismaClient): Promise<string> {

@@ -18,7 +18,7 @@ export class UnknownScreenException extends DomainException {
 }
 
 export class UnknownEventException extends ValidationException {
-  readonly code: string = 'UNKNOWN_EVENT';
+  override readonly code: string = 'UNKNOWN_EVENT';
   constructor(eventName: string) {
     super(`Event "${eventName}" is not registered`);
   }
@@ -33,14 +33,14 @@ export class ScreenRenderFailedException extends DomainException {
 }
 
 export class AnalyticsForbiddenException extends ForbiddenException {
-  readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
+  override readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
   constructor() {
     super('Analytics tracking requires explicit user consent');
   }
 }
 
 export class ResumeShareSlugInvalidException extends ValidationException {
-  readonly code: string = 'RESUME_SHARE_SLUG_INVALID';
+  override readonly code: string = 'RESUME_SHARE_SLUG_INVALID';
   constructor() {
     super('Invalid slug format. Use alphanumeric characters and hyphens only.');
   }
@@ -55,21 +55,21 @@ export class ResumeShareSlugTakenException extends DomainException {
 }
 
 export class ResumeShareAccessDeniedException extends ForbiddenException {
-  readonly code: string = 'RESUME_SHARE_ACCESS_DENIED';
+  override readonly code: string = 'RESUME_SHARE_ACCESS_DENIED';
   constructor() {
     super('You do not have access to this share');
   }
 }
 
 export class ResumeShareAliasAccessDeniedException extends ForbiddenException {
-  readonly code: string = 'RESUME_SHARE_ALIAS_ACCESS_DENIED';
+  override readonly code: string = 'RESUME_SHARE_ALIAS_ACCESS_DENIED';
   constructor() {
     super('You do not have access to this alias');
   }
 }
 
 export class ResumeAccessDeniedException extends ForbiddenException {
-  readonly code: string = 'RESUME_ACCESS_DENIED';
+  override readonly code: string = 'RESUME_ACCESS_DENIED';
   constructor() {
     super('You do not have access to this resume');
   }
@@ -100,21 +100,21 @@ export class ShareExpiredException extends DomainException {
 }
 
 export class SharePasswordRequiredException extends ForbiddenException {
-  readonly code: string = 'SHARE_PASSWORD_REQUIRED';
+  override readonly code: string = 'SHARE_PASSWORD_REQUIRED';
   constructor() {
     super('Password required');
   }
 }
 
 export class SharePasswordInvalidException extends ForbiddenException {
-  readonly code: string = 'SHARE_PASSWORD_INVALID';
+  override readonly code: string = 'SHARE_PASSWORD_INVALID';
   constructor() {
     super('Invalid password');
   }
 }
 
 export class OnlyAdminsCanDoThisException extends ForbiddenException {
-  readonly code: string = 'ONLY_ADMINS_CAN_DO_THIS';
+  override readonly code: string = 'ONLY_ADMINS_CAN_DO_THIS';
   constructor() {
     super('Only admins can perform this action');
   }
@@ -161,14 +161,14 @@ export class ShareLinkExpiredException extends DomainException {
  * validation error.
  */
 export class QrUrlRequiredException extends ValidationException {
-  readonly code: string = 'QR_URL_REQUIRED';
+  override readonly code: string = 'QR_URL_REQUIRED';
   constructor() {
     super('A non-empty URL is required to generate the QR code');
   }
 }
 
 export class UrlRequiredException extends ValidationException {
-  readonly code: string = 'URL_REQUIRED';
+  override readonly code: string = 'URL_REQUIRED';
   constructor() {
     super('A non-empty URL is required');
   }

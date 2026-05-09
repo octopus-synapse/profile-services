@@ -20,7 +20,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper, TestUser } from '../helpers/auth.helper';
+import type { AuthHelper, TestUser } from '../../shared/auth.helper';
 import { ChatHelper } from '../helpers/chat.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
@@ -83,47 +83,45 @@ describe('E2E Journey: Chat', () => {
   describe('Step 1: Initial State', () => {
     it.serial('should have no conversations initially', async () => {
       const response = await app.request
-        .get('/api/chat/conversations')
+        .get('/api/v1/chat/conversations')
         .set('Authorization', `Bearer ${user1.token}`);
 
       if (response.status !== 200) {
         console.log('Response body:', JSON.stringify(response.body, null, 2));
       }
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.conversations.conversations).toHaveLength(0);
+      expect(response.body.conversations.conversations).toHaveLength(0);
     });
 
     it.serial('should have zero unread count initially', async () => {
       const response = await app.request
-        .get('/api/chat/unread')
+        .get('/api/v1/chat/unread')
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.totalUnread).toBe(0);
+      expect(response.body.totalUnread).toBe(0);
     });
   });
 
   describe('Step 2: Send First Message', () => {
     it.serial('should send a message and create conversation', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({ recipientId: user2.userId, content: 'Hello from User 1!' });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.message).toBeDefined();
-      expect(response.body.data.message.content).toBe('Hello from User 1!');
-      expect(response.body.data.message.senderId).toBe(user1.userId);
-      expect(response.body.data.message.conversationId).toBeDefined();
+      expect(response.body.message).toBeDefined();
+      expect(response.body.message.content).toBe('Hello from User 1!');
+      expect(response.body.message.senderId).toBe(user1.userId);
+      expect(response.body.message.conversationId).toBeDefined();
 
-      conversationId = response.body.data.message.conversationId;
+      conversationId = response.body.message.conversationId;
     });
 
     it.serial('should reject messaging yourself', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({ recipientId: user1.userId, content: 'Hello to myself' });
 
@@ -134,13 +132,13 @@ describe('E2E Journey: Chat', () => {
   describe('Step 3: Verify Conversation Created', () => {
     it.serial('user1 should see the conversation', async () => {
       const response = await app.request
-        .get('/api/chat/conversations')
+        .get('/api/v1/chat/conversations')
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.conversations.conversations.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.conversations.conversations.length).toBeGreaterThanOrEqual(1);
 
-      const conv = response.body.data.conversations.conversations.find(
+      const conv = response.body.conversations.conversations.find(
         (c: { id: string }) => c.id === conversationId,
       );
       expect(conv).toBeDefined();
@@ -149,43 +147,43 @@ describe('E2E Journey: Chat', () => {
 
     it.serial('user2 should see the conversation', async () => {
       const response = await app.request
-        .get('/api/chat/conversations')
+        .get('/api/v1/chat/conversations')
         .set('Authorization', `Bearer ${user2.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.conversations.conversations.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.conversations.conversations.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should get conversation details', async () => {
       const response = await app.request
-        .get(`/api/chat/conversations/${conversationId}`)
+        .get(`/api/v1/chat/conversations/${conversationId}`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.conversation).toBeDefined();
-      expect(response.body.data.conversation.id).toBe(conversationId);
+      expect(response.body.conversation).toBeDefined();
+      expect(response.body.conversation.id).toBe(conversationId);
     });
 
     it.serial('should get conversation with user', async () => {
       const response = await app.request
-        .get(`/api/chat/conversation-with/${user2.userId}`)
+        .get(`/api/v1/chat/conversation-with/${user2.userId}`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.conversationId).toBe(conversationId);
+      expect(response.body.conversationId).toBe(conversationId);
     });
   });
 
   describe('Step 4: User 2 Replies', () => {
     it.serial('should send reply to existing conversation', async () => {
       const response = await app.request
-        .post(`/api/chat/conversations/${conversationId}/messages`)
+        .post(`/api/v1/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${user2.token}`)
         .send({ content: 'Hello back from User 2!' });
 
       expect(response.status).toBe(201);
-      expect(response.body.data.message.content).toBe('Hello back from User 2!');
-      expect(response.body.data.message.senderId).toBe(user2.userId);
+      expect(response.body.message.content).toBe('Hello back from User 2!');
+      expect(response.body.message.senderId).toBe(user2.userId);
     });
 
     it.serial('should reject non-participant sending to conversation', async () => {
@@ -196,7 +194,7 @@ describe('E2E Journey: Chat', () => {
       await chatHelper.grantChatPermission(result3.userId);
 
       const response = await app.request
-        .post(`/api/chat/conversations/${conversationId}/messages`)
+        .post(`/api/v1/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${result3.token}`)
         .send({ content: 'Intruder message' });
 
@@ -210,13 +208,13 @@ describe('E2E Journey: Chat', () => {
   describe('Step 5: Message History', () => {
     it.serial('should get messages for conversation', async () => {
       const response = await app.request
-        .get(`/api/chat/conversations/${conversationId}/messages`)
+        .get(`/api/v1/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.messages.messages).toHaveLength(2);
+      expect(response.body.messages.messages).toHaveLength(2);
 
-      const messages = response.body.data.messages.messages;
+      const messages = response.body.messages.messages;
       expect(messages.some((m: { content: string }) => m.content === 'Hello from User 1!')).toBe(
         true,
       );
@@ -227,13 +225,13 @@ describe('E2E Journey: Chat', () => {
 
     it.serial('should support pagination with limit', async () => {
       const response = await app.request
-        .get(`/api/chat/conversations/${conversationId}/messages`)
+        .get(`/api/v1/chat/conversations/${conversationId}/messages`)
         .query({ limit: 1 })
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.messages.messages).toHaveLength(1);
-      expect(response.body.data.messages.hasMore).toBe(true);
+      expect(response.body.messages.messages).toHaveLength(1);
+      expect(response.body.messages.hasMore).toBe(true);
     });
 
     it.serial('should reject non-participant viewing messages', async () => {
@@ -243,7 +241,7 @@ describe('E2E Journey: Chat', () => {
       await chatHelper.grantChatPermission(result3.userId);
 
       const response = await app.request
-        .get(`/api/chat/conversations/${conversationId}/messages`)
+        .get(`/api/v1/chat/conversations/${conversationId}/messages`)
         .set('Authorization', `Bearer ${result3.token}`);
 
       expect(response.status).toBe(403);
@@ -255,69 +253,69 @@ describe('E2E Journey: Chat', () => {
   describe('Step 6: Unread Count', () => {
     it.serial('user1 should have unread messages from user2', async () => {
       const response = await app.request
-        .get('/api/chat/unread')
+        .get('/api/v1/chat/unread')
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
       // User 1 has 1 unread (the reply from User 2)
-      expect(response.body.data.totalUnread).toBe(1);
-      expect(response.body.data.byConversation[conversationId]).toBe(1);
+      expect(response.body.totalUnread).toBe(1);
+      expect(response.body.byConversation[conversationId]).toBe(1);
     });
   });
 
   describe('Step 7: Mark as Read', () => {
     it.serial('should mark messages as read', async () => {
       const response = await app.request
-        .post(`/api/chat/conversations/${conversationId}/read`)
+        .post(`/api/v1/chat/conversations/${conversationId}/read`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(201);
-      expect(response.body.data.count).toBeDefined();
+      expect(response.body.count).toBeDefined();
     });
 
     it.serial('should have zero unread after marking as read', async () => {
       const response = await app.request
-        .get('/api/chat/unread')
+        .get('/api/v1/chat/unread')
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.totalUnread).toBe(0);
+      expect(response.body.totalUnread).toBe(0);
     });
   });
 
   describe('Step 8: Block User', () => {
     it.serial('should block a user', async () => {
       const response = await app.request
-        .post('/api/chat/blocked')
+        .post('/api/v1/chat/blocked')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({ userId: user2.userId });
 
       expect(response.status).toBe(201);
-      expect(response.body.data.block).toBeDefined();
+      expect(response.body.block).toBeDefined();
     });
 
     it.serial('should list blocked users', async () => {
       const response = await app.request
-        .get('/api/chat/blocked')
+        .get('/api/v1/chat/blocked')
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.blockedUsers).toBeDefined();
-      expect(response.body.data.blockedUsers.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.blockedUsers).toBeDefined();
+      expect(response.body.blockedUsers.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should check if user is blocked', async () => {
       const response = await app.request
-        .get(`/api/chat/blocked/${user2.userId}/status`)
+        .get(`/api/v1/chat/blocked/${user2.userId}/status`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isBlocked).toBe(true);
+      expect(response.body.isBlocked).toBe(true);
     });
 
     it.serial('should prevent sending message to blocked user', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({ recipientId: user2.userId, content: 'Message to blocked user' });
 
@@ -326,7 +324,7 @@ describe('E2E Journey: Chat', () => {
 
     it.serial('blocked user should not be able to send messages', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .set('Authorization', `Bearer ${user2.token}`)
         .send({ recipientId: user1.userId, content: 'Message from blocked user' });
 
@@ -337,7 +335,7 @@ describe('E2E Journey: Chat', () => {
   describe('Step 9: Unblock User', () => {
     it.serial('should unblock a user', async () => {
       const response = await app.request
-        .delete(`/api/chat/blocked/${user2.userId}`)
+        .delete(`/api/v1/chat/blocked/${user2.userId}`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(204);
@@ -345,34 +343,34 @@ describe('E2E Journey: Chat', () => {
 
     it.serial('should verify user is unblocked', async () => {
       const response = await app.request
-        .get(`/api/chat/blocked/${user2.userId}/status`)
+        .get(`/api/v1/chat/blocked/${user2.userId}/status`)
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isBlocked).toBe(false);
+      expect(response.body.isBlocked).toBe(false);
     });
 
     it.serial('should be able to send message after unblock', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({ recipientId: user2.userId, content: 'Message after unblock' });
 
       expect(response.status).toBe(201);
-      expect(response.body.data.message.content).toBe('Message after unblock');
+      expect(response.body.message.content).toBe('Message after unblock');
     });
   });
 
   describe('Step 10: Authorization', () => {
     it.serial('should reject unauthenticated access to conversations', async () => {
-      const response = await app.request.get('/api/chat/conversations');
+      const response = await app.request.get('/api/v1/chat/conversations');
 
       expect(response.status).toBe(401);
     });
 
     it.serial('should reject unauthenticated access to messages', async () => {
       const response = await app.request
-        .post('/api/chat/messages')
+        .post('/api/v1/chat/messages')
         .send({ recipientId: user2.userId, content: 'Unauthorized message' });
 
       expect(response.status).toBe(401);
@@ -394,7 +392,7 @@ describe('E2E Journey: Chat', () => {
       });
 
       const response = await app.request
-        .get('/api/chat/conversations')
+        .get('/api/v1/chat/conversations')
         .set('Authorization', `Bearer ${resultNoPerm.token}`);
 
       expect(response.status).toBe(403);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { GitHubUsernameMissingException } from '../../../../domain/exceptions/integration.exceptions';
+import { GitHubUsernameMissingException } from '../../../../domain/exceptions';
 import { InMemoryGitHubApi, InMemoryGitHubResumeRepository } from '../../../testing';
 import { GitHubAchievementService } from '../../services/github-achievement.service';
 import { GitHubContributionService } from '../../services/github-contribution.service';

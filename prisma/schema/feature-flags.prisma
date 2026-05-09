@@ -12,7 +12,7 @@
 // (any role) or the caller has at least one of the listed roles.
 
 model FeatureFlag {
-  id              String   @id @default(cuid())
+  id              String   @id @default(dbgenerated("uuidv7()"))
   /// Dotted namespace (e.g. "resumes.export.pdf"). Source of truth is the registry in code.
   key             String   @unique
   name            String
@@ -23,6 +23,15 @@ model FeatureFlag {
   enabledForRoles String[] @default([])
   /// True when this flag disappeared from the code registry — preserved for audit.
   deprecated      Boolean  @default(false)
+  /// P2-107 — Slack handle / userId of the team that owns the flag.
+  /// Required at registration time (registry-side) so we can chase down
+  /// dormant flags during the cleanup pass; nullable in the DB only for
+  /// backfill of legacy rows.
+  owner           String?
+  /// P2-107 — Optional date after which the flag is considered overdue
+  /// for removal. Surfaced in the admin dashboard so flags don't outlive
+  /// their experiment / rollout window.
+  sunsetDate      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

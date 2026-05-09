@@ -1,4 +1,8 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { EXAMPLE_PASSWORD } from '../params/example-values.const';
+
+extendZodWithOpenApi(z);
 
 /**
  * Password Policy Configuration
@@ -42,7 +46,8 @@ export const PasswordSchema = z
   .regex(/[A-Z]/, PASSWORD_MESSAGES.requireUppercase)
   .regex(/[a-z]/, PASSWORD_MESSAGES.requireLowercase)
   .regex(/[0-9]/, PASSWORD_MESSAGES.requireNumber)
-  .regex(/[@$!%*?&]/, PASSWORD_MESSAGES.requireSpecialChar);
+  .regex(/[@$!%*?&]/, PASSWORD_MESSAGES.requireSpecialChar)
+  .openapi({ example: EXAMPLE_PASSWORD });
 
 export type Password = z.infer<typeof PasswordSchema>;
 
@@ -54,6 +59,11 @@ export type Password = z.infer<typeof PasswordSchema>;
 export const PasswordInputSchema = z
   .string()
   .min(1, 'Password is required')
-  .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength);
+  .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength)
+  .openapi({ example: EXAMPLE_PASSWORD });
 
 export type PasswordInput = z.infer<typeof PasswordInputSchema>;
+
+export type PasswordDto = z.infer<typeof PasswordSchema>;
+
+export type PasswordInputDto = z.infer<typeof PasswordInputSchema>;

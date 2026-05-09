@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { buildTimeCapsuleEmail, diffSnapshots } from './build-time-capsule-email';
+import { buildTimeCapsuleEmail, diffSnapshots } from './time-capsule-email.builder';
 
 describe('diffSnapshots', () => {
   it('returns zeros when both snapshots are empty', () => {

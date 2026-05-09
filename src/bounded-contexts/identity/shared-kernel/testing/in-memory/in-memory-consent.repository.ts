@@ -48,7 +48,7 @@ export class InMemoryConsentRepository implements ConsentRepositoryPort {
     return null;
   }
 
-  async findAllByUser(userId: string): Promise<ConsentRecord[]> {
+  async listByUser(userId: string): Promise<ConsentRecord[]> {
     const userConsents: ConsentRecord[] = [];
     for (const consent of this.consents.values()) {
       if (consent.userId === userId) {

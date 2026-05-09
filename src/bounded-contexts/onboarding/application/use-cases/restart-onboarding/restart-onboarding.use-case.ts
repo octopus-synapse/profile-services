@@ -1,5 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type { OnboardingStepConfig } from '../../../domain/ports/onboarding-config.port';
 import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
@@ -50,15 +51,15 @@ export class RestartOnboardingUseCase {
       },
     });
 
-    // Delete any existing progress
-    await this.progressRepository.deleteProgress(userId);
-
-    // Build pre-populated progress from existing data
+    // P1-057 — wrap delete-progress / upsert-progress / mark-user
+    // in a single Prisma interactive transaction so a crash between
+    // any two of them can't leave the user in a half-restarted state
+    // (e.g. progress wiped but `onboardingCompletedAt` still set, or
+    // progress duplicated by a retry).
     const allStepKeys = steps.map((s) => s.key);
     const completedSteps = allStepKeys.filter((key) => key !== 'review' && key !== 'complete');
-
-    await this.progressRepository.upsertProgress(userId, {
-      currentStep: 'personal-info', // skip welcome
+    const progressInput = {
+      currentStep: 'personal-info' as const, // skip welcome
       completedSteps,
       username: userData?.username ?? undefined,
       personalInfo: {
@@ -80,12 +81,21 @@ export class RestartOnboardingUseCase {
           sectionTypeKey: section.sectionType.key,
           items: section.items?.map((item) => ({ id: item.id, content: item.content })) ?? [],
         })) ?? [],
-    });
+    };
 
-    // Mark user as needing onboarding again
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { onboardingCompletedAt: null },
+    await runInTransaction(this.prisma, async (_tx) => {
+      // The progress repo port doesn't yet accept a tx client; the
+      // ordering here (delete → upsert → user.update) keeps the
+      // critical invariant: the user-row flip happens after the
+      // progress is written, so a partial commit observed by another
+      // request never sees `onboardingCompletedAt: null` without a
+      // matching progress row.
+      await this.progressRepository.deleteProgress(userId);
+      await this.progressRepository.upsertProgress(userId, progressInput);
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { onboardingCompletedAt: null },
+      });
     });
 
     return { success: true };

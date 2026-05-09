@@ -1,5 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
-import type { TechSkill } from '../../../dto/tech-skill.dto';
+import type { TechSkill } from '../../../dto/tech-skill.schema';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../../../interfaces';
 import { CachePort, TechSkillRepositoryPort } from '../../ports/tech-skills.port';
 
@@ -16,7 +16,7 @@ export class GetAllSkillsUseCase {
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_LIST);
     return result;
   }

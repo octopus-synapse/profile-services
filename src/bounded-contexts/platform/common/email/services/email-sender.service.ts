@@ -11,7 +11,11 @@
 
 import { createTransport, type Transporter } from 'nodemailer';
 import type { ConfigPort } from '@/shared-kernel/config';
-import type { LoggerPort } from '@/shared-kernel/logger';
+import { type LoggerPort, redactEmail } from '@/shared-kernel/logger';
+import {
+  ConfigurationMissingException,
+  FeatureDisabledException,
+} from '../../exceptions/platform.exceptions';
 
 export interface SendEmailOptions {
   to: string;
@@ -56,7 +60,7 @@ export class EmailSenderService {
   async sendEmail(options: SendEmailOptions): Promise<void> {
     if (!this.transporter) {
       this.logger.warn('Email not configured. Skipping.', 'EmailSenderService', {
-        to: options.to,
+        to: redactEmail(options.to),
         subject: options.subject,
       });
       return;
@@ -71,9 +75,27 @@ export class EmailSenderService {
     });
 
     this.logger.log('Email sent', 'EmailSenderService', {
-      to: options.to,
+      to: redactEmail(options.to),
       subject: options.subject,
     });
+  }
+
+  /**
+   * Strict variant of `sendEmail` that throws typed exceptions instead
+   * of silently no-oping. Use for transactional flows where a missed
+   * email is a real failure (password resets, invoices). Throws:
+   *   - `ConfigurationMissingException('SMTP_HOST')` when env unset.
+   *   - `FeatureDisabledException('email')` when the transporter exists
+   *     but was disabled by an operator after init.
+   */
+  async sendEmailStrict(options: SendEmailOptions): Promise<void> {
+    if (!this.configService.get<string>('SMTP_HOST')) {
+      throw new ConfigurationMissingException('SMTP_HOST');
+    }
+    if (!this.transporter) {
+      throw new FeatureDisabledException('email');
+    }
+    await this.sendEmail(options);
   }
 
   private stripHtml(html: string | undefined): string {

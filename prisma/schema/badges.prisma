@@ -3,7 +3,7 @@
 // in one place (see BadgeAwardService); backend is the only authority.
 
 model UserBadge {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserBadges", fields: [userId], references: [id], onDelete: Cascade)
 

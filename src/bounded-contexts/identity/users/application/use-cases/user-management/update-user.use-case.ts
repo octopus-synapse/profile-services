@@ -4,11 +4,14 @@ import {
   UniqueConstraintViolatedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
+import { UpdateUserUseCasePort } from '../../ports/update-user.use-case.port';
 import type { UpdatedUser, UpdateUserData } from '../../ports/user-management.port';
 import { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
-export class UpdateUserUseCase {
-  constructor(private readonly repository: UserManagementRepositoryPort) {}
+export class UpdateUserUseCase extends UpdateUserUseCasePort {
+  constructor(private readonly repository: UserManagementRepositoryPort) {
+    super();
+  }
 
   async execute(userId: string, data: UpdateUserData): Promise<UpdatedUser> {
     const user = await this.repository.findUserById(userId);

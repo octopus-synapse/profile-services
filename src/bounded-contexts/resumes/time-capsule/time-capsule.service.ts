@@ -10,7 +10,7 @@
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
-import { buildTimeCapsuleEmail, diffSnapshots } from './build-time-capsule-email';
+import { buildTimeCapsuleEmail, diffSnapshots } from './time-capsule-email.builder';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const YEAR_MS = 365 * MS_PER_DAY;
@@ -104,8 +104,7 @@ export class TimeCapsuleService {
       } catch (err) {
         this.logger.error(
           `Time capsule failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
-          undefined,
-          'TimeCapsuleService',
+          { context: 'TimeCapsuleService' },
         );
       }
     }

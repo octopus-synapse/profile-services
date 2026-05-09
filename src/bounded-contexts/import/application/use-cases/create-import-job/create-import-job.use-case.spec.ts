@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { InvalidImportDataException } from '../../../domain/exceptions/import.exceptions';
 import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
 import { CreateImportJobUseCase } from './create-import-job.use-case';
 
@@ -27,6 +28,12 @@ describe('CreateImportJobUseCase', () => {
 
     const saved = await repository.findById(result.id);
     expect(saved?.rawData).toEqual(rawData);
+  });
+
+  it('throws InvalidImportDataException when rawData is not an object payload', async () => {
+    await expect(
+      useCase.execute({ userId: 'user-123', source: 'JSON', rawData: 'not-an-object' as unknown }),
+    ).rejects.toThrow(InvalidImportDataException);
   });
 
   it('should store fileName when provided', async () => {

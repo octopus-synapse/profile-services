@@ -2,7 +2,7 @@
  * Error-message dictionary.
  *
  * One entry per concrete `DomainException.code` string literal declared in
- * `src/**\/*.exceptions.ts`. The `i18n-catalog-parity` architecture test
+ * `src/**\/*.exceptions.ts`. The `i18n-error-parity` arch test
  * enforces that every literal code has an entry here in BOTH locales and
  * that no orphan keys exist.
  *
@@ -19,6 +19,52 @@ export const ERROR_DICTIONARY = {
   ACCESS_MODIFIER_NOT_FOUND: {
     en: 'Access modifier not found',
     'pt-BR': 'Modificador de acesso não encontrado',
+  },
+  // P1-022 — domain-exception codes added when promoting internal
+  // Error subclasses to DomainException.
+  FEATURE_FLAG_GRAPH_CYCLE: {
+    en: 'Feature flag dependency cycle detected',
+    'pt-BR': 'Ciclo de dependência de feature flag detectado',
+  },
+  FEATURE_FLAG_GRAPH_DUPLICATE_KEY: {
+    en: 'Duplicate feature flag key in registry',
+    'pt-BR': 'Chave de feature flag duplicada no registro',
+  },
+  FEATURE_FLAG_GRAPH_MISSING_DEPENDENCY: {
+    en: 'Feature flag depends on an unknown flag',
+    'pt-BR': 'Feature flag depende de uma flag desconhecida',
+  },
+  FIT_ANSWER_COUNT_MISMATCH: {
+    en: 'Number of submitted answers does not match the question set',
+    'pt-BR': 'Número de respostas enviadas não corresponde ao conjunto de perguntas',
+  },
+  FIT_ANSWER_MISMATCH: {
+    en: 'Submitted answers do not align with the sampled question set',
+    'pt-BR': 'Respostas enviadas não correspondem ao conjunto de perguntas amostrado',
+  },
+  FIT_QUESTION_SET_ALREADY_COMPLETED: {
+    en: 'Fit question set has already been submitted',
+    'pt-BR': 'O conjunto de perguntas de fit já foi enviado',
+  },
+  FIT_QUESTION_SET_NOT_FOUND: {
+    en: 'Fit question set not found',
+    'pt-BR': 'Conjunto de perguntas de fit não encontrado',
+  },
+  FIT_QUESTION_SET_OWNERSHIP: {
+    en: 'Fit question set does not belong to the submitting user',
+    'pt-BR': 'O conjunto de perguntas de fit não pertence ao usuário',
+  },
+  SAFE_FETCH_BLOCKED: {
+    en: 'External request blocked by SSRF protection',
+    'pt-BR': 'Requisição externa bloqueada pela proteção contra SSRF',
+  },
+  THEME_COMPILATION_ERROR: {
+    en: 'Failed to compile DSL theme',
+    'pt-BR': 'Falha ao compilar o tema do DSL',
+  },
+  WS_VALIDATION_ERROR: {
+    en: 'Invalid WebSocket payload',
+    'pt-BR': 'Payload de WebSocket inválido',
   },
   ACCOUNT_ALREADY_ACTIVE: {
     en: 'Account is already active',
@@ -63,10 +109,6 @@ export const ERROR_DICTIONARY = {
   ALREADY_CONNECTED: {
     en: 'Already connected with this user',
     'pt-BR': 'Você já está conectado com este usuário',
-  },
-  ALREADY_ENDORSED: {
-    en: 'You have already endorsed this skill for this user',
-    'pt-BR': 'Você já recomendou esta habilidade para este usuário',
   },
   ALREADY_FOLLOWING: {
     en: 'Already following this user',
@@ -128,6 +170,30 @@ export const ERROR_DICTIONARY = {
     en: 'Business rule violation',
     'pt-BR': 'Regra de negócio violada',
   },
+  CANDIDATE_DIRECTORY_UNAVAILABLE: {
+    en: 'Candidate directory is temporarily unavailable',
+    'pt-BR': 'O diretório de candidatos está temporariamente indisponível',
+  },
+  CANDIDATE_POOL_EMPTY: {
+    en: 'No opt-in candidates match the requested criteria',
+    'pt-BR': 'Nenhum candidato corresponde aos critérios informados',
+  },
+  CAREER_COHORT_EMPTY: {
+    en: 'No peers found matching this stack — try broadening the skills',
+    'pt-BR': 'Nenhum profissional similar encontrado — tente ampliar as habilidades',
+  },
+  CAREER_GRAPH_INVALID_MAX_BUCKETS: {
+    en: 'maxBuckets must be between 1 and 50',
+    'pt-BR': 'maxBuckets deve estar entre 1 e 50',
+  },
+  CAREER_GRAPH_REPOSITORY_UNAVAILABLE: {
+    en: 'Career graph data is temporarily unavailable',
+    'pt-BR': 'Os dados do gráfico de carreira estão temporariamente indisponíveis',
+  },
+  CAREER_GRAPH_STACK_REQUIRED: {
+    en: 'Career graph requires at least one stack skill to compare cohorts',
+    'pt-BR': 'O gráfico de carreira exige pelo menos uma habilidade da stack para comparar cohorts',
+  },
   CANNOT_APPLY_TO_OWN_JOB: {
     en: 'You cannot apply to your own job',
     'pt-BR': 'Você não pode se candidatar à sua própria vaga',
@@ -156,10 +222,6 @@ export const ERROR_DICTIONARY = {
     en: 'Cannot delete your own account through the admin interface',
     'pt-BR': 'Você não pode apagar a sua própria conta pela interface de admin',
   },
-  CANNOT_ENDORSE_SELF: {
-    en: 'You cannot endorse your own skills',
-    'pt-BR': 'Você não pode recomendar suas próprias habilidades',
-  },
   CANNOT_FOLLOW_SELF: {
     en: 'Cannot follow yourself',
     'pt-BR': 'Você não pode seguir a si mesmo',
@@ -176,10 +238,6 @@ export const ERROR_DICTIONARY = {
     en: "You cannot modify another user's job posting",
     'pt-BR': 'Você não pode modificar a vaga de outro usuário',
   },
-  CANNOT_RECOMMEND_SELF: {
-    en: 'You cannot write a recommendation for yourself',
-    'pt-BR': 'Você não pode escrever uma recomendação para si mesmo',
-  },
   CANNOT_SEND_MESSAGE_TO_USER: {
     en: 'Cannot send message to this user',
     'pt-BR': 'Não é possível enviar mensagem para este usuário',
@@ -191,10 +249,6 @@ export const ERROR_DICTIONARY = {
   COLLABORATOR_LIMIT_REACHED: {
     en: 'Collaborator limit reached',
     'pt-BR': 'Limite de colaboradores atingido',
-  },
-  COMMENT_NOT_OWNED: {
-    en: 'You can only modify your own comments',
-    'pt-BR': 'Você só pode modificar os seus próprios comentários',
   },
   COMMENT_THREAD_CLOSED: {
     en: 'This comment thread is closed',
@@ -404,6 +458,18 @@ export const ERROR_DICTIONARY = {
     en: 'Integration authentication failed',
     'pt-BR': 'Falha na autenticação da integração',
   },
+  INTERNAL_MALFORMED_TRANSLATION: {
+    en: 'Internal translation entry is malformed',
+    'pt-BR': 'A entrada interna de tradução está malformada',
+  },
+  INTERNAL_TRANSLATION_MISSING: {
+    en: 'Internal translation entry is missing',
+    'pt-BR': 'A entrada interna de tradução está faltando',
+  },
+  INTERNAL_UNSUPPORTED_LOCALE: {
+    en: 'Locale is not supported',
+    'pt-BR': 'Idioma não suportado',
+  },
   INTEGRATION_NOT_CONFIGURED: {
     en: 'Integration is not configured',
     'pt-BR': 'Integração não configurada',
@@ -560,6 +626,15 @@ export const ERROR_DICTIONARY = {
     en: 'Metrics endpoint is not configured',
     'pt-BR': 'O endpoint de métricas não está configurado',
   },
+  MATCH_CANDIDATES_INVALID_LIMIT: {
+    en: 'limit must be between 1 and 100',
+    'pt-BR': 'limit deve estar entre 1 e 100',
+  },
+  MATCH_CANDIDATES_NO_CRITERIA: {
+    en: 'At least one matching criterion is required (jobSkills, jobMinEnglish, or jobRemotePolicy)',
+    'pt-BR':
+      'Pelo menos um critério de match é obrigatório (jobSkills, jobMinEnglish ou jobRemotePolicy)',
+  },
   MISSING_ANY_REQUIRED_PERMISSION: {
     en: 'Missing at least one required permission',
     'pt-BR': 'Falta pelo menos uma das permissões necessárias',
@@ -643,10 +718,6 @@ export const ERROR_DICTIONARY = {
   ONBOARDING_SESSION_EXPIRED: {
     en: 'Onboarding session has expired',
     'pt-BR': 'A sessão do onboarding expirou',
-  },
-  ONBOARDING_STEP_OUT_OF_ORDER: {
-    en: 'Onboarding step attempted out of order',
-    'pt-BR': 'Passo do onboarding executado fora da ordem',
   },
   ONBOARDING_UNKNOWN_STEP: {
     en: 'Unknown onboarding step',
@@ -751,18 +822,6 @@ export const ERROR_DICTIONARY = {
   RATE_LIMITED: {
     en: 'Too many requests. Slow down.',
     'pt-BR': 'Muitas requisições. Diminua o ritmo.',
-  },
-  RECOMMENDATION_ALREADY_WRITTEN: {
-    en: 'You have already written a recommendation for this user',
-    'pt-BR': 'Você já escreveu uma recomendação para este usuário',
-  },
-  REPORT_ALREADY_SUBMITTED: {
-    en: 'You have already reported this item',
-    'pt-BR': 'Você já denunciou este item',
-  },
-  REPORT_NOT_REVIEWABLE: {
-    en: 'This report is not in a reviewable state',
-    'pt-BR': 'Esta denúncia não está em estado de revisão',
   },
   REPOSITORY_NOT_INITIALIZED: {
     en: 'Repository is not initialized',
@@ -1098,17 +1157,29 @@ export const ERROR_DICTIONARY = {
     en: 'Username cannot contain consecutive underscores or end with an underscore',
     'pt-BR': 'O nome de usuário não pode ter underscores consecutivos nem terminar com underscore',
   },
+  USERNAME_CONSECUTIVE_UNDERSCORES: {
+    en: 'Username cannot contain consecutive underscores',
+    'pt-BR': 'O nome de usuário não pode conter underscores consecutivos',
+  },
   USERNAME_COOLDOWN_ACTIVE: {
     en: 'Username cooldown active. Try again later.',
     'pt-BR': 'Cooldown do nome de usuário ativo. Tente novamente mais tarde.',
   },
+  USERNAME_INVALID_END: {
+    en: 'Username must end with a letter or number',
+    'pt-BR': 'O nome de usuário precisa terminar com uma letra ou número',
+  },
   USERNAME_INVALID_FORMAT: {
-    en: 'Invalid username format',
-    'pt-BR': 'Formato de nome de usuário inválido',
+    en: 'Username can only contain lowercase letters, numbers, and underscores',
+    'pt-BR': 'O nome de usuário só pode conter letras minúsculas, números e sublinhados',
+  },
+  USERNAME_INVALID_START: {
+    en: 'Username must start with a letter',
+    'pt-BR': 'O nome de usuário precisa começar com uma letra',
   },
   USERNAME_MUST_BE_LOWERCASE: {
-    en: 'Username must be lowercase',
-    'pt-BR': 'O nome de usuário precisa estar em minúsculas',
+    en: 'Username must contain only lowercase letters',
+    'pt-BR': 'O nome de usuário só pode conter letras minúsculas',
   },
   USERNAME_RESERVED: {
     en: 'This username is reserved',
@@ -1117,6 +1188,14 @@ export const ERROR_DICTIONARY = {
   USERNAME_TAKEN: {
     en: 'Username already in use',
     'pt-BR': 'Nome de usuário já está em uso',
+  },
+  USERNAME_TOO_LONG: {
+    en: 'Username cannot exceed {max} characters',
+    'pt-BR': 'O nome de usuário não pode exceder {max} caracteres',
+  },
+  USERNAME_TOO_SHORT: {
+    en: 'Username must be at least {min} characters',
+    'pt-BR': 'O nome de usuário precisa ter pelo menos {min} caracteres',
   },
   VALIDATION_ERROR: {
     en: 'Validation failed',
@@ -1145,10 +1224,6 @@ export const ERROR_DICTIONARY = {
   COLLABORATOR_PARENT_COMMENT_NOT_FOUND: {
     en: 'Parent comment not found',
     'pt-BR': 'Comentário pai não encontrado',
-  },
-  COLLABORATOR_SELF_INVITE: {
-    en: 'Cannot add yourself as a collaborator',
-    'pt-BR': 'Você não pode adicionar a si mesmo como colaborador',
   },
   CONSENT_VERSION_MISMATCH: {
     en: 'Consent version mismatch — please accept the latest Terms of Service and Privacy Policy',
@@ -1246,10 +1321,6 @@ export const ERROR_DICTIONARY = {
   JOB_MATCH_RESUME_NOT_FOUND: {
     en: 'Resume not found',
     'pt-BR': 'Currículo não encontrado',
-  },
-  ONBOARDING_NOT_COMPLETED: {
-    en: 'Onboarding must be completed before accessing this resource.',
-    'pt-BR': 'É preciso concluir o onboarding antes de acessar este recurso.',
   },
   ONBOARDING_SECTION_PERSISTENCE_FAILED: {
     en: 'Failed to save resume sections',

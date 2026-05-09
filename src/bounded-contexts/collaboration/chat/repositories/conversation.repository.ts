@@ -11,36 +11,33 @@ export class ConversationRepository {
   /**
    * Find or create a conversation between two users.
    * Ensures participant1Id < participant2Id for consistent ordering.
+   *
+   * P1-054 — race-safe via `upsert` against the `(participant1Id,
+   * participant2Id)` unique key. The previous find-then-create
+   * sequence under concurrent first-message traffic between two
+   * users could insert two conversation rows for the same pair
+   * before either request observed the other's write. Postgres now
+   * enforces the invariant at the storage layer.
    */
   async findOrCreate(userId1: string, userId2: string) {
     const [participant1Id, participant2Id] = [userId1, userId2].sort();
 
-    const existing = await this.prisma.conversation.findUnique({
+    const include = {
+      participant1: {
+        select: { id: true, name: true, photoURL: true, username: true },
+      },
+      participant2: {
+        select: { id: true, name: true, photoURL: true, username: true },
+      },
+    } satisfies Prisma.ConversationInclude;
+
+    return this.prisma.conversation.upsert({
       where: {
         participant1Id_participant2Id: { participant1Id, participant2Id },
       },
-      include: {
-        participant1: {
-          select: { id: true, name: true, photoURL: true, username: true },
-        },
-        participant2: {
-          select: { id: true, name: true, photoURL: true, username: true },
-        },
-      },
-    });
-
-    if (existing) return existing;
-
-    return this.prisma.conversation.create({
-      data: { participant1Id, participant2Id },
-      include: {
-        participant1: {
-          select: { id: true, name: true, photoURL: true, username: true },
-        },
-        participant2: {
-          select: { id: true, name: true, photoURL: true, username: true },
-        },
-      },
+      create: { participant1Id, participant2Id },
+      update: {}, // No-op when the row already exists.
+      include,
     });
   }
 

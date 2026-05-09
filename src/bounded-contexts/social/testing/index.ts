@@ -4,6 +4,8 @@
  * Port-level in-memory fakes for social features.
  */
 
+import { Observable } from 'rxjs';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
   ActivityRepositoryPort,
@@ -20,7 +22,6 @@ import {
   type FollowWithUser,
   type PaginationParams,
 } from '../application/ports/follow.port';
-import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
 
 // ═══════════════════════════════════════════════════════════════
 // USER RECORD (fixture type)
@@ -70,23 +71,23 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
   async findFollowers(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.follows
       .filter((f) => f.followingId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findFollowing(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }> {
+  ): Promise<{ items: FollowWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.follows
       .filter((f) => f.followerId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countFollowers(userId: string): Promise<number> {
@@ -146,6 +147,7 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
 
 export class InMemoryActivityRepository extends ActivityRepositoryPort {
   private activities: ActivityWithUser[] = [];
+  private users: UserRecord[] = [];
   private idCounter = 0;
 
   async createActivity(data: {
@@ -175,41 +177,53 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
   async findActivitiesByUserIds(
     userIds: string[],
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => userIds.includes(a.userId))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivities(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => a.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findUserActivitiesByType(
     userId: string,
     type: ActivityType,
     pagination: PaginationParams,
-  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+  ): Promise<{ items: ActivityWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.activities
       .filter((a) => a.userId === userId && a.type === type)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async deleteOlderThan(date: Date): Promise<number> {
     const before = this.activities.length;
     this.activities = this.activities.filter((a) => a.createdAt >= date);
     return before - this.activities.length;
+  }
+
+  async userExists(userId: string): Promise<boolean> {
+    return this.users.some((u) => u.id === userId);
+  }
+
+  seedUser(user: UserRecord): void {
+    this.users.push(user);
+  }
+
+  seedUsers(users: UserRecord[]): void {
+    this.users.push(...users);
   }
 
   seedActivity(activity: Partial<ActivityWithUser> & { userId: string; type: ActivityType }): void {
@@ -227,6 +241,7 @@ export class InMemoryActivityRepository extends ActivityRepositoryPort {
 
   clear(): void {
     this.activities = [];
+    this.users = [];
     this.idCounter = 0;
   }
 
@@ -265,6 +280,19 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     return this.connections.find((c) => c.id === id) ?? null;
   }
 
+  async getConnectionById(id: string): Promise<ConnectionWithUser> {
+    const row = await this.findConnectionById(id);
+    if (!row) {
+      // Imported lazily to avoid coupling testing/ on shared-kernel exceptions
+      // at module-load time (test bundlers may tree-shake differently).
+      const { EntityNotFoundException } = await import(
+        '@/shared-kernel/exceptions/domain.exceptions'
+      );
+      throw new EntityNotFoundException('Connection', id);
+    }
+    return row;
+  }
+
   async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {
     return (
       this.connections.find((c) => c.requesterId === requesterId && c.targetId === targetId) ?? null
@@ -299,34 +327,34 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
   async findPendingRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.targetId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findSentRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.requesterId === userId && c.status === 'PENDING')
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
       .filter((c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-    return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
+    return { items: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
 
   async countAcceptedConnections(userId: string): Promise<number> {
@@ -348,7 +376,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<
+    items: Array<
       ConnectionUser & {
         reason: string;
         score: number;
@@ -367,7 +395,7 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
       mutualCount: 0,
       commonSkills: [],
     }));
-    return { data: ranked.slice((page - 1) * limit, page * limit), total: ranked.length };
+    return { items: ranked.slice((page - 1) * limit, page * limit), total: ranked.length };
   }
 
   async userExists(userId: string): Promise<boolean> {
@@ -424,14 +452,23 @@ export class InMemorySocialLogger extends LoggerPort {
   error(): void {}
 }
 
-export class InMemorySocialEventBus extends SocialEventBusPort {
-  readonly emitted: Array<{ event: string; payload: unknown }> = [];
+/**
+ * In-memory `SseStreamPort` capturing every published payload for
+ * spec assertions. Replaces the old `InMemorySocialEventBus` after the
+ * SocialEventBusPort consolidation (Q33).
+ */
+export class InMemorySseStream extends SseStreamPort {
+  readonly published: Array<{ channel: string; payload: unknown }> = [];
 
-  emit(event: string, payload: unknown): void {
-    this.emitted.push({ event, payload });
+  subscribe<T>(): Observable<{ data: T }> {
+    return new Observable(() => undefined);
+  }
+
+  publish<T>(channel: string, payload: T): void {
+    this.published.push({ channel, payload });
   }
 
   clear(): void {
-    this.emitted.length = 0;
+    this.published.length = 0;
   }
 }

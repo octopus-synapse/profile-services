@@ -1,7 +1,7 @@
 // Resume Sections - Generic section model (single canonical source)
 
 model SectionType {
-  id           String  @id @default(cuid())
+  id           String  @id @default(dbgenerated("uuidv7()"))
   key          String  @unique
   slug         String
   title        String
@@ -28,8 +28,8 @@ model SectionType {
   iconType String @default("emoji")
   icon     String @default("📄")
 
-  // i18n: Translations stored as JSON per locale
-  // Format: { "en": { "title": "...", "label": "...", ... }, "pt-BR": { ... }, "es": { ... } }
+  // i18n: Translations stored as JSON per locale (LOCALES from @packages/i18n)
+  // Format: { "en": { "title": "...", "label": "...", ... }, "pt-BR": { ... } }
   translations Json @default("{}")
 
   // Field examples for onboarding placeholders
@@ -48,7 +48,7 @@ model SectionType {
 }
 
 model ResumeSection {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -70,7 +70,7 @@ model ResumeSection {
 }
 
 model SectionItem {
-  id              String        @id @default(cuid())
+  id              String        @id @default(dbgenerated("uuidv7()"))
   resumeSectionId String
   resumeSection   ResumeSection @relation(fields: [resumeSectionId], references: [id], onDelete: Cascade)
 

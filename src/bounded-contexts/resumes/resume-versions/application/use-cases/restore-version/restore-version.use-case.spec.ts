@@ -3,7 +3,7 @@ import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
   ResumeVersionNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionsRepository } from '../../../testing';
 import { CreateSnapshotUseCase } from '../create-snapshot/create-snapshot.use-case';

@@ -43,10 +43,9 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
-      expect(res.body.data.skills.length).toBeGreaterThan(0);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
+      expect(res.body.skills.length).toBeGreaterThan(0);
     });
 
     it('should return skills with expected shape', async () => {
@@ -57,7 +56,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const skill = res.body.data.skills[0];
+      const skill = res.body.skills[0];
       expect(skill).toHaveProperty('nameEn');
       expect(typeof skill.nameEn).toBe('string');
     });
@@ -83,8 +82,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.results).toBeDefined();
+      expect(res.body.results).toBeDefined();
     });
 
     it('should be case insensitive', async () => {
@@ -111,8 +109,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.results).toBeDefined();
+      expect(res.body.results).toBeDefined();
     });
 
     it('should handle empty query', async () => {
@@ -123,7 +120,6 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
 
     it('should respect limit parameter', async () => {
@@ -134,7 +130,6 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
   });
 
@@ -150,9 +145,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
     });
   });
 
@@ -168,8 +162,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.skills).toBeDefined();
+      expect(res.body.skills).toBeDefined();
     });
 
     it('should return empty array for no matches', async () => {
@@ -180,8 +173,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
-      expect(res.body.data.skills).toHaveLength(0);
+      expect(res.body.skills).toBeDefined();
+      expect(res.body.skills).toHaveLength(0);
     });
 
     it('should respect limit parameter', async () => {
@@ -192,7 +185,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills.length).toBeLessThanOrEqual(2);
+      expect(res.body.skills.length).toBeLessThanOrEqual(2);
     });
   });
 
@@ -208,9 +201,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
     });
 
     it('should filter skills by TOOL type', async () => {
@@ -221,7 +213,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
+      expect(res.body.skills).toBeDefined();
     });
 
     it('should filter skills by DATABASE type', async () => {
@@ -232,7 +224,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
+      expect(res.body.skills).toBeDefined();
     });
 
     it('should filter skills by LANGUAGE type', async () => {
@@ -243,7 +235,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
+      expect(res.body.skills).toBeDefined();
     });
 
     it('should return empty for unknown type', async () => {
@@ -256,7 +248,7 @@ describeIntegration('Skills Catalog Integration', () => {
       // Should return 200 with empty array, or 400 depending on validation
       expect([200, 400]).toContain(res.status);
       if (res.status === 200) {
-        expect(res.body.data.skills).toHaveLength(0);
+        expect(res.body.skills).toHaveLength(0);
       }
     });
 
@@ -268,7 +260,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills.length).toBeLessThanOrEqual(5);
+      expect(res.body.skills.length).toBeLessThanOrEqual(5);
     });
   });
 
@@ -284,10 +276,9 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.areas).toBeDefined();
-      expect(Array.isArray(res.body.data.areas)).toBe(true);
-      expect(res.body.data.areas.length).toBeGreaterThan(0);
+      expect(res.body.areas).toBeDefined();
+      expect(Array.isArray(res.body.areas)).toBe(true);
+      expect(res.body.areas.length).toBeGreaterThan(0);
     });
 
     it('should include known area types', async () => {
@@ -298,7 +289,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const areaTypes = res.body.data.areas.map(
+      const areaTypes = res.body.areas.map(
         (a: { type?: string; areaType?: string; name?: string }) => a.type || a.areaType || a.name,
       );
       // At least some known areas should be present
@@ -318,10 +309,9 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.niches).toBeDefined();
-      expect(Array.isArray(res.body.data.niches)).toBe(true);
-      expect(res.body.data.niches.length).toBeGreaterThan(0);
+      expect(res.body.niches).toBeDefined();
+      expect(Array.isArray(res.body.niches)).toBe(true);
+      expect(res.body.niches.length).toBeGreaterThan(0);
     });
   });
 
@@ -337,9 +327,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.niches).toBeDefined();
-      expect(Array.isArray(res.body.data.niches)).toBe(true);
+      expect(res.body.niches).toBeDefined();
+      expect(Array.isArray(res.body.niches)).toBe(true);
     });
 
     it('should return empty for unknown area type', async () => {
@@ -351,7 +340,7 @@ describeIntegration('Skills Catalog Integration', () => {
 
       expect([200, 400, 404]).toContain(res.status);
       if (res.status === 200) {
-        expect(res.body.data.niches).toHaveLength(0);
+        expect(res.body.niches).toHaveLength(0);
       }
     });
   });
@@ -368,10 +357,9 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
-      expect(Array.isArray(res.body.data.languages)).toBe(true);
-      expect(res.body.data.languages.length).toBeGreaterThan(0);
+      expect(res.body.languages).toBeDefined();
+      expect(Array.isArray(res.body.languages)).toBe(true);
+      expect(res.body.languages.length).toBeGreaterThan(0);
     });
 
     it('should include well-known languages', async () => {
@@ -382,7 +370,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      const names = res.body.data.languages.map((l: { nameEn: string }) => l.nameEn.toLowerCase());
+      const names = res.body.languages.map((l: { nameEn: string }) => l.nameEn.toLowerCase());
       // At least some common programming languages should exist
       const hasCommon = names.some(
         (n: string) =>
@@ -408,8 +396,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
+      expect(res.body.languages).toBeDefined();
     });
 
     it('should return empty for nonsense query', async () => {
@@ -420,8 +407,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages).toBeDefined();
-      expect(res.body.data.languages).toHaveLength(0);
+      expect(res.body.languages).toBeDefined();
+      expect(res.body.languages).toHaveLength(0);
     });
 
     it('should respect limit', async () => {
@@ -432,7 +419,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages.length).toBeLessThanOrEqual(3);
+      expect(res.body.languages.length).toBeLessThanOrEqual(3);
     });
   });
 
@@ -449,7 +436,7 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(nichesRes.status).toBe(200);
-      const niches = nichesRes.body.data.niches;
+      const niches = nichesRes.body.niches;
       if (niches.length === 0) return; // skip if no niches
 
       const nicheSlug = niches[0].slug || niches[0].id;
@@ -459,8 +446,8 @@ describeIntegration('Skills Catalog Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
     });
 
     it('should return empty for unknown niche slug', async () => {
@@ -472,7 +459,7 @@ describeIntegration('Skills Catalog Integration', () => {
 
       expect([200, 404]).toContain(res.status);
       if (res.status === 200) {
-        expect(res.body.data.skills).toHaveLength(0);
+        expect(res.body.skills).toHaveLength(0);
       }
     });
   });

@@ -7,15 +7,18 @@
  * cycle.
  */
 
-import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent/accept-consent.dto';
+import type {
+  AcceptConsentInput,
+  AcceptConsentOutput,
+} from './accept-consent/accept-consent.schema';
 import type {
   GetConsentHistoryInput,
   GetConsentHistoryOutput,
-} from './get-consent-history/get-consent-history.dto';
+} from './get-consent-history/get-consent-history.schema';
 import type {
   GetConsentStatusInput,
   GetConsentStatusOutput,
-} from './get-consent-status/get-consent-status.dto';
+} from './get-consent-status/get-consent-status.schema';
 
 export abstract class AcceptConsentUseCasePort {
   abstract execute(input: AcceptConsentInput): Promise<AcceptConsentOutput>;

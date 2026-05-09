@@ -21,6 +21,13 @@ export class ListUserReactionsUseCase {
       reactions.length === safeLimit
         ? reactions[reactions.length - 1].createdAt.toISOString()
         : null;
-    return { reactions, nextCursor };
+    const sanitized = reactions.map(({ postId, userId, reactionType, createdAt, post }) => ({
+      postId,
+      userId,
+      reactionType,
+      createdAt,
+      post,
+    })) as ReactionWithPost[];
+    return { items: sanitized, nextCursor, hasNext: nextCursor !== null };
   }
 }

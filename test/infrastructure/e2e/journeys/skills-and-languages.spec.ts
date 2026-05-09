@@ -14,7 +14,7 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -53,10 +53,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
-      expect(res.body.data.skills.length).toBeGreaterThan(0);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
+      expect(res.body.skills.length).toBeGreaterThan(0);
     });
 
     it.serial('should list tech areas', async () => {
@@ -65,9 +64,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.areas).toBeDefined();
-      expect(res.body.data.areas.length).toBeGreaterThan(0);
+      expect(res.body.areas).toBeDefined();
+      expect(res.body.areas.length).toBeGreaterThan(0);
     });
 
     it.serial('should list tech niches', async () => {
@@ -76,9 +74,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.niches).toBeDefined();
-      expect(res.body.data.niches.length).toBeGreaterThan(0);
+      expect(res.body.niches).toBeDefined();
+      expect(res.body.niches.length).toBeGreaterThan(0);
     });
 
     it.serial('should list programming languages', async () => {
@@ -87,9 +84,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
-      expect(res.body.data.languages.length).toBeGreaterThan(0);
+      expect(res.body.languages).toBeDefined();
+      expect(res.body.languages.length).toBeGreaterThan(0);
     });
 
     it.serial('should drill down: area -> niches', async () => {
@@ -99,7 +95,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(areasRes.status).toBe(200);
-      const areas = areasRes.body.data.areas;
+      const areas = areasRes.body.areas;
       expect(areas.length).toBeGreaterThan(0);
 
       // Pick first area and get its niches
@@ -109,8 +105,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(nichesRes.status).toBe(200);
-      expect(nichesRes.body.data.niches).toBeDefined();
-      expect(Array.isArray(nichesRes.body.data.niches)).toBe(true);
+      expect(nichesRes.body.niches).toBeDefined();
+      expect(Array.isArray(nichesRes.body.niches)).toBe(true);
     });
 
     it.serial('should drill down: niche -> skills', async () => {
@@ -120,7 +116,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(nichesRes.status).toBe(200);
-      const niches = nichesRes.body.data.niches;
+      const niches = nichesRes.body.niches;
       if (niches.length === 0) return;
 
       // Pick first niche and get its skills
@@ -130,8 +126,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(skillsRes.status).toBe(200);
-      expect(skillsRes.body.data.skills).toBeDefined();
-      expect(Array.isArray(skillsRes.body.data.skills)).toBe(true);
+      expect(skillsRes.body.skills).toBeDefined();
+      expect(Array.isArray(skillsRes.body.skills)).toBe(true);
     });
   });
 
@@ -145,8 +141,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.results).toBeDefined();
+      expect(res.body.results).toBeDefined();
     });
 
     it.serial('should find skills via skills-specific search', async () => {
@@ -155,7 +150,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
+      expect(res.body.skills).toBeDefined();
     });
 
     it.serial('should search programming languages', async () => {
@@ -164,7 +159,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages).toBeDefined();
+      expect(res.body.languages).toBeDefined();
     });
 
     it.serial('should filter skills by type', async () => {
@@ -173,8 +168,8 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.skills).toBeDefined();
-      expect(Array.isArray(res.body.data.skills)).toBe(true);
+      expect(res.body.skills).toBeDefined();
+      expect(Array.isArray(res.body.skills)).toBe(true);
     });
 
     it.serial('should handle search with no results gracefully', async () => {
@@ -183,7 +178,6 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
   });
 
@@ -197,11 +191,10 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.languages).toBeDefined();
-      expect(Array.isArray(res.body.data.languages)).toBe(true);
+      expect(res.body.languages).toBeDefined();
+      expect(Array.isArray(res.body.languages)).toBe(true);
       // Expect seeded data: at least 30 languages
-      expect(res.body.data.languages.length).toBeGreaterThanOrEqual(30);
+      expect(res.body.languages.length).toBeGreaterThanOrEqual(30);
     });
 
     it.serial('should return languages with multilingual names', async () => {
@@ -211,7 +204,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
 
       expect(res.status).toBe(200);
 
-      const lang = res.body.data.languages.find((l: { code: string }) => l.code === 'pt');
+      const lang = res.body.languages.find((l: { code: string }) => l.code === 'pt');
       expect(lang).toBeDefined();
       expect(lang.nameEn).toBe('Portuguese');
       expect(lang.namePtBr).toBe('Português');
@@ -230,9 +223,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.languages.length).toBeGreaterThanOrEqual(1);
 
-      const found = res.body.data.languages.find((l: { code: string }) => l.code === 'es');
+      const found = res.body.languages.find((l: { code: string }) => l.code === 'es');
       expect(found).toBeDefined();
     });
 
@@ -242,7 +235,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.languages.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should return empty for nonexistent language', async () => {
@@ -251,7 +244,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.languages).toHaveLength(0);
+      expect(res.body.languages).toHaveLength(0);
     });
   });
 
@@ -265,10 +258,10 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language).toBeDefined();
-      expect(res.body.data.language.code).toBe('en');
-      expect(res.body.data.language.nameEn).toBe('English');
-      expect(res.body.data.language.nativeName).toBe('English');
+      expect(res.body.language).toBeDefined();
+      expect(res.body.language.code).toBe('en');
+      expect(res.body.language.nameEn).toBe('English');
+      expect(res.body.language.nativeName).toBe('English');
     });
 
     it.serial('should get Japanese by code (non-Latin script)', async () => {
@@ -277,9 +270,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language.code).toBe('ja');
-      expect(res.body.data.language.nameEn).toBe('Japanese');
-      expect(res.body.data.language.nativeName).toBe('日本語');
+      expect(res.body.language.code).toBe('ja');
+      expect(res.body.language.nameEn).toBe('Japanese');
+      expect(res.body.language.nativeName).toBe('日本語');
     });
 
     it.serial('should get Arabic by code (RTL script)', async () => {
@@ -288,9 +281,9 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.language.code).toBe('ar');
-      expect(res.body.data.language.nameEn).toBe('Arabic');
-      expect(res.body.data.language.nativeName).toBe('العربية');
+      expect(res.body.language.code).toBe('ar');
+      expect(res.body.language.nameEn).toBe('Arabic');
+      expect(res.body.language.nativeName).toBe('العربية');
     });
 
     it.serial('should return 404 for invalid code', async () => {
@@ -312,7 +305,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(res.status).toBe(200);
-      const codes = res.body.data.languages.map((l: { code: string }) => l.code);
+      const codes = res.body.languages.map((l: { code: string }) => l.code);
 
       // Verify key language codes from the seed file
       const expectedCodes = [
@@ -361,7 +354,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(listRes.status).toBe(200);
-      const enFromList = listRes.body.data.languages.find((l: { code: string }) => l.code === 'en');
+      const enFromList = listRes.body.languages.find((l: { code: string }) => l.code === 'en');
 
       // Get from detail
       const detailRes = await app.request
@@ -369,7 +362,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(detailRes.status).toBe(200);
-      const enFromDetail = detailRes.body.data.language;
+      const enFromDetail = detailRes.body.language;
 
       // Should be consistent
       expect(enFromList.nameEn).toBe(enFromDetail.nameEn);
@@ -385,7 +378,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(areasRes.status).toBe(200);
-      expect(areasRes.body.data.areas.length).toBeGreaterThan(0);
+      expect(areasRes.body.areas.length).toBeGreaterThan(0);
 
       // Get niches
       const nichesRes = await app.request
@@ -393,7 +386,7 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(nichesRes.status).toBe(200);
-      expect(nichesRes.body.data.niches.length).toBeGreaterThan(0);
+      expect(nichesRes.body.niches.length).toBeGreaterThan(0);
 
       // Get skills
       const skillsRes = await app.request
@@ -401,12 +394,10 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(skillsRes.status).toBe(200);
-      expect(skillsRes.body.data.skills.length).toBeGreaterThan(0);
+      expect(skillsRes.body.skills.length).toBeGreaterThan(0);
 
       // Hierarchy check: niches count >= areas count (each area has niches)
-      expect(nichesRes.body.data.niches.length).toBeGreaterThanOrEqual(
-        areasRes.body.data.areas.length,
-      );
+      expect(nichesRes.body.niches.length).toBeGreaterThanOrEqual(areasRes.body.areas.length);
     });
 
     it.serial('should have programming languages as a subset of skills catalog', async () => {
@@ -415,10 +406,10 @@ describe('E2E: Skills and Languages Catalog Journey', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(langRes.status).toBe(200);
-      expect(langRes.body.data.languages.length).toBeGreaterThan(0);
+      expect(langRes.body.languages.length).toBeGreaterThan(0);
 
       // Languages should be a curated list
-      const langNames = langRes.body.data.languages.map((l: { nameEn: string }) =>
+      const langNames = langRes.body.languages.map((l: { nameEn: string }) =>
         l.nameEn.toLowerCase(),
       );
 

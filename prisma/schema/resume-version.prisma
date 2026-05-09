@@ -9,7 +9,7 @@
 // keeps the rollback mechanism useful on either kind.
 
 model ResumeVersion {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation("ResumeVersions", fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -35,7 +35,7 @@ model ResumeVersion {
 // Records which anniversary emails have already been sent per resume, so
 // the time-capsule cron is idempotent across retries and restarts.
 model ResumeTimeCapsuleLog {
-  id          String   @id @default(cuid())
+  id          String   @id @default(dbgenerated("uuidv7()"))
   resumeId    String
   capsuleYear Int
   skipped     Boolean  @default(false)

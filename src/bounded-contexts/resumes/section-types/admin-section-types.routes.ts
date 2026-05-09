@@ -6,7 +6,13 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  KeyParam,
+  SectionTypeListResponseSchema,
+  SectionTypeResponseSchema,
+  SemanticKindsResponseSchema,
+} from './admin-section-types.routes.schemas';
 import { AdminSectionTypesUseCases } from './application/ports/admin-section-types.port';
 import {
   type CreateSectionTypeDto,
@@ -17,8 +23,6 @@ import {
   UpdateSectionTypeSchema,
 } from './dto';
 
-const KeyParam = z.object({ key: z.string() });
-
 export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCases>> = [
   {
     method: 'GET',
@@ -26,9 +30,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     query: ListSectionTypesQuerySchema as unknown as z.ZodType<ListSectionTypesQueryDto>,
+    response: SectionTypeListResponseSchema,
     openapi: {
       summary: 'List all section types with pagination',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -40,9 +45,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     path: '/v1/admin/section-types/semantic-kinds',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: SemanticKindsResponseSchema,
     openapi: {
       summary: 'Get all unique semantic kinds',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -54,9 +60,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: KeyParam,
+    response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Get a section type by key',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -70,9 +77,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     body: CreateSectionTypeSchema as unknown as z.ZodType<CreateSectionTypeDto>,
+    response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Create a new section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -86,9 +94,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     permission: Permission.SECTION_TYPE_MANAGE,
     params: KeyParam,
     body: UpdateSectionTypeSchema as unknown as z.ZodType<UpdateSectionTypeDto>,
+    response: SectionTypeResponseSchema,
     openapi: {
       summary: 'Update a section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },
@@ -105,9 +114,10 @@ export const adminSectionTypesRoutes: ReadonlyArray<Route<AdminSectionTypesUseCa
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: KeyParam,
+    response: z.null(),
     openapi: {
       summary: 'Delete a section type',
-      tags: ['Admin - Section Types'],
+      tags: ['admin-section-types'],
       description: 'Admin Section Types Management API',
     },
     sdk: { exported: true },

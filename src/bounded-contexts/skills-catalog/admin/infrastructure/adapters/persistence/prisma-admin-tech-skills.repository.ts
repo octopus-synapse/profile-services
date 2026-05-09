@@ -15,7 +15,7 @@ export class PrismaAdminTechSkillsRepository extends AdminTechSkillsRepositoryPo
     super();
   }
 
-  async findAll(query: AdminTechSkillsListQuery) {
+  async listAll(query: AdminTechSkillsListQuery) {
     const where: Prisma.TechSkillWhereInput = {};
     if (query.search) where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     if (query.nicheId) where.nicheId = query.nicheId;
@@ -31,6 +31,44 @@ export class PrismaAdminTechSkillsRepository extends AdminTechSkillsRepositoryPo
 
   async findOne(id: string) {
     return this.prisma.techSkill.findUnique({ where: { id } });
+  }
+
+  async findBySlug(slug: string) {
+    return this.prisma.techSkill.findUnique({ where: { slug } });
+  }
+
+  async findByNameEn(nameEn: string) {
+    return this.prisma.techSkill.findFirst({
+      where: { nameEn: { equals: nameEn, mode: 'insensitive' } },
+    });
+  }
+
+  async countResumeReferences(skill: {
+    slug: string;
+    nameEn: string;
+    namePtBr: string;
+  }): Promise<number> {
+    // Skill catalog entries aren't FK-referenced by resume items —
+    // section items store the skill name as plain text inside their
+    // JSON content. We search across the three identifying strings to
+    // cover both legacy (free-typed) and modern (auto-completed) entries.
+    const candidates = [skill.slug, skill.nameEn, skill.namePtBr]
+      .filter((s) => typeof s === 'string' && s.length > 0)
+      .map((s) => s.toLowerCase());
+    if (candidates.length === 0) return 0;
+
+    let total = 0;
+    for (const needle of candidates) {
+      total += await this.prisma.sectionItem.count({
+        where: {
+          OR: [
+            { content: { path: ['name'], string_contains: needle } },
+            { content: { path: ['slug'], string_contains: needle } },
+          ],
+        },
+      });
+    }
+    return total;
   }
 
   async create(input: Record<string, unknown>) {

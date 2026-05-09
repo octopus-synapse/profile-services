@@ -11,19 +11,30 @@
  * alongside the pure use-cases.
  */
 
-import { z } from 'zod';
 import type { MultipartBody } from '@/infrastructure/elysia-adapter/multipart-bridge';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ImportUseCases } from './application/ports/import.port';
 import {
-  JsonResumeBasicsMissingException,
-  JsonResumeNameMissingException,
   LinkedinImportNotImplementedException,
   MissingPdfUploadException,
 } from './domain/exceptions/import.exceptions';
-import { JsonResumeParser } from './domain/services/json-resume-parser';
 import type { JsonResumeSchema } from './domain/types/import.types';
+import {
+  GithubImportBodySchema,
+  GithubImportResponseSchema,
+  GithubParsedProfileResponseSchema,
+  ImportEmptyResponseSchema,
+  ImportIdParams,
+  ImportJobListResponseSchema,
+  ImportJobResponseSchema,
+  ImportResultResponseSchema,
+  JsonImportBodySchema,
+  ParsedResumeDataResponseSchema,
+  PdfImportResponseSchema,
+  parser,
+  validateJsonResume,
+} from './import.routes.schemas';
 import {
   toImportJobDto,
   toImportJobDtoList,
@@ -31,41 +42,16 @@ import {
   toParsedResumeDataDto,
 } from './infrastructure/mappers/import.mapper';
 
-const ImportIdParams = z.object({ importId: z.string() });
-const JsonImportBodySchema = z.object({
-  // `data` must be present — without it the handler immediately
-  // throws a 500 inside `validateJsonResume(undefined)`. Forcing
-  // an object here keeps the failure mode at the schema layer
-  // (400 Bad Request).
-  data: z.object({}).passthrough(),
-});
-
-const GithubImportBodySchema = z.object({
-  token: z.string(),
-  username: z.string().optional(),
-  repoLimit: z.number().optional(),
-});
-
-function validateJsonResume(data: JsonResumeSchema): void {
-  if (!data.basics || typeof data.basics !== 'object') {
-    throw new JsonResumeBasicsMissingException();
-  }
-  if (!data.basics.name || typeof data.basics.name !== 'string') {
-    throw new JsonResumeNameMissingException();
-  }
-}
-
-const parser = new JsonResumeParser();
-
 export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   {
     method: 'POST',
-    path: '/resume-import/linkedin',
+    path: '/v1/resumes/imports/linkedin',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import profile data from LinkedIn (scaffold)',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
     },
@@ -76,14 +62,15 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   },
   {
     method: 'POST',
-    path: '/resume-import/json',
+    path: '/v1/resumes/imports/json',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Import resume from JSON Resume format',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Creates import job and processes JSON Resume data (jsonresume.org standard)',
     },
     sdk: { exported: true },
@@ -98,111 +85,110 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
       });
 
       const result = await bc.processImport.execute(importJob.id);
-      return {
-        success: true,
-        data: toImportResultDto({
-          importId: importJob.id,
-          status: result.status,
-          resumeId: result.resumeId,
-          errors: result.errors,
-        }),
-      };
+      return toImportResultDto({
+        importId: importJob.id,
+        status: result.status,
+        resumeId: result.resumeId,
+        errors: result.errors,
+      });
     },
   },
   {
     method: 'POST',
-    path: '/resume-import/parse',
+    path: '/v1/resumes/imports/parse',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     body: JsonImportBodySchema,
+    response: ParsedResumeDataResponseSchema,
     openapi: {
       summary: 'Parse JSON Resume without importing',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Validates and transforms JSON Resume to internal format without saving',
     },
     sdk: { exported: true },
     handler: async (ctx) => {
       const dto = ctx.body as { data: JsonResumeSchema };
       const parsed = parser.parse(dto.data);
-      return { success: true, data: toParsedResumeDataDto(parsed) };
+      return toParsedResumeDataDto(parsed);
     },
   },
   {
     method: 'GET',
-    path: '/resume-import/:importId',
+    path: '/v1/resumes/imports/:importId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportJobResponseSchema,
     openapi: {
       summary: 'Get import job status',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Returns current status, errors, and result of import job',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       const importJob = await bc.getImportStatus.execute(importId);
-      return { success: true, data: toImportJobDto(importJob) };
+      return toImportJobDto(importJob);
     },
   },
   {
     method: 'GET',
-    path: '/resume-import',
+    path: '/v1/resumes/imports',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: ImportJobListResponseSchema,
     openapi: {
       summary: 'Get import history',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Returns all import jobs for authenticated user, ordered by creation date',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const jobs = await bc.listImportHistory.execute(ctx.user!.userId);
-      return { success: true, data: toImportJobDtoList(jobs) };
+      return toImportJobDtoList(jobs);
     },
   },
   {
     method: 'DELETE',
-    path: '/resume-import/:importId',
+    path: '/v1/resumes/imports/:importId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportEmptyResponseSchema,
     openapi: {
       summary: 'Cancel import job',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Cancels pending or processing import. Cannot cancel completed imports.',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       await bc.cancelImport.execute(importId);
-      return { success: true, data: null };
+      return null;
     },
   },
   {
     method: 'POST',
-    path: '/resume-import/:importId/retry',
+    path: '/v1/resumes/imports/:importId/retry',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     params: ImportIdParams,
+    response: ImportResultResponseSchema,
     openapi: {
       summary: 'Retry failed import',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description: 'Retries processing of failed import job with same data',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { importId } = ctx.params as { importId: string };
       const result = await bc.retryImport.execute(importId);
-      return {
-        success: true,
-        data: toImportResultDto({
-          importId,
-          status: result.status,
-          resumeId: result.resumeId,
-          errors: result.errors,
-        }),
-      };
+      return toImportResultDto({
+        importId,
+        status: result.status,
+        resumeId: result.resumeId,
+        errors: result.errors,
+      });
     },
   },
   // ─── GitHub ───────────────────────────────────────────────────────
@@ -212,6 +198,8 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     body: GithubImportBodySchema,
+    response: GithubParsedProfileResponseSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary:
         'Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.',
@@ -226,7 +214,7 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
         username: body.username,
         repoLimit: body.repoLimit,
       });
-      return { success: true, data: parsed };
+      return parsed;
     },
   },
   // ─── File-driven endpoints (multipart PDF + OAuth-backed GitHub) ─────
@@ -235,14 +223,15 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
   // pure use-cases.
   {
     method: 'POST',
-    path: '/resume-import/pdf',
+    path: '/v1/resumes/imports/pdf',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
     kind: 'multipart',
     statusCode: 201,
+    response: PdfImportResponseSchema,
     openapi: {
       summary: 'Import resume from a PDF file',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         'Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.',
     },
@@ -255,17 +244,18 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
         buffer: file.buffer,
         originalname: file.filename,
       });
-      return { success: true, data: { resumeId: result.resumeId } };
+      return { resumeId: result.resumeId };
     },
   },
   {
     method: 'POST',
-    path: '/resume-import/github',
+    path: '/v1/resumes/imports/github',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_IMPORT,
+    response: GithubImportResponseSchema,
     openapi: {
       summary: 'Import profile data from GitHub',
-      tags: ['Resume Import'],
+      tags: ['resume-import'],
       description:
         "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
     },
@@ -273,12 +263,9 @@ export const importRoutes: ReadonlyArray<Route<ImportUseCases>> = [
     handler: async (ctx, bc) => {
       const result = await bc.githubImport.import(ctx.user!.userId);
       return {
-        success: true,
-        data: {
-          primaryStack: result.primaryStack,
-          buildPostsCreated: result.buildPostsCreated,
-          profileUpdated: result.profileUpdated,
-        },
+        primaryStack: result.primaryStack,
+        buildPostsCreated: result.buildPostsCreated,
+        profileUpdated: result.profileUpdated,
       };
     },
   },

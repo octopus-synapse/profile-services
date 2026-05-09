@@ -34,7 +34,8 @@ export class PinoLoggerAdapter extends LoggerPort {
     this.logger.warn({ context, ...meta }, message);
   }
 
-  error(message: string, trace?: string, context?: string, meta?: Record<string, unknown>): void {
-    this.logger.error({ context, stack: trace, ...meta }, message);
+  error(message: string, options: Record<string, unknown> = {}): void {
+    const { context, ...rest } = options;
+    this.logger.error({ context, ...rest }, message);
   }
 }

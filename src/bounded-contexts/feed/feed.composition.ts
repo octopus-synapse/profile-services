@@ -9,7 +9,8 @@
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
 import { AnonymousMaskService } from './application/services/anonymous-mask.service';
@@ -53,6 +54,8 @@ export function buildFeedUseCases(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
+  cache?: CachePort,
 ): FeedUseCases {
   // Repos
   const feedRepo = new PrismaFeedRepository(prisma, logger);
@@ -62,14 +65,17 @@ export function buildFeedUseCases(
   const reportRepo = new PrismaReportRepository(prisma);
 
   // External adapters
-  const linkPreview = new FetchLinkPreviewAdapter(logger);
+  const linkPreview = new FetchLinkPreviewAdapter(logger, safeFetch);
   const imageStorage = new S3PostImageStorageAdapter(s3);
   const notifier = new NotificationsEngagementNotifierAdapter(notifications.createNotification);
 
   // App services
   const mask = new AnonymousMaskService();
   const hashtags = new HashtagParserService();
-  const timeline = new FeedTimelineService(feedRepo, mask);
+  // P1-028 — pass the cache port so `getTimeline` short-circuits
+  // repeat reads inside a 15s window. Optional so unit tests don't
+  // need to wire a fake cache.
+  const timeline = new FeedTimelineService(feedRepo, mask, cache);
 
   return {
     createPost: new CreatePostUseCase(feedRepo, linkPreview, hashtags, logger),
@@ -105,8 +111,10 @@ export function buildFeedComposition(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
+  cache?: CachePort,
 ): BoundedContextComposition<FeedUseCases> {
-  const useCases = buildFeedUseCases(prisma, logger, s3, notifications);
+  const useCases = buildFeedUseCases(prisma, logger, s3, notifications, safeFetch, cache);
 
   return {
     useCases,

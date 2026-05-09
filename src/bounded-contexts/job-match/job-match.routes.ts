@@ -4,29 +4,17 @@
  * single use case so we don't need an aggregate bundle.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
-import { JobMatchAuthenticatedUserMissingException } from './domain/exceptions/job-match.exceptions';
-import { ComputeMatchRequestDto } from './dto/match-breakdown.dto';
-import { presentMatchBreakdown } from './infrastructure/presenters/match-breakdown.presenter';
-
-const ResumeJobParams = z.object({
-  resumeId: z.string(),
-  jobId: z.string(),
-});
-
-const ComputeMatchSchema = z.object({
-  resumeId: z.string().min(1),
-  jobId: z.string().min(1),
-});
-
-function pickUserId(ctx: { user: { userId: string } | null }): string {
-  const id = ctx.user!.userId;
-  if (!id) throw new JobMatchAuthenticatedUserMissingException();
-  return id;
-}
+import { ComputeMatchRequestDto } from './dto/match-breakdown.schema';
+import { toMatchBreakdownResponseDto } from './infrastructure/presenters/match-breakdown.presenter';
+import {
+  ComputeMatchSchema,
+  MatchBreakdownResponseSchema,
+  pickUserId,
+  ResumeJobParams,
+} from './job-match.routes.schemas';
 
 export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
   {
@@ -35,6 +23,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: ComputeMatchSchema,
+    response: MatchBreakdownResponseSchema,
     openapi: {
       summary: 'Compute the Match Score for a (resume, job) pair',
       tags: ['job-match'],
@@ -48,7 +37,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId: body.resumeId,
         jobId: body.jobId,
       });
-      return { success: true, data: presentMatchBreakdown(breakdown) };
+      return toMatchBreakdownResponseDto(breakdown);
     },
   },
   {
@@ -57,6 +46,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeJobParams,
+    response: MatchBreakdownResponseSchema,
     openapi: {
       summary: 'Read the Match Score for a (resume, job) pair (cached)',
       tags: ['job-match'],
@@ -70,7 +60,7 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         resumeId,
         jobId,
       });
-      return { success: true, data: presentMatchBreakdown(breakdown) };
+      return toMatchBreakdownResponseDto(breakdown);
     },
   },
 ];

@@ -12,3 +12,5 @@ export const ResumeDslSchema = z.object({
 });
 
 export type ResumeDsl = z.infer<typeof ResumeDslSchema>;
+
+export type ResumeDslDto = z.infer<typeof ResumeDslSchema>;

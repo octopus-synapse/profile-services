@@ -3,7 +3,7 @@ import type {
   GetConversationsQuery,
   PaginatedConversationsResponse,
 } from '../../../schemas/chat.schema';
-import { mapConversationToResponse } from '../../mappers/chat.mapper';
+import { toConversationResponseDto } from '../../mappers/chat.mapper';
 import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationsUseCase {
@@ -25,14 +25,14 @@ export class GetConversationsUseCase {
     const conversationsWithUnread = await Promise.all(
       result.conversations.map(async (conv) => {
         const unreadCount = await this.messageRepo.getUnreadCountByConversation(conv.id, userId);
-        return mapConversationToResponse(conv, userId, unreadCount);
+        return toConversationResponseDto(conv, userId, unreadCount);
       }),
     );
 
     return {
-      conversations: conversationsWithUnread,
+      items: conversationsWithUnread,
       nextCursor: result.nextCursor,
-      hasMore: result.hasMore,
+      hasNext: result.hasMore,
     };
   }
 }

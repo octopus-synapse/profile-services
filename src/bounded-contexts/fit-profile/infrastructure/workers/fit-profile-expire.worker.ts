@@ -1,5 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { ExpireFitProfileUseCase } from '../../application/use-cases/expire-fit-profile.use-case';
 
@@ -36,7 +37,7 @@ export class FitProfileExpireWorker {
   ) {}
 
   async process(job: { data: FitProfileExpireJobData; id?: string }): Promise<void> {
-    try {
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.enqueueExpiredUsers();
         return;
@@ -44,15 +45,7 @@ export class FitProfileExpireWorker {
       if (job.data.kind === 'expire-user') {
         await this.expireUseCase.execute(job.data.userId);
       }
-    } catch (err) {
-      const userId = job?.data?.kind === 'expire-user' ? job.data.userId : '(schedule)';
-      this.logger.error(
-        `fit-profile-expire failed user=${userId} err=${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
-      throw err;
-    }
+    });
   }
 
   private async enqueueExpiredUsers(): Promise<void> {

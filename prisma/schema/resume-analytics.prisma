@@ -5,7 +5,7 @@
 // (see `resume-quality/` bounded context).
 
 model ResumeAnalytics {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation("ResumeAnalytics", fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -17,7 +17,7 @@ model ResumeAnalytics {
 }
 
 model ResumeViewEvent {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation("ResumeViews", fields: [resumeId], references: [id], onDelete: Cascade)
 

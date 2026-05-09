@@ -18,7 +18,10 @@
 import { randomUUID } from 'node:crypto';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
-import { ExportPipelineFailedException } from '../../domain/exceptions/export.exceptions';
+import {
+  ExportBannerGenerationFailedException,
+  ExportEngineFailedException,
+} from '../../domain/exceptions/export.exceptions';
 
 export type ExportFormat = 'pdf' | 'docx' | 'json' | 'bundle' | 'banner' | 'latex';
 
@@ -29,18 +32,32 @@ export class ExportPipelineService {
    * Runs `task`, emitting Requested / Completed / Failed around it.
    * Throws `ExportPipelineFailedException(format)` on failure so the
    * global `DomainExceptionFilter` can translate the 500.
+   *
+   * If the underlying error already carries a domain `code` (e.g. a
+   * `ExportPdfGenerationFailedException` raised inside the use case)
+   * we re-throw it untouched so the upstream code/i18n message is
+   * preserved. For a raw / framework error we wrap it in a generic
+   * `ExportEngineFailedException` so callers always see a typed
+   * domain exception with a useful HTTP status hint.
    */
   async run<T>(format: ExportFormat, userId: string, task: () => Promise<T>): Promise<T> {
     const exportId = randomUUID();
     this.events.publish(new ExportRequestedEvent(exportId, { resumeId: userId, userId, format }));
     try {
       const result = await task();
-      this.events.publish(new ExportCompletedEvent(exportId, { resumeId: userId, fileUrl: '' }));
+      this.events.publish(
+        new ExportCompletedEvent(exportId, { userId, resumeId: userId, fileUrl: '' }),
+      );
       return result;
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      this.events.publish(new ExportFailedEvent(exportId, { resumeId: userId, reason }));
-      throw new ExportPipelineFailedException(format);
+      this.events.publish(new ExportFailedEvent(exportId, { userId, resumeId: userId, reason }));
+      if (err instanceof Error && err.constructor.name.endsWith('Exception')) {
+        throw err;
+      }
+      // Engine-level failure (network / fs / external binary) — surface as
+      // a typed 502 instead of a generic 500.
+      throw new ExportEngineFailedException(format, reason);
     }
   }
 
@@ -53,8 +70,13 @@ export class ExportPipelineService {
   async runBanner(task: () => Promise<Buffer>): Promise<Buffer> {
     try {
       return await task();
-    } catch {
-      throw new ExportPipelineFailedException('banner');
+    } catch (err) {
+      if (err instanceof Error && err.constructor.name.endsWith('Exception')) {
+        throw err;
+      }
+      throw new ExportBannerGenerationFailedException(
+        err instanceof Error ? err.message : 'unknown',
+      );
     }
   }
 }

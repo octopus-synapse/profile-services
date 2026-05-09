@@ -1,4 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { ComputeQualityUseCase } from '../../application/use-cases/compute-quality.use-case';
 
 export const RESUME_QUALITY_QUEUE = 'resume-quality';
@@ -38,15 +39,9 @@ export class ResumeQualityWorker {
 
   async process(job: { data: ResumeQualityJobData; id?: string }): Promise<void> {
     if (job.data.kind !== 'recompute') return;
-    try {
+    this.logger.debug(`Recomputing quality for resumeId=${job.data.resumeId}`, CTX);
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       await this.compute.execute(job.data.resumeId);
-    } catch (err) {
-      this.logger.error(
-        `resume-quality recompute failed resumeId=${job.data.resumeId} err=${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
-      throw err;
-    }
+    });
   }
 }

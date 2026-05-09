@@ -10,7 +10,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { FitProfileExpiringRow } from '../../../domain/entities/notification';
+import type { FitProfileExpiringRow } from '../../../domain/entities/notification.entity';
 import { FitProfileExpiryReadPort } from '../../../domain/ports/fit-profile-expiry.port';
 
 export class PrismaFitProfileExpiryAdapter extends FitProfileExpiryReadPort {

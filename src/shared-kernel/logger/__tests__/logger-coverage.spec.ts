@@ -206,7 +206,11 @@ function audit(): Findings {
     for (const body of catchBodies(src)) {
       const lineCount = body.split('\n').length;
       if (lineCount > 12) continue;
+      // Accept `this.logger.*` (class method form) AND a plain
+      // `logger.<level>(` invocation (free-function form) — both
+      // count as "logged the error".
       if (/this\.logger\./.test(body)) continue;
+      if (/\blogger\.(error|warn|debug|info|log)\(/.test(body)) continue;
       if (/\bthrow\b/.test(body)) continue;
       if (body.trim().length === 0) continue; // empty catch — different smell
       findings.silentCatches.push(rel);

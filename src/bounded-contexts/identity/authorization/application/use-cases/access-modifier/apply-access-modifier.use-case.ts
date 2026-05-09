@@ -5,22 +5,16 @@
  * up on the next request. Emits an audit-log entry.
  */
 
-import type { LoggerPort } from '@/shared-kernel';
+import { AuditLogPort } from '@/shared-kernel/audit';
+import type { LoggerPort } from '@/shared-kernel/logger';
 import type {
   AccessModifier,
   CreateAccessModifierInput,
 } from '../../../domain/entities/access-modifier.entity';
 import type { IAccessModifierRepository } from '../../../domain/ports/access-modifier.port';
 
-export interface AuditLogPort {
-  log(input: {
-    userId: string;
-    action: string;
-    entityType: string;
-    entityId: string;
-    metadata?: Record<string, unknown>;
-  }): Promise<void>;
-}
+// Re-exported for source-compat with existing adapter imports.
+export { AuditLogPort };
 
 export class ApplyAccessModifierUseCase {
   constructor(

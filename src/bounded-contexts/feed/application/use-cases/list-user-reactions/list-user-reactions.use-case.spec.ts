@@ -8,7 +8,7 @@ describe('ListUserReactionsUseCase', () => {
     repo.seedPost({ id: 'p1', authorId: 'someone', content: 'orig' });
     repo.seedLike('p1', 'me', 'LIKE');
     const out = await new ListUserReactionsUseCase(repo).execute('me', undefined, 20);
-    expect(out.reactions).toHaveLength(1);
-    expect(out.reactions[0].post.id).toBe('p1');
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].post.id).toBe('p1');
   });
 });

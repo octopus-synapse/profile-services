@@ -16,7 +16,7 @@ import { randomUUID } from 'node:crypto';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -116,10 +116,9 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send({ title: 'User A Resume for Generic Sections Test' });
 
       expect(resumeResponse.status).toBe(201);
-      expect(resumeResponse.body.success).toBe(true);
-      expect(resumeResponse.body.data.id).toBeDefined();
+      expect(resumeResponse.body.id).toBeDefined();
 
-      userAResumeId = resumeResponse.body.data.id;
+      userAResumeId = resumeResponse.body.id;
     });
 
     it.serial('should create and authenticate user B with resume', async () => {
@@ -140,10 +139,9 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send({ title: 'User B Resume for Generic Sections Test' });
 
       expect(resumeResponse.status).toBe(201);
-      expect(resumeResponse.body.success).toBe(true);
-      expect(resumeResponse.body.data.id).toBeDefined();
+      expect(resumeResponse.body.id).toBeDefined();
 
-      userBResumeId = resumeResponse.body.data.id;
+      userBResumeId = resumeResponse.body.id;
     });
   });
 
@@ -154,12 +152,11 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data.sectionTypes)).toBe(true);
-      expect(response.body.data.sectionTypes.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.sectionTypes)).toBe(true);
+      expect(response.body.sectionTypes.length).toBeGreaterThan(0);
 
       // Our custom section type should be in the list
-      const customType = response.body.data.sectionTypes.find(
+      const customType = response.body.sectionTypes.find(
         (t: { key: string }) => t.key === sectionTypeKey,
       );
       expect(customType).toBeDefined();
@@ -173,7 +170,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       expect(response.status).toBe(200);
 
-      const sectionTypes = response.body.data.sectionTypes;
+      const sectionTypes = response.body.sectionTypes;
 
       // Validate structure of each section type
       for (const sectionType of sectionTypes) {
@@ -197,8 +194,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data.sections)).toBe(true);
+      expect(Array.isArray(response.body.sections)).toBe(true);
     });
 
     it.serial('should require authentication to list sections', async () => {
@@ -228,12 +224,11 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send(payload);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.item).toBeDefined();
-      expect(response.body.data.item.id).toBeDefined();
-      expect(response.body.data.item.content.title).toBe('First Item Title');
+      expect(response.body.item).toBeDefined();
+      expect(response.body.item.id).toBeDefined();
+      expect(response.body.item.content.title).toBe('First Item Title');
 
-      itemId = response.body.data.item.id;
+      itemId = response.body.item.id;
     });
 
     it.serial('should create multiple items in the same section', async () => {
@@ -247,10 +242,9 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send(payload);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.item.id).toBeDefined();
+      expect(response.body.item.id).toBeDefined();
 
-      secondItemId = response.body.data.item.id;
+      secondItemId = response.body.item.id;
     });
 
     it.serial('should require authentication to create items', async () => {
@@ -312,9 +306,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
-      const sections = response.body.data.sections;
+      const sections = response.body.sections;
       expect(Array.isArray(sections)).toBe(true);
 
       // Find our custom section
@@ -345,9 +337,8 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send(payload);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.item.content.title).toBe('Updated Item Title');
-      expect(response.body.data.item.content.description).toBe('Updated description');
+      expect(response.body.item.content.title).toBe('Updated Item Title');
+      expect(response.body.item.content.description).toBe('Updated description');
     });
 
     it.serial('should require authentication to update items', async () => {
@@ -398,7 +389,6 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should verify item is deleted from sections list', async () => {
@@ -406,7 +396,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set('Authorization', `Bearer ${userA.token}`);
 
-      const sections = response.body.data.sections;
+      const sections = response.body.sections;
       const customSection = sections.find(
         (s: { sectionType?: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
@@ -456,8 +446,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
         .send(payload);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.item.content.title).toBe('User B Item');
+      expect(response.body.item.content.title).toBe('User B Item');
     });
 
     it.serial('should not show user A items in user B section list', async () => {
@@ -467,7 +456,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       expect(response.status).toBe(200);
 
-      const sections = response.body.data.sections;
+      const sections = response.body.sections;
       const customSection = sections.find(
         (s: { sectionType?: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );

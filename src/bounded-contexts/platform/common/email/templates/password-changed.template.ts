@@ -1,5 +1,10 @@
 import { getBaseTemplate } from './base.template';
 
+// P2-112 — this template is hardcoded pt-BR end-to-end (subject, body,
+// CTA), so the `toLocaleString('pt-BR')` call below matches the rest of
+// the template by design. When templates gain a per-locale variant, the
+// date format must be parameterized alongside the body copy — not in
+// isolation.
 export const getPasswordChangedTemplate = (name: string, frontendUrl: string): string => {
   const content = `
     <h2>Senha alterada com sucesso</h2>

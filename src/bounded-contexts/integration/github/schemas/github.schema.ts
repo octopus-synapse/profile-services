@@ -109,3 +109,17 @@ export const GitHubSyncResultSchema = z.object({
 });
 
 export type GitHubSyncResult = z.infer<typeof GitHubSyncResultSchema>;
+
+export type GitHubUserDto = z.infer<typeof GitHubUserSchema>;
+
+export type GitHubRepoRawDto = z.infer<typeof GitHubRepoRawSchema>;
+
+export type GitHubFetchOptionsDto = z.infer<typeof GitHubFetchOptionsSchema>;
+
+export type GitHubRepoDto = z.infer<typeof GitHubRepoSchema>;
+
+export type GitHubSummaryDto = z.infer<typeof GitHubSummarySchema>;
+
+export type SyncGitHubDto = z.infer<typeof SyncGitHubSchema>;
+
+export type GitHubSyncResultDto = z.infer<typeof GitHubSyncResultSchema>;

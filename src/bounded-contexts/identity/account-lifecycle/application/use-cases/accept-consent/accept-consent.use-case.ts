@@ -8,8 +8,8 @@
 import { LoggerPort } from '@/shared-kernel';
 import type { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
 import { AuditAction } from '../../../domain/ports/audit-logger.port';
-import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.dto';
 import type { ConsentRepositoryPort } from './accept-consent.port';
+import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.schema';
 
 export abstract class VersionConfigPort {
   abstract getTosVersion(): string;

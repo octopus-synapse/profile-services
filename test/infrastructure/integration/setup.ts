@@ -1,15 +1,7 @@
 /**
- * Compat layer for migrated integration suites.
- *
- * Exposes the same surface the legacy `_legacy/integration/setup.ts`
- * exported, but delegates to the new `TestApp` harness (Elysia
- * bootstrap on an ephemeral port). Each migrated spec file just
- * keeps its existing `from './setup'` import — no per-file
- * conversion needed.
- *
- * The `getRequest()` legacy callers used `request(app.getHttpServer())
- * .post(...).send(...)` chains. Our `TestRequest` wrapper has the same
- * shape so those calls land unchanged.
+ * Integration suite setup. Delegates to the `TestApp` harness (Elysia
+ * bootstrap on an ephemeral port). Suites use `getRequest()` returning
+ * a `TestRequest` wrapper with `.post(...).send(...)` chains.
  */
 
 import { setDefaultTimeout } from 'bun:test';
@@ -19,7 +11,7 @@ import type { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
 import {
   AuthHelper,
-  freshUser,
+  freshInDbUser,
   startTestApp,
   stopTestApp,
   type TestApp,
@@ -56,7 +48,7 @@ export const testContext: TestContext = {
 // `getApp()` we get a brand-new TestApp (with a brand-new Prisma) and
 // have to rebuild AuthHelper around it.
 let cachedAppRef: TestApp | null = null;
-let cachedAuth: AuthHelper | null = null;
+let _cachedAuth: AuthHelper | null = null;
 
 // ─── Unique ID helpers ────────────────────────────────────────────
 
@@ -82,7 +74,7 @@ export async function getApp(): Promise<TestApp> {
   const app = await startTestApp();
   if (cachedAppRef !== app) {
     cachedAppRef = app;
-    cachedAuth = new AuthHelper(app);
+    _cachedAuth = new AuthHelper(app);
   }
   return app;
 }
@@ -142,7 +134,7 @@ export async function createTestUserAndLogin(
   // Same fixture the e2e suite uses; no spec relies on the legacy
   // refreshToken (real refresh-token flow lives in `auth.integration`,
   // which exercises the actual login route end-to-end).
-  const fresh = await freshUser(app, {
+  const fresh = await freshInDbUser(app, {
     email: customUser?.email,
     password: customUser?.password,
   });
@@ -288,5 +280,5 @@ export function getCacheService(): {
 export async function teardownAll(): Promise<void> {
   await stopTestApp();
   cachedAppRef = null;
-  cachedAuth = null;
+  _cachedAuth = null;
 }

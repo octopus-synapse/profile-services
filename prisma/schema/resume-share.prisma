@@ -1,7 +1,7 @@
 // Resume Share - Public sharing with custom slugs
 
 model ResumeShare {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation("ResumeShares", fields: [resumeId], references: [id], onDelete: Cascade)
 
@@ -25,7 +25,7 @@ model ResumeShare {
 // Adding an alias never breaks a previously published link, so users
 // can rename without invalidating cards/QR codes already in the wild.
 model ResumeShareAlias {
-  id        String      @id @default(cuid())
+  id        String      @id @default(dbgenerated("uuidv7()"))
   shareId   String
   share     ResumeShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
   slug      String      @unique

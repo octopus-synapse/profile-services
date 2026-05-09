@@ -8,6 +8,7 @@
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { LoggerPort } from '@/shared-kernel/logger';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   ConnectionRepositoryPort,
   type ConnectionUser,
@@ -84,11 +85,7 @@ export class ConnectionService {
   }
 
   async acceptConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -114,11 +111,7 @@ export class ConnectionService {
   }
 
   async rejectConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -137,11 +130,7 @@ export class ConnectionService {
   }
 
   async withdrawSentRequest(connectionId: string, currentUserId: string): Promise<void> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
     }
@@ -158,11 +147,7 @@ export class ConnectionService {
   }
 
   async removeConnection(connectionId: string, currentUserId: string): Promise<void> {
-    const connection = await this.connectionRepo.findConnectionById(connectionId);
-
-    if (!connection) {
-      throw new EntityNotFoundException('Connection');
-    }
+    const connection = await this.connectionRepo.getConnectionById(connectionId);
     if (connection.status !== 'ACCEPTED') {
       throw new ConnectionNotAcceptedException();
     }
@@ -182,54 +167,33 @@ export class ConnectionService {
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.connectionRepo.findPendingRequests(userId, pagination);
-
-    return {
-      data: data.map((conn) => ({
-        ...conn,
-        user: conn.requesterId === userId ? conn.target : conn.requester,
-      })),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { items, total } = await this.connectionRepo.findPendingRequests(userId, pagination);
+    const enriched = items.map((conn) => ({
+      ...conn,
+      user: conn.requesterId === userId ? conn.target : conn.requester,
+    }));
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 
   async getSentRequests(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.connectionRepo.findSentRequests(userId, pagination);
-
-    return {
-      data: data.map((conn) => ({ ...conn, user: conn.target })),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { items, total } = await this.connectionRepo.findSentRequests(userId, pagination);
+    const enriched = items.map((conn) => ({ ...conn, user: conn.target }));
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 
   async getConnections(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.connectionRepo.findAcceptedConnections(userId, pagination);
-
-    return {
-      data: data.map((conn) => ({
-        ...conn,
-        user: conn.requesterId === userId ? conn.target : conn.requester,
-      })),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { items, total } = await this.connectionRepo.findAcceptedConnections(userId, pagination);
+    const enriched = items.map((conn) => ({
+      ...conn,
+      user: conn.requesterId === userId ? conn.target : conn.requester,
+    }));
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 
   async getConnectionsCount(userId: string): Promise<number> {
@@ -269,9 +233,7 @@ export class ConnectionService {
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ConnectionSuggestion>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.connectionRepo.findRankedSuggestions(userId, pagination);
-
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const { items, total } = await this.connectionRepo.findRankedSuggestions(userId, pagination);
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

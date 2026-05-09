@@ -3,7 +3,8 @@
  *
  * The application/domain layers are framework-agnostic POJOs. Request
  * validation is the responsibility of the HTTP edge — and the project's
- * standard for that edge is Zod via `nestjs-zod` (`createZodDto`):
+ * standard for that edge is plain Zod schemas wired into Elysia route
+ * descriptors via `*.routes.schemas.ts` (no `createZodDto`, no class wrappers):
  *   - schemas are plain objects, reusable in workers/webhooks/tests
  *   - validation errors come back as `ZodError` and are translated into
  *     the domain `ValidationException` by the i18n pipe

@@ -6,7 +6,7 @@ import {
 } from '../../../../domain/exceptions/collaboration.exceptions';
 import { MessageSentEvent } from '../../../../shared-kernel/domain/events';
 import type { MessageResponse, SendMessage } from '../../../schemas/chat.schema';
-import { mapMessageToResponse } from '../../mappers/chat.mapper';
+import { toMessageResponseDto } from '../../mappers/chat.mapper';
 import {
   BlockedUserRepositoryPort,
   ChatCachePort,
@@ -62,6 +62,6 @@ export class SendMessageUseCase {
       this.chatCache.invalidateConversations(dto.recipientId),
     ]);
 
-    return mapMessageToResponse(message);
+    return toMessageResponseDto(message);
   }
 }

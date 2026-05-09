@@ -35,7 +35,7 @@ export class PrismaMecInstitutionRepository extends MecInstitutionRepositoryPort
     super();
   }
 
-  async findAllActiveInstitutions(): Promise<Institution[]> {
+  async listActiveInstitutions(): Promise<Institution[]> {
     return this.prisma.mecInstitution.findMany({
       where: { isActive: true },
       orderBy: [{ uf: 'asc' }, { nome: 'asc' }],
@@ -98,7 +98,7 @@ export class PrismaMecInstitutionRepository extends MecInstitutionRepositoryPort
     `;
   }
 
-  async findAllDistinctUfs(): Promise<string[]> {
+  async listDistinctUfs(): Promise<string[]> {
     const ufs = await this.prisma.mecInstitution.findMany({
       where: { isActive: true },
       select: { uf: true },
@@ -122,7 +122,7 @@ export class PrismaMecInstitutionRepository extends MecInstitutionRepositoryPort
     return this.prisma.mecInstitution.count({ where: { isActive: true } });
   }
 
-  async findAllExistingInstitutionCodes(): Promise<Set<number>> {
+  async listExistingInstitutionCodes(): Promise<Set<number>> {
     const existing = await this.prisma.mecInstitution.findMany({
       select: { codigoIes: true },
     });

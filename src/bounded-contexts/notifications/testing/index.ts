@@ -19,7 +19,7 @@ import type {
   NotificationView,
   PendingDigestNotification,
   WeeklyDigestStats,
-} from '../domain/entities/notification';
+} from '../domain/entities/notification.entity';
 import { FitProfileExpiryReadPort } from '../domain/ports/fit-profile-expiry.port';
 import {
   type NotificationEmailMessage,
@@ -119,7 +119,7 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
     }
     const slice = sorted.slice(start, start + limit);
     const nextCursor = slice.length === limit ? (slice[slice.length - 1]?.id ?? null) : null;
-    return { data: slice, nextCursor };
+    return { items: slice, nextCursor, hasNext: nextCursor !== null };
   }
 
   async countUnread(userId: string): Promise<number> {
@@ -137,6 +137,10 @@ export class InMemoryNotificationsRepository extends NotificationsRepositoryPort
       }
     }
     return { count };
+  }
+
+  async findOwnerById(notificationId: string): Promise<string | null> {
+    return this.notifications.find((n) => n.id === notificationId)?.userId ?? null;
   }
 
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {

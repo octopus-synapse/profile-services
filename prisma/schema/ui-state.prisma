@@ -3,7 +3,7 @@
 /// URL-searchParam pattern in the frontend so user state survives device
 /// changes and session resets.
 model UserUiState {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("uuidv7()"))
   userId    String
   key       String
   value     Json

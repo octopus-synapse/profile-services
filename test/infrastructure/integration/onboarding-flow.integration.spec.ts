@@ -19,6 +19,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { tokenFromResponse } from '../shared';
 import {
   acceptTosForUser,
   closeApp,
@@ -68,7 +69,7 @@ async function createTestAccount(
 ): Promise<TestAccount> {
   const email = uniqueEmail(prefix);
   const response = await getRequest()
-    .post('/api/accounts')
+    .post('/api/v1/accounts')
     .send({
       email,
       password,
@@ -77,21 +78,21 @@ async function createTestAccount(
       acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
     });
 
-  if (response.status !== 201 || !response.body.data?.userId) {
+  if (response.status !== 201 || !response.body?.userId) {
     throw new Error(`Signup failed: ${JSON.stringify(response.body)}`);
   }
 
-  return { email, password, userId: response.body.data.userId };
+  return { email, password, userId: response.body.userId };
 }
 
 async function loginTestAccount(email: string, password: string): Promise<string> {
-  const response = await getRequest().post('/api/auth/login').send({ email, password });
+  const response = await getRequest().post('/api/v1/auth/login').send({ email, password });
 
-  if (response.status !== 200 || !response.body.data?.accessToken) {
+  const accessToken = tokenFromResponse(response, 'access_token');
+  if (response.status !== 200 || !accessToken) {
     throw new Error(`Login failed: ${JSON.stringify(response.body)}`);
   }
-
-  return response.body.data.accessToken;
+  return accessToken;
 }
 
 /**
@@ -193,7 +194,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should create account with valid credentials', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
@@ -203,11 +204,11 @@ describe('Complete Onboarding Flow', () => {
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.data).toHaveProperty('userId');
-      expect(response.body.data.email).toBe(testEmail);
-      expect(response.body.data.message).toBeDefined();
+      expect(response.body).toHaveProperty('userId');
+      expect(response.body.email).toBe(testEmail);
+      expect(response.body.message).toBeDefined();
 
-      userId = response.body.data.userId;
+      userId = response.body.userId;
     });
 
     it('should reject signup with existing email', async () => {
@@ -218,7 +219,7 @@ describe('Complete Onboarding Flow', () => {
 
       // First signup
       const first = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
@@ -226,11 +227,11 @@ describe('Complete Onboarding Flow', () => {
           ...consents,
         });
 
-      userId = first.body.data?.userId;
+      userId = first.body?.userId;
 
       // Second signup with same email
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'DifferentPass123!',
@@ -243,7 +244,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with weak password', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({ email: uniqueEmail('weak-pass'), password: '123', name: 'Weak Pass User' });
 
       // 400 or 422 for validation error
@@ -252,7 +253,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with invalid email format', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({ email: 'not-an-email', password: 'SecurePass123!', name: 'Invalid Email User' });
 
       // 400 or 422 for validation error
@@ -260,7 +261,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup without required fields', async () => {
-      const response = await getRequest().post('/api/accounts').send({});
+      const response = await getRequest().post('/api/v1/accounts').send({});
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
@@ -289,7 +290,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should request email verification', async () => {
       const response = await getRequest()
-        .post('/api/email-verification/send')
+        .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({}); // Send empty body - email should be taken from token
 
@@ -386,7 +387,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(false);
+      expect(response.body.hasCompletedOnboarding).toBe(false);
     });
 
     it('should reject unauthenticated request', async () => {
@@ -439,7 +440,6 @@ describe('Complete Onboarding Flow', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it('should save progress for professional-profile step', async () => {
@@ -610,8 +610,7 @@ describe('Complete Onboarding Flow', () => {
 
       expect([200, 201]).toContain(response.status);
       if (response.status === 200 || response.status === 201) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.resumeId).toBeDefined();
+        expect(response.body.resumeId).toBeDefined();
       }
     });
 
@@ -729,7 +728,7 @@ describe('Complete Onboarding Flow', () => {
           }),
         );
 
-      resumeId = onboardingRes.body.data?.resumeId;
+      resumeId = onboardingRes.body?.resumeId;
     });
 
     afterAll(async () => {
@@ -755,7 +754,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(true);
+      expect(response.body.hasCompletedOnboarding).toBe(true);
     });
 
     it('should have created resume', async () => {
@@ -766,7 +765,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
 
     it('should list user resumes', async () => {

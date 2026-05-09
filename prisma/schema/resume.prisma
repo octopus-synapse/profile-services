@@ -1,7 +1,7 @@
 // Resume Model - Core resume entity
 
 model Resume {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
 

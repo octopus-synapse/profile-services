@@ -9,7 +9,7 @@
  * - role_user: Default for all authenticated users
  * - role_admin: Full administrative access
  */
-import type { PermissionGroupId } from './permission-groups';
+import type { PermissionGroupId } from './permission-groups.config';
 
 export interface Role {
   readonly id: string;
@@ -34,6 +34,7 @@ export const ROLES = {
       'grp_catalog_reader',
       'grp_collaborator',
       'grp_social',
+      'grp_feed_user',
     ],
     isSystem: true,
   },
@@ -56,7 +57,6 @@ export const ROLES = {
       'grp_automation_beta', // Admin permissions
       'grp_resume_admin',
       'grp_user_admin',
-      'grp_theme_admin',
       'grp_catalog_admin',
       'grp_analytics_admin',
       'grp_platform_admin',

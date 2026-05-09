@@ -7,6 +7,6 @@ export class ListAdminTechAreasUseCase {
   constructor(private readonly repository: AdminTechAreasRepositoryPort) {}
 
   execute(query: AdminTechAreasListQuery) {
-    return this.repository.findAll(query);
+    return this.repository.listAll(query);
   }
 }

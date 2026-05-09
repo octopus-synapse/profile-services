@@ -94,8 +94,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      # P0-001: ConfigPort schema requires JWT_SECRET >= 32 chars at boot.
+      # The fallback below is non-secret for local dev only — production
+      # MUST set JWT_SECRET explicitly.
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+      APP_URL: ${APP_URL:-http://localhost:3001}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3001}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have
       # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
@@ -109,7 +114,12 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
-      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      # The minio SDK performs an HTTP region-discovery call against
+      # this endpoint when signing GETs, so it must resolve from inside
+      # the backend container. The bridge name `minio:9000` works inside
+      # the docker network; override via .env for a host-reachable value
+      # when serving the URL to a real browser on the host.
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://minio:9000}
       LIBRETRANSLATE_URL: http://libretranslate:5000
       LOG_LEVEL: debug
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-mec-sync-token-123}

@@ -1,7 +1,7 @@
 import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
-} from '../../../../domain/exceptions/resumes.exceptions';
+} from '../../../../domain/exceptions';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
 export class ResumeOwnershipPolicy {

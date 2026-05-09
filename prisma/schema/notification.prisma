@@ -1,7 +1,7 @@
 // Notifications: In-app notifications for user engagement
 
 model Notification {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserNotifications", fields: [userId], references: [id])
 
@@ -35,7 +35,7 @@ model Notification {
 }
 
 model NotificationPreference {
-  id            String            @id @default(cuid())
+  id            String            @id @default(dbgenerated("uuidv7()"))
   userId        String
   type          NotificationType
   enabled       Boolean           @default(true)
@@ -62,7 +62,7 @@ enum EmailDeliveryMode {
 // Guarantees the cron job is idempotent: a retry after a partial failure
 // cannot double-send.
 model UserWeeklyDigestLog {
-  id      String   @id @default(cuid())
+  id      String   @id @default(dbgenerated("uuidv7()"))
   userId  String
   weekKey String // YYYY-Www format (ISO-8601 week)
   sentAt  DateTime @default(now())

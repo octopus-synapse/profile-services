@@ -35,7 +35,28 @@ export class GetPublicProfileUseCase {
         linkedin: foundUser.linkedin,
         github: foundUser.github,
       },
-      resume: userResume,
+      resume: userResume ? projectPublicProfileResume(userResume) : null,
     };
   }
+}
+
+function projectPublicProfileResume(r: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: r.id,
+    title: r.title ?? null,
+    language: r.language,
+    isPublic: r.isPublic,
+    slug: r.slug ?? null,
+    fullName: r.fullName ?? null,
+    jobTitle: r.jobTitle ?? null,
+    phone: r.phone ?? null,
+    location: r.location ?? null,
+    linkedin: r.linkedin ?? null,
+    github: r.github ?? null,
+    website: r.website ?? null,
+    summary: r.summary ?? null,
+    accentColor: r.accentColor ?? null,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+  };
 }

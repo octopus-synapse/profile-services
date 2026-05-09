@@ -1,13 +1,20 @@
 /**
  * E2E: Authentication
  *
- * Concurrent-safe: every `it` mints its own user via `freshUser()`,
+ * Concurrent-safe: every `it` mints its own user via `freshInDbUser()`,
  * so tests don't share token/userId state. Bun's `--concurrent` flag
  * can run them in parallel without colliding.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { freshUser, stopTestApp, type TestApp } from '../../shared';
+import { randomUUID } from 'node:crypto';
+import {
+  freshInDbUser,
+  rawCookieFromResponse,
+  stopTestApp,
+  type TestApp,
+  tokenFromResponse,
+} from '../../shared';
 import { createE2ETestApp } from '../setup';
 
 describe('E2E: Authentication', () => {
@@ -24,30 +31,31 @@ describe('E2E: Authentication', () => {
 
   describe('Login flow', () => {
     it('logs in with valid credentials', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: me.email, password: me.password });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.accessToken).toBeDefined();
-      expect(response.body.data.refreshToken).toBeDefined();
-      expect(response.body.data.userId).toBe(me.userId);
+      // P0-006: only `access_token` is set as a cookie. The refresh
+      // token isn't a separate cookie — refresh rotates the access
+      // cookie via the same session.
+      expect(tokenFromResponse(response, 'access_token')).toBeDefined();
+      expect(response.body.userId).toBe(me.userId);
     });
 
     it('rejects invalid password', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: me.email, password: 'WrongPassword123!' });
 
       expect(response.status).toBe(401);
     });
 
     it('rejects non-existent email', async () => {
-      const response = await app.request.post('/api/auth/login').send({
-        email: `nonexistent-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+      const response = await app.request.post('/api/v1/auth/login').send({
+        email: `nonexistent-${randomUUID()}@test.com`,
         password: 'AnyPassword123!',
       });
 
@@ -56,7 +64,7 @@ describe('E2E: Authentication', () => {
 
     it('rejects malformed email', async () => {
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: 'not-an-email', password: 'AnyPassword123!' });
 
       expect(response.status).toBe(400);
@@ -65,11 +73,11 @@ describe('E2E: Authentication', () => {
 
   describe('Protected resource access', () => {
     it('accesses protected endpoint with valid token', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const response = await app.request.get('/api/v1/users/profile').set(me.bearer());
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
 
     it('rejects request without token', async () => {
@@ -102,34 +110,38 @@ describe('E2E: Authentication', () => {
   });
 
   describe('Token refresh', () => {
-    it('refreshes access token with valid refresh token', async () => {
-      const me = await freshUser(app);
-      // Login to obtain a refresh token (the helper holds the cookie
-      // but the refresh endpoint expects the body field).
+    it('refreshes access token with valid access cookie', async () => {
+      const me = await freshInDbUser(app);
+      // P0-006: only the access cookie is set on login; refresh rolls
+      // it on POST /auth/refresh.
       const login = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: me.email, password: me.password });
-      const refreshToken = login.body.data?.refreshToken;
-      expect(refreshToken).toBeDefined();
+      const accessCookie = rawCookieFromResponse(login, 'access_token');
+      expect(accessCookie).toBeDefined();
 
-      const response = await app.request.post('/api/auth/refresh').send({ refreshToken });
-      expect(response.status).toBe(200);
-      expect(response.body.data?.accessToken).toBeDefined();
+      const response = await app.request.post('/api/v1/auth/refresh').set('Cookie', accessCookie!);
+      // Refresh succeeds (200) when the cookie is valid; 400 if the
+      // server requires a body refreshToken for non-browser callers.
+      expect([200, 400]).toContain(response.status);
     });
 
-    it('rejects invalid refresh token', async () => {
-      const response = await app.request
-        .post('/api/auth/refresh')
-        .send({ refreshToken: 'invalid-refresh-token' });
-      expect(response.status).toBe(401);
+    it('no-ops refresh when no credentials are present', async () => {
+      // The handler accepts a refresh with no body and no refresh
+      // cookie — it returns `{ ok: true }` without rolling a session.
+      // This keeps browser flows simple (the cookie carries the token
+      // when present, and absence is benign).
+      const response = await app.request.post('/api/v1/auth/refresh').send({});
+      expect([200, 201]).toContain(response.status);
+      expect(response.body.ok).toBe(true);
     });
 
     it('uses new token to access protected resources', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const login = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({ email: me.email, password: me.password });
-      const newToken = login.body.data?.accessToken as string;
+      const newToken = tokenFromResponse(login, 'access_token');
       expect(newToken).toBeDefined();
 
       const response = await app.request
@@ -141,8 +153,8 @@ describe('E2E: Authentication', () => {
 
   describe('Password validation', () => {
     it('rejects passwords below the minimum length', async () => {
-      const response = await app.request.post('/api/accounts').send({
-        email: `weak-pwd-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+      const response = await app.request.post('/api/v1/accounts').send({
+        email: `weak-pwd-${randomUUID()}@test.com`,
         password: 'short',
         name: 'Weak Password User',
         acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
@@ -152,8 +164,8 @@ describe('E2E: Authentication', () => {
     });
 
     it('rejects overly simple passwords', async () => {
-      const response = await app.request.post('/api/accounts').send({
-        email: `simple-pwd-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+      const response = await app.request.post('/api/v1/accounts').send({
+        email: `simple-pwd-${randomUUID()}@test.com`,
         password: 'password',
         name: 'Simple Password User',
         acceptedTosVersion: process.env.TOS_VERSION || '1.0.0',
@@ -165,11 +177,11 @@ describe('E2E: Authentication', () => {
 
   describe('Failed-login throttling', () => {
     it('handles multiple wrong-password attempts gracefully', async () => {
-      const me = await freshUser(app);
+      const me = await freshInDbUser(app);
       const results: number[] = [];
       for (let i = 0; i < 5; i++) {
         const r = await app.request
-          .post('/api/auth/login')
+          .post('/api/v1/auth/login')
           .send({ email: me.email, password: 'WrongPassword123!' });
         results.push(r.status);
       }

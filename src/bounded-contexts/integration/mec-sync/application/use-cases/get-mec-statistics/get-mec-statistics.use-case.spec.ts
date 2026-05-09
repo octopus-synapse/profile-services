@@ -3,7 +3,7 @@ import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   InMemoryMecCourseRepository,
   InMemoryMecInstitutionRepository,
-} from '../../../testing/in-memory-mec-repositories';
+} from '../../../testing/in-memory-mec.repository';
 import { MecStatsService } from '../../services/mec-stats.service';
 import { GetMecStatisticsUseCase } from './get-mec-statistics.use-case';
 

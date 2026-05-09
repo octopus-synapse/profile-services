@@ -1,18 +1,13 @@
 /**
- * List jobs bookmarked by the caller. Returned in the legacy
- * `{ data, total, page, limit, totalPages }` shape — each item is the
- * full job + author with `bookmarkedAt` denormalised on top.
+ * List jobs bookmarked by the caller. Each item is the full job +
+ * author with `bookmarkedAt` denormalised on top.
  */
 
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 
-export interface ListBookmarkedJobsResult {
-  readonly data: Array<Record<string, unknown>>;
-  readonly total: number;
-  readonly page: number;
-  readonly limit: number;
-  readonly totalPages: number;
-}
+export type ListBookmarkedJobsResult = PaginatedResponse<Record<string, unknown>>;
 
 export class ListBookmarkedJobsUseCase {
   constructor(private readonly repository: JobsRepositoryPort) {}
@@ -20,14 +15,10 @@ export class ListBookmarkedJobsUseCase {
   async execute(userId: string, page = 1, limit = 20): Promise<ListBookmarkedJobsResult> {
     const safeLimit = Math.min(limit, 100);
     const safePage = Math.max(1, page);
+    const pagination = { page: safePage, limit: safeLimit };
     const { items, total } = await this.repository.listBookmarkedJobs(userId, safePage, safeLimit);
 
-    return {
-      data: items.map((b) => ({ ...b.job, bookmarkedAt: b.createdAt })),
-      total,
-      page: safePage,
-      limit: safeLimit,
-      totalPages: Math.ceil(total / safeLimit),
-    };
+    const enriched = items.map((b) => ({ ...b.job, bookmarkedAt: b.createdAt }));
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 }

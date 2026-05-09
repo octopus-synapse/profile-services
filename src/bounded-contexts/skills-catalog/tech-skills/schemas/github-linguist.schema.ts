@@ -26,3 +26,7 @@ export const githubLanguagesYmlSchema: z.ZodType<GithubLanguagesYml> = z.record(
 type AssertEqual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const _assert: AssertEqual<z.infer<typeof githubLanguageSchema>, GithubLanguage> = true;
 void _assert;
+
+export type githubLanguagesYmlDto = z.infer<typeof githubLanguagesYmlSchema>;
+
+export type githubLanguageDto = z.infer<typeof githubLanguageSchema>;

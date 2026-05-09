@@ -2,7 +2,7 @@
 // Admin-editable steps, validation, strength weights, translations
 
 model OnboardingStep {
-  id    String @id @default(cuid())
+  id    String @id @default(dbgenerated("uuidv7()"))
   key   String @unique
   order Int
 
@@ -38,7 +38,7 @@ model OnboardingStep {
 }
 
 model OnboardingConfig {
-  id  String @id @default(cuid())
+  id  String @id @default(dbgenerated("uuidv7()"))
   key String @unique @default("default")
 
   // Strength level thresholds and messages

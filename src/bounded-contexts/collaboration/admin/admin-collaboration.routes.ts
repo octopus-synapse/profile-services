@@ -5,23 +5,18 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  ChatStatsResponseSchema,
+  CollaborationStatsResponseSchema,
+  PageQuerySchema,
+  PaginatedChatConversationsResponseSchema,
+  PaginatedCollaborationsResponseSchema,
+  parsePage,
+  RemoveCollaborationResponseSchema,
+  ResumeAndUserIdParams,
+} from './admin-collaboration.routes.schemas';
 import { AdminCollaborationUseCases } from './application/ports/admin-collaboration.port';
-
-const PageQuerySchema = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
-});
-
-function parsePage(q: z.infer<typeof PageQuerySchema>): {
-  page?: number;
-  pageSize?: number;
-} {
-  return {
-    page: q.page ? Number(q.page) : undefined,
-    pageSize: q.pageSize ? Number(q.pageSize) : undefined,
-  };
-}
 
 export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUseCases>> = [
   // ─── Admin Chat ────────────────────────────────────────────────────
@@ -30,6 +25,7 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     path: '/v1/admin/chat/stats',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_MANAGE,
+    response: ChatStatsResponseSchema,
     openapi: {
       summary: 'Get chat statistics',
       tags: ['admin-chat'],
@@ -44,6 +40,7 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_MANAGE,
     query: PageQuerySchema,
+    response: PaginatedChatConversationsResponseSchema,
     openapi: {
       summary: 'List all conversations',
       tags: ['admin-chat'],
@@ -62,6 +59,7 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     path: '/v1/admin/collaborations/stats',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_MANAGE,
+    response: CollaborationStatsResponseSchema,
     openapi: {
       summary: 'Get collaboration statistics',
       tags: ['admin-collaborations'],
@@ -76,6 +74,7 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_MANAGE,
     query: PageQuerySchema,
+    response: PaginatedCollaborationsResponseSchema,
     openapi: {
       summary: 'List all collaborations',
       tags: ['admin-collaborations'],
@@ -85,6 +84,25 @@ export const adminCollaborationRoutes: ReadonlyArray<Route<AdminCollaborationUse
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageQuerySchema>;
       return bc.listCollaborations.execute(parsePage(q));
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/v1/admin/collaborations/:resumeId/:userId',
+    auth: { kind: 'jwt' },
+    permission: Permission.PLATFORM_MANAGE,
+    params: ResumeAndUserIdParams,
+    response: RemoveCollaborationResponseSchema,
+    openapi: {
+      summary: 'Remove a collaborator from a resume (admin)',
+      tags: ['admin-collaborations'],
+      description: 'Admin Collaborations API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const { resumeId, userId } = ctx.params as z.infer<typeof ResumeAndUserIdParams>;
+      await bc.removeCollaboration.execute(resumeId, userId);
+      return { message: 'Colaboração removida.' };
     },
   },
 ];

@@ -18,7 +18,15 @@ class FakeRepo extends ResumeStyleRepositoryPort {
     super();
   }
   async list(_args?: ListStylesArgs): Promise<PaginatedStyles> {
-    return { items: [], total: 0, page: 1, limit: 20 };
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+      totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
+    };
   }
   async findById(): Promise<StyleDetail | null> {
     return this.seed;

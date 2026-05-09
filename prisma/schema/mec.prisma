@@ -1,7 +1,7 @@
 // MEC Data - Brazilian Higher Education
 
 model MecInstitution {
-  id              String @id @default(cuid())
+  id              String @id @default(dbgenerated("uuidv7()"))
   codigoIes       Int    @unique
   codigoMunicipio Int?
 
@@ -28,7 +28,7 @@ model MecInstitution {
 }
 
 model MecCourse {
-  id          String @id @default(cuid())
+  id          String @id @default(dbgenerated("uuidv7()"))
   codigoCurso Int    @unique
   codigoIes   Int
 
@@ -55,7 +55,7 @@ model MecCourse {
 }
 
 model MecSyncLog {
-  id          String        @id @default(cuid())
+  id          String        @id @default(dbgenerated("uuidv7()"))
   status      MecSyncStatus
   startedAt   DateTime      @default(now())
   completedAt DateTime?

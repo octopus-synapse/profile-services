@@ -11,10 +11,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import {
-  MecCsvDownloadFailedException,
-  MecCsvEmptyException,
-} from '../../../domain/exceptions/integration.exceptions';
+import { MecCsvDownloadFailedException, MecCsvEmptyException } from '../../../domain/exceptions';
 import { MEC_CSV_URL } from '../../constants';
 import type {
   NormalizedCourse,

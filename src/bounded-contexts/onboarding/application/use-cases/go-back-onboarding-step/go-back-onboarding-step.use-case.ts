@@ -31,7 +31,7 @@ export class GoBackOnboardingStepUseCase {
   }
 
   private async buildSteps() {
-    const sectionTypes = await this.sectionTypeDefinition.findAll();
+    const sectionTypes = await this.sectionTypeDefinition.listAll();
     return buildOnboardingSteps(sectionTypes);
   }
 }

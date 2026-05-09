@@ -147,3 +147,33 @@ export const SemanticResumeSnapshotSchema = z.object({
 });
 
 export type SemanticResumeSnapshot = z.infer<typeof SemanticResumeSnapshotSchema>;
+
+export type SectionKindDto = z.infer<typeof SectionKindSchema>;
+
+export type SemanticRoleDto = z.infer<typeof SemanticRoleSchema>;
+
+export type SectionFieldTypeDto = z.infer<typeof SectionFieldTypeSchema>;
+
+export type SectionFieldDefinitionDto = z.infer<typeof SectionFieldDefinitionSchema>;
+
+export type SectionItemConstraintsDto = z.infer<typeof SectionItemConstraintsSchema>;
+
+export type AtsScoringConfigDto = z.infer<typeof AtsScoringConfigSchema>;
+
+export type AtsSectionDetectionDto = z.infer<typeof AtsSectionDetectionSchema>;
+
+export type AtsConfigDto = z.infer<typeof AtsConfigSchema>;
+
+export type ExportFieldMappingDto = z.infer<typeof ExportFieldMappingSchema>;
+
+export type DocxExportConfigDto = z.infer<typeof DocxExportConfigSchema>;
+
+export type ExportConfigDto = z.infer<typeof ExportConfigSchema>;
+
+export type SectionDefinitionDto = z.infer<typeof SectionDefinitionSchema>;
+
+export type SemanticFieldValueDto = z.infer<typeof SemanticFieldValueSchema>;
+
+export type SemanticSectionItemDto = z.infer<typeof SemanticSectionItemSchema>;
+
+export type SemanticResumeSnapshotDto = z.infer<typeof SemanticResumeSnapshotSchema>;

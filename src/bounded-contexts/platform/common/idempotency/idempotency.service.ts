@@ -1,12 +1,12 @@
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheLockService } from '../cache/cache-lock.service';
-import { AppLoggerService } from '../logger/logger.service';
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24h
 
 export class IdempotencyService {
   constructor(
     private readonly cacheLock: CacheLockService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**

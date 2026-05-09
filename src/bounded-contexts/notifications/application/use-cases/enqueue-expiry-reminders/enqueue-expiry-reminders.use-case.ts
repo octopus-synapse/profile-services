@@ -17,7 +17,7 @@ import { LoggerPort } from '@/shared-kernel';
 import type {
   FitProfileExpiringRow,
   FitProfileReminderDaysLeft,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import { FitProfileExpiryReadPort } from '../../../domain/ports/fit-profile-expiry.port';
 import { ReminderStatePort } from '../../../domain/ports/reminder-state.port';
 

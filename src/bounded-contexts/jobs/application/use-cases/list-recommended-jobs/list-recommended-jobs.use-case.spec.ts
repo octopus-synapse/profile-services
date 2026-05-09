@@ -29,7 +29,7 @@ describe('ListRecommendedJobsUseCase', () => {
       new JobEnrichmentService(repo),
       stubLogger,
     ).execute('me');
-    expect(out.data.map((d) => d.title)).toEqual(['A', 'B']);
-    expect(out.data[0].matchScore).toBeGreaterThan(out.data[1].matchScore);
+    expect(out.items.map((d) => d.title)).toEqual(['A', 'B']);
+    expect(out.items[0].matchScore).toBeGreaterThan(out.items[1].matchScore);
   });
 });

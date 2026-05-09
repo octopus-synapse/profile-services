@@ -6,6 +6,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SECTION_FALLBACK_LABELS } from '@/shared-kernel/i18n/section-fallback-labels.const';
 import type { SectionTypeData } from '../../../domain/config/onboarding-steps.config';
 import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 
@@ -23,7 +24,7 @@ export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
     super();
   }
 
-  async findAll(locale = 'en'): Promise<SectionTypeData[]> {
+  async listAll(locale = 'en'): Promise<SectionTypeData[]> {
     const types = await this.prisma.sectionType.findMany({
       where: { isActive: true },
       select: {
@@ -63,9 +64,9 @@ export class SectionTypeDefinitionAdapter extends SectionTypeDefinitionPort {
       icon: type.icon ?? 'list',
       iconType: type.iconType ?? 'lucide',
       label: localeData.label ?? type.key,
-      noDataLabel: localeData.noDataLabel ?? "I don't have items to add",
-      placeholder: localeData.placeholder ?? 'Add items...',
-      addLabel: localeData.addLabel ?? 'Add Item',
+      noDataLabel: localeData.noDataLabel ?? SECTION_FALLBACK_LABELS.noDataLabel,
+      placeholder: localeData.placeholder ?? SECTION_FALLBACK_LABELS.placeholder,
+      addLabel: localeData.addLabel ?? SECTION_FALLBACK_LABELS.addLabel,
     };
   }
 }

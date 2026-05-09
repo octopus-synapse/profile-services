@@ -5,7 +5,7 @@
 // can only move forward (monotonic).
 
 model ResumeStyle {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   name        String
   description String? @db.Text

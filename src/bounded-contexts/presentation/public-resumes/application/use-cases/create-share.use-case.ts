@@ -9,7 +9,7 @@ import {
   ResumeNotFoundException,
   ResumeShareSlugInvalidException,
   ResumeShareSlugTakenException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';

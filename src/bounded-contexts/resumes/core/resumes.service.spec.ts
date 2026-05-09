@@ -9,9 +9,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumesService } from './resumes.service';
 import {
   createTestResumesService,
@@ -29,7 +29,7 @@ describe('ResumesService', () => {
   const userId = 'user-123';
 
   const createTestResume = (overrides: Partial<{ id: string; title: string }> = {}) =>
-    createMockResume({
+    buildResume({
       id: overrides.id ?? 'resume-1',
       userId,
       title: overrides.title ?? 'Software Engineer',
@@ -104,7 +104,7 @@ describe('ResumesService', () => {
       repository.seedResume(createTestResume({ id: 'r1' }));
       repository.seedResume(createTestResume({ id: 'r2' }));
 
-      const result = await service.findAllUserResumes(userId);
+      const result = await service.listUserResumes(userId);
 
       expect(result).toHaveLength(2);
     });

@@ -7,7 +7,7 @@ import { calculateStrength } from '../../domain/config/onboarding-strength';
 import {
   canCompleteOnboarding,
   canProceedFromStep,
-} from '../../domain/config/onboarding-validation';
+} from '../../domain/config/onboarding-validation.rules';
 import type {
   OnboardingStepConfig,
   StrengthConfig,

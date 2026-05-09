@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryViewTrackingRepository } from '@/bounded-contexts/analytics/testing';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { AnalyticsConsentRequiredException } from '../../../../domain/exceptions/analytics.exceptions';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
 import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';
@@ -96,6 +97,12 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
       expect(events[0].userAgent).toBe('Mozilla/5.0');
       expect(events[0].country).toBe('US');
       expect(events[0].city).toBe('New York');
+    });
+
+    it('throws AnalyticsConsentRequiredException when consent is explicitly false', async () => {
+      await expect(trackViewUseCase.execute({ ...viewInput, consent: false })).rejects.toThrow(
+        AnalyticsConsentRequiredException,
+      );
     });
   });
 

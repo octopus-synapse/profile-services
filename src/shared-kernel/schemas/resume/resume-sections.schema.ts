@@ -34,3 +34,13 @@ export const UpsertResumeSectionsSchema = z.object({
 });
 
 export type UpsertResumeSections = z.infer<typeof UpsertResumeSectionsSchema>;
+
+export type ResumeSectionTypeRefDto = z.infer<typeof ResumeSectionTypeRefSchema>;
+
+export type ResumeSectionItemPayloadDto = z.infer<typeof ResumeSectionItemPayloadSchema>;
+
+export type UpsertResumeSectionDto = z.infer<typeof UpsertResumeSectionSchema>;
+
+export type PatchResumeSectionDto = z.infer<typeof PatchResumeSectionSchema>;
+
+export type UpsertResumeSectionsDto = z.infer<typeof UpsertResumeSectionsSchema>;

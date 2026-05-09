@@ -104,3 +104,5 @@ export function validateEnvSafe(config: Record<string, unknown>) {
     })),
   };
 }
+
+export type EnvironmentDto = z.infer<typeof EnvironmentSchema>;

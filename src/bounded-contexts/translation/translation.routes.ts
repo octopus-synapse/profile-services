@@ -7,29 +7,26 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { TranslationService } from './application/services';
 import type { SourceLanguage, TranslationLanguage } from './domain/types/translation.types';
-
-const TranslateTextSchema = z.object({
-  text: z.string().min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
-});
-
-const TranslateSimpleSchema = z.object({ text: z.string().min(1) });
-
-const TranslateBatchSchema = z.object({
-  texts: z.array(z.string().min(1)).min(1),
-  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
-  targetLanguage: z.enum(['pt', 'en']),
-});
+import {
+  BatchTranslationResponseSchema,
+  HealthResponseSchema,
+  LanguageDetectionsResponseSchema,
+  TranslateBatchSchema,
+  TranslateSimpleSchema,
+  TranslateTextSchema,
+  TranslationResultSchema,
+} from './translation.routes.schemas';
 
 export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
   {
     method: 'GET',
     path: '/v1/translation/health',
     auth: { kind: 'public' },
+    response: HealthResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' },
     openapi: {
       summary: 'Check translation service health',
       tags: ['translation'],
@@ -39,11 +36,8 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (_ctx, service) => {
       const isAvailable = await service.checkServiceHealth();
       return {
-        success: true,
-        data: {
-          status: isAvailable ? 'healthy' : 'unavailable',
-          timestamp: new Date().toISOString(),
-        },
+        status: isAvailable ? 'healthy' : 'unavailable',
+        timestamp: new Date().toISOString(),
       };
     },
   },
@@ -54,6 +48,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateTextSchema,
+    response: TranslationResultSchema,
     openapi: {
       summary: 'Translate a single text',
       tags: ['translation'],
@@ -67,7 +62,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
         dto.sourceLanguage as SourceLanguage,
         dto.targetLanguage as TranslationLanguage,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -76,6 +71,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
+    response: LanguageDetectionsResponseSchema,
     openapi: {
       summary: 'Detect the language of a text',
       tags: ['translation'],
@@ -85,7 +81,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const detections = await service.detectLanguage(dto.text);
-      return { success: true, data: { detections } };
+      return { detections };
     },
   },
   {
@@ -95,6 +91,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateBatchSchema,
+    response: BatchTranslationResponseSchema,
     openapi: {
       summary: 'Translate multiple texts in batch',
       tags: ['translation'],
@@ -108,7 +105,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
         dto.sourceLanguage as SourceLanguage,
         dto.targetLanguage as TranslationLanguage,
       );
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -118,6 +115,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
+    response: TranslationResultSchema,
     openapi: {
       summary: 'Translate Portuguese to English',
       tags: ['translation'],
@@ -127,7 +125,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const result = await service.translatePtToEn(dto.text);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -137,6 +135,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     body: TranslateSimpleSchema,
+    response: TranslationResultSchema,
     openapi: {
       summary: 'Translate English to Portuguese',
       tags: ['translation'],
@@ -146,7 +145,7 @@ export const translationRoutes: ReadonlyArray<Route<TranslationService>> = [
     handler: async (ctx, service) => {
       const dto = ctx.body as z.infer<typeof TranslateSimpleSchema>;
       const result = await service.translateEnToPt(dto.text);
-      return { success: true, data: result };
+      return result;
     },
   },
 ];

@@ -17,7 +17,7 @@ describe('FeedTimelineService', () => {
       limit: 20,
       followingOnly: true,
     });
-    expect(out.posts).toEqual([]);
+    expect(out.items).toEqual([]);
     expect(out.nextCursor).toBeNull();
   });
 
@@ -30,9 +30,9 @@ describe('FeedTimelineService', () => {
 
     const out = await svc.getTimeline({ userId: 'viewer', limit: 20, followingOnly: false });
     // p2 (followed) should come before p1 (not followed)
-    expect(out.posts[0].id).toBe('p2');
-    expect(out.posts[0].isLiked).toBe(false);
-    const p1 = out.posts.find((p) => p.id === 'p1');
+    expect(out.items[0].id).toBe('p2');
+    expect(out.items[0].isLiked).toBe(false);
+    const p1 = out.items.find((p) => p.id === 'p1');
     expect(p1?.isLiked).toBe(true);
     expect(p1?.reactionType).toBe('LIKE');
   });
@@ -48,7 +48,7 @@ describe('FeedTimelineService', () => {
     });
     repo.seedPost({ id: 'p1', authorId: 'a1', isPublished: true, isAnonymous: true });
     const out = await svc.getTimeline({ userId: 'viewer', limit: 20, followingOnly: false });
-    expect(out.posts[0].author.id).toBe('__anonymous__');
-    expect(out.posts[0].author.username).toBeNull();
+    expect(out.items[0].author.id).toBe('__anonymous__');
+    expect(out.items[0].author.username).toBeNull();
   });
 });

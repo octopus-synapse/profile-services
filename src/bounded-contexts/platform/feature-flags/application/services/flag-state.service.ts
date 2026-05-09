@@ -42,7 +42,7 @@ export class FlagStateService implements Lifecycle {
       return;
     }
     this.inflight = (async () => {
-      this.flags = await this.repo.findAll();
+      this.flags = await this.repo.listAll();
       this.loaded = true;
     })();
     try {

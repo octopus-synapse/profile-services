@@ -8,7 +8,7 @@
  */
 
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort, redactEmail } from '@/shared-kernel';
 import {
   AntiGhostingEmailerPort,
   type AntiGhostingEmailMessage,
@@ -34,11 +34,10 @@ export class EmailServiceAntiGhostingEmailerAdapter extends AntiGhostingEmailerP
       });
     } catch (err) {
       this.logger.error(
-        `Anti-ghosting email failed for ${message.to}: ${
+        `Anti-ghosting email failed for ${redactEmail(message.to)}: ${
           err instanceof Error ? err.message : 'unknown'
         }`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
       );
     }
   }

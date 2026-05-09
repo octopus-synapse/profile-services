@@ -16,7 +16,7 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-} from '../entities/notification';
+} from '../entities/notification.entity';
 
 export interface SetPreferenceInput {
   readonly enabled?: boolean;
@@ -46,6 +46,10 @@ export abstract class NotificationsRepositoryPort {
   ): Promise<NotificationListPage>;
   abstract countUnread(userId: string): Promise<number>;
   abstract markRead(userId: string, notificationId: string | undefined): Promise<MarkReadResult>;
+  /** Resolve the `userId` that owns the given notification id. Returns
+   *  `null` when no row exists. Used by the mark-read use case to
+   *  surface a 403 when the caller targets someone else's id. */
+  abstract findOwnerById(notificationId: string): Promise<string | null>;
   abstract deleteOlderThan(cutoff: Date): Promise<{ count: number }>;
 
   // ───────── preferences ─────────

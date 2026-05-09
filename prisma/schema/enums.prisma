@@ -69,6 +69,22 @@ enum AuditAction {
   // Admin applied or revoked an AccessModifier (suspension/grant).
   ACCESS_MODIFIER_APPLIED
   ACCESS_MODIFIER_REVOKED
+  // P1-035 — auth/session lifecycle audit events.
+  LOGIN_FAILED
+  USER_LOGGED_IN
+  USER_LOGGED_OUT
+  SESSION_CREATED
+  SESSION_TERMINATED
+  TOKEN_REFRESHED
+  // P1-035 — export, social, and resume-version audit events.
+  EXPORT_REQUESTED
+  EXPORT_COMPLETED
+  EXPORT_FAILED
+  USER_FOLLOWED
+  CONNECTION_REQUESTED
+  SHARE_DOWNLOADED
+  RESUME_VERSION_CREATED
+  RESUME_VERSION_RESTORED
 }
 
 enum ConsentDocumentType {

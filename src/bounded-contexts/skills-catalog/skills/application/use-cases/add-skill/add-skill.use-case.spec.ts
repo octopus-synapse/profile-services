@@ -75,8 +75,14 @@ describe('AddSkillUseCase', () => {
   it('throws EntityNotFoundException when resume does not exist', async () => {
     repository.resumeExists = mock(async () => false);
 
-    await expect(useCase.execute('non-existent', { name: 'TS', category: 'Lang' })).rejects.toThrow(
-      EntityNotFoundException,
+    await expect(
+      useCase.execute('non-existent', { name: 'TS', category: 'Language' }),
+    ).rejects.toThrow(EntityNotFoundException);
+  });
+
+  it('throws InvalidSkillCategoryException for unknown categories', async () => {
+    await expect(useCase.execute('resume-1', { name: 'TS', category: 'Lang' })).rejects.toThrow(
+      'Lang',
     );
   });
 

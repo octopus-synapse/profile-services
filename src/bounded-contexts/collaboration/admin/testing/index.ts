@@ -25,15 +25,18 @@ function paginateInMemory<T>(
   query: { page?: number; pageSize?: number },
 ): PaginatedResult<T> {
   const page = query.page ?? 1;
-  const pageSize = query.pageSize ?? 20;
-  const start = (page - 1) * pageSize;
-  const slice = items.slice(start, start + pageSize);
+  const limit = query.pageSize ?? 20;
+  const total = items.length;
+  const start = (page - 1) * limit;
+  const slice = items.slice(start, start + limit);
   return {
     items: slice,
-    total: items.length,
+    total,
     page,
-    pageSize,
-    totalPages: Math.ceil(items.length / pageSize) || 0,
+    limit,
+    totalPages: Math.ceil(total / limit) || 0,
+    hasNext: page * limit < total,
+    hasPrev: page > 1,
   };
 }
 
@@ -83,5 +86,14 @@ export class InMemoryAdminCollaborationsRepository extends AdminCollaborationsRe
 
   async listCollaborations(query: ListCollaborationsQuery) {
     return paginateInMemory(this.rows, query);
+  }
+
+  async findCollaborator(resumeId: string, userId: string): Promise<{ id: string } | null> {
+    const found = this.rows.find((r) => r.resumeId === resumeId && r.userId === userId);
+    return found ? { id: found.id } : null;
+  }
+
+  async removeCollaborator(resumeId: string, userId: string): Promise<void> {
+    this.rows = this.rows.filter((r) => !(r.resumeId === resumeId && r.userId === userId));
   }
 }

@@ -39,4 +39,15 @@ export class PrismaAdminCollaborationsRepository extends AdminCollaborationsRepo
       },
     });
   }
+
+  async findCollaborator(resumeId: string, userId: string): Promise<{ id: string } | null> {
+    return this.prisma.resumeCollaborator.findUnique({
+      where: { resumeId_userId: { resumeId, userId } },
+      select: { id: true },
+    });
+  }
+
+  async removeCollaborator(resumeId: string, userId: string): Promise<void> {
+    await this.prisma.resumeCollaborator.deleteMany({ where: { resumeId, userId } });
+  }
 }

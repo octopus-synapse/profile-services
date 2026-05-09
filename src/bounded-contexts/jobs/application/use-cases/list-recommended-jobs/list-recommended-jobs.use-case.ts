@@ -5,17 +5,19 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import type { Job } from '../../../domain/entities/job';
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
+import type { Job } from '../../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 import type { JobEnrichmentService } from '../../services/job-enrichment.service';
 
-export interface ListRecommendedJobsResult {
-  readonly data: Array<Job & { matchScore: number; isBookmarked: boolean; hasApplied: boolean }>;
-  readonly total: number;
-  readonly page: number;
-  readonly limit: number;
-  readonly totalPages: number;
-}
+export type RecommendedJobItem = Job & {
+  matchScore: number;
+  isBookmarked: boolean;
+  hasApplied: boolean;
+};
+
+export type ListRecommendedJobsResult = PaginatedResponse<RecommendedJobItem>;
 
 export class ListRecommendedJobsUseCase {
   constructor(
@@ -27,10 +29,11 @@ export class ListRecommendedJobsUseCase {
   async execute(userId: string, page = 1, limit = 20): Promise<ListRecommendedJobsResult> {
     const safeLimit = Math.min(limit, 50);
     const safePage = Math.max(1, page);
+    const pagination = { page: safePage, limit: safeLimit };
 
     const userSkills = await this.repository.collectUserSkills(userId);
     if (userSkills.length === 0) {
-      return { data: [], total: 0, page: safePage, limit: safeLimit, totalPages: 0 };
+      return buildPaginatedResponse<RecommendedJobItem>([], 0, pagination);
     }
 
     const candidates = await this.repository.findRecommendableCandidates({
@@ -52,7 +55,6 @@ export class ListRecommendedJobsUseCase {
       .sort((a, b) => b.matchScore - a.matchScore);
 
     const total = scored.length;
-    const totalPages = Math.ceil(total / safeLimit);
     const slice = scored.slice((safePage - 1) * safeLimit, safePage * safeLimit);
 
     const enriched = await this.enrichment.withBookmarkedAndApplied(
@@ -60,12 +62,11 @@ export class ListRecommendedJobsUseCase {
       userId,
     );
 
-    return {
-      data: enriched.map((job, i) => ({ ...job, matchScore: slice[i].matchScore })),
-      total,
-      page: safePage,
-      limit: safeLimit,
-      totalPages,
-    };
+    const items: RecommendedJobItem[] = enriched.map((job, i) => ({
+      ...job,
+      matchScore: slice[i].matchScore,
+    }));
+
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

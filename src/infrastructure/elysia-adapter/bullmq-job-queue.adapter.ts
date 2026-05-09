@@ -22,6 +22,22 @@ export interface RedisConnection {
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 
+/**
+ * P1-034 — default per-job retry policy applied to every queue. The
+ * historic behaviour was BullMQ's no-retry default: a single transient
+ * failure (cold Postgres pool, momentary OpenAI 5xx) tore the job to
+ * the failed-set with no second chance. 3 attempts with exponential
+ * backoff (5s → 10s → 20s) covers the common transient-failure window
+ * without piling on for genuine bugs. Per-call `JobOpts` still wins
+ * (we merge with `{ ...DEFAULT_JOB_OPTIONS, ...opts }` below).
+ */
+const DEFAULT_JOB_OPTIONS = {
+  attempts: 3,
+  backoff: { type: 'exponential' as const, delay: 5000 },
+  removeOnComplete: { age: 24 * 60 * 60, count: 1000 },
+  removeOnFail: { age: 7 * 24 * 60 * 60 },
+};
+
 export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
   private readonly queues = new Map<string, Queue>();
   private readonly workers = new Map<string, Worker>();
@@ -48,8 +64,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
             adapter.degraded = true;
             adapter.logger?.error(
               `BullMQ Redis connection failed after ${MAX_RECONNECT_ATTEMPTS} attempts; queue running in degraded mode`,
-              undefined,
-              'BullMQJobQueueAdapter',
+              { context: 'BullMQJobQueueAdapter' },
             );
           }
           return null;
@@ -71,11 +86,10 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
       { connection: this.connectionOpts() },
     );
     worker.on('error', (err) => {
-      this.logger?.error(
-        `BullMQ worker "${name}" error: ${err.message}`,
-        err.stack,
-        'BullMQJobQueueAdapter',
-      );
+      this.logger?.error(`BullMQ worker "${name}" error: ${err.message}`, {
+        context: 'BullMQJobQueueAdapter',
+        stack: err.stack,
+      });
     });
     this.workers.set(name, worker as unknown as Worker);
   }
@@ -85,7 +99,9 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     await (queue as unknown as { add: (n: string, d: T, o?: unknown) => Promise<unknown> }).add(
       name,
       data,
-      opts,
+      // P1-034: merge so per-call opts can override the defaults
+      // (e.g. an `attempts: 1` for fire-and-forget jobs).
+      { ...DEFAULT_JOB_OPTIONS, ...opts },
     );
   }
 
@@ -98,7 +114,7 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
     await (queue as unknown as { add: (n: string, d: T, o?: unknown) => Promise<unknown> }).add(
       name,
       data,
-      { ...opts, repeat: opts.repeat },
+      { ...DEFAULT_JOB_OPTIONS, ...opts, repeat: opts.repeat },
     );
   }
 

@@ -40,11 +40,10 @@ export class BannerPageSetup {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT.PAGE_LOAD });
     } catch (err) {
       await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
-      this.logger.error(
-        '[BannerCapture] Error during page.goto:',
-        err instanceof Error ? err.stack : String(err),
-        'BannerPageSetup',
-      );
+      this.logger.error('[BannerCapture] Error during page.goto:', {
+        context: 'BannerPageSetup',
+        stack: err instanceof Error ? err.stack : String(err),
+      });
       throw err;
     }
 

@@ -1,5 +1,5 @@
 import { GithubApiPort } from './github-api.port';
-import { type ParsedGithubProfile, parseGithubProfile } from './parse-github-profile';
+import { type ParsedGithubProfile, parseGithubProfile } from './parse-github-profile.helper';
 
 export interface ImportGithubInput {
   token: string;

@@ -20,7 +20,12 @@
 import { map, merge } from 'rxjs';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventBusPort, EventPublisher, LoggerPort } from '@/shared-kernel';
+import type {
+  DistributedLockPort,
+  EventBusPort,
+  EventPublisher,
+  LoggerPort,
+} from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
@@ -69,7 +74,7 @@ export interface ResumeAnalyticsComposition
    * handlers. Bootstrap calls this once after construction. */
   readonly registerHandlers: (collaborators: ResumeAnalyticsHandlerCollaborators) => void;
   /** Schedules the daily views-projection cron (`30 0 * * *`). */
-  readonly registerCron: (cron: CronPort) => void;
+  readonly registerCron: (cron: CronPort, lock: DistributedLockPort) => void;
 }
 
 /**
@@ -183,8 +188,8 @@ export function buildResumeAnalyticsComposition(
       };
       registerResumeAnalyticsHandlers(deps);
     },
-    registerCron: (cron) => {
-      const worker = new ViewsProjectionWorker(prisma, logger);
+    registerCron: (cron, lock) => {
+      const worker = new ViewsProjectionWorker(prisma, logger, lock);
       // Daily 00:30 UTC — rolls up yesterday's view events.
       cron.register({ pattern: '30 0 * * *' }, worker.run.bind(worker));
     },

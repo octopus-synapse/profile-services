@@ -16,7 +16,7 @@ import {
   UploadFilenameUnsafeException,
   UploadFileTooLargeException,
   UploadInvalidFileTypeException,
-} from '../../../domain/exceptions/integration.exceptions';
+} from '../../../domain/exceptions';
 
 export interface FileUpload {
   readonly buffer: Buffer;

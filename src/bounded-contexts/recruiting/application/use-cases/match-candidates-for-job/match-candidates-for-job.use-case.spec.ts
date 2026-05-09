@@ -1,4 +1,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  CandidateDirectoryUnavailableException,
+  CandidatePoolEmptyException,
+  MatchCandidatesInvalidLimitException,
+  MatchCandidatesNoCriteriaException,
+} from '../../../domain/exceptions/recruiting.exceptions';
 import { InMemoryCandidateDirectoryRepository } from '../../../testing';
 import { MatchCandidatesForJobUseCase } from './match-candidates-for-job.use-case';
 
@@ -93,15 +99,66 @@ describe('MatchCandidatesForJobUseCase', () => {
     expect(out.candidates.map((c) => c.userId)).toEqual(['other']);
   });
 
-  it('returns an empty list when no candidates exist', async () => {
-    const out = await useCase.execute({
-      requesterId: 'r',
-      jobSkills: ['react'],
-      jobMinEnglish: null,
-      jobRemotePolicy: null,
-      limit: 10,
-    });
-    expect(out.candidates).toEqual([]);
-    expect(out.poolSize).toBe(0);
+  it('throws CandidatePoolEmptyException when no candidates exist', async () => {
+    await expect(
+      useCase.execute({
+        requesterId: 'r',
+        jobSkills: ['react'],
+        jobMinEnglish: null,
+        jobRemotePolicy: null,
+        limit: 10,
+      }),
+    ).rejects.toBeInstanceOf(CandidatePoolEmptyException);
+  });
+
+  it('throws MatchCandidatesInvalidLimitException for out-of-range limit', async () => {
+    await expect(
+      useCase.execute({
+        requesterId: 'r',
+        jobSkills: ['react'],
+        jobMinEnglish: null,
+        jobRemotePolicy: null,
+        limit: 0,
+      }),
+    ).rejects.toBeInstanceOf(MatchCandidatesInvalidLimitException);
+    await expect(
+      useCase.execute({
+        requesterId: 'r',
+        jobSkills: ['react'],
+        jobMinEnglish: null,
+        jobRemotePolicy: null,
+        limit: 101,
+      }),
+    ).rejects.toBeInstanceOf(MatchCandidatesInvalidLimitException);
+  });
+
+  it('throws MatchCandidatesNoCriteriaException when no criteria are provided', async () => {
+    await expect(
+      useCase.execute({
+        requesterId: 'r',
+        jobSkills: [],
+        jobMinEnglish: null,
+        jobRemotePolicy: null,
+        limit: 10,
+      }),
+    ).rejects.toBeInstanceOf(MatchCandidatesNoCriteriaException);
+  });
+
+  it('throws CandidateDirectoryUnavailableException when the directory rejects', async () => {
+    const failingRepo = {
+      loadSearchablePool: async () => {
+        throw new Error('downstream down');
+      },
+    } as never;
+    const uc = new MatchCandidatesForJobUseCase(failingRepo);
+    await expect(
+      uc.execute({
+        requesterId: 'r',
+        jobSkills: ['react'],
+        jobMinEnglish: null,
+        jobRemotePolicy: null,
+        limit: 10,
+      }),
+    ).rejects.toBeInstanceOf(CandidateDirectoryUnavailableException);
   });
 });

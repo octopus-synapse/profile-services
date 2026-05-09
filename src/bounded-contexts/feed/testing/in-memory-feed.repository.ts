@@ -249,7 +249,7 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     const posts = rows.map((p) => this.withRelations(p));
     const nextCursor =
       posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
-    return { posts, nextCursor };
+    return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 
   async listBookmarks(

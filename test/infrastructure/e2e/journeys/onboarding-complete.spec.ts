@@ -18,8 +18,8 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createFullOnboardingData, createMinimalOnboardingData } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -57,7 +57,7 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(false);
+      expect(response.body.hasCompletedOnboarding).toBe(false);
     });
 
     it.serial('should complete onboarding with minimal data', async () => {
@@ -68,9 +68,8 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resumeId).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.resumeId).toBeDefined();
     });
 
     it.serial('should show completed onboarding status after completion', async () => {
@@ -79,7 +78,7 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(true);
+      expect(response.body.hasCompletedOnboarding).toBe(true);
     });
 
     it.serial('should prevent duplicate onboarding completion', async () => {
@@ -117,11 +116,10 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${fullUser.token}`)
         .send(onboardingData);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resumeId).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.resumeId).toBeDefined();
 
-      createdResumeId = response.body.data.resumeId;
+      createdResumeId = response.body.resumeId;
     });
 
     it.serial('should have created resume with sections', async () => {
@@ -130,11 +128,11 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${fullUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.id).toBe(createdResumeId);
+      expect(response.body).toBeDefined();
+      expect(response.body.id).toBe(createdResumeId);
       // Verify resume has the expected sections
-      expect(response.body.data).toHaveProperty('resumeSections');
-      expect(Array.isArray(response.body.data.resumeSections)).toBe(true);
+      expect(response.body).toHaveProperty('resumeSections');
+      expect(Array.isArray(response.body.resumeSections)).toBe(true);
     });
   });
 

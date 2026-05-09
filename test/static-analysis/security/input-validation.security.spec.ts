@@ -16,23 +16,16 @@ import {
 } from './security-utils';
 
 describe('Input Validation Security Tests', () => {
-  describe('DTO Validation', () => {
-    it('should have DTOs using Zod or class-validator', () => {
-      const dtoFiles = readAllTsFiles(SRC_DIR).filter((f) => f.includes('.dto.ts'));
+  describe('Schema Validation', () => {
+    it('should have schemas using Zod', () => {
+      const schemaFiles = readAllTsFiles(SRC_DIR).filter((f) => f.includes('.schema.ts'));
 
-      // Should have DTOs defined
-      expect(dtoFiles.length).toBeGreaterThan(10);
+      expect(schemaFiles.length).toBeGreaterThan(10);
 
       let hasValidation = false;
-      for (const file of dtoFiles) {
+      for (const file of schemaFiles) {
         const content = fs.readFileSync(file, 'utf-8');
-        if (
-          content.includes('createZodDto') ||
-          content.includes('@IsString') ||
-          content.includes('@IsEmail') ||
-          content.includes('z.string') ||
-          content.includes('z.object')
-        ) {
+        if (content.includes('z.string') || content.includes('z.object')) {
           hasValidation = true;
           break;
         }
@@ -42,7 +35,7 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should use Zod schemas for request validation', () => {
-      const zodUsage = grepCodebaseFixed('createZodDto', ['node_modules', 'dist']);
+      const zodUsage = grepCodebaseFixed('z.object(', ['node_modules', 'dist']);
       expect(zodUsage.length).toBeGreaterThan(0);
     });
 
@@ -452,21 +445,14 @@ describe('Input Validation Security Tests', () => {
     });
 
     it('should use Zod or class-validator for input validation', () => {
-      // Check that DTOs use validation schemas
-      const dtoFiles = readAllTsFiles(SRC_DIR).filter((f) => f.includes('.dto.ts'));
+      const schemaFiles = readAllTsFiles(SRC_DIR).filter((f) => f.includes('.schema.ts'));
 
       let hasSchemaValidation = false;
 
-      for (const file of dtoFiles) {
+      for (const file of schemaFiles) {
         const content = fs.readFileSync(file, 'utf-8');
 
-        if (
-          content.includes('createZodDto') ||
-          content.includes('z.object') ||
-          content.includes('@IsString') ||
-          content.includes('@IsNumber') ||
-          content.includes('@IsEmail')
-        ) {
+        if (content.includes('z.object') || content.includes('z.string')) {
           hasSchemaValidation = true;
           break;
         }

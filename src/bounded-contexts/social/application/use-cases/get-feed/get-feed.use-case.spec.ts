@@ -13,16 +13,16 @@ import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.po
 import { GetFeedUseCase } from './get-feed.use-case';
 
 class StubActivityRepository implements ActivityRepositoryPort {
-  private _data: ActivityWithUser[] = [];
+  private _items: ActivityWithUser[] = [];
   private _total = 0;
 
-  setResult(data: ActivityWithUser[], total: number) {
-    this._data = data;
+  setResult(items: ActivityWithUser[], total: number) {
+    this._items = items;
     this._total = total;
   }
 
   async findActivitiesByUserIds() {
-    return { data: this._data, total: this._total };
+    return { items: this._items, total: this._total };
   }
   async createActivity(): Promise<ActivityWithUser> {
     throw new Error('not used in test');
@@ -31,13 +31,16 @@ class StubActivityRepository implements ActivityRepositoryPort {
     return null;
   }
   async findUserActivities() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivitiesByType() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async deleteOlderThan() {
     return 0;
+  }
+  async userExists() {
+    return true;
   }
 }
 
@@ -59,10 +62,10 @@ class StubFollowRepository implements FollowRepositoryPort {
     return null;
   }
   async findFollowers() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findFollowing() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async countFollowers() {
     return 0;
@@ -114,7 +117,7 @@ describe('GetFeedUseCase', () => {
 
     const result = await useCase.execute('user-1', { page: 1, limit: 10 });
 
-    expect(result.data).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
     expect(result.total).toBe(2);
   });
 
@@ -123,7 +126,7 @@ describe('GetFeedUseCase', () => {
 
     const result = await useCase.execute('user-1', { page: 1, limit: 10 });
 
-    expect(result.data).toHaveLength(0);
+    expect(result.items).toHaveLength(0);
     expect(result.total).toBe(0);
   });
 });

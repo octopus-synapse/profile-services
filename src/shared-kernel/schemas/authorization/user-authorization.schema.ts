@@ -198,3 +198,33 @@ export const ListUserAuthorizationQuerySchema = z.object({
 });
 
 export type ListUserAuthorizationQuery = z.infer<typeof ListUserAuthorizationQuerySchema>;
+
+export type AssignUserRolesDto = z.infer<typeof AssignUserRolesSchema>;
+
+export type RemoveUserRolesDto = z.infer<typeof RemoveUserRolesSchema>;
+
+export type UserRoleAssignmentResponseDto = z.infer<typeof UserRoleAssignmentResponseSchema>;
+
+export type AssignUserGroupsDto = z.infer<typeof AssignUserGroupsSchema>;
+
+export type RemoveUserGroupsDto = z.infer<typeof RemoveUserGroupsSchema>;
+
+export type UserGroupMembershipResponseDto = z.infer<typeof UserGroupMembershipResponseSchema>;
+
+export type GrantUserPermissionsDto = z.infer<typeof GrantUserPermissionsSchema>;
+
+export type DenyUserPermissionsDto = z.infer<typeof DenyUserPermissionsSchema>;
+
+export type RemoveUserPermissionsDto = z.infer<typeof RemoveUserPermissionsSchema>;
+
+export type UserPermissionResponseDto = z.infer<typeof UserPermissionResponseSchema>;
+
+export type CheckPermissionQueryDto = z.infer<typeof CheckPermissionQuerySchema>;
+
+export type CheckPermissionResponseDto = z.infer<typeof CheckPermissionResponseSchema>;
+
+export type ResolvedPermissionDto = z.infer<typeof ResolvedPermissionSchema>;
+
+export type UserAuthorizationSummaryDto = z.infer<typeof UserAuthorizationSummarySchema>;
+
+export type ListUserAuthorizationQueryDto = z.infer<typeof ListUserAuthorizationQuerySchema>;

@@ -13,11 +13,33 @@
  * so a stuck backend can't block the response.
  */
 
-import type { Route } from '@/shared-kernel/http/route';
+import { z } from 'zod';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { HealthUseCases } from './application/health.bundle';
 import type { ProbeResult } from './domain/probe.port';
 
 const PROBE_TIMEOUT_MS = 2000;
+
+// ─── Response schemas ────────────────────────────────────────────────
+const LivenessResponseSchema = z.object({
+  status: z.literal('ok'),
+  version: z.string(),
+  uptimeSeconds: z.number().int(),
+});
+
+const ProbeResultSchema = z.object({
+  name: z.string(),
+  status: z.enum(['ok', 'degraded', 'down']),
+  latencyMs: z.number(),
+  detail: z.string().optional(),
+});
+
+const ReadinessResponseSchema = z.object({
+  status: z.enum(['ok', 'down']),
+  version: z.string(),
+  uptimeSeconds: z.number().int(),
+  probes: z.array(ProbeResultSchema),
+});
 
 async function runProbe(probe: () => Promise<ProbeResult>): Promise<ProbeResult> {
   const start = Date.now();
@@ -41,7 +63,9 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit', 'requestLogging'],
+    response: LivenessResponseSchema,
     openapi: {
       summary: 'Liveness probe — always 200 once the process is booted',
       tags: ['health'],
@@ -57,7 +81,9 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health/live',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit', 'requestLogging'],
+    response: LivenessResponseSchema,
     openapi: {
       summary: 'Kubernetes-style liveness alias',
       tags: ['health'],
@@ -73,7 +99,9 @@ export const healthRoutes: ReadonlyArray<Route<HealthUseCases>> = [
     method: 'GET',
     path: '/health/ready',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'no-store' },
     skip: ['responseWrapper', 'authExtractor', 'rateLimit'],
+    response: ReadinessResponseSchema,
     openapi: {
       summary: 'Readiness probe — every backend must answer within 2s',
       tags: ['health'],

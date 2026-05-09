@@ -4,9 +4,13 @@
  * + `<meta name="description">` when OG tags are missing. All errors
  * are swallowed (returns `null`) so a flaky external page never breaks
  * post creation.
+ *
+ * P0-013: routes the fetch through `SafeFetchPort` so user-supplied URLs
+ * cannot reach loopback / RFC1918 / link-local addresses (AWS metadata
+ * service, etc.) or non-HTTP protocols (`file://`, `data:`).
  */
 
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort, SafeFetchBlockedError, type SafeFetchPort } from '@/shared-kernel';
 import type { LinkPreviewData } from '../../../domain/entities';
 import { LinkPreviewFetcherPort } from '../../../domain/ports/link-preview-fetcher.port';
 
@@ -14,20 +18,19 @@ const CTX = 'FetchLinkPreviewAdapter';
 const TIMEOUT_MS = 5000;
 
 export class FetchLinkPreviewAdapter extends LinkPreviewFetcherPort {
-  constructor(private readonly logger: LoggerPort) {
+  constructor(
+    private readonly logger: LoggerPort,
+    private readonly safeFetch: SafeFetchPort,
+  ) {
     super();
   }
 
   async fetchPreview(url: string): Promise<LinkPreviewData | null> {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-      const response = await fetch(url, {
-        signal: controller.signal,
+      const response = await this.safeFetch.fetch(url, {
+        timeoutMs: TIMEOUT_MS,
         headers: { 'User-Agent': 'ProfileBot/1.0 (Link Preview)' },
       });
-      clearTimeout(timeout);
 
       if (!response.ok) return null;
 
@@ -41,10 +44,12 @@ export class FetchLinkPreviewAdapter extends LinkPreviewFetcherPort {
 
       return { title, description, image, domain };
     } catch (err) {
-      this.logger.warn(
-        `Link preview fetch failed for ${url}: ${err instanceof Error ? err.message : 'unknown'}`,
-        CTX,
-      );
+      const message = err instanceof Error ? err.message : 'unknown';
+      if (err instanceof SafeFetchBlockedError) {
+        this.logger.warn(`Link preview blocked by safe-fetch (${err.reason}): ${message}`, CTX);
+      } else {
+        this.logger.warn(`Link preview fetch failed: ${message}`, CTX);
+      }
       return null;
     }
   }

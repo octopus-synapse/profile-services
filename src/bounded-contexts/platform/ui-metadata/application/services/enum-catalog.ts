@@ -1,24 +1,11 @@
-/**
- * Server-driven enum catalog.
- *
- * The frontend used to keep parallel TypeScript unions + label maps + icon
- * maps for every enum (NotificationType, JobApplicationEventType, etc.).
- * Adding a value meant a coordinated deploy. Now the UI fetches each enum's
- * full descriptor (value + i18n labels + icon hint + grouping) and renders
- * generically — backend is the single source of truth.
- */
-
-export type SupportedLocale = 'pt-BR' | 'en';
+import type { Locale } from '@packages/i18n';
 
 export interface EnumValueDescriptor {
   value: string;
-  /** Lucide icon name; UI maps to <component>. */
   icon: string;
-  /** Optional UI grouping for tabs / sections (e.g. "engagement"). */
   group?: string;
-  /** Tone hint — UI maps to color tokens. */
   tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
-  labels: Record<SupportedLocale, string>;
+  labels: Record<Locale, string>;
 }
 
 export interface EnumDescriptor {

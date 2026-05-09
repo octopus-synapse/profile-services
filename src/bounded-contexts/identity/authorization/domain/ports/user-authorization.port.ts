@@ -2,12 +2,19 @@
  * User Authorization Repository Port
  *
  * Carries the user-scoped read + write operations for the authorization
- * aggregate (role/group/permission assignments). Kept in its own port so
- * the per-entity lookup repositories (Permission / Role / Group) stay on
+ * aggregate (role/permission assignments). Kept in its own port so
+ * the per-entity lookup repositories (Permission / Role) stay on
  * a file that fits the ISP <=15 methods budget.
+ *
+ * P0-009: the legacy Group hierarchy (`Group`, `UserGroup`, `GroupRole`,
+ * `GroupPermission`, `UserPermission`) was removed by the
+ * `20260430040810_authz_refactor` migration in favor of `AccessModifier`.
+ * Group-scoped methods (`addToGroup`, `removeFromGroup`, `getUserGroups`)
+ * have been deleted along with their callers — invoking them on a
+ * deployed instance after the migration would crash with
+ * `Unknown table 'Group'`.
  */
 
-import type { GroupId } from '../entities/group.entity';
 import type { PermissionId } from '../entities/permission.entity';
 import type { RoleId } from '../entities/role.entity';
 import type { UserId } from '../entities/user-auth-context.entity';
@@ -23,15 +30,9 @@ export interface UserRoleAssignment {
   expiresAt?: Date;
 }
 
-export interface UserGroupMembership {
-  groupId: GroupId;
-  expiresAt?: Date;
-}
-
 export interface IUserAuthorizationRepository {
   getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]>;
   getUserRoles(userId: UserId): Promise<UserRoleAssignment[]>;
-  getUserGroups(userId: UserId): Promise<UserGroupMembership[]>;
 
   assignRole(
     userId: UserId,
@@ -39,13 +40,6 @@ export interface IUserAuthorizationRepository {
     options?: { assignedBy?: string; expiresAt?: Date },
   ): Promise<void>;
   revokeRole(userId: UserId, roleId: RoleId): Promise<void>;
-
-  addToGroup(
-    userId: UserId,
-    groupId: GroupId,
-    options?: { assignedBy?: string; expiresAt?: Date },
-  ): Promise<void>;
-  removeFromGroup(userId: UserId, groupId: GroupId): Promise<void>;
 
   grantPermission(
     userId: UserId,

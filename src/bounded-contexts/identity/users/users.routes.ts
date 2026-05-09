@@ -11,8 +11,10 @@
  */
 
 import { z } from 'zod';
+import { negotiateLocale } from '@/bounded-contexts/platform/i18n/application/locale-negotiator';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { localizeDomainCodes } from '@/shared-kernel/i18n/localize-domain-code';
 import { UpdateUserSchema } from '@/shared-kernel/schemas/user/user.schema';
 import {
   UpdateFullPreferencesSchema,
@@ -23,44 +25,39 @@ import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
   PublicProfileDataSchema,
   UserFullPreferencesDataSchema,
-} from './dto/controller-response.dto';
+} from './dto/controller-response.schema';
 import {
   toCreatedUserMutation,
   toUpdatedUserMutation,
   toUserDetailsData,
   toUserManagementListData,
 } from './infrastructure/presenters/user-management.presenter';
-
-const UsernameParam = z.object({ username: z.string() });
-const CheckUsernameQuery = z.object({ username: z.string() });
-
-const UserIdParam = z.object({ id: z.string() });
-
-const ListUsersQuery = z.object({
-  page: z.coerce.number().int().optional(),
-  limit: z.coerce.number().int().optional(),
-  search: z.string().optional(),
-  roleName: z.string().optional(),
-});
-
-const AdminCreateUserSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().optional(),
-  role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
-});
-
-const AdminUpdateUserSchema = z.object({
-  email: z.string().email().optional(),
-  name: z.string().optional(),
-  role: z.enum(['USER', 'ADMIN']).optional(),
-  isActive: z.boolean().optional(),
-  isEmailVerified: z.boolean().optional(),
-});
-
-const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) });
-
-const AssignRolesSchema = z.object({ roles: z.array(z.string()) });
+import {
+  AdminCreateUserSchema,
+  AdminResetPasswordSchema,
+  AdminUpdateUserSchema,
+  AssignRolesSchema,
+  CheckUsernameQuery,
+  CheckUsernameResponseSchema,
+  CreatedUserResponseSchema,
+  GetBasicPreferencesResponseSchema,
+  ListUsersQuery,
+  ManagedUserDetailsResponseSchema,
+  ManagedUserListResponseSchema,
+  MessageOnlyResponseSchema,
+  PermissionsListResponseSchema,
+  PublicUsersListQuery,
+  PublicUsersListResponseSchema,
+  UpdateBasicPreferencesResponseSchema,
+  UpdatedUserResponseSchema,
+  UpdateUsernameResponseSchema,
+  UpdateUserProfileResponseSchema,
+  UserIdParam,
+  UsernameParam,
+  UserProfileResponseSchema,
+  ValidateUsernameRequestBodySchema,
+  ValidateUsernameResponseSchema,
+} from './users.routes.schemas';
 
 export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
   // ─── Profile ──────────────────────────────────────────────────────
@@ -73,7 +70,9 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'GET',
     path: '/v1/profiles/:username',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
     params: UsernameParam,
+    response: PublicProfileDataSchema,
     openapi: {
       summary: "Get a user's public profile by username",
       tags: ['users'],
@@ -83,10 +82,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { username } = ctx.params as { username: string };
       const data = await bundle.profile.getPublicProfileUseCase.execute(username);
-      return {
-        success: true,
-        data: PublicProfileDataSchema.parse({ user: data.user, resume: data.resume }),
-      };
+      return { user: data.user, resume: data.resume };
     },
   },
   {
@@ -94,6 +90,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/profile',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: UserProfileResponseSchema,
     openapi: {
       summary: 'Get current user profile',
       tags: ['users'],
@@ -102,7 +99,37 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const result = await bundle.profile.getProfileUseCase.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
+    },
+  },
+  // ─── Public users (sitemap) ───────────────────────────────────────
+  // Public, no-auth listing of users that have a username set. Used by
+  // the SEO sitemap to enumerate `@<username>` routes.
+  {
+    method: 'GET',
+    path: '/v1/users/public',
+    auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=60' },
+    query: PublicUsersListQuery,
+    response: PublicUsersListResponseSchema,
+    openapi: {
+      summary: 'List users with a public username (paginated)',
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const q = ctx.query as z.infer<typeof PublicUsersListQuery>;
+      const page = q.page ?? 1;
+      const limit = q.limit ?? 100;
+      const result = await bundle.profile.listPublicUsersUseCase.execute(page, limit);
+      return {
+        ...result,
+        items: result.items.map((i) => ({
+          username: i.username,
+          updatedAt: i.updatedAt.toISOString(),
+        })),
+      };
     },
   },
   {
@@ -111,6 +138,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateUserSchema,
+    response: UpdateUserProfileResponseSchema,
     openapi: {
       summary: 'Update current user profile',
       tags: ['users'],
@@ -120,7 +148,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdateUserSchema>;
       const result = await bundle.profile.updateProfileUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: { ...result, profile: result } };
+      return { ...result, profile: result };
     },
   },
   // ─── Username ─────────────────────────────────────────────────────
@@ -130,6 +158,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateUsernameSchema,
+    response: UpdateUsernameResponseSchema,
     openapi: {
       summary: 'Update username (once every 30 days)',
       tags: ['users'],
@@ -138,11 +167,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdateUsernameSchema>;
-      const result = await bundle.usernameService.updateUsername(ctx.user!.userId, body);
-      return {
-        success: true,
-        data: { username: result.username, message: 'Username updated successfully' },
-      };
+      const result = await bundle.useCases.updateUsername.execute(ctx.user!.userId, body.username);
+      return { username: result.username, message: 'Username updated successfully' };
     },
   },
   {
@@ -151,6 +177,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
     query: CheckUsernameQuery,
+    response: CheckUsernameResponseSchema,
     openapi: {
       summary: 'Check if a username is available',
       tags: ['users'],
@@ -159,17 +186,51 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof CheckUsernameQuery>;
-      const availability = await bundle.usernameService.checkUsernameAvailability(
+      const availability = await bundle.useCases.checkUsernameAvailability.execute(
         q.username,
         ctx.user!.userId,
       );
       return {
-        success: true,
-        data: {
-          username: availability.username,
-          available: availability.available,
-          ...(availability.reason ? { reason: availability.reason } : {}),
-        },
+        username: availability.username,
+        available: availability.available,
+        ...(availability.reason ? { reason: availability.reason } : {}),
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/users/username/validate',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_READ,
+    body: ValidateUsernameRequestBodySchema,
+    response: ValidateUsernameResponseSchema,
+    openapi: {
+      summary: 'Validate username (multi-error breakdown for client forms)',
+      tags: ['users'],
+      description:
+        'Returns every format/availability problem at once. Each error carries a stable `code` plus a `message` already localized via the request `Accept-Language` header.',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as z.infer<typeof ValidateUsernameRequestBodySchema>;
+      const result = await bundle.useCases.validateUsername.execute(
+        body.username,
+        ctx.user!.userId,
+      );
+      const { locale } = negotiateLocale(
+        Array.isArray(ctx.headers['accept-language'])
+          ? ctx.headers['accept-language'][0]
+          : ctx.headers['accept-language'],
+      );
+      return {
+        username: result.username,
+        valid: result.valid,
+        ...(result.available !== undefined ? { available: result.available } : {}),
+        errors: localizeDomainCodes(result.errors, bundle.i18n, locale).map((e) => ({
+          code: e.code as z.infer<typeof ValidateUsernameResponseSchema>['errors'][number]['code'],
+          ...(e.params ? { params: e.params } : {}),
+          message: e.message,
+        })),
       };
     },
   },
@@ -179,6 +240,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/preferences',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: GetBasicPreferencesResponseSchema,
     openapi: {
       summary: 'Get user preferences (basic)',
       tags: ['users'],
@@ -187,7 +249,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const preferences = await bundle.preferences.getPreferencesUseCase.execute(ctx.user!.userId);
-      return { success: true, data: { preferences } };
+      return { preferences };
     },
   },
   {
@@ -196,6 +258,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdatePreferencesSchema,
+    response: UpdateBasicPreferencesResponseSchema,
     openapi: {
       summary: 'Update user preferences (basic)',
       tags: ['users'],
@@ -205,7 +268,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpdatePreferencesSchema>;
       await bundle.preferences.updatePreferencesUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: { message: 'Preferences updated successfully' } };
+      return { code: 'PREFERENCES_UPDATED' as const };
     },
   },
   {
@@ -213,6 +276,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/preferences/full',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: UserFullPreferencesDataSchema,
     openapi: {
       summary: 'Get all user preferences',
       tags: ['users'],
@@ -223,10 +287,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
       const preferences = await bundle.preferences.getFullPreferencesUseCase.execute(
         ctx.user!.userId,
       );
-      return {
-        success: true,
-        data: UserFullPreferencesDataSchema.parse({ preferences }),
-      };
+      return { preferences };
     },
   },
   {
@@ -235,6 +296,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     body: UpdateFullPreferencesSchema,
+    response: UserFullPreferencesDataSchema,
     openapi: {
       summary: 'Update all user preferences',
       tags: ['users'],
@@ -247,7 +309,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         ctx.user!.userId,
         body,
       );
-      return { success: true, data: { preferences } };
+      return { preferences };
     },
   },
   // ─── Permissions ──────────────────────────────────────────────────
@@ -256,6 +318,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     path: '/v1/users/me/permissions',
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
+    response: PermissionsListResponseSchema,
     openapi: {
       summary: 'List permission keys granted to the current user (for UI gating)',
       tags: ['users'],
@@ -277,6 +340,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'read' },
     query: ListUsersQuery,
+    response: ManagedUserListResponseSchema,
     openapi: {
       summary: 'List all users with pagination',
       tags: ['users'],
@@ -285,13 +349,13 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof ListUsersQuery>;
-      const result = await bundle.userManagement.listUsers({
+      const result = await bundle.useCases.listUsers.execute({
         page: q.page ? Number(q.page) : 1,
         limit: q.limit ? Number(q.limit) : 20,
         search: q.search,
         roleName: q.roleName,
       });
-      return { success: true, data: toUserManagementListData(result) };
+      return toUserManagementListData(result);
     },
   },
   {
@@ -300,6 +364,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'read' },
     params: UserIdParam,
+    response: ManagedUserDetailsResponseSchema,
     openapi: {
       summary: 'Get user details by ID',
       tags: ['users'],
@@ -308,8 +373,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      const user = await bundle.userManagement.getUserDetails(id);
-      return { success: true, data: toUserDetailsData(user) };
+      const user = await bundle.useCases.getUserDetails.execute(id);
+      return toUserDetailsData(user);
     },
   },
   {
@@ -319,6 +384,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'create' },
     body: AdminCreateUserSchema,
     statusCode: 201,
+    response: CreatedUserResponseSchema,
     openapi: {
       summary: 'Create a new user',
       tags: ['users'],
@@ -327,11 +393,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof AdminCreateUserSchema>;
-      const result = await bundle.userManagement.createUser(body);
-      return {
-        success: true,
-        data: { user: toCreatedUserMutation(result), message: 'User created successfully' },
-      };
+      const result = await bundle.useCases.createUser.execute(body);
+      return { user: toCreatedUserMutation(result), message: 'User created successfully' };
     },
   },
   {
@@ -341,6 +404,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'update' },
     params: UserIdParam,
     body: AdminUpdateUserSchema,
+    response: UpdatedUserResponseSchema,
     openapi: {
       summary: 'Update user information',
       tags: ['users'],
@@ -350,11 +414,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminUpdateUserSchema>;
-      const result = await bundle.userManagement.updateUser(id, body);
-      return {
-        success: true,
-        data: { user: toUpdatedUserMutation(result), message: 'User updated successfully' },
-      };
+      const result = await bundle.useCases.updateUser.execute(id, body);
+      return { user: toUpdatedUserMutation(result), message: 'User updated successfully' };
     },
   },
   {
@@ -363,6 +424,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: { resource: 'user', action: 'delete' },
     params: UserIdParam,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Delete a user',
       tags: ['users'],
@@ -371,8 +433,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      await bundle.userManagement.deleteUser(id, ctx.user!.userId);
-      return { success: true, data: { message: 'User deleted successfully' } };
+      await bundle.useCases.deleteUser.execute(id, ctx.user!.userId);
+      return { code: 'USER_DELETED' as const };
     },
   },
   {
@@ -383,6 +445,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     params: UserIdParam,
     body: AdminResetPasswordSchema,
     statusCode: 200,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Reset user password',
       tags: ['users'],
@@ -392,8 +455,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AdminResetPasswordSchema>;
-      await bundle.userManagement.resetPassword(id, body);
-      return { success: true, data: { message: 'Password reset successfully' } };
+      await bundle.useCases.adminResetPassword.execute(id, body.newPassword);
+      return { code: 'PASSWORD_RESET' as const };
     },
   },
   {
@@ -403,6 +466,7 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     permission: { resource: 'user', action: 'role_assign' },
     params: UserIdParam,
     body: AssignRolesSchema,
+    response: MessageOnlyResponseSchema,
     openapi: {
       summary: 'Assign roles to a user',
       tags: ['users'],
@@ -412,8 +476,8 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof AssignRolesSchema>;
-      await bundle.userManagement.assignRoles(id, body.roles, ctx.user!.userId);
-      return { success: true, data: { message: 'Roles updated successfully' } };
+      await bundle.useCases.assignRoles.execute(id, body.roles, ctx.user!.userId);
+      return { code: 'ROLES_UPDATED' as const };
     },
   },
 ];

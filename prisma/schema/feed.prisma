@@ -1,7 +1,7 @@
 // Feed: Posts, Comments, Likes, Bookmarks, Reports, Polls
 
 model Post {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   authorId String
   author   User   @relation("UserPosts", fields: [authorId], references: [id])
 
@@ -81,7 +81,7 @@ model Post {
 }
 
 model PostComment {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   postId   String
   post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   authorId String
@@ -92,16 +92,21 @@ model PostComment {
   parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
   replies  PostComment[] @relation("CommentReplies")
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isDeleted Boolean   @default(false)
+  // P1-067 — `deletedAt` complements the boolean so the audit trail
+  // records WHEN the comment was soft-deleted, not just THAT it
+  // was. Old rows stay null (no information loss); new soft-deletes
+  // populate it via the `MarkPostCommentDeletedUseCase`.
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([postId, createdAt])
   @@index([parentId])
 }
 
 model PostLike {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -112,10 +117,15 @@ model PostLike {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+  // P1-024 — `listReactionsByUser(userId, page, limit)` orders by
+  // createdAt DESC. Without this index Postgres scans every row whose
+  // userId matches then sorts in memory; with it the planner walks the
+  // index in reverse and stops at `limit`.
+  @@index([userId, createdAt])
 }
 
 model PostBookmark {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -124,10 +134,13 @@ model PostBookmark {
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
+  // P1-025 — same access pattern as `PostLike`: every "my bookmarks"
+  // query orders by createdAt and only fetches the first page.
+  @@index([userId, createdAt])
 }
 
 model PostReport {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   postId String
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
@@ -142,7 +155,7 @@ model PostReport {
 }
 
 model PollVote {
-  id          String @id @default(cuid())
+  id          String @id @default(dbgenerated("uuidv7()"))
   postId      String
   post        Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId      String

@@ -110,7 +110,12 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
         CTX,
       );
     }
-    this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
+    // P1-076 — bound the request budget so a hung LLM doesn't pin a
+    // worker thread indefinitely. 60s is well above the p99 of every
+    // call we make today (max-tokens=1500 finishes in ~10s) and short
+    // enough that BullMQ retries trigger before a job lifetime
+    // expires.
+    this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_MODEL') ?? 'gpt-4o-mini';
     this.maxTokens = Number(this.config.get<string>('OPENAI_MAX_TOKENS') ?? '1500');
   }
@@ -138,7 +143,10 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI tailor response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI tailor response', {
+        context: CTX,
+        stack: raw,
+      });
       throw err;
     }
 
@@ -146,8 +154,7 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     if (!result.success) {
       this.logger.error(
         `OpenAI tailor response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
       throw new AiInvalidOutputException('tailorResume');
     }
@@ -180,15 +187,17 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI extract response', {
+        context: CTX,
+        stack: raw,
+      });
       throw err;
     }
     const result = ExtractedResumeSchema.safeParse(parsed);
     if (!result.success) {
       this.logger.error(
         `OpenAI extract response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
       throw new AiInvalidOutputException('extractResumeFromText');
     }
@@ -220,15 +229,17 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
-      this.logger.error('Failed to JSON.parse OpenAI extract-job response', raw, CTX);
+      this.logger.error('Failed to JSON.parse OpenAI extract-job response', {
+        context: CTX,
+        stack: raw,
+      });
       throw err;
     }
     const result = ExtractedJobSchema.safeParse(parsed);
     if (!result.success) {
       this.logger.error(
         `OpenAI extract-job response failed schema validation: ${result.error.message}`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
       throw new AiInvalidOutputException('extractJobFromText');
     }

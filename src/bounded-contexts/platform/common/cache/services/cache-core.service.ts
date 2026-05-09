@@ -3,7 +3,7 @@
  * Handles basic cache operations (get, set, delete, flush)
  */
 
-import { AppLoggerService } from '../../logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { RedisConnectionService } from '../redis-connection.service';
 
 /**
@@ -22,7 +22,7 @@ export class CacheUnavailableError extends Error {
 export class CacheReadError extends Error {
   constructor(
     message: string,
-    public readonly cause?: Error,
+    public override readonly cause?: Error,
   ) {
     super(message);
     this.name = 'CacheReadError';
@@ -35,7 +35,7 @@ export class CacheReadError extends Error {
 export class CacheWriteError extends Error {
   constructor(
     message: string,
-    public readonly cause?: Error,
+    public override readonly cause?: Error,
   ) {
     super(message);
     this.name = 'CacheWriteError';
@@ -45,7 +45,7 @@ export class CacheWriteError extends Error {
 export class CacheCoreService {
   constructor(
     private readonly redisConnection: RedisConnectionService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -62,11 +62,10 @@ export class CacheCoreService {
       const value = await client.get(key);
       return value ? (JSON.parse(value) as T) : null;
     } catch (error) {
-      this.logger.error(
-        `Failed to get cache key: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to get cache key: ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return null;
     }
   }
@@ -92,11 +91,10 @@ export class CacheCoreService {
       const value = await client.get(key);
       return value ? (JSON.parse(value) as T) : null;
     } catch (error) {
-      this.logger.error(
-        `Failed to get cache key (secure): ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to get cache key (secure): ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw new CacheReadError(
         `Failed to read security-critical cache key: ${key}`,
         error instanceof Error ? error : undefined,
@@ -122,11 +120,10 @@ export class CacheCoreService {
         await client.set(key, serialized);
       }
     } catch (error) {
-      this.logger.error(
-        `Failed to set cache key: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to set cache key: ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -155,11 +152,10 @@ export class CacheCoreService {
         await client.set(key, serialized);
       }
     } catch (error) {
-      this.logger.error(
-        `Failed to set cache key (secure): ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to set cache key (secure): ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw new CacheWriteError(
         `Failed to write security-critical cache key: ${key}`,
         error instanceof Error ? error : undefined,
@@ -179,11 +175,10 @@ export class CacheCoreService {
     try {
       await client.del(key);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache key: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to delete cache key: ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -202,11 +197,10 @@ export class CacheCoreService {
         await client.del(...keys);
       }
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache pattern: ${pattern}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error(`Failed to delete cache pattern: ${pattern}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -223,11 +217,10 @@ export class CacheCoreService {
       await client.flushdb();
       this.logger.log('Cache flushed successfully', 'CacheCoreService');
     } catch (error) {
-      this.logger.error(
-        'Failed to flush cache',
-        error instanceof Error ? error.stack : undefined,
-        'CacheCoreService',
-      );
+      this.logger.error('Failed to flush cache', {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 

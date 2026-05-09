@@ -4,7 +4,7 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { Job } from '../../../domain/entities/job';
+import type { Job } from '../../../domain/entities/job.entity';
 import { CannotModifyOthersJobException } from '../../../domain/exceptions/jobs.exceptions';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 

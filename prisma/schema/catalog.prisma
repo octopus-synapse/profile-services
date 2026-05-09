@@ -1,7 +1,7 @@
 // Tech Skills Catalog - Pre-populated skills data
 
 model TechArea {
-  id   String       @id @default(cuid())
+  id   String       @id @default(dbgenerated("uuidv7()"))
   type TechAreaType @unique
 
   // Translations
@@ -26,7 +26,7 @@ model TechArea {
 }
 
 model TechNiche {
-  id   String @id @default(cuid())
+  id   String @id @default(dbgenerated("uuidv7()"))
   slug String @unique
 
   // Translations
@@ -55,7 +55,7 @@ model TechNiche {
 }
 
 model TechSkill {
-  id   String @id @default(cuid())
+  id   String @id @default(dbgenerated("uuidv7()"))
   slug String @unique
 
   // Translations
@@ -97,7 +97,7 @@ model TechSkill {
 
 // Spoken Languages Catalog
 model SpokenLanguage {
-  id   String @id @default(cuid())
+  id   String @id @default(dbgenerated("uuidv7()"))
   code String @unique
 
   // Translations for the language name
@@ -122,7 +122,7 @@ model SpokenLanguage {
 
 // Programming Languages Catalog
 model ProgrammingLanguage {
-  id   String @id @default(cuid())
+  id   String @id @default(dbgenerated("uuidv7()"))
   slug String @unique
 
   // Translations

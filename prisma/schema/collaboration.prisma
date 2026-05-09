@@ -7,7 +7,7 @@ enum CollaboratorRole {
 }
 
 model ResumeCollaborator {
-  id        String           @id @default(cuid())
+  id        String           @id @default(dbgenerated("uuidv7()"))
   resumeId  String
   resume    Resume           @relation("ResumeCollaborators", fields: [resumeId], references: [id], onDelete: Cascade)
   userId    String
@@ -24,7 +24,7 @@ model ResumeCollaborator {
 
 // Inline review comments on a resume, optionally anchored to a section/item.
 model CollaborationComment {
-  id       String @id @default(cuid())
+  id       String @id @default(dbgenerated("uuidv7()"))
   resumeId String
   resume   Resume @relation("ResumeComments", fields: [resumeId], references: [id], onDelete: Cascade)
   authorId String

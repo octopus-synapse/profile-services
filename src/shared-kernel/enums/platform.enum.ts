@@ -64,19 +64,19 @@ export const paletteFromKebab = (value: PaletteKebab): Palette => {
 // UI Language
 // ============================================================================
 
-export const UILanguageSchema = z.enum(['EN', 'PT_BR', 'ES']);
+export const UILanguageSchema = z.enum(['EN', 'PT_BR']);
 export type UILanguage = z.infer<typeof UILanguageSchema>;
 
-export const UILanguageKebabSchema = z.enum(['en', 'pt-br', 'es']);
+export const UILanguageKebabSchema = z.enum(['en', 'pt-br']);
 export type UILanguageKebab = z.infer<typeof UILanguageKebabSchema>;
 
 export const uiLanguageToKebab = (value: UILanguage): UILanguageKebab => {
-  const mapping: Record<UILanguage, UILanguageKebab> = { EN: 'en', PT_BR: 'pt-br', ES: 'es' };
+  const mapping: Record<UILanguage, UILanguageKebab> = { EN: 'en', PT_BR: 'pt-br' };
   return mapping[value];
 };
 
 export const uiLanguageFromKebab = (value: UILanguageKebab): UILanguage => {
-  const mapping: Record<UILanguageKebab, UILanguage> = { en: 'EN', 'pt-br': 'PT_BR', es: 'ES' };
+  const mapping: Record<UILanguageKebab, UILanguage> = { en: 'EN', 'pt-br': 'PT_BR' };
   return mapping[value];
 };
 

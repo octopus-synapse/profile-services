@@ -28,8 +28,13 @@ describe('ListUsersUseCase', () => {
 
     const result = await useCase.execute({ page: 1, limit: 2 });
 
-    expect(result.users.length).toBe(2);
-    expect(result.pagination).toEqual({ page: 1, limit: 2, total: 10, totalPages: 5 });
+    expect(result.items.length).toBe(2);
+    expect({
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages,
+    }).toEqual({ page: 1, limit: 2, total: 10, totalPages: 5 });
   });
 
   it('should calculate totalPages correctly', async () => {
@@ -40,6 +45,6 @@ describe('ListUsersUseCase', () => {
 
     const result = await useCase.execute({ page: 1, limit: 10 });
 
-    expect(result.pagination.totalPages).toBe(2);
+    expect(result.totalPages).toBe(2);
   });
 });

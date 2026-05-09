@@ -9,14 +9,14 @@ import {
 } from '@/shared-kernel/exceptions';
 
 export class ResumeNotOwnedException extends ForbiddenException {
-  readonly code: string = 'RESUME_NOT_OWNED';
+  override readonly code: string = 'RESUME_NOT_OWNED';
   constructor() {
     super('You can only modify your own resume');
   }
 }
 
 export class ResumeAccessDeniedException extends ForbiddenException {
-  readonly code: string = 'RESUME_ACCESS_DENIED';
+  override readonly code: string = 'RESUME_ACCESS_DENIED';
   constructor() {
     super('Access denied to resume');
   }
@@ -39,35 +39,35 @@ export class VariantNotFoundException extends DomainException {
 }
 
 export class ResumeSlotLimitReachedException extends ConflictException {
-  readonly code: string = 'RESUME_SLOT_LIMIT_REACHED';
+  override readonly code: string = 'RESUME_SLOT_LIMIT_REACHED';
   constructor(max: number) {
     super(`Resume slot limit reached (${max})`);
   }
 }
 
 export class ResumeSectionInvalidException extends ValidationException {
-  readonly code: string = 'RESUME_SECTION_INVALID';
+  override readonly code: string = 'RESUME_SECTION_INVALID';
   constructor(reason: string) {
     super(`Resume section is invalid: ${reason}`);
   }
 }
 
 export class SectionTypeInvalidException extends ValidationException {
-  readonly code: string = 'SECTION_TYPE_INVALID';
+  override readonly code: string = 'SECTION_TYPE_INVALID';
   constructor(reason: string) {
     super(`Section type is invalid: ${reason}`);
   }
 }
 
 export class SectionItemInvalidException extends ValidationException {
-  readonly code: string = 'SECTION_ITEM_INVALID';
+  override readonly code: string = 'SECTION_ITEM_INVALID';
   constructor(reason: string) {
     super(`Section item is invalid: ${reason}`);
   }
 }
 
 export class PrimaryResumeRequiredException extends ConflictException {
-  readonly code: string = 'PRIMARY_RESUME_REQUIRED';
+  override readonly code: string = 'PRIMARY_RESUME_REQUIRED';
   constructor() {
     super('A primary resume is required for this operation');
   }
@@ -106,7 +106,7 @@ export class ResumeSharePasswordInvalidException extends DomainException {
 }
 
 export class ResumeShareSlugTakenException extends ConflictException {
-  readonly code: string = 'RESUME_SHARE_SLUG_TAKEN';
+  override readonly code: string = 'RESUME_SHARE_SLUG_TAKEN';
   constructor(slug: string) {
     super(`Slug "${slug}" is already taken`);
   }
@@ -137,35 +137,35 @@ export class ExportEngineUnavailableException extends DomainException {
 }
 
 export class SectionTypeAlreadyExistsException extends ConflictException {
-  readonly code: string = 'SECTION_TYPE_ALREADY_EXISTS';
+  override readonly code: string = 'SECTION_TYPE_ALREADY_EXISTS';
   constructor(key: string) {
     super(`Section type '${key}' already exists`);
   }
 }
 
 export class SectionTypeSlugVersionTakenException extends ConflictException {
-  readonly code: string = 'SECTION_TYPE_SLUG_VERSION_TAKEN';
+  override readonly code: string = 'SECTION_TYPE_SLUG_VERSION_TAKEN';
   constructor(slug: string, version: number) {
     super(`Section type with slug '${slug}' and version ${version} already exists`);
   }
 }
 
 export class SystemSectionTypeImmutableException extends ValidationException {
-  readonly code: string = 'SYSTEM_SECTION_TYPE_IMMUTABLE';
+  override readonly code: string = 'SYSTEM_SECTION_TYPE_IMMUTABLE';
   constructor() {
     super('Cannot modify key, semanticKind, or definition of system section types');
   }
 }
 
 export class SystemSectionTypeUndeletableException extends ValidationException {
-  readonly code: string = 'SYSTEM_SECTION_TYPE_UNDELETABLE';
+  override readonly code: string = 'SYSTEM_SECTION_TYPE_UNDELETABLE';
   constructor() {
     super('Cannot delete system section types');
   }
 }
 
 export class SectionTypeInUseException extends ValidationException {
-  readonly code: string = 'SECTION_TYPE_IN_USE';
+  override readonly code: string = 'SECTION_TYPE_IN_USE';
   constructor(key: string, count: number) {
     super(
       `Cannot delete section type '${key}' - it is used by ${count} resume(s). Deactivate it instead.`,
@@ -174,28 +174,28 @@ export class SectionTypeInUseException extends ValidationException {
 }
 
 export class ResumeTailorInputRequiredException extends ValidationException {
-  readonly code: string = 'RESUME_TAILOR_INPUT_REQUIRED';
+  override readonly code: string = 'RESUME_TAILOR_INPUT_REQUIRED';
   constructor() {
     super('Tailor input is required (job id or pasted description)');
   }
 }
 
 export class SectionItemLimitExceededException extends ValidationException {
-  readonly code: string = 'SECTION_ITEM_LIMIT_EXCEEDED';
+  override readonly code: string = 'SECTION_ITEM_LIMIT_EXCEEDED';
   constructor(maxItems: number) {
     super(`Section reached maximum item limit (${maxItems})`);
   }
 }
 
 export class InvalidSectionTypeDefinitionException extends ValidationException {
-  readonly code: string = 'INVALID_SECTION_TYPE_DEFINITION';
+  override readonly code: string = 'INVALID_SECTION_TYPE_DEFINITION';
   constructor() {
     super('Invalid section type definition');
   }
 }
 
 export class SectionFieldKeyRequiredException extends ValidationException {
-  readonly code: string = 'SECTION_FIELD_KEY_REQUIRED';
+  override readonly code: string = 'SECTION_FIELD_KEY_REQUIRED';
   constructor(location: 'top-level' | 'nested' = 'top-level') {
     super(
       location === 'nested'
@@ -206,21 +206,21 @@ export class SectionFieldKeyRequiredException extends ValidationException {
 }
 
 export class DuplicatedSectionFieldKeyException extends ValidationException {
-  readonly code: string = 'DUPLICATED_SECTION_FIELD_KEY';
+  override readonly code: string = 'DUPLICATED_SECTION_FIELD_KEY';
   constructor(key: string) {
     super(`Duplicated section field key: ${key}`);
   }
 }
 
 export class UnknownSectionTypeException extends ValidationException {
-  readonly code: string = 'UNKNOWN_SECTION_TYPE';
+  override readonly code: string = 'UNKNOWN_SECTION_TYPE';
   constructor(key: string) {
     super(`Unknown section type: ${key}`);
   }
 }
 
 export class SectionItemContentInvalidException extends ValidationException {
-  readonly code: string = 'SECTION_ITEM_CONTENT_INVALID';
+  override readonly code: string = 'SECTION_ITEM_CONTENT_INVALID';
   constructor(sectionTypeKey: string) {
     super(`Invalid content for section type ${sectionTypeKey}`);
   }

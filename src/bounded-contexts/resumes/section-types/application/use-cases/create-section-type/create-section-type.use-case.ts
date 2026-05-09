@@ -1,11 +1,11 @@
 import {
   SectionTypeAlreadyExistsException,
   SectionTypeSlugVersionTakenException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
+import { toSectionTypeResponseDto } from '../../../infrastructure/presenters/section-type.presenter';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
-import { toResponseDto } from '../../to-response-dto';
 
 export class CreateSectionTypeUseCase {
   constructor(private readonly repository: AdminSectionTypesRepositoryPort) {}
@@ -42,6 +42,6 @@ export class CreateSectionTypeUseCase {
       isActive: true,
     });
 
-    return toResponseDto(sectionType);
+    return toSectionTypeResponseDto(sectionType);
   }
 }

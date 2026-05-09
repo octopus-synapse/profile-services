@@ -7,7 +7,7 @@ import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
   ResumeVersionNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { LoggerPort } from '@/shared-kernel';
 import type { VersionRestoreResult } from '../../../domain/entities/resume-version';

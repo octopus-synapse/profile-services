@@ -3,29 +3,46 @@
  * Replaces `SkillEndorsementController`.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import type { SkillEndorsementService } from './services/skill-endorsement.service';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  EndorsementMutationResponseSchema,
+  EndorsersListResponseSchema,
+  PageQuery,
+  SkillEndorsementRoutesBundle,
+  UserIdAndSkillParam,
+  UserIdParam,
+  UserSkillsResponseSchema,
+} from './skill-endorsement.routes.schemas';
 
-export abstract class SkillEndorsementRoutesBundle {
-  abstract readonly service: SkillEndorsementService;
-}
-
-const UserIdParam = z.object({ userId: z.string() });
-const UserIdAndSkillParam = z.object({ userId: z.string(), skill: z.string() });
-const PageQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
+export type { SkillEndorsementRoutesBundle } from './skill-endorsement.routes.schemas';
 
 export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesBundle>> = [
+  {
+    method: 'GET',
+    path: '/v1/users/me/skills',
+    auth: { kind: 'jwt' },
+    permission: Permission.SOCIAL_USE,
+    response: UserSkillsResponseSchema,
+    openapi: {
+      summary: 'List the authenticated user’s own skills with endorsement counts',
+      tags: ['skill-endorsements'],
+      description: 'Skill endorsements API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const userId = ctx.user!.userId;
+      const skills = await bundle.service.getUserSkills(userId, userId);
+      return { skills };
+    },
+  },
   {
     method: 'GET',
     path: '/v1/users/:userId/skills',
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdParam,
+    response: UserSkillsResponseSchema,
     openapi: {
       summary: 'List a user’s skills with endorsement counts',
       tags: ['skill-endorsements'],
@@ -44,6 +61,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
+    response: EndorsementMutationResponseSchema,
     openapi: {
       summary: 'Endorse a user for a skill',
       tags: ['skill-endorsements'],
@@ -61,6 +79,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     auth: { kind: 'jwt' },
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
+    response: EndorsementMutationResponseSchema,
     openapi: {
       summary: 'Withdraw a previously given endorsement',
       tags: ['skill-endorsements'],
@@ -79,6 +98,7 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     permission: Permission.SOCIAL_USE,
     params: UserIdAndSkillParam,
     query: PageQuery,
+    response: EndorsersListResponseSchema,
     openapi: {
       summary: 'List endorsers for a specific skill',
       tags: ['skill-endorsements'],
@@ -87,13 +107,8 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { userId, skill } = ctx.params as { userId: string; skill: string };
-      const q = ctx.query as z.infer<typeof PageQuery>;
-      return bundle.service.getEndorsers(
-        userId,
-        decodeURIComponent(skill),
-        q.page ? Number(q.page) : undefined,
-        q.limit ? Number(q.limit) : undefined,
-      );
+      const { page, limit } = PageQuery.parse(ctx.query);
+      return bundle.service.getEndorsers(userId, decodeURIComponent(skill), page, limit);
     },
   },
 ];

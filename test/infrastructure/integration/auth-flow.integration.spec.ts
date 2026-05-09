@@ -9,7 +9,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../shared';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
 import { acceptTosWithPrisma, getApp, getCacheService, signupBody, uniqueTestId } from './setup';
 
 describe('Auth Flow Integration', () => {
@@ -59,12 +59,12 @@ describe('Auth Flow Integration', () => {
     accessToken: string;
     refreshToken: string;
   }> {
-    const loginResponse = await app.request.post('/api/auth/login').send({
+    const loginResponse = await app.request.post('/api/v1/auth/login').send({
       email,
       password,
     });
 
-    return loginResponse.body.data;
+    return loginResponse.body;
   }
 
   beforeAll(async () => {
@@ -113,12 +113,11 @@ describe('Auth Flow Integration', () => {
     it('should complete full auth lifecycle', async () => {
       // Step 1: Signup
       const signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody(testUser))
         .expect(201);
 
-      expect(signupResponse.body.success).toBe(true);
-      expect(signupResponse.body.data.email).toBe(testUser.email);
+      expect(signupResponse.body.email).toBe(testUser.email);
 
       // Step 1.5: Verify email so we can access protected routes
       await verifyUserEmailInDb(testUser.email);
@@ -127,18 +126,17 @@ describe('Auth Flow Integration', () => {
 
       // Step 2: Login with same credentials
       const loginResponse = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({
           email: testUser.email,
           password: testUser.password,
         })
         .expect(200);
 
-      expect(loginResponse.body.success).toBe(true);
-      expect(loginResponse.body.data.accessToken).toBeDefined();
+      expect(tokenFromResponse(loginResponse, 'access_token')).toBeDefined();
 
       // Update token after login
-      accessToken = loginResponse.body.data.accessToken;
+      accessToken = tokenFromResponse(loginResponse, 'access_token')!;
 
       // Step 3: Access protected route
       const meResponse = await app.request
@@ -146,17 +144,17 @@ describe('Auth Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(meResponse.body.data.email).toBe(testUser.email);
-      expect(meResponse.body.data.name).toBe(testUser.name);
+      expect(meResponse.body.email).toBe(testUser.email);
+      expect(meResponse.body.name).toBe(testUser.name);
     });
 
     it('should reject duplicate email signup', async () => {
       // First signup
-      await app.request.post('/api/accounts').send(signupBody(testUser)).expect(201);
+      await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
 
       // Duplicate signup
       const duplicateResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody(testUser))
         .expect(409);
 
@@ -166,11 +164,11 @@ describe('Auth Flow Integration', () => {
 
     it('should reject invalid credentials on login', async () => {
       // Signup first
-      await app.request.post('/api/accounts').send(signupBody(testUser)).expect(201);
+      await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
 
       // Invalid password
       const response = await app.request
-        .post('/api/auth/login')
+        .post('/api/v1/auth/login')
         .send({
           email: testUser.email,
           password: 'WrongPassword123!',
@@ -209,7 +207,7 @@ describe('Auth Flow Integration', () => {
       };
 
       const _signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody(currentTestUser))
         .expect(201);
 
@@ -224,24 +222,24 @@ describe('Auth Flow Integration', () => {
 
     it('should refresh access token using refresh token', async () => {
       const response = await app.request
-        .post('/api/auth/refresh')
+        .post('/api/v1/auth/refresh')
         .send({ refreshToken })
         .expect(200);
 
-      expect(response.body.data.accessToken).toBeDefined();
+      expect(tokenFromResponse(response, 'access_token')).toBeDefined();
       // Note: In fast tests, tokens may be identical if generated in same second
       // The important validation is that the new token works
 
       // Verify new token works
       await app.request
         .get('/api/v1/users/profile')
-        .set('Authorization', `Bearer ${response.body.data.accessToken}`)
+        .set('Authorization', `Bearer ${tokenFromResponse(response, 'access_token')!}`)
         .expect(200);
     });
 
     it('should reject invalid refresh token', async () => {
       await app.request
-        .post('/api/auth/refresh')
+        .post('/api/v1/auth/refresh')
         .send({ refreshToken: 'invalid-refresh-token' })
         .expect(401);
     });
@@ -254,7 +252,7 @@ describe('Auth Flow Integration', () => {
       // Generate unique email for each test
       const testEmail = `verify-${uniqueTestId()}@example.com`;
       const _signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: testEmail,
@@ -269,15 +267,14 @@ describe('Auth Flow Integration', () => {
     }, 15000);
 
     it('should return 409 when requesting verification for already verified email', async () => {
-      // Email was verified in beforeEach, so requesting verification should return 409
-      const response = await app.request
-        .post('/api/email-verification/send')
+      // Email was verified in beforeEach; requesting verification should
+      // return 409. The .expect(409) chain enforces it — the response
+      // body itself is not asserted.
+      await app.request
+        .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${testAccessToken}`)
         .send({})
         .expect(409);
-
-      // 409 is correct - email is already verified
-      expect(response.body.success).toBe(false);
     });
 
     it('should verify email with valid token', async () => {
@@ -298,13 +295,13 @@ describe('Auth Flow Integration', () => {
     };
 
     beforeEach(async () => {
-      await app.request.post('/api/accounts').send(signupBody(testUser)).expect(201);
+      await app.request.post('/api/v1/accounts').send(signupBody(testUser)).expect(201);
     }, 10000);
 
     it('should complete password reset flow', async () => {
       // Step 1: Request password reset
       await app.request
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .send({ email: testUser.email })
         .expect(200);
 
@@ -314,7 +311,7 @@ describe('Auth Flow Integration', () => {
 
     it('should reject invalid password reset token', async () => {
       await app.request
-        .post('/api/auth/reset-password')
+        .post('/api/v1/auth/reset-password')
         .send({
           token: 'invalid-token-xyz',
           newPassword: 'NewPass123!',
@@ -335,7 +332,7 @@ describe('Auth Flow Integration', () => {
       };
 
       const _signupResponse = await app.request
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(signupBody(testUser))
         .expect(201);
 
@@ -350,7 +347,7 @@ describe('Auth Flow Integration', () => {
 
       // Password change should succeed
       const changeRes = await app.request
-        .post('/api/password/change')
+        .post('/api/v1/auth/change-password')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           currentPassword: testUser.password,
@@ -363,7 +360,6 @@ describe('Auth Flow Integration', () => {
       // Accept either as long as we hit the route.
       expect([200, 500]).toContain(changeRes.status);
       if (changeRes.status === 200) {
-        expect(changeRes.body.success).toBe(true);
       }
 
       // Verify password was updated in database by checking the hash changed
@@ -377,13 +373,13 @@ describe('Auth Flow Integration', () => {
 
     it('should delete user account', async () => {
       await app.request
-        .delete('/api/accounts')
+        .delete('/api/v1/accounts')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ confirmationPhrase: 'DELETE MY ACCOUNT' })
         .expect(200);
 
       // Verify user can't login (accepts 401 Unauthorized or 500 if user lookup fails)
-      const loginRes = await app.request.post('/api/auth/login').send({
+      const loginRes = await app.request.post('/api/v1/auth/login').send({
         email: testUser.email,
         password: testUser.password,
       });

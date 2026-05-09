@@ -7,92 +7,43 @@
  * Bundle token for the JSON routes is `ResumeAnalyticsFacade`.
  */
 
-import type { Observable } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  AnalyticsDashboardResponseSchema,
+  AnalyticsHistoryResponseSchema,
+  AnalyticsSnapshotResponseSchema,
+  AnalyticsSseBundle,
+  ATSScoreResponseSchema,
+  BenchmarkOptionsQuery,
+  HistoryQuery,
+  HistoryQueryT,
+  IndustryBenchmarkResponseSchema,
+  JobMatchBody,
+  JobMatchResponseSchema,
+  KeywordOptionsQuery,
+  KeywordSuggestionsResponseSchema,
+  ResumeIdParam,
+  ScoreProgressionResponseSchema,
+  TrackViewBody,
+  TrackViewResponseSchema,
+  ViewStatsQuery,
+  ViewStatsResponseSchema,
+} from './resume-analytics.routes.schemas';
 import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
 
-export interface AnalyticsUpdateEvent {
-  readonly type: 'view' | 'ats_score';
-  readonly resumeId: string;
-  readonly data: { views?: number; atsScore?: number; timestamp: Date };
-}
-
-export interface AnalyticsSseEvent {
-  readonly data: AnalyticsUpdateEvent;
-  readonly id: string;
-  readonly type: string;
-  readonly retry: number;
-}
-
-export abstract class AnalyticsSseBundle {
-  abstract subscribeToResumeAnalytics(resumeId: string): Observable<AnalyticsSseEvent>;
-  abstract subscribeToViews(resumeId: string): Observable<AnalyticsSseEvent>;
-  abstract subscribeToAtsScore(resumeId: string): Observable<AnalyticsSseEvent>;
-}
-
-const ResumeIdParam = z.object({ resumeId: z.string() });
-
-const TrackViewBody = z.object({
-  userAgent: z.string().optional(),
-  referer: z.string().optional(),
-});
-
-const PeriodEnum = z.enum(['day', 'week', 'month', 'year']);
-const ViewStatsQuery = z.object({
-  period: PeriodEnum,
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-});
-
-const IndustryEnum = z.enum([
-  'software_engineering',
-  'data_science',
-  'devops',
-  'product_management',
-  'design',
-  'marketing',
-  'finance',
-  'healthcare',
-  'education',
-  'other',
-]);
-const ExperienceLevelEnum = z.enum([
-  'entry',
-  'junior',
-  'mid',
-  'senior',
-  'lead',
-  'principal',
-  'executive',
-]);
-
-const KeywordOptionsQuery = z.object({
-  industry: IndustryEnum,
-  targetRole: z.string().optional(),
-});
-
-const JobMatchBody = z.object({ jobDescription: z.string().min(10) });
-
-const BenchmarkOptionsQuery = z.object({
-  industry: IndustryEnum,
-  experienceLevel: ExperienceLevelEnum.optional(),
-});
-
-const HistoryQuery = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-});
-type HistoryQueryT = z.infer<typeof HistoryQuery>;
+export type { AnalyticsSseBundle, AnalyticsUpdateEvent } from './resume-analytics.routes.schemas';
 
 export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> = [
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/track-view',
+    path: '/v1/resumes/:resumeId/analytics/track-view',
     statusCode: 201,
     auth: { kind: 'public' },
     params: ResumeIdParam,
     body: TrackViewBody,
+    response: TrackViewResponseSchema,
     openapi: {
       summary: 'Track resume view (public endpoint)',
       tags: ['resume-analytics'],
@@ -112,16 +63,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         userAgent: Array.isArray(ua) ? ua[0] : ua,
         referer: Array.isArray(referer) ? referer[0] : referer,
       });
-      return { success: true, data: { message: 'View tracked successfully' } };
+      return { code: 'RESUME_VIEW_TRACKED' as const };
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/views',
+    path: '/v1/resumes/:resumeId/analytics/views',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: ViewStatsQuery,
+    response: ViewStatsResponseSchema,
     openapi: {
       summary: 'Get view statistics',
       tags: ['resume-analytics'],
@@ -136,15 +88,16 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         startDate: q.startDate ? new Date(q.startDate) : undefined,
         endDate: q.endDate ? new Date(q.endDate) : undefined,
       });
-      return { success: true, data: stats };
+      return stats;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/ats-score',
+    path: '/v1/resumes/:resumeId/analytics/ats-score',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: ATSScoreResponseSchema,
     openapi: {
       summary: 'Calculate ATS compatibility score',
       tags: ['resume-analytics'],
@@ -154,16 +107,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const score = await facade.calculateATSScore(resumeId, ctx.user!.userId);
-      return { success: true, data: score };
+      return score;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/keywords',
+    path: '/v1/resumes/:resumeId/analytics/keywords',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: KeywordOptionsQuery,
+    response: KeywordSuggestionsResponseSchema,
     openapi: {
       summary: 'Get keyword optimization suggestions',
       tags: ['resume-analytics'],
@@ -174,16 +128,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const options = ctx.query as z.infer<typeof KeywordOptionsQuery>;
       const suggestions = await facade.getKeywordSuggestions(resumeId, ctx.user!.userId, options);
-      return { success: true, data: suggestions };
+      return suggestions;
     },
   },
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/match-job',
+    path: '/v1/resumes/:resumeId/analytics/match-job',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     body: JobMatchBody,
+    response: JobMatchResponseSchema,
     openapi: {
       summary: 'Match resume against job description',
       tags: ['resume-analytics'],
@@ -198,16 +153,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
         ctx.user!.userId,
         body.jobDescription,
       );
-      return { success: true, data: match };
+      return match;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/benchmark',
+    path: '/v1/resumes/:resumeId/analytics/benchmark',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: BenchmarkOptionsQuery,
+    response: IndustryBenchmarkResponseSchema,
     openapi: {
       summary: 'Get industry benchmark comparison',
       tags: ['resume-analytics'],
@@ -218,15 +174,16 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const options = ctx.query as z.infer<typeof BenchmarkOptionsQuery>;
       const benchmark = await facade.getIndustryBenchmark(resumeId, ctx.user!.userId, options);
-      return { success: true, data: benchmark };
+      return benchmark;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/dashboard',
+    path: '/v1/resumes/:resumeId/analytics/dashboard',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: AnalyticsDashboardResponseSchema,
     openapi: {
       summary: 'Get complete analytics dashboard',
       tags: ['resume-analytics'],
@@ -236,16 +193,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const dashboard = await facade.getDashboard(resumeId, ctx.user!.userId);
-      return { success: true, data: dashboard };
+      return dashboard;
     },
   },
   {
     method: 'POST',
-    path: '/resume-analytics/:resumeId/snapshot',
+    path: '/v1/resumes/:resumeId/analytics/snapshot',
     statusCode: 201,
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: AnalyticsSnapshotResponseSchema,
     openapi: {
       summary: 'Save analytics snapshot for tracking progress',
       tags: ['resume-analytics'],
@@ -255,16 +213,17 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const snapshot = await facade.saveSnapshot(resumeId, ctx.user!.userId);
-      return { success: true, data: snapshot };
+      return snapshot;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/history',
+    path: '/v1/resumes/:resumeId/analytics/history',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
     query: HistoryQuery as unknown as Route<ResumeAnalyticsFacade>['query'],
+    response: AnalyticsHistoryResponseSchema,
     openapi: {
       summary: 'Get analytics history',
       tags: ['resume-analytics'],
@@ -275,15 +234,16 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const q = ctx.query as unknown as HistoryQueryT;
       const history = await facade.getHistory(resumeId, ctx.user!.userId, q);
-      return { success: true, data: history };
+      return history;
     },
   },
   {
     method: 'GET',
-    path: '/resume-analytics/:resumeId/progression',
+    path: '/v1/resumes/:resumeId/analytics/progression',
     auth: { kind: 'jwt' },
     permission: Permission.ANALYTICS_READ_OWN,
     params: ResumeIdParam,
+    response: ScoreProgressionResponseSchema,
     openapi: {
       summary: 'Get score progression over time',
       tags: ['resume-analytics'],
@@ -293,7 +253,7 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
     handler: async (ctx, facade) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const progression = await facade.getScoreProgression(resumeId, ctx.user!.userId);
-      return { success: true, data: progression };
+      return progression;
     },
   },
 ];

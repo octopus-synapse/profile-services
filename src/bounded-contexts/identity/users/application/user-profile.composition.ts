@@ -4,6 +4,7 @@ import { UserProfileRepository } from '../infrastructure/adapters/persistence/us
 import { UserProfileUseCases } from './ports/user-profile.port';
 import { GetProfileUseCase } from './use-cases/user-profile/get-profile.use-case';
 import { GetPublicProfileUseCase } from './use-cases/user-profile/get-public-profile.use-case';
+import { ListPublicUsersUseCase } from './use-cases/user-profile/list-public-users.use-case';
 import { UpdateProfileUseCase } from './use-cases/user-profile/update-profile.use-case';
 
 export { UserProfileUseCases };
@@ -18,5 +19,6 @@ export function buildUserProfileUseCases(
     getPublicProfileUseCase: new GetPublicProfileUseCase(repository),
     getProfileUseCase: new GetProfileUseCase(repository),
     updateProfileUseCase: new UpdateProfileUseCase(repository),
+    listPublicUsersUseCase: new ListPublicUsersUseCase(repository),
   };
 }

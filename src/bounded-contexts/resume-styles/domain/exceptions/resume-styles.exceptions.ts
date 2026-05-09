@@ -11,14 +11,14 @@ import {
 } from '@/shared-kernel/exceptions';
 
 export class StyleNotFoundError extends EntityNotFoundException {
-  readonly code: string = 'STYLE_NOT_FOUND';
+  override readonly code: string = 'STYLE_NOT_FOUND';
   constructor(id: string) {
     super('ResumeStyle', id);
   }
 }
 
 export class StyleBelowAtsThresholdError extends BusinessRuleViolationException {
-  readonly code: string = 'STYLE_BELOW_ATS_THRESHOLD';
+  override readonly code: string = 'STYLE_BELOW_ATS_THRESHOLD';
   constructor(
     public readonly score: number,
     public readonly threshold: number,
@@ -28,7 +28,7 @@ export class StyleBelowAtsThresholdError extends BusinessRuleViolationException 
 }
 
 export class StyleScoreRegressionError extends BusinessRuleViolationException {
-  readonly code: string = 'STYLE_SCORE_REGRESSION';
+  override readonly code: string = 'STYLE_SCORE_REGRESSION';
   constructor(
     public readonly id: string,
     public readonly currentScore: number,
@@ -41,14 +41,14 @@ export class StyleScoreRegressionError extends BusinessRuleViolationException {
 }
 
 export class StyleNotEditableError extends BusinessRuleViolationException {
-  readonly code: string = 'STYLE_NOT_EDITABLE';
+  override readonly code: string = 'STYLE_NOT_EDITABLE';
   constructor(public readonly id: string) {
     super(`ResumeStyle ${id} is system-managed and cannot be edited or deleted`);
   }
 }
 
 export class ResumeNotFoundForStyleApplyError extends EntityNotFoundException {
-  readonly code: string = 'RESUME_NOT_FOUND_FOR_STYLE_APPLY';
+  override readonly code: string = 'RESUME_NOT_FOUND_FOR_STYLE_APPLY';
   constructor(resumeId: string) {
     super('Resume', resumeId);
   }

@@ -5,6 +5,6 @@ export class GetSectionTypeDefinitionsUseCase {
   constructor(private readonly sectionTypeDefinition: SectionTypeDefinitionPort) {}
 
   async execute(locale = 'en'): Promise<SectionTypeData[]> {
-    return this.sectionTypeDefinition.findAll(locale);
+    return this.sectionTypeDefinition.listAll(locale);
   }
 }

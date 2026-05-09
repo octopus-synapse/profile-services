@@ -29,6 +29,8 @@ export interface OAuthProfile {
   readonly emailVerified: boolean;
   readonly displayName: string | null;
   readonly avatarUrl: string | null;
+  readonly accessToken: string;
+  readonly refreshToken: string | null;
   readonly raw: Record<string, unknown>;
 }
 

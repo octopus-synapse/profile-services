@@ -14,8 +14,8 @@
 import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
 import { LoggerPort } from '@/shared-kernel/logger';
 import {
+  type Locale,
   MissingTranslationError,
-  type SupportedLocale,
   type TranslationParams,
   TranslationPort,
 } from '../domain/translation.port';
@@ -31,13 +31,13 @@ export class I18nService extends TranslationPort {
     super();
   }
 
-  translate(code: string, params: TranslationParams, locale: SupportedLocale): string {
+  translate(code: string, params: TranslationParams, locale: Locale): string {
     if (!isKnownCode(code)) throw new MissingTranslationError(code, locale);
     const template = ERROR_DICTIONARY[code][locale];
     return this.interpolate(template, params, code, locale);
   }
 
-  has(code: string, _locale: SupportedLocale): boolean {
+  has(code: string, _locale: Locale): boolean {
     return isKnownCode(code);
   }
 
@@ -45,7 +45,7 @@ export class I18nService extends TranslationPort {
     template: string,
     params: TranslationParams,
     code: string,
-    locale: SupportedLocale,
+    locale: Locale,
   ): string {
     return template.replace(PLACEHOLDER_RE, (_match, key: string) => {
       const value = params[key];
@@ -62,7 +62,7 @@ export class I18nService extends TranslationPort {
   }
 
   /** Test / tooling helper — raw template for a code in a locale. */
-  rawTemplate(code: string, locale: SupportedLocale): string | undefined {
+  rawTemplate(code: string, locale: Locale): string | undefined {
     if (!isKnownCode(code)) return undefined;
     return ERROR_DICTIONARY[code][locale];
   }

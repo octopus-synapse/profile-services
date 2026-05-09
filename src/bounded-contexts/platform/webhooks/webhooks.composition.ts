@@ -11,7 +11,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
 import { WebhooksUseCases } from './application/ports/webhooks.port';
 import { CreateWebhookUseCase } from './application/use-cases/create-webhook/create-webhook.use-case';
@@ -27,10 +27,14 @@ import { webhooksRoutes } from './webhooks.routes';
 
 export { WebhooksUseCases };
 
-export function buildWebhooksUseCases(prisma: PrismaService, logger: LoggerPort): WebhooksUseCases {
+export function buildWebhooksUseCases(
+  prisma: PrismaService,
+  logger: LoggerPort,
+  safeFetchStrict: SafeFetchPort,
+): WebhooksUseCases {
   // Repos / external adapters
   const configRepo = new PrismaWebhookConfigRepository(prisma, logger);
-  const delivery = new HttpWebhookDeliveryAdapter(logger);
+  const delivery = new HttpWebhookDeliveryAdapter(logger, safeFetchStrict);
 
   return {
     listWebhooks: new ListWebhooksUseCase(configRepo),
@@ -45,8 +49,9 @@ export function buildWebhooksUseCases(prisma: PrismaService, logger: LoggerPort)
 export function buildWebhooksComposition(
   prisma: PrismaService,
   logger: LoggerPort,
+  safeFetchStrict: SafeFetchPort,
 ): BoundedContextComposition<WebhooksUseCases> {
-  const useCases = buildWebhooksUseCases(prisma, logger);
+  const useCases = buildWebhooksUseCases(prisma, logger, safeFetchStrict);
 
   // --- Event handlers (POJO `@OnEvent` replacements) ---
   // Note: these are payload-only events (no `EventClass.TYPE`); the

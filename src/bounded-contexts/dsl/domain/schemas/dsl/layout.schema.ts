@@ -26,3 +26,17 @@ export const LayoutConfigSchema = z.object({
 });
 
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
+
+export type LayoutTypeDto = z.infer<typeof LayoutTypeSchema>;
+
+export type PaperSizeDto = z.infer<typeof PaperSizeSchema>;
+
+export type MarginSizeDto = z.infer<typeof MarginSizeSchema>;
+
+export type ColumnDistributionDto = z.infer<typeof ColumnDistributionSchema>;
+
+export type PageBreakBehaviorDto = z.infer<typeof PageBreakBehaviorSchema>;
+
+export type PageNumberPositionDto = z.infer<typeof PageNumberPositionSchema>;
+
+export type LayoutConfigDto = z.infer<typeof LayoutConfigSchema>;

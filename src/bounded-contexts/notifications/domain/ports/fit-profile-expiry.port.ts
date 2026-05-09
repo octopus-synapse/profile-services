@@ -9,7 +9,7 @@
  * stays inside this BC's infrastructure layer.
  */
 
-import type { FitProfileExpiringRow } from '../entities/notification';
+import type { FitProfileExpiringRow } from '../entities/notification.entity';
 
 export abstract class FitProfileExpiryReadPort {
   abstract findExpiringInWindow(

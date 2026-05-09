@@ -27,10 +27,7 @@ export class RevokeAccessModifierUseCase {
   ) {}
 
   async execute(modifierId: AccessModifierId, revokedBy: UserId): Promise<void> {
-    const modifier = await this.repository.findById(modifierId);
-    if (!modifier) {
-      throw new AccessModifierNotFoundException(modifierId);
-    }
+    const modifier = await this.repository.getById(modifierId);
     if (modifier.revokedAt) {
       // Already revoked — idempotent no-op.
       return;

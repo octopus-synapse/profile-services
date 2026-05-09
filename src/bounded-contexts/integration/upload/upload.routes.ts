@@ -7,11 +7,16 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { UploadUseCases } from './application/ports/upload.port';
 
 const ResumeIdParams = z.object({ resumeId: z.string() });
 const KeyParams = z.object({ key: z.string() });
+
+const UploadResponseSchema = z.object({
+  url: z.string().url(),
+  key: z.string(),
+});
 
 export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
   {
@@ -21,6 +26,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     kind: 'multipart',
     statusCode: 200,
+    response: UploadResponseSchema,
     openapi: {
       summary: 'Upload user profile image',
       tags: ['upload'],
@@ -35,7 +41,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
         mimetype: file.mimetype,
         size: file.size,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -46,6 +52,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     params: ResumeIdParams,
     kind: 'multipart',
     statusCode: 200,
+    response: UploadResponseSchema,
     openapi: {
       summary: 'Upload company logo for resume',
       tags: ['upload'],
@@ -61,7 +68,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
         mimetype: file.mimetype,
         size: file.size,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -70,7 +77,7 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
     params: KeyParams,
-    statusCode: 200,
+    statusCode: 204,
     openapi: {
       summary: 'Delete uploaded file',
       tags: ['upload'],
@@ -79,8 +86,10 @@ export const uploadRoutes: ReadonlyArray<Route<UploadUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { key } = ctx.params as { key: string };
-      const deleted = await bc.deleteUpload.execute(key);
-      return { success: true, data: { deleted } };
+      // P0-005: ownership enforced inside the use case (DB-backed +
+      // lazy backfill for legacy keys). The use case throws on miss
+      // / not-owner; reaching this return means the delete succeeded.
+      await bc.deleteUpload.execute(key, ctx.user!.userId);
     },
   },
 ];

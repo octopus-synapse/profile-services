@@ -2,24 +2,25 @@
  * Authorization Checks Composition
  *
  * Wires all authorization check use cases with their dependencies.
+ *
+ * P0-009: Group hierarchy removed (legacy `Group/UserGroup` tables
+ * dropped by the `20260430040810_authz_refactor` migration).
+ * `CheckGroupMembershipUseCase` and `GroupRepository` were deleted
+ * along with the schema. Per-user grants/suspensions now flow through
+ * `AccessModifier` (consulted by the permission gate stage).
  */
 
 import type { LoggerPort } from '@/shared-kernel';
 import type { AuthorizationCachePort } from '../domain/ports/authorization-cache.port';
-import type {
-  IGroupRepository,
-  IRoleRepository,
-} from '../domain/ports/authorization-repositories.port';
+import type { IRoleRepository } from '../domain/ports/authorization-repositories.port';
 import { PermissionResolverService } from '../domain/services/permission-resolver.service';
 import { InMemoryAuthorizationCache } from '../infrastructure/adapters/cache/authorization-cache.adapter';
-import type { GroupRepository } from '../infrastructure/repositories/group.repository';
 import type { PermissionRepository } from '../infrastructure/repositories/permission.repository';
 import type { RoleRepository } from '../infrastructure/repositories/role.repository';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 import { AuthorizationCheckUseCases } from './ports/authorization-use-cases.port';
 import { CheckAllPermissionsUseCase } from './use-cases/authorization-checks/check-all-permissions.use-case';
 import { CheckAnyPermissionUseCase } from './use-cases/authorization-checks/check-any-permission.use-case';
-import { CheckGroupMembershipUseCase } from './use-cases/authorization-checks/check-group-membership.use-case';
 import { CheckLastAdminUseCase } from './use-cases/authorization-checks/check-last-admin.use-case';
 import { CheckPermissionUseCase } from './use-cases/authorization-checks/check-permission.use-case';
 import { CheckRoleUseCase } from './use-cases/authorization-checks/check-role.use-case';
@@ -33,11 +34,10 @@ export { AuthorizationCheckUseCases };
 export function buildAuthorizationCheckUseCases(
   permissionRepo: PermissionRepository,
   roleRepo: RoleRepository,
-  groupRepo: GroupRepository,
   userAuthRepo: UserAuthorizationRepository,
   logger: LoggerPort,
 ): AuthorizationCheckUseCases {
-  const resolver = new PermissionResolverService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
+  const resolver = new PermissionResolverService(permissionRepo, roleRepo, userAuthRepo);
 
   const cache: AuthorizationCachePort = new InMemoryAuthorizationCache();
 
@@ -50,11 +50,6 @@ export function buildAuthorizationCheckUseCases(
   const checkRoleUseCase = new CheckRoleUseCase(
     getAuthContextUseCase,
     roleRepo as IRoleRepository,
-    logger,
-  );
-  const checkGroupMembershipUseCase = new CheckGroupMembershipUseCase(
-    getAuthContextUseCase,
-    groupRepo as IGroupRepository,
     logger,
   );
   const countUsersWithRoleUseCase = new CountUsersWithRoleUseCase(userAuthRepo);
@@ -72,7 +67,6 @@ export function buildAuthorizationCheckUseCases(
     getResourcePermissionsUseCase,
     getAllPermissionsUseCase,
     checkRoleUseCase,
-    checkGroupMembershipUseCase,
     countUsersWithRoleUseCase,
     checkLastAdminUseCase,
     invalidateCache: (userId) => cache.invalidate(userId),

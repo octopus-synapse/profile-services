@@ -106,12 +106,43 @@ export type OnboardingSection = z.infer<typeof OnboardingSectionSchema>;
  * - No code changes needed for new sections
  * - Validation rules come from SectionType.definition
  */
-export const OnboardingDataSchema = z.object({
-  username: UsernameSchema,
-  personalInfo: PersonalInfoSchema,
-  professionalProfile: ProfessionalProfileSchema,
-  templateSelection: TemplateSelectionSchema,
-  sections: z.array(OnboardingSectionSchema).default([]),
-});
+export const OnboardingDataSchema = z
+  .object({
+    username: UsernameSchema,
+    personalInfo: PersonalInfoSchema,
+    professionalProfile: ProfessionalProfileSchema,
+    templateSelection: TemplateSelectionSchema,
+    sections: z.array(OnboardingSectionSchema).default([]),
+  })
+  .openapi({
+    example: {
+      username: 'janedoe',
+      personalInfo: {
+        fullName: 'Jane Doe',
+        email: 'jane.doe@example.com',
+        phone: '+1 415 555 1234',
+        location: 'San Francisco, CA',
+      },
+      professionalProfile: {
+        jobTitle: 'Senior Backend Engineer',
+        summary: 'Backend engineer with 8+ years building distributed systems.',
+      },
+      templateSelection: {
+        templateId: 'professional',
+        colorScheme: 'ocean',
+      },
+      sections: [],
+    },
+  });
 
 export type OnboardingData = z.infer<typeof OnboardingDataSchema>;
+
+export type PersonalInfoDto = z.infer<typeof PersonalInfoSchema>;
+
+export type TemplateSelectionDto = z.infer<typeof TemplateSelectionSchema>;
+
+export type OnboardingSectionItemDto = z.infer<typeof OnboardingSectionItemSchema>;
+
+export type OnboardingSectionDto = z.infer<typeof OnboardingSectionSchema>;
+
+export type OnboardingDataDto = z.infer<typeof OnboardingDataSchema>;

@@ -4,19 +4,21 @@
  * Defines domain types and repository abstraction for follow operations.
  */
 
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+
 // ============================================================================
 // Domain Types
 // ============================================================================
 
 export type PaginationParams = { page: number; limit: number };
 
-export type PaginatedResult<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-};
+/**
+ * Re-export of the canonical paginated response shape to keep the port
+ * surface stable. Use `PaginatedResponse<T>` from shared-kernel directly
+ * in new code; this alias exists for the social BC migration only and
+ * is scheduled for deletion once all consumers stop importing it.
+ */
+export type PaginatedResult<T> = PaginatedResponse<T>;
 
 export type FollowWithUser = {
   id: string;
@@ -46,12 +48,12 @@ export abstract class FollowRepositoryPort {
   abstract findFollowers(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }>;
+  ): Promise<{ items: FollowWithUser[]; total: number }>;
 
   abstract findFollowing(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: FollowWithUser[]; total: number }>;
+  ): Promise<{ items: FollowWithUser[]; total: number }>;
 
   abstract countFollowers(userId: string): Promise<number>;
 

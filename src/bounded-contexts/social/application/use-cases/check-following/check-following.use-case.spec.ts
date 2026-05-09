@@ -21,10 +21,10 @@ class StubFollowRepository implements FollowRepositoryPort {
   }
   async deleteFollow() {}
   async findFollowers() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findFollowing() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async countFollowers() {
     return 0;

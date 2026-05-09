@@ -169,7 +169,7 @@ export class InMemoryConsentRepository implements ConsentRepositoryPort {
     );
   }
 
-  async findAllByUser(userId: string): Promise<ConsentRecord[]> {
+  async listByUser(userId: string): Promise<ConsentRecord[]> {
     return this.consents
       .filter((c) => c.userId === userId)
       .sort((a, b) => b.acceptedAt.getTime() - a.acceptedAt.getTime());

@@ -14,13 +14,40 @@ import type {
   NotificationStreamEvent,
   NotificationType,
   NotificationView,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
+import { UnknownNotificationTypeException } from '../../../domain/exceptions/notifications.exceptions';
 import type { NotificationEmailPort } from '../../../domain/ports/notification-email.port';
 import type { NotificationStreamPort } from '../../../domain/ports/notification-stream.port';
 import type { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 import { escapeHtml, humanizeType } from '../../shared/format';
 
 const CTX = 'CreateNotificationUseCase';
+
+/**
+ * Mirrors the Prisma `NotificationType` enum (see
+ * `prisma/schema/enums.prisma`). Kept here as a runtime set so callers
+ * passing untyped strings (worker payloads, BullMQ job data, fire-and-
+ * forget bus emitters) get rejected at the use-case boundary instead
+ * of failing with a Prisma constraint error deeper down.
+ */
+const KNOWN_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
+  'POST_LIKED',
+  'POST_COMMENTED',
+  'POST_REPOSTED',
+  'POST_BOOKMARKED',
+  'COMMENT_REPLIED',
+  'CONNECTION_REQUEST',
+  'CONNECTION_ACCEPTED',
+  'FOLLOW_NEW',
+  'SKILL_DECAY',
+  'APPLICATION_STALE',
+  'CONNECTION_RECOMMENDATION',
+  'FIT_PROFILE_EXPIRED',
+  'FIT_PROFILE_EXPIRY_REMINDER',
+  'MATCH_RECOMMENDATIONS_READY',
+  'RESUME_QUALITY_IMPROVED',
+  'RESUME_QUALITY_REGRESSED',
+] satisfies NotificationType[]);
 
 export interface CreateNotificationInput {
   readonly userId: string;
@@ -40,6 +67,10 @@ export class CreateNotificationUseCase {
   ) {}
 
   async execute(input: CreateNotificationInput): Promise<NotificationView | null> {
+    if (!KNOWN_NOTIFICATION_TYPES.has(input.type)) {
+      throw new UnknownNotificationTypeException(String(input.type));
+    }
+
     if (input.userId === input.actorId) {
       return null;
     }

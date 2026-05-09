@@ -3,7 +3,7 @@ import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeVersionNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { InMemoryResumeVersionsRepository } from '../../../testing';
 import { GetTailoredVersionDiffUseCase } from './get-tailored-version-diff.use-case';
 

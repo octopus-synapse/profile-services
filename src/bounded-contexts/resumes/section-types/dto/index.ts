@@ -1,2 +1,2 @@
-export * from './section-type.dto';
-export * from './section-type-response.dto';
+export * from './section-type.schema';
+export * from './section-type-response.schema';

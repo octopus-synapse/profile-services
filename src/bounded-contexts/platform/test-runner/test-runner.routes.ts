@@ -3,12 +3,14 @@
  * `TestRunnerController`.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { TestRunnerUseCases } from './application/ports/test-runner.port';
-
-const RunTestsBody = z.object({ suite: z.string() });
+import {
+  ListSuitesResponseSchema,
+  RunTestsBody,
+  TestResultsResponseSchema,
+} from './test-runner.routes.schemas';
 
 export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
   {
@@ -17,14 +19,15 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: RunTestsBody,
+    response: TestResultsResponseSchema,
     openapi: {
       summary: 'Run a test suite',
-      tags: ['Admin - Test Runner'],
+      tags: ['admin-test-runner'],
     },
     handler: async (ctx, bc) => {
       const { suite } = ctx.body as { suite: string };
       const results = await bc.runTestSuite.execute(suite);
-      return { success: true, data: results as unknown as Record<string, unknown> };
+      return results;
     },
   },
   {
@@ -32,15 +35,13 @@ export const testRunnerRoutes: ReadonlyArray<Route<TestRunnerUseCases>> = [
     path: '/v1/admin/test/suites',
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
+    response: ListSuitesResponseSchema,
     openapi: {
       summary: 'List available test suites',
-      tags: ['Admin - Test Runner'],
+      tags: ['admin-test-runner'],
     },
     handler: async (_ctx, bc) => {
-      return {
-        success: true,
-        data: { suites: bc.listTestSuites.execute() },
-      };
+      return { suites: bc.listTestSuites.execute() };
     },
   },
 ];

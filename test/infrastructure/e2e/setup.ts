@@ -1,21 +1,14 @@
 /**
- * Compat layer for migrated e2e suites.
- *
- * Exposes `createE2ETestApp()` returning the same shape the legacy
- * `_legacy/e2e/setup.ts` returned (`{ app, authHelper, cleanupHelper,
- * prisma }`), but `app` is now the `TestApp` harness — a fetch-based
- * supertest-shape wrapper around the production Elysia bootstrap.
- *
- * Migrated journey suites keep `import { createE2ETestApp } from '../setup'`
- * unchanged. Inside, `app.request.post(...).send(...)` replaces
- * `request(app.getHttpServer()).post(...).send(...)` — the chainable
- * surface is identical.
+ * E2E suite setup. `createE2ETestApp()` returns `{ app, authHelper,
+ * cleanupHelper, prisma }` where `app` is the `TestApp` harness — a
+ * fetch-based supertest-shape wrapper around the production Elysia
+ * bootstrap. Suites use `app.request.post(...).send(...)`.
  */
 
 import { setDefaultTimeout } from 'bun:test';
 import type { PrismaClient } from '@prisma/client';
 import { startTestApp, type TestApp } from '../shared';
-import { AuthHelper } from './helpers/auth.helper';
+import { AuthHelper } from '../shared/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
 
 setDefaultTimeout(15000);
@@ -41,7 +34,7 @@ export async function createE2ETestApp(): Promise<E2ETestContext> {
   const app = await startTestApp();
   if (cachedAppRef !== app) {
     cachedAppRef = app;
-    cachedAuth = new AuthHelper(app, app.prisma);
+    cachedAuth = new AuthHelper(app);
     cachedCleanup = new CleanupHelper(app.prisma);
   }
   return {

@@ -1,7 +1,10 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
+import { runGuardedJob } from '@/shared-kernel/jobs';
 
 const CTX = 'ViewsProjectionWorker';
+// p99: daily projection rolls up one day of events; ~3 minutes on busy days.
+const EXPECTED_DURATION_MS = 3 * 60_000;
 
 /**
  * Views Projection Worker
@@ -21,6 +24,7 @@ export class ViewsProjectionWorker {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerPort,
+    private readonly lock: DistributedLockPort,
   ) {}
 
   async run(): Promise<void> {
@@ -29,15 +33,17 @@ export class ViewsProjectionWorker {
     const endOfYesterday = startOfUtcDay(now);
     const startOfYesterday = new Date(endOfYesterday.getTime() - 24 * 60 * 60 * 1000);
 
-    try {
-      await this.refreshDay(startOfYesterday);
-    } catch (err) {
-      this.logger.error(
-        `Views projection failed for ${startOfYesterday.toISOString()}: ${err instanceof Error ? err.message : 'unknown'}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
-    }
+    // P0-010: lock prevents two pods from re-rolling the same day's events.
+    await runGuardedJob(
+      {
+        name: CTX,
+        expectedDurationMs: EXPECTED_DURATION_MS,
+        failureMode: 'LOG_AND_CONTINUE',
+        lock: this.lock,
+        logger: this.logger,
+      },
+      () => this.refreshDay(startOfYesterday).then(() => {}),
+    );
   }
 
   /**

@@ -4,7 +4,7 @@
 import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
 
 export class UnknownNotificationTypeException extends ValidationException {
-  readonly code: string = 'UNKNOWN_NOTIFICATION_TYPE';
+  override readonly code: string = 'UNKNOWN_NOTIFICATION_TYPE';
   constructor(type: string) {
     super(`Notification type "${type}" is not registered`);
   }

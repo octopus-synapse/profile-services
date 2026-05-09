@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { OnboardingSectionPersistenceFailedException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import { createOnboardingProgress, InMemoryOnboardingProgressRepository } from '../../../testing';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
@@ -146,6 +147,30 @@ describe('SaveOnboardingStepDataUseCase', () => {
     // Assert — step and completedSteps should not change
     expect(result.currentStep).toBe('personal-info');
     expect(result.completedSteps).toContain('welcome');
+  });
+
+  it('wraps non-domain persistence errors in OnboardingSectionPersistenceFailedException', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'personal-info',
+        completedSteps: ['welcome'],
+      }),
+    );
+
+    const failingSave: SaveProgressFn = async () => {
+      throw new Error('boom: prisma connection lost');
+    };
+
+    const useCaseWithFailingSave = new SaveOnboardingStepDataUseCase(
+      failingSave,
+      getProgressFn,
+      stubLogger,
+    );
+
+    await expect(
+      useCaseWithFailingSave.execute(USER_ID, { fullName: 'X', email: 'x@example.com' }),
+    ).rejects.toThrow(OnboardingSectionPersistenceFailedException);
   });
 
   it('replaces section data for the same section type', async () => {

@@ -112,8 +112,7 @@ export class CuratedSelectorService {
     if (scoringFailures > jobs.length / 2) {
       this.logger.error(
         `Curated selector: ${scoringFailures}/${jobs.length} scoring calls failed for user=${userId} — investigate`,
-        undefined,
-        CTX,
+        { context: CTX },
       );
     }
 

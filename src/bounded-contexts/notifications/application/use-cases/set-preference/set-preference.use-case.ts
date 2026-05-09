@@ -7,7 +7,7 @@
 import type {
   NotificationPreferenceView,
   NotificationType,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import {
   NotificationsRepositoryPort,
   type SetPreferenceInput,

@@ -15,19 +15,42 @@ export class InMemoryAdminTechSkillsRepository extends AdminTechSkillsRepository
     this.rows.set(row.id, row);
   }
 
-  async findAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>> {
+  async listAll(query: AdminTechSkillsListQuery): Promise<PaginatedResult<TechSkill>> {
     const items = [...this.rows.values()];
     return {
       items,
       total: items.length,
       page: query.page ?? 1,
-      pageSize: query.pageSize ?? 20,
+      limit: query.pageSize ?? 20,
       totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
     };
   }
   async findOne(id: string) {
     return this.rows.get(id) ?? null;
   }
+  async findBySlug(slug: string) {
+    for (const row of this.rows.values()) {
+      if (row.slug === slug) return row;
+    }
+    return null;
+  }
+  async findByNameEn(nameEn: string) {
+    for (const row of this.rows.values()) {
+      if (row.nameEn?.toLowerCase() === nameEn.toLowerCase()) return row;
+    }
+    return null;
+  }
+  async countResumeReferences(): Promise<number> {
+    return this.referenceCounts;
+  }
+  /** Test seam: lets specs simulate "skill is in use" without spinning
+   *  up a full resume graph. */
+  setReferenceCount(count: number): void {
+    this.referenceCounts = count;
+  }
+  private referenceCounts = 0;
   async create(input: Record<string, unknown>) {
     this.created.push(input);
     const row = { id: `skill-${this.created.length}`, ...input } as unknown as TechSkill;

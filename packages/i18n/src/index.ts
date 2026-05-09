@@ -17,6 +17,14 @@ export type {
   NotificationTemplate,
 } from './notifications';
 export { NOTIFICATION_DICTIONARY, renderNotification } from './notifications';
+export type { StepTranslation, WelcomeFeature } from './static-steps';
+export { renderStaticStep, STATIC_STEP_DICTIONARY } from './static-steps';
+export type {
+  SuccessMessageCode,
+  SuccessMessageDictionary,
+  SuccessMessageTemplate,
+} from './success-messages';
+export { renderSuccessMessage, SUCCESS_MESSAGE_DICTIONARY } from './success-messages';
 
-export type { Locale, LocalizedDictionary, LocalizedMessages } from './types';
+export type { Locale, LocalizedDictionary, LocalizedMessages, LocalizedRecord } from './types';
 export { DEFAULT_LOCALE, LOCALES } from './types';

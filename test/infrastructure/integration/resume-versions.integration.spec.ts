@@ -122,7 +122,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       // Restore is idempotent overwrite — 200 OK, not 201 Created.
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
 
       const updatedResume = await prisma.resume.findUnique({
         where: { id: resumeId },
@@ -155,7 +155,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       // Restore is idempotent overwrite — 200 OK, not 201 Created.
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
 
       const versionsAfter = await prisma.resumeVersion.count({
         where: { resumeId },

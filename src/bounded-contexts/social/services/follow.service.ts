@@ -8,6 +8,7 @@
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import { ConnectionRepositoryPort } from '../application/ports/connection.port';
 import { FollowReaderPort } from '../application/ports/facade.ports';
 import {
@@ -59,6 +60,8 @@ export class FollowService extends FollowReaderPort {
   }
 
   async unfollow(followerId: string, followingId: string): Promise<void> {
+    const existing = await this.followRepo.findFollow(followerId, followingId);
+    if (!existing) throw new EntityNotFoundException('Follow', followingId);
     await this.followRepo.deleteFollow(followerId, followingId);
     this.logger.debug(`User ${followerId} unfollowed ${followingId}`, 'FollowService');
   }
@@ -73,10 +76,9 @@ export class FollowService extends FollowReaderPort {
     pagination: PaginationParams,
     viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.followRepo.findFollowers(userId, pagination);
-    const enriched = await this.enrichWithViewerRelationship(data, viewerId, 'follower');
-    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const { items, total } = await this.followRepo.findFollowers(userId, pagination);
+    const enriched = await this.enrichWithViewerRelationship(items, viewerId, 'follower');
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 
   async getFollowing(
@@ -84,10 +86,9 @@ export class FollowService extends FollowReaderPort {
     pagination: PaginationParams,
     viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>> {
-    const { page, limit } = pagination;
-    const { data, total } = await this.followRepo.findFollowing(userId, pagination);
-    const enriched = await this.enrichWithViewerRelationship(data, viewerId, 'following');
-    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const { items, total } = await this.followRepo.findFollowing(userId, pagination);
+    const enriched = await this.enrichWithViewerRelationship(items, viewerId, 'following');
+    return buildPaginatedResponse(enriched, total, pagination);
   }
 
   private async enrichWithViewerRelationship(

@@ -10,7 +10,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../shared';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
 import { getApp, uniqueTestId, uniqueTestUsername } from './setup';
 
 describe('Onboarding Flow Integration', () => {
@@ -35,12 +35,12 @@ describe('Onboarding Flow Integration', () => {
   });
 
   beforeEach(async () => {
-    // Create fresh test user for each test. /api/accounts requires
+    // Create fresh test user for each test. /api/v1/accounts requires
     // the consent versions in the body (LGPD) and creates the
     // matching `UserConsent` rows itself, so we don't double-write.
     const email = `onboarding-${uniqueTestId()}@test.com`;
     const signupResponse = await app.request
-      .post('/api/accounts')
+      .post('/api/v1/accounts')
       .send({
         ...testUser,
         email,
@@ -49,7 +49,7 @@ describe('Onboarding Flow Integration', () => {
       })
       .expect(201);
 
-    userId = signupResponse.body.data.userId;
+    userId = signupResponse.body.userId;
 
     // Verify email so the email-verified guard lets the test through.
     // Onboarding completion stays `false` since this suite exercises
@@ -60,9 +60,9 @@ describe('Onboarding Flow Integration', () => {
     });
 
     const loginResponse = await app.request
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email, password: testUser.password });
-    accessToken = loginResponse.body.data.accessToken;
+    accessToken = tokenFromResponse(loginResponse, 'access_token')!;
   });
 
   afterEach(async () => {
@@ -84,7 +84,7 @@ describe('Onboarding Flow Integration', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(response.body.data.hasCompletedOnboarding).toBe(false);
+      expect(response.body.hasCompletedOnboarding).toBe(false);
     });
 
     it('should reject unauthenticated requests', async () => {
@@ -101,7 +101,7 @@ describe('Onboarding Flow Integration', () => {
 
       expect(response.body).toBeDefined();
       // Initial progress should have default values
-      expect(response.body.data.currentStep).toBeDefined();
+      expect(response.body.currentStep).toBeDefined();
     });
 
     it('should save onboarding progress', async () => {
@@ -122,7 +122,6 @@ describe('Onboarding Flow Integration', () => {
 
       expect(response.body).toBeDefined();
       // success is at envelope level
-      expect(response.body.success).toBe(true);
     });
 
     it('should reject unauthenticated progress save', async () => {
@@ -180,8 +179,7 @@ describe('Onboarding Flow Integration', () => {
         })
         .expect(400);
 
-      // Error message can be at either level depending on error type
-      expect(response.body.message || response.body.error?.message).toBeDefined();
+      expect(response.body.message).toBeDefined();
     });
   });
 });

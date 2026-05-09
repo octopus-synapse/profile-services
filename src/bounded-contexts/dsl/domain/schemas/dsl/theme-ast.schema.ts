@@ -313,3 +313,65 @@ export type ResolvedSpacing = z.infer<typeof ResolvedSpacingSchema>;
 export type ResolvedEffects = z.infer<typeof ResolvedEffectsSchema>;
 export type ResolvedTokens = z.infer<typeof ResolvedTokensSchema>;
 export type CompiledThemeAst = z.infer<typeof CompiledThemeAstSchema>;
+
+export type FontFamilyDto = z.infer<typeof FontFamilySchema>;
+
+export type FontSizeScaleDto = z.infer<typeof FontSizeScaleSchema>;
+
+export type HeadingStyleDto = z.infer<typeof HeadingStyleSchema>;
+
+export type DensityDto = z.infer<typeof DensitySchema>;
+
+export type SpacingSizeDto = z.infer<typeof SpacingSizeSchema>;
+
+export type BorderRadiusDto = z.infer<typeof BorderRadiusSchema>;
+
+export type ShadowDto = z.infer<typeof ShadowSchema>;
+
+export type TypographyTokensDto = z.infer<typeof TypographyTokensSchema>;
+
+export type ColorTokensDto = z.infer<typeof ColorTokensSchema>;
+
+export type SpacingTokensDto = z.infer<typeof SpacingTokensSchema>;
+
+export type EffectsTokensDto = z.infer<typeof EffectsTokensSchema>;
+
+export type DesignTokensDto = z.infer<typeof DesignTokensSchema>;
+
+export type DerivedTokensDto = z.infer<typeof DerivedTokensSchema>;
+
+export type VariantConditionDto = z.infer<typeof VariantConditionSchema>;
+
+export type VariantDto = z.infer<typeof VariantSchema>;
+
+export type LayoutTypeDto = z.infer<typeof LayoutTypeSchema>;
+
+export type PaperSizeDto = z.infer<typeof PaperSizeSchema>;
+
+export type MarginsDto = z.infer<typeof MarginsSchema>;
+
+export type ColumnDistributionDto = z.infer<typeof ColumnDistributionSchema>;
+
+export type LayoutConfigDto = z.infer<typeof LayoutConfigSchema>;
+
+export type SectionStyleDto = z.infer<typeof SectionStyleSchema>;
+
+export type SectionStylesDto = z.infer<typeof SectionStylesSchema>;
+
+export type ThemeMetaDto = z.infer<typeof ThemeMetaSchema>;
+
+export type ThemeDefinitionDto = z.infer<typeof ThemeDefinitionSchema>;
+
+export type ResolvedTypographyDto = z.infer<typeof ResolvedTypographySchema>;
+
+export type ResolvedColorsDto = z.infer<typeof ResolvedColorsSchema>;
+
+export type ResolvedSpacingDto = z.infer<typeof ResolvedSpacingSchema>;
+
+export type ResolvedEffectsDto = z.infer<typeof ResolvedEffectsSchema>;
+
+export type ResolvedTokensDto = z.infer<typeof ResolvedTokensSchema>;
+
+export type CompiledThemeAstDto = z.infer<typeof CompiledThemeAstSchema>;
+
+export type ColorValueDto = z.infer<typeof ColorValueSchema>;

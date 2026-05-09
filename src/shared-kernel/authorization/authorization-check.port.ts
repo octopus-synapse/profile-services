@@ -1,20 +1,22 @@
-/**
- * Authorization Check Port (ISP)
- *
- * Cross-cutting authorization abstraction for consumers outside the identity BC.
- * Narrow interface with only the permission-checking methods needed by guards and services.
- * Identity BC provides the implementation via its @Global() AuthorizationModule.
- */
+export interface PermissionSpec {
+  readonly resource: string;
+  readonly action: string;
+}
 
 export abstract class AuthorizationCheckPort {
   abstract hasPermission(userId: string, resource: string, action: string): Promise<boolean>;
+
   abstract hasAnyPermission(
     userId: string,
-    permissions: Array<{ resource: string; action: string }>,
+    permissions: ReadonlyArray<PermissionSpec>,
   ): Promise<boolean>;
+
   abstract hasAllPermissions(
     userId: string,
-    permissions: Array<{ resource: string; action: string }>,
+    permissions: ReadonlyArray<PermissionSpec>,
   ): Promise<boolean>;
+
   abstract hasRole(userId: string, roleIdOrName: string): Promise<boolean>;
+
+  abstract countUsersWithRole(roleName: string): Promise<number>;
 }

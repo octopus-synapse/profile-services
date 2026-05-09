@@ -1,8 +1,8 @@
 import { LoggerPort } from '@/shared-kernel';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
+import { ChatConversationNotFoundException } from '../../../domain/exceptions/chat.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
-import { mapConversationToResponse } from '../../mappers/chat.mapper';
+import { toConversationResponseDto } from '../../mappers/chat.mapper';
 import { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
 
 export class GetConversationUseCase {
@@ -15,7 +15,7 @@ export class GetConversationUseCase {
   async execute(userId: string, conversationId: string): Promise<ConversationResponse> {
     const conversation = await this.conversationRepo.findById(conversationId);
     if (!conversation) {
-      throw new EntityNotFoundException('Conversation', conversationId);
+      throw new ChatConversationNotFoundException(conversationId);
     }
 
     const isParticipant =
@@ -26,6 +26,6 @@ export class GetConversationUseCase {
 
     const unreadCount = await this.messageRepo.getUnreadCountByConversation(conversationId, userId);
 
-    return mapConversationToResponse(conversation, userId, unreadCount);
+    return toConversationResponseDto(conversation, userId, unreadCount);
   }
 }

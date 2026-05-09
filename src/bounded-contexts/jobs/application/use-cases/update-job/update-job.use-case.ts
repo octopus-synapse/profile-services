@@ -7,7 +7,7 @@
 
 import { EventPublisherPort, LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { Job, UpdateJobInput } from '../../../domain/entities/job';
+import type { Job, UpdateJobInput } from '../../../domain/entities/job.entity';
 import { JobUpdatedEvent } from '../../../domain/events';
 import { CannotModifyOthersJobException } from '../../../domain/exceptions/jobs.exceptions';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';

@@ -12,16 +12,9 @@ import {
 } from '@/shared-kernel/exceptions';
 
 export class OnboardingAlreadyCompletedException extends ConflictException {
-  readonly code: string = 'ONBOARDING_ALREADY_COMPLETED';
+  override readonly code: string = 'ONBOARDING_ALREADY_COMPLETED';
   constructor() {
     super('Onboarding is already completed for this user');
-  }
-}
-
-export class OnboardingStepOutOfOrderException extends ValidationException {
-  readonly code: string = 'ONBOARDING_STEP_OUT_OF_ORDER';
-  constructor(stepId: string) {
-    super(`Step "${stepId}" cannot be completed in the current order`);
   }
 }
 
@@ -41,7 +34,7 @@ export class OnboardingSessionExpiredException extends DomainException {
  * let the first request finish rather than retry.
  */
 export class OnboardingCompletionInProgressException extends ConflictException {
-  readonly code: string = 'ONBOARDING_COMPLETION_IN_PROGRESS';
+  override readonly code: string = 'ONBOARDING_COMPLETION_IN_PROGRESS';
   constructor() {
     super('Onboarding completion already in progress');
   }
@@ -54,7 +47,7 @@ export class OnboardingCompletionInProgressException extends ConflictException {
  * nowhere to go.
  */
 export class OnboardingAlreadyAtLastStepException extends ValidationException {
-  readonly code: string = 'ONBOARDING_ALREADY_AT_LAST_STEP';
+  override readonly code: string = 'ONBOARDING_ALREADY_AT_LAST_STEP';
   constructor() {
     super('Already at the last step');
   }
@@ -66,7 +59,7 @@ export class OnboardingAlreadyAtLastStepException extends ValidationException {
  * Raised when the user tries to go back from the first step.
  */
 export class OnboardingAlreadyAtFirstStepException extends ValidationException {
-  readonly code: string = 'ONBOARDING_ALREADY_AT_FIRST_STEP';
+  override readonly code: string = 'ONBOARDING_ALREADY_AT_FIRST_STEP';
   constructor() {
     super('Already at the first step');
   }
@@ -79,7 +72,7 @@ export class OnboardingAlreadyAtFirstStepException extends ValidationException {
  * onboarding configuration (stale client, typo, removed step).
  */
 export class OnboardingUnknownStepException extends ValidationException {
-  readonly code: string = 'ONBOARDING_UNKNOWN_STEP';
+  override readonly code: string = 'ONBOARDING_UNKNOWN_STEP';
   constructor(stepId: string) {
     super(`Unknown step: ${stepId}`);
   }
@@ -93,7 +86,7 @@ export class OnboardingUnknownStepException extends ValidationException {
  * section was invalid for UI field highlighting.
  */
 export class OnboardingInvalidSectionTypeException extends ValidationException {
-  readonly code: string = 'ONBOARDING_INVALID_SECTION_TYPE';
+  override readonly code: string = 'ONBOARDING_INVALID_SECTION_TYPE';
   constructor(sectionTypeKey: string) {
     super(
       `Cannot have items for section "${sectionTypeKey}" when noData is true. ` +
@@ -111,22 +104,9 @@ export class OnboardingInvalidSectionTypeException extends ValidationException {
  * machine-readable code (`USERNAME_TAKEN`) so the i18n catalog dedupes.
  */
 export class OnboardingUsernameTakenException extends ConflictException {
-  readonly code: string = 'USERNAME_TAKEN';
+  override readonly code: string = 'USERNAME_TAKEN';
   constructor() {
     super('Username is already taken');
-  }
-}
-
-/**
- * The route-level `requireOnboardingCompleted` gate emits this when a
- * user with `onboardingCompleted = false` hits a feature locked behind
- * the gate. Replaces the deleted Nest `OnboardingCompletedGuard`.
- */
-export class OnboardingNotCompletedException extends DomainException {
-  readonly code: string = 'ONBOARDING_NOT_COMPLETED';
-  readonly statusHint = 403;
-  constructor() {
-    super('Onboarding must be completed before accessing this resource');
   }
 }
 
