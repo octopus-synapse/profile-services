@@ -16,7 +16,7 @@ export const SocialUrlSchema = z
   .regex(/^https?:\/\//, 'URL must start with http:// or https://')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .openapi({
+  .openapi('SocialUrl', {
     example: EXAMPLE_URL,
     description: 'Public HTTP(S) URL (max 500 chars). Trimmed on submit.',
   });
@@ -32,7 +32,7 @@ export const LinkedInUrlSchema = z
   )
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .openapi({
+  .openapi('LinkedInUrl', {
     example: EXAMPLE_LINKEDIN_URL,
     description:
       'LinkedIn profile or company URL (e.g. `https://www.linkedin.com/in/<handle>` or `https://www.linkedin.com/company/<slug>`).',
@@ -46,7 +46,7 @@ export const GitHubUrlSchema = z
   .regex(/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/, 'Must be a valid GitHub profile URL')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
-  .openapi({
+  .openapi('GitHubUrl', {
     example: EXAMPLE_GITHUB_URL,
     description: 'GitHub profile URL (e.g. `https://github.com/<handle>`).',
   });

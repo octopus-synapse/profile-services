@@ -11,7 +11,9 @@ export const CreateAccountSchema = z
     acceptedTosVersion: z.string().min(1),
     acceptedPrivacyVersion: z.string().min(1),
   })
-  .openapi({
+  .openapi('CreateAccountRequest', {
+    description:
+      'Sign-up payload. LGPD requires explicit `acceptedTosVersion` / `acceptedPrivacyVersion` matching the current published versions.',
     example: {
       name: 'Jane Doe',
       email: 'jane.doe@example.com',
@@ -22,14 +24,19 @@ export const CreateAccountSchema = z
   });
 
 // Response Schema - includes tokens for auto-login after signup
-export const CreateAccountResponseSchema = z.object({
-  userId: z.string(),
-  email: z.string(),
-  message: z.string(), // Auth tokens (auto-login)
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number(),
-});
+export const CreateAccountResponseSchema = z
+  .object({
+    userId: z.string(),
+    email: z.string(),
+    message: z.string(), // Auth tokens (auto-login)
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number(),
+  })
+  .openapi('CreateAccountResponse', {
+    description:
+      'Sign-up response with auth tokens for auto-login. The session cookie is also set in parallel.',
+  });
 
 // DTO Classes
 

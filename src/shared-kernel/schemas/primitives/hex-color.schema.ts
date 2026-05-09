@@ -7,7 +7,7 @@ extendZodWithOpenApi(z);
 export const HexColorSchema = z
   .string()
   .regex(/^#[0-9A-Fa-f]{6}$/, 'Hex color must be in #RRGGBB format')
-  .openapi({
+  .openapi('HexColor', {
     example: EXAMPLE_HEX_COLOR,
     description: 'Six-digit hex color in `#RRGGBB` format (case-insensitive).',
   });

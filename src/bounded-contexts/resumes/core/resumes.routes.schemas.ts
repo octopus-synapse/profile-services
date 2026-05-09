@@ -64,7 +64,9 @@ export const CreateResumeBody = z
     website: SocialUrlSchema.optional(),
     sections: z.array(z.record(z.unknown())).optional(),
   })
-  .openapi({
+  .openapi('CreateResumeRequest', {
+    description:
+      'Create-resume payload. `sections` are generic — each item references a SectionType by key with content validated server-side against the SectionType definition.',
     example: {
       title: 'Senior Software Engineer Resume',
       summary: 'Backend engineer with 8+ years of experience building distributed systems.',
@@ -77,7 +79,9 @@ export const CreateResumeBody = z
     },
   });
 
-export const UpdateResumeBody = CreateResumeBody.partial().openapi({
+export const UpdateResumeBody = CreateResumeBody.partial().openapi('UpdateResumeRequest', {
+  description:
+    'Partial update of a resume. Same shape as CreateResumeRequest with all fields optional.',
   example: {
     title: 'Updated Resume Title',
     summary: 'Updated professional summary.',

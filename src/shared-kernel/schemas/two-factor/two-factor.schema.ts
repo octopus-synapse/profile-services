@@ -18,7 +18,7 @@ export const TwoFactorCodeSchema = z
   .string()
   .length(6, 'Code must be 6 digits')
   .regex(/^\d{6}$/, 'Code must be 6 digits')
-  .openapi({
+  .openapi('TwoFactorCode', {
     example: '123456',
     description: '6-digit numeric TOTP code from the authenticator app.',
   });

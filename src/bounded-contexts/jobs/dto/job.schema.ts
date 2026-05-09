@@ -37,7 +37,9 @@ export const CreateJobSchema = z
     remotePolicy: RemotePolicyEnum.optional(),
     minEnglishLevel: EnglishLevelEnum.optional(),
   })
-  .openapi({
+  .openapi('CreateJobRequest', {
+    description:
+      'Create-job payload. `applyUrl` is the public link recruiters share with candidates.',
     example: {
       title: 'Senior Backend Engineer',
       company: 'Acme Corp',
@@ -69,7 +71,8 @@ export const UpdateJobSchema = z
     remotePolicy: RemotePolicyEnum.nullable().optional(),
     minEnglishLevel: EnglishLevelEnum.nullable().optional(),
   })
-  .openapi({
+  .openapi('UpdateJobRequest', {
+    description: 'Partial update of a job. Nullable enums let users clear an existing selection.',
     example: {
       title: 'Senior Backend Engineer (Updated)',
       isActive: true,

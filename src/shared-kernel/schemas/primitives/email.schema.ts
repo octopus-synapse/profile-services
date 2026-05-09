@@ -11,7 +11,7 @@ export const EmailSchema = z
   .email('Invalid email format')
   .min(5, 'Email must be at least 5 characters')
   .max(255, 'Email must not exceed 255 characters')
-  .openapi({
+  .openapi('Email', {
     example: EXAMPLE_EMAIL,
     description:
       'Email address used for authentication and notifications. Trimmed and lowercased on submit.',

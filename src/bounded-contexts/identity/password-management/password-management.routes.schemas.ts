@@ -12,12 +12,20 @@
 import { z } from 'zod';
 import { EmailSchema } from '@/shared-kernel/schemas/primitives';
 
-export const ForgotPasswordSchema = z.object({ email: EmailSchema }).openapi({
-  example: {
-    email: 'user@example.com',
-  },
-});
+export const ForgotPasswordSchema = z
+  .object({ email: EmailSchema })
+  .openapi('ForgotPasswordRequest', {
+    description:
+      'Forgot-password trigger. Always returns the same generic success message regardless of whether the email exists, to avoid account enumeration.',
+    example: {
+      email: 'user@example.com',
+    },
+  });
 
 // ─── Response schemas ────────────────────────────────────────────────
 // All three endpoints return the same `{ message }` envelope.
-export const PasswordMessageResponseSchema = z.object({ message: z.string() });
+export const PasswordMessageResponseSchema = z
+  .object({ message: z.string() })
+  .openapi('PasswordMessageResponse', {
+    description: 'Generic success envelope for password-management endpoints.',
+  });

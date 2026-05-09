@@ -5,12 +5,16 @@ import { EmailSchema, PasswordInputSchema } from '@/shared-kernel/schemas/primit
 extendZodWithOpenApi(z);
 
 // Request Schema
-export const LoginSchema = z.object({ email: EmailSchema, password: PasswordInputSchema }).openapi({
-  example: {
-    email: 'dredd-fixture@profile.local',
-    password: 'Dredd_Fixture_Password_123!',
-  },
-});
+export const LoginSchema = z
+  .object({ email: EmailSchema, password: PasswordInputSchema })
+  .openapi('LoginRequest', {
+    description:
+      'Login payload. Password validation is lenient here (legacy accounts) — the strict policy applies on registration / change.',
+    example: {
+      email: 'dredd-fixture@profile.local',
+      password: 'Dredd_Fixture_Password_123!',
+    },
+  });
 
 // Request Schema for 2FA login verification
 export const LoginVerify2faSchema = z

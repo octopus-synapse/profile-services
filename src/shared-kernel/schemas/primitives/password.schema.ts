@@ -59,7 +59,7 @@ export const PasswordSchema = z
   .regex(/[a-z]/, PASSWORD_MESSAGES.requireLowercase)
   .regex(/[0-9]/, PASSWORD_MESSAGES.requireNumber)
   .regex(/[@$!%*?&]/, PASSWORD_MESSAGES.requireSpecialChar)
-  .openapi({
+  .openapi('Password', {
     example: EXAMPLE_PASSWORD,
     description: PASSWORD_DESCRIPTION,
     pattern: PASSWORD_COMBINED_PATTERN,
@@ -77,7 +77,7 @@ export const PasswordInputSchema = z
   .string()
   .min(1, 'Password is required')
   .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength)
-  .openapi({
+  .openapi('PasswordInput', {
     example: EXAMPLE_PASSWORD,
     description: `Account password for authentication. Lenient validation (1-${PASSWORD_POLICY.maxLength} chars) to support legacy accounts; new passwords must satisfy the stricter PasswordSchema policy.`,
   });

@@ -20,7 +20,9 @@ export const CreateWebhookSchema = z
     url: SocialUrlSchema,
     events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
   })
-  .openapi({
+  .openapi('CreateWebhookRequest', {
+    description:
+      'Register an outbound webhook. URL is fetched through the SafeFetchPort allowlist on delivery (SSRF defense).',
     example: {
       url: 'https://hooks.example.com/patch-careers/webhook',
       events: ['resume.created', 'resume.published'],
@@ -33,7 +35,9 @@ export const UpdateWebhookSchema = z
     events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
     enabled: z.boolean().optional(),
   })
-  .openapi({
+  .openapi('UpdateWebhookRequest', {
+    description:
+      'Partial update of a webhook (rotate URL, change event subscriptions, toggle enabled).',
     example: {
       events: ['ats.score.updated'],
       enabled: false,

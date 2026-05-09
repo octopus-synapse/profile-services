@@ -7,7 +7,9 @@ export const ChangePasswordSchema = z
     currentPassword: PasswordInputSchema,
     newPassword: PasswordSchema,
   })
-  .openapi({
+  .openapi('ChangePasswordRequest', {
+    description:
+      'Self-service password change. Requires the current password (lenient validation) and a new password meeting the strict policy.',
     example: {
       currentPassword: 'NotTheRealPassword!',
       newPassword: 'NewSecurePass456!',

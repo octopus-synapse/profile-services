@@ -7,7 +7,9 @@ export const ResetPasswordSchema = z
     token: z.string().min(1),
     newPassword: PasswordSchema,
   })
-  .openapi({
+  .openapi('ResetPasswordRequest', {
+    description:
+      'Token-based password reset. The token is single-use and was previously emailed via the forgot-password flow.',
     example: {
       token: 'fixture-pw-reset-token-cccccccccccccccc',
       newPassword: 'NewSecurePass456!',

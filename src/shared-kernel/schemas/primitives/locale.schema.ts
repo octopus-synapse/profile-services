@@ -9,7 +9,7 @@ extendZodWithOpenApi(z);
 // for supported locales (CLAUDE.md Q8). Cast through tuple to satisfy z.enum.
 const LOCALE_TUPLE = LOCALES as readonly [string, ...string[]];
 
-export const LocaleSchema = z.enum(LOCALE_TUPLE as [string, ...string[]]).openapi({
+export const LocaleSchema = z.enum(LOCALE_TUPLE as [string, ...string[]]).openapi('Locale', {
   example: EXAMPLE_LOCALE,
   description: `BCP-47 locale tag. Supported locales: ${LOCALES.join(', ')}.`,
 });
