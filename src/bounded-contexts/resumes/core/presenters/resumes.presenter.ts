@@ -81,7 +81,6 @@ export function isPaginatedResult(
 
 export function toPaginatedResumesData(
   result: ResumeResult[] | UserResumesPaginatedResult,
-  fallback: { page: number; limit: number },
 ): PaginatedResumesDataDto {
   if (isPaginatedResult(result)) {
     const items: ResumeListItemDto[] = [];

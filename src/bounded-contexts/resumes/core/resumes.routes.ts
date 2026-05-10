@@ -16,7 +16,6 @@ import { z } from 'zod';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
 import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
-import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
@@ -69,14 +68,10 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageLimitQuery>;
-      const page = parsePositiveIntParam(q.page, PAGINATION.DEFAULT_PAGE);
-      const limit = parsePositiveIntParam(
-        q.limit,
-        PAGINATION.DEFAULT_PAGE_SIZE,
-        PAGINATION.MAX_PAGE_SIZE,
-      );
+      const page = q.page ?? PAGINATION.DEFAULT_PAGE;
+      const limit = Math.min(q.limit ?? PAGINATION.DEFAULT_PAGE_SIZE, PAGINATION.MAX_PAGE_SIZE);
       const result = await bc.listUserResumesUseCase.execute(ctx.user!.userId, page, limit);
-      return toPaginatedResumesData(result, { page, limit });
+      return toPaginatedResumesData(result);
     },
   },
   {

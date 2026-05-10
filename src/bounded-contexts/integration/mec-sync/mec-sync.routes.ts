@@ -263,7 +263,7 @@ export const mecSyncRoutes: ReadonlyArray<Route<MecSyncUseCases>> = [
     auth: { kind: 'public' },
     guards: [{ id: 'internal-auth' }],
     headers: { 'Cache-Control': 'no-store' },
-    query: z.object({ limit: z.string().optional() }),
+    query: z.object({ limit: z.coerce.number().int().min(1).optional() }),
     response: SyncHistoryResponseSchema,
     openapi: {
       summary: 'Get sync history',

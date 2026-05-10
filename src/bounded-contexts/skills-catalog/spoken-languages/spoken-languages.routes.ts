@@ -18,7 +18,7 @@ import { SpokenLanguagesService } from './services/spoken-languages.service';
 
 const SearchQuery = z.object({
   q: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 const CodeParams = z.object({ code: z.string() });

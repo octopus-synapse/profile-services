@@ -3,7 +3,7 @@
   "generatedBy": "route-descriptors",
   "paths": 349,
   "operations": 417,
-  "schemas": 26,
+  "schemas": 28,
   "tags": [
     "account-lifecycle",
     "accounts",

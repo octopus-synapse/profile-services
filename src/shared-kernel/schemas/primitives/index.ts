@@ -10,6 +10,7 @@ export * from './datetime.schema';
 export * from './email.schema';
 export * from './hex-color.schema';
 export * from './locale.schema';
+export * from './pagination.schema';
 export * from './password.schema';
 export * from './professional-profile.schema';
 export * from './social-url.schema';

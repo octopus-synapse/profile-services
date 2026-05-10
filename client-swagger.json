@@ -218,6 +218,21 @@
           "specialChars": "@$!%*?&"
         }
       },
+      "Page": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 1,
+        "description": "1-indexed page number for offset pagination.",
+        "example": 1
+      },
+      "Limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 20,
+        "description": "Items per page (max 100).",
+        "example": 20
+      },
       "SocialUrl": {
         "type": "string",
         "maxLength": 500,
@@ -1928,7 +1943,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -1936,7 +1952,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -2369,7 +2386,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -2377,7 +2395,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -7263,7 +7282,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -7271,7 +7291,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -11529,7 +11550,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -11537,7 +11559,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -12662,7 +12685,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -12670,7 +12694,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -13891,7 +13916,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -13899,7 +13925,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -15100,7 +15127,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -15108,7 +15136,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "pageSize",
@@ -30513,7 +30542,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -31775,7 +31805,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -32790,7 +32821,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -35629,9 +35661,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -35639,10 +35669,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -36375,9 +36402,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -36385,10 +36410,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -37542,9 +37564,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -37552,10 +37572,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -38207,9 +38224,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -38217,10 +38232,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -38571,9 +38583,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -38581,10 +38591,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -38972,9 +38979,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -38982,10 +38987,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -40514,9 +40516,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -40524,10 +40524,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -43380,7 +43377,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -46327,7 +46325,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -46761,7 +46760,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -47337,7 +47337,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -47754,7 +47755,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -55830,7 +55832,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -59775,7 +59778,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -59783,7 +59787,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -60378,7 +60383,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "page",
@@ -60386,7 +60392,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -80106,7 +80113,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -80606,7 +80614,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -83245,7 +83254,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -83954,7 +83964,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -84507,7 +84518,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -84756,7 +84768,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -85224,7 +85237,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -89042,7 +89056,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -89226,9 +89241,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -89236,10 +89249,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -89560,9 +89570,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -89570,10 +89578,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -89894,9 +89899,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -89904,10 +89907,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -90228,9 +90228,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -90238,10 +90236,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -94156,9 +94151,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -94166,10 +94159,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -94473,9 +94463,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -94483,10 +94471,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -94787,7 +94772,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -95452,9 +95438,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -95462,10 +95446,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -96187,9 +96168,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -96197,10 +96176,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -96531,9 +96507,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -96541,10 +96515,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",
@@ -97273,7 +97244,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",
@@ -98253,9 +98225,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
+              "$ref": "#/components/schemas/Page"
             },
             "required": false,
             "name": "page",
@@ -98263,10 +98233,7 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
+              "$ref": "#/components/schemas/Limit"
             },
             "required": false,
             "name": "limit",

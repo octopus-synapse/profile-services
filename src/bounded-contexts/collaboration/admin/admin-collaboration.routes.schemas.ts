@@ -14,8 +14,8 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
  * to bespoke field names.
  */
 export const PageQuerySchema = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).optional(),
 });
 
 export function parsePage(q: z.infer<typeof PageQuerySchema>): {

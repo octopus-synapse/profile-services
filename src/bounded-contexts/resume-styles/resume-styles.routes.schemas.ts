@@ -16,8 +16,8 @@ export const IdParams = IdParamSchema;
 export const ResumeIdParams = z.object({ resumeId: z.string() });
 
 export const ListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const ApplyStyleBodySchema = z.object({ styleId: z.string() }).openapi({

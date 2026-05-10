@@ -47,7 +47,7 @@ export const JobListQuerySchema = PaginationQuerySchema.extend({
 
 export const PageOnlyQuerySchema = PaginationQuerySchema;
 
-export const SimilarQuerySchema = z.object({ limit: z.string().optional() });
+export const SimilarQuerySchema = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 export const TrackerQuerySchema = z.object({ silentDays: z.string().optional() });
 

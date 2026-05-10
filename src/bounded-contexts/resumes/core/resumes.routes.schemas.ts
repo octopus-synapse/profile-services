@@ -33,8 +33,8 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 // ─────────────────────────────────────────────────────────────────────
 
 export const PageLimitQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const _IdParam = IdParamSchema;

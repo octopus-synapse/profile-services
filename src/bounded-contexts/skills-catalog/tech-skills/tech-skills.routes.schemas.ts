@@ -17,7 +17,7 @@ extendZodWithOpenApi(z);
 export const SearchQuery = z
   .object({
     q: z.string(),
-    limit: z.string().optional(),
+    limit: z.coerce.number().int().min(1).optional(),
   })
   .openapi({ example: { q: 'react' } });
 

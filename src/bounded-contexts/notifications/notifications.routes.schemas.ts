@@ -50,7 +50,7 @@ export const NOTIFICATION_TYPES = [
 
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const TypeParam = z

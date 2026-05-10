@@ -19,7 +19,7 @@ export const UserIdParam = z.object({ userId: z.string() });
 
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const TimelineQuery = PaginationQuery.extend({

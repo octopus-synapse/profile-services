@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { LimitSchema, PageSchema } from '../primitives/pagination.schema';
 
 /**
  * API Response Types
@@ -95,11 +96,13 @@ export type CursorPaginatedResponse<T> = {
 export type PaginatedResult<T> = PaginatedResponse<T>;
 
 /**
- * Pagination Query Schema
+ * Pagination Query Schema. Composes the canonical `PageSchema` and
+ * `LimitSchema` primitives so a single change to either ripples
+ * everywhere via the SDK regen.
  */
 export const PaginationQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: PageSchema,
+  limit: LimitSchema,
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });

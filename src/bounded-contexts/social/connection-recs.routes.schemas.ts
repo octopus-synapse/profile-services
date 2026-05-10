@@ -10,7 +10,7 @@ export abstract class ConnectionRecsRoutesBundle {
   abstract readonly service: ConnectionRecsService;
 }
 
-export const LimitQuery = z.object({ limit: z.string().optional() });
+export const LimitQuery = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 export const ConnectionRecommendationSchema = z.object({
   userId: z.string(),
