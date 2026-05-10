@@ -171,6 +171,53 @@
           "newPassword": "NewSecurePass456!"
         }
       },
+      "PasswordPolicy": {
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "maxLength": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requireUppercase": {
+            "type": "boolean"
+          },
+          "requireLowercase": {
+            "type": "boolean"
+          },
+          "requireNumber": {
+            "type": "boolean"
+          },
+          "requireSpecialChar": {
+            "type": "boolean"
+          },
+          "specialChars": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "minLength",
+          "maxLength",
+          "requireUppercase",
+          "requireLowercase",
+          "requireNumber",
+          "requireSpecialChar",
+          "specialChars"
+        ],
+        "description": "Password validation rules enforced by the server. Frontend forms (sign-up, password change, password-strength meter) consume this so the rules live in one place.",
+        "example": {
+          "minLength": 8,
+          "maxLength": 128,
+          "requireUppercase": true,
+          "requireLowercase": true,
+          "requireNumber": true,
+          "requireSpecialChar": true,
+          "specialChars": "@$!%*?&"
+        }
+      },
       "SocialUrl": {
         "type": "string",
         "maxLength": 500,
@@ -25692,6 +25739,66 @@
         },
         "x-auth": "jwt",
         "x-permission": "chat:use"
+      }
+    },
+    "/api/v1/config/password-policy": {
+      "get": {
+        "summary": "Server-enforced password policy",
+        "description": "Returns the password validation constants the backend enforces. Frontend forms read this at boot so they reject weak passwords client-side with the same rules the server applies on submit.",
+        "tags": [
+          "config"
+        ],
+        "operationId": "get_v1_config_password_policy",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordPolicy"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public"
       }
     },
     "/api/v1/connections/{id}": {
@@ -100116,6 +100223,9 @@
     },
     {
       "name": "comments"
+    },
+    {
+      "name": "config"
     },
     {
       "name": "dsl"

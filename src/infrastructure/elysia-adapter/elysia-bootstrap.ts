@@ -98,6 +98,7 @@ import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platfo
 import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
+import { buildConfigComposition } from '@/bounded-contexts/platform/config/config.composition';
 import { buildFeatureFlagsComposition } from '@/bounded-contexts/platform/feature-flags/feature-flags.composition';
 import { RedisFlagCache } from '@/bounded-contexts/platform/feature-flags/infrastructure/cache/redis-flag-cache.service';
 import { SseFlagStream } from '@/bounded-contexts/platform/feature-flags/infrastructure/sse/sse-flag-stream.service';
@@ -839,6 +840,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     startedAt: new Date(),
   });
 
+  // Config BC — exposes server-side constants the frontend mirrors
+  // (PASSWORD_POLICY today; future: feature flags, etc.).
+  const platformConfig = buildConfigComposition();
+
   // --- Pipeline ---
   // The permission checker reuses `authorization.checks.checkPermissionUseCase`
   // (built by buildAuthorizationCheckUseCases). Wrapping it in the
@@ -967,6 +972,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     resumeStyles,
     jobMatch,
     health,
+    platformConfig,
   ] as const) {
     mountRoutes(app, { bundle: bc.useCases, routes: bc.routes }, { prefix: '/api', pipeline });
   }
