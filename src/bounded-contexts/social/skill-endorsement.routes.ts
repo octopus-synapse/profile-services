@@ -5,6 +5,7 @@
 
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { buildFixedListResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   EndorsementMutationResponseSchema,
   EndorsersListResponseSchema,
@@ -32,8 +33,8 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const userId = ctx.user!.userId;
-      const skills = await bundle.service.getUserSkills(userId, userId);
-      return { skills };
+      const items = await bundle.service.getUserSkills(userId, userId);
+      return buildFixedListResponse(items);
     },
   },
   {
@@ -51,8 +52,8 @@ export const skillEndorsementRoutes: ReadonlyArray<Route<SkillEndorsementRoutesB
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { userId } = ctx.params as { userId: string };
-      const skills = await bundle.service.getUserSkills(userId, ctx.user!.userId);
-      return { skills };
+      const items = await bundle.service.getUserSkills(userId, ctx.user!.userId);
+      return buildFixedListResponse(items);
     },
   },
   {

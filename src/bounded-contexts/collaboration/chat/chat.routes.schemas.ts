@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { BlockUseCases } from './application/ports/block.port';
 import { ChatUseCases } from './application/ports/chat.port';
@@ -80,9 +81,11 @@ export const UserSearchResultSchema = z.object({
   photoURL: z.string().nullable(),
 });
 
-export const ChatUsersSearchResponseSchema = z.object({
-  users: z.array(UserSearchResultSchema),
-});
+// Q1 envelope (`{items, total, page, ...}`). Search results aren't
+// paginated server-side, but the canonical envelope keeps it consistent
+// with every other list-shape route. Handler wraps via
+// `buildFixedListResponse`.
+export const ChatUsersSearchResponseSchema = PaginatedResponseSchema(UserSearchResultSchema);
 
 export const SetPinResponseSchema = z.object({ pinned: z.boolean() });
 

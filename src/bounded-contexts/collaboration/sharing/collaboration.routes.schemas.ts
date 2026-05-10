@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 import { CollaboratorRoleSchema } from '@/bounded-contexts/collaboration/domain/enums';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { CollaborationUseCases } from './application/collaboration.composition';
 import type { CollabCommentService } from './services/collab-comment.service';
@@ -117,6 +118,9 @@ export const CommentSchema = z.object({
   author: CommentAuthorSchema,
 });
 
-export const CommentsListResponseSchema = z.object({ comments: z.array(CommentSchema) });
+// Q1 envelope. Comments aren't paginated server-side today (a resume
+// has a small set), but the canonical envelope keeps it consistent with
+// every other list-shape route. Handler wraps via `buildFixedListResponse`.
+export const CommentsListResponseSchema = PaginatedResponseSchema(CommentSchema);
 export const CommentResponseSchema = z.object({ comment: CommentSchema });
 export const CommentDeleteResponseSchema = z.object({}).strict();

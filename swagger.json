@@ -25588,7 +25588,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "users": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -25616,10 +25616,38 @@
                           "photoURL"
                         ]
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "users"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -71532,7 +71560,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "comments": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -71630,10 +71658,38 @@
                           "author"
                         ]
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "comments"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -91410,7 +91466,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "skills": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -91432,10 +91488,38 @@
                           "endorsedByMe"
                         ]
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "skills"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }
@@ -97500,7 +97584,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "skills": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -97522,10 +97606,38 @@
                           "endorsedByMe"
                         ]
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasNext": {
+                      "type": "boolean"
+                    },
+                    "hasPrev": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "skills"
+                    "items",
+                    "total",
+                    "page",
+                    "limit",
+                    "totalPages",
+                    "hasNext",
+                    "hasPrev"
                   ]
                 }
               }

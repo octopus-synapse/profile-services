@@ -1,3 +1,4 @@
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type {
   CreatedUser,
   UpdatedUser,
@@ -31,15 +32,10 @@ export function toUserListItem(user: UserListItem): UserListItemPayload {
 export function toUserManagementListData(result: UserListResult): UserManagementListDataDto {
   const items: UserListItemPayload[] = [];
   for (const u of result.items) items.push(toUserListItem(u));
-  return {
-    items,
-    total: result.total,
+  return buildPaginatedResponse(items, result.total, {
     page: result.page,
     limit: result.limit,
-    totalPages: result.totalPages,
-    hasNext: result.hasNext,
-    hasPrev: result.hasPrev,
-  };
+  });
 }
 
 export function toUserDetailsData(user: UserDetails): UserDetailsDataDto {

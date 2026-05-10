@@ -27,9 +27,12 @@ export const UserSkillSummarySchema = z.object({
   endorsedByMe: z.boolean(),
 });
 
-export const UserSkillsResponseSchema = z.object({
-  skills: z.array(UserSkillSummarySchema),
-});
+// Q1 envelope. Skills aren't paginated server-side (a user has a fixed
+// small set), but we still wrap in `PaginatedResponseSchema` so the
+// frontend can use the same `useInfiniteList` / `Page<T>` plumbing as
+// every other list. Synthetic values: total = items.length, page = 1,
+// totalPages = items.length === 0 ? 0 : 1, hasNext/hasPrev = false.
+export const UserSkillsResponseSchema = PaginatedResponseSchema(UserSkillSummarySchema);
 
 // `endorse` and `withdraw` return the same `UserSkillSummary` shape.
 export const EndorsementMutationResponseSchema = UserSkillSummarySchema;
