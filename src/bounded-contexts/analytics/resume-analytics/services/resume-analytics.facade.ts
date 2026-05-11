@@ -51,6 +51,66 @@ export class ResumeAnalyticsFacade {
     return this.viewTracking.getViewStats(resumeId, options);
   }
 
+  async simulateATS(
+    resumeId: string,
+    userId: string,
+  ): Promise<{
+    extractedText: string;
+    sections: Array<{
+      title: string;
+      semanticKind: string;
+      column: 'main' | 'sidebar' | 'full-width';
+      items: Array<{ fields: Record<string, string> }>;
+    }>;
+    warnings: string[];
+  }> {
+    await this.verifyOwnership(resumeId, userId);
+    const resume = await this.prisma.resume.findUniqueOrThrow({
+      where: { id: resumeId },
+      include: {
+        resumeSections: {
+          include: {
+            sectionType: { select: { semanticKind: true, slug: true } },
+            items: { orderBy: { order: 'asc' }, select: { content: true } },
+          },
+        },
+      },
+    });
+
+    // Strip decorative glyphs (icons in private-use area, emoji, etc.) and
+    // surface a warning when they're present. ATS parsers ignore these so
+    // the user knows what gets dropped.
+    const decorativeRe = /[\u{1F300}-\u{1FAFF}\u{E000}-\u{F8FF}\u{2700}-\u{27BF}]/gu;
+    const warnings: string[] = [];
+
+    const sections = resume.resumeSections.map((rs) => {
+      const items = rs.items.map((item) => {
+        const content = (item.content as Record<string, unknown>) ?? {};
+        const fields: Record<string, string> = {};
+        for (const [k, v] of Object.entries(content)) {
+          if (typeof v === 'string') {
+            const cleaned = v.replace(decorativeRe, '').trim();
+            if (cleaned !== v) warnings.push(`Decorative glyph stripped in "${k}"`);
+            if (cleaned) fields[k] = cleaned;
+          }
+        }
+        return { fields };
+      });
+      return {
+        title: rs.sectionType.slug,
+        semanticKind: rs.sectionType.semanticKind,
+        column: 'full-width' as const,
+        items,
+      };
+    });
+
+    const extractedText = sections
+      .flatMap((s) => s.items.flatMap((i) => Object.values(i.fields)))
+      .join('\n');
+
+    return { extractedText, sections, warnings: Array.from(new Set(warnings)) };
+  }
+
   async calculateATSScore(resumeId: string, userId: string): Promise<ATSScoreResult> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);

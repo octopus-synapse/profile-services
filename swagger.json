@@ -17640,6 +17640,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -17817,6 +17818,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -17994,6 +17996,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -19200,6 +19203,272 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/ats/simulate/{resumeId}": {
+      "get": {
+        "summary": "Simulate how a generic ATS parser extracts the resume",
+        "description": "Resume Analytics API",
+        "tags": [
+          "resume-analytics"
+        ],
+        "operationId": "get_v1_ats_simulate_resumeId",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01900000-0000-7000-a000-000000000010"
+            },
+            "required": true,
+            "name": "resumeId",
+            "in": "path",
+            "example": "01900000-0000-7000-a000-000000000010"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "extractedText": {
+                          "type": "string",
+                          "example": "Senior Engineer\nAcme\nFrom Jan 2022"
+                        },
+                        "sections": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "example": "experience"
+                              },
+                              "semanticKind": {
+                                "type": "string",
+                                "example": "experience"
+                              },
+                              "column": {
+                                "type": "string",
+                                "enum": [
+                                  "main",
+                                  "sidebar",
+                                  "full-width"
+                                ],
+                                "example": "full-width"
+                              },
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fields": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      },
+                                      "example": {
+                                        "title": "Senior Engineer",
+                                        "company": "Acme",
+                                        "from": "2022-01-01"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "fields"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "semanticKind",
+                              "column",
+                              "items"
+                            ]
+                          }
+                        },
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Decorative glyph stripped in \"title\""
+                          ]
+                        }
+                      },
+                      "required": [
+                        "extractedText",
+                        "sections",
+                        "warnings"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "analytics:read_own"
       }
     },
     "/api/v1/auth/2fa": {
@@ -68283,6 +68552,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -68549,6 +68819,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -68893,6 +69164,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -69236,6 +69508,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -69485,6 +69758,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -69776,6 +70050,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -70053,6 +70328,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -70276,6 +70552,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -70511,6 +70788,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -70649,6 +70927,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,

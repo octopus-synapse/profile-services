@@ -30,7 +30,31 @@ export abstract class AnalyticsSseBundle {
   abstract subscribeToAtsScore(resumeId: string): Observable<AnalyticsSseEvent>;
 }
 
-export const ResumeIdParam = z.object({ resumeId: z.string() });
+export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
+
+// ─── ATS Simulator (F3-PD-009b) ──────────────────────────────────────
+export const AtsSimulationSectionSchema = z.object({
+  title: z.string().openapi({ example: 'experience' }),
+  semanticKind: z.string().openapi({ example: 'experience' }),
+  column: z.enum(['main', 'sidebar', 'full-width']).openapi({ example: 'full-width' }),
+  items: z.array(
+    z.object({
+      fields: z.record(z.string()).openapi({
+        example: { title: 'Senior Engineer', company: 'Acme', from: '2022-01-01' },
+      }),
+    }),
+  ),
+});
+
+export const AtsSimulationResultSchema = z.object({
+  extractedText: z.string().openapi({ example: 'Senior Engineer\nAcme\nFrom Jan 2022' }),
+  sections: z.array(AtsSimulationSectionSchema),
+  warnings: z.array(z.string()).openapi({ example: ['Decorative glyph stripped in "title"'] }),
+});
+
+export const AtsSimulationResponseSchema = z.object({
+  data: AtsSimulationResultSchema,
+});
 
 export const TrackViewBody = z
   .object({
