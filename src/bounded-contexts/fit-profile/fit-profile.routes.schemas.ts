@@ -176,4 +176,16 @@ export const FitQuestionListResponseSchema = z.object({
   items: z.array(FitQuestionResponseSchema),
 });
 
+export const FitAnswerHistoryItemSchema = z.object({
+  id: z.string().uuid(),
+  questionId: z.string().uuid(),
+  questionSetId: z.string().uuid(),
+  rawValue: z.number().int().min(0).max(5),
+  answeredAt: IsoDateTimeSchema,
+});
+
+export const FitAnswerHistoryResponseSchema = z.object({
+  items: z.array(FitAnswerHistoryItemSchema),
+});
+
 export const EmptyResponseSchema = z.null();

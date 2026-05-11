@@ -33526,6 +33526,144 @@
       }
     },
     "/api/v1/fit-profile/answers": {
+      "get": {
+        "summary": "Get the caller's Fit Answer history",
+        "description": "Fit Profile (personality vector)",
+        "tags": [
+          "fit-profile"
+        ],
+        "operationId": "get_v1_fit_profile_answers",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "questionId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "questionSetId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "rawValue": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5
+                          },
+                          "answeredAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                            "example": "2026-05-07T00:00:00.000Z"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "questionId",
+                          "questionSetId",
+                          "rawValue",
+                          "answeredAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      },
       "post": {
         "summary": "Commit the 25 Fit Answers; compute and persist vector",
         "description": "Fit Profile (personality vector)",

@@ -2,7 +2,7 @@
   "success": true,
   "generatedBy": "route-descriptors",
   "paths": 349,
-  "operations": 417,
+  "operations": 418,
   "schemas": 28,
   "tags": [
     "account-lifecycle",
