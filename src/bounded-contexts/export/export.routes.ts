@@ -22,6 +22,7 @@ import {
   LatexExportQuery,
   PdfBase64ResponseSchema,
   PresignedDownloadResponseSchema,
+  ResumeBundleRequestSchema,
   ResumeIdParams,
   ResumePdfQuery,
   UserIdParams,
@@ -163,6 +164,41 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         key: `exports/${userId}/${randomUUID()}.docx`,
         body: buffer,
         contentType: DOCX_MIME,
+        filename,
+        ttlSeconds: DOWNLOAD_TTL_SECONDS,
+      });
+      return { ...signed, filename };
+    },
+  },
+
+  // ─── Bundle (multi-format zip — F3-PD-009c) ────────────────────────
+  {
+    method: 'POST',
+    path: '/v1/export/resume/bundle',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_EXPORT,
+    body: ResumeBundleRequestSchema,
+    response: PresignedDownloadResponseSchema,
+    openapi: {
+      summary: 'Generate a multi-format zip bundle of the resume',
+      tags: ['export'],
+      description: 'Export API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as z.infer<typeof ResumeBundleRequestSchema>;
+      const userId = ctx.user!.userId;
+      const buffer = await bundle.useCases.exportBundleUseCase.execute({
+        userId,
+        resumeId: body.resumeId,
+        formats: body.formats,
+        language: body.language,
+      });
+      const filename = `resume-${userId}-${Date.now()}.zip`;
+      const signed = await bundle.s3.uploadAndPresign({
+        key: `exports/${userId}/${randomUUID()}.zip`,
+        body: buffer,
+        contentType: 'application/zip',
         filename,
         ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });

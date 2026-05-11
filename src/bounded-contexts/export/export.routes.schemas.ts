@@ -58,3 +58,21 @@ export const PresignedDownloadResponseSchema = z.object({
   filename: z.string(),
   expiresAt: IsoDateTimeSchema,
 });
+
+// F3-PD-009c — bundle (multi-format zip) request body.
+export const ResumeBundleRequestSchema = z
+  .object({
+    resumeId: z.string().uuid(),
+    formats: z
+      .array(z.enum(['pdf', 'docx', 'json']))
+      .min(1)
+      .optional(),
+    language: z.enum(['en', 'pt']).optional(),
+  })
+  .openapi({
+    example: {
+      resumeId: '01900000-0000-7000-a000-000000000010',
+      formats: ['pdf', 'docx', 'json'],
+      language: 'pt',
+    },
+  });
