@@ -533,6 +533,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Phase-1 final batch: all 33 newly-migrated BCs ---
   // Service factories first (no routes; consumed by other compositions).
   const auditLog = buildAuditLogService(prisma as never, logger);
+  const auditPort = new AuditLogServiceAdapter(auditLog, logger);
   const rateLimit = buildRateLimitService(cache as never);
   // FitProfile bundle to extract `similarity` for job-match cross-BC dep.
   const fitProfileBundle = buildFitProfileBundle(prisma as never, eventBus, logger);
@@ -624,6 +625,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     authorization.authService as never,
     i18n.translation,
     logger,
+    auditPort,
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
@@ -775,8 +777,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // P1-035: wire the four audit handlers (auth/export/social/version)
   // against their respective DomainEvents. Strict mode by default —
   // a missing audit row is a compliance failure (Q51 + LGPD).
-  const auditPort = new AuditLogServiceAdapter(auditLog, logger);
-
+  // `auditPort` instantiated earlier so user-preferences UCs can audit.
   const authAudit = new AuthAuditHandler(auditPort, logger);
   eventBus.on('auth.login.failed' as never, authAudit.onLoginFailed.bind(authAudit) as never);
   eventBus.on('auth.user.logged_in' as never, authAudit.onUserLoggedIn.bind(authAudit) as never);

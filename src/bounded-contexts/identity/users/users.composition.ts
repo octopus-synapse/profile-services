@@ -3,6 +3,7 @@ import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/tr
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import type { LoggerPort } from '@/shared-kernel';
+import type { AuditLogPort } from '@/shared-kernel/audit';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { UsersHttpBundle } from './application/ports/users-http.bundle';
 import {
@@ -45,13 +46,14 @@ export function buildUsersUseCases(
   authorization: AuthorizationService,
   i18n: TranslationPort,
   logger: LoggerPort,
+  auditLog: AuditLogPort,
 ): UsersUseCases {
   const userQuery = new UserQueryRepository(prisma, logger);
   const userMutation = new UserMutationRepository(prisma, logger);
   const usersRepository = new UsersRepository(userQuery, userMutation, logger);
 
   const profile = buildUserProfileUseCases(prisma, resumesRepository);
-  const preferences = buildUserPreferencesUseCases(prisma, logger);
+  const preferences = buildUserPreferencesUseCases(prisma, logger, auditLog);
   const username = buildUsernameUseCases(prisma);
   const bcryptCost = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
   const management = buildUserManagementUseCases(
@@ -85,8 +87,16 @@ export function buildUsersComposition(
   authorization: AuthorizationService,
   i18n: TranslationPort,
   logger: LoggerPort,
+  auditLog: AuditLogPort,
 ): BoundedContextComposition<UsersHttpBundle> {
-  const useCases = buildUsersUseCases(prisma, resumesRepository, authorization, i18n, logger);
+  const useCases = buildUsersUseCases(
+    prisma,
+    resumesRepository,
+    authorization,
+    i18n,
+    logger,
+    auditLog,
+  );
 
   return {
     useCases: useCases.bundle,

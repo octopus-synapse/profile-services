@@ -1,7 +1,11 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryUserPreferencesRepository } from '@/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-user-preferences.repository';
+import { AuditLogPort } from '@/shared-kernel/audit';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { OneClickApplyConfig } from '../../ports/user-preferences.port';
 import { UpdateOneClickApplyConfigUseCase } from './update-one-click-apply-config.use-case';
+
+const stubAuditLog = (): AuditLogPort => ({ log: mock(async () => undefined) }) as AuditLogPort;
 
 const BASE_CONFIG: OneClickApplyConfig = {
   enabled: true,
@@ -17,7 +21,7 @@ describe('UpdateOneClickApplyConfigUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserPreferencesRepository();
-    useCase = new UpdateOneClickApplyConfigUseCase(repository);
+    useCase = new UpdateOneClickApplyConfigUseCase(repository, stubAuditLog(), stubLogger);
   });
 
   it('persists the config and returns it', async () => {
