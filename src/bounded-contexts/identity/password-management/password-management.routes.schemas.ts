@@ -25,7 +25,9 @@ export const ForgotPasswordSchema = z
 // ─── Response schemas ────────────────────────────────────────────────
 // All three endpoints return the same `{ message }` envelope.
 export const PasswordMessageResponseSchema = z
-  .object({ message: z.string() })
+  .object({
+    message: z.string().openapi({ description: 'Localized success message for the operation.' }),
+  })
   .openapi('PasswordMessageResponse', {
     description: 'Generic success envelope for password-management endpoints.',
   });

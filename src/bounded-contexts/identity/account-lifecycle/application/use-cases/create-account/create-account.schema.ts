@@ -5,11 +5,19 @@ import { EmailSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives'
 // TOS_VERSION / PRIVACY_POLICY_VERSION.
 export const CreateAccountSchema = z
   .object({
-    name: z.string().optional(),
+    name: z
+      .string()
+      .optional()
+      .openapi({ description: 'Display name (optional). Defaults to email handle.' }),
     email: EmailSchema,
     password: PasswordSchema,
-    acceptedTosVersion: z.string().min(1),
-    acceptedPrivacyVersion: z.string().min(1),
+    acceptedTosVersion: z
+      .string()
+      .min(1)
+      .openapi({ description: 'Current TOS version the user has accepted (LGPD consent).' }),
+    acceptedPrivacyVersion: z.string().min(1).openapi({
+      description: 'Current privacy policy version the user has accepted (LGPD consent).',
+    }),
   })
   .openapi('CreateAccountRequest', {
     description:

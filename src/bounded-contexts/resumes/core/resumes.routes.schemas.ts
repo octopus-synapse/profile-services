@@ -52,11 +52,28 @@ export const LocaleQuery = z.object({ locale: z.string().optional() });
 
 export const CreateResumeBody = z
   .object({
-    title: z.string().min(1).max(100),
-    summary: BioSchema.optional(),
-    isPublic: z.boolean().optional(),
-    fullName: z.string().max(100).optional(),
-    jobTitle: z.string().max(100).optional(),
+    title: z
+      .string()
+      .min(1)
+      .max(100)
+      .openapi({ description: 'Resume title shown in the user dashboard (max 100 chars).' }),
+    summary: BioSchema.optional().openapi({
+      description: 'Optional long-form summary shown at the top of the resume.',
+    }),
+    isPublic: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether the resume is publicly viewable via its slug.' }),
+    fullName: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Full name to render on the resume. Optional.' }),
+    jobTitle: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Target job title or current role shown under the name.' }),
     phone: PhoneSchema,
     location: UserLocationSchema,
     linkedin: LinkedInUrlSchema.optional(),
@@ -64,8 +81,11 @@ export const CreateResumeBody = z
     website: SocialUrlSchema.optional(),
     template: z
       .enum(['PROFESSIONAL', 'CREATIVE', 'TECHNICAL', 'MINIMAL', 'MODERN', 'EXECUTIVE', 'ACADEMIC'])
-      .optional(),
-    sections: z.array(z.record(z.unknown())).optional(),
+      .optional()
+      .openapi({ description: 'Visual template the resume should render with.' }),
+    sections: z.array(z.record(z.unknown())).optional().openapi({
+      description: 'Generic resume sections. Each item references a SectionType by key.',
+    }),
   })
   .openapi('CreateResumeRequest', {
     description:

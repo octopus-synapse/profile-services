@@ -23,19 +23,52 @@ const JobApplicationStatusEnum = z.nativeEnum(JobApplicationStatus);
 // ============================================================================
 export const CreateJobSchema = z
   .object({
-    title: z.string().min(1).max(200),
-    company: z.string().min(1).max(200),
-    location: z.string().max(200).optional(),
-    jobType: JobTypeEnum,
-    description: z.string().min(1),
-    requirements: z.array(z.string().max(200)).max(40).optional(),
-    skills: z.array(z.string().max(60)).max(40).optional(),
-    salaryRange: z.string().max(100).optional(),
+    title: z
+      .string()
+      .min(1)
+      .max(200)
+      .openapi({ description: 'Job posting title (max 200 chars).' }),
+    company: z
+      .string()
+      .min(1)
+      .max(200)
+      .openapi({ description: 'Hiring company name (max 200 chars).' }),
+    location: z
+      .string()
+      .max(200)
+      .optional()
+      .openapi({ description: 'Location label (e.g. "Remote", "São Paulo, BR"). Optional.' }),
+    jobType: JobTypeEnum.openapi({
+      description: 'Employment type (full-time, part-time, contract, etc).',
+    }),
+    description: z
+      .string()
+      .min(1)
+      .openapi({ description: 'Long-form job description. Plaintext or markdown.' }),
+    requirements: z.array(z.string().max(200)).max(40).optional().openapi({
+      description: 'List of required qualifications (max 40 entries, 200 chars each).',
+    }),
+    skills: z
+      .array(z.string().max(60))
+      .max(40)
+      .optional()
+      .openapi({ description: 'List of relevant skills (max 40 entries, 60 chars each).' }),
+    salaryRange: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Free-form salary range label (e.g. "USD 80k-120k"). Optional.' }),
     applyUrl: SocialUrlSchema.optional(),
     expiresAt: IsoDateTimeSchema.optional(),
-    paymentCurrency: PaymentCurrencyEnum.optional(),
-    remotePolicy: RemotePolicyEnum.optional(),
-    minEnglishLevel: EnglishLevelEnum.optional(),
+    paymentCurrency: PaymentCurrencyEnum.optional().openapi({
+      description: 'ISO 4217 currency code for the salary range. Optional.',
+    }),
+    remotePolicy: RemotePolicyEnum.optional().openapi({
+      description: 'Remote / hybrid / on-site policy. Optional.',
+    }),
+    minEnglishLevel: EnglishLevelEnum.optional().openapi({
+      description: 'Minimum English proficiency level expected from candidates. Optional.',
+    }),
   })
   .openapi('CreateJobRequest', {
     description:
@@ -56,20 +89,59 @@ export const CreateJobSchema = z
 // ============================================================================
 export const UpdateJobSchema = z
   .object({
-    title: z.string().min(1).max(200).optional(),
-    company: z.string().min(1).max(200).optional(),
-    location: z.string().max(200).optional(),
-    jobType: JobTypeEnum.optional(),
-    description: z.string().min(1).optional(),
-    requirements: z.array(z.string().max(200)).max(40).optional(),
-    skills: z.array(z.string().max(60)).max(40).optional(),
-    salaryRange: z.string().max(100).optional(),
+    title: z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: 'Updated job title (max 200 chars).' }),
+    company: z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: 'Updated hiring company name (max 200 chars).' }),
+    location: z
+      .string()
+      .max(200)
+      .optional()
+      .openapi({ description: 'Updated location label. Optional.' }),
+    jobType: JobTypeEnum.optional().openapi({ description: 'Updated employment type.' }),
+    description: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ description: 'Updated long-form job description.' }),
+    requirements: z
+      .array(z.string().max(200))
+      .max(40)
+      .optional()
+      .openapi({ description: 'Updated list of required qualifications.' }),
+    skills: z
+      .array(z.string().max(60))
+      .max(40)
+      .optional()
+      .openapi({ description: 'Updated list of relevant skills.' }),
+    salaryRange: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Updated free-form salary range label.' }),
     applyUrl: SocialUrlSchema.optional(),
-    isActive: z.boolean().optional(),
+    isActive: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether the job is currently active and visible.' }),
     expiresAt: IsoDateTimeSchema.optional(),
-    paymentCurrency: PaymentCurrencyEnum.nullable().optional(),
-    remotePolicy: RemotePolicyEnum.nullable().optional(),
-    minEnglishLevel: EnglishLevelEnum.nullable().optional(),
+    paymentCurrency: PaymentCurrencyEnum.nullable().optional().openapi({
+      description: 'Updated ISO 4217 currency code. Null clears the previous value.',
+    }),
+    remotePolicy: RemotePolicyEnum.nullable().optional().openapi({
+      description: 'Updated remote / hybrid / on-site policy. Null clears the previous value.',
+    }),
+    minEnglishLevel: EnglishLevelEnum.nullable().optional().openapi({
+      description: 'Updated minimum English level. Null clears the previous value.',
+    }),
   })
   .openapi('UpdateJobRequest', {
     description: 'Partial update of a job. Nullable enums let users clear an existing selection.',
@@ -83,8 +155,16 @@ export const UpdateJobSchema = z
 // ============================================================================
 export const ApplyToJobSchema = z
   .object({
-    coverLetter: z.string().max(5000).optional(),
-    resumeId: z.string().uuid().optional(),
+    coverLetter: z
+      .string()
+      .max(5000)
+      .optional()
+      .openapi({ description: 'Optional cover letter (max 5000 chars).' }),
+    resumeId: z
+      .string()
+      .uuid()
+      .optional()
+      .openapi({ description: 'Resume id to apply with. Defaults to the primary resume.' }),
   })
   .openapi('ApplyToJobRequest', {
     description:

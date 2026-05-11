@@ -361,6 +361,62 @@ function applyOperationPermissionExtension(
   }
 }
 
+/**
+ * Lift `description` (and a few other docs-only metadata keys) from an
+ * inline `allOf` member — or from the `$ref` target — up to the
+ * property's top level. The spectral `schema-properties-description`
+ * rule walks `properties.*` and checks `description` directly; it does
+ * not merge `allOf` or follow `$ref` for non-resolved fields. `allOf`
+ * shapes are emitted by `zod-to-openapi` whenever a property references
+ * a registered component AND the inline ZodSchema diverges from the
+ * registered schema (e.g. multiple `.regex()` calls on `PasswordSchema`
+ * where only the first is picked up). OpenAPI semantically merges the
+ * allOf and inherits from the $ref target, so promoting these fields
+ * is a no-op for any consumer.
+ */
+function liftAllOfDescriptionToTopLevel(document: {
+  components?: { schemas?: Record<string, unknown> };
+}): void {
+  const schemas = document.components?.schemas;
+  if (!schemas) return;
+  const LIFT_KEYS = ['description', 'example', 'title'] as const;
+  const resolveRef = (ref: string): Record<string, unknown> | undefined => {
+    // Expected shape: '#/components/schemas/<Name>'
+    const prefix = '#/components/schemas/';
+    if (!ref.startsWith(prefix)) return undefined;
+    const name = ref.slice(prefix.length);
+    return schemas[name] as Record<string, unknown> | undefined;
+  };
+  for (const schemaName of Object.keys(schemas)) {
+    const schema = schemas[schemaName] as { properties?: Record<string, unknown> };
+    if (!schema || typeof schema !== 'object' || !schema.properties) continue;
+    for (const propName of Object.keys(schema.properties)) {
+      const prop = schema.properties[propName] as
+        | { allOf?: Array<Record<string, unknown>>; [k: string]: unknown }
+        | undefined;
+      if (!prop || typeof prop !== 'object' || !Array.isArray(prop.allOf)) continue;
+      for (const key of LIFT_KEYS) {
+        if (prop[key] !== undefined) continue;
+        for (const member of prop.allOf) {
+          if (!member || typeof member !== 'object') continue;
+          if (member[key] !== undefined) {
+            prop[key] = member[key];
+            break;
+          }
+          const ref = member.$ref as string | undefined;
+          if (typeof ref === 'string') {
+            const target = resolveRef(ref);
+            if (target && target[key] !== undefined) {
+              prop[key] = target[key];
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 function buildResponses(route: Route): Record<string, unknown> {
   const status = buildSuccessStatus(route);
   const errors: Record<string, unknown> = {
@@ -511,6 +567,7 @@ async function generate(): Promise<void> {
 
   applyParameterAutoDeriveExamples(document);
   applyOperationPermissionExtension(document, routes);
+  liftAllOfDescriptionToTopLevel(document);
 
   // Final stability pass — explicitly rebuild `paths` in alphabetical
   // order so JSON serialisation is identical across hosts regardless

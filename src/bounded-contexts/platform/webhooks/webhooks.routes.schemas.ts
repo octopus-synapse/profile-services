@@ -18,7 +18,10 @@ export const IdParam = IdParamSchema;
 export const CreateWebhookSchema = z
   .object({
     url: SocialUrlSchema,
-    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
+    events: z
+      .array(z.enum(SUPPORTED_EVENTS))
+      .min(1)
+      .openapi({ description: 'Event types this webhook subscribes to. At least one required.' }),
   })
   .openapi('CreateWebhookRequest', {
     description:
@@ -32,8 +35,15 @@ export const CreateWebhookSchema = z
 export const UpdateWebhookSchema = z
   .object({
     url: SocialUrlSchema.optional(),
-    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
-    enabled: z.boolean().optional(),
+    events: z
+      .array(z.enum(SUPPORTED_EVENTS))
+      .min(1)
+      .optional()
+      .openapi({ description: 'Updated event subscriptions. Omit to leave unchanged.' }),
+    enabled: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether the webhook is currently active.' }),
   })
   .openapi('UpdateWebhookRequest', {
     description:

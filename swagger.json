@@ -50,7 +50,8 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Display name (optional). Defaults to email handle."
           },
           "email": {
             "$ref": "#/components/schemas/Email"
@@ -60,11 +61,13 @@
           },
           "acceptedTosVersion": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Current TOS version the user has accepted (LGPD consent)."
           },
           "acceptedPrivacyVersion": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Current privacy policy version the user has accepted (LGPD consent)."
           }
         },
         "required": [
@@ -93,7 +96,8 @@
         "type": "object",
         "properties": {
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Localized success message for the operation."
           }
         },
         "required": [
@@ -148,7 +152,8 @@
         "properties": {
           "token": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Single-use password-reset token sent via email."
           },
           "newPassword": {
             "allOf": [
@@ -158,7 +163,9 @@
               {
                 "pattern": "[A-Z]"
               }
-            ]
+            ],
+            "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+            "example": "Fixture_Password_123!"
           }
         },
         "required": [
@@ -176,26 +183,33 @@
         "properties": {
           "minLength": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Minimum password length enforced by the server."
           },
           "maxLength": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Maximum password length enforced by the server."
           },
           "requireUppercase": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether at least one uppercase letter is required."
           },
           "requireLowercase": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether at least one lowercase letter is required."
           },
           "requireNumber": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether at least one digit is required."
           },
           "requireSpecialChar": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether at least one special character is required."
           },
           "specialChars": {
-            "type": "string"
+            "type": "string",
+            "description": "Allowed special characters for password validation."
           }
         },
         "required": [
@@ -247,16 +261,19 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Job posting title (max 200 chars)."
           },
           "company": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Hiring company name (max 200 chars)."
           },
           "location": {
             "type": "string",
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Location label (e.g. \"Remote\", \"São Paulo, BR\"). Optional."
           },
           "jobType": {
             "type": "string",
@@ -267,11 +284,13 @@
               "PART_TIME",
               "VOLUNTEER",
               "FREELANCE"
-            ]
+            ],
+            "description": "Employment type (full-time, part-time, contract, etc)."
           },
           "description": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Long-form job description. Plaintext or markdown."
           },
           "requirements": {
             "type": "array",
@@ -279,7 +298,8 @@
               "type": "string",
               "maxLength": 200
             },
-            "maxItems": 40
+            "maxItems": 40,
+            "description": "List of required qualifications (max 40 entries, 200 chars each)."
           },
           "skills": {
             "type": "array",
@@ -287,11 +307,13 @@
               "type": "string",
               "maxLength": 60
             },
-            "maxItems": 40
+            "maxItems": 40,
+            "description": "List of relevant skills (max 40 entries, 60 chars each)."
           },
           "salaryRange": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Free-form salary range label (e.g. \"USD 80k-120k\"). Optional."
           },
           "applyUrl": {
             "$ref": "#/components/schemas/SocialUrl"
@@ -309,7 +331,8 @@
               "USD",
               "EUR",
               "GBP"
-            ]
+            ],
+            "description": "ISO 4217 currency code for the salary range. Optional."
           },
           "remotePolicy": {
             "type": "string",
@@ -317,7 +340,8 @@
               "REMOTE",
               "HYBRID",
               "ONSITE"
-            ]
+            ],
+            "description": "Remote / hybrid / on-site policy. Optional."
           },
           "minEnglishLevel": {
             "type": "string",
@@ -326,7 +350,8 @@
               "INTERMEDIATE",
               "ADVANCED",
               "FLUENT"
-            ]
+            ],
+            "description": "Minimum English proficiency level expected from candidates. Optional."
           }
         },
         "required": [
@@ -357,16 +382,19 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Updated job title (max 200 chars)."
           },
           "company": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Updated hiring company name (max 200 chars)."
           },
           "location": {
             "type": "string",
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "Updated location label. Optional."
           },
           "jobType": {
             "type": "string",
@@ -377,11 +405,13 @@
               "PART_TIME",
               "VOLUNTEER",
               "FREELANCE"
-            ]
+            ],
+            "description": "Updated employment type."
           },
           "description": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Updated long-form job description."
           },
           "requirements": {
             "type": "array",
@@ -389,7 +419,8 @@
               "type": "string",
               "maxLength": 200
             },
-            "maxItems": 40
+            "maxItems": 40,
+            "description": "Updated list of required qualifications."
           },
           "skills": {
             "type": "array",
@@ -397,17 +428,20 @@
               "type": "string",
               "maxLength": 60
             },
-            "maxItems": 40
+            "maxItems": 40,
+            "description": "Updated list of relevant skills."
           },
           "salaryRange": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Updated free-form salary range label."
           },
           "applyUrl": {
             "$ref": "#/components/schemas/SocialUrl"
           },
           "isActive": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the job is currently active and visible."
           },
           "expiresAt": {
             "type": "string",
@@ -423,7 +457,8 @@
               "USD",
               "EUR",
               "GBP"
-            ]
+            ],
+            "description": "Updated ISO 4217 currency code. Null clears the previous value."
           },
           "remotePolicy": {
             "type": "string",
@@ -432,7 +467,8 @@
               "REMOTE",
               "HYBRID",
               "ONSITE"
-            ]
+            ],
+            "description": "Updated remote / hybrid / on-site policy. Null clears the previous value."
           },
           "minEnglishLevel": {
             "type": "string",
@@ -442,7 +478,8 @@
               "INTERMEDIATE",
               "ADVANCED",
               "FLUENT"
-            ]
+            ],
+            "description": "Updated minimum English level. Null clears the previous value."
           }
         },
         "description": "Partial update of a job. Nullable enums let users clear an existing selection.",
@@ -456,11 +493,13 @@
         "properties": {
           "coverLetter": {
             "type": "string",
-            "maxLength": 5000
+            "maxLength": 5000,
+            "description": "Optional cover letter (max 5000 chars)."
           },
           "resumeId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "description": "Resume id to apply with. Defaults to the primary resume."
           }
         },
         "description": "Submit a job application. `resumeId` references the resume the candidate wants to apply with; if omitted, the primary resume is used.",
@@ -483,7 +522,9 @@
               {
                 "pattern": "[A-Z]"
               }
-            ]
+            ],
+            "description": "Password (8-128 chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).",
+            "example": "Fixture_Password_123!"
           }
         },
         "required": [
@@ -536,7 +577,7 @@
         "type": "string",
         "minLength": 1,
         "maxLength": 2000,
-        "description": "Long free-text bio or summary (1-2000 characters).",
+        "description": "Optional long-form summary shown at the top of the resume.",
         "example": "Engineer interested in building robust systems."
       },
       "CreateResumeRequest": {
@@ -545,21 +586,25 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Resume title shown in the user dashboard (max 100 chars)."
           },
           "summary": {
             "$ref": "#/components/schemas/Bio"
           },
           "isPublic": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the resume is publicly viewable via its slug."
           },
           "fullName": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Full name to render on the resume. Optional."
           },
           "jobTitle": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Target job title or current role shown under the name."
           },
           "phone": {
             "$ref": "#/components/schemas/Phone"
@@ -586,7 +631,8 @@
               "MODERN",
               "EXECUTIVE",
               "ACADEMIC"
-            ]
+            ],
+            "description": "Visual template the resume should render with."
           },
           "sections": {
             "type": "array",
@@ -595,7 +641,8 @@
               "additionalProperties": {
                 "nullable": true
               }
-            }
+            },
+            "description": "Generic resume sections. Each item references a SectionType by key."
           }
         },
         "required": [
@@ -619,21 +666,25 @@
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Resume title shown in the user dashboard (max 100 chars)."
           },
           "summary": {
             "$ref": "#/components/schemas/Bio"
           },
           "isPublic": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the resume is publicly viewable via its slug."
           },
           "fullName": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Full name to render on the resume. Optional."
           },
           "jobTitle": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Target job title or current role shown under the name."
           },
           "phone": {
             "$ref": "#/components/schemas/Phone"
@@ -660,7 +711,8 @@
               "MODERN",
               "EXECUTIVE",
               "ACADEMIC"
-            ]
+            ],
+            "description": "Visual template the resume should render with."
           },
           "sections": {
             "type": "array",
@@ -669,7 +721,8 @@
               "additionalProperties": {
                 "nullable": true
               }
-            }
+            },
+            "description": "Generic resume sections. Each item references a SectionType by key."
           }
         },
         "description": "Partial update of a resume. Same shape as CreateResumeRequest with all fields optional.",
@@ -702,7 +755,8 @@
                 "ats.score.updated"
               ]
             },
-            "minItems": 1
+            "minItems": 1,
+            "description": "Event types this webhook subscribes to. At least one required."
           }
         },
         "required": [
@@ -734,10 +788,12 @@
                 "ats.score.updated"
               ]
             },
-            "minItems": 1
+            "minItems": 1,
+            "description": "Updated event subscriptions. Omit to leave unchanged."
           },
           "enabled": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the webhook is currently active."
           }
         },
         "description": "Partial update of a webhook (rotate URL, change event subscriptions, toggle enabled).",

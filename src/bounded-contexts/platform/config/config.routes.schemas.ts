@@ -10,13 +10,29 @@ import { PASSWORD_POLICY } from '@/shared-kernel/schemas/primitives/password.sch
 
 export const PasswordPolicyResponseSchema = z
   .object({
-    minLength: z.number().int().min(1),
-    maxLength: z.number().int().min(1),
-    requireUppercase: z.boolean(),
-    requireLowercase: z.boolean(),
-    requireNumber: z.boolean(),
-    requireSpecialChar: z.boolean(),
-    specialChars: z.string(),
+    minLength: z
+      .number()
+      .int()
+      .min(1)
+      .openapi({ description: 'Minimum password length enforced by the server.' }),
+    maxLength: z
+      .number()
+      .int()
+      .min(1)
+      .openapi({ description: 'Maximum password length enforced by the server.' }),
+    requireUppercase: z
+      .boolean()
+      .openapi({ description: 'Whether at least one uppercase letter is required.' }),
+    requireLowercase: z
+      .boolean()
+      .openapi({ description: 'Whether at least one lowercase letter is required.' }),
+    requireNumber: z.boolean().openapi({ description: 'Whether at least one digit is required.' }),
+    requireSpecialChar: z
+      .boolean()
+      .openapi({ description: 'Whether at least one special character is required.' }),
+    specialChars: z
+      .string()
+      .openapi({ description: 'Allowed special characters for password validation.' }),
   })
   .openapi('PasswordPolicy', {
     description:
