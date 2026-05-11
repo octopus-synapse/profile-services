@@ -8,9 +8,15 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { ComputeMatchUseCase } from './application/use-cases/compute-match.use-case';
 import { ComputeMatchRequestDto } from './dto/match-breakdown.schema';
-import { toMatchBreakdownResponseDto } from './infrastructure/presenters/match-breakdown.presenter';
+import {
+  toJobMatchSimpleResponseDto,
+  toMatchBreakdownResponseDto,
+} from './infrastructure/presenters/match-breakdown.presenter';
 import {
   ComputeMatchSchema,
+  JobIdParams,
+  JobMatchByJobBodySchema,
+  JobMatchSimpleResponseSchema,
   MatchBreakdownResponseSchema,
   pickUserId,
   ResumeJobParams,
@@ -61,6 +67,31 @@ export const jobMatchRoutes: ReadonlyArray<Route<ComputeMatchUseCase>> = [
         jobId,
       });
       return toMatchBreakdownResponseDto(breakdown);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/jobs/:id/match',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    params: JobIdParams,
+    body: JobMatchByJobBodySchema,
+    response: JobMatchSimpleResponseSchema,
+    openapi: {
+      summary: 'Candidate-side simplified match score for a single job',
+      tags: ['job-match'],
+      description: 'Match Score API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, compute) => {
+      const { id: jobId } = ctx.params as { id: string };
+      const body = ctx.body as { resumeId: string };
+      const breakdown = await compute.execute({
+        userId: pickUserId(ctx),
+        resumeId: body.resumeId,
+        jobId,
+      });
+      return toJobMatchSimpleResponseDto(breakdown);
     },
   },
 ];

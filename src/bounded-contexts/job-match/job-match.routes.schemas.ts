@@ -63,14 +63,16 @@ export const MatchBreakdownResponseSchema = z.object({
 });
 
 export const ResumeJobParams = z.object({
-  resumeId: z.string(),
-  jobId: z.string(),
+  resumeId: z.string().uuid(),
+  jobId: z.string().uuid(),
 });
+
+export const JobIdParams = z.object({ id: z.string().uuid() });
 
 export const ComputeMatchSchema = z
   .object({
-    resumeId: z.string().min(1),
-    jobId: z.string().min(1),
+    resumeId: z.string().uuid(),
+    jobId: z.string().uuid(),
   })
   .openapi({
     example: {
@@ -78,6 +80,27 @@ export const ComputeMatchSchema = z
       jobId: '01900000-0000-7000-a000-000000000030',
     },
   });
+
+export const JobMatchByJobBodySchema = z
+  .object({
+    resumeId: z.string().uuid(),
+  })
+  .openapi({
+    example: { resumeId: '01900000-0000-7000-a000-000000000010' },
+  });
+
+export const JobMatchDimensionSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  value: z.number().min(0).max(1),
+});
+
+export const JobMatchSimpleResponseSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  matchedKeywords: z.array(z.string()),
+  missingKeywords: z.array(z.string()),
+  dimensions: z.array(JobMatchDimensionSchema),
+});
 
 export function pickUserId(ctx: { user: { userId: string } | null }): string {
   const id = ctx.user?.userId;
