@@ -576,6 +576,18 @@
           "website": {
             "$ref": "#/components/schemas/SocialUrl"
           },
+          "template": {
+            "type": "string",
+            "enum": [
+              "PROFESSIONAL",
+              "CREATIVE",
+              "TECHNICAL",
+              "MINIMAL",
+              "MODERN",
+              "EXECUTIVE",
+              "ACADEMIC"
+            ]
+          },
           "sections": {
             "type": "array",
             "items": {
@@ -637,6 +649,18 @@
           },
           "website": {
             "$ref": "#/components/schemas/SocialUrl"
+          },
+          "template": {
+            "type": "string",
+            "enum": [
+              "PROFESSIONAL",
+              "CREATIVE",
+              "TECHNICAL",
+              "MINIMAL",
+              "MODERN",
+              "EXECUTIVE",
+              "ACADEMIC"
+            ]
           },
           "sections": {
             "type": "array",

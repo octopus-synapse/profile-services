@@ -1,0 +1,4 @@
+#!/bin/sh
+# F3-PD-013 — pre-push gate. Same suite as pre-commit so push --no-verify
+# / force-push can't bypass quality gates locally.
+bunx octopus-run-parallel --config .precommit.yaml

@@ -62,6 +62,9 @@ export const CreateResumeBody = z
     linkedin: LinkedInUrlSchema.optional(),
     github: GitHubUrlSchema.optional(),
     website: SocialUrlSchema.optional(),
+    template: z
+      .enum(['PROFESSIONAL', 'CREATIVE', 'TECHNICAL', 'MINIMAL', 'MODERN', 'EXECUTIVE', 'ACADEMIC'])
+      .optional(),
     sections: z.array(z.record(z.unknown())).optional(),
   })
   .openapi('CreateResumeRequest', {
