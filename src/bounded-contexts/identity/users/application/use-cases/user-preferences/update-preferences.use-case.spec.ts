@@ -12,6 +12,8 @@ describe('UpdatePreferencesUseCase', () => {
       userExists: mock(async () => true),
       findPreferences: mock(async () => ({ theme: 'light', language: 'en' })),
       updatePreferences: mock(async () => undefined),
+      findOneClickApplyConfig: mock(async () => null),
+      upsertOneClickApplyConfig: mock(async (_u: string, c: unknown) => c),
       findFullPreferences: mock(async () => null),
       upsertFullPreferences: mock(async () => ({
         id: 'pref-1',

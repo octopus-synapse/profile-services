@@ -1,8 +1,15 @@
-import type { ApplyMode, EnglishLevel, PaymentCurrency, RemotePolicy } from '@prisma/client';
+import type {
+  ApplyMode,
+  EnglishLevel,
+  PaymentCurrency,
+  Prisma,
+  RemotePolicy,
+} from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import {
   type FullUserPreferences,
+  type OneClickApplyConfig,
   type UpdateFullPreferencesData,
   type UpdatePreferencesData,
   type UserApplyCriteriaData,
@@ -251,6 +258,28 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       createdAt: hydrated.createdAt,
       updatedAt: hydrated.updatedAt,
     };
+  }
+
+  async findOneClickApplyConfig(userId: string): Promise<OneClickApplyConfig | null> {
+    const row = await this.prisma.userPreferences.findUnique({
+      where: { userId },
+      select: { oneClickApplyConfig: true },
+    });
+    if (!row || row.oneClickApplyConfig === null) return null;
+    return row.oneClickApplyConfig as unknown as OneClickApplyConfig;
+  }
+
+  async upsertOneClickApplyConfig(
+    userId: string,
+    config: OneClickApplyConfig,
+  ): Promise<OneClickApplyConfig> {
+    const blob = JSON.parse(JSON.stringify(config)) as Prisma.InputJsonValue;
+    await this.prisma.userPreferences.upsert({
+      where: { userId },
+      create: { userId, oneClickApplyConfig: blob },
+      update: { oneClickApplyConfig: blob },
+    });
+    return config;
   }
 }
 // Keep EnglishLevel import live for future criteria filters (English floor).

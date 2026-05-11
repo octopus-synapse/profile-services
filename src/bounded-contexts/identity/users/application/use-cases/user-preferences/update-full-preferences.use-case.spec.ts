@@ -40,6 +40,8 @@ describe('UpdateFullPreferencesUseCase', () => {
       userExists: mock(async () => true),
       findPreferences: mock(async () => null),
       updatePreferences: mock(async () => undefined),
+      findOneClickApplyConfig: mock(async () => null),
+      upsertOneClickApplyConfig: mock(async (_u: string, c: unknown) => c),
       findFullPreferences: mock(async () => null),
       upsertFullPreferences: mock(async () => mockFullPreferences),
     } as UserPreferencesRepositoryPort;

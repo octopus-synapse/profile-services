@@ -91694,6 +91694,460 @@
         "x-permission": "social:use"
       }
     },
+    "/api/v1/users/me/one-click-apply": {
+      "get": {
+        "summary": "Get the caller's One-Click Apply config",
+        "description": "Users API",
+        "tags": [
+          "users"
+        ],
+        "operationId": "get_v1_users_me_one_click_apply",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "resumeId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "coverLetterTemplate": {
+                          "type": "string",
+                          "maxLength": 8000
+                        },
+                        "tailoringMode": {
+                          "type": "string",
+                          "enum": [
+                            "VERBATIM",
+                            "AI_TAILOR"
+                          ]
+                        },
+                        "alsoAttach": {
+                          "type": "object",
+                          "properties": {
+                            "githubUrl": {
+                              "type": "boolean"
+                            },
+                            "linkedinUrl": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "githubUrl",
+                            "linkedinUrl"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "resumeId",
+                        "coverLetterTemplate",
+                        "tailoringMode",
+                        "alsoAttach"
+                      ],
+                      "description": "Auto-apply preferences for the candidate UI.",
+                      "example": {
+                        "enabled": true,
+                        "resumeId": "01900000-0000-7000-a000-000000000010",
+                        "coverLetterTemplate": "Olá, equipe {{job.company}}!\nVi a vaga de {{job.title}}...",
+                        "tailoringMode": "AI_TAILOR",
+                        "alsoAttach": {
+                          "githubUrl": true,
+                          "linkedinUrl": true
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_read"
+      },
+      "put": {
+        "summary": "Replace the caller's One-Click Apply config",
+        "description": "Users API",
+        "tags": [
+          "users"
+        ],
+        "operationId": "put_v1_users_me_one_click_apply",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "resumeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "coverLetterTemplate": {
+                    "type": "string",
+                    "maxLength": 8000
+                  },
+                  "tailoringMode": {
+                    "type": "string",
+                    "enum": [
+                      "VERBATIM",
+                      "AI_TAILOR"
+                    ]
+                  },
+                  "alsoAttach": {
+                    "type": "object",
+                    "properties": {
+                      "githubUrl": {
+                        "type": "boolean"
+                      },
+                      "linkedinUrl": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "githubUrl",
+                      "linkedinUrl"
+                    ]
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "resumeId",
+                  "coverLetterTemplate",
+                  "tailoringMode",
+                  "alsoAttach"
+                ],
+                "description": "Auto-apply preferences for the candidate UI.",
+                "example": {
+                  "enabled": true,
+                  "resumeId": "01900000-0000-7000-a000-000000000010",
+                  "coverLetterTemplate": "Olá, equipe {{job.company}}!\nVi a vaga de {{job.title}}...",
+                  "tailoringMode": "AI_TAILOR",
+                  "alsoAttach": {
+                    "githubUrl": true,
+                    "linkedinUrl": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "resumeId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "coverLetterTemplate": {
+                          "type": "string",
+                          "maxLength": 8000
+                        },
+                        "tailoringMode": {
+                          "type": "string",
+                          "enum": [
+                            "VERBATIM",
+                            "AI_TAILOR"
+                          ]
+                        },
+                        "alsoAttach": {
+                          "type": "object",
+                          "properties": {
+                            "githubUrl": {
+                              "type": "boolean"
+                            },
+                            "linkedinUrl": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "githubUrl",
+                            "linkedinUrl"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "resumeId",
+                        "coverLetterTemplate",
+                        "tailoringMode",
+                        "alsoAttach"
+                      ],
+                      "description": "Auto-apply preferences for the candidate UI.",
+                      "example": {
+                        "enabled": true,
+                        "resumeId": "01900000-0000-7000-a000-000000000010",
+                        "coverLetterTemplate": "Olá, equipe {{job.company}}!\nVi a vaga de {{job.title}}...",
+                        "tailoringMode": "AI_TAILOR",
+                        "alsoAttach": {
+                          "githubUrl": true,
+                          "linkedinUrl": true
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt",
+        "x-permission": "user:profile_update"
+      }
+    },
     "/api/v1/users/me/permissions": {
       "get": {
         "summary": "List permission keys granted to the current user (for UI gating)",

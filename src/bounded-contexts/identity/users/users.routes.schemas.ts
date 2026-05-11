@@ -258,3 +258,30 @@ export const AssignRolesSchema = z.object({ roles: z.array(z.string()) }).openap
     roles: ['role_user'],
   },
 });
+
+// ─── One-Click Apply config (F3-PD-009a) ─────────────────────────────
+export const OneClickApplyConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    resumeId: z.string().uuid(),
+    coverLetterTemplate: z.string().max(8000),
+    tailoringMode: z.enum(['VERBATIM', 'AI_TAILOR']),
+    alsoAttach: z.object({
+      githubUrl: z.boolean(),
+      linkedinUrl: z.boolean(),
+    }),
+  })
+  .openapi({
+    description: 'Auto-apply preferences for the candidate UI.',
+    example: {
+      enabled: true,
+      resumeId: '01900000-0000-7000-a000-000000000010',
+      coverLetterTemplate: 'Olá, equipe {{job.company}}!\nVi a vaga de {{job.title}}...',
+      tailoringMode: 'AI_TAILOR',
+      alsoAttach: { githubUrl: true, linkedinUrl: true },
+    },
+  });
+
+export const OneClickApplyConfigResponseSchema = z.object({
+  data: OneClickApplyConfigSchema.nullable(),
+});
