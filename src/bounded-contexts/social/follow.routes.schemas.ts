@@ -38,8 +38,8 @@ export const FollowUserSchema = z.object({
 
 export const FollowWithUserSchema = z.object({
   id: z.string(),
-  followerId: z.string(),
-  followingId: z.string(),
+  followerId: z.string().uuid(),
+  followingId: z.string().uuid(),
   createdAt: IsoDateTimeSchema,
   follower: FollowUserSchema.optional(),
   following: FollowUserSchema.optional(),

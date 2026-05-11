@@ -28,7 +28,7 @@ export const AtsScoreDistributionEntrySchema = z.object({
 });
 
 export const MostUsedSectionEntrySchema = z.object({
-  sectionTypeId: z.string(),
+  sectionTypeId: z.string().uuid(),
   title: z.string(),
   key: z.string(),
   count: z.number().int().min(0),

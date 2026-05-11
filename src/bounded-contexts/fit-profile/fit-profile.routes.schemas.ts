@@ -57,13 +57,13 @@ export const UpdateFitQuestionSchema = z
   });
 
 export const FitAnswerSchema = z.object({
-  questionId: z.string(),
+  questionId: z.string().uuid(),
   rawValue: z.number().int().min(0).max(5),
 });
 
 export const SubmitFitAnswersSchema = z
   .object({
-    questionSetId: z.string(),
+    questionSetId: z.string().uuid(),
     answers: z.array(FitAnswerSchema).length(QUESTION_SET_SIZE),
   })
   .openapi({
@@ -139,14 +139,14 @@ export const FitQuestionItemSchema = z.object({
 });
 
 export const FitQuestionsResponseSchema = z.object({
-  questionSetId: z.string(),
+  questionSetId: z.string().uuid(),
   seed: z.string(),
   createdAt: IsoDateTimeSchema,
   questions: z.array(FitQuestionItemSchema),
 });
 
 export const SubmittedFitProfileResponseSchema = z.object({
-  profileId: z.string(),
+  profileId: z.string().uuid(),
   version: z.number().int().min(1),
   computedAt: IsoDateTimeSchema,
   expiresAt: IsoDateTimeSchema,
@@ -154,8 +154,8 @@ export const SubmittedFitProfileResponseSchema = z.object({
 
 export const JobFitProfileResponseSchema = z.object({
   id: z.string(),
-  jobId: z.string(),
-  editedByUserId: z.string(),
+  jobId: z.string().uuid(),
+  editedByUserId: z.string().uuid(),
   computedAt: IsoDateTimeSchema,
   vector: FitVectorSchema,
 });

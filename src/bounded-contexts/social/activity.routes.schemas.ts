@@ -60,7 +60,7 @@ export const ActivityUserSchema = z.object({
 
 export const ActivityWithUserSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   type: z.enum([
     'RESUME_CREATED',
     'RESUME_UPDATED',
@@ -74,7 +74,7 @@ export const ActivityWithUserSchema = z.object({
     'CONNECTED_USER',
   ]),
   metadata: ActivityMetadataSchema,
-  entityId: z.string().nullable(),
+  entityId: z.string().uuid().nullable(),
   entityType: z.string().nullable(),
   createdAt: IsoDateTimeSchema,
   user: ActivityUserSchema.optional(),

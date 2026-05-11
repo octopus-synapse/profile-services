@@ -1200,7 +1200,8 @@
                   "type": "object",
                   "properties": {
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "email": {
                       "type": "string"
@@ -1639,7 +1640,8 @@
                         "type": "object",
                         "properties": {
                           "sectionTypeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -2047,7 +2049,8 @@
                           },
                           "lastMessageSenderId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           }
                         },
                         "required": [
@@ -2420,10 +2423,12 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "role": {
                             "type": "string"
@@ -2822,6 +2827,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -2832,6 +2838,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -8742,7 +8749,8 @@
                       }
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -9213,7 +9221,8 @@
                       }
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -13950,7 +13959,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
             "required": false,
             "name": "areaId",
@@ -14005,7 +14015,8 @@
                             "type": "boolean"
                           },
                           "areaId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -14258,7 +14269,8 @@
                       "type": "boolean"
                     },
                     "areaId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "createdAt": {
                       "type": "string",
@@ -14659,7 +14671,8 @@
                       "type": "boolean"
                     },
                     "areaId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "createdAt": {
                       "type": "string",
@@ -14929,7 +14942,8 @@
                       "type": "boolean"
                     },
                     "areaId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "createdAt": {
                       "type": "string",
@@ -15161,7 +15175,8 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
             "required": false,
             "name": "nicheId",
@@ -15238,7 +15253,8 @@
                           },
                           "nicheId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "aliases": {
                             "type": "array",
@@ -15531,7 +15547,8 @@
                     },
                     "nicheId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "aliases": {
                       "type": "array",
@@ -15972,7 +15989,8 @@
                     },
                     "nicheId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "aliases": {
                       "type": "array",
@@ -16282,7 +16300,8 @@
                     },
                     "nicheId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "aliases": {
                       "type": "array",
@@ -16880,7 +16899,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "modifierType": {
                             "type": "string",
@@ -16901,7 +16921,8 @@
                           },
                           "permissionId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "reason": {
                             "type": "string"
@@ -17207,7 +17228,8 @@
                       "type": "string"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "modifierType": {
                       "type": "string",
@@ -17228,7 +17250,8 @@
                     },
                     "permissionId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "reason": {
                       "type": "string"
@@ -18174,6 +18197,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -18194,7 +18218,8 @@
                       "type": "object",
                       "properties": {
                         "shareId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "totalViews": {
                           "type": "integer",
@@ -18467,6 +18492,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -18769,7 +18795,8 @@
                                 "type": "string"
                               },
                               "jobId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "matchScore": {
                                 "type": "number"
@@ -18901,6 +18928,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -18918,7 +18946,8 @@
                   "type": "object",
                   "properties": {
                     "applicationId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "alreadyApplied": {
                       "type": "boolean"
@@ -19063,6 +19092,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -19080,7 +19110,8 @@
                   "type": "object",
                   "properties": {
                     "itemId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -20475,7 +20506,8 @@
                       "type": "object",
                       "properties": {
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
@@ -20493,7 +20525,8 @@
                       "type": "object",
                       "properties": {
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
@@ -20597,7 +20630,8 @@
                   "type": "object",
                   "properties": {
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -21961,7 +21995,8 @@
                         "type": "object",
                         "properties": {
                           "jobId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "reason": {
                             "type": "string"
@@ -23090,6 +23125,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -23274,6 +23310,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -23466,6 +23503,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -23496,7 +23534,8 @@
                       "type": "object",
                       "properties": {
                         "conversationId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "conversation": {
                           "type": "object",
@@ -24017,6 +24056,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -24291,6 +24331,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -24573,6 +24614,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -24848,6 +24890,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -25075,6 +25118,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -25287,6 +25331,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000050"
             },
             "required": true,
@@ -30108,6 +30153,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -30269,6 +30315,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -30484,6 +30531,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -31062,7 +31110,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -31144,7 +31193,8 @@
                           },
                           "originalPostId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "coAuthors": {
                             "type": "array",
@@ -31164,7 +31214,8 @@
                           },
                           "threadId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "pollDeadline": {
                             "type": "string",
@@ -31285,7 +31336,8 @@
                                 "type": "string"
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "type": {
                                 "type": "string",
@@ -31367,7 +31419,8 @@
                               },
                               "originalPostId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "coAuthors": {
                                 "type": "array",
@@ -31387,7 +31440,8 @@
                               },
                               "threadId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "pollDeadline": {
                                 "type": "string",
@@ -31571,7 +31625,8 @@
                                   "type": "string"
                                 },
                                 "authorId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "type": {
                                   "type": "string",
@@ -31653,7 +31708,8 @@
                                 },
                                 "originalPostId": {
                                   "type": "string",
-                                  "nullable": true
+                                  "nullable": true,
+                                  "format": "uuid"
                                 },
                                 "coAuthors": {
                                   "type": "array",
@@ -31673,7 +31729,8 @@
                                 },
                                 "threadId": {
                                   "type": "string",
-                                  "nullable": true
+                                  "nullable": true,
+                                  "format": "uuid"
                                 },
                                 "pollDeadline": {
                                   "type": "string",
@@ -31794,7 +31851,8 @@
                                       "type": "string"
                                     },
                                     "authorId": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "format": "uuid"
                                     },
                                     "type": {
                                       "type": "string",
@@ -31876,7 +31934,8 @@
                                     },
                                     "originalPostId": {
                                       "type": "string",
-                                      "nullable": true
+                                      "nullable": true,
+                                      "format": "uuid"
                                     },
                                     "coAuthors": {
                                       "type": "array",
@@ -31896,7 +31955,8 @@
                                     },
                                     "threadId": {
                                       "type": "string",
-                                      "nullable": true
+                                      "nullable": true,
+                                      "format": "uuid"
                                     },
                                     "pollDeadline": {
                                       "type": "string",
@@ -32300,7 +32360,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -32382,7 +32443,8 @@
                           },
                           "originalPostId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "coAuthors": {
                             "type": "array",
@@ -32402,7 +32464,8 @@
                           },
                           "threadId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "pollDeadline": {
                             "type": "string",
@@ -32523,7 +32586,8 @@
                                 "type": "string"
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "type": {
                                 "type": "string",
@@ -32605,7 +32669,8 @@
                               },
                               "originalPostId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "coAuthors": {
                                 "type": "array",
@@ -32625,7 +32690,8 @@
                               },
                               "threadId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "pollDeadline": {
                                 "type": "string",
@@ -33274,6 +33340,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -33316,7 +33383,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -33398,7 +33466,8 @@
                           },
                           "originalPostId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "coAuthors": {
                             "type": "array",
@@ -33418,7 +33487,8 @@
                           },
                           "threadId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "pollDeadline": {
                             "type": "string",
@@ -33539,7 +33609,8 @@
                                 "type": "string"
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "type": {
                                 "type": "string",
@@ -33621,7 +33692,8 @@
                               },
                               "originalPostId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "coAuthors": {
                                 "type": "array",
@@ -33641,7 +33713,8 @@
                               },
                               "threadId": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "format": "uuid"
                               },
                               "pollDeadline": {
                                 "type": "string",
@@ -34148,7 +34221,8 @@
                 "type": "object",
                 "properties": {
                   "questionSetId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "answers": {
                     "type": "array",
@@ -34156,7 +34230,8 @@
                       "type": "object",
                       "properties": {
                         "questionId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "rawValue": {
                           "type": "integer",
@@ -34293,7 +34368,8 @@
                   "type": "object",
                   "properties": {
                     "profileId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "version": {
                       "type": "integer",
@@ -34955,7 +35031,8 @@
                   "type": "object",
                   "properties": {
                     "questionSetId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "seed": {
                       "type": "string"
@@ -35810,7 +35887,8 @@
                     "type": "string"
                   },
                   "resumeId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -35941,6 +36019,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -36112,6 +36191,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -36374,7 +36454,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -36738,7 +36819,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "title": {
                       "type": "string"
@@ -37063,10 +37145,12 @@
                             "type": "string"
                           },
                           "jobId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "status": {
                             "type": "string",
@@ -37084,11 +37168,13 @@
                           },
                           "resumeId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "tailoredVersionId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -37109,7 +37195,8 @@
                                 "type": "string"
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "title": {
                                 "type": "string"
@@ -37693,7 +37780,8 @@
                             "type": "string"
                           },
                           "jobId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "status": {
                             "type": "string"
@@ -37924,6 +38012,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -38225,7 +38314,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -38885,7 +38975,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -39244,7 +39335,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -39692,7 +39784,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -40101,7 +40194,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "title": {
                       "type": "string"
@@ -40431,7 +40525,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "title": {
                       "type": "string"
@@ -40803,7 +40898,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "title": {
                       "type": "string"
@@ -41198,11 +41294,13 @@
                           },
                           "resumeId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "tailoredVersionId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "user": {
                             "type": "object",
@@ -41467,10 +41565,12 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "withdrawn": {
                       "type": "boolean",
@@ -41681,10 +41781,12 @@
                       "type": "string"
                     },
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "status": {
                       "type": "string",
@@ -41702,11 +41804,13 @@
                     },
                     "resumeId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "tailoredVersionId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "createdAt": {
                       "type": "string",
@@ -41931,7 +42035,8 @@
                         },
                         "resumeId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         }
                       },
                       "required": [
@@ -42217,10 +42322,12 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "removed": {
                       "type": "boolean",
@@ -42420,10 +42527,12 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "alreadyBookmarked": {
                       "type": "boolean"
@@ -42872,10 +42981,12 @@
                       "type": "string"
                     },
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "editedByUserId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "computedAt": {
                       "type": "string",
@@ -43491,10 +43602,12 @@
                       "type": "string"
                     },
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "editedByUserId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "computedAt": {
                       "type": "string",
@@ -44265,7 +44378,8 @@
                             "type": "string"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string"
@@ -45606,7 +45720,8 @@
                             "type": "string"
                           },
                           "entityId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -48645,7 +48760,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -48670,7 +48786,8 @@
                           },
                           "actorId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "entityType": {
                             "type": "string",
@@ -48678,7 +48795,8 @@
                           },
                           "entityId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "message": {
                             "type": "string"
@@ -48882,7 +49000,8 @@
                 "type": "object",
                 "properties": {
                   "notificationId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "example": {
@@ -50149,7 +50268,8 @@
                   "type": "object",
                   "properties": {
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -51351,7 +51471,8 @@
                   "type": "object",
                   "properties": {
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -51464,7 +51585,8 @@
                 "type": "object",
                 "properties": {
                   "stepId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -54468,7 +54590,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "type": {
                       "type": "string",
@@ -54550,7 +54673,8 @@
                     },
                     "originalPostId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "coAuthors": {
                       "type": "array",
@@ -54570,7 +54694,8 @@
                     },
                     "threadId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "pollDeadline": {
                       "type": "string",
@@ -55604,7 +55729,8 @@
                       "type": "string"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "type": {
                       "type": "string",
@@ -55686,7 +55812,8 @@
                     },
                     "originalPostId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "coAuthors": {
                       "type": "array",
@@ -55706,7 +55833,8 @@
                     },
                     "threadId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "pollDeadline": {
                       "type": "string",
@@ -55827,7 +55955,8 @@
                           "type": "string"
                         },
                         "authorId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "type": {
                           "type": "string",
@@ -55909,7 +56038,8 @@
                         },
                         "originalPostId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "coAuthors": {
                           "type": "array",
@@ -55929,7 +56059,8 @@
                         },
                         "threadId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "pollDeadline": {
                           "type": "string",
@@ -56299,10 +56430,12 @@
                   "type": "object",
                   "properties": {
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -56495,10 +56628,12 @@
                   "type": "object",
                   "properties": {
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "alreadyBookmarked": {
                       "type": "boolean"
@@ -56722,17 +56857,20 @@
                             "type": "string"
                           },
                           "postId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "content": {
                             "type": "string"
                           },
                           "parentId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "isDeleted": {
                             "type": "boolean"
@@ -56792,17 +56930,20 @@
                                   "type": "string"
                                 },
                                 "postId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "authorId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "content": {
                                   "type": "string"
                                 },
                                 "parentId": {
                                   "type": "string",
-                                  "nullable": true
+                                  "nullable": true,
+                                  "format": "uuid"
                                 },
                                 "isDeleted": {
                                   "type": "boolean"
@@ -57082,7 +57223,8 @@
                     "type": "string"
                   },
                   "parentId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -57107,17 +57249,20 @@
                       "type": "string"
                     },
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "content": {
                       "type": "string"
                     },
                     "parentId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     },
                     "isDeleted": {
                       "type": "boolean"
@@ -57368,10 +57513,12 @@
                   "type": "object",
                   "properties": {
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -57588,10 +57735,12 @@
                   "type": "object",
                   "properties": {
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "reactionType": {
                       "type": "string",
@@ -57604,7 +57753,8 @@
                       ]
                     },
                     "postAuthorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "alreadyLiked": {
                       "type": "boolean"
@@ -57831,10 +57981,12 @@
                       "type": "string"
                     },
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "optionIndex": {
                       "type": "integer"
@@ -58064,10 +58216,12 @@
                       "type": "string"
                     },
                     "postId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "reason": {
                       "type": "string"
@@ -58300,7 +58454,8 @@
                           "type": "string"
                         },
                         "authorId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "type": {
                           "type": "string",
@@ -58382,7 +58537,8 @@
                         },
                         "originalPostId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "coAuthors": {
                           "type": "array",
@@ -58402,7 +58558,8 @@
                         },
                         "threadId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "pollDeadline": {
                           "type": "string",
@@ -58567,10 +58724,12 @@
                           ]
                         },
                         "postId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "reposted": {
                           "type": "boolean"
@@ -59031,7 +59190,8 @@
                           "type": "string"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "title": {
                           "type": "string",
@@ -59147,7 +59307,8 @@
                         },
                         "styleId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "profileViews": {
                           "type": "integer"
@@ -59528,7 +59689,8 @@
                           "type": "string"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "title": {
                           "type": "string",
@@ -59644,7 +59806,8 @@
                         },
                         "styleId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "profileViews": {
                           "type": "integer"
@@ -60419,7 +60582,8 @@
                         "type": "object",
                         "properties": {
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "username": {
                             "type": "string",
@@ -60948,7 +61112,8 @@
                       }
                     },
                     "authorId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -61668,6 +61833,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -61854,6 +62020,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -61877,25 +62044,30 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "authorId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "content": {
                           "type": "string"
                         },
                         "parentId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "sectionId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "itemId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "resolved": {
                           "type": "boolean"
@@ -61909,7 +62081,8 @@
                         },
                         "resolvedById": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "createdAt": {
                           "type": "string",
@@ -62149,7 +62322,8 @@
                         "type": "string"
                       },
                       "userId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                       },
                       "source": {
                         "type": "string",
@@ -63155,7 +63329,8 @@
                         ]
                       },
                       "resumeId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                       },
                       "errors": {
                         "type": "array",
@@ -63504,7 +63679,8 @@
                   "type": "object",
                   "properties": {
                     "importId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "status": {
                       "type": "string",
@@ -63520,7 +63696,8 @@
                       ]
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "errors": {
                       "type": "array",
@@ -63670,7 +63847,8 @@
                   "type": "object",
                   "properties": {
                     "importId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "status": {
                       "type": "string",
@@ -63686,7 +63864,8 @@
                       ]
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "errors": {
                       "type": "array",
@@ -64521,7 +64700,8 @@
                   "type": "object",
                   "properties": {
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -64659,6 +64839,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -64841,6 +65022,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -64861,7 +65043,8 @@
                       "type": "string"
                     },
                     "userId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "source": {
                       "type": "string",
@@ -65867,7 +66050,8 @@
                       ]
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "errors": {
                       "type": "array",
@@ -66058,6 +66242,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -66075,7 +66260,8 @@
                   "type": "object",
                   "properties": {
                     "importId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "status": {
                       "type": "string",
@@ -66091,7 +66277,8 @@
                       ]
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "errors": {
                       "type": "array",
@@ -66300,7 +66487,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "title": {
                             "type": "string",
@@ -66334,7 +66522,8 @@
                           },
                           "styleId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -66357,10 +66546,12 @@
                                   "type": "string"
                                 },
                                 "resumeId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "sectionTypeId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "titleOverride": {
                                   "type": "string",
@@ -66544,7 +66735,8 @@
                                         "type": "string"
                                       },
                                       "resumeSectionId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                       },
                                       "content": {
                                         "type": "object",
@@ -67023,7 +67215,8 @@
                           "type": "string"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "title": {
                           "type": "string",
@@ -67139,7 +67332,8 @@
                         },
                         "styleId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "profileViews": {
                           "type": "integer"
@@ -67199,10 +67393,12 @@
                                 "type": "string"
                               },
                               "resumeId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "sectionTypeId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "titleOverride": {
                                 "type": "string",
@@ -67386,7 +67582,8 @@
                                       "type": "string"
                                     },
                                     "resumeSectionId": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "format": "uuid"
                                     },
                                     "content": {
                                       "type": "object",
@@ -68308,7 +68505,8 @@
                       }
                     },
                     "styleId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "style": {
                       "type": "object",
@@ -69383,7 +69581,8 @@
                   "type": "object",
                   "properties": {
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "overview": {
                       "type": "object",
@@ -69743,7 +69942,8 @@
                         "type": "string"
                       },
                       "resumeId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                       },
                       "atsScore": {
                         "type": "integer"
@@ -70774,7 +70974,8 @@
                       "type": "string"
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "atsScore": {
                       "type": "integer"
@@ -71409,6 +71610,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -71434,10 +71636,12 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "role": {
                             "type": "string"
@@ -71662,6 +71866,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -71678,7 +71883,8 @@
                 "properties": {
                   "userId": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "format": "uuid"
                   },
                   "role": {
                     "type": "string",
@@ -71716,10 +71922,12 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "role": {
                           "type": "string"
@@ -71945,6 +72153,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -71955,6 +72164,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -72139,6 +72349,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -72149,6 +72360,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -72197,10 +72409,12 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "role": {
                           "type": "string"
@@ -72426,6 +72640,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -72451,25 +72666,30 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "content": {
                             "type": "string"
                           },
                           "parentId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "sectionId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "itemId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "resolved": {
                             "type": "boolean"
@@ -72483,7 +72703,8 @@
                           },
                           "resolvedById": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -72740,6 +72961,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -72760,13 +72982,16 @@
                     "maxLength": 4000
                   },
                   "parentId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "sectionId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "itemId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -72794,25 +73019,30 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "authorId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "content": {
                           "type": "string"
                         },
                         "parentId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "sectionId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "itemId": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "resolved": {
                           "type": "boolean"
@@ -72826,7 +73056,8 @@
                         },
                         "resolvedById": {
                           "type": "string",
-                          "nullable": true
+                          "nullable": true,
+                          "format": "uuid"
                         },
                         "createdAt": {
                           "type": "string",
@@ -73056,6 +73287,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -73066,6 +73298,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -73083,7 +73316,8 @@
                   "type": "object",
                   "properties": {
                     "versionId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "summary": {
                       "type": "object",
@@ -73413,7 +73647,8 @@
                       }
                     },
                     "styleId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "style": {
                       "type": "object",
@@ -73648,7 +73883,8 @@
                       "type": "string"
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "overallScore": {
                       "type": "integer",
@@ -73944,7 +74180,8 @@
                       "type": "string"
                     },
                     "resumeId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "overallScore": {
                       "type": "integer",
@@ -74245,10 +74482,12 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "sectionTypeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "titleOverride": {
                             "type": "string",
@@ -74433,7 +74672,8 @@
                                   "type": "string"
                                 },
                                 "resumeSectionId": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "format": "uuid"
                                 },
                                 "content": {
                                   "type": "object",
@@ -75015,7 +75255,8 @@
                           "type": "string"
                         },
                         "resumeSectionId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "content": {
                           "type": "object",
@@ -75214,6 +75455,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -75388,6 +75630,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -75437,7 +75680,8 @@
                           "type": "string"
                         },
                         "resumeSectionId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "content": {
                           "type": "object",
@@ -75614,6 +75858,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -75624,6 +75869,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -75644,7 +75890,8 @@
                       "type": "object",
                       "properties": {
                         "shareId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "totalViews": {
                           "type": "integer",
@@ -75917,6 +76164,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -75942,7 +76190,8 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "name": {
                             "type": "string"
@@ -76137,6 +76386,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -76189,7 +76439,8 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "name": {
                           "type": "string"
@@ -76385,6 +76636,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -76395,6 +76647,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -76593,6 +76846,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -76603,6 +76857,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -76649,7 +76904,8 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "name": {
                           "type": "string"
@@ -76845,6 +77101,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -76860,7 +77117,8 @@
                 "type": "object",
                 "properties": {
                   "styleId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -77011,6 +77269,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -77027,7 +77286,8 @@
                 "properties": {
                   "jobId": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "format": "uuid"
                   },
                   "jobDescription": {
                     "type": "string",
@@ -77060,7 +77320,8 @@
                   "type": "object",
                   "properties": {
                     "versionId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "versionNumber": {
                       "type": "integer"
@@ -77328,6 +77589,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -77367,7 +77629,8 @@
                           },
                           "tailoredJobId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           }
                         },
                         "required": [
@@ -77701,6 +77964,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -77882,6 +78146,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -77892,6 +78157,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -78148,7 +78414,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "fullName": {
                             "type": "string",
@@ -78473,7 +78740,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "fullName": {
                             "type": "string",
@@ -78766,7 +79034,8 @@
                           },
                           "claimedByUserId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           }
                         },
                         "required": [
@@ -78964,7 +79233,8 @@
                     },
                     "claimedByUserId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -79148,7 +79418,8 @@
                     },
                     "claimedByUserId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -79332,7 +79603,8 @@
                 "properties": {
                   "resumeId": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "format": "uuid"
                   },
                   "slug": {
                     "type": "string",
@@ -79380,7 +79652,8 @@
                           "type": "string"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "isActive": {
                           "type": "boolean"
@@ -79552,6 +79825,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -79744,6 +80018,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -79772,7 +80047,8 @@
                             "type": "string"
                           },
                           "resumeId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "isActive": {
                             "type": "boolean"
@@ -79982,6 +80258,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -80174,6 +80451,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -80202,7 +80480,8 @@
                             "type": "string"
                           },
                           "shareId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           }
                         },
                         "required": [
@@ -80383,6 +80662,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -80432,7 +80712,8 @@
                           "type": "string"
                         },
                         "shareId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         }
                       },
                       "required": [
@@ -80614,6 +80895,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -81514,7 +81796,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "headline": {
                             "type": "string"
@@ -87491,6 +87774,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -89793,7 +90077,8 @@
                           "type": "string"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "documentType": {
                           "type": "string",
@@ -89953,7 +90238,8 @@
                         "type": "object",
                         "properties": {
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "name": {
                             "type": "string",
@@ -90169,10 +90455,12 @@
                             "type": "string"
                           },
                           "requesterId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "targetId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "status": {
                             "type": "string",
@@ -90498,10 +90786,12 @@
                             "type": "string"
                           },
                           "requesterId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "targetId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "status": {
                             "type": "string",
@@ -90827,10 +91117,12 @@
                             "type": "string"
                           },
                           "requesterId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "targetId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "status": {
                             "type": "string",
@@ -91657,10 +91949,12 @@
                                 "type": "string"
                               },
                               "requesterId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "targetId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "status": {
                                 "type": "string",
@@ -91816,10 +92110,12 @@
                                 "type": "string"
                               },
                               "requesterId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "targetId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "status": {
                                 "type": "string",
@@ -95533,7 +95829,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -95559,7 +95856,8 @@
                           },
                           "entityId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "entityType": {
                             "type": "string",
@@ -95845,7 +96143,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -95871,7 +96170,8 @@
                           },
                           "entityId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "entityType": {
                             "type": "string",
@@ -96084,6 +96384,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -96126,17 +96427,20 @@
                             "type": "string"
                           },
                           "postId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "authorId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "content": {
                             "type": "string"
                           },
                           "parentId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "isDeleted": {
                             "type": "boolean"
@@ -96201,7 +96505,8 @@
                                 "nullable": true
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "author": {
                                 "type": "object",
@@ -96820,7 +97125,8 @@
                             "type": "string"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "type": {
                             "type": "string",
@@ -96846,7 +97152,8 @@
                           },
                           "entityId": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "format": "uuid"
                           },
                           "entityType": {
                             "type": "string",
@@ -97550,10 +97857,12 @@
                             "type": "string"
                           },
                           "followerId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "followingId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -97889,10 +98198,12 @@
                             "type": "string"
                           },
                           "followerId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "followingId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "createdAt": {
                             "type": "string",
@@ -98187,7 +98498,8 @@
                     },
                     "pendingSentConnectionId": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -98556,6 +98868,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000020"
             },
             "required": true,
@@ -98595,10 +98908,12 @@
                         "type": "object",
                         "properties": {
                           "postId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "userId": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                           },
                           "reactionType": {
                             "type": "string",
@@ -98630,7 +98945,8 @@
                                 "nullable": true
                               },
                               "authorId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                               },
                               "author": {
                                 "type": "object",
@@ -99964,6 +100280,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -100145,6 +100462,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -100155,6 +100473,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -100312,6 +100631,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000010"
             },
             "required": true,
@@ -100322,6 +100642,7 @@
           {
             "schema": {
               "type": "string",
+              "format": "uuid",
               "example": "01900000-0000-7000-a000-000000000001"
             },
             "required": true,
@@ -100358,7 +100679,8 @@
                           "example": "2026-05-07T00:00:00.000Z"
                         },
                         "resumeId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         }
                       },
                       "required": [

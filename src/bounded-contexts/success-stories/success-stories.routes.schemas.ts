@@ -19,7 +19,7 @@ export const SuccessStoryAuthorSchema = z.object({
 
 export const SuccessStorySchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   headline: z.string(),
   beforeText: z.string(),
   afterText: z.string(),

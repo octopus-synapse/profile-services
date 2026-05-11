@@ -78,11 +78,11 @@ export const RefreshResponseSchema = z.discriminatedUnion('mode', [
 // `twoFactorRequired` discriminates the 2FA-challenge variant from the
 // session-issued variant.
 export const LoginResponseSchema = z.discriminatedUnion('twoFactorRequired', [
-  z.object({ userId: z.string(), twoFactorRequired: z.literal(true) }),
-  z.object({ userId: z.string(), twoFactorRequired: z.literal(false) }),
+  z.object({ userId: z.string().uuid(), twoFactorRequired: z.literal(true) }),
+  z.object({ userId: z.string().uuid(), twoFactorRequired: z.literal(false) }),
 ]);
 
-export const Verify2faResponseSchema = z.object({ userId: z.string() });
+export const Verify2faResponseSchema = z.object({ userId: z.string().uuid() });
 
 export const LogoutResponseSchema = z.object({ message: z.string() });
 

@@ -13,7 +13,7 @@ export abstract class ConnectionRecsRoutesBundle {
 export const LimitQuery = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 export const ConnectionRecommendationSchema = z.object({
-  userId: z.string(),
+  userId: z.string().uuid(),
   name: z.string().nullable(),
   username: z.string().nullable(),
   sharedSkills: z.array(z.string()),

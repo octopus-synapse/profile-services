@@ -25,7 +25,7 @@ export const AdminStepBody = z.record(z.unknown()).openapi({
 export const AdminConfigBody = z
   .record(z.unknown())
   .openapi({ example: { strengthLevels: [{ key: 'beginner', threshold: 0 }] } });
-export const GotoStepBody = z.object({ stepId: z.string() }).openapi({
+export const GotoStepBody = z.object({ stepId: z.string().uuid() }).openapi({
   example: {
     stepId: 'personal-info',
   },
@@ -99,7 +99,7 @@ export const SaveProgressResponseSchema = z.object({
   completedSteps: z.array(z.string()),
 });
 
-export const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string() });
+export const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string().uuid() });
 
 export const EmptyResponseSchema = z.null();
 

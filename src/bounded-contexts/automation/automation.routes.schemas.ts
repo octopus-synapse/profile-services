@@ -13,7 +13,7 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const ItemIdParam = z.object({ itemId: z.string() });
+export const ItemIdParam = z.object({ itemId: z.string().uuid() });
 
 export const RageApplyBodySchema = z
   .object({
@@ -34,7 +34,7 @@ export type RageApplyBody = z.infer<typeof RageApplyBodySchema>;
 // ─── Response schemas ─────────────────────────────────────────────────
 export const WeeklyCuratedItemSchema = z.object({
   id: z.string(),
-  jobId: z.string(),
+  jobId: z.string().uuid(),
   matchScore: z.number(),
   status: z.string(),
   decidedAt: IsoDateTimeSchema.nullable(),
@@ -53,11 +53,11 @@ export const CurrentBatchResponseSchema = z.object({
 });
 
 export const RejectCuratedItemResponseSchema = z.object({
-  itemId: z.string(),
+  itemId: z.string().uuid(),
 });
 
 export const ApproveCuratedItemResponseSchema = z.object({
-  applicationId: z.string(),
+  applicationId: z.string().uuid(),
   alreadyApplied: z.boolean(),
 });
 
@@ -67,7 +67,7 @@ export const RageApplyResponseSchema = z.object({
   skippedExisting: z.number().int().min(0),
   failed: z.array(
     z.object({
-      jobId: z.string(),
+      jobId: z.string().uuid(),
       reason: z.string(),
     }),
   ),

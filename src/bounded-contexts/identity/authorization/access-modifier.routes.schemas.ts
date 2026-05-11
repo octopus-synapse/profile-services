@@ -74,10 +74,10 @@ export class SelfDemoteForbiddenException extends DomainException {
 // once serialized through `JSON.stringify`. Mirrors the entity props.
 export const AccessModifierShape = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
   effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
-  permissionId: z.string().nullable(),
+  permissionId: z.string().uuid().nullable(),
   reason: z.string(),
   startsAt: IsoDateTimeSchema,
   endsAt: IsoDateTimeSchema.nullable(),

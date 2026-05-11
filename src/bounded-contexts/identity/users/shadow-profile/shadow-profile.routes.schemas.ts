@@ -35,7 +35,7 @@ export const ShadowProfileSnapshotSchema = z.object({
   externalHandle: z.string(),
   contactEmail: z.string().nullable(),
   payload: z.object({}).passthrough().nullable(),
-  claimedByUserId: z.string().nullable(),
+  claimedByUserId: z.string().uuid().nullable(),
 });
 
 export const FindCandidatesResponseSchema = z.object({

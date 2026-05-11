@@ -250,7 +250,7 @@ export const DashboardRecommendationSchema = z.object({
 });
 
 export const AnalyticsDashboardResponseSchema = z.object({
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
   overview: z.object({
     totalViews: z.number().int().min(0),
     uniqueVisitors: z.number().int().min(0),
@@ -284,7 +284,7 @@ export const AnalyticsDashboardResponseSchema = z.object({
 
 export const AnalyticsSnapshotResponseSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
   atsScore: z.number().int(),
   keywordScore: z.number().int(),
   completenessScore: z.number().int(),

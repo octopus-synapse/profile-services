@@ -34,8 +34,8 @@ export const ConnectionUserSchema = z.object({
 
 export const ConnectionWithUserSchema = z.object({
   id: z.string(),
-  requesterId: z.string(),
-  targetId: z.string(),
+  requesterId: z.string().uuid(),
+  targetId: z.string().uuid(),
   status: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -85,5 +85,5 @@ export const ConnectionStatsResponseSchema = z.object({ connections: z.number().
 
 export const ConnectionStatusResponseSchema = z.object({
   isConnected: z.boolean(),
-  pendingSentConnectionId: z.string().nullable(),
+  pendingSentConnectionId: z.string().uuid().nullable(),
 });

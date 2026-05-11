@@ -36,8 +36,8 @@ export abstract class ChatHttpBundle {
   abstract readonly search: ChatUserSearchService;
 }
 
-export const ConversationIdParam = z.object({ conversationId: z.string() });
-export const UserIdParam = z.object({ userId: z.string() });
+export const ConversationIdParam = z.object({ conversationId: z.string().uuid() });
+export const UserIdParam = z.object({ userId: z.string().uuid() });
 
 export const SearchQuerySchema = z.object({ q: z.string().optional() });
 
@@ -71,7 +71,7 @@ export const MarkConversationReadResponseSchema = z.object({ count: z.number().i
 
 export const ConversationWithUserResponseSchema = z.union([
   z.object({ conversationId: z.null() }),
-  z.object({ conversationId: z.string(), conversation: ConversationResponseSchema }),
+  z.object({ conversationId: z.string().uuid(), conversation: ConversationResponseSchema }),
 ]);
 
 export const UserSearchResultSchema = z.object({

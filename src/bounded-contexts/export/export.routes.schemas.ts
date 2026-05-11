@@ -22,8 +22,8 @@ export const ResumePdfQuery = z.object({
   bannerColor: z.string().optional(),
   template: z.string().optional(),
 });
-export const ResumeIdParams = z.object({ resumeId: z.string() });
-export const UserIdParams = z.object({ userId: z.string() });
+export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
+export const UserIdParams = z.object({ userId: z.string().uuid() });
 export const JsonExportQuery = z.object({ format: z.string().optional() });
 export const LatexExportQuery = z.object({ template: z.string().optional() });
 

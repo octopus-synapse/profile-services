@@ -13,11 +13,11 @@ import { toPinnedReposResponseDto } from './infrastructure/presenters/github.pre
 export const SummaryParams = z
   .object({ username: z.string() })
   .openapi({ example: { username: 'octocat' } });
-export const ResumeIdParams = z.object({ resumeId: z.string() });
+export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
 export const SyncBody = z
   .object({
     githubUsername: z.string(),
-    resumeId: z.string(),
+    resumeId: z.string().uuid(),
   })
   .openapi({
     example: {

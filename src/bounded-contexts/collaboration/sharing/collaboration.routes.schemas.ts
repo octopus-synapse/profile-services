@@ -18,13 +18,16 @@ export abstract class CollaborationHttpBundle {
   abstract readonly comments: CollabCommentService;
 }
 
-export const ResumeIdParam = z.object({ resumeId: z.string() });
-export const ResumeAndUserIdParams = z.object({ resumeId: z.string(), userId: z.string() });
-export const CommentIdParam = z.object({ commentId: z.string() });
+export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
+export const ResumeAndUserIdParams = z.object({
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
+});
+export const CommentIdParam = z.object({ commentId: z.string().uuid() });
 
 export const InviteCollaboratorSchema = z
   .object({
-    userId: z.string().min(1),
+    userId: z.string().uuid().min(1),
     role: CollaboratorRoleSchema,
   })
   .openapi({
@@ -43,9 +46,9 @@ export const UpdateRoleSchema = z.object({ role: CollaboratorRoleSchema }).opena
 export const CreateCommentSchema = z
   .object({
     content: z.string().min(1).max(4000),
-    parentId: z.string().optional(),
-    sectionId: z.string().optional(),
-    itemId: z.string().optional(),
+    parentId: z.string().uuid().optional(),
+    sectionId: z.string().uuid().optional(),
+    itemId: z.string().uuid().optional(),
   })
   .openapi({
     example: {
@@ -62,8 +65,8 @@ export const CollaboratorUserSchema = z.object({
 
 export const CollaboratorWithUserSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  userId: z.string(),
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
   role: z.string(),
   invitedBy: z.string(),
   invitedAt: IsoDateTimeSchema,
@@ -104,15 +107,15 @@ export const CommentAuthorSchema = z.object({
 
 export const CommentSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  authorId: z.string(),
+  resumeId: z.string().uuid(),
+  authorId: z.string().uuid(),
   content: z.string(),
-  parentId: z.string().nullable(),
-  sectionId: z.string().nullable(),
-  itemId: z.string().nullable(),
+  parentId: z.string().uuid().nullable(),
+  sectionId: z.string().uuid().nullable(),
+  itemId: z.string().uuid().nullable(),
   resolved: z.boolean(),
   resolvedAt: IsoDateTimeSchema.nullable(),
-  resolvedById: z.string().nullable(),
+  resolvedById: z.string().uuid().nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
   author: CommentAuthorSchema,

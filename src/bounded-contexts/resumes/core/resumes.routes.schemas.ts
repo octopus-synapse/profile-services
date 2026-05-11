@@ -45,7 +45,7 @@ export const ResumeIdAndTypeKeyParam = ResumeIdParamSchema.extend({
 });
 export const ResumeIdAndTypeKeyAndItemIdParam = ResumeIdParamSchema.extend({
   sectionTypeKey: z.string(),
-  itemId: z.string(),
+  itemId: z.string().uuid(),
 });
 
 export const LocaleQuery = z.object({ locale: z.string().optional() });
@@ -171,7 +171,7 @@ export const ResumeStyleRefSchema = z.object({
 
 export const ResumeFullResponseSchema = ResumeBaseSchema.extend({
   resumeSections: z.array(ResumeSectionSchema),
-  styleId: z.string().optional(),
+  styleId: z.string().uuid().optional(),
   style: ResumeStyleRefSchema.optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
@@ -214,7 +214,7 @@ export const MgmtSectionTypeSchema = z.object({
 
 export const MgmtSectionItemSchema = z.object({
   id: z.string(),
-  resumeSectionId: z.string(),
+  resumeSectionId: z.string().uuid(),
   content: JsonObjectSchema.nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
@@ -224,8 +224,8 @@ export const MgmtSectionItemSchema = z.object({
 
 export const MgmtResumeSectionSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  sectionTypeId: z.string(),
+  resumeId: z.string().uuid(),
+  sectionTypeId: z.string().uuid(),
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
@@ -237,7 +237,7 @@ export const MgmtResumeSectionSchema = z.object({
 
 export const MgmtResumeListItemSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   title: z.string().nullable(),
   language: z.string(),
   isPublic: z.boolean(),
@@ -246,7 +246,7 @@ export const MgmtResumeListItemSchema = z.object({
   jobTitle: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  styleId: z.string().nullable(),
+  styleId: z.string().uuid().nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
   resumeSections: z.array(MgmtResumeSectionSchema),
@@ -259,7 +259,7 @@ export const MgmtResumeListResponseSchema = z.object({
 
 export const MgmtResumeDetailsSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   title: z.string().nullable(),
   language: z.string(),
   isPublic: z.boolean(),
@@ -289,7 +289,7 @@ export const MgmtResumeDetailsSchema = z.object({
   leetcode: z.string().nullable(),
   accentColor: z.string().nullable(),
   customTheme: z.unknown().nullable(),
-  styleId: z.string().nullable(),
+  styleId: z.string().uuid().nullable(),
   profileViews: z.number().int(),
   totalStars: z.number().int(),
   totalCommits: z.number().int(),
@@ -345,8 +345,8 @@ export const ResumeSectionTypesDataSchema = z.object({
 // Generic sections list (used by /v1/resumes/:resumeId/sections)
 export const GenericResumeSectionSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  sectionTypeId: z.string(),
+  resumeId: z.string().uuid(),
+  sectionTypeId: z.string().uuid(),
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
