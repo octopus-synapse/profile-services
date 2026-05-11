@@ -45,6 +45,16 @@ const ThemeSchema = z.object({
 // Request Schemas
 // ============================================================================
 
+export const ResumeTemplateEnum = z.enum([
+  'PROFESSIONAL',
+  'CREATIVE',
+  'TECHNICAL',
+  'MINIMAL',
+  'MODERN',
+  'EXECUTIVE',
+  'ACADEMIC',
+]);
+
 const CreateResumeRequestSchema = z.object({
   title: z.string().min(1).max(100),
   summary: BioSchema.optional(),
@@ -56,6 +66,7 @@ const CreateResumeRequestSchema = z.object({
   linkedin: LinkedInUrlSchema.optional(),
   github: GitHubUrlSchema.optional(),
   website: SocialUrlSchema.optional(),
+  template: ResumeTemplateEnum.optional(),
   sections: z.array(z.record(z.unknown())).optional(),
 });
 

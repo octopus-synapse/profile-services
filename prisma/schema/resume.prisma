@@ -51,6 +51,13 @@ model Resume {
   styleId String?
   style   ResumeStyle? @relation("ResumeActiveStyle", fields: [styleId], references: [id], onDelete: SetNull)
 
+  // Visual template selector — the frontend offers a fixed list
+  // (PROFESSIONAL / CREATIVE / TECHNICAL / MINIMAL / MODERN / EXECUTIVE
+  // / ACADEMIC). Stored as a free string for now since the render
+  // pipeline reads it loosely; backend Zod constrains to the allowed
+  // set at the route layer.
+  template String?
+
   // Stats
   profileViews Int @default(0)
   totalStars   Int @default(0)

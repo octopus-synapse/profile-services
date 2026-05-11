@@ -25,6 +25,18 @@ const UpsertResumeSectionSchema = z.object({
   items: z.array(ResumeSectionItemPayloadSchema).default([]),
 });
 
+export const ResumeTemplateEnum = z.enum([
+  'PROFESSIONAL',
+  'CREATIVE',
+  'TECHNICAL',
+  'MINIMAL',
+  'MODERN',
+  'EXECUTIVE',
+  'ACADEMIC',
+]);
+
+export type ResumeTemplate = z.infer<typeof ResumeTemplateEnum>;
+
 /**
  * Create Resume Schema
  */
@@ -39,6 +51,7 @@ export const CreateResumeSchema = z.object({
   linkedin: LinkedInUrlSchema.optional(),
   github: GitHubUrlSchema.optional(),
   website: SocialUrlSchema.optional(),
+  template: ResumeTemplateEnum.optional(),
   sections: z.array(UpsertResumeSectionSchema).optional(),
 });
 
