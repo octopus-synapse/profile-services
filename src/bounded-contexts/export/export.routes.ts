@@ -171,12 +171,17 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     },
   },
 
-  // ─── Bundle (multi-format zip — F3-PD-009c) ────────────────────────
+  // ─── Bundle (multi-format zip — F3-PD-009c / PD-018 fix) ───────────
   {
     method: 'POST',
-    path: '/v1/export/resume/bundle',
+    path: '/v1/export/:resumeId/bundle',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_EXPORT,
+    // PD-018: ownership guard resolves resumeId → ownerId and rejects
+    // non-owners with 403. Without this, any authenticated user could
+    // export any resume by guessing the UUID.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
+    params: ResumeIdParams,
     body: ResumeBundleRequestSchema,
     response: PresignedDownloadResponseSchema,
     openapi: {
@@ -186,11 +191,12 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
+      const { resumeId } = ctx.params as { resumeId: string };
       const body = ctx.body as z.infer<typeof ResumeBundleRequestSchema>;
       const userId = ctx.user!.userId;
       const buffer = await bundle.useCases.exportBundleUseCase.execute({
         userId,
-        resumeId: body.resumeId,
+        resumeId,
         formats: body.formats,
         language: body.language,
       });

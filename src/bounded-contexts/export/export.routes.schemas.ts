@@ -60,9 +60,10 @@ export const PresignedDownloadResponseSchema = z.object({
 });
 
 // F3-PD-009c — bundle (multi-format zip) request body.
+// `resumeId` moved to the path so the `ownership` guard can resolve it
+// (PD-018 fix — guard reads ctx.params only).
 export const ResumeBundleRequestSchema = z
   .object({
-    resumeId: z.string().uuid(),
     formats: z
       .array(z.enum(['pdf', 'docx', 'json']))
       .min(1)
@@ -70,9 +71,5 @@ export const ResumeBundleRequestSchema = z
     language: z.enum(['en', 'pt']).optional(),
   })
   .openapi({
-    example: {
-      resumeId: '01900000-0000-7000-a000-000000000010',
-      formats: ['pdf', 'docx', 'json'],
-      language: 'pt',
-    },
+    example: { formats: ['pdf', 'docx', 'json'], language: 'pt' },
   });
