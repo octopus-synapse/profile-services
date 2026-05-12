@@ -15,9 +15,20 @@ export class ResumeQualityRankNotificationHandler {
   ) {}
 
   async handle(event: ResumeQualityComputedEvent): Promise<void> {
-    await this.bc.notifyResumeQualityRankChange.execute({
-      resumeId: event.payload.resumeId,
-      overallScore: event.payload.overallScore,
-    });
+    // Q13-V3: notification dispatch is best-effort. A transient
+    // failure must not abort the event chain — audit /
+    // state-mutating handlers in the same chain still rethrow.
+    try {
+      await this.bc.notifyResumeQualityRankChange.execute({
+        resumeId: event.payload.resumeId,
+        overallScore: event.payload.overallScore,
+      });
+    } catch (err) {
+      this.logger.error('notifyResumeQualityRankChange failed', {
+        context: 'ResumeQualityRankNotificationHandler',
+        stack: err instanceof Error ? err.stack : String(err),
+        resumeId: event.payload.resumeId,
+      });
+    }
   }
 }

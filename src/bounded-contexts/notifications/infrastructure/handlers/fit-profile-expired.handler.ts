@@ -20,6 +20,20 @@ export class FitProfileExpiredNotificationHandler {
 
   async handle(event: UserFitProfileUpdatedEvent): Promise<void> {
     if (event.payload.cause !== 'expired') return;
-    await this.bc.notifyFitProfileExpired.execute({ userId: event.aggregateId });
+    // Q13-V3: notification dispatch is best-effort. A transient
+    // failure (SMTP hiccup, third-party rate limit) must not abort
+    // the event chain, since this handler runs alongside critical
+    // state-mutating handlers that rely on uniform `publish`
+    // semantics. Audit / state-mutating handlers in the same chain
+    // still rethrow.
+    try {
+      await this.bc.notifyFitProfileExpired.execute({ userId: event.aggregateId });
+    } catch (err) {
+      this.logger.error('notifyFitProfileExpired failed', {
+        context: 'FitProfileExpiredNotificationHandler',
+        stack: err instanceof Error ? err.stack : String(err),
+        userId: event.aggregateId,
+      });
+    }
   }
 }
