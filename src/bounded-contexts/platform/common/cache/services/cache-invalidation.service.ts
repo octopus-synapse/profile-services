@@ -16,7 +16,10 @@ import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 // --- Types ---
 
-/** @deprecated Use `InvalidateResumeInput` from shared-kernel/cache. */
+/**
+ * @deprecated Use `InvalidateResumeInput` from shared-kernel/cache.
+ * @removeBy 2026-08-31
+ */
 export type InvalidateResumeParams = InvalidateResumeInput;
 
 // --- Service ---

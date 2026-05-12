@@ -17,6 +17,7 @@ interface PaginateOptions<TWhere, TOrderBy> {
   limit?: number;
   /**
    * @deprecated use `limit`.
+   * @removeBy 2026-08-31
    * P2-143 — alias retained because section-types + jobs admin DTOs
    * still ship `pageSize` to clients. Removal blocked on a coordinated
    * frontend update; tracked under the duplication-audit follow-up.

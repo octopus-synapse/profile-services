@@ -95,6 +95,7 @@ export class AuditLogService {
    * @deprecated Strict is now the default for `log()`. Kept as a
    * source-compat facade per Q52 in the duplication audit; remove
    * after callers migrate.
+   * @removeBy 2026-08-31
    */
   async logStrict(
     userId: string,
