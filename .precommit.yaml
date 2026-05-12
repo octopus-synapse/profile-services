@@ -48,3 +48,5 @@ checks:
     cmd: bun run scripts/lint-no-passthrough.ts
   - name: no-prisma-transaction
     cmd: bun run scripts/lint-no-prisma-transaction.ts
+  - name: no-post-200
+    cmd: bun run scripts/lint-no-post-200.ts
