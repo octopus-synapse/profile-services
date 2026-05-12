@@ -193,6 +193,29 @@ No `findAll*`. The `get*` variant wraps the `find*` query so the
 - Wrap inbound handlers with `validateWsMessage(schema, handler)`
   so the `unknown` payload is parsed by Zod before the handler runs.
 
+## Real-time transport: SSE vs WebSocket (Q15-V3)
+
+Pick the transport by direction, not by mood. WebSockets are
+bidirectional and stateful (chat, presence, typing indicators);
+SSE is server-push only over plain HTTP and cheaper to scale
+(feed, notifications, feature-flags stream). Don't reach for WS
+when SSE already does the job.
+
+- **Use SSE when** the server is the only producer (live feed,
+  notifications, flag invalidation broadcast). Declare the route
+  with `kind: 'sse'` so the Elysia mounter skips the response
+  envelope and streams `text/event-stream`.
+- **Use WS when** the client also sends messages (chat, presence,
+  collaboration cursors). Wrap every inbound handler with
+  `validateWsMessage(schema, handler)` (Q39) and require an
+  explicit allowed-origin set (P0 sweep — WebSocket origin
+  policy).
+- **Don't** introduce a WS gateway when an SSE stream + REST
+  mutations would cover the same surface. The asymmetric cost of
+  upgrading later (you can always promote SSE → WS when the
+  client needs to talk back) is much smaller than maintaining a
+  WS gateway that never sees inbound traffic.
+
 ## Tests
 
 - See `test/README.md` for the three layers + fixture conventions.
