@@ -1,110 +1,114 @@
 {
   "version": "3",
-  "tree_hash": "81a26df601794fcc71b24c90fb97b4a3483e86e5",
+  "tree_hash": "72a50348e26b2a665924f425d8683c9b087e19b1",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 167
+      "time_ms": 230
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 1921
+      "time_ms": 3655
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 9112
+      "time_ms": 15291
     },
     "lint": {
       "status": "ok",
-      "time_ms": 3627
+      "time_ms": 6941
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 1250
+      "time_ms": 3985
     },
     "unit": {
       "status": "ok",
-      "time_ms": 7304,
+      "time_ms": 11744,
       "passed": 2659,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 4474,
+      "time_ms": 7989,
       "passed": 70,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1380,
+      "time_ms": 5371,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 115
+      "time_ms": 189
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 108
+      "time_ms": 184
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 157
+      "time_ms": 247
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 170
+      "time_ms": 174
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 122
+      "time_ms": 215
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 315
+      "time_ms": 422
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 153
+      "time_ms": 835
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 220
+      "time_ms": 624
     },
     "no-prisma-mock-in-integration": {
       "status": "ok",
-      "time_ms": 89
+      "time_ms": 234
     },
     "no-db-helpers-in-unit": {
       "status": "ok",
-      "time_ms": 305
+      "time_ms": 444
     },
     "skip-todo-deadline": {
       "status": "ok",
-      "time_ms": 172
+      "time_ms": 607
     },
     "e2e-cleanup": {
       "status": "ok",
-      "time_ms": 52
+      "time_ms": 166
     },
     "cron-wrapper": {
       "status": "ok",
-      "time_ms": 152
+      "time_ms": 158
     },
     "ws-validate": {
       "status": "ok",
-      "time_ms": 107
+      "time_ms": 223
     },
     "no-mutable-module-state": {
       "status": "ok",
-      "time_ms": 346
+      "time_ms": 338
+    },
+    "no-process-env-in-domain": {
+      "status": "ok",
+      "time_ms": 256
     }
   },
-  "timestamp": "2026-05-12T19:53:09Z",
+  "timestamp": "2026-05-12T19:54:42Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }

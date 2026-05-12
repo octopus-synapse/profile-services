@@ -72,3 +72,5 @@ checks:
     cmd: bun run scripts/lint-ws-validate.ts
   - name: no-mutable-module-state
     cmd: bun run scripts/lint-no-mutable-module-state.ts
+  - name: no-process-env-in-domain
+    cmd: bun run scripts/lint-no-process-env-in-domain.ts
