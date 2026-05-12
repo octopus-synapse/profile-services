@@ -66,3 +66,5 @@ checks:
     cmd: bun run scripts/lint-skip-todo-deadline.ts
   - name: e2e-cleanup
     cmd: bun run scripts/lint-e2e-cleanup.ts
+  - name: cron-wrapper
+    cmd: bun run scripts/lint-cron-wrapper.ts
