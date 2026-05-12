@@ -27,19 +27,14 @@ export class BannerCaptureService {
   }
 
   async capture(palette: string = DEFAULT.PALETTE, logoUrl: string = ''): Promise<Buffer> {
-    const browser = await this.browserManager.getBrowser();
-    const page = await browser.newPage();
-
-    try {
+    return this.browserManager.withPage(async (page) => {
       await this.pageSetup.setupPage(page);
       const url = this.pageSetup.buildBannerUrl(palette, logoUrl);
       await this.pageSetup.navigateToPage(page, url);
       await this.readyWaiter.waitForBannerReady(page, logoUrl);
       await this.pageSetup.applyQualityStyles(page);
-      return await this.captureBannerElement(page);
-    } finally {
-      await page.close();
-    }
+      return this.captureBannerElement(page);
+    });
   }
 
   private async captureBannerElement(page: Page): Promise<Buffer> {
