@@ -8,6 +8,12 @@ import {
   StorageUploadFailedException,
 } from '../exceptions/platform.exceptions';
 
+// Private uploads (post images, resume exports, restricted artefacts) are
+// returned to clients via presigned GETs. The 5-minute window matches the
+// presign TTL used today and prevents intermediary CDNs from sharing a
+// leaked URL across users (`private` ⇒ shared caches must not store).
+const PRIVATE_CACHE_CONTROL = 'private, max-age=300';
+
 const MinioConfigSchema = z.object({
   MINIO_ENDPOINT: z.string().url().optional(),
   MINIO_ACCESS_KEY: z.string().min(3).optional(),
@@ -153,6 +159,15 @@ export class S3UploadService {
       'Content-Type': contentType,
       'x-amz-acl': acl,
     };
+    // Defense in depth: private objects carry an explicit
+    // `Cache-Control: private, max-age=300` so any intermediary CDN /
+    // proxy honours the no-sharing semantic even if the presigned URL
+    // (the access mechanism for these objects) appears uniform across
+    // viewers. Relying solely on URL uniqueness is insufficient —
+    // some CDNs normalise query params for cache keys.
+    if (acl === 'private') {
+      metaData['Cache-Control'] = PRIVATE_CACHE_CONTROL;
+    }
 
     await this.client.putObject(this.bucket, key, file, file.length, metaData);
 
@@ -287,6 +302,7 @@ export class S3UploadService {
       await this.client.putObject(this.bucket, opts.key, opts.body, opts.body.length, {
         'Content-Type': opts.contentType,
         'Content-Disposition': `attachment; filename="${safeFilename}"`,
+        'Cache-Control': PRIVATE_CACHE_CONTROL,
         'x-amz-acl': 'private',
       });
     } catch (error) {
