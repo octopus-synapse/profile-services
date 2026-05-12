@@ -74,3 +74,5 @@ checks:
     cmd: bun run scripts/lint-no-mutable-module-state.ts
   - name: no-process-env-in-domain
     cmd: bun run scripts/lint-no-process-env-in-domain.ts
+  - name: deprecated-removeby
+    cmd: bun run scripts/lint-deprecated-removeby.ts
