@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { TwoFactorCodeSchema } from '@/shared-kernel/schemas/two-factor/two-factor.schema';
 
 // Request Schema
-const VerifyAndEnable2faRequestSchema = z.object({ code: z.string().length(6) });
+const VerifyAndEnable2faRequestSchema = z.object({ code: TwoFactorCodeSchema });
 
 // Response Schema
 const VerifyAndEnable2faResponseSchema = z.object({

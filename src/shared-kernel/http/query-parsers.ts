@@ -22,12 +22,12 @@
  * - Optionally clamps to `[1, max]` when `max` is provided.
  */
 export function parsePositiveIntParam(
-  value: string | undefined | null,
+  value: string | number | undefined | null,
   fallback: number,
   max?: number,
 ): number {
   if (value === undefined || value === null || value === '') return fallback;
-  const n = Number(value);
+  const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n) || n < 1) return fallback;
   return max !== undefined ? Math.min(n, max) : n;
 }

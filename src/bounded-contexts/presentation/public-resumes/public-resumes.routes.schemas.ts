@@ -15,20 +15,23 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const SlugParam = z.object({ slug: z.string() });
-export const ResumeIdParam = z.object({ resumeId: z.string() });
-export const ShareIdParam = z.object({ shareId: z.string() });
-export const AliasIdParam = z.object({ aliasId: z.string() });
+export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
+export const ShareIdParam = z.object({ shareId: z.string().uuid() });
+export const AliasIdParam = z.object({ aliasId: z.string().uuid() });
 
 export const CreateShareSchema = z
   .object({
-    resumeId: z.string().min(1),
+    resumeId: z.string().uuid().min(1),
     slug: z
       .string()
       .min(3)
       .max(80)
       .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
       .optional(),
-    password: z.string().min(4).max(200).optional(),
+    password: z.string().min(4).max(200).optional().openapi({
+      description:
+        'Optional share-link access password (4-200 chars). Distinct from user account password — applies only to viewers of this share link.',
+    }),
     expiresAt: z.coerce.date().optional(),
   })
   .openapi({
@@ -82,7 +85,7 @@ export const PublicResumeSectionSchema = z.object({
 
 export const PublicResumeSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   title: z.string().nullable(),
   language: z.string(),
   isPublic: z.boolean(),
@@ -101,6 +104,7 @@ export const PublicResumeSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
+  template: z.string().nullable(),
   summary: z.string().nullable(),
   currentCompanyLogo: z.string().nullable(),
   twitter: z.string().nullable(),
@@ -112,7 +116,7 @@ export const PublicResumeSchema = z.object({
   leetcode: z.string().nullable(),
   accentColor: z.string().nullable(),
   customTheme: z.unknown().nullable(),
-  styleId: z.string().nullable(),
+  styleId: z.string().uuid().nullable(),
   profileViews: z.number().int(),
   totalStars: z.number().int(),
   totalCommits: z.number().int(),
@@ -135,7 +139,7 @@ export const PublicResumeResponseSchema = z.object({
 export const SharePayloadSchema = z.object({
   id: z.string(),
   slug: z.string(),
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
   isActive: z.boolean(),
   hasPassword: z.boolean(),
   expiresAt: IsoDateTimeSchema.nullable(),
@@ -150,7 +154,7 @@ export const ShareDeleteResponseSchema = z.object({ deleted: z.boolean() });
 export const AliasPayloadSchema = z.object({
   id: z.string(),
   slug: z.string(),
-  shareId: z.string(),
+  shareId: z.string().uuid(),
 });
 
 export const AliasCreateResponseSchema = z.object({ alias: AliasPayloadSchema });

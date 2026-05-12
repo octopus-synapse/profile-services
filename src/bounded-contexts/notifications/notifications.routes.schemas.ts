@@ -50,7 +50,7 @@ export const NOTIFICATION_TYPES = [
 
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const TypeParam = z
@@ -63,7 +63,7 @@ export const TypeParam = z
 
 export const MarkReadBody = z
   .object({
-    notificationId: z.string().optional(),
+    notificationId: z.string().uuid().optional(),
   })
   .openapi({
     example: {
@@ -102,11 +102,11 @@ export const NotificationActorSchema = z.object({
 // it via the global serializer (Date → ISO string).
 export const NotificationViewSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   type: NotificationTypeSchema,
-  actorId: z.string().nullable(),
+  actorId: z.string().uuid().nullable(),
   entityType: z.string().nullable(),
-  entityId: z.string().nullable(),
+  entityId: z.string().uuid().nullable(),
   message: z.string(),
   read: z.boolean(),
   createdAt: IsoDateTimeSchema,

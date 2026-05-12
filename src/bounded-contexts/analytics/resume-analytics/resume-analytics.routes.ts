@@ -16,6 +16,7 @@ import {
   AnalyticsSnapshotResponseSchema,
   AnalyticsSseBundle,
   ATSScoreResponseSchema,
+  AtsSimulationResponseSchema,
   BenchmarkOptionsQuery,
   HistoryQuery,
   HistoryQueryT,
@@ -108,6 +109,25 @@ export const resumeAnalyticsRoutes: ReadonlyArray<Route<ResumeAnalyticsFacade>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const score = await facade.calculateATSScore(resumeId, ctx.user!.userId);
       return score;
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/ats/simulate/:resumeId',
+    auth: { kind: 'jwt' },
+    permission: Permission.ANALYTICS_READ_OWN,
+    params: ResumeIdParam,
+    response: AtsSimulationResponseSchema,
+    openapi: {
+      summary: 'Simulate how a generic ATS parser extracts the resume',
+      tags: ['resume-analytics'],
+      description: 'Resume Analytics API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, facade) => {
+      const { resumeId } = ctx.params as { resumeId: string };
+      const data = await facade.simulateATS(resumeId, ctx.user!.userId);
+      return { data };
     },
   },
   {

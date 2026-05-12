@@ -28,7 +28,7 @@ export const QualityIssueSchema = z.object({
 
 export const ResumeQualityResponseSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
   overallScore: z.number().int().min(0).max(100),
   completenessScore: z.number().int().min(0).max(100),
   contentQualityScore: z.number().int().min(0).max(100).nullable(),

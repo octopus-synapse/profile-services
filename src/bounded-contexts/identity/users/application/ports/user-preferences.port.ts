@@ -65,6 +65,14 @@ export type UpdateFullPreferencesData = Partial<
   applyCriteria?: Partial<UserApplyCriteriaData>;
 };
 
+export type OneClickApplyConfig = {
+  enabled: boolean;
+  resumeId: string;
+  coverLetterTemplate: string;
+  tailoringMode: 'VERBATIM' | 'AI_TAILOR';
+  alsoAttach: { githubUrl: boolean; linkedinUrl: boolean };
+};
+
 // ============================================================================
 // Repository Port (Abstraction)
 // ============================================================================
@@ -82,6 +90,13 @@ export abstract class UserPreferencesRepositoryPort {
     userId: string,
     data: UpdateFullPreferencesData,
   ): Promise<FullUserPreferences>;
+
+  abstract findOneClickApplyConfig(userId: string): Promise<OneClickApplyConfig | null>;
+
+  abstract upsertOneClickApplyConfig(
+    userId: string,
+    config: OneClickApplyConfig,
+  ): Promise<OneClickApplyConfig>;
 }
 
 // ============================================================================
@@ -100,5 +115,11 @@ export abstract class UserPreferencesUseCases {
   };
   abstract readonly updateFullPreferencesUseCase: {
     execute: (userId: string, data: UpdateFullPreferencesData) => Promise<FullUserPreferences>;
+  };
+  abstract readonly getOneClickApplyConfigUseCase: {
+    execute: (userId: string) => Promise<OneClickApplyConfig | null>;
+  };
+  abstract readonly updateOneClickApplyConfigUseCase: {
+    execute: (userId: string, config: OneClickApplyConfig) => Promise<OneClickApplyConfig>;
   };
 }

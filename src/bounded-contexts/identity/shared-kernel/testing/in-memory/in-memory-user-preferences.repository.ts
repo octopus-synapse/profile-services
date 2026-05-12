@@ -5,7 +5,10 @@
  * Provides helper methods for test setup and assertions.
  */
 
-import { UserPreferencesRepositoryPort } from '../../../users/application/ports/user-preferences.port';
+import {
+  type OneClickApplyConfig,
+  UserPreferencesRepositoryPort,
+} from '../../../users/application/ports/user-preferences.port';
 import type {
   FullUserPreferences,
   UpdateFullPreferencesData,
@@ -17,6 +20,7 @@ export class InMemoryUserPreferencesRepository extends UserPreferencesRepository
   private users = new Set<string>();
   private preferences = new Map<string, UserPreferences>();
   private fullPreferences = new Map<string, FullUserPreferences>();
+  private oneClickConfigs = new Map<string, OneClickApplyConfig>();
 
   // ============ Test Helpers ============
 
@@ -197,5 +201,18 @@ export class InMemoryUserPreferencesRepository extends UserPreferencesRepository
     };
     this.fullPreferences.set(userId, newPrefs);
     return newPrefs;
+  }
+
+  async findOneClickApplyConfig(userId: string): Promise<OneClickApplyConfig | null> {
+    return this.oneClickConfigs.get(userId) ?? null;
+  }
+
+  async upsertOneClickApplyConfig(
+    userId: string,
+    config: OneClickApplyConfig,
+  ): Promise<OneClickApplyConfig> {
+    this.users.add(userId);
+    this.oneClickConfigs.set(userId, config);
+    return config;
   }
 }

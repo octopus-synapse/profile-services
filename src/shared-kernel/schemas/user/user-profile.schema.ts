@@ -1,17 +1,16 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
+import {
+  GitHubUrlSchema,
+  LinkedInUrlSchema,
+  PhoneSchema,
+  ShortDescriptionSchema,
+  SocialUrlSchema,
+  UserLocationSchema,
+} from '../primitives';
 
 extendZodWithOpenApi(z);
-
-// Local schemas
-const PhoneSchema = z.string().max(20).optional();
-const UserLocationSchema = z.string().max(100).optional();
-
-/**
- * URL Schema for profile links
- */
-const UrlSchema = z.string().url('Invalid URL').max(500, 'URL too long');
 
 /**
  * Update User Profile Schema
@@ -19,14 +18,14 @@ const UrlSchema = z.string().url('Invalid URL').max(500, 'URL too long');
  */
 export const UpdateProfileSchema = z.object({
   name: z.string().max(100, 'Name too long').optional(),
-  photoURL: UrlSchema.optional(),
-  bio: z.string().max(500, 'Bio too long').optional(),
+  photoURL: SocialUrlSchema.optional(),
+  bio: ShortDescriptionSchema.optional(),
   location: UserLocationSchema,
   phone: PhoneSchema,
-  website: UrlSchema.optional(),
-  linkedin: UrlSchema.optional(),
-  github: UrlSchema.optional(),
-  twitter: UrlSchema.optional(),
+  website: SocialUrlSchema.optional(),
+  linkedin: LinkedInUrlSchema.optional(),
+  github: GitHubUrlSchema.optional(),
+  twitter: SocialUrlSchema.optional(),
 });
 
 export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;
@@ -40,7 +39,7 @@ export const UpdatePreferencesSchema = z
     palette: z.string().optional(),
     bannerColor: z.string().optional(),
     name: z.string().max(100, 'Name too long').optional(),
-    photoURL: UrlSchema.optional(),
+    photoURL: SocialUrlSchema.optional(),
   })
   .openapi({
     example: {
@@ -78,7 +77,7 @@ export const UpdateFullPreferencesSchema = z
     palette: z.string().optional(),
     bannerColor: z.string().optional(),
     name: z.string().max(100).optional(),
-    photoURL: UrlSchema.optional(), // Localization
+    photoURL: SocialUrlSchema.optional(), // Localization
     language: z.string().max(10).optional(),
     dateFormat: z.string().optional(),
     timezone: z.string().max(50).optional(), // Notifications
@@ -150,5 +149,3 @@ export type UpdateFullPreferencesDto = z.infer<typeof UpdateFullPreferencesSchem
 export type UpdateUsernameDto = z.infer<typeof UpdateUsernameSchema>;
 
 export type UserSettingsDto = z.infer<typeof UserSettingsSchema>;
-
-export type UrlDto = z.infer<typeof UrlSchema>;

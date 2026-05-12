@@ -15,11 +15,11 @@ import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const IdParam = IdParamSchema;
-export const UserIdParam = z.object({ userId: z.string() });
+export const UserIdParam = z.object({ userId: z.string().uuid() });
 
 export const PaginationQuery = z.object({
   cursor: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const TimelineQuery = PaginationQuery.extend({
@@ -60,7 +60,7 @@ export const VoteBodySchema = z.object({ optionIndex: z.number().int().nonnegati
 export const CreateCommentBodySchema = z
   .object({
     content: z.string(),
-    parentId: z.string().optional(),
+    parentId: z.string().uuid().optional(),
   })
   .openapi({
     example: {
@@ -140,7 +140,7 @@ export const PostDataSchema = z.object({}).passthrough().nullable();
 
 export const BasePostSchema = z.object({
   id: z.string(),
-  authorId: z.string(),
+  authorId: z.string().uuid(),
   type: z.nativeEnum(PostType),
   subtype: z.string().nullable(),
   content: z.string().nullable(),
@@ -151,11 +151,11 @@ export const BasePostSchema = z.object({
   imageUrl: z.string().nullable(),
   linkUrl: z.string().nullable(),
   linkPreview: LinkPreviewDataSchema,
-  originalPostId: z.string().nullable(),
+  originalPostId: z.string().uuid().nullable(),
   coAuthors: z.array(z.string()),
   scheduledAt: IsoDateTimeSchema.nullable(),
   isPublished: z.boolean(),
-  threadId: z.string().nullable(),
+  threadId: z.string().uuid().nullable(),
   pollDeadline: IsoDateTimeSchema.nullable(),
   votesCount: z.number().int(),
   codeSnippet: CodeSnippetSchema,
@@ -202,10 +202,10 @@ export const UserPostsResponseSchema = CursorPaginatedResponseSchema(PostWithRel
 // ─── Comments ───────────────────────────────────────────────────────
 export const CommentBaseSchema = z.object({
   id: z.string(),
-  postId: z.string(),
-  authorId: z.string(),
+  postId: z.string().uuid(),
+  authorId: z.string().uuid(),
   content: z.string(),
-  parentId: z.string().nullable(),
+  parentId: z.string().uuid().nullable(),
   isDeleted: z.boolean(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -224,7 +224,7 @@ export const CommentWithPostSchema = CommentWithAuthorSchema.extend({
     id: z.string(),
     type: z.string(),
     content: z.string().nullable(),
-    authorId: z.string(),
+    authorId: z.string().uuid(),
     author: PostAuthorSchema,
   }),
 });
@@ -234,28 +234,28 @@ export const UserCommentsResponseSchema = CursorPaginatedResponseSchema(CommentW
 
 // ─── Engagement ─────────────────────────────────────────────────────
 export const LikePostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
   reactionType: z.nativeEnum(ReactionType),
-  postAuthorId: z.string().optional(),
+  postAuthorId: z.string().uuid().optional(),
   alreadyLiked: z.boolean(),
   updated: z.boolean().optional(),
 });
 
 export const UnlikePostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
 });
 
 export const BookmarkPostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
   alreadyBookmarked: z.boolean(),
 });
 
 export const UnbookmarkPostResponseSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
 });
 
 // A repost with commentary creates a brand-new post (full author tree);
@@ -265,16 +265,16 @@ export const RepostPostResponseSchema = z.discriminatedUnion('kind', [
   PostWithAuthorSchema.extend({ kind: z.literal('post') }),
   z.object({
     kind: z.literal('reposted'),
-    postId: z.string(),
-    userId: z.string(),
+    postId: z.string().uuid(),
+    userId: z.string().uuid(),
     reposted: z.boolean(),
   }),
 ]);
 
 export const ReportPostResponseSchema = z.object({
   id: z.string(),
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
   reason: z.string(),
   status: z.string(),
   createdAt: IsoDateTimeSchema,
@@ -282,22 +282,22 @@ export const ReportPostResponseSchema = z.object({
 
 export const PollVoteResponseSchema = z.object({
   id: z.string(),
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
   optionIndex: z.number().int(),
   createdAt: IsoDateTimeSchema,
 });
 
 export const ReactionWithPostSchema = z.object({
-  postId: z.string(),
-  userId: z.string(),
+  postId: z.string().uuid(),
+  userId: z.string().uuid(),
   reactionType: z.nativeEnum(ReactionType),
   createdAt: IsoDateTimeSchema,
   post: z.object({
     id: z.string(),
     type: z.string(),
     content: z.string().nullable(),
-    authorId: z.string(),
+    authorId: z.string().uuid(),
     author: PostAuthorSchema,
   }),
 });

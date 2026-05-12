@@ -20,7 +20,10 @@ export const JobTitleSchema = z
   .min(2, 'Job title must be at least 2 characters')
   .max(STRING_LIMITS.TITLE.MAX, `Job title must be less than ${STRING_LIMITS.TITLE.MAX} characters`)
   .trim()
-  .openapi({ example: EXAMPLE_TITLE });
+  .openapi('JobTitle', {
+    example: EXAMPLE_TITLE,
+    description: `Professional job title (2-${STRING_LIMITS.TITLE.MAX} characters).`,
+  });
 
 /**
  * Professional summary validation
@@ -34,7 +37,10 @@ export const ProfessionalSummarySchema = z
     `Summary must be less than ${STRING_LIMITS.SUMMARY.MAX} characters`,
   )
   .trim()
-  .openapi({ example: EXAMPLE_DESCRIPTION });
+  .openapi('ProfessionalSummary', {
+    example: EXAMPLE_DESCRIPTION,
+    description: `Professional summary / bio (50-${STRING_LIMITS.SUMMARY.MAX} characters). Minimum length enforces meaningful content.`,
+  });
 
 /**
  * Optional URL validation

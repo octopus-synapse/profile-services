@@ -31,6 +31,7 @@ import { GetFitProfileStatusUseCase } from './application/use-cases/get-fit-prof
 import { GetFitQuestionUseCase } from './application/use-cases/get-fit-question.use-case';
 import { GetJobFitProfileUseCase } from './application/use-cases/get-job-fit-profile.use-case';
 import { GetOrCreateQuestionSetUseCase } from './application/use-cases/get-or-create-question-set.use-case';
+import { ListFitAnswersUseCase } from './application/use-cases/list-fit-answers.use-case';
 import { ListFitQuestionsUseCase } from './application/use-cases/list-fit-questions.use-case';
 import { SubmitFitAnswersUseCase } from './application/use-cases/submit-fit-answers.use-case';
 import { UpdateFitQuestionUseCase } from './application/use-cases/update-fit-question.use-case';
@@ -105,6 +106,7 @@ export function buildFitProfileBundle(
       events,
       logger,
     ),
+    listFitAnswers: new ListFitAnswersUseCase(fitAnswers),
     deleteFitProfile: new DeleteFitProfileUseCase(fitAnswers, userFitProfiles, logger),
     upsertJobFitProfile: new UpsertJobFitProfileUseCase(jobFitProfiles, events, logger),
     getJobFitProfile: new GetJobFitProfileUseCase(jobFitProfiles),

@@ -23,7 +23,7 @@ import type { JsonResumeSchema } from './domain/types/import.types';
 
 extendZodWithOpenApi(z);
 
-export const ImportIdParams = z.object({ importId: z.string() });
+export const ImportIdParams = z.object({ importId: z.string().uuid() });
 export const JsonImportBodySchema = z
   .object({
     // `data` must be present — without it the handler immediately
@@ -113,12 +113,12 @@ export const ParsedResumeDataResponseSchema = z.object({
 
 export const ImportJobResponseSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   source: ImportSourceEnumSchema,
   status: ImportStatusEnumSchema,
   data: z.record(z.string(), JsonValueSchema).optional(),
   parsedData: ParsedResumeDataResponseSchema.optional(),
-  resumeId: z.string().optional(),
+  resumeId: z.string().uuid().optional(),
   errors: z.array(z.string()).optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
@@ -127,16 +127,16 @@ export const ImportJobResponseSchema = z.object({
 export const ImportJobListResponseSchema = z.array(ImportJobResponseSchema);
 
 export const ImportResultResponseSchema = z.object({
-  importId: z.string(),
+  importId: z.string().uuid(),
   status: ImportStatusEnumSchema,
-  resumeId: z.string().optional(),
+  resumeId: z.string().uuid().optional(),
   errors: z.array(z.string()).optional(),
 });
 
 export const ImportEmptyResponseSchema = z.null();
 
 export const PdfImportResponseSchema = z.object({
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
 });
 
 // GitHub-import responses (parse-from-token + connected-OAuth import).

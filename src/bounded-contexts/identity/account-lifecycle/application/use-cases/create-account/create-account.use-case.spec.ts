@@ -89,7 +89,7 @@ function makeConsentStubs() {
 function baseCommand(overrides: Partial<CreateAccountCommand> = {}): CreateAccountCommand {
   return {
     email: 'default@example.com',
-    password: 'StrongPass1',
+    password: 'StrongPass1!',
     acceptedTosVersion: TOS_VERSION,
     acceptedPrivacyVersion: PRIVACY_VERSION,
     ...overrides,
@@ -103,7 +103,7 @@ describe('CreateAccountUseCase', () => {
   let eventBus: InMemoryEventBus;
   let tokenGenerator: InMemoryTokenGenerator;
 
-  const VALID_PASSWORD = 'StrongPass1';
+  const VALID_PASSWORD = 'StrongPass1!';
 
   beforeEach(() => {
     repository = new InMemoryAccountLifecycleRepository();

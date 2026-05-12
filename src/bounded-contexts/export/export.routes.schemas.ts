@@ -22,8 +22,8 @@ export const ResumePdfQuery = z.object({
   bannerColor: z.string().optional(),
   template: z.string().optional(),
 });
-export const ResumeIdParams = z.object({ resumeId: z.string() });
-export const UserIdParams = z.object({ userId: z.string() });
+export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
+export const UserIdParams = z.object({ userId: z.string().uuid() });
 export const JsonExportQuery = z.object({ format: z.string().optional() });
 export const LatexExportQuery = z.object({ template: z.string().optional() });
 
@@ -58,3 +58,18 @@ export const PresignedDownloadResponseSchema = z.object({
   filename: z.string(),
   expiresAt: IsoDateTimeSchema,
 });
+
+// F3-PD-009c — bundle (multi-format zip) request body.
+// `resumeId` moved to the path so the `ownership` guard can resolve it
+// (PD-018 fix — guard reads ctx.params only).
+export const ResumeBundleRequestSchema = z
+  .object({
+    formats: z
+      .array(z.enum(['pdf', 'docx', 'json']))
+      .min(1)
+      .optional(),
+    language: z.enum(['en', 'pt']).optional(),
+  })
+  .openapi({
+    example: { formats: ['pdf', 'docx', 'json'], language: 'pt' },
+  });

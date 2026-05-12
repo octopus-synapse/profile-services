@@ -10,7 +10,7 @@ import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { UploadUseCases } from './application/ports/upload.port';
 
-const ResumeIdParams = z.object({ resumeId: z.string() });
+const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
 const KeyParams = z.object({ key: z.string() });
 
 const UploadResponseSchema = z.object({

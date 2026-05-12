@@ -14,6 +14,8 @@
 
 import { z } from 'zod';
 import { DomainException } from '@/shared-kernel/exceptions';
+import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
+import { ShortDescriptionSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import type { ModifierEffect, ModifierType } from './domain/entities/access-modifier.entity';
 
@@ -27,18 +29,17 @@ export const MODIFIER_TYPES: readonly ModifierType[] = [
 
 export const MODIFIER_EFFECTS: readonly ModifierEffect[] = ['DENY', 'GRANT'] as const;
 
-export const UserIdParam = z.object({ userId: z.string().min(1) });
-export const ModifierIdParam = z.object({
-  userId: z.string().min(1),
-  modifierId: z.string().min(1),
+export const UserIdParam = UserIdParamSchema;
+export const ModifierIdParam = UserIdParamSchema.extend({
+  modifierId: z.string().uuid('modifierId must be a valid UUID'),
 });
 
 export const ApplyModifierBody = z
   .object({
     modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
     effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
-    reason: z.string().min(1).max(500),
-    permissionId: z.string().min(1).optional(),
+    reason: ShortDescriptionSchema,
+    permissionId: z.string().uuid('permissionId must be a valid UUID').optional(),
     startsAt: IsoDateTimeSchema.optional(),
     endsAt: IsoDateTimeSchema.optional(),
   })
@@ -73,10 +74,10 @@ export class SelfDemoteForbiddenException extends DomainException {
 // once serialized through `JSON.stringify`. Mirrors the entity props.
 export const AccessModifierShape = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
   effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
-  permissionId: z.string().nullable(),
+  permissionId: z.string().uuid().nullable(),
   reason: z.string(),
   startsAt: IsoDateTimeSchema,
   endsAt: IsoDateTimeSchema.nullable(),

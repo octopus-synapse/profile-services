@@ -67,7 +67,7 @@ export const GlobalSearchResponseSchema = z.object({
 
 export const SearchResultItemSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   summary: z.string().nullable(),

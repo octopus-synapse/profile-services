@@ -1,3 +1,4 @@
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type { PaginatedStyles } from '../../domain/ports/resume-style.repository.port';
 import type { StyleDetail, StyleSummary } from '../../domain/types';
 import type {
@@ -45,13 +46,8 @@ export function toDetailResponseDto(s: StyleDetail): StyleDetailDto {
 }
 
 export function toListResponseDto(p: PaginatedStyles): StyleListResponseDto {
-  return {
-    items: p.items.map(toSummaryResponseDto),
-    total: p.total,
+  return buildPaginatedResponse(p.items.map(toSummaryResponseDto), p.total, {
     page: p.page,
     limit: p.limit,
-    totalPages: p.totalPages,
-    hasNext: p.hasNext,
-    hasPrev: p.hasPrev,
-  };
+  });
 }

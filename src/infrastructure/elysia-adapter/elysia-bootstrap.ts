@@ -98,6 +98,7 @@ import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platfo
 import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
 import { buildS3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.composition';
+import { buildConfigComposition } from '@/bounded-contexts/platform/config/config.composition';
 import { buildFeatureFlagsComposition } from '@/bounded-contexts/platform/feature-flags/feature-flags.composition';
 import { RedisFlagCache } from '@/bounded-contexts/platform/feature-flags/infrastructure/cache/redis-flag-cache.service';
 import { SseFlagStream } from '@/bounded-contexts/platform/feature-flags/infrastructure/sse/sse-flag-stream.service';
@@ -532,6 +533,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Phase-1 final batch: all 33 newly-migrated BCs ---
   // Service factories first (no routes; consumed by other compositions).
   const auditLog = buildAuditLogService(prisma as never, logger);
+  const auditPort = new AuditLogServiceAdapter(auditLog, logger);
   const rateLimit = buildRateLimitService(cache as never);
   // FitProfile bundle to extract `similarity` for job-match cross-BC dep.
   const fitProfileBundle = buildFitProfileBundle(prisma as never, eventBus, logger);
@@ -623,6 +625,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     authorization.authService as never,
     i18n.translation,
     logger,
+    auditPort,
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
@@ -774,8 +777,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // P1-035: wire the four audit handlers (auth/export/social/version)
   // against their respective DomainEvents. Strict mode by default —
   // a missing audit row is a compliance failure (Q51 + LGPD).
-  const auditPort = new AuditLogServiceAdapter(auditLog, logger);
-
+  // `auditPort` instantiated earlier so user-preferences UCs can audit.
   const authAudit = new AuthAuditHandler(auditPort, logger);
   eventBus.on('auth.login.failed' as never, authAudit.onLoginFailed.bind(authAudit) as never);
   eventBus.on('auth.user.logged_in' as never, authAudit.onUserLoggedIn.bind(authAudit) as never);
@@ -838,6 +840,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     version: config.getOrDefault<string>('APP_VERSION', '0.0.0-dev'),
     startedAt: new Date(),
   });
+
+  // Config BC — exposes server-side constants the frontend mirrors
+  // (PASSWORD_POLICY today; future: feature flags, etc.).
+  const platformConfig = buildConfigComposition();
 
   // --- Pipeline ---
   // The permission checker reuses `authorization.checks.checkPermissionUseCase`
@@ -967,6 +973,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     resumeStyles,
     jobMatch,
     health,
+    platformConfig,
   ] as const) {
     mountRoutes(app, { bundle: bc.useCases, routes: bc.routes }, { prefix: '/api', pipeline });
   }

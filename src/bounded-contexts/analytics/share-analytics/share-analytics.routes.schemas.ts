@@ -7,8 +7,11 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const ShareIdParam = z.object({ shareId: z.string() });
-export const ResumeShareParams = z.object({ resumeId: z.string(), shareId: z.string() });
+export const ShareIdParam = z.object({ shareId: z.string().uuid() });
+export const ResumeShareParams = z.object({
+  resumeId: z.string().uuid(),
+  shareId: z.string().uuid(),
+});
 
 export const EventsQuerySchema = z.object({
   startDate: z.string().optional(),
@@ -27,7 +30,7 @@ export const ShareAnalyticsRecentEventSchema = z.object({
 });
 
 export const ShareAnalyticsSummarySchema = z.object({
-  shareId: z.string(),
+  shareId: z.string().uuid(),
   totalViews: z.number().int().min(0),
   totalDownloads: z.number().int().min(0),
   uniqueVisitors: z.number().int().min(0),

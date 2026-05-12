@@ -12,7 +12,10 @@ extendZodWithOpenApi(z);
  * legacy rows still validate.
  */
 export const IdParamSchema = z.object({
-  id: z.string().uuid('ID must be a valid UUID').openapi({ example: EXAMPLE_GENERIC_ID }),
+  id: z
+    .string()
+    .uuid('ID must be a valid UUID')
+    .openapi({ example: EXAMPLE_GENERIC_ID, description: 'Resource UUID (path parameter).' }),
 });
 
 export type IdParam = z.infer<typeof IdParamSchema>;

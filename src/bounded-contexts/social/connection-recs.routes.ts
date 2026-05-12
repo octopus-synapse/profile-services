@@ -30,9 +30,8 @@ export const connectionRecsRoutes: ReadonlyArray<Route<ConnectionRecsRoutesBundl
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof LimitQuery>;
-      const parsed = q.limit ? Number.parseInt(q.limit, 10) : undefined;
       const recs = await bundle.service.getRecommendationsFor(ctx.user!.userId, {
-        limit: Number.isFinite(parsed) ? parsed : undefined,
+        limit: q.limit,
       });
       return { recommendations: recs };
     },

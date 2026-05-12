@@ -13,7 +13,19 @@
  */
 
 import { z } from 'zod';
-import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import {
+  IdParamSchema,
+  ResumeIdParamSchema,
+  UserIdParamSchema,
+} from '@/shared-kernel/schemas/params';
+import {
+  BioSchema,
+  GitHubUrlSchema,
+  LinkedInUrlSchema,
+  PhoneSchema,
+  SocialUrlSchema,
+  UserLocationSchema,
+} from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ─────────────────────────────────────────────────────────────────────
@@ -21,40 +33,63 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 // ─────────────────────────────────────────────────────────────────────
 
 export const PageLimitQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const _IdParam = IdParamSchema;
-export const UserIdParam = z.object({ userId: z.string() });
-export const ResumeIdParam = z.object({ resumeId: z.string() });
-export const ResumeIdAndTypeKeyParam = z.object({
-  resumeId: z.string(),
+export const UserIdParam = UserIdParamSchema;
+export const ResumeIdParam = ResumeIdParamSchema;
+export const ResumeIdAndTypeKeyParam = ResumeIdParamSchema.extend({
   sectionTypeKey: z.string(),
 });
-export const ResumeIdAndTypeKeyAndItemIdParam = z.object({
-  resumeId: z.string(),
+export const ResumeIdAndTypeKeyAndItemIdParam = ResumeIdParamSchema.extend({
   sectionTypeKey: z.string(),
-  itemId: z.string(),
+  itemId: z.string().uuid(),
 });
 
 export const LocaleQuery = z.object({ locale: z.string().optional() });
 
 export const CreateResumeBody = z
   .object({
-    title: z.string().min(1).max(100),
-    summary: z.string().max(2000).optional(),
-    isPublic: z.boolean().optional(),
-    fullName: z.string().max(100).optional(),
-    jobTitle: z.string().max(100).optional(),
-    phone: z.string().max(20).optional(),
-    location: z.string().max(100).optional(),
-    linkedin: z.string().url().optional(),
-    github: z.string().url().optional(),
-    website: z.string().url().optional(),
-    sections: z.array(z.record(z.unknown())).optional(),
+    title: z
+      .string()
+      .min(1)
+      .max(100)
+      .openapi({ description: 'Resume title shown in the user dashboard (max 100 chars).' }),
+    summary: BioSchema.optional().openapi({
+      description: 'Optional long-form summary shown at the top of the resume.',
+    }),
+    isPublic: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether the resume is publicly viewable via its slug.' }),
+    fullName: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Full name to render on the resume. Optional.' }),
+    jobTitle: z
+      .string()
+      .max(100)
+      .optional()
+      .openapi({ description: 'Target job title or current role shown under the name.' }),
+    phone: PhoneSchema,
+    location: UserLocationSchema,
+    linkedin: LinkedInUrlSchema.optional(),
+    github: GitHubUrlSchema.optional(),
+    website: SocialUrlSchema.optional(),
+    template: z
+      .enum(['PROFESSIONAL', 'CREATIVE', 'TECHNICAL', 'MINIMAL', 'MODERN', 'EXECUTIVE', 'ACADEMIC'])
+      .optional()
+      .openapi({ description: 'Visual template the resume should render with.' }),
+    sections: z.array(z.record(z.unknown())).optional().openapi({
+      description: 'Generic resume sections. Each item references a SectionType by key.',
+    }),
   })
-  .openapi({
+  .openapi('CreateResumeRequest', {
+    description:
+      'Create-resume payload. `sections` are generic — each item references a SectionType by key with content validated server-side against the SectionType definition.',
     example: {
       title: 'Senior Software Engineer Resume',
       summary: 'Backend engineer with 8+ years of experience building distributed systems.',
@@ -67,7 +102,9 @@ export const CreateResumeBody = z
     },
   });
 
-export const UpdateResumeBody = CreateResumeBody.partial().openapi({
+export const UpdateResumeBody = CreateResumeBody.partial().openapi('UpdateResumeRequest', {
+  description:
+    'Partial update of a resume. Same shape as CreateResumeRequest with all fields optional.',
   example: {
     title: 'Updated Resume Title',
     summary: 'Updated professional summary.',
@@ -157,7 +194,7 @@ export const ResumeStyleRefSchema = z.object({
 
 export const ResumeFullResponseSchema = ResumeBaseSchema.extend({
   resumeSections: z.array(ResumeSectionSchema),
-  styleId: z.string().optional(),
+  styleId: z.string().uuid().optional(),
   style: ResumeStyleRefSchema.optional(),
   fullName: z.string().optional(),
   email: z.string().optional(),
@@ -200,7 +237,7 @@ export const MgmtSectionTypeSchema = z.object({
 
 export const MgmtSectionItemSchema = z.object({
   id: z.string(),
-  resumeSectionId: z.string(),
+  resumeSectionId: z.string().uuid(),
   content: JsonObjectSchema.nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
@@ -210,8 +247,8 @@ export const MgmtSectionItemSchema = z.object({
 
 export const MgmtResumeSectionSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  sectionTypeId: z.string(),
+  resumeId: z.string().uuid(),
+  sectionTypeId: z.string().uuid(),
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),
@@ -223,7 +260,7 @@ export const MgmtResumeSectionSchema = z.object({
 
 export const MgmtResumeListItemSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   title: z.string().nullable(),
   language: z.string(),
   isPublic: z.boolean(),
@@ -232,7 +269,7 @@ export const MgmtResumeListItemSchema = z.object({
   jobTitle: z.string().nullable(),
   summary: z.string().nullable(),
   accentColor: z.string().nullable(),
-  styleId: z.string().nullable(),
+  styleId: z.string().uuid().nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
   resumeSections: z.array(MgmtResumeSectionSchema),
@@ -245,7 +282,7 @@ export const MgmtResumeListResponseSchema = z.object({
 
 export const MgmtResumeDetailsSchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   title: z.string().nullable(),
   language: z.string(),
   isPublic: z.boolean(),
@@ -264,6 +301,7 @@ export const MgmtResumeDetailsSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
+  template: z.string().nullable(),
   summary: z.string().nullable(),
   currentCompanyLogo: z.string().nullable(),
   twitter: z.string().nullable(),
@@ -275,7 +313,7 @@ export const MgmtResumeDetailsSchema = z.object({
   leetcode: z.string().nullable(),
   accentColor: z.string().nullable(),
   customTheme: z.unknown().nullable(),
-  styleId: z.string().nullable(),
+  styleId: z.string().uuid().nullable(),
   profileViews: z.number().int(),
   totalStars: z.number().int(),
   totalCommits: z.number().int(),
@@ -331,8 +369,8 @@ export const ResumeSectionTypesDataSchema = z.object({
 // Generic sections list (used by /v1/resumes/:resumeId/sections)
 export const GenericResumeSectionSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  sectionTypeId: z.string(),
+  resumeId: z.string().uuid(),
+  sectionTypeId: z.string().uuid(),
   titleOverride: z.string().nullable(),
   isVisible: z.boolean(),
   order: z.number().int(),

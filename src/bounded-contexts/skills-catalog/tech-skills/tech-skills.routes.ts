@@ -130,7 +130,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: TypeParams,
-    query: z.object({ limit: z.string().optional() }),
+    query: z.object({ limit: z.coerce.number().int().min(1).optional() }),
     response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by type',
@@ -289,7 +289,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: TypeParams,
-    query: z.object({ limit: z.string().optional() }),
+    query: z.object({ limit: z.coerce.number().int().min(1).optional() }),
     response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by type',

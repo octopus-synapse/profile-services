@@ -5,8 +5,12 @@
  * Enforces format, length, and reserved name constraints.
  */
 
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { EXAMPLE_USERNAME } from '@/shared-kernel/schemas/params/example-values.const';
 import { RESERVED_USERNAMES } from '../value-objects/reserved-usernames.const';
+
+extendZodWithOpenApi(z);
 
 // Re-exported for back-compat with code that imports the list via the
 // schema barrel (e.g. shared-kernel/schemas/primitives/index.ts). The
@@ -35,6 +39,11 @@ export const UsernameSchema = z
   .regex(/^(?!.*__)/, 'Username cannot contain consecutive underscores')
   .refine((username) => !(RESERVED_USERNAMES as readonly string[]).includes(username), {
     message: 'This username is reserved',
+  })
+  .openapi('Username', {
+    example: EXAMPLE_USERNAME,
+    description:
+      'Public handle (3-30 chars). Lowercase letters, digits, and single underscores only. Cannot start/end with `_`, contain `__`, or use a reserved name.',
   });
 
 /**

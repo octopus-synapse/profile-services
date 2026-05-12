@@ -111,3 +111,47 @@ rules:
               - required: ['410']
               - required: ['422']
               - required: ['429']
+
+  # ─── House rule 6: every component property has a description ───
+  # F5-10 / PD-011. Backfills landed via `.openapi({ description })` on
+  # each Zod schema field (or via $ref to a primitive that already
+  # carries one). The generator script post-processes `allOf` shapes to
+  # lift the description from $ref targets up to the property top level
+  # so this rule can see it without needing to merge `allOf`.
+  schema-properties-description:
+    description: Every property in components.schemas must have a description.
+    message: 'Schema "{{property}}" is missing description.'
+    severity: error
+    given: $.components.schemas.*.properties.*
+    then:
+      field: description
+      function: truthy
+
+  # ─── House rule 7: path params that look like IDs declare format ──
+  # F3-PD-011a. Catches inline `z.object({ xxxId: z.string() })` and any
+  # other path parameter whose name ends in 'Id' but lacks a format.
+  # Exemptions: slug-style params (no `Id` suffix), `code` / `key` /
+  # opaque tokens that are not UUIDs.
+  path-id-must-be-uuid:
+    description: Path params ending in 'Id' must declare format=uuid.
+    message: 'Path param "{{value}}.name" looks like an ID but does not declare format=uuid.'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head].parameters[?(@property === 'in' && @ === 'path')]^
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          if:
+            properties:
+              name:
+                pattern: 'Id$|^id$'
+            required: ['name']
+          then:
+            properties:
+              schema:
+                type: object
+                properties:
+                  format:
+                    const: 'uuid'
+                required: ['format']

@@ -1,9 +1,9 @@
 {
   "success": true,
   "generatedBy": "route-descriptors",
-  "paths": 348,
-  "operations": 416,
-  "schemas": 0,
+  "paths": 353,
+  "operations": 423,
+  "schemas": 28,
   "tags": [
     "account-lifecycle",
     "accounts",
@@ -36,6 +36,7 @@
     "chat-block-users",
     "collaboration",
     "comments",
+    "config",
     "dsl",
     "email-verification",
     "engagement",

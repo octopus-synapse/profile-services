@@ -12,8 +12,8 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { SkillsUseCases } from './application/ports/skills.port';
 import type { CreateSkillData, UpdateSkillData } from './domain/ports/skill-management.port';
 
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const SkillRefParams = z.object({ resumeId: z.string(), skillId: z.string() });
+const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
+const SkillRefParams = z.object({ resumeId: z.string().uuid(), skillId: z.string().uuid() });
 
 const CreateSkillBody = z
   .object({
@@ -44,7 +44,7 @@ const UpdateSkillBody = z
 // ─── Response schemas (mirror Skill domain interface) ────────────────
 const SkillSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
+  resumeId: z.string().uuid(),
   name: z.string(),
   category: z.string(),
   level: z.number().int().optional(),

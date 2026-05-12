@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { SocialUrlSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SUPPORTED_EVENTS = [
@@ -16,10 +17,15 @@ export const IdParam = IdParamSchema;
 
 export const CreateWebhookSchema = z
   .object({
-    url: z.string().url(),
-    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1),
+    url: SocialUrlSchema,
+    events: z
+      .array(z.enum(SUPPORTED_EVENTS))
+      .min(1)
+      .openapi({ description: 'Event types this webhook subscribes to. At least one required.' }),
   })
-  .openapi({
+  .openapi('CreateWebhookRequest', {
+    description:
+      'Register an outbound webhook. URL is fetched through the SafeFetchPort allowlist on delivery (SSRF defense).',
     example: {
       url: 'https://hooks.example.com/patch-careers/webhook',
       events: ['resume.created', 'resume.published'],
@@ -28,11 +34,20 @@ export const CreateWebhookSchema = z
 
 export const UpdateWebhookSchema = z
   .object({
-    url: z.string().url().optional(),
-    events: z.array(z.enum(SUPPORTED_EVENTS)).min(1).optional(),
-    enabled: z.boolean().optional(),
+    url: SocialUrlSchema.optional(),
+    events: z
+      .array(z.enum(SUPPORTED_EVENTS))
+      .min(1)
+      .optional()
+      .openapi({ description: 'Updated event subscriptions. Omit to leave unchanged.' }),
+    enabled: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether the webhook is currently active.' }),
   })
-  .openapi({
+  .openapi('UpdateWebhookRequest', {
+    description:
+      'Partial update of a webhook (rotate URL, change event subscriptions, toggle enabled).',
     example: {
       events: ['ats.score.updated'],
       enabled: false,

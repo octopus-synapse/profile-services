@@ -13,6 +13,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
+import { EmailSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { UsernameValidationErrorSchema } from '@/shared-kernel/schemas/user/user.schema';
 
@@ -217,8 +218,8 @@ export const ListUsersQuery = z.object({
 
 export const AdminCreateUserSchema = z
   .object({
-    email: z.string().email(),
-    password: z.string().min(8),
+    email: EmailSchema,
+    password: PasswordSchema,
     name: z.string().optional(),
     role: z.enum(['USER', 'ADMIN']).default('USER').optional(),
   })
@@ -233,7 +234,7 @@ export const AdminCreateUserSchema = z
 
 export const AdminUpdateUserSchema = z
   .object({
-    email: z.string().email().optional(),
+    email: EmailSchema.optional(),
     name: z.string().optional(),
     role: z.enum(['USER', 'ADMIN']).optional(),
     isActive: z.boolean().optional(),
@@ -246,7 +247,7 @@ export const AdminUpdateUserSchema = z
     },
   });
 
-export const AdminResetPasswordSchema = z.object({ newPassword: z.string().min(8) }).openapi({
+export const AdminResetPasswordSchema = z.object({ newPassword: PasswordSchema }).openapi({
   example: {
     newPassword: 'NewSecurePass456!',
   },
@@ -256,4 +257,31 @@ export const AssignRolesSchema = z.object({ roles: z.array(z.string()) }).openap
   example: {
     roles: ['role_user'],
   },
+});
+
+// ─── One-Click Apply config (F3-PD-009a) ─────────────────────────────
+export const OneClickApplyConfigSchema = z
+  .object({
+    enabled: z.boolean(),
+    resumeId: z.string().uuid(),
+    coverLetterTemplate: z.string().max(8000),
+    tailoringMode: z.enum(['VERBATIM', 'AI_TAILOR']),
+    alsoAttach: z.object({
+      githubUrl: z.boolean(),
+      linkedinUrl: z.boolean(),
+    }),
+  })
+  .openapi({
+    description: 'Auto-apply preferences for the candidate UI.',
+    example: {
+      enabled: true,
+      resumeId: '01900000-0000-7000-a000-000000000010',
+      coverLetterTemplate: 'Olá, equipe {{job.company}}!\nVi a vaga de {{job.title}}...',
+      tailoringMode: 'AI_TAILOR',
+      alsoAttach: { githubUrl: true, linkedinUrl: true },
+    },
+  });
+
+export const OneClickApplyConfigResponseSchema = z.object({
+  data: OneClickApplyConfigSchema.nullable(),
 });

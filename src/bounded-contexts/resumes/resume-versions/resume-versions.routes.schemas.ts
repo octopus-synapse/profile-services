@@ -12,19 +12,19 @@
 import { z } from 'zod';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const ResumeIdParam = z.object({ resumeId: z.string() });
+export const ResumeIdParam = z.object({ resumeId: z.string().uuid() });
 export const ResumeIdAndVersionIdParam = z.object({
-  resumeId: z.string(),
-  versionId: z.string(),
+  resumeId: z.string().uuid(),
+  versionId: z.string().uuid(),
 });
 
 export const VersionIdQuery = z
-  .object({ versionId: z.string() })
+  .object({ versionId: z.string().uuid() })
   .openapi({ example: { versionId: '01900000-0000-7000-a000-000000000001' } });
 
 export const TailorResumeBody = z
   .object({
-    jobId: z.string().min(1).optional(),
+    jobId: z.string().uuid().min(1).optional(),
     jobDescription: z.string().min(10).optional(),
     jobTitle: z.string().max(200).optional(),
     jobCompany: z.string().max(200).optional(),
@@ -51,7 +51,7 @@ export const ResumeVersionsResponseSchema = z.object({
 });
 
 export const TailoredVersionSummarySchema = ResumeVersionListItemSchema.extend({
-  tailoredJobId: z.string().nullable(),
+  tailoredJobId: z.string().uuid().nullable(),
 });
 
 export const TailoredVersionsResponseSchema = z.object({
@@ -63,7 +63,7 @@ export const ResumeVersionRestoreResponseSchema = z.object({
 });
 
 export const ResumeVersionDetailSchema = ResumeVersionListItemSchema.extend({
-  resumeId: z.string().optional(),
+  resumeId: z.string().uuid().optional(),
 });
 
 export const ResumeVersionResponseSchema = z.object({
@@ -78,7 +78,7 @@ export const TailorBulletSchema = z.object({
 });
 
 export const TailoredVersionDiffResponseSchema = z.object({
-  versionId: z.string(),
+  versionId: z.string().uuid(),
   summary: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
   jobTitle: z.object({ before: z.string().nullable(), after: z.string().nullable() }).nullable(),
   bullets: z.array(
@@ -100,7 +100,7 @@ export const TailorChangeSchema = z.object({
 });
 
 export const TailorResumeResponseSchema = z.object({
-  versionId: z.string(),
+  versionId: z.string().uuid(),
   versionNumber: z.number().int(),
   label: z.string(),
   summary: z.string().nullable(),

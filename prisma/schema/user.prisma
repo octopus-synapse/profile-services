@@ -175,6 +175,12 @@ model UserPreferences {
   // and whether the weekly-curated / auto-apply workers pick this user up.
   applyMode ApplyMode @default(ONE_CLICK)
 
+  // Opaque blob with the user's one-click-apply config (resumeId, cover
+  // letter template, tailoring mode, attachment flags). Schema validated
+  // at the route layer via Zod — backend doesn't interpret token strings
+  // inside the template, only stores them.
+  oneClickApplyConfig Json?
+
   applyCriteria UserApplyCriteria?
 
   createdAt DateTime @default(now())

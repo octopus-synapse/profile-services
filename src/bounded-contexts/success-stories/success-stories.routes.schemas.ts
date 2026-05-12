@@ -8,7 +8,7 @@ import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const IdParam = IdParamSchema;
-export const LimitQuery = z.object({ limit: z.string().optional() });
+export const LimitQuery = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const SuccessStoryAuthorSchema = z.object({
@@ -19,7 +19,7 @@ export const SuccessStoryAuthorSchema = z.object({
 
 export const SuccessStorySchema = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.string().uuid(),
   headline: z.string(),
   beforeText: z.string(),
   afterText: z.string(),

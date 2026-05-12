@@ -13,14 +13,14 @@ import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const IdParams = IdParamSchema;
-export const ResumeIdParams = z.object({ resumeId: z.string() });
+export const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
 
 export const ListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
-export const ApplyStyleBodySchema = z.object({ styleId: z.string() }).openapi({
+export const ApplyStyleBodySchema = z.object({ styleId: z.string().uuid() }).openapi({
   example: {
     styleId: '01900000-0000-7000-a000-000000000001',
   },
@@ -106,7 +106,7 @@ export const StyleDetailResponseSchema = StyleSummaryResponseSchema.extend({
   sectionStyles: StyleConfigSchema,
   atsSafetyBreakdown: z.record(z.string(), z.number()),
   previewImages: z.array(z.string()),
-  authorId: z.string(),
+  authorId: z.string().uuid(),
 });
 
 export const StyleListResponseSchema = z.object({

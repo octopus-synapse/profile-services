@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { EmailSchema } from '@/shared-kernel/schemas/primitives';
 import { CollaboratorRoleSchema } from '../../domain/enums/collaborator-role.enum';
 
 // ============================================================================
@@ -65,7 +66,7 @@ export type SharedResume = z.infer<typeof SharedResumeSchema>;
 // ============================================================================
 
 export const InviteCollaboratorSchema = z.object({
-  email: z.string().email(),
+  email: EmailSchema,
   role: CollaboratorRoleSchema,
 });
 

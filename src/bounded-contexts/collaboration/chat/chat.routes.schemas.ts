@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { BlockUseCases } from './application/ports/block.port';
 import { ChatUseCases } from './application/ports/chat.port';
@@ -35,8 +36,8 @@ export abstract class ChatHttpBundle {
   abstract readonly search: ChatUserSearchService;
 }
 
-export const ConversationIdParam = z.object({ conversationId: z.string() });
-export const UserIdParam = z.object({ userId: z.string() });
+export const ConversationIdParam = z.object({ conversationId: z.string().uuid() });
+export const UserIdParam = z.object({ userId: z.string().uuid() });
 
 export const SearchQuerySchema = z.object({ q: z.string().optional() });
 
@@ -70,7 +71,7 @@ export const MarkConversationReadResponseSchema = z.object({ count: z.number().i
 
 export const ConversationWithUserResponseSchema = z.union([
   z.object({ conversationId: z.null() }),
-  z.object({ conversationId: z.string(), conversation: ConversationResponseSchema }),
+  z.object({ conversationId: z.string().uuid(), conversation: ConversationResponseSchema }),
 ]);
 
 export const UserSearchResultSchema = z.object({
@@ -80,9 +81,11 @@ export const UserSearchResultSchema = z.object({
   photoURL: z.string().nullable(),
 });
 
-export const ChatUsersSearchResponseSchema = z.object({
-  users: z.array(UserSearchResultSchema),
-});
+// Q1 envelope (`{items, total, page, ...}`). Search results aren't
+// paginated server-side, but the canonical envelope keeps it consistent
+// with every other list-shape route. Handler wraps via
+// `buildFixedListResponse`.
+export const ChatUsersSearchResponseSchema = PaginatedResponseSchema(UserSearchResultSchema);
 
 export const SetPinResponseSchema = z.object({ pinned: z.boolean() });
 

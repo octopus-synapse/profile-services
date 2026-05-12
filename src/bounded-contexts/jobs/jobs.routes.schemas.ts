@@ -33,7 +33,7 @@ import {
 export { RATE_LIMIT_KEY };
 
 export const IdParam = IdParamSchema;
-export const ApplicationIdParam = z.object({ applicationId: z.string() });
+export const ApplicationIdParam = z.object({ applicationId: z.string().uuid() });
 export const CompanyParam = z.object({ company: z.string() });
 
 export const JobListQuerySchema = PaginationQuerySchema.extend({
@@ -47,7 +47,7 @@ export const JobListQuerySchema = PaginationQuerySchema.extend({
 
 export const PageOnlyQuerySchema = PaginationQuerySchema;
 
-export const SimilarQuerySchema = z.object({ limit: z.string().optional() });
+export const SimilarQuerySchema = z.object({ limit: z.coerce.number().int().min(1).optional() });
 
 export const TrackerQuerySchema = z.object({ silentDays: z.string().optional() });
 
@@ -85,7 +85,7 @@ export const ApplyBlockerSchema = z.object({
 export const ApplyContextResponseSchema = z.object({
   defaults: z.object({
     coverLetter: z.string(),
-    resumeId: z.string().nullable(),
+    resumeId: z.string().uuid().nullable(),
   }),
   requirements: z.array(ApplyRequirementSchema),
   cta: z.object({
@@ -113,7 +113,7 @@ export const JobAuthorSchema = z.object({
 
 export const JobSchema = z.object({
   id: z.string(),
-  authorId: z.string(),
+  authorId: z.string().uuid(),
   title: z.string(),
   company: z.string(),
   location: z.string().nullable(),
@@ -183,12 +183,12 @@ export const RecommendedJobsResponseSchema = PaginatedResponseSchema(Recommended
 // job/author). Models the actual JSON shape the repository projects.
 export const JobApplicationSchema = z.object({
   id: z.string(),
-  jobId: z.string(),
-  userId: z.string(),
+  jobId: z.string().uuid(),
+  userId: z.string().uuid(),
   status: JobApplicationStatusEnum,
   coverLetter: z.string().nullable(),
-  resumeId: z.string().nullable(),
-  tailoredVersionId: z.string().nullable(),
+  resumeId: z.string().uuid().nullable(),
+  tailoredVersionId: z.string().uuid().nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });
@@ -214,8 +214,8 @@ export const JobApplicationListItemSchema = z.object({
   status: JobApplicationStatusEnum,
   createdAt: IsoDateTimeSchema,
   coverLetter: z.string().nullable(),
-  resumeId: z.string().nullable(),
-  tailoredVersionId: z.string().nullable(),
+  resumeId: z.string().uuid().nullable(),
+  tailoredVersionId: z.string().uuid().nullable(),
   user: ApplicationCandidateSchema.nullable(),
 });
 
@@ -227,14 +227,14 @@ export const SimilarJobsResponseSchema = z.object({
 });
 
 export const BookmarkResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
+  jobId: z.string().uuid(),
+  userId: z.string().uuid(),
   alreadyBookmarked: z.boolean(),
 });
 
 export const UnbookmarkResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
+  jobId: z.string().uuid(),
+  userId: z.string().uuid(),
   removed: z.literal(true),
 });
 
@@ -243,8 +243,8 @@ export const ApplyToJobResponseSchema = JobApplicationSchema.extend({
 });
 
 export const WithdrawApplicationResponseSchema = z.object({
-  jobId: z.string(),
-  userId: z.string(),
+  jobId: z.string().uuid(),
+  userId: z.string().uuid(),
   withdrawn: z.literal(true),
 });
 
@@ -257,7 +257,7 @@ export const TimelineEventSchema = z.object({
 
 export const TrackedApplicationSchema = z.object({
   id: z.string(),
-  jobId: z.string(),
+  jobId: z.string().uuid(),
   status: z.string(),
   appliedAt: IsoDateTimeSchema,
   job: z.object({

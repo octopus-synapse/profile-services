@@ -9,9 +9,10 @@
  */
 
 import { z } from 'zod';
+import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
-export const ListForUserParams = z.object({ userId: z.string() });
+export const ListForUserParams = UserIdParamSchema;
 
 // ─── Response schemas ────────────────────────────────────────────────
 // Mirrors `AwardedBadgeView` — `awardedAt` is already pre-serialized

@@ -13,6 +13,7 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { buildFixedListResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   BlockedUsersResponseSchema,
   BlockStatusResponseSchema,
@@ -241,8 +242,8 @@ export const chatRoutes: ReadonlyArray<Route<ChatHttpBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { q } = ctx.query as { q?: string };
-      const users = await bundle.search.search(q ?? '', ctx.user!.userId);
-      return { users };
+      const items = await bundle.search.search(q ?? '', ctx.user!.userId);
+      return buildFixedListResponse(items);
     },
   },
 

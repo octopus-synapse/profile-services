@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { AuditLogPort } from '@/shared-kernel/audit';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 import { UpdatePreferencesUseCase } from './update-preferences.use-case';
+
+const stubAuditLog = (): AuditLogPort => ({ log: mock(async () => undefined) }) as AuditLogPort;
 
 describe('UpdatePreferencesUseCase', () => {
   let useCase: UpdatePreferencesUseCase;
@@ -12,6 +16,8 @@ describe('UpdatePreferencesUseCase', () => {
       userExists: mock(async () => true),
       findPreferences: mock(async () => ({ theme: 'light', language: 'en' })),
       updatePreferences: mock(async () => undefined),
+      findOneClickApplyConfig: mock(async () => null),
+      upsertOneClickApplyConfig: mock(async (_u: string, c: unknown) => c),
       findFullPreferences: mock(async () => null),
       upsertFullPreferences: mock(async () => ({
         id: 'pref-1',
@@ -42,7 +48,7 @@ describe('UpdatePreferencesUseCase', () => {
       })),
     } as UserPreferencesRepositoryPort;
 
-    useCase = new UpdatePreferencesUseCase(repository);
+    useCase = new UpdatePreferencesUseCase(repository, stubAuditLog(), stubLogger);
   });
 
   it('updates preferences and returns void (not envelope)', async () => {

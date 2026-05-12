@@ -1,17 +1,15 @@
 import { z } from 'zod';
+import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 import {
+  FullNameSchema,
   GitHubUrlSchema,
   LinkedInUrlSchema,
+  PhoneSchema,
+  ShortDescriptionSchema,
   SocialUrlSchema,
-} from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
-import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
+  UserLocationSchema,
+} from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
-
-// Local primitives — kept inline because they're only used by user DTOs.
-// Promote to schemas/primitives if a second consumer appears.
-const FullNameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(100);
-const PhoneSchema = z.string().max(20).optional();
-const UserLocationSchema = z.string().max(100).optional();
 
 /**
  * User DTOs
@@ -26,16 +24,16 @@ export const UpdateUserSchema = z
   .object({
     name: FullNameSchema.optional(),
     username: UsernameSchema.optional(),
-    bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
-    location: UserLocationSchema.optional(),
+    bio: ShortDescriptionSchema.optional(),
+    location: UserLocationSchema,
     website: SocialUrlSchema.optional(),
     company: z.string().max(100, 'Company must be 100 characters or less').optional(),
     title: z.string().max(100, 'Title must be 100 characters or less').optional(),
-    phone: PhoneSchema.optional(),
+    phone: PhoneSchema,
     linkedin: LinkedInUrlSchema.optional(),
     github: GitHubUrlSchema.optional(),
     twitter: SocialUrlSchema.optional(),
-    image: z.string().url().optional(),
+    image: SocialUrlSchema.optional(),
   })
   .openapi({
     example: {

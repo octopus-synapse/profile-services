@@ -1,16 +1,24 @@
 import { z } from 'zod';
+import {
+  BioSchema,
+  GitHubUrlSchema,
+  LinkedInUrlSchema,
+  PhoneSchema,
+  SocialUrlSchema,
+  UserLocationSchema,
+} from '@/shared-kernel/schemas/primitives';
 
 export const CreateResumeRequestSchema = z.object({
   title: z.string().min(1).max(100),
-  summary: z.string().max(2000).optional(),
+  summary: BioSchema.optional(),
   isPublic: z.boolean().optional(),
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
-  linkedin: z.string().url().optional(),
-  github: z.string().url().optional(),
-  website: z.string().url().optional(),
+  phone: PhoneSchema,
+  location: UserLocationSchema,
+  linkedin: LinkedInUrlSchema.optional(),
+  github: GitHubUrlSchema.optional(),
+  website: SocialUrlSchema.optional(),
   sections: z.array(z.record(z.unknown())).optional(),
 });
 

@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import {
+  BioSchema,
+  GitHubUrlSchema,
+  LinkedInUrlSchema,
+  PhoneSchema,
+  SocialUrlSchema,
+  UserLocationSchema,
+} from '../primitives';
 
 const ResumeSectionTypeRefSchema = z.object({
   key: z.string().min(1),
@@ -17,20 +25,33 @@ const UpsertResumeSectionSchema = z.object({
   items: z.array(ResumeSectionItemPayloadSchema).default([]),
 });
 
+export const ResumeTemplateEnum = z.enum([
+  'PROFESSIONAL',
+  'CREATIVE',
+  'TECHNICAL',
+  'MINIMAL',
+  'MODERN',
+  'EXECUTIVE',
+  'ACADEMIC',
+]);
+
+export type ResumeTemplate = z.infer<typeof ResumeTemplateEnum>;
+
 /**
  * Create Resume Schema
  */
 export const CreateResumeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
-  summary: z.string().max(2000).optional(),
+  summary: BioSchema.optional(),
   isPublic: z.boolean().default(false), // Personal info
   fullName: z.string().max(100).optional(),
   jobTitle: z.string().max(100).optional(),
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
-  linkedin: z.string().url().optional(),
-  github: z.string().url().optional(),
-  website: z.string().url().optional(),
+  phone: PhoneSchema,
+  location: UserLocationSchema,
+  linkedin: LinkedInUrlSchema.optional(),
+  github: GitHubUrlSchema.optional(),
+  website: SocialUrlSchema.optional(),
+  template: ResumeTemplateEnum.optional(),
   sections: z.array(UpsertResumeSectionSchema).optional(),
 });
 

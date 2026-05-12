@@ -14,16 +14,16 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 extendZodWithOpenApi(z);
 
 export const ListQuery = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).optional(),
   search: z.string().optional(),
   isActive: z.string().optional(),
 });
 
-export const NicheListQuery = ListQuery.extend({ areaId: z.string().optional() });
+export const NicheListQuery = ListQuery.extend({ areaId: z.string().uuid().optional() });
 
 export const SkillListQuery = ListQuery.extend({
-  nicheId: z.string().optional(),
+  nicheId: z.string().uuid().optional(),
   type: z.string().optional(),
 });
 
@@ -104,7 +104,7 @@ export const TechNicheRowSchema = z.object({
   color: z.string().nullable(),
   order: z.number().int(),
   isActive: z.boolean(),
-  areaId: z.string(),
+  areaId: z.string().uuid(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });
@@ -120,7 +120,7 @@ export const TechSkillRowSchema = z.object({
   icon: z.string().nullable(),
   color: z.string().nullable(),
   website: z.string().nullable(),
-  nicheId: z.string().nullable(),
+  nicheId: z.string().uuid().nullable(),
   aliases: z.array(z.string()),
   keywords: z.array(z.string()),
   popularity: z.number().int(),

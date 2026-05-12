@@ -1,4 +1,8 @@
 import type { z } from 'zod';
+import {
+  buildFixedListResponse,
+  buildPaginatedResponse,
+} from '@/shared-kernel/schemas/common/build-paginated-response';
 import type {
   PaginatedResumesDataDto,
   ResumeFullResponseDto,
@@ -77,34 +81,19 @@ export function isPaginatedResult(
 
 export function toPaginatedResumesData(
   result: ResumeResult[] | UserResumesPaginatedResult,
-  fallback: { page: number; limit: number },
 ): PaginatedResumesDataDto {
   if (isPaginatedResult(result)) {
     const items: ResumeListItemDto[] = [];
     for (const r of result.resumes) items.push(toResumeListItemDto(r));
-    const { total, page, limit, totalPages } = result.pagination;
-    return {
-      items,
-      total,
-      page,
-      limit,
-      totalPages,
-      hasNext: page * limit < total,
-      hasPrev: page > 1,
-    };
+    return buildPaginatedResponse(items, result.pagination.total, {
+      page: result.pagination.page,
+      limit: result.pagination.limit,
+    });
   }
 
   const items: ResumeListItemDto[] = [];
   for (const r of result) items.push(toResumeListItemDto(r));
-  return {
-    items,
-    total: result.length,
-    page: fallback.page,
-    limit: fallback.limit,
-    totalPages: 1,
-    hasNext: false,
-    hasPrev: fallback.page > 1,
-  };
+  return buildFixedListResponse(items);
 }
 
 type MgmtResumeListItemDto = z.infer<typeof MgmtResumeListItemSchema>;

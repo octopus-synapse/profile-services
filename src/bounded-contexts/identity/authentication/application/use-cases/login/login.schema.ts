@@ -1,12 +1,15 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { EmailSchema, PasswordInputSchema } from '@/shared-kernel/schemas/primitives';
 
 extendZodWithOpenApi(z);
 
 // Request Schema
 export const LoginSchema = z
-  .object({ email: z.string().email(), password: z.string().min(1) })
-  .openapi({
+  .object({ email: EmailSchema, password: PasswordInputSchema })
+  .openapi('LoginRequest', {
+    description:
+      'Login payload. Password validation is lenient here (legacy accounts) — the strict policy applies on registration / change.',
     example: {
       email: 'dredd-fixture@profile.local',
       password: 'Dredd_Fixture_Password_123!',

@@ -15,6 +15,7 @@ import {
 import {
   CreateFitQuestionSchema,
   EmptyResponseSchema,
+  FitAnswerHistoryResponseSchema,
   FitProfileMeResponseSchema,
   FitQuestionListResponseSchema,
   FitQuestionResponseSchema,
@@ -93,6 +94,30 @@ export const fitProfileRoutes: ReadonlyArray<Route<FitProfileUseCases>> = [
         answers: body.answers,
       });
       return toSubmittedFitProfileResponseDto(saved);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/fit-profile/answers',
+    auth: { kind: 'jwt' },
+    response: FitAnswerHistoryResponseSchema,
+    openapi: {
+      summary: "Get the caller's Fit Answer history",
+      tags: ['fit-profile'],
+      description: 'Fit Profile (personality vector)',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bc) => {
+      const answers = await bc.listFitAnswers.execute(ctx.user!.userId);
+      return {
+        items: answers.map((a) => ({
+          id: a.id,
+          questionId: a.questionId,
+          questionSetId: a.questionSetId,
+          rawValue: a.rawValue,
+          answeredAt: a.answeredAt.toISOString(),
+        })),
+      };
     },
   },
   {

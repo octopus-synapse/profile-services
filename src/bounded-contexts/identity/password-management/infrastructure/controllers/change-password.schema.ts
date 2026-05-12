@@ -1,12 +1,15 @@
 import { z } from 'zod';
+import { PasswordInputSchema, PasswordSchema } from '@/shared-kernel/schemas/primitives';
 
 // Request Schema
 export const ChangePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1),
-    newPassword: z.string().min(8),
+    currentPassword: PasswordInputSchema,
+    newPassword: PasswordSchema,
   })
-  .openapi({
+  .openapi('ChangePasswordRequest', {
+    description:
+      'Self-service password change. Requires the current password (lenient validation) and a new password meeting the strict policy.',
     example: {
       currentPassword: 'NotTheRealPassword!',
       newPassword: 'NewSecurePass456!',

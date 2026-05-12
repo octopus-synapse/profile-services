@@ -14,8 +14,8 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
  * to bespoke field names.
  */
 export const PageQuerySchema = z.object({
-  page: z.string().optional(),
-  pageSize: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).optional(),
 });
 
 export function parsePage(q: z.infer<typeof PageQuerySchema>): {
@@ -52,7 +52,7 @@ export const ChatConversationViewSchema = z.object({
   participant2: ChatParticipantSchema,
   lastMessageContent: z.string().nullable(),
   lastMessageAt: IsoDateTimeSchema.nullable(),
-  lastMessageSenderId: z.string().nullable(),
+  lastMessageSenderId: z.string().uuid().nullable(),
 });
 
 export const PaginatedChatConversationsResponseSchema = PaginatedResponseSchema(
@@ -82,8 +82,8 @@ export const CollaboratorResumeViewSchema = z.object({
 
 export const AdminCollaborationViewSchema = z.object({
   id: z.string(),
-  resumeId: z.string(),
-  userId: z.string(),
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
   role: z.string(),
   invitedBy: z.string(),
   invitedAt: IsoDateTimeSchema,
@@ -97,8 +97,8 @@ export const PaginatedCollaborationsResponseSchema = PaginatedResponseSchema(
 );
 
 export const ResumeAndUserIdParams = z.object({
-  resumeId: z.string(),
-  userId: z.string(),
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
 });
 
 export const RemoveCollaborationResponseSchema = z.object({

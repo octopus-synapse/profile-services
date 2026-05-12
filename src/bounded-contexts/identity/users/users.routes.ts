@@ -45,6 +45,8 @@ import {
   ManagedUserDetailsResponseSchema,
   ManagedUserListResponseSchema,
   MessageOnlyResponseSchema,
+  OneClickApplyConfigResponseSchema,
+  OneClickApplyConfigSchema,
   PermissionsListResponseSchema,
   PublicUsersListQuery,
   PublicUsersListResponseSchema,
@@ -310,6 +312,45 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
         body,
       );
       return { preferences };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/v1/users/me/one-click-apply',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_READ,
+    response: OneClickApplyConfigResponseSchema,
+    openapi: {
+      summary: "Get the caller's One-Click Apply config",
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const data = await bundle.preferences.getOneClickApplyConfigUseCase.execute(ctx.user!.userId);
+      return { data };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/v1/users/me/one-click-apply',
+    auth: { kind: 'jwt' },
+    permission: Permission.USER_PROFILE_UPDATE,
+    body: OneClickApplyConfigSchema,
+    response: OneClickApplyConfigResponseSchema,
+    openapi: {
+      summary: "Replace the caller's One-Click Apply config",
+      tags: ['users'],
+      description: 'Users API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const body = ctx.body as z.infer<typeof OneClickApplyConfigSchema>;
+      const data = await bundle.preferences.updateOneClickApplyConfigUseCase.execute(
+        ctx.user!.userId,
+        body,
+      );
+      return { data };
     },
   },
   // ─── Permissions ──────────────────────────────────────────────────

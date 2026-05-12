@@ -9,6 +9,7 @@
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import type { Route } from '@/shared-kernel/http/route.types';
+import { buildFixedListResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import {
   CollaborationHttpBundle,
   CommentDeleteResponseSchema,
@@ -162,8 +163,8 @@ export const collaborationRoutes: ReadonlyArray<Route<CollaborationHttpBundle>> 
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const { resumeId } = ctx.params as { resumeId: string };
-      const comments = await bundle.comments.listForResume(resumeId, ctx.user!.userId);
-      return { comments };
+      const items = await bundle.comments.listForResume(resumeId, ctx.user!.userId);
+      return buildFixedListResponse(items);
     },
   },
   {

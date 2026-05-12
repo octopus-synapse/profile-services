@@ -170,7 +170,7 @@ export const FitBreakdownSchema = z.object({
 });
 
 export const MatchCandidateItemSchema = z.object({
-  userId: z.string(),
+  userId: z.string().uuid(),
   username: z.string().nullable(),
   name: z.string().nullable(),
   photoURL: z.string().nullable(),

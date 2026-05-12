@@ -40,7 +40,7 @@ export const MessageResponseSchema = z.object({ message: z.string() });
 
 // POST /v1/accounts handler returns userId/email + auth tokens for auto-login.
 export const CreateAccountResponseSchema = z.object({
-  userId: z.string(),
+  userId: z.string().uuid(),
   email: z.string(),
   message: z.string(),
   accessToken: z.string(),
@@ -113,7 +113,7 @@ export const GdprExportResponseSchema = z.object({
     z.object({
       action: z.string(),
       entityType: z.string(),
-      entityId: z.string(),
+      entityId: z.string().uuid(),
       createdAt: IsoDateTimeSchema,
       ipAddress: z.string().nullable(),
     }),
@@ -124,7 +124,7 @@ export const AcceptConsentResponseSchema = z.object({
   message: z.string(),
   consent: z.object({
     id: z.string(),
-    userId: z.string(),
+    userId: z.string().uuid(),
     documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
     version: z.string(),
     acceptedAt: IsoDateTimeSchema,
