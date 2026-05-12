@@ -82,3 +82,5 @@ checks:
     cmd: bun run scripts/lint-pagination-adhoc.ts
   - name: file-size
     cmd: bun run scripts/lint-file-size.ts
+  - name: no-cyclic-imports
+    cmd: bun run scripts/lint-no-cyclic-imports.ts
