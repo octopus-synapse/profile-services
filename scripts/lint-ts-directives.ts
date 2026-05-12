@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * `@ts-expect-error` / `@ts-ignore` / `@ts-nocheck` are escape hatches
+ * `@ts-expect-error` / `@ts-expect-error` / `@ts-nocheck` are escape hatches
  * with a half-life. They tend to ossify: the original blocker is fixed
  * upstream, the directive stays, and nobody knows whether removing it
  * is safe. The convention here: every directive carries a deadline
@@ -29,8 +29,11 @@ const ROOT = join(import.meta.dir, '..');
 const ROOTS = ['src', 'scripts', 'test'];
 const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', 'generated']);
 
-const NOCHECK_RE = /@ts-nocheck\b/;
-const DIRECTIVE_RE = /@ts-(?:expect-error|ignore)\b([^\n]*)/g;
+// Match the directive ONLY when it's the immediate content of a `//`
+// or `/*` comment (the form TypeScript honors). Prose / JSDoc that
+// merely *mentions* the directive does not trigger.
+const NOCHECK_RE = /(?:^|[^*])\s*\/\/\s*@ts-nocheck\b/m;
+const DIRECTIVE_RE = /(?:\/\/|\/\*+)\s*@ts-(expect-error|ignore)\b([^\n*]*)/g;
 const UNTIL_RE = /until=(\d{4})-(\d{2})-(\d{2})\b/;
 
 function* walk(dir: string): Generator<string> {

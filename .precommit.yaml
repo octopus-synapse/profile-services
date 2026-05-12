@@ -62,3 +62,5 @@ checks:
     cmd: bun run scripts/lint-no-prisma-mock-in-integration.ts
   - name: no-db-helpers-in-unit
     cmd: bun run scripts/lint-no-db-helpers-in-unit.ts
+  - name: skip-todo-deadline
+    cmd: bun run scripts/lint-skip-todo-deadline.ts
