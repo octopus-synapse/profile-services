@@ -64,3 +64,5 @@ checks:
     cmd: bun run scripts/lint-no-db-helpers-in-unit.ts
   - name: skip-todo-deadline
     cmd: bun run scripts/lint-skip-todo-deadline.ts
+  - name: e2e-cleanup
+    cmd: bun run scripts/lint-e2e-cleanup.ts
