@@ -76,3 +76,5 @@ checks:
     cmd: bun run scripts/lint-no-process-env-in-domain.ts
   - name: deprecated-removeby
     cmd: bun run scripts/lint-deprecated-removeby.ts
+  - name: no-unknown-cast
+    cmd: bun run scripts/lint-no-unknown-cast.ts
