@@ -76,7 +76,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
         PAGINATION.MAX_PAGE_SIZE,
       );
       const result = await bc.listUserResumesUseCase.execute(ctx.user!.userId, page, limit);
-      return toPaginatedResumesData(result, { page, limit });
+      return toPaginatedResumesData(result);
     },
   },
   {
