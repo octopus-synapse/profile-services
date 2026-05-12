@@ -1,74 +1,78 @@
 {
   "version": "3",
-  "tree_hash": "876111e3b616d6777b5bce24ddebe2f2358ae5e7",
+  "tree_hash": "5948d3748be4d59fea9c89f1b2f76fd37072004e",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 101
+      "time_ms": 97
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 2527
+      "time_ms": 4225
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 11823
+      "time_ms": 11914
     },
     "lint": {
       "status": "ok",
-      "time_ms": 4584
+      "time_ms": 5820
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 749
+      "time_ms": 2163
     },
     "unit": {
       "status": "ok",
-      "time_ms": 8762,
+      "time_ms": 10332,
       "passed": 2659,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 5142,
+      "time_ms": 6328,
       "passed": 64,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 2632,
+      "time_ms": 2587,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 77
+      "time_ms": 57
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 96
+      "time_ms": 126
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 109
+      "time_ms": 163
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 97
+      "time_ms": 79
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 118
+      "time_ms": 114
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 134
+      "time_ms": 206
+    },
+    "pii-extended": {
+      "status": "ok",
+      "time_ms": 237
     }
   },
-  "timestamp": "2026-05-12T19:33:56Z",
+  "timestamp": "2026-05-12T19:39:49Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }

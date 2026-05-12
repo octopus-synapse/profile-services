@@ -54,3 +54,5 @@ checks:
     cmd: bun run scripts/lint-no-success-envelope.ts
   - name: no-bc-cache-ttl
     cmd: bun run scripts/lint-no-bc-cache-ttl.ts
+  - name: pii-extended
+    cmd: bun run scripts/lint-pii-extended.ts
