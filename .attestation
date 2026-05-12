@@ -1,60 +1,60 @@
 {
   "version": "3",
-  "tree_hash": "efac413e2d1ec4966e60a5ad9fa44ec2185f4268",
+  "tree_hash": "1d7dbf0eab7f34c9e7eab0c377d506d285e286f3",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 133
+      "time_ms": 154
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 4148
+      "time_ms": 4243
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 14434
+      "time_ms": 10567
     },
     "lint": {
       "status": "ok",
-      "time_ms": 6848
+      "time_ms": 5467
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 3501
+      "time_ms": 1890
     },
     "unit": {
       "status": "ok",
-      "time_ms": 12025,
+      "time_ms": 8775,
       "passed": 2659,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 7329,
+      "time_ms": 6347,
       "passed": 64,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 4115,
+      "time_ms": 3281,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 111
+      "time_ms": 103
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 107
+      "time_ms": 96
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 258
+      "time_ms": 173
     },
     "no-post-200": {
       "status": "ok",
@@ -62,25 +62,29 @@
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 223
+      "time_ms": 222
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 201
+      "time_ms": 363
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 428
+      "time_ms": 276
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 156
+      "time_ms": 216
     },
     "no-prisma-mock-in-integration": {
       "status": "ok",
-      "time_ms": 96
+      "time_ms": 110
+    },
+    "no-db-helpers-in-unit": {
+      "status": "ok",
+      "time_ms": 354
     }
   },
-  "timestamp": "2026-05-12T19:42:27Z",
+  "timestamp": "2026-05-12T19:43:20Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }

@@ -60,3 +60,5 @@ checks:
     cmd: bun run scripts/lint-ts-directives.ts
   - name: no-prisma-mock-in-integration
     cmd: bun run scripts/lint-no-prisma-mock-in-integration.ts
+  - name: no-db-helpers-in-unit
+    cmd: bun run scripts/lint-no-db-helpers-in-unit.ts
