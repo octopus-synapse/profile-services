@@ -11,7 +11,7 @@
  * `*Async` variants — every existing call site already does.
  */
 
-import { type JWTPayload, jwtVerify, SignJWT } from 'jose';
+import { type JWTPayload, errors as joseErrors, jwtVerify, SignJWT } from 'jose';
 import { JwtPort, type JwtSignOptions, type JwtVerifyOptions } from '@/shared-kernel/auth/jwt.port';
 
 function parseExpiresIn(expiresIn: string | number): number {
@@ -33,6 +33,14 @@ function parseExpiresIn(expiresIn: string | number): number {
 export interface JoseJwtConfig {
   /** Default secret used when a per-call options.secret is not provided. */
   readonly secret: string;
+  /**
+   * Optional previous secret accepted by the verifier during a rotation
+   * window. The signer always uses `secret`. When configured, verification
+   * tries `secret` first and falls back to `previousSecret` only on
+   * signature mismatch — every other failure (expired, audience, issuer,
+   * shape) surfaces unchanged.
+   */
+  readonly previousSecret?: string;
   readonly issuer?: string;
   readonly audience?: string;
 }
@@ -73,11 +81,28 @@ export class JoseJwtAdapter extends JwtPort {
   }
 
   async verifyAsync<T = unknown>(token: string, options: JwtVerifyOptions = {}): Promise<T> {
-    const { payload } = await jwtVerify(token, this.secretKey(options.secret), {
+    const verifyOptions = {
       issuer: options.issuer ?? this.config.issuer,
       audience: options.audience ?? this.config.audience,
-    });
-    return payload as T;
+    };
+    try {
+      const { payload } = await jwtVerify(token, this.secretKey(options.secret), verifyOptions);
+      return payload as T;
+    } catch (err) {
+      // A per-call secret bypasses the rotation window. So does an unset
+      // `previousSecret`. Any other failure (expired, audience, issuer)
+      // is genuine — surface it.
+      const isSignatureFailure = err instanceof joseErrors.JWSSignatureVerificationFailed;
+      if (!isSignatureFailure || options.secret || !this.config.previousSecret) {
+        throw err;
+      }
+      const { payload } = await jwtVerify(
+        token,
+        new TextEncoder().encode(this.config.previousSecret),
+        verifyOptions,
+      );
+      return payload as T;
+    }
   }
 
   decode<T = unknown>(token: string): T | null {

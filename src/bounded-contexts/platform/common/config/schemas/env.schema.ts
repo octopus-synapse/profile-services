@@ -18,6 +18,10 @@ const EnvironmentSchema = z.object({
   PORT: z.coerce.number().int().min(1000).max(65535).default(3001), // Database
   DATABASE_URL: z.string().min(1), // Auth
   JWT_SECRET: z.string().min(32),
+  // Optional previous secret accepted by the verifier during rotation
+  // windows; signer always uses JWT_SECRET. Mirrors the canonical
+  // shared-kernel env schema.
+  JWT_SECRET_PREVIOUS: z.string().min(32).optional(),
   JWT_EXPIRATION: z.string().default('7d'), // When 'true', EmailVerifiedGuard is bypassed — safe default for dev &
   // E2E, should be unset (or 'false') in production so unverified accounts
   // can't hit protected endpoints.

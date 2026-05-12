@@ -82,6 +82,15 @@ export const EnvConfigSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(32, 'JWT_SECRET must be at least 32 characters; use a long random string'),
+  // Optional previous secret kept valid for verification only (zero-downtime
+  // rotation window). The verifier tries `JWT_SECRET` first; on signature
+  // mismatch it falls back to `JWT_SECRET_PREVIOUS` if set. The signer
+  // always uses `JWT_SECRET`. Drop the env var once all tokens issued with
+  // the previous secret have expired.
+  JWT_SECRET_PREVIOUS: z
+    .string()
+    .min(32, 'JWT_SECRET_PREVIOUS must be at least 32 characters if set')
+    .optional(),
   JWT_EXPIRATION: z.string().optional(),
   JWT_ISSUER: z.string().optional(),
   JWT_AUDIENCE: z.string().optional(),

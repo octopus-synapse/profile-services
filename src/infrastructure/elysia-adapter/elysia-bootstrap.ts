@@ -197,6 +197,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // any adapter is constructed if the var is missing.
   const jwt = new JoseJwtAdapter({
     secret: config.env.JWT_SECRET,
+    previousSecret: config.env.JWT_SECRET_PREVIOUS,
     issuer: config.env.JWT_ISSUER,
     audience: config.env.JWT_AUDIENCE,
   });
