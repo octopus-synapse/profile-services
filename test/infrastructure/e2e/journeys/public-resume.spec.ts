@@ -321,7 +321,10 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
     });
 
     it.serial('should return 404 for invalid share ID in delete', async () => {
-      const fakeShareId = 'clhxxxxxxxxxxxxxxxxxx';
+      // Use a UUID-shaped ID that doesn't exist so we exercise the
+      // "not found" path. The legacy CUID fake would now trip the
+      // .uuid() validation and return 400 before reaching the handler.
+      const fakeShareId = '00000000-0000-4000-8000-000000000000';
 
       const response = await app.request
         .delete(`/api/v1/shares/${fakeShareId}`)
