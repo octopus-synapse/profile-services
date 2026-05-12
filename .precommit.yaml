@@ -68,3 +68,5 @@ checks:
     cmd: bun run scripts/lint-e2e-cleanup.ts
   - name: cron-wrapper
     cmd: bun run scripts/lint-cron-wrapper.ts
+  - name: ws-validate
+    cmd: bun run scripts/lint-ws-validate.ts
