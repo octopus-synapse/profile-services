@@ -110,6 +110,7 @@ interface ServerFrame {
   readonly ack?: string;
 }
 
+// lint-allow-mutable-module-state: monotonic counter feeds opaque socket IDs; no semantic state
 let socketCounter = 0;
 const nextSocketId = (): string => `s_${Date.now().toString(36)}_${(++socketCounter).toString(36)}`;
 

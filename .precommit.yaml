@@ -70,3 +70,5 @@ checks:
     cmd: bun run scripts/lint-cron-wrapper.ts
   - name: ws-validate
     cmd: bun run scripts/lint-ws-validate.ts
+  - name: no-mutable-module-state
+    cmd: bun run scripts/lint-no-mutable-module-state.ts

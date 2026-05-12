@@ -12,6 +12,7 @@ import type { CreatePermissionInput } from '../domain/entities/permission.entity
 import { SYSTEM_PERMISSIONS as LEGACY_PERMISSIONS } from './permissions';
 import { SYSTEM_ROLES } from './system-roles';
 
+// lint-allow-mutable-module-state: CLI seed runner lazy-init — process is one-shot, no DI graph available here
 let cliPrisma: PrismaClient | null = null;
 
 // Source of truth: the Permission enum. Every value `resource:action` is
