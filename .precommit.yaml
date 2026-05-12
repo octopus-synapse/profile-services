@@ -86,3 +86,5 @@ checks:
     cmd: bun run scripts/lint-no-cyclic-imports.ts
   - name: boolean-trap
     cmd: bun run scripts/lint-boolean-trap.ts
+  - name: jsdoc-params
+    cmd: bun run scripts/lint-jsdoc-params.ts
