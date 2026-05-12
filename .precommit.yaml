@@ -78,3 +78,5 @@ checks:
     cmd: bun run scripts/lint-deprecated-removeby.ts
   - name: no-unknown-cast
     cmd: bun run scripts/lint-no-unknown-cast.ts
+  - name: pagination-adhoc
+    cmd: bun run scripts/lint-pagination-adhoc.ts
