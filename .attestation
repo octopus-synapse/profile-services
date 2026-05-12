@@ -1,78 +1,82 @@
 {
   "version": "3",
-  "tree_hash": "5948d3748be4d59fea9c89f1b2f76fd37072004e",
+  "tree_hash": "256c46d7ea37c5cfc6dd6d9a579c3b19f2a8183a",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 97
+      "time_ms": 102
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 4225
+      "time_ms": 1679
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 11914
+      "time_ms": 7854
     },
     "lint": {
       "status": "ok",
-      "time_ms": 5820
+      "time_ms": 2440
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 2163
+      "time_ms": 1357
     },
     "unit": {
       "status": "ok",
-      "time_ms": 10332,
+      "time_ms": 6235,
       "passed": 2659,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 6328,
+      "time_ms": 3434,
       "passed": 64,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 2587,
+      "time_ms": 1800,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 57
+      "time_ms": 83
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 126
+      "time_ms": 87
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 163
+      "time_ms": 99
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 79
+      "time_ms": 76
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 114
+      "time_ms": 139
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 206
+      "time_ms": 196
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 237
+      "time_ms": 138
+    },
+    "ts-directives": {
+      "status": "ok",
+      "time_ms": 142
     }
   },
-  "timestamp": "2026-05-12T19:39:49Z",
+  "timestamp": "2026-05-12T19:41:08Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }

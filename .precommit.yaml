@@ -56,3 +56,5 @@ checks:
     cmd: bun run scripts/lint-no-bc-cache-ttl.ts
   - name: pii-extended
     cmd: bun run scripts/lint-pii-extended.ts
+  - name: ts-directives
+    cmd: bun run scripts/lint-ts-directives.ts
