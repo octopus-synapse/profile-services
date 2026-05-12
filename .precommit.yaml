@@ -52,3 +52,5 @@ checks:
     cmd: bun run scripts/lint-no-post-200.ts
   - name: no-success-envelope
     cmd: bun run scripts/lint-no-success-envelope.ts
+  - name: no-bc-cache-ttl
+    cmd: bun run scripts/lint-no-bc-cache-ttl.ts

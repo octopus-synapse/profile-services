@@ -11,7 +11,7 @@ import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.reposit
 import type { ShareWithResume } from '../../domain/ports/share.repository.port';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
-const CACHE_TTL = 60; // 60 seconds
+const CACHE_TTL = 60; // 60 seconds. lint-allow-bc-cache-ttl: in-memory share lookup; not Redis-cached.
 
 export class GetShareBySlugUseCase {
   constructor(
