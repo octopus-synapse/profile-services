@@ -88,3 +88,5 @@ checks:
     cmd: bun run scripts/lint-boolean-trap.ts
   - name: jsdoc-params
     cmd: bun run scripts/lint-jsdoc-params.ts
+  - name: no-console-in-features
+    cmd: bun run scripts/lint-no-console-in-features.ts
