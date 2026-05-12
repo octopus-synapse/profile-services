@@ -136,7 +136,7 @@ export const CodeSnippetSchema = z
   })
   .nullable();
 
-export const PostDataSchema = z.object({}).passthrough().nullable();
+export const PostDataSchema = z.object({}).passthrough().nullable(); // lint-allow-passthrough: post data shape varies per PostType and is validated by the discriminated union in the use case.
 
 export const BasePostSchema = z.object({
   id: z.string(),

@@ -34,7 +34,7 @@ export const ShadowProfileSnapshotSchema = z.object({
   source: z.string(),
   externalHandle: z.string(),
   contactEmail: z.string().nullable(),
-  payload: z.object({}).passthrough().nullable(),
+  payload: z.object({}).passthrough().nullable(), // lint-allow-passthrough: Prisma JSON column produced by buildShadowPayload; shape varies per source.
   claimedByUserId: z.string().uuid().nullable(),
 });
 

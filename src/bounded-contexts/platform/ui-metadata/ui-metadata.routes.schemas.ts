@@ -113,7 +113,7 @@ export const DashboardNotificationSchema = z.object({
   // `messageParams` is a Prisma JSON column whose shape varies per
   // notification type — passthrough so arbitrary structured payloads
   // round-trip without losing fields.
-  messageParams: z.object({}).passthrough().nullable(),
+  messageParams: z.object({}).passthrough().nullable(), // lint-allow-passthrough: notification messageParams is a Prisma JSON column with type-dependent shape.
   read: z.boolean(),
   createdAt: IsoDateTimeSchema,
 });

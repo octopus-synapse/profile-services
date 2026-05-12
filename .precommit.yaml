@@ -44,3 +44,5 @@ checks:
     runner: bun
   - name: no-prisma-push
     cmd: bun run scripts/lint-no-prisma-push.ts
+  - name: no-passthrough
+    cmd: bun run scripts/lint-no-passthrough.ts

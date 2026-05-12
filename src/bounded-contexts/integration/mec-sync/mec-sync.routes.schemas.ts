@@ -49,7 +49,7 @@ export const SyncTriggerResponseSchema = z.object({
 // shape varies and we already serialize through `JSON.stringify` (Date →
 // ISO string). Use a passthrough record so we stay schema-driven without
 // `z.unknown()` at the leaves.
-export const SyncLogRowSchema = IdParamSchema.passthrough();
+export const SyncLogRowSchema = IdParamSchema.passthrough(); // lint-allow-passthrough: Prisma row shape varies; pre-serialized via JSON.stringify.
 
 export const SyncStatusResponseSchema = z.object({
   isRunning: z.boolean(),
