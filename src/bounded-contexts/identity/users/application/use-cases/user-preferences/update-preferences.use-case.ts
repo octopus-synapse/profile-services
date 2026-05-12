@@ -6,7 +6,7 @@ import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port
 
 /**
  * Updates the basic user-preferences row (palette, bannerColor, name,
- * photoURL). Emits `USER_PREFERENCES_UPDATED` audit per Q50.
+ * photoURL). Emits `PREFERENCES_UPDATED` audit per Q50.
  */
 export class UpdatePreferencesUseCase {
   constructor(
@@ -26,7 +26,7 @@ export class UpdatePreferencesUseCase {
 
     await this.auditLog.log({
       userId,
-      action: 'USER_PREFERENCES_UPDATED',
+      action: 'PREFERENCES_UPDATED',
       entityType: 'UserPreferences',
       entityId: userId,
       metadata: { fields: Object.keys(data) },

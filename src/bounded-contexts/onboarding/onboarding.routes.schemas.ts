@@ -25,7 +25,10 @@ export const AdminStepBody = z.record(z.unknown()).openapi({
 export const AdminConfigBody = z
   .record(z.unknown())
   .openapi({ example: { strengthLevels: [{ key: 'beginner', threshold: 0 }] } });
-export const GotoStepBody = z.object({ stepId: z.string().uuid() }).openapi({
+// `stepId` here is the step KEY (slug-like, e.g. 'personal-info', 'experience')
+// resolved by `getStepIndex` in `GotoOnboardingStepUseCase`, not a UUID.
+// The F3-PD-011a sweep that added `.uuid()` to `*Id` fields was a false positive here.
+export const GotoStepBody = z.object({ stepId: z.string().min(1) }).openapi({
   example: {
     stepId: 'personal-info',
   },

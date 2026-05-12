@@ -30,7 +30,7 @@ export class UpdateFullPreferencesUseCase {
 
     await this.auditLog.log({
       userId,
-      action: 'USER_FULL_PREFERENCES_UPDATED',
+      action: 'PREFERENCES_UPDATED',
       entityType: 'UserPreferences',
       entityId: userId,
       metadata: {

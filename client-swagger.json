@@ -51711,7 +51711,7 @@
                 "properties": {
                   "stepId": {
                     "type": "string",
-                    "format": "uuid"
+                    "minLength": 1
                   }
                 },
                 "required": [
@@ -59387,6 +59387,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "template": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "summary": {
                           "type": "string",
                           "nullable": true
@@ -59652,6 +59656,7 @@
                         "linkedin",
                         "github",
                         "website",
+                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",
@@ -59886,6 +59891,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "template": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "summary": {
                           "type": "string",
                           "nullable": true
@@ -60151,6 +60160,7 @@
                         "linkedin",
                         "github",
                         "website",
+                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",
@@ -67412,6 +67422,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "template": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "summary": {
                           "type": "string",
                           "nullable": true
@@ -67786,6 +67800,7 @@
                         "linkedin",
                         "github",
                         "website",
+                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",

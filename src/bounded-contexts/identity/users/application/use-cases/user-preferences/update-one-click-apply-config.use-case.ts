@@ -8,7 +8,7 @@ import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port
  * validated by Zod at the route layer; this use case treats it as
  * opaque persistence.
  *
- * Emits `USER_ONE_CLICK_APPLY_CONFIG_UPDATED` audit event per CLAUDE.md
+ * Emits `PREFERENCES_UPDATED` audit event per CLAUDE.md
  * Q50 (LGPD/GDPR requires audit on user-preference mutations).
  */
 export class UpdateOneClickApplyConfigUseCase {
@@ -23,7 +23,7 @@ export class UpdateOneClickApplyConfigUseCase {
 
     await this.auditLog.log({
       userId,
-      action: 'USER_ONE_CLICK_APPLY_CONFIG_UPDATED',
+      action: 'PREFERENCES_UPDATED',
       entityType: 'UserPreferences',
       entityId: userId,
       metadata: {

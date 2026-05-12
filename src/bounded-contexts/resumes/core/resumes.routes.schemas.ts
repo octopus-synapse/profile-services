@@ -301,6 +301,7 @@ export const MgmtResumeDetailsSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
+  template: z.string().nullable(),
   summary: z.string().nullable(),
   currentCompanyLogo: z.string().nullable(),
   twitter: z.string().nullable(),
