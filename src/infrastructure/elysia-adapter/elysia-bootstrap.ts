@@ -1,7 +1,7 @@
 /**
  * Production Elysia bootstrap (Phase 2 cutover). Boots all migrated
  * BCs on Elysia + Bun, end-to-end framework-free pipeline:
- *  - PinoLoggerAdapter   (LoggerPort)
+ *  - AppLoggerService    (LoggerPort, Winston-backed)
  *  - JoseJwtAdapter      (JwtPort)
  *  - JoseAuthExtractorAdapter (AuthExtractorPort)
  *  - InMemorySseStreamAdapter (SseStreamPort)
@@ -94,6 +94,7 @@ import { AuditLogServiceAdapter } from '@/bounded-contexts/platform/common/audit
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platform.composition';
 import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
@@ -163,7 +164,6 @@ import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
-import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
 import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
@@ -191,7 +191,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
-  const logger = new PinoLoggerAdapter();
+  const logger = new AppLoggerService();
   // P0-001: JWT_SECRET is validated up front by the ConfigPort schema
   // (min 32 chars, required). No fallback default — boot fails before
   // any adapter is constructed if the var is missing.
