@@ -58,3 +58,5 @@ checks:
     cmd: bun run scripts/lint-pii-extended.ts
   - name: ts-directives
     cmd: bun run scripts/lint-ts-directives.ts
+  - name: no-prisma-mock-in-integration
+    cmd: bun run scripts/lint-no-prisma-mock-in-integration.ts

@@ -1,82 +1,86 @@
 {
   "version": "3",
-  "tree_hash": "256c46d7ea37c5cfc6dd6d9a579c3b19f2a8183a",
+  "tree_hash": "efac413e2d1ec4966e60a5ad9fa44ec2185f4268",
   "checks": "swagger typecheck lint unit arch contract",
   "metrics": {
     "lockfile": {
       "status": "ok",
-      "time_ms": 102
+      "time_ms": 133
     },
     "swagger-fresh": {
       "status": "ok",
-      "time_ms": 1679
+      "time_ms": 4148
     },
     "typecheck": {
       "status": "ok",
-      "time_ms": 7854
+      "time_ms": 14434
     },
     "lint": {
       "status": "ok",
-      "time_ms": 2440
+      "time_ms": 6848
     },
     "route-coverage": {
       "status": "ok",
-      "time_ms": 1357
+      "time_ms": 3501
     },
     "unit": {
       "status": "ok",
-      "time_ms": 6235,
+      "time_ms": 12025,
       "passed": 2659,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 3434,
+      "time_ms": 7329,
       "passed": 64,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 1800,
+      "time_ms": 4115,
       "passed": 9,
       "failed": 0,
       "skipped": 0
     },
     "no-prisma-push": {
       "status": "ok",
-      "time_ms": 83
+      "time_ms": 111
     },
     "no-passthrough": {
       "status": "ok",
-      "time_ms": 87
+      "time_ms": 107
     },
     "no-prisma-transaction": {
       "status": "ok",
-      "time_ms": 99
+      "time_ms": 258
     },
     "no-post-200": {
       "status": "ok",
-      "time_ms": 76
+      "time_ms": 101
     },
     "no-success-envelope": {
       "status": "ok",
-      "time_ms": 139
+      "time_ms": 223
     },
     "no-bc-cache-ttl": {
       "status": "ok",
-      "time_ms": 196
+      "time_ms": 201
     },
     "pii-extended": {
       "status": "ok",
-      "time_ms": 138
+      "time_ms": 428
     },
     "ts-directives": {
       "status": "ok",
-      "time_ms": 142
+      "time_ms": 156
+    },
+    "no-prisma-mock-in-integration": {
+      "status": "ok",
+      "time_ms": 96
     }
   },
-  "timestamp": "2026-05-12T19:41:08Z",
+  "timestamp": "2026-05-12T19:42:27Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }
