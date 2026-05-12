@@ -80,3 +80,5 @@ checks:
     cmd: bun run scripts/lint-no-unknown-cast.ts
   - name: pagination-adhoc
     cmd: bun run scripts/lint-pagination-adhoc.ts
+  - name: file-size
+    cmd: bun run scripts/lint-file-size.ts
