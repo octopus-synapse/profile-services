@@ -42,3 +42,5 @@ checks:
   - name: contract
     cmd: bun test ./test/static-analysis/contracts
     runner: bun
+  - name: no-prisma-push
+    cmd: bun run scripts/lint-no-prisma-push.ts
