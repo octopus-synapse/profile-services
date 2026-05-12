@@ -90,3 +90,5 @@ checks:
     cmd: bun run scripts/lint-jsdoc-params.ts
   - name: no-console-in-features
     cmd: bun run scripts/lint-no-console-in-features.ts
+  - name: magic-numbers
+    cmd: bun run scripts/lint-magic-numbers.ts
