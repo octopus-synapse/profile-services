@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dir, '..');
 const SRC = join(ROOT, 'src');
-const BASELINE_PATH = join(ROOT, '.linecount-baseline.json');
+const BASELINE_PATH = join(ROOT, 'config/linecount-baseline.json');
 
 const MAX_LINES = 150;
 const EXCLUDED_SUFFIXES = ['.spec.ts', '.test.ts', '.e2e-spec.ts'];

@@ -55,7 +55,7 @@
     "drift:discover": "bun run scripts/discover-response-drift.ts",
     "test:contract": "bun test --config=config/bunfig.contract.toml",
     "check:body-examples": "bun run scripts/check-body-schema-examples.ts",
-    "lint:spec": "bunx @stoplight/spectral-cli lint --ruleset .spectral.yaml swagger.json client-swagger.json",
+    "lint:spec": "bunx @stoplight/spectral-cli lint --ruleset config/spectral.yaml swagger.json client-swagger.json",
     "prepare": "husky"
   },
   "dependencies": {

@@ -10,7 +10,7 @@ on:
       - "scripts/generate-swagger-from-decorators.ts"
       - "client-swagger.json"
       - "swagger.json"
-      - ".spectral.yaml"
+      - "config/spectral.yaml"
       - ".github/workflows/ci.contract.api.yml"
   workflow_dispatch:
 
