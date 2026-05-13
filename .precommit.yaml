@@ -11,9 +11,6 @@ serial:
     stage:
       - swagger.json
       - client-swagger.json
-      - swagger-generation-report.json
-      - src/graphql/schema.graphql
-      - generated/schema.graphql
 
 checks:
   - name: lockfile
