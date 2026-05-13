@@ -79,8 +79,8 @@ fmt_elapsed() {
 # Format: COMPOSE_FILE|PG_CONTAINER|REDIS_CONTAINER|BACKEND_CONTAINER|DB_NAME
 declare -A ENV_CONFIG=(
     ["dev"]="docker-compose.dev.yml|profile-postgres-dev|profile-redis-dev|profile-backend-dev|profile_dev"
-    ["e2e"]="docker-compose.e2e.yml|profile-postgres-e2e|profile-redis-e2e|profile-services-e2e|profile_test"
-    ["test"]="docker-compose.test.yml|profile-postgres-test|profile-redis-test||profile_test"
+    ["e2e"]="infra/docker/docker-compose.e2e.yml|profile-postgres-e2e|profile-redis-e2e|profile-services-e2e|profile_test"
+    ["test"]="infra/docker/docker-compose.test.yml|profile-postgres-test|profile-redis-test||profile_test"
     ["prod"]="docker-compose.yml|profile-postgres|profile-redis|profile-backend|profile"
 )
 
@@ -219,8 +219,8 @@ Usage:
 
 Environments (omit for auto-detect):
   dev   development containers (docker-compose.dev.yml)
-  e2e   isolated e2e env       (docker-compose.e2e.yml)
-  test  postgres-only test     (docker-compose.test.yml)
+  e2e   isolated e2e env       (infra/docker/docker-compose.e2e.yml)
+  test  postgres-only test     (infra/docker/docker-compose.test.yml)
   prod  production-like        (docker-compose.yml)
 
 Options:

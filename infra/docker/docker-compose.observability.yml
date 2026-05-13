@@ -1,5 +1,5 @@
 # Usage:
-#   docker compose -f docker-compose.dev.yml -f docker-compose.observability.yml up -d
+#   docker compose -f docker-compose.dev.yml -f infra/docker/docker-compose.observability.yml up -d
 
 services:
   prometheus:
@@ -15,8 +15,8 @@ services:
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
-      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./infra/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus_data:/prometheus
     networks:
       - profile-dev-network
@@ -37,7 +37,7 @@ services:
       SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
       PAGERDUTY_SERVICE_KEY: ${PAGERDUTY_SERVICE_KEY:-}
     volumes:
-      - ./infra/alerting/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ../alerting/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
     networks:
       - profile-dev-network

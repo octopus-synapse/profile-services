@@ -3,13 +3,13 @@
 services:
   postgres-test:
     extends:
-      file: infra/docker/compose/postgres-test.yml
+      file: compose/postgres-test.yml
       service: postgres
     container_name: profile-postgres-test
 
   redis-test:
     extends:
-      file: infra/docker/compose/redis-test.yml
+      file: compose/redis-test.yml
       service: redis
     container_name: profile-redis-test
 
@@ -18,7 +18,9 @@ services:
     container_name: profile-db-setup-test
     working_dir: /workspace
     volumes:
-      - .:/workspace
+      # Compose paths resolve relative to the file's directory. From
+      # `infra/docker/`, the repo root is two levels up.
+      - ../..:/workspace
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/profile_test
       REDIS_HOST: redis-test

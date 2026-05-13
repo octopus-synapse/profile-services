@@ -5,13 +5,13 @@
 services:
   postgres:
     extends:
-      file: infra/docker/compose/postgres-test.yml
+      file: compose/postgres-test.yml
       service: postgres
     container_name: profile-postgres-e2e
 
   redis:
     extends:
-      file: infra/docker/compose/redis-test.yml
+      file: compose/redis-test.yml
       service: redis
     container_name: profile-redis-e2e
 

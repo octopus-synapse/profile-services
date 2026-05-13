@@ -1,5 +1,5 @@
 # PostHog self-hosted — produto analytics. Rodar junto com o compose principal:
-#   docker compose -f docker-compose.yml -f docker-compose.posthog.yml up -d
+#   docker compose -f docker-compose.yml -f infra/docker/docker-compose.posthog.yml up -d
 #
 # Stack dedicada (Postgres + Redis + ClickHouse + PostHog web/worker) pra não
 # contaminar o Postgres/Redis do backend. PostHog assume controle total dos
