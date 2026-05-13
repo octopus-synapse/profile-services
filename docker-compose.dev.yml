@@ -6,6 +6,12 @@ services:
     container_name: profile-postgres-dev
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
+    # No host port. Backend reaches Postgres via the internal docker
+    # network (`postgres:5432`); developers needing psql/DBeaver from
+    # the host run `docker exec -it profile-postgres-dev psql ...`.
+    # This frees host port 5432 so a co-installed Postgres / other
+    # project never collides with the dev stack.
+    ports: !override []
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     networks:
@@ -16,6 +22,9 @@ services:
       file: infra/docker/compose/redis.yml
       service: redis
     container_name: profile-redis-dev
+    # Same rationale as Postgres above — backend reaches Redis via
+    # `redis:6379` on the docker network; host port stays unbound.
+    ports: !override []
     volumes:
       - redis_dev_data:/data
     networks:
@@ -26,6 +35,14 @@ services:
       file: infra/docker/compose/minio.yml
       service: minio
     container_name: profile-minio-dev
+    # S3 port (9000) stays on its default — presigned URLs default to
+    # `http://localhost:9000/...` when MINIO_PUBLIC_ENDPOINT is the
+    # host-facing override, and the browser fetching the resource has
+    # to reach it. Console moves to 19001 (project-unique) so it
+    # doesn't fight other locally-installed MinIO / web apps on 9001.
+    ports: !override
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-19001}:9001"
     volumes:
       - minio_dev_data:/data
     networks:
@@ -56,6 +73,9 @@ services:
       file: infra/docker/compose/libretranslate.yml
       service: libretranslate
     container_name: profile-libretranslate-dev
+    # Backend hits libretranslate via `http://libretranslate:5000`
+    # internally; the host doesn't need it.
+    ports: !override []
     volumes:
       - libretranslate_models:/home/libretranslate/.local
     networks:
@@ -65,9 +85,12 @@ services:
     image: axllent/mailpit:latest
     container_name: profile-mailpit-dev
     restart: unless-stopped
+    # SMTP (1025) stays internal — the backend writes to
+    # `mailpit:1025` on the docker network. Only the web UI is
+    # published, on a project-unique 18025 so it doesn't fight other
+    # mailpit / SMTP UIs on 8025.
     ports:
-      - "${MAILPIT_SMTP_PORT:-1025}:1025"
-      - "${MAILPIT_UI_PORT:-8025}:8025"
+      - "${MAILPIT_UI_PORT:-18025}:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
@@ -99,8 +122,8 @@ services:
       # MUST set JWT_SECRET explicitly.
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
-      APP_URL: ${APP_URL:-http://localhost:3001}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3001}
+      APP_URL: ${APP_URL:-http://localhost:13001}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:13001}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have
       # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
@@ -131,7 +154,10 @@ services:
       # to exercise the full LGPD flow.
       SKIP_TOS_CHECK: ${SKIP_TOS_CHECK:-true}
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      # Host 13001 → container 3001 (project-unique host port). The
+      # frontend dev server's VITE_API_URL must follow:
+      # http://localhost:13001. E2E tests' API_URL constant too.
+      - "${BACKEND_PORT:-13001}:3001"
       - "9229:9229"
     depends_on:
       postgres:
