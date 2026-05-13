@@ -55,7 +55,7 @@ const EnvironmentSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().optional(), // OAuth — LinkedIn
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(), // OAuth — shared callback host (backend base URL used to build redirect URIs)
-  OAUTH_CALLBACK_BASE: z.string().url().default('http://localhost:3001'), // Password reset tokens
+  OAUTH_CALLBACK_BASE: z.string().url().default('http://localhost:13001'), // Password reset tokens
   PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(30), // Account lockout
   LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().positive().default(5),
   LOGIN_LOCK_DURATION_MINUTES: z.coerce.number().int().positive().default(15),
