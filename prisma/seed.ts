@@ -119,18 +119,18 @@ async function main() {
 
   // Seed E2E test user for performance testing
   const e2eTestEmail = 'e2e-test@profile.local';
-  const existingE2eUser = await prisma.user.findFirst({
+  let e2eUser = await prisma.user.findFirst({
     where: { email: e2eTestEmail },
   });
 
-  if (!existingE2eUser) {
+  if (!e2eUser) {
     const e2ePassword = 'E2E_Test_Password_123!';
     const hashedE2ePassword = await Bun.password.hash(e2ePassword, {
       algorithm: 'bcrypt',
       cost: 10,
     });
 
-    await prisma.user.create({
+    e2eUser = await prisma.user.create({
       data: {
         email: e2eTestEmail,
         passwordHash: hashedE2ePassword,
@@ -147,6 +147,19 @@ async function main() {
     console.log(`🔑 E2E Password: ${e2ePassword}`);
   } else {
     console.log('✅ E2E test user already exists');
+  }
+
+  // Assign the `user` role to the e2e fixture so domain permissions
+  // (feed:use, social:use, resume:create, …) are available. The
+  // onboarding-completion use case usually grants this, but the seed
+  // shortcuts onboarding via `onboardingCompletedAt`. Idempotent.
+  const userRoleForE2e = await prisma.role.findUnique({ where: { name: 'user' } });
+  if (userRoleForE2e) {
+    await prisma.userRoleAssignment.upsert({
+      where: { userId_roleId: { userId: e2eUser.id, roleId: userRoleForE2e.id } },
+      create: { userId: e2eUser.id, roleId: userRoleForE2e.id, assignedBy: 'seed' },
+      update: {},
+    });
   }
 
   // Seed enzoferracini fixture user (patch-careers-ui e2e resume-download + search-people tests)
