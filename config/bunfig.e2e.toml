@@ -1,9 +1,6 @@
 [test]
-# E2E Test configuration for Bun
-root = "./test/infrastructure/e2e/journeys"
-preload = ["./test/infrastructure/e2e/setup.ts"]
-
-# E2E tests require longer timeouts
+# E2E configuration. Migrated suites under `test/infrastructure/e2e/`.
+root = "./test/infrastructure/e2e"
 timeout = 60000
 
 [install.scopes]

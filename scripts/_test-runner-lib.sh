@@ -28,7 +28,7 @@
 #   TR_SPEC_DIR        Directory the runner scans for `*.spec.ts` files
 #                      (e.g. `test/infrastructure/e2e`).
 #   TR_BUNFIG          `bunfig.toml` to pass to `bun test --config=`
-#                      (e.g. `bunfig.e2e.toml`).
+#                      (e.g. `config/bunfig.e2e.toml`).
 #   TR_DEFAULT_SHARDS  Default value of $SHARDS when the user does not
 #                      override it. Use 3 for e2e, 1 for integration.
 #   TR_DEFAULT_ENV     Environment chosen automatically when no

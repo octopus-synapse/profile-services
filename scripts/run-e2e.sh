@@ -24,7 +24,7 @@
 # Suite-specific knobs (the rest is in `_test-runner-lib.sh`).
 TR_LABEL="e2e"
 TR_SPEC_DIR="test/infrastructure/e2e"
-TR_BUNFIG="bunfig.e2e.toml"
+TR_BUNFIG="config/bunfig.e2e.toml"
 # 3 workers = sweet spot on a 4-core box: workers + Postgres + I/O leave a
 # core idle so the kernel scheduler doesn't thrash. Override via
 # `SHARDS=N bun run test:e2e`. SHARDS=1 disables sharding.

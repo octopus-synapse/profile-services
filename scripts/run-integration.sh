@@ -26,7 +26,7 @@
 # Suite-specific knobs (the rest is in `_test-runner-lib.sh`).
 TR_LABEL="integration"
 TR_SPEC_DIR="test/infrastructure/integration"
-TR_BUNFIG="bunfig.integration.toml"
+TR_BUNFIG="config/bunfig.integration.toml"
 # The integration suite is small enough that the fork+collect overhead
 # of sharding outweighs the gain. Override via
 # `SHARDS=N bun run test:integration` if a future suite grows large

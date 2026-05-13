@@ -1,7 +1,0 @@
-[test]
-# E2E configuration. Migrated suites under `test/infrastructure/e2e/`.
-root = "./test/infrastructure/e2e"
-timeout = 60000
-
-[install.scopes]
-"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }
