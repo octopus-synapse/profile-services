@@ -42,6 +42,7 @@ export const STATIC_STEPS_BEFORE: StaticStepBase[] = [
     icon: '💼',
     fields: [
       { key: 'jobTitle', type: 'text', required: true },
+      { key: 'headline', type: 'text', required: false },
       { key: 'summary', type: 'textarea', required: false, widget: 'textarea' },
       { key: 'linkedin', type: 'url', required: false },
       { key: 'github', type: 'url', required: false },
