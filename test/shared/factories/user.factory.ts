@@ -49,6 +49,7 @@ const defaultUser: User = {
   phone: null,
   location: null,
   bio: null,
+  headline: null,
   website: null,
   linkedin: null,
   github: null,

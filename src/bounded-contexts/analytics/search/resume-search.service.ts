@@ -282,7 +282,7 @@ export class ResumeSearchService {
       }),
       this.prisma.post.findMany({
         where: { content: { contains: trimmed, ...insensitive } },
-        select: { id: true, content: true, type: true, authorId: true },
+        select: { id: true, content: true, authorId: true },
         take: safeLimit,
         orderBy: { createdAt: 'desc' },
       }),
@@ -312,7 +312,6 @@ export class ResumeSearchService {
       title: (p.content ?? '').slice(0, 80) || 'Post',
       snippet: p.content ? p.content.slice(0, 160) : undefined,
       href: `/feed/${p.id}`,
-      badge: p.type,
     }));
 
     const groups: GlobalSearchGroup[] = [

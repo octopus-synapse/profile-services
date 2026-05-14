@@ -23,7 +23,6 @@ import {
   ModifierEffect,
   ModifierType,
   NotificationType,
-  PostType,
   type Prisma,
   type PrismaClient,
 } from '@prisma/client';
@@ -281,7 +280,6 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_POST_ID,
       authorId: EXAMPLE_USER_ID,
-      type: PostType.ACHIEVEMENT,
       content: 'Dredd fixture post body.',
     },
     update: {},
@@ -293,7 +291,6 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_GENERIC_ID,
       authorId: EXAMPLE_USER_ID,
-      type: PostType.ACHIEVEMENT,
       content: 'Dredd generic post body.',
     },
     update: {},
