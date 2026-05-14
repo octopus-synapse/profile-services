@@ -4,32 +4,26 @@
  */
 
 import type {
+  LikeWithPost,
   Post,
   PostBookmark,
   PostLike,
   PostWithAuthor,
-  ReactionType,
-  ReactionWithPost,
 } from '../entities';
 
 export abstract class EngagementRepositoryPort {
   abstract findPostById(id: string): Promise<Post | null>;
 
-  // -------- Likes / reactions --------
+  // -------- Likes --------
   abstract findLike(postId: string, userId: string): Promise<PostLike | null>;
-  abstract createLike(postId: string, userId: string, reactionType: ReactionType): Promise<void>;
-  abstract updateLikeReaction(
-    postId: string,
-    userId: string,
-    reactionType: ReactionType,
-  ): Promise<void>;
+  abstract createLike(postId: string, userId: string): Promise<void>;
   abstract deleteLike(postId: string, userId: string): Promise<void>;
   abstract incrementLikesCount(postId: string, by: number): Promise<void>;
-  abstract listReactionsByUser(
+  abstract listLikesByUser(
     userId: string,
     cursor: string | undefined,
     limit: number,
-  ): Promise<ReactionWithPost[]>;
+  ): Promise<LikeWithPost[]>;
 
   // -------- Bookmarks --------
   abstract findBookmark(postId: string, userId: string): Promise<PostBookmark | null>;

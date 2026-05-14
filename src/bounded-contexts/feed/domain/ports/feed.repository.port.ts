@@ -10,10 +10,8 @@ import type {
   BookmarkedFeedItem,
   PersistPostInput,
   Post,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../entities';
 
@@ -32,7 +30,6 @@ export abstract class FeedRepositoryPort {
   abstract listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
@@ -53,7 +50,7 @@ export abstract class FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;
