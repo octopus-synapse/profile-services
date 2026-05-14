@@ -39,12 +39,12 @@ describe('SaveOnboardingStepDataUseCase', () => {
     // Act
     const result = await useCase.execute(USER_ID, {
       fullName: 'Jane Doe',
-      email: 'jane@example.com',
+      phone: '+55 11 99999-0000',
     });
 
     // Assert
     expect(result.currentStep).toBe('personal-info');
-    expect(result.personalInfo).toEqual({ fullName: 'Jane Doe', email: 'jane@example.com' });
+    expect(result.personalInfo).toEqual({ fullName: 'Jane Doe', phone: '+55 11 99999-0000' });
   });
 
   it('saves username step data', async () => {
@@ -142,7 +142,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, { fullName: 'John', email: 'john@test.com' });
+    const result = await useCase.execute(USER_ID, { fullName: 'John' });
 
     // Assert — step and completedSteps should not change
     expect(result.currentStep).toBe('personal-info');
@@ -169,7 +169,7 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     await expect(
-      useCaseWithFailingSave.execute(USER_ID, { fullName: 'X', email: 'x@example.com' }),
+      useCaseWithFailingSave.execute(USER_ID, { fullName: 'X' }),
     ).rejects.toThrow(OnboardingSectionPersistenceFailedException);
   });
 

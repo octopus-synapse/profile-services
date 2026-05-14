@@ -102,7 +102,6 @@ async function loginTestAccount(email: string, password: string): Promise<string
  * Required fields by schema:
  * - username: 3-30 chars, alphanumeric + underscore
  * - personalInfo.fullName: 2-100 chars
- * - personalInfo.email: valid email
  * - professionalProfile.jobTitle: 2-100 chars
  * - professionalProfile.summary: 10-500 chars (REQUIRED!)
  * - skills: array (can be empty)
@@ -118,7 +117,6 @@ function createOnboardingPayload(
   overrides: {
     username?: string;
     fullName?: string;
-    email?: string;
     jobTitle?: string;
     summary?: string;
     hasExperience?: boolean;
@@ -129,7 +127,6 @@ function createOnboardingPayload(
   const {
     username = uniqueTestUsername('user'),
     fullName = 'Test User',
-    email = 'test@example.com',
     jobTitle = 'Software Developer',
     summary = 'Experienced software developer with expertise in modern web technologies.',
     hasExperience = false,
@@ -139,7 +136,7 @@ function createOnboardingPayload(
 
   return {
     username,
-    personalInfo: { fullName, email },
+    personalInfo: { fullName },
     professionalProfile: { jobTitle, summary },
     skills: hasSkills ? [{ name: 'TypeScript', category: 'Programming' }] : [],
     noSkills: !hasSkills,
@@ -436,7 +433,7 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'personal-info',
           completedSteps: ['welcome'],
-          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
+          personalInfo: { fullName: 'Test User' },
         });
 
       expect(response.status).toBe(200);
@@ -449,7 +446,7 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'professional-profile',
           completedSteps: ['welcome', 'personal-info'],
-          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
+          personalInfo: { fullName: 'Test User' },
           professionalProfile: { jobTitle: 'Software Engineer', summary: 'Experienced developer' },
         });
 
@@ -690,7 +687,7 @@ describe('Complete Onboarding Flow', () => {
         .post('/api/v1/onboarding')
         .send({
           username: 'noauth',
-          personalInfo: { fullName: 'No Auth', email: 'noauth@test.com' },
+          personalInfo: { fullName: 'No Auth' },
         });
 
       // Body validation runs in buildHttpCtx before the auth pipeline,

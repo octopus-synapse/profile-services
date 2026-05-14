@@ -35,6 +35,7 @@ import {
   OnboardingStepCreatedResponseSchema,
   OnboardingStepResponseSchema,
   OnboardingStepsResponseSchema,
+  RestartQuery,
   SaveProgressResponseSchema,
   StepDataBody,
   StepKeyParam,
@@ -225,22 +226,27 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'POST',
     path: '/v1/onboarding/session/restart',
     auth: { kind: 'jwt' },
-    query: LocaleQuery,
+    query: RestartQuery,
     response: OnboardingSessionSchema,
     openapi: {
-      summary: 'Restart onboarding with existing profile data',
+      summary: 'Restart onboarding (default: carry forward profile data; mode=clean: blank slate)',
       tags: ['onboarding'],
       description: 'Onboarding API',
     },
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const user = ctx.user! as AuthUser;
-      const q = ctx.query as LocaleQuery;
+      const q = ctx.query as RestartQuery;
       const locale = parseLocale(q.locale);
+      const clean = q.mode === 'clean';
       const stepConfigs = await bundle.config.getActiveSteps();
-      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs);
-      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false
-      bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs, { clean });
+      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false.
+      // Skipped on clean mode (tests) — the consumer reloads the page anyway and
+      // the SSE blast can race with `networkidle` waits, closing the test page.
+      if (!clean) {
+        bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      }
       // Reuse the GET /session payload shape for the response.
       const [data, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),

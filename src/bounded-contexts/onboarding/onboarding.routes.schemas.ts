@@ -13,6 +13,17 @@ extendZodWithOpenApi(z);
 
 // ─── Schemas ─────────────────────────────────────────────────────────
 export const LocaleQuery = z.object({ locale: z.string().optional() });
+/**
+ * Query shape for `POST /v1/onboarding/session/restart`. Adds the optional
+ * `mode=clean` switch which wipes progress to a blank state instead of
+ * pre-filling from existing user/resume data. Default behavior (no `mode`)
+ * is the legacy "carry-forward" UX.
+ */
+export const RestartQuery = z.object({
+  locale: z.string().optional(),
+  mode: z.enum(['clean']).optional(),
+});
+export type RestartQuery = z.infer<typeof RestartQuery>;
 export const StepKeyParam = z.object({ key: z.string() });
 export const StepDataBody = z
   .record(z.unknown())

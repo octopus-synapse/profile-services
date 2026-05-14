@@ -270,7 +270,6 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
     username: 'johndoe',
     personalInfo: {
       fullName: 'John Doe',
-      email: 'john@example.com',
       phone: '+1234567890',
       location: 'New York, USA',
     },
@@ -310,7 +309,7 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
   currentStep: 'personal-info',
   completedSteps: ['welcome'],
   username: 'johndoe',
-  personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+  personalInfo: { fullName: 'John Doe' },
 });
 
 // ============================================================================

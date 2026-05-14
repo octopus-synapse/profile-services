@@ -101,7 +101,6 @@ export const OnboardingProgressSchema = z
       completedSteps: ['welcome'],
       personalInfo: {
         fullName: 'Jane Doe',
-        email: 'jane.doe@example.com',
       },
     },
   });

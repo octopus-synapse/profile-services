@@ -55,7 +55,6 @@ describe('CompleteOnboardingUseCase', () => {
         username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
-          email: 'john@example.com',
           phone: '1234567890',
           location: 'New York, NY',
         },
@@ -107,7 +106,7 @@ describe('CompleteOnboardingUseCase', () => {
       const userId = 'invalid-user';
       const onboardingData = createOnboardingData({
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: {
           jobTitle: 'Developer',
           summary: 'A passionate developer looking to make a difference in tech',
@@ -149,8 +148,10 @@ describe('CompleteOnboardingUseCase', () => {
 
     it('throws OnboardingInvalidPersonalInfoException when only personalInfo is bad', async () => {
       const userId = 'user-123';
+      // `fullName: 'A'` fails the min-length(2) check; this is the canonical
+      // invalid case now that `personalInfo.email` is gone from the schema.
       const data = createOnboardingData({
-        personalInfo: { fullName: 'A', email: 'not-an-email' as unknown as string },
+        personalInfo: { fullName: 'A' },
       });
       await expect(useCase.execute(userId, data)).rejects.toThrow(
         OnboardingInvalidPersonalInfoException,

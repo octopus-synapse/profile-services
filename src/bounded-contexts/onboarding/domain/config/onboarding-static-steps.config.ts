@@ -24,7 +24,6 @@ export const STATIC_STEPS_BEFORE: StaticStepBase[] = [
     icon: '👤',
     fields: [
       { key: 'fullName', type: 'text', required: true },
-      { key: 'email', type: 'email', required: true },
       { key: 'phone', type: 'text', required: false },
       { key: 'location', type: 'text', required: false },
     ],

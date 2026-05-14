@@ -33,7 +33,6 @@ export function toPersonalInfo(value: unknown): PersonalInfoDto | undefined {
   if (typeof obj.fullName !== 'string') return undefined;
   return {
     fullName: obj.fullName,
-    email: typeof obj.email === 'string' ? obj.email : undefined,
     phone: typeof obj.phone === 'string' ? obj.phone : undefined,
     location: typeof obj.location === 'string' ? obj.location : undefined,
   };
@@ -218,7 +217,7 @@ export function buildSession(
   strengthConfig?: StrengthConfig,
   locale = 'en',
   systemThemes?: OnboardingThemeOption[],
-  userDefaults?: { name?: string; email?: string },
+  userDefaults?: { name?: string },
   sectionTypes?: SectionTypeData[],
 ): OnboardingSessionDto {
   const steps = resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
@@ -228,9 +227,7 @@ export function buildSession(
   const rawPersonalInfo = toPersonalInfo(data.personalInfo);
   const personalInfo =
     rawPersonalInfo ??
-    (userDefaults
-      ? { fullName: userDefaults.name ?? '', email: userDefaults.email ?? '' }
-      : undefined);
+    (userDefaults ? { fullName: userDefaults.name ?? '' } : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
   const templateSelection = toTemplateSelection(data.templateSelection);
 
