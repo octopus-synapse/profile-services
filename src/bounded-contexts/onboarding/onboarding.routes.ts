@@ -72,7 +72,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         strengthConfig,
         locale,
         systemThemes,
-        { name: user.name, email: user.email },
+        { name: user.name },
         sectionTypes,
       );
     },
@@ -260,7 +260,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         strengthConfig,
         locale,
         systemThemes,
-        { name: user.name, email: user.email },
+        { name: user.name },
         sectionTypes,
       );
     },

@@ -117,6 +117,7 @@ function createOnboardingPayload(
   overrides: {
     username?: string;
     fullName?: string;
+    email?: string;
     jobTitle?: string;
     summary?: string;
     hasExperience?: boolean;
