@@ -27,6 +27,21 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
         update: {},
       });
     }
+    // Repair-on-rerun: when the resume-styles seed deletes-and-recreates
+    // the system styles, any resume.styleId pointing at an old row is set
+    // to NULL by `onDelete: SetNull`. The DSL render path then throws
+    // `DSL_RESUME_NO_ACTIVE_STYLE`. Re-attach the canonical default style
+    // so resume-download (and any rendering) keeps working idempotently.
+    const defaultStyle = await prisma.resumeStyle.findFirst({
+      where: { isSystem: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (defaultStyle) {
+      await prisma.resume.updateMany({
+        where: { userId: existing.id, styleId: null },
+        data: { styleId: defaultStyle.id },
+      });
+    }
     console.log(`✅ Seed user '${username}' already exists`);
     return;
   }
