@@ -49865,6 +49865,10 @@
                         "minLength": 2,
                         "maxLength": 100
                       },
+                      "headline": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
                       "summary": {
                         "type": "string",
                         "minLength": 10,
@@ -50598,6 +50602,10 @@
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100
+                      },
+                      "headline": {
+                        "type": "string",
+                        "maxLength": 120
                       },
                       "summary": {
                         "type": "string",
