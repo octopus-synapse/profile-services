@@ -26,7 +26,7 @@ describe('FeedTimelineService', () => {
     repo.seedPost({ id: 'p1', authorId: 'a1', isPublished: true });
     repo.seedPost({ id: 'p2', authorId: 'a2', isPublished: true });
     repo.seedFollow('viewer', 'a2');
-    repo.seedLike('p1', 'viewer', 'LIKE');
+    repo.seedLike('p1', 'viewer');
 
     const out = await svc.getTimeline({ userId: 'viewer', limit: 20, followingOnly: false });
     // p2 (followed) should come before p1 (not followed)
@@ -34,21 +34,5 @@ describe('FeedTimelineService', () => {
     expect(out.items[0].isLiked).toBe(false);
     const p1 = out.items.find((p) => p.id === 'p1');
     expect(p1?.isLiked).toBe(true);
-    expect(p1?.reactionType).toBe('LIKE');
-  });
-
-  it('masks anonymous posts', async () => {
-    const { repo, svc } = make();
-    repo.seedAuthor({
-      id: 'a1',
-      name: 'Real Name',
-      username: 'real',
-      bio: 'Senior Eng',
-      location: 'SP, BR',
-    });
-    repo.seedPost({ id: 'p1', authorId: 'a1', isPublished: true, isAnonymous: true });
-    const out = await svc.getTimeline({ userId: 'viewer', limit: 20, followingOnly: false });
-    expect(out.items[0].author.id).toBe('__anonymous__');
-    expect(out.items[0].author.username).toBeNull();
   });
 });

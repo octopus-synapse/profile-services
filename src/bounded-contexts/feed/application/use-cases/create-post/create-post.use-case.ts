@@ -36,7 +36,7 @@ export class CreatePostUseCase {
       isPublished,
     });
 
-    if (input.type === 'REPOST' && input.originalPostId) {
+    if (input.isRepost && input.originalPostId) {
       await this.repository.incrementRepostCount(input.originalPostId, 1);
     }
 

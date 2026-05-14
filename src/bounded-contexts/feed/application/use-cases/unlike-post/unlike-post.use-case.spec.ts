@@ -7,7 +7,7 @@ describe('UnlikePostUseCase', () => {
   it('removes a like and decrements count', async () => {
     const repo = new InMemoryEngagementRepository();
     repo.seedPost({ id: 'p1', authorId: 'a', likesCount: 1 });
-    repo.seedLike('p1', 'me', 'LIKE');
+    repo.seedLike('p1', 'me');
     await new UnlikePostUseCase(repo).execute('p1', 'me');
     expect(repo.findRawPost('p1')?.likesCount).toBe(0);
     expect(repo.findRawLike('p1', 'me')).toBeNull();

@@ -40,7 +40,7 @@ export class FeedTimelineService {
     // (userId, cursor, type, followingOnly, limit) tuple for a short
     // window so refresh-driven storms collapse onto one DB pass per
     // unique view.
-    const cacheKey = `feed:timeline:${query.userId}:${query.followingOnly ? 'follow' : 'all'}:${query.type ?? 'any'}:${query.cursor ?? 'head'}:${query.limit}`;
+    const cacheKey = `feed:timeline:${query.userId}:${query.followingOnly ? 'follow' : 'all'}:${query.cursor ?? 'head'}:${query.limit}`;
     return this.cache.getOrSet(
       cacheKey,
       () => this.computeTimeline(query),
@@ -49,7 +49,7 @@ export class FeedTimelineService {
   }
 
   private async computeTimeline(query: FeedQuery): Promise<FeedTimelineResult> {
-    const { userId, cursor, limit, type, followingOnly } = query;
+    const { userId, cursor, limit, followingOnly } = query;
 
     const { followingIds, connectionIds } =
       await this.repository.listFollowedAndConnectionIds(userId);
@@ -63,14 +63,13 @@ export class FeedTimelineService {
     const candidates = await this.repository.listFeedPosts({
       cursor,
       take: followingOnly ? limit : limit * 3,
-      type,
       followingOnly,
       followingIds,
       userId,
     });
 
     const isPrioritized = (post: PostWithRelations) =>
-      prioritizedUserIds.has(post.authorId) || post.coAuthors.includes(userId);
+      prioritizedUserIds.has(post.authorId);
 
     const sorted = [...candidates].sort((a, b) => {
       const aPrio = isPrioritized(a) ? 1 : 0;
@@ -94,15 +93,9 @@ export class FeedTimelineService {
       threadIds.length > 0 ? await this.repository.findThreadPosts(threadIds) : new Map();
 
     const enriched: FeedItem[] = trimmed.map((post) => {
-      const masked = this.mask.mask(post);
-      const maskedWithOriginal: PostWithRelations = masked.originalPost
-        ? { ...masked, originalPost: this.mask.mask(masked.originalPost) }
-        : masked;
-
       return {
-        ...maskedWithOriginal,
-        isLiked: engagement.likedPostMap.has(post.id),
-        reactionType: engagement.likedPostMap.get(post.id) ?? null,
+        ...post,
+        isLiked: engagement.likedPostIds.has(post.id),
         isBookmarked: engagement.bookmarkedPostIds.has(post.id),
         isReposted: engagement.repostedPostIds.has(post.id),
         hasVoted: engagement.voteByPostId.has(post.id),
