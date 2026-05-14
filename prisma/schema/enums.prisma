@@ -113,35 +113,10 @@ enum AttestationWitnessStatus {
   FAILED
 }
 
-// Feed
-enum PostType {
-  ACHIEVEMENT
-  OPPORTUNITY
-  LEARNING
-  BUILD
-  QUESTION
-  REPOST
-  CHALLENGE
-}
-
-// Blind Mode — categories where anonymous posting is allowed. Restricts the
-// `isAnonymous` toggle to topics where identity hiding is legitimate, so the
-// feature doesn't become a spam vector for generic content.
-enum AnonymousCategory {
-  SALARY
-  INTERVIEW
-  LAYOFF
-  TOXIC_CULTURE
-  HARASSMENT
-}
-
-enum ReactionType {
-  LIKE
-  CELEBRATE
-  LOVE
-  INSIGHTFUL
-  CURIOUS
-}
+// Feed — types/reactions/anonymous mode removed. Post is now a generic
+// social entity (text + optional image / poll / code snippet). Repost
+// lives on Post via `isRepost + originalPostId` columns; like is
+// presence of a `PostLike` row.
 
 enum ReportStatus {
   PENDING

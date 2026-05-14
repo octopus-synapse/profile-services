@@ -5,30 +5,20 @@ model Post {
   authorId String
   author   User   @relation("UserPosts", fields: [authorId], references: [id])
 
-  type    PostType
-  subtype String?
-
   // Global content
-  content    String?  @db.Text
-  hardSkills String[]
-  softSkills String[]
-  hashtags   String[]
-
-  // Structured data per post type (flexible JSON)
-  data Json?
+  content  String?  @db.Text
+  hashtags String[]
 
   // Media
   imageUrl    String?
   linkUrl     String?
   linkPreview Json? // { title, description, image, domain }
 
-  // Repost
+  // Repost — quote-repost when content is set; pure repost otherwise.
+  isRepost       Boolean @default(false)
   originalPostId String?
   originalPost   Post?   @relation("Reposts", fields: [originalPostId], references: [id])
   reposts        Post[]  @relation("Reposts")
-
-  // Co-authors
-  coAuthors String[]
 
   // Scheduling
   scheduledAt DateTime?
@@ -37,12 +27,15 @@ model Post {
   // Thread
   threadId String?
 
-  // Poll
+  // Poll — single-vote, optional deadline. `pollOptions` is a JSON array of
+  // { label: string } objects; tallies are derived from PollVote.
+  pollOptions  Json?
   pollDeadline DateTime?
   votesCount   Int       @default(0)
 
-  // Code snippet
-  codeSnippet Json?
+  // Code snippet — promoted to first-class columns (replaces legacy `data` JSON).
+  codeSnippet  String? @db.Text
+  codeLanguage String? @db.VarChar(40)
 
   // Denormalized counters
   likesCount     Int @default(0)
@@ -53,14 +46,6 @@ model Post {
   // Status
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
-
-  // Blind Mode — when `isAnonymous=true` the feed serializer hides author
-  // identity (id, name, photo, username) and shows a generic label derived
-  // from the author's headline/role. The row still references `authorId`
-  // internally so moderation, spam control, and per-user rate limits keep
-  // working; `anonymousCategory` narrows the toggle to legitimate topics.
-  isAnonymous       Boolean            @default(false)
-  anonymousCategory AnonymousCategory?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,7 +58,6 @@ model Post {
   pollVotes PollVote[]
 
   @@index([authorId, createdAt])
-  @@index([type, createdAt])
   @@index([createdAt])
   @@index([originalPostId])
   @@index([originalPostId, authorId])
@@ -112,12 +96,10 @@ model PostLike {
   userId String
   user   User   @relation("UserLikes", fields: [userId], references: [id])
 
-  reactionType ReactionType @default(LIKE)
-
   createdAt DateTime @default(now())
 
   @@unique([postId, userId])
-  // P1-024 — `listReactionsByUser(userId, page, limit)` orders by
+  // P1-024 — `listLikesByUser(userId, page, limit)` orders by
   // createdAt DESC. Without this index Postgres scans every row whose
   // userId matches then sorts in memory; with it the planner walks the
   // index in reverse and stops at `limit`.

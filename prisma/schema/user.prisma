@@ -25,6 +25,9 @@ model User {
   usernameUpdatedAt DateTime?
   photoURL          String?
   bio               String?   @db.Text
+  /// One-line professional headline shown in feed cards, e.g. "Frontend Engineer @ Vercel".
+  /// Distinct from `bio` (long paragraph). User-editable in /my-profile/edit + onboarding step.
+  headline          String?   @db.VarChar(120)
   location          String?
   phone             String?
   website           String?
