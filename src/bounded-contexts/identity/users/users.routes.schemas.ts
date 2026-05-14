@@ -29,6 +29,7 @@ export const UserProfileResponseSchema = z.object({
   name: z.string().nullable().optional(),
   photoURL: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
+  headline: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
   website: z.string().nullable().optional(),
