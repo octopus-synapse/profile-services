@@ -10,10 +10,8 @@ import type {
   PersistPostInput,
   Post,
   PostAuthor,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../domain/entities';
 import { FeedRepositoryPort } from '../domain/ports/feed.repository.port';
@@ -28,7 +26,6 @@ interface BookmarkRow {
 interface LikeRow {
   postId: string;
   userId: string;
-  reactionType: ReactionType;
 }
 
 interface VoteRow {
@@ -42,6 +39,7 @@ const DEFAULT_AUTHOR: PostAuthor = {
   name: null,
   username: null,
   photoURL: null,
+  headline: null,
   bio: null,
   location: null,
 };
@@ -51,32 +49,27 @@ function makePost(partial: Partial<Post> & { id?: string; authorId: string }): P
   return {
     id: partial.id ?? randomUUID(),
     authorId: partial.authorId,
-    type: (partial.type ?? 'TEXT') as PostType,
-    subtype: partial.subtype ?? null,
     content: partial.content ?? null,
-    hardSkills: partial.hardSkills ?? [],
-    softSkills: partial.softSkills ?? [],
     hashtags: partial.hashtags ?? [],
-    data: partial.data ?? null,
     imageUrl: partial.imageUrl ?? null,
     linkUrl: partial.linkUrl ?? null,
     linkPreview: partial.linkPreview ?? null,
+    isRepost: partial.isRepost ?? false,
     originalPostId: partial.originalPostId ?? null,
-    coAuthors: partial.coAuthors ?? [],
     scheduledAt: partial.scheduledAt ?? null,
     isPublished: partial.isPublished ?? true,
     threadId: partial.threadId ?? null,
+    pollOptions: partial.pollOptions ?? null,
     pollDeadline: partial.pollDeadline ?? null,
     votesCount: partial.votesCount ?? 0,
     codeSnippet: partial.codeSnippet ?? null,
+    codeLanguage: partial.codeLanguage ?? null,
     likesCount: partial.likesCount ?? 0,
     commentsCount: partial.commentsCount ?? 0,
     repostsCount: partial.repostsCount ?? 0,
     bookmarksCount: partial.bookmarksCount ?? 0,
     isDeleted: partial.isDeleted ?? false,
     deletedAt: partial.deletedAt ?? null,
-    isAnonymous: partial.isAnonymous ?? false,
-    anonymousCategory: partial.anonymousCategory ?? null,
     createdAt: partial.createdAt ?? now,
     updatedAt: partial.updatedAt ?? now,
   };
@@ -115,8 +108,8 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     this.connections.push({ requesterId, targetId, status });
   }
 
-  seedLike(postId: string, userId: string, reactionType: ReactionType): void {
-    this.likes.push({ postId, userId, reactionType });
+  seedLike(postId: string, userId: string): void {
+    this.likes.push({ postId, userId });
   }
 
   seedBookmark(postId: string, userId: string, createdAt = new Date()): void {
@@ -147,24 +140,20 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
   async createPost(authorId: string, input: PersistPostInput): Promise<PostWithAuthor> {
     const post = makePost({
       authorId,
-      type: input.type,
-      subtype: input.subtype ?? null,
       content: input.content ?? null,
-      hardSkills: input.hardSkills ?? [],
-      softSkills: input.softSkills ?? [],
       hashtags: input.hashtags,
-      data: input.data ?? null,
       imageUrl: input.imageUrl ?? null,
       linkUrl: input.linkUrl ?? null,
       linkPreview: input.linkPreview ?? null,
+      isRepost: input.isRepost === true,
       originalPostId: input.originalPostId ?? null,
-      coAuthors: input.coAuthors ?? [],
       scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
       isPublished: input.isPublished,
       threadId: input.threadId ?? null,
+      pollOptions: input.pollOptions ?? null,
+      pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : null,
       codeSnippet: input.codeSnippet ?? null,
-      isAnonymous: input.isAnonymous === true,
-      anonymousCategory: input.isAnonymous ? (input.anonymousCategory ?? null) : null,
+      codeLanguage: input.codeLanguage ?? null,
     });
     this.posts.set(post.id, post);
     if (!this.authors.has(authorId)) {
@@ -211,17 +200,15 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
   async listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
   }): Promise<PostWithRelations[]> {
-    const { cursor, take, type, followingOnly, followingIds, userId } = params;
+    const { cursor, take, followingOnly, followingIds, userId } = params;
     const cursorDate = cursor ? new Date(cursor) : null;
 
     const rows = [...this.posts.values()].filter((p) => {
       if (p.isDeleted) return false;
-      if (type && p.type !== type) return false;
       if (cursorDate && p.createdAt >= cursorDate) return false;
       if (followingOnly) {
         return followingIds.includes(p.authorId) && p.isPublished;
@@ -283,16 +270,15 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;
   }> {
     const ids = new Set(postIds);
-    const likedPostMap = new Map<string, ReactionType>();
-    for (const l of this.likes) {
-      if (l.userId === userId && ids.has(l.postId)) likedPostMap.set(l.postId, l.reactionType);
-    }
+    const likedPostIds = new Set(
+      this.likes.filter((l) => l.userId === userId && ids.has(l.postId)).map((l) => l.postId),
+    );
     const bookmarkedPostIds = new Set(
       this.bookmarks.filter((b) => b.userId === userId && ids.has(b.postId)).map((b) => b.postId),
     );
@@ -300,7 +286,7 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     for (const p of this.posts.values()) {
       if (
         p.authorId === userId &&
-        p.type === 'REPOST' &&
+        p.isRepost &&
         p.originalPostId &&
         ids.has(p.originalPostId) &&
         !p.isDeleted
@@ -312,7 +298,7 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     for (const v of this.votes) {
       if (v.userId === userId && ids.has(v.postId)) voteByPostId.set(v.postId, v.optionIndex);
     }
-    return { likedPostMap, bookmarkedPostIds, repostedPostIds, voteByPostId };
+    return { likedPostIds, bookmarkedPostIds, repostedPostIds, voteByPostId };
   }
 
   async findThreadPosts(threadIds: string[]): Promise<Map<string, PostWithRelations[]>> {

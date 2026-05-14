@@ -4,14 +4,12 @@
 
 import { randomUUID } from 'node:crypto';
 import type {
+  LikeWithPost,
   Post,
   PostAuthor,
   PostBookmark,
   PostLike,
-  PostType,
   PostWithAuthor,
-  ReactionType,
-  ReactionWithPost,
 } from '../domain/entities';
 import { EngagementRepositoryPort } from '../domain/ports/engagement.repository.port';
 
@@ -27,32 +25,27 @@ function makePost(partial: Partial<Post> & { id?: string; authorId?: string }): 
   return {
     id: partial.id ?? randomUUID(),
     authorId: partial.authorId ?? 'someone',
-    type: (partial.type ?? 'TEXT') as PostType,
-    subtype: partial.subtype ?? null,
     content: partial.content ?? null,
-    hardSkills: partial.hardSkills ?? [],
-    softSkills: partial.softSkills ?? [],
     hashtags: partial.hashtags ?? [],
-    data: partial.data ?? null,
     imageUrl: partial.imageUrl ?? null,
     linkUrl: partial.linkUrl ?? null,
     linkPreview: partial.linkPreview ?? null,
+    isRepost: partial.isRepost ?? false,
     originalPostId: partial.originalPostId ?? null,
-    coAuthors: partial.coAuthors ?? [],
     scheduledAt: partial.scheduledAt ?? null,
     isPublished: partial.isPublished ?? true,
     threadId: partial.threadId ?? null,
+    pollOptions: partial.pollOptions ?? null,
     pollDeadline: partial.pollDeadline ?? null,
     votesCount: partial.votesCount ?? 0,
     codeSnippet: partial.codeSnippet ?? null,
+    codeLanguage: partial.codeLanguage ?? null,
     likesCount: partial.likesCount ?? 0,
     commentsCount: partial.commentsCount ?? 0,
     repostsCount: partial.repostsCount ?? 0,
     bookmarksCount: partial.bookmarksCount ?? 0,
     isDeleted: partial.isDeleted ?? false,
     deletedAt: partial.deletedAt ?? null,
-    isAnonymous: partial.isAnonymous ?? false,
-    anonymousCategory: partial.anonymousCategory ?? null,
     createdAt: partial.createdAt ?? now,
     updatedAt: partial.updatedAt ?? now,
   };
@@ -73,8 +66,8 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
     return post;
   }
 
-  seedLike(postId: string, userId: string, reactionType: ReactionType): void {
-    this.likes.push({ id: randomUUID(), postId, userId, reactionType, createdAt: new Date() });
+  seedLike(postId: string, userId: string): void {
+    this.likes.push({ id: randomUUID(), postId, userId, createdAt: new Date() });
   }
 
   seedBookmark(postId: string, userId: string): void {
@@ -82,7 +75,7 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
   }
 
   seedRepost(originalPostId: string, authorId: string): void {
-    const repost = makePost({ authorId, type: 'REPOST', originalPostId });
+    const repost = makePost({ authorId, isRepost: true, originalPostId });
     this.posts.set(repost.id, repost);
   }
 
@@ -107,17 +100,8 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
     return this.findRawLike(postId, userId);
   }
 
-  async createLike(postId: string, userId: string, reactionType: ReactionType): Promise<void> {
-    this.seedLike(postId, userId, reactionType);
-  }
-
-  async updateLikeReaction(
-    postId: string,
-    userId: string,
-    reactionType: ReactionType,
-  ): Promise<void> {
-    const idx = this.likes.findIndex((l) => l.postId === postId && l.userId === userId);
-    if (idx >= 0) this.likes[idx] = { ...this.likes[idx], reactionType };
+  async createLike(postId: string, userId: string): Promise<void> {
+    this.seedLike(postId, userId);
   }
 
   async deleteLike(postId: string, userId: string): Promise<void> {
@@ -133,11 +117,11 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
     if (p) this.posts.set(postId, { ...p, likesCount: p.likesCount + by });
   }
 
-  async listReactionsByUser(
+  async listLikesByUser(
     userId: string,
     cursor: string | undefined,
     limit: number,
-  ): Promise<ReactionWithPost[]> {
+  ): Promise<LikeWithPost[]> {
     const cursorDate = cursor ? new Date(cursor) : null;
     return this.likes
       .filter((l) => l.userId === userId && (cursorDate ? l.createdAt < cursorDate : true))
@@ -148,11 +132,9 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
         return {
           postId: l.postId,
           userId: l.userId,
-          reactionType: l.reactionType,
           createdAt: l.createdAt,
           post: {
             id: post?.id ?? l.postId,
-            type: post?.type ?? 'TEXT',
             content: post?.content ?? null,
             authorId: post?.authorId ?? 'unknown',
             author: this.authorOf(post?.authorId ?? 'unknown'),
@@ -188,10 +170,7 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
   ): Promise<{ id: string } | null> {
     const found = [...this.posts.values()].find(
       (p) =>
-        p.type === 'REPOST' &&
-        p.originalPostId === originalPostId &&
-        p.authorId === authorId &&
-        !p.isDeleted,
+        p.isRepost && p.originalPostId === originalPostId && p.authorId === authorId && !p.isDeleted,
     );
     return found ? { id: found.id } : null;
   }
@@ -204,7 +183,7 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
   }): Promise<PostWithAuthor> {
     const post = makePost({
       authorId: input.authorId,
-      type: 'REPOST',
+      isRepost: true,
       content: input.content,
       hashtags: input.hashtags,
       originalPostId: input.originalPostId,

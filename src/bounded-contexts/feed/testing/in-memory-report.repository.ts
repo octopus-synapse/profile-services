@@ -3,7 +3,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import type { Post, PostReport, PostType } from '../domain/entities';
+import type { Post, PostReport } from '../domain/entities';
 import { ReportRepositoryPort } from '../domain/ports/report.repository.port';
 
 function makePost(id: string, isDeleted = false): Post {
@@ -11,32 +11,27 @@ function makePost(id: string, isDeleted = false): Post {
   return {
     id,
     authorId: 'someone',
-    type: 'TEXT' as PostType,
-    subtype: null,
     content: null,
-    hardSkills: [],
-    softSkills: [],
     hashtags: [],
-    data: null,
     imageUrl: null,
     linkUrl: null,
     linkPreview: null,
+    isRepost: false,
     originalPostId: null,
-    coAuthors: [],
     scheduledAt: null,
     isPublished: true,
     threadId: null,
+    pollOptions: null,
     pollDeadline: null,
     votesCount: 0,
     codeSnippet: null,
+    codeLanguage: null,
     likesCount: 0,
     commentsCount: 0,
     repostsCount: 0,
     bookmarksCount: 0,
     isDeleted,
     deletedAt: null,
-    isAnonymous: false,
-    anonymousCategory: null,
     createdAt: now,
     updatedAt: now,
   };

@@ -122,7 +122,6 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
         post: {
           select: {
             id: true,
-            type: true,
             content: true,
             authorId: true,
             author: { select: AUTHOR_SELECT },
