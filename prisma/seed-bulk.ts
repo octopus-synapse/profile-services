@@ -688,28 +688,11 @@ async function main() {
       }
     }
 
-    // Analytics (ATS score)
+    // Analytics row (model now just tracks existence; per-score data
+    // moved to ResumeAtsResult). Create a bare row so downstream
+    // queries that fan out from resume → analytics don't 404.
     await prisma.resumeAnalytics.create({
-      data: {
-        resumeId: resume.id,
-        atsScore:
-          u.tier === 'power'
-            ? randomInt(85, 98)
-            : u.tier === 'regular'
-              ? randomInt(70, 92)
-              : randomInt(55, 78),
-        keywordScore: randomInt(60, 95),
-        completenessScore:
-          u.tier === 'power'
-            ? randomInt(85, 100)
-            : u.tier === 'regular'
-              ? randomInt(65, 90)
-              : randomInt(40, 70),
-        topKeywords: u.archetype.skills.slice(0, 5),
-        missingKeywords: [],
-        improvementSuggestions:
-          u.tier === 'casual' ? ['Add more work experience', 'Include certifications'] : [],
-      },
+      data: { resumeId: resume.id },
     });
 
     resumeCount++;
@@ -822,48 +805,38 @@ async function main() {
 
     for (let i = 0; i < postCount_; i++) {
       const availableTypes = POST_TYPES.filter((t) => u.archetype.postTemplates[t]?.length);
-      const type = pick(availableTypes) as string;
-      const template = pick(u.archetype.postTemplates[type] ?? []);
+      const flavor = pick(availableTypes) as string;
+      const template = pick(u.archetype.postTemplates[flavor] ?? []);
       const skill = pick(u.archetype.skills);
       const content = template
         .replace('{skill}', skill)
         .replace('{company}', pick(u.archetype.companies));
 
-      // Random hashtags
+      // Random hashtags — kept as Post.hashtags[] + suffixed into content.
       const hashtags = pickMany(u.archetype.hashtags, randomInt(1, 3));
       const contentWithTags = `${content}\n\n${hashtags.map((h) => `#${h}`).join(' ')}`;
 
-      const data: Record<string, unknown> = { title: content.split('.')[0] };
-
-      if (type === 'QUESTION') {
-        data.question = content;
-        data.options = [
-          { text: pick(['Opcao A', 'Acho que sim', 'Sempre', 'Nunca']), votes: randomInt(0, 20) },
-          {
-            text: pick(['Opcao B', 'Depende', 'Mais ou menos', 'Talvez']),
-            votes: randomInt(0, 20),
-          },
-          { text: pick(['Opcao C', 'Nao sei', 'Outro', 'Prefiro ambos']), votes: randomInt(0, 15) },
-        ];
-      } else if (type === 'BUILD') {
-        data.project_url = `https://github.com/${u.username}/${faker.lorem.slug()}`;
-      } else if (type === 'ACHIEVEMENT') {
-        data.organization = pick(u.archetype.companies);
-        data.date = weightedDate(180).toISOString().split('T')[0];
-      } else if (type === 'OPPORTUNITY') {
-        data.commitment = pick(['Full-time', 'Part-time', 'Contract']);
-        data.contact_method = u.email;
-      }
+      // The new Post is type-less. Each archetype "flavor" still drives
+      // attachment shape: QUESTION → poll, BUILD → linkUrl, otherwise
+      // plain content. No more `data` JSON.
+      const pollOptions =
+        flavor === 'QUESTION'
+          ? [
+              { label: pick(['Opcao A', 'Acho que sim', 'Sempre', 'Nunca']) },
+              { label: pick(['Opcao B', 'Depende', 'Mais ou menos', 'Talvez']) },
+              { label: pick(['Opcao C', 'Nao sei', 'Outro', 'Prefiro ambos']) },
+            ]
+          : null;
+      const linkUrl =
+        flavor === 'BUILD' ? `https://github.com/${u.username}/${faker.lorem.slug()}` : null;
 
       const post = await prisma.post.create({
         data: {
           authorId: u.id,
-          type: type as 'ACHIEVEMENT' | 'LEARNING' | 'BUILD' | 'QUESTION' | 'OPPORTUNITY',
           content: contentWithTags,
-          data: data as Prisma.InputJsonValue,
-          hardSkills: pickMany(u.archetype.skills, randomInt(1, 3)),
-          softSkills: pickMany(u.archetype.softSkills, randomInt(0, 2)),
           hashtags,
+          ...(linkUrl ? { linkUrl } : {}),
+          ...(pollOptions ? { pollOptions: pollOptions as Prisma.InputJsonValue } : {}),
           createdAt: weightedDate(90, 0.8),
           updatedAt: weightedDate(60),
         },
@@ -873,12 +846,11 @@ async function main() {
   }
   console.log(`[seed-bulk] ✓ ${allPosts.length} posts created`);
 
-  // 6. Reactions (likes)
-  console.log('[seed-bulk] Creating reactions...');
-  const REACTION_TYPES = ['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const;
+  // 6. Likes (only one reaction type now — presence of the row is the like)
+  console.log('[seed-bulk] Creating likes...');
   let reactionCount = 0;
   for (const post of allPosts) {
-    // Power users' posts get more reactions
+    // Power users' posts get more likes
     const author = userRecords.find((u) => u.id === post.authorId);
     const popularity = author?.tier === 'power' ? randomInt(10, 60) : randomInt(1, 15);
 
@@ -892,7 +864,6 @@ async function main() {
           data: {
             postId: post.id,
             userId: r.id,
-            reactionType: pick([...REACTION_TYPES]),
             createdAt: new Date(post.createdAt.getTime() + randomInt(60, 7 * 24 * 3600) * 1000),
           },
         });
@@ -908,7 +879,7 @@ async function main() {
       data: { likesCount: { increment: popularity } },
     });
   }
-  console.log(`[seed-bulk] ✓ ${reactionCount} reactions created`);
+  console.log(`[seed-bulk] ✓ ${reactionCount} likes created`);
 
   // 7. Comments
   console.log('[seed-bulk] Creating comments...');
@@ -974,14 +945,12 @@ async function main() {
   }
   console.log(`[seed-bulk] ✓ ${commentCount} comments created`);
 
-  // 8. Poll votes for QUESTION posts
+  // 8. Poll votes for poll posts (Post.pollOptions != null)
   console.log('[seed-bulk] Creating poll votes...');
   let voteCount = 0;
   for (const post of allPosts) {
-    if (post.type !== 'QUESTION') continue;
-    const data = post.data as { options?: Array<{ text?: string }> } | null;
-    const options = data?.options;
-    if (!options?.length) continue;
+    const pollOptions = post.pollOptions as Array<{ label?: string }> | null;
+    if (!pollOptions?.length) continue;
 
     const voters = pickMany(
       userRecords.filter((u) => u.id !== post.authorId),
@@ -993,7 +962,7 @@ async function main() {
           data: {
             postId: post.id,
             userId: v.id,
-            optionIndex: randomInt(0, options.length - 1),
+            optionIndex: randomInt(0, pollOptions.length - 1),
             createdAt: new Date(post.createdAt.getTime() + randomInt(3600, 7 * 24 * 3600) * 1000),
           },
         });
