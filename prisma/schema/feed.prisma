@@ -11,6 +11,7 @@ model Post {
 
   // Media
   imageUrl    String?
+  videoUrl    String?
   linkUrl     String?
   linkPreview Json? // { title, description, image, domain }
 
