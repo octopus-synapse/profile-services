@@ -8,7 +8,6 @@
  * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
-import { ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
@@ -44,7 +43,7 @@ import {
   UserCommentsResponseSchema,
   UserIdParam,
   UserPostsResponseSchema,
-  UserReactionsResponseSchema,
+  UserLikesResponseSchema,
   VoteBodySchema,
 } from './feed.routes.schemas';
 
@@ -151,7 +150,6 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
         userId: ctx.user!.userId,
         cursor: q.cursor,
         limit: parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
-        type: q.type,
         followingOnly: q.followingOnly === 'true' || q.followingOnly === '1',
       });
     },
@@ -285,8 +283,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const body = ctx.body as { reactionType?: ReactionType };
-      return bc.likePost.execute(id, ctx.user!.userId, body.reactionType);
+      return bc.likePost.execute(id, ctx.user!.userId);
     },
   },
   {
@@ -431,14 +428,14 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
   },
   {
     method: 'GET',
-    path: '/v1/users/:userId/reactions',
+    path: '/v1/users/:userId/likes',
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
-    response: UserReactionsResponseSchema,
+    response: UserLikesResponseSchema,
     openapi: {
-      summary: 'List reactions given by a user',
+      summary: 'List likes given by a user',
       tags: ['user-engagement'],
       description: 'User-scoped feed engagement',
     },
@@ -446,7 +443,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listUserReactions.execute(userId, q.cursor, q.limit ? Number(q.limit) : undefined);
+      return bc.listUserLikes.execute(userId, q.cursor, q.limit ? Number(q.limit) : undefined);
     },
   },
 

@@ -1,63 +1,51 @@
-import { PostType } from '@prisma/client';
 import { z } from 'zod';
 import { SocialUrlSchema } from '@/shared-kernel/schemas/primitives';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const CreatePostSchema = z
   .object({
-    type: z.nativeEnum(PostType),
-    subtype: z.string().max(60).optional(),
     content: z.string().max(5000).optional(),
-    hardSkills: z.array(z.string().max(60)).max(40).optional(),
-    softSkills: z.array(z.string().max(60)).max(20).optional(),
-    // Open-ended structured payload per post type. We use a permissive
-    // passthrough object so the Zod → OpenAPI conversion emits a valid schema
-    // while still allowing arbitrary keys; per-type validation is delegated
-    // to the consuming service (BUILD wants previewUrl/repoUrl/stack, etc.).
-    data: z.object({}).passthrough().optional(),
     imageUrl: SocialUrlSchema.optional(),
     linkUrl: SocialUrlSchema.optional(),
-    originalPostId: z.string().uuid().optional(),
-    coAuthors: z.array(z.string().uuid()).max(8).optional(),
     scheduledAt: IsoDateTimeSchema.optional(),
     threadId: z.string().uuid().optional(),
-    codeSnippet: z
-      .object({
-        language: z.string().max(40),
-        code: z.string().max(20000),
-        filename: z.string().max(120).optional(),
-      })
+    // Poll attachment — optional. `pollOptions` is an array of { label }.
+    pollOptions: z
+      .array(z.object({ label: z.string().min(1).max(80) }))
+      .min(2)
+      .max(4)
       .optional(),
-    // Blind Mode fields. Anonymous posting is only allowed under one of the
-    // five sanctioned categories (salary/interview/layoff/toxic culture/
-    // harassment) so the feature doesn't become a spam vector for generic
-    // content. If `isAnonymous=true`, `anonymousCategory` is required.
-    isAnonymous: z.boolean().optional(),
-    anonymousCategory: z
-      .enum(['SALARY', 'INTERVIEW', 'LAYOFF', 'TOXIC_CULTURE', 'HARASSMENT'])
-      .optional(),
+    pollDeadline: IsoDateTimeSchema.optional(),
+    // Code snippet attachment — optional. Stored as text + language label.
+    codeSnippet: z.string().max(20000).optional(),
+    codeLanguage: z.string().max(40).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.isAnonymous && !data.anonymousCategory) {
+    if (data.imageUrl && data.codeSnippet) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['anonymousCategory'],
-        message: 'anonymousCategory is required when isAnonymous is true',
+        path: ['codeSnippet'],
+        message: 'image and code snippet cannot be attached to the same post',
       });
     }
-    if (!data.isAnonymous && data.anonymousCategory) {
+    if (data.pollDeadline && !data.pollOptions) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['anonymousCategory'],
-        message: 'anonymousCategory cannot be set unless isAnonymous is true',
+        path: ['pollDeadline'],
+        message: 'pollDeadline requires pollOptions',
+      });
+    }
+    if (data.codeLanguage && !data.codeSnippet) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['codeLanguage'],
+        message: 'codeLanguage requires codeSnippet',
       });
     }
   })
   .openapi({
     example: {
-      type: PostType.ACHIEVEMENT,
-      content: 'Excited to share that I just shipped my first open-source library!',
-      hardSkills: ['typescript', 'nodejs'],
+      content: 'Just shipped my first open-source library! Took 3 weeks of nights and weekends.',
     },
   });
 
