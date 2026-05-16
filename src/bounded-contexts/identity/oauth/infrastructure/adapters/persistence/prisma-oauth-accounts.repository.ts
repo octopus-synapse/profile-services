@@ -9,7 +9,10 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import type { OAuthProfile, OAuthProvider } from '../../../domain/entities/oauth-profile';
-import { OAuthAccountsRepositoryPort } from '../../../domain/ports/oauth-accounts.repository.port';
+import {
+  OAuthAccountsRepositoryPort,
+  type OAuthUserByEmailResult,
+} from '../../../domain/ports/oauth-accounts.repository.port';
 
 export class PrismaOAuthAccountsRepository extends OAuthAccountsRepositoryPort {
   constructor(
@@ -30,21 +33,25 @@ export class PrismaOAuthAccountsRepository extends OAuthAccountsRepositoryPort {
     return row?.userId ?? null;
   }
 
-  async findUserIdByEmail(email: string): Promise<string | null> {
+  async findUserByEmail(email: string): Promise<OAuthUserByEmailResult | null> {
     const row = await this.prisma.user.findUnique({
       where: { email },
-      select: { id: true },
+      select: { id: true, emailVerified: true },
     });
-    return row?.id ?? null;
+    if (!row) return null;
+    return { userId: row.id, emailVerified: row.emailVerified !== null };
   }
 
   async createUserFromProfile(profile: OAuthProfile): Promise<string> {
+    // Only stamp `emailVerified` when the provider actually verified the email
+    // (e.g. Google `email_verified`, GitHub primary email with `verified: true`).
+    // Otherwise leave `null` so the user is prompted to verify on next login.
     const created = await this.prisma.user.create({
       data: {
         email: profile.email,
         name: profile.displayName,
         photoURL: profile.photoURL,
-        emailVerified: profile.email ? new Date() : null,
+        emailVerified: profile.emailVerified ? new Date() : null,
       },
       select: { id: true },
     });

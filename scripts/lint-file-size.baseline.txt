@@ -1,6 +1,6 @@
 src/bounded-contexts/identity/users/users.routes.ts	525
 src/bounded-contexts/jobs/jobs.routes.ts	583
-src/bounded-contexts/onboarding/onboarding.routes.ts	531
+src/bounded-contexts/onboarding/onboarding.routes.ts	536
 src/infrastructure/elysia-adapter/elysia-bootstrap.ts	1154
 src/infrastructure/elysia-adapter/elysia-pipeline.ts	540
 src/shared-kernel/schemas/params/auto-derive-examples.const.ts	1096

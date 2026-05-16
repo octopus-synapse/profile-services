@@ -32,7 +32,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
       description: 'OAuth login endpoints',
     },
     sdk: { exported: false },
-    handler: async (_ctx, bundle) => handleStart(bundle, 'github'),
+    handler: async (ctx, bundle) => handleStart(ctx, bundle, 'github'),
   },
   {
     method: 'GET',
@@ -60,7 +60,7 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
       description: 'OAuth login endpoints',
     },
     sdk: { exported: false },
-    handler: async (_ctx, bundle) => handleStart(bundle, 'linkedin'),
+    handler: async (ctx, bundle) => handleStart(ctx, bundle, 'linkedin'),
   },
   {
     method: 'GET',

@@ -3,6 +3,7 @@
  * This service is a no-op passthrough kept so legacy wiring still compiles
  * during the cleanup sweep — remove the class entirely once all callers
  * stop injecting it.
+ * @removeBy 2026-08-31
  */
 
 export class AnonymousMaskService {

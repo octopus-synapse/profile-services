@@ -683,6 +683,15 @@ export const ERROR_DICTIONARY = {
     en: 'You can only act on your own notifications',
     'pt-BR': 'Você só pode agir nas suas próprias notificações',
   },
+  OAUTH_EMAIL_NOT_VERIFIED: {
+    en: 'OAuth profile email or existing account email is not verified; manual linking required',
+    'pt-BR':
+      'O e-mail do perfil OAuth ou da conta existente não foi verificado; vinculação manual necessária',
+  },
+  OAUTH_STATE_INVALID: {
+    en: 'OAuth state cookie missing, mismatched, or expired',
+    'pt-BR': 'Cookie de estado OAuth ausente, divergente ou expirado',
+  },
   ONBOARDING_ALREADY_AT_FIRST_STEP: {
     en: 'Already at the first step',
     'pt-BR': 'Você já está no primeiro passo',
