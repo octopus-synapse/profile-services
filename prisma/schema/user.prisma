@@ -114,7 +114,13 @@ model User {
   notificationActors Notification[]   @relation("NotificationActors")
 
   // Jobs
+  // P0-#25/#26 — explicit FK back-relations so prisma can enforce cascade.
   jobs               Job[]            @relation("UserJobs")
+  jobApplications    JobApplication[] @relation("UserApplications")
+  jobBookmarks       JobBookmark[]    @relation("UserBookmarks")
+
+  // Feed
+  pollVotes          PollVote[]       @relation("UserPollVotes")
 
   // Identity tokens
   passwordResetTokens      PasswordResetToken[]

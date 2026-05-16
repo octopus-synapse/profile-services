@@ -142,6 +142,8 @@ model PollVote {
   postId      String
   post        Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId      String
+  // P0-#25: real FK so the row cascades when the user is erased (LGPD).
+  user        User   @relation("UserPollVotes", fields: [userId], references: [id], onDelete: Cascade)
   optionIndex Int
 
   createdAt DateTime @default(now())

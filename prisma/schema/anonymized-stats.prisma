@@ -1,0 +1,23 @@
+// Anonymised application/job snapshots for analytics that must survive a
+// user erasure (LGPD right-to-erasure). Populated by the pre-delete hook in
+// DeleteAccountUseCase: it copies the salient aggregate fields (jobId,
+// company, status, occurredAt) and drops the userId before the User row is
+// cascaded away.
+//
+// No FK to User or JobApplication on purpose — these rows must outlive both.
+
+model AnonymizedApplicationStat {
+  id         String   @id @default(dbgenerated("uuidv7()"))
+  // jobId is preserved (job survives via SetNull on author) so per-job
+  // aggregates remain queryable. No FK to Job to keep this table independent.
+  jobId      String
+  // Company name captured at the time of the application; even if the Job
+  // row is later edited or deleted, the historical aggregate stays sound.
+  company    String
+  status     String // JobApplicationStatus enum value, denormalised
+  occurredAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([jobId, status, occurredAt])
+  @@index([company, occurredAt])
+}

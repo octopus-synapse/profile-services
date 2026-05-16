@@ -1,9 +1,12 @@
 // Jobs: Job listings posted by users
 
 model Job {
-  id       String @id @default(dbgenerated("uuidv7()"))
-  authorId String
-  author   User   @relation("UserJobs", fields: [authorId], references: [id])
+  id       String  @id @default(dbgenerated("uuidv7()"))
+  // P0-#26: `authorId` becomes nullable so the FK can `SetNull` on user
+  // delete. The Job itself survives erasure (analytics + outside candidate
+  // visibility) but the authorship attribution is anonymised.
+  authorId String?
+  author   User?   @relation("UserJobs", fields: [authorId], references: [id], onDelete: SetNull)
 
   title        String
   company      String
@@ -71,6 +74,8 @@ model JobBookmark {
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String
+  // P0-#25: real FK so the row cascades when the user is erased (LGPD).
+  user   User   @relation("UserBookmarks", fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -83,6 +88,8 @@ model JobApplication {
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String
+  // P0-#25: real FK so the row cascades when the user is erased (LGPD).
+  user   User   @relation("UserApplications", fields: [userId], references: [id], onDelete: Cascade)
 
   coverLetter String? @db.Text
   resumeId    String?
