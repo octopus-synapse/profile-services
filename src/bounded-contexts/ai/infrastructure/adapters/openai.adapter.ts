@@ -143,9 +143,14 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
+      // P0-#12: don't log `raw` here — the response can echo back the user's
+      // resume content, including PII (email, phone, addresses, work history).
+      // A short fingerprint is enough to correlate this error with a specific
+      // generation in the OpenAI dashboard if needed.
       this.logger.error('Failed to JSON.parse OpenAI tailor response', {
         context: CTX,
-        stack: raw,
+        stack: err instanceof Error ? err.stack : undefined,
+        responseLength: raw.length,
       });
       throw err;
     }
@@ -176,7 +181,9 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: EXTRACT_RESUME_SYSTEM_PROMPT },
-        { role: 'user', content: trimmed },
+        // P0-#12: wrap untrusted resume text in `<user_input>` tags so the
+        // system prompt's anti-injection rules apply.
+        { role: 'user', content: `<user_input>${trimmed}</user_input>` },
       ],
     });
 
@@ -189,7 +196,8 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     } catch (err) {
       this.logger.error('Failed to JSON.parse OpenAI extract response', {
         context: CTX,
-        stack: raw,
+        stack: err instanceof Error ? err.stack : undefined,
+        responseLength: raw.length,
       });
       throw err;
     }
@@ -218,7 +226,8 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: EXTRACT_JOB_SYSTEM_PROMPT },
-        { role: 'user', content: trimmed },
+        // P0-#12: wrap untrusted careers-page text in `<user_input>` tags.
+        { role: 'user', content: `<user_input>${trimmed}</user_input>` },
       ],
     });
 
@@ -231,7 +240,8 @@ export class OpenAIAdapter extends LlmPort implements Lifecycle {
     } catch (err) {
       this.logger.error('Failed to JSON.parse OpenAI extract-job response', {
         context: CTX,
-        stack: raw,
+        stack: err instanceof Error ? err.stack : undefined,
+        responseLength: raw.length,
       });
       throw err;
     }

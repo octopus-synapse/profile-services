@@ -443,7 +443,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     cache,
   );
 
-  // Jobs needs llm + resumeAnalytics facade + email + eventBus.
+  // Jobs needs llm + resumeAnalytics facade + email + eventBus + safeFetch
+  // (P0-#9: job-import-from-url uses safeFetch to block SSRF instead of the
+  // raw `fetch` global).
   const jobs = buildJobsComposition(
     prisma as never,
     emailService,
@@ -451,6 +453,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     ai.bundle.llm,
     resumeAnalytics.useCases,
+    safeFetch,
   );
 
   // Social: idempotency is the cache-backed `CacheIdempotencyAdapter`
