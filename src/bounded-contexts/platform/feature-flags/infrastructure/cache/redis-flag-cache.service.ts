@@ -157,8 +157,20 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
       return;
     }
     try {
-      const keys = await client.keys(`${SNAPSHOT_PREFIX}*`);
-      if (keys.length > 0) await client.del(...keys);
+      // P0-#13: replace `KEYS pattern` (blocks Redis on the entire keyspace,
+      // O(N)) with `SCAN + UNLINK` so feature-flag toggles can't freeze
+      // every other client during a rollout sweep.
+      const stream = client.scanStream({ match: `${SNAPSHOT_PREFIX}*`, count: 200 });
+      let pending: Promise<unknown>[] = [];
+      for await (const keys of stream as AsyncIterable<string[]>) {
+        if (keys.length === 0) continue;
+        pending.push(client.unlink(...keys));
+        if (pending.length >= 10) {
+          await Promise.all(pending);
+          pending = [];
+        }
+      }
+      if (pending.length > 0) await Promise.all(pending);
       await client.publish(INVALIDATE_CHANNEL, changedKey ?? '*');
     } catch (err) {
       this.logger.warn('Flag cache invalidation failed', 'RedisFlagCache', {

@@ -183,7 +183,17 @@ export class CacheCoreService {
   }
 
   /**
-   * Delete keys matching pattern
+   * Delete keys matching pattern.
+   *
+   * P0-#13: previously called `client.keys(pattern)` — `KEYS *` is O(N) over
+   * the entire keyspace and blocks the single-threaded Redis until it
+   * returns. In production with millions of keys this stalls every other
+   * client for seconds at a time and is the documented anti-pattern.
+   *
+   * Now uses `scanStream({ match, count })` to walk the keyspace in
+   * 200-key chunks and `UNLINK` (async free) instead of `DEL` (synchronous
+   * free). Throughput per invocation is similar; the Redis stays responsive
+   * to other clients throughout.
    */
   async deletePattern(pattern: string): Promise<void> {
     if (!this.isEnabled) return;
@@ -191,10 +201,32 @@ export class CacheCoreService {
     const client = this.redisConnection.client;
     if (!client) return;
 
+    // Cheap guard against accidental wholesale flushes — `deletePattern('')`
+    // or a single-character pattern would otherwise sweep the whole cache.
+    // Callers that *want* to flush the DB use `flush()` explicitly.
+    if (!pattern || pattern.length < 3) {
+      this.logger.warn(
+        `Refusing deletePattern with overly broad match: "${pattern}"`,
+        'CacheCoreService',
+      );
+      return;
+    }
+
     try {
-      const keys = await client.keys(pattern);
-      if (keys.length > 0) {
-        await client.del(...keys);
+      const stream = client.scanStream({ match: pattern, count: 200 });
+      let pendingDeletes: Promise<unknown>[] = [];
+      for await (const keys of stream as AsyncIterable<string[]>) {
+        if (keys.length === 0) continue;
+        // ioredis exposes `unlink` as a variadic command; we batch within
+        // each scan chunk to keep per-call overhead bounded.
+        pendingDeletes.push(client.unlink(...keys));
+        if (pendingDeletes.length >= 10) {
+          await Promise.all(pendingDeletes);
+          pendingDeletes = [];
+        }
+      }
+      if (pendingDeletes.length > 0) {
+        await Promise.all(pendingDeletes);
       }
     } catch (error) {
       this.logger.error(`Failed to delete cache pattern: ${pattern}`, {

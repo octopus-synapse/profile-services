@@ -65,4 +65,27 @@ export class InMemoryCacheAdapter extends CachePort {
     await this.set(lockKey, true, ttlSeconds);
     return { release: async () => this.delete(lockKey) };
   }
+
+  /**
+   * Atomic-by-construction in-memory increment. JS is single-threaded, but
+   * `await` between read and write opens a window where two concurrent
+   * pipeline stages can observe the same counter — we close that window by
+   * reading and writing the map directly in one synchronous turn.
+   */
+  override async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const e = this.store.get(key);
+    const now = Date.now();
+    if (!e || (e.expiresAt > 0 && now > e.expiresAt)) {
+      this.store.set(key, {
+        value: 1,
+        expiresAt: ttlSeconds > 0 ? now + ttlSeconds * 1000 : 0,
+      });
+      return 1;
+    }
+    const next = (typeof e.value === 'number' ? e.value : 0) + 1;
+    // Preserve the original window so the rate-limit counter resets on the
+    // window's own clock instead of sliding forward on every hit.
+    this.store.set(key, { value: next, expiresAt: e.expiresAt });
+    return next;
+  }
 }
