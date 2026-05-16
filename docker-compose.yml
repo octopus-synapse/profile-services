@@ -8,6 +8,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - profile-network
+    # P0-#29: refuse to publish Postgres on the host interface. The base
+    # compose file inherits `ports: ["${POSTGRES_PORT:-5432}:5432"]`, which
+    # combined with default `postgres:postgres` credentials exposes the DB
+    # to anyone reachable on the host network. The backend talks to it
+    # over the internal `profile-network` so port publishing is never
+    # required in production.
+    ports: !override []
 
   redis:
     extends:
@@ -18,14 +25,30 @@ services:
       - redis_data:/data
     networks:
       - profile-network
+    # P0-#29: same as above — Redis was reachable on the host with the
+    # default `redis` password.
+    ports: !override []
 
   backend:
     image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:-latest}}
     container_name: profile-backend
     restart: unless-stopped
+    healthcheck:
+      # Explicit healthcheck in compose so `docker compose ps` shows the
+      # backend's state correctly even though the Dockerfile also declares
+      # HEALTHCHECK. Useful for orchestrators that ignore image-level
+      # healthchecks (Swarm, some Compose+watchtower setups).
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${BACKEND_PORT:-3001}/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-true}
+      # P0-#29 follow-up: swagger ships the entire API surface (including
+      # internal endpoints) and is reconnaissance gold. Default OFF in
+      # production; explicit `ENABLE_SWAGGER=true` to opt-in for ops.
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER:-false}
       PORT: ${BACKEND_PORT:-3001}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile}?schema=public
       REDIS_HOST: redis
