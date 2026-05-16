@@ -20,12 +20,20 @@ export class PasswordResetToken {
   }
 
   /**
-   * Generates a new random token with default expiration (1 hour)
+   * Generates a new random token with default expiration (1 hour).
+   *
+   * Uses 32 bytes (256 bits) of CSPRNG entropy encoded as base64url so the
+   * plaintext is infeasible to brute force even when the server only stores
+   * the SHA-256 fingerprint. UUIDv4 (122 bits) was sufficient with plaintext
+   * storage but is replaced here to keep entropy ahead of the hash.
    */
   static generateNew(expirationMinutes: number = 60): PasswordResetToken {
-    const token = crypto.randomUUID();
+    // 32 bytes → 43 chars base64url; URL-safe so the email link doesn't
+    // require additional encoding.
+    const token = crypto.getRandomValues(new Uint8Array(32));
+    const b64url = Buffer.from(token).toString('base64url');
     const expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000);
-    return new PasswordResetToken(token, expiresAt);
+    return new PasswordResetToken(b64url, expiresAt);
   }
 
   /**

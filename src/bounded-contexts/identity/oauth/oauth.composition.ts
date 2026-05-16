@@ -17,6 +17,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type { OAuthPort } from '@/shared-kernel/auth/oauth.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
+import { AesGcmCipher, type CipherPort, NoopCipher } from '@/shared-kernel/crypto';
 import { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 import { CheckOAuthProviderAvailabilityUseCase } from './application/use-cases/check-oauth-provider-availability/check-oauth-provider-availability.use-case';
 import { GetOAuthAccessTokenUseCase } from './application/use-cases/get-oauth-access-token/get-oauth-access-token.use-case';
@@ -40,7 +41,16 @@ export function buildOAuthUseCases(
   config: ConfigPort,
   oauth: OAuthPort,
 ): OAuthUseCases {
-  const accounts = new PrismaOAuthAccountsRepository(prisma, logger);
+  // P0-#6: encrypt 3rd-party OAuth tokens at rest. Real AES key in production
+  // (ConfigPort enforces 32 raw bytes / base64); NoopCipher in dev to keep
+  // local boot frictionless. The composition root MUST set the env var on
+  // any deploy that lets real users connect external OAuth providers.
+  const encKeyB64 = config.get<string>('TOKEN_ENCRYPTION_KEY');
+  const cipher: CipherPort = encKeyB64
+    ? new AesGcmCipher(Buffer.from(encKeyB64, 'base64'))
+    : new NoopCipher();
+
+  const accounts = new PrismaOAuthAccountsRepository(prisma, logger, cipher);
   const providerConfig = new ConfigServiceOAuthProviderConfig(config);
 
   const upsert = new UpsertUserFromOAuthProfileUseCase(accounts, logger);

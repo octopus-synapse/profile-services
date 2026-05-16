@@ -49,6 +49,15 @@ export class InvalidateSessionsOnCredentialChangeHandler {
       // Invalidate session cache
       await this.authRepository.invalidateSessionCache(userId);
 
+      // P0-#7: the cached AuthUser includes the passwordHash; without busting
+      // it here a login attempt with the OLD password keeps succeeding for up
+      // to 5 minutes after change-password / reset-password completes (cache
+      // TTL = 300s in PrismaAuthenticationRepository.findUserByEmail).
+      const user = await this.authRepository.findUserById(userId);
+      if (user?.email) {
+        await this.authRepository.invalidateEmailCache(user.email);
+      }
+
       // Set token invalidation timestamp - any JWT issued before this time is invalid
       const now = Math.floor(Date.now() / 1000);
       // Inlined from the deleted Nest `JwtStrategy.getTokenValidAfterKey(userId)`.

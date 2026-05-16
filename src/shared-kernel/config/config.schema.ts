@@ -96,6 +96,25 @@ export const EnvConfigSchema = z.object({
   JWT_AUDIENCE: z.string().optional(),
   AUTH_COOKIE_NAME: z.string().optional(),
 
+  // --- Symmetric encryption for stored secrets (P0-007 — OAuth tokens) ---
+  // 32 raw bytes encoded as base64 (44 chars). Used to AES-256-GCM encrypt
+  // 3rd-party OAuth access/refresh tokens before persisting in Account rows.
+  // Optional in dev (encryption silently degrades to passthrough) but the
+  // composition root MUST refuse to boot in production without it.
+  TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .refine(
+      (s) => {
+        try {
+          return Buffer.from(s, 'base64').length === 32;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'TOKEN_ENCRYPTION_KEY must be 32 raw bytes encoded as base64' },
+    )
+    .optional(),
+
   // --- LGPD / Consent versioning ---
   TOS_VERSION: z.string().optional(),
   PRIVACY_POLICY_VERSION: z.string().optional(),

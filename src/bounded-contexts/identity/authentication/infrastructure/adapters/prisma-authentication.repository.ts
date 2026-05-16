@@ -1,5 +1,6 @@
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { hashToken } from '@/shared-kernel/crypto';
 import type { AuthUser, RefreshTokenData, SessionAuthUser } from '../../domain/ports';
 import { AuthenticationRepositoryPort } from '../../domain/ports';
 
@@ -119,20 +120,26 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
     await this.cacheService.delete(`auth:user:email:${email.toLowerCase()}`);
   }
 
+  /**
+   * Stores the SHA-256 fingerprint of `plaintext` (column name kept as
+   * `token` for backward compat; semantics changed in P0-#5 fix). Plaintext
+   * stays exclusively in the user's cookie / response body.
+   */
   async createRefreshToken(
     userId: string,
-    token: string,
+    plaintext: string,
     expiresAt: Date,
     authMethod?: string,
   ): Promise<void> {
     await this.prisma.refreshToken.create({
-      data: { userId, token, expiresAt, authMethod },
+      data: { userId, token: hashToken(plaintext), expiresAt, authMethod },
     });
   }
 
-  async findRefreshToken(token: string): Promise<RefreshTokenData | null> {
+  async findRefreshToken(plaintext: string): Promise<RefreshTokenData | null> {
+    const tokenHash = hashToken(plaintext);
     const tokenRecord = await this.prisma.refreshToken.findUnique({
-      where: { token },
+      where: { token: tokenHash },
     });
 
     if (!tokenRecord) {
@@ -142,15 +149,18 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
     return {
       id: tokenRecord.id,
       userId: tokenRecord.userId,
-      token: tokenRecord.token,
+      // Expose the plaintext the caller passed in — `RefreshTokenData.token`
+      // is consumed by handlers that re-issue the cookie. The hash never
+      // leaves the DB.
+      token: plaintext,
       expiresAt: tokenRecord.expiresAt,
       authMethod: tokenRecord.authMethod,
     };
   }
 
-  async deleteRefreshToken(token: string): Promise<void> {
+  async deleteRefreshToken(plaintext: string): Promise<void> {
     await this.prisma.refreshToken.deleteMany({
-      where: { token },
+      where: { token: hashToken(plaintext) },
     });
   }
 
