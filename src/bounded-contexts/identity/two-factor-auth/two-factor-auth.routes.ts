@@ -68,7 +68,13 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     auth: { kind: 'jwt' },
     body: VerifyAndEnable2faSchema,
     response: VerifyAndEnable2faResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: TOTP is 6 digits per 30s window; without a cap an attacker
+      // with a stolen session could enumerate ~1M codes / second. Keyed by
+      // userId since the route is jwt-gated.
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Verify token and enable 2FA',
       tags: ['two-factor-auth'],

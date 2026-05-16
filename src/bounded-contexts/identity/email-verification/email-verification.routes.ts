@@ -25,7 +25,13 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     auth: { kind: 'public' },
     body: VerifyEmailSchema,
     response: VerifyEmailResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: the verification code is 6 digits (10^6 keyspace, 15min TTL) —
+      // brute-forceable with ~1700 req/s. Cap aggressively per IP so even a
+      // botnet can't realistically enumerate.
+      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Verify email with token',
       tags: ['email-verification'],

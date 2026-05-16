@@ -46,7 +46,12 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     auth: { kind: 'jwt' },
     body: ChangePasswordSchema,
     response: PasswordMessageResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: keyed by userId since the route is jwt-gated; same user can't
+      // brute-force their own currentPassword.
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Change password',
       tags: ['password-management'],
@@ -70,7 +75,13 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     auth: { kind: 'public' },
     body: ResetPasswordSchema,
     response: PasswordMessageResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: token is 256-bit base64url + sha256-hashed at rest, so it's
+      // infeasible to brute force; the IP cap exists to throttle a DoS
+      // angle (each call does a DB lookup + bcrypt re-hash on success).
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Reset password with token',
       tags: ['password-management'],
