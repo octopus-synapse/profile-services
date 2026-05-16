@@ -37,10 +37,20 @@ import type { VersionConfigPort } from '../domain/ports/version-config.port';
 export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepositoryPort {
   private accounts = new Map<string, AccountData>();
   private emailIndex = new Map<string, string>(); // email -> userId
+  private passwordHashes = new Map<string, string>(); // userId -> bcrypt hash
   private accountCounter = 0;
 
   async findById(userId: string): Promise<AccountData | null> {
     return this.accounts.get(userId) ?? null;
+  }
+
+  async findPasswordHashById(userId: string): Promise<string | null> {
+    return this.passwordHashes.get(userId) ?? null;
+  }
+
+  /** Test helper — seed a password hash without going through `create()`. */
+  seedPasswordHash(userId: string, hash: string): void {
+    this.passwordHashes.set(userId, hash);
   }
 
   async findByEmail(email: string): Promise<AccountData | null> {
@@ -64,6 +74,7 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
     };
     this.accounts.set(account.id, account);
     this.emailIndex.set(account.email, account.id);
+    this.passwordHashes.set(account.id, data.passwordHash);
     return account;
   }
 
@@ -86,6 +97,7 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
     if (account) {
       this.emailIndex.delete(account.email);
       this.accounts.delete(userId);
+      this.passwordHashes.delete(userId);
     }
   }
 
@@ -93,6 +105,7 @@ export class InMemoryAccountLifecycleRepository implements AccountLifecycleRepos
   clear(): void {
     this.accounts.clear();
     this.emailIndex.clear();
+    this.passwordHashes.clear();
     this.accountCounter = 0;
   }
 

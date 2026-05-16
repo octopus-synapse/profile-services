@@ -19,6 +19,7 @@ import { Setup2faUseCase } from './application/use-cases/setup-2fa/setup-2fa.use
 import { Validate2faUseCase } from './application/use-cases/validate-2fa/validate-2fa.use-case';
 import { VerifyAndEnable2faUseCase } from './application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.use-case';
 import { BcryptHashAdapter } from './infrastructure/adapters/external-services/bcrypt-hash.adapter';
+import { PrismaUserPasswordVerifier } from './infrastructure/adapters/external-services/prisma-user-password-verifier.adapter';
 import { QrCodeAdapter } from './infrastructure/adapters/external-services/qrcode.adapter';
 import { SpeakeasyTotpAdapter } from './infrastructure/adapters/external-services/speakeasy-totp.adapter';
 import { TwoFactorRepository } from './infrastructure/adapters/persistence/two-factor.repository';
@@ -36,14 +37,17 @@ export function buildTwoFactorAuthUseCases(
   const totp = new SpeakeasyTotpAdapter();
   const qr = new QrCodeAdapter();
   const hash = new BcryptHashAdapter();
+  const userPasswordVerifier = new PrismaUserPasswordVerifier(prisma);
+
+  const validate2fa = new Validate2faUseCase(repository, totp, hash, cache, logger);
 
   return {
     setup2fa: new Setup2faUseCase(repository, totp, qr, logger),
     verifyAndEnable2fa: new VerifyAndEnable2faUseCase(repository, totp, hash, logger),
-    disable2fa: new Disable2faUseCase(repository),
+    disable2fa: new Disable2faUseCase(repository, userPasswordVerifier, validate2fa),
     get2faStatus: new Get2faStatusUseCase(repository),
     regenerateBackupCodes: new RegenerateBackupCodesUseCase(repository, hash, logger),
-    validate2fa: new Validate2faUseCase(repository, totp, hash, cache, logger),
+    validate2fa,
   };
 }
 

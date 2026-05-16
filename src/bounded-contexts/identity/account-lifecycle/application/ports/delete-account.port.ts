@@ -7,6 +7,12 @@
 export interface DeleteAccountCommand {
   userId: string;
   confirmationPhrase: string;
+  /**
+   * P0-#8 follow-up: re-auth proof. The use-case rejects deletion when this
+   * doesn't match the stored bcrypt hash. Without this gate a stolen JWT
+   * cookie is sufficient to erase the account.
+   */
+  currentPassword: string;
 }
 
 export interface DeleteAccountResult {

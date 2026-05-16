@@ -50,6 +50,14 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
     return user !== null;
   }
 
+  async findPasswordHashById(userId: string): Promise<string | null> {
+    const row = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+    return row?.passwordHash ?? null;
+  }
+
   async create(data: CreateAccountData): Promise<AccountData> {
     // New auth model: signup creates the bare user. The `user` role
     // (with all domain permissions) is granted later by the

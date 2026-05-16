@@ -1077,9 +1077,17 @@ export const ERROR_DICTIONARY = {
     en: 'Two-factor authentication is already enabled',
     'pt-BR': 'A autenticação de dois fatores já está ativada',
   },
+  TWO_FACTOR_INVALID_REAUTH: {
+    en: 'Invalid credentials for disabling 2FA',
+    'pt-BR': 'Credenciais inválidas para desativar a 2FA',
+  },
   TWO_FACTOR_NOT_SETUP: {
     en: 'Two-factor authentication setup not found',
     'pt-BR': 'Configuração de autenticação de dois fatores não encontrada',
+  },
+  TWO_FACTOR_REAUTH_REQUIRED: {
+    en: 'Disabling 2FA requires the current password or a valid TOTP code',
+    'pt-BR': 'Para desativar a 2FA é necessário fornecer a senha atual ou um código TOTP válido',
   },
   TYPST_ATS_TEMPLATES_NOT_FOUND: {
     en: 'Typst ATS templates not found',

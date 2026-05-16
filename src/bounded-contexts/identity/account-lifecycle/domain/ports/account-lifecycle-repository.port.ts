@@ -26,4 +26,12 @@ export abstract class AccountLifecycleRepositoryPort {
   abstract deactivate(userId: string): Promise<void>;
   abstract reactivate(userId: string): Promise<void>;
   abstract delete(userId: string): Promise<void>;
+
+  /**
+   * Returns the user's bcrypt password hash, or `null` if the user doesn't
+   * exist or never set a password (OAuth-only sign-up). Kept separate from
+   * `findById` so the rest of the surface (which doesn't need the hash) can
+   * be cached without the secret tagging along (mirrors P0-#7 split).
+   */
+  abstract findPasswordHashById(userId: string): Promise<string | null>;
 }

@@ -116,20 +116,26 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     body: DeleteAccountSchema,
     // SkipTosCheck — the user can't be forced to accept new TOS before
     // deleting their account (LGPD parity).
-    guards: [{ id: 'skip-tos-check' }],
+    guards: [
+      { id: 'skip-tos-check' },
+      // P0-#8 follow-up: rate-limit re-auth attempts.
+      { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+    ],
     response: MessageResponseSchema,
     openapi: {
       summary: 'Delete account permanently',
       tags: ['account-lifecycle'],
       description:
-        'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT".',
+        'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT" ' +
+        'AND the current password (re-authentication gate to prevent stolen-cookie deletes).',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const body = ctx.body as { confirmationPhrase: string };
+      const body = ctx.body as { confirmationPhrase: string; currentPassword: string };
       await bc.deleteAccount.execute({
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
+        currentPassword: body.currentPassword,
       });
       return { code: 'ACCOUNT_DELETED' as const };
     },

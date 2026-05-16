@@ -69,7 +69,7 @@ export function buildAccountLifecycleUseCases(
     logger,
   );
   const deactivateAccount = new DeactivateAccountUseCase(repository, eventBus, logger);
-  const deleteAccount = new DeleteAccountUseCase(repository, eventBus, logger);
+  const deleteAccount = new DeleteAccountUseCase(repository, passwordHasher, eventBus, logger);
   const exportData = new ExportDataUseCase(dataExportRepo, auditLogger, logger);
 
   return {
