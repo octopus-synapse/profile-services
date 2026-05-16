@@ -222,6 +222,12 @@ model OnboardingProgress {
   completedSteps String[] @default([])
   username       String?
 
+  // Section-step keys the user opted into via the "what else?" gate
+  // (e.g. `section:project_v1`). Core required steps are always
+  // returned by the session presenter regardless of this list; only
+  // the optional extras gate filters off it.
+  activatedExtras String[] @default([])
+
   // Form data (JSON)
   personalInfo        Json?
   professionalProfile Json?

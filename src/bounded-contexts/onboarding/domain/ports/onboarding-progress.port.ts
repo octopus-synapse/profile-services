@@ -27,6 +27,9 @@ export type OnboardingProgressData = {
   professionalProfile?: unknown;
   sections?: SectionProgressData[];
   templateSelection?: unknown;
+  // Section-step keys the user opted into via the "what else?" gate.
+  // The presenter filters optional extras off this list.
+  activatedExtras?: string[];
 };
 
 export type SaveProgressResult = { currentStep: string; completedSteps: string[] };
@@ -40,6 +43,7 @@ export type ProgressRecord = {
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
   templateSelection: unknown;
+  activatedExtras: string[];
   updatedAt: Date;
 };
 
@@ -54,6 +58,8 @@ export abstract class OnboardingProgressRepositoryPort {
     userId: string,
     data: OnboardingProgressData,
   ): Promise<{ currentStep: string; completedSteps: string[] }>;
+
+  abstract setActivatedExtras(userId: string, extras: string[]): Promise<void>;
 
   abstract deleteProgress(userId: string): Promise<void>;
 

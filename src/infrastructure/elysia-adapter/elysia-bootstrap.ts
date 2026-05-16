@@ -643,7 +643,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Integration.
   const upload = buildUploadComposition(s3, prisma as never, logger);
 
-  // Onboarding consumes typst services exposed by export composition.
+  // Onboarding has no Typst/DSL dependency anymore — preview rendering
+  // moved out of the bounded context after the redesign.
   const cacheLock = new InMemoryCacheLockAdapter();
   const onboarding = buildOnboardingComposition({
     prisma: prisma as never,
@@ -651,9 +652,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     auditLog,
     cacheLock: cacheLock as never,
     sseStream,
-    dsl: { renderResumeDsl: dsl.useCases.renderResumeDsl },
-    typstSerializer: exportBc.typstDataSerializer,
-    typstCompiler: exportBc.typstCompiler,
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;

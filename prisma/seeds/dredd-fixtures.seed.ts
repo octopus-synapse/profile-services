@@ -383,7 +383,9 @@ export async function seedDreddFixtures(
     },
   });
 
-  // OnboardingStep with key = fixture-slug
+  // OnboardingStep with key = fixture-slug — kept `isActive: false` so the
+  // session presenter never returns it in user-facing flows (the contract
+  // tests still hit it through the admin endpoints by exact key).
   await prisma.onboardingStep.upsert({
     where: { key: EXAMPLE_SLUG },
     create: {
@@ -394,8 +396,9 @@ export async function seedDreddFixtures(
       required: false,
       fields: [],
       translations: {},
+      isActive: false,
     },
-    update: {},
+    update: { isActive: false },
   });
 
   // ProgrammingLanguage with slug = fixture-slug

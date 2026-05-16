@@ -50069,96 +50069,6 @@
         "x-auth": "jwt"
       }
     },
-    "/api/v1/onboarding/preview/stream": {
-      "get": {
-        "summary": "Subscribe to live resume preview updates",
-        "description": "Streams PNG preview as base64 when onboarding data changes.",
-        "tags": [
-          "onboarding-preview"
-        ],
-        "operationId": "get_v1_onboarding_preview_stream",
-        "responses": {
-          "200": {
-            "description": "Successful response"
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt"
-      }
-    },
     "/api/v1/onboarding/progress": {
       "get": {
         "summary": "[Legacy] Get onboarding progress",
@@ -50336,6 +50246,116 @@
                           "required",
                           "component"
                         ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "username": {
@@ -50982,6 +51002,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -51183,6 +51313,501 @@
                   },
                   "required": [
                     "resumeId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/onboarding/session/extras": {
+      "post": {
+        "summary": "Activate optional extra steps (projects, certifications, awards, publications)",
+        "description": "Onboarding API",
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "post_v1_onboarding_session_extras",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "extras": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "currentStep": {
+                      "type": "string"
+                    },
+                    "completedSteps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "strength": {
+                      "type": "object",
+                      "properties": {
+                        "score": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "level": {
+                          "type": "string",
+                          "enum": [
+                            "weak",
+                            "growing",
+                            "strong",
+                            "excellent",
+                            "complete"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "score",
+                        "message",
+                        "level"
+                      ]
+                    },
+                    "canProceed": {
+                      "type": "boolean"
+                    },
+                    "missingRequired": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "nextStep": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "previousStep": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "personalInfo": {
+                      "type": "object",
+                      "properties": {
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "$ref": "#/components/schemas/Phone"
+                        },
+                        "location": {
+                          "$ref": "#/components/schemas/UserLocation"
+                        }
+                      },
+                      "required": [
+                        "fullName"
+                      ]
+                    },
+                    "professionalProfile": {
+                      "type": "object",
+                      "properties": {
+                        "jobTitle": {
+                          "type": "string"
+                        },
+                        "summary": {
+                          "type": "string"
+                        },
+                        "linkedin": {
+                          "type": "string"
+                        },
+                        "github": {
+                          "type": "string"
+                        },
+                        "website": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "jobTitle"
+                      ]
+                    },
+                    "sections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "nullable": true
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "noData": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "sectionTypeKey"
+                        ]
+                      }
+                    },
+                    "templateSelection": {
+                      "type": "object",
+                      "properties": {
+                        "templateId": {
+                          "type": "string"
+                        },
+                        "colorScheme": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "currentStep",
+                    "completedSteps",
+                    "progress",
+                    "canProceed",
+                    "steps"
                   ]
                 }
               }
@@ -51474,6 +52099,116 @@
                           "required",
                           "component"
                         ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "username": {
@@ -51859,6 +52594,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -52224,6 +53069,116 @@
                           "required",
                           "component"
                         ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "username": {
@@ -52602,6 +53557,116 @@
                           "required",
                           "component"
                         ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "username": {
@@ -52985,6 +54050,116 @@
                           "required",
                           "component"
                         ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "username": {
@@ -101471,9 +102646,6 @@
     },
     {
       "name": "onboarding"
-    },
-    {
-      "name": "onboarding-preview"
     },
     {
       "name": "pages"

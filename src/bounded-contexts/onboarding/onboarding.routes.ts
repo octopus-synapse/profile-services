@@ -4,7 +4,6 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
-import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
@@ -184,7 +183,6 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      bundle.sseStream.publish('onboarding.data.changed', { userId: user.userId });
       const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
@@ -220,6 +218,45 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
       }
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/onboarding/session/extras',
+    auth: { kind: 'jwt' },
+    body: z.object({ extras: z.array(z.string()).default([]) }),
+    query: LocaleQuery,
+    response: OnboardingSessionSchema,
+    openapi: {
+      summary: 'Activate optional extra steps (projects, certifications, awards, publications)',
+      tags: ['onboarding'],
+      description: 'Onboarding API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const user = ctx.user! as AuthUser;
+      const q = ctx.query as LocaleQuery;
+      const locale = parseLocale(q.locale);
+      const body = ctx.body as { extras: string[] };
+      await bundle.activateExtras.execute(user.userId, body.extras);
+      // Return the updated session so the frontend can re-render the
+      // sidebar with the newly-visible extras in one round-trip.
+      const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+        bundle.progress.getProgressUseCase.execute(user.userId),
+        bundle.config.getActiveSteps(),
+        bundle.config.getStrengthConfig(),
+        getSystemThemes(bundle),
+        bundle.sectionTypes.listAll(locale),
+      ]);
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        systemThemes,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {
@@ -497,40 +534,4 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     },
   },
 
-  // ===== Live preview SSE stream =====
-  {
-    method: 'GET',
-    path: '/v1/onboarding/preview/stream',
-    auth: { kind: 'jwt' },
-    kind: 'sse',
-    openapi: {
-      summary: 'Subscribe to live resume preview updates',
-      tags: ['onboarding-preview'],
-      description: 'Streams PNG preview as base64 when onboarding data changes.',
-    },
-    handler: async (ctx, bundle) => {
-      const userId = ctx.user!.userId;
-      let version = 0;
-
-      return bundle.sseStream.subscribe<{ userId: string }>('onboarding.data.changed').pipe(
-        // Each consumer filters its own user — the channel is shared.
-        filter((event) => event.data.userId === userId),
-        // Coalesce bursts (e.g. autosave keystrokes) into a single render.
-        debounceTime(500),
-        switchMap(() => {
-          version++;
-          const currentVersion = version;
-          return from(bundle.previewRenderer.renderPreview(userId)).pipe(
-            filter((buffer): buffer is Buffer => buffer !== null),
-            map((buffer) => ({
-              data: { type: 'preview', version: currentVersion, image: buffer.toString('base64') },
-              id: `preview-${currentVersion}`,
-              type: 'preview',
-              retry: 15000,
-            })),
-          );
-        }),
-      );
-    },
-  },
 ];

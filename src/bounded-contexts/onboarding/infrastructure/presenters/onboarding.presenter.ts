@@ -1,4 +1,8 @@
 import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
+import {
+  EXTRA_SECTION_KEYS,
+  extraStepKey,
+} from '../../domain/config/onboarding-section-defaults.config';
 import type {
   OnboardingThemeOption,
   SectionTypeData,
@@ -13,6 +17,11 @@ import type {
   StrengthConfig,
 } from '../../domain/ports/onboarding-config.port';
 import type { OnboardingProgressData } from '../../domain/ports/onboarding-progress.port';
+
+/** Set of OnboardingStep.key values that are gated behind `activatedExtras`. */
+const EXTRA_STEP_KEYS: ReadonlySet<string> = new Set(
+  EXTRA_SECTION_KEYS.map((k) => extraStepKey(k)),
+);
 import type {
   OnboardingSessionDto,
   PersonalInfoDto,
@@ -220,7 +229,16 @@ export function buildSession(
   userDefaults?: { name?: string },
   sectionTypes?: SectionTypeData[],
 ): OnboardingSessionDto {
-  const steps = resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
+  const allResolved = resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
+  // Split the resolved set into core steps (always shown) and extras
+  // (only shown after the user opts into them). The catalog of every
+  // extra still ships back as `availableExtras` so the gate UI can
+  // render the checkbox list.
+  const activatedExtras = new Set(data.activatedExtras ?? []);
+  const availableExtras = allResolved.filter((s) => EXTRA_STEP_KEYS.has(String(s.id)));
+  const steps = allResolved.filter(
+    (s) => !EXTRA_STEP_KEYS.has(String(s.id)) || activatedExtras.has(String(s.id)),
+  );
   const currentStepIndex = steps.findIndex((s) => s.id === data.currentStep);
   const totalSteps = steps.length;
 
@@ -274,6 +292,8 @@ export function buildSession(
     nextStep: nextStep ?? null,
     previousStep: previousStep ?? null,
     steps: steps as OnboardingSessionDto['steps'],
+    availableExtras: availableExtras as OnboardingSessionDto['availableExtras'],
+    activatedExtras: data.activatedExtras ?? [],
     username: data.username ?? undefined,
     personalInfo,
     professionalProfile,

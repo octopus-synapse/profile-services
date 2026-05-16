@@ -44,10 +44,21 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
       sections: data.sections ?? existing?.sections ?? null,
       templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      activatedExtras:
+        data.activatedExtras !== undefined
+          ? data.activatedExtras
+          : (existing?.activatedExtras ?? []),
       updatedAt: new Date(),
     };
     this.progressMap.set(userId, record);
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    const existing = this.progressMap.get(userId);
+    if (existing) {
+      this.progressMap.set(userId, { ...existing, activatedExtras: extras, updatedAt: new Date() });
+    }
   }
 
   async deleteProgress(userId: string): Promise<void> {
