@@ -111,7 +111,7 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
       if (cache?.isEnabled && typeof payload.iat === 'number') {
         const validAfter = await cache.get<number>(`${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`);
         if (typeof validAfter === 'number' && payload.iat <= validAfter) {
-          logger.warn('Connection rejected: token issued before session invalidation', CTX);
+          logger.warn('Connection rejected: token rejected by session invalidation gate', CTX);
           return null;
         }
       }
