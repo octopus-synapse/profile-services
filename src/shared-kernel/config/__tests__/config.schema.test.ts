@@ -141,3 +141,30 @@ describe('EnvConfigSchema — IP_HASH_SALT length floor', () => {
     expect(cfg.IP_HASH_SALT?.length).toBe(32);
   });
 });
+
+describe('EnvConfigSchema — SAFE_FETCH_MAX_BYTES (P1 #45/#46)', () => {
+  it('defaults to 5_000_000 when unset', () => {
+    const cfg = parseEnvConfig(baseEnv());
+    expect(cfg.SAFE_FETCH_MAX_BYTES).toBe(5_000_000);
+  });
+
+  it('coerces a string value to int', () => {
+    const cfg = parseEnvConfig(baseEnv({ SAFE_FETCH_MAX_BYTES: '1048576' }));
+    expect(cfg.SAFE_FETCH_MAX_BYTES).toBe(1_048_576);
+  });
+
+  it('rejects zero and negative caps (positive int constraint)', () => {
+    expect(() => parseEnvConfig(baseEnv({ SAFE_FETCH_MAX_BYTES: '0' }))).toThrow(
+      ConfigValidationError,
+    );
+    expect(() => parseEnvConfig(baseEnv({ SAFE_FETCH_MAX_BYTES: '-5' }))).toThrow(
+      ConfigValidationError,
+    );
+  });
+
+  it('rejects non-integer values', () => {
+    expect(() => parseEnvConfig(baseEnv({ SAFE_FETCH_MAX_BYTES: '1.5' }))).toThrow(
+      ConfigValidationError,
+    );
+  });
+});

@@ -227,6 +227,15 @@ export const EnvConfigSchema = z
     PROMETHEUS_KEY: z.string().optional(),
     SDK_COVERAGE_MODE: z.string().optional(),
 
+    // --- Safe-fetch / SSRF defense ---
+    // Hard cap on the body size the `SafeFetchStrictAdapter` will
+    // consume from a webhook target before aborting with
+    // `BodyTooLargeException` (P1 #46, Wave 1.5). Operators can shrink
+    // it for tighter per-environment limits or grow it (rarely) for
+    // legitimate large-response webhooks; the default 5 MB matches the
+    // adapter's compiled-in `DEFAULT_MAX_RESPONSE_BYTES`.
+    SAFE_FETCH_MAX_BYTES: z.coerce.number().int().positive().default(5_000_000),
+
     // --- Attestation witness ---
     ATTESTATION_WITNESS_STORAGE_PATH: z.string().optional(),
     ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY: z.string().optional(),

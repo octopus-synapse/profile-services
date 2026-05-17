@@ -224,7 +224,13 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // - default: link-preview style (single shot, attacker-untrusted URL)
   // - strict:  webhook-delivery style (DNS-rebinding-resistant, repeated traffic)
   const safeFetch = new SafeFetchAdapter({ defaultTimeoutMs: 5_000 });
-  const safeFetchStrict = new SafeFetchStrictAdapter({ defaultTimeoutMs: 15_000 });
+  // P1 #45/#46 — pass through `SAFE_FETCH_MAX_BYTES` so operators can
+  // tighten the body cap per environment without rebuilding the image.
+  // The schema default (5 MB) keeps existing deploys at the same cap.
+  const safeFetchStrict = new SafeFetchStrictAdapter({
+    defaultTimeoutMs: 15_000,
+    maxResponseBytes: config.env.SAFE_FETCH_MAX_BYTES,
+  });
   // P0-010: distributed lock — used by `runGuardedJob` to ensure that
   // each scheduled cron worker runs at most once per tick across pods.
   // Redis-backed (SETNX + Lua release) when REDIS_HOST is set. Falls
