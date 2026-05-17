@@ -327,7 +327,6 @@ export const NAME_TO_EXAMPLE: ReadonlyMap<string, string> = new Map<string, stri
   ['isPublic', 'true'],
   ['isPublished', 'true'],
   ['isDeleted', 'false'],
-  ['isAnonymous', 'false'],
   ['isSystem', 'false'],
   ['isVerified', 'true'],
   ['isFeatured', 'false'],

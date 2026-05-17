@@ -1,18 +1,20 @@
 /**
  * Fetch a post by id with author + (optional) original post embedded.
- * Applies blind-mode masking before returning.
+ *
+ * Historical note: pre-Fase 5 refactor this applied Blind Mode masking
+ * (AnonymousMaskService). Blind Mode was dropped in the feed minimalist
+ * refactor — posts are no longer anonymous-able, so masking is a no-op
+ * and the dependency was removed.
  */
 
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { PostWithRelations } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
-import { AnonymousMaskService } from '../../services/anonymous-mask.service';
 
 export class GetPostUseCase {
   constructor(
     private readonly repository: FeedRepositoryPort,
-    private readonly mask: AnonymousMaskService,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -21,10 +23,6 @@ export class GetPostUseCase {
     if (!post || post.isDeleted) {
       throw new EntityNotFoundException('Post', id);
     }
-
-    const masked = this.mask.mask(post);
-    return masked.originalPost
-      ? { ...masked, originalPost: this.mask.mask(masked.originalPost) }
-      : masked;
+    return post;
   }
 }

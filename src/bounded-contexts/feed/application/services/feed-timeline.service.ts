@@ -16,7 +16,6 @@ import type {
   PostWithRelations,
 } from '../../domain/entities';
 import { FeedRepositoryPort } from '../../domain/ports/feed.repository.port';
-import { AnonymousMaskService } from './anonymous-mask.service';
 
 /** P1-028 — short cache window. Long enough to absorb the bursty
  *  app-load fan-out (UI, native apps, web) but short enough that a
@@ -26,7 +25,6 @@ const FEED_TIMELINE_CACHE_TTL = 15;
 export class FeedTimelineService {
   constructor(
     private readonly repository: FeedRepositoryPort,
-    private readonly mask: AnonymousMaskService,
     private readonly cache?: CachePort,
   ) {}
 

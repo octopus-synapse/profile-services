@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import { InMemoryFeedRepository } from '../../testing';
-import { AnonymousMaskService } from './anonymous-mask.service';
 import { FeedTimelineService } from './feed-timeline.service';
 
 function make() {
   const repo = new InMemoryFeedRepository();
-  const svc = new FeedTimelineService(repo, new AnonymousMaskService());
+  const svc = new FeedTimelineService(repo);
   return { repo, svc };
 }
 

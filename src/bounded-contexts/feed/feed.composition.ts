@@ -13,7 +13,6 @@ import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
-import { AnonymousMaskService } from './application/services/anonymous-mask.service';
 import { FeedTimelineService } from './application/services/feed-timeline.service';
 import { HashtagParserService } from './application/services/hashtag-parser.service';
 import { BookmarkPostUseCase } from './application/use-cases/bookmark-post/bookmark-post.use-case';
@@ -70,16 +69,17 @@ export function buildFeedUseCases(
   const notifier = new NotificationsEngagementNotifierAdapter(notifications.createNotification);
 
   // App services
-  const mask = new AnonymousMaskService();
+  // Blind Mode was dropped in the feed minimalist refactor —
+  // AnonymousMaskService and its wiring are gone with it.
   const hashtags = new HashtagParserService();
   // P1-028 — pass the cache port so `getTimeline` short-circuits
   // repeat reads inside a 15s window. Optional so unit tests don't
   // need to wire a fake cache.
-  const timeline = new FeedTimelineService(feedRepo, mask, cache);
+  const timeline = new FeedTimelineService(feedRepo, cache);
 
   return {
     createPost: new CreatePostUseCase(feedRepo, linkPreview, hashtags, logger),
-    getPost: new GetPostUseCase(feedRepo, mask, logger),
+    getPost: new GetPostUseCase(feedRepo, logger),
     deletePost: new DeletePostUseCase(feedRepo),
     uploadPostImage: new UploadPostImageUseCase(imageStorage),
 
