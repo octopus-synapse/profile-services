@@ -1,0 +1,40 @@
+# profile-services CODEOWNERS
+#
+# Reviewers are auto-requested when a PR touches a path matched below.
+# Single-owner setup today (solo founder); future-team slots are noted
+# with `# TODO(team):` so the migration to a `@octopus-synapse/<team>`
+# group is a search-and-replace away.
+#
+# Pattern order matters: GitHub picks the LAST match. Catch-all goes
+# first; specific overrides go last.
+
+# --- Catch-all default ---
+*                                              @efpatti
+
+# --- Backend domain critical paths ---
+/src/shared-kernel/                            @efpatti
+/src/bounded-contexts/identity/                @efpatti  # TODO(team): @octopus-synapse/identity
+/src/bounded-contexts/platform/                @efpatti  # TODO(team): @octopus-synapse/platform
+/prisma/                                       @efpatti  # schema changes have wide blast radius
+
+# --- Build + CI infrastructure ---
+/.github/                                      @efpatti
+/scripts/                                      @efpatti
+/_tooling/                                     @efpatti
+/package.json                                  @efpatti
+/bun.lock                                      @efpatti
+/.bun-version                                  @efpatti
+/tsconfig.json                                 @efpatti
+/biome.json                                    @efpatti
+/.precommit.yaml                               @efpatti
+/renovate.json                                 @efpatti
+/docker-compose*.yml                           @efpatti
+/Dockerfile                                    @efpatti
+/Dockerfile.base                               @efpatti
+
+# --- Config / secrets templates ---
+# .env.example drift breaks operator onboarding; the env-example.sync
+# test enforces parity with EnvConfigSchema so any change here needs
+# review.
+/.env.example                                  @efpatti
+/src/shared-kernel/config/                     @efpatti
