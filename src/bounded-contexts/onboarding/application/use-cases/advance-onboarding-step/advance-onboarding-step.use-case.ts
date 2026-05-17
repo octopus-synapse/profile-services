@@ -1,6 +1,9 @@
 import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
-import { OnboardingAlreadyAtLastStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
+import {
+  OnboardingAlreadyAtLastStepException,
+  OnboardingUnknownStepException,
+} from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
@@ -25,6 +28,16 @@ export class AdvanceOnboardingStepUseCase {
     const progress = await this.getProgress(userId);
     const steps = await this.buildSteps();
     const currentIndex = getStepIndex(progress.currentStep, steps);
+
+    // P1 #27 — reject when `progress.currentStep` is not part of the
+    // current onboarding configuration (stale row from a removed step,
+    // typo, or a manually-edited DB row). Previously the negative index
+    // silently rolled back to `-1 + 1 = 0`, dropping the user on the
+    // first step regardless of where they were.
+    if (currentIndex < 0) {
+      throw new OnboardingUnknownStepException(progress.currentStep);
+    }
+
     const nextStep = currentIndex < steps.length - 1 ? steps[currentIndex + 1] : null;
 
     if (!nextStep) {

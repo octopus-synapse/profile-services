@@ -104,53 +104,41 @@ describe('GotoOnboardingStepUseCase', () => {
     );
   });
 
-  it('allows jumping to any step (non-linear flow)', async () => {
+  // P1 #26 — was previously "allows jumping to any step (non-linear flow)";
+  // the bug fix tightens goto to only allow forward jumps of exactly +1.
+  it('rejects skipping multiple steps forward (state-machine guard)', async () => {
     progressRepo.seedProgress(
       createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
-    const result = await useCase.execute(USER_ID, 'professional-profile');
-
-    expect(result.currentStep).toBe('professional-profile');
+    await expect(useCase.execute(USER_ID, 'professional-profile')).rejects.toThrow(
+      ValidationException,
+    );
   });
 
-  it('allows jumping to a future step if it was previously completed', async () => {
-    // Arrange — user went back but has professional-profile completed
+  it('allows advancing exactly one step forward', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
+    );
+
+    const result = await useCase.execute(USER_ID, 'personal-info');
+    expect(result.currentStep).toBe('personal-info');
+  });
+
+  it('navigates to a section step when it is the next sequential step', async () => {
+    // Arrange — currentStep points at the last canonical step before
+    // section:work_experience_v1; section: steps come last in
+    // buildOnboardingSteps so a +1 hop works.
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
-        currentStep: 'welcome',
+        currentStep: 'section:work_experience_v1',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
       }),
     );
 
-    // Act
-    const result = await useCase.execute(USER_ID, 'professional-profile');
-
-    // Assert
-    expect(result.currentStep).toBe('professional-profile');
-  });
-
-  it('navigates to a section step when accessible', async () => {
-    // Arrange
-    progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'section:education_v1',
-        completedSteps: [
-          'welcome',
-          'personal-info',
-          'username',
-          'professional-profile',
-          'section:work_experience_v1',
-        ],
-      }),
-    );
-
-    // Act
-    const result = await useCase.execute(USER_ID, 'section:work_experience_v1');
-
-    // Assert
-    expect(result.currentStep).toBe('section:work_experience_v1');
+    // Going back to a completed earlier step is allowed.
+    const result = await useCase.execute(USER_ID, 'welcome');
+    expect(result.currentStep).toBe('welcome');
   });
 });

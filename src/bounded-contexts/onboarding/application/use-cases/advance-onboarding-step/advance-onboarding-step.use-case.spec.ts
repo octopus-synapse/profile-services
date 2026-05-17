@@ -201,4 +201,18 @@ describe('AdvanceOnboardingStepUseCase', () => {
     expect(result.currentStep).toBe('section:work_experience_v1');
     expect(result.completedSteps).toContain('professional-profile');
   });
+
+  // P1 #27
+  it('throws OnboardingUnknownStepException when currentStep is not in the configured steps', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'ghost-step-from-old-schema',
+        completedSteps: [],
+      }),
+    );
+
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(ValidationException);
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(/Unknown step/);
+  });
 });
