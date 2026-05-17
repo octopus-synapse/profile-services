@@ -40,8 +40,11 @@ export class ResumeSearchService {
       sortBy = 'relevance',
     } = params;
 
-    const safeLimit = Number(limit) || 20;
-    const safePage = Number(page) || 1;
+    const DEFAULT_PAGE_SIZE = 20;
+    const MAX_PAGE_SIZE = 100;
+    const rawLimit = Number(limit) || DEFAULT_PAGE_SIZE;
+    const safeLimit = Math.max(1, Math.min(rawLimit, MAX_PAGE_SIZE));
+    const safePage = Math.max(1, Number(page) || 1);
     const offset = (safePage - 1) * safeLimit;
     const searchTerms = normalizeSearchTerms(query);
 
@@ -112,15 +115,19 @@ export class ResumeSearchService {
 
     const total = countResult[0].count;
 
-    const totalPages = Math.ceil(total / limit);
+    // P1 #39 — totalPages must use the sanitized page size so a
+    // request with `?limit=10000` (clamped to 100 server-side) reports
+    // pages bucketed by 100, not 10000. Otherwise the UI thinks there
+    // is one page when there really are N.
+    const totalPages = Math.max(1, Math.ceil(total / safeLimit));
     return {
       items: filteredResults,
       total,
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
       totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
+      hasNext: safePage < totalPages,
+      hasPrev: safePage > 1,
     };
   }
 
