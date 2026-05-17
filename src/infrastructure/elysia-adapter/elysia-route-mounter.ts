@@ -23,7 +23,7 @@ import {
 } from '@/shared-kernel/http/success-message';
 import { drainCookieJarStructured, parseCookieHeader } from './cookie-bridge.util';
 import { runPipeline } from './elysia-pipeline';
-import { parseMultipart } from './multipart-bridge';
+import { PayloadTooLargeException, parseMultipart } from './multipart-bridge';
 import { observableToSseStream, SSE_HEADERS } from './sse-bridge';
 
 type ElysiaCtx = {
@@ -135,6 +135,24 @@ export function mountRoutes<TBundle>(
               code: issue.code,
               message: issue.message,
             })),
+          };
+        }
+        // P1 #51 — multipart bridge throws PayloadTooLargeException
+        // BEFORE the pipeline runs (during `buildHttpCtx`), so the
+        // pipeline's errorMapper stage never sees it. Without this
+        // branch the framework defaults to 500. Render the typed
+        // envelope with the carrier's own statusCode so /upload routes
+        // that exceed their cap consistently see 413 + a clear
+        // PAYLOAD_TOO_LARGE code instead of a generic 500.
+        if (err instanceof PayloadTooLargeException) {
+          ec.set.status = err.statusCode;
+          ec.set.headers['content-type'] = 'application/json';
+          return {
+            statusCode: err.statusCode,
+            code: err.errorCode,
+            message: err.message,
+            severity: 'toast',
+            params: { maxBytes: err.maxBytes, declaredBytes: err.declaredBytes ?? null },
           };
         }
         throw err;
