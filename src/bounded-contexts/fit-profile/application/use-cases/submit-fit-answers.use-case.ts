@@ -159,14 +159,16 @@ export class SubmitFitAnswersUseCase {
       })),
     );
 
-    const previous = await this.profiles.findByUserId(input.userId);
-    const nextVersion = (previous?.version ?? 0) + 1;
+    // P1 #15 — version is allocated atomically inside `upsert` via a
+    // single SQL `version: { increment: 1 }` so two concurrent
+    // submissions for the same user land on distinct, monotonic
+    // numbers. The use case no longer reads previous.version (the
+    // read-then-write was the lost-update vector).
     const expiresAt = new Date(now.getTime() + FIT_VECTOR_TTL_DAYS * 24 * 60 * 60 * 1000);
 
     const saved = await this.profiles.upsert({
       userId: input.userId,
       vector,
-      version: nextVersion,
       expiresAt,
     });
 
@@ -191,7 +193,7 @@ export class SubmitFitAnswersUseCase {
     // in the sequence leaves no phantom recomputes chasing the old
     // vector.
     this.events.publish(
-      new UserFitProfileUpdatedEvent(input.userId, { version: nextVersion, cause: 'remap' }),
+      new UserFitProfileUpdatedEvent(input.userId, { version: saved.version, cause: 'remap' }),
     );
 
     return saved;

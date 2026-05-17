@@ -16,12 +16,18 @@ export interface SavedUserFitProfile {
 export interface UserFitProfileWrite {
   readonly userId: string;
   readonly vector: FitVector;
-  readonly version: number;
   readonly expiresAt: Date;
 }
 
 export abstract class UserFitProfileRepositoryPort {
   abstract findByUserId(userId: string): Promise<SavedUserFitProfile | null>;
+  /**
+   * Atomic upsert: the version column is the adapter's responsibility —
+   * concurrent submissions land on different versions because the
+   * adapter relies on a single SQL UPDATE statement (Prisma's
+   * `increment`) rather than a read-then-write. The use case must never
+   * compute the next version itself.
+   */
   abstract upsert(input: UserFitProfileWrite): Promise<SavedUserFitProfile>;
   /** LGPD path — keep the row so a composite key references don't
    * dangle but clear the vector. */

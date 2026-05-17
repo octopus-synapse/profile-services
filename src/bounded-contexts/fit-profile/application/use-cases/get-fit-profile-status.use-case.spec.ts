@@ -23,7 +23,7 @@ class InMemoryUserFitProfiles extends UserFitProfileRepositoryPort {
       id: 'p-1',
       userId: input.userId,
       vector: input.vector,
-      version: input.version,
+      version: (this.row?.version ?? 0) + 1,
       computedAt: new Date(),
       expiresAt: input.expiresAt,
     };

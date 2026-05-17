@@ -124,12 +124,17 @@ class InMemoryProfiles extends UserFitProfileRepositoryPort {
   async findByUserId(userId: string) {
     return this.row && this.row.userId === userId ? this.row : null;
   }
+  // Mirrors the Prisma adapter's atomic increment: create → version=1,
+  // update → version += 1. Concurrency is not exercised in this
+  // in-memory test (Bun JS is single-threaded for awaits); the
+  // race-condition coverage lives in the integration spec.
   async upsert(input: UserFitProfileWrite): Promise<SavedUserFitProfile> {
+    const nextVersion = (this.row?.version ?? 0) + 1;
     this.row = {
       id: this.row?.id ?? 'p-1',
       userId: input.userId,
       vector: input.vector,
-      version: input.version,
+      version: nextVersion,
       computedAt: new Date('2026-04-23T12:00:00Z'),
       expiresAt: input.expiresAt,
     };
