@@ -188,6 +188,10 @@ export function buildCollaborationComposition(
         conversationRepo,
         chatCache,
         logger,
+        // P1 #7 — thread the shared CachePort through so the WS
+        // handshake honours the same `token_valid_after` invalidation
+        // gate the HTTP pipeline uses (JoseAuthExtractorAdapter).
+        cache,
       }),
   };
 }

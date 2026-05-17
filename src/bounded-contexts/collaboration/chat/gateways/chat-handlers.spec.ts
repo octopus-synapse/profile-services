@@ -178,9 +178,10 @@ describe('registerChatWebSocketHandlers', () => {
       expect(verifyAsync).toHaveBeenCalledWith('jwt-auth');
     });
 
-    it('returns userId from query string', async () => {
+    it('P1 #7 — rejects JWT supplied via query string', async () => {
       const userId = await wsCtl.authenticate(makeHandshake({ query: { token: 'jwt-query' } }));
-      expect(userId).toBe('user-1');
+      expect(userId).toBeNull();
+      expect(verifyAsync).not.toHaveBeenCalled();
     });
 
     it('returns userId from Authorization Bearer header', async () => {
@@ -189,6 +190,14 @@ describe('registerChatWebSocketHandlers', () => {
       );
       expect(userId).toBe('user-1');
       expect(verifyAsync).toHaveBeenCalledWith('jwt-header');
+    });
+
+    it('returns userId from Sec-WebSocket-Protocol bearer.<token>', async () => {
+      const userId = await wsCtl.authenticate(
+        makeHandshake({ headers: { 'sec-websocket-protocol': 'bearer.jwt-subproto' } }),
+      );
+      expect(userId).toBe('user-1');
+      expect(verifyAsync).toHaveBeenCalledWith('jwt-subproto');
     });
 
     it('prioritises cookie over other token sources', async () => {

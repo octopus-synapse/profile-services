@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { JwtPort } from '@/shared-kernel/auth';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type {
@@ -43,6 +44,11 @@ export interface ChatHandlersDeps {
   conversationRepo: ConversationRepository;
   chatCache: ChatCacheService;
   logger: LoggerPort;
+  /** P1 #7 — when provided, the WS auth handshake enforces the
+   *  `token_valid_after` cache key the password-change / reset-password
+   *  flows write. Without it the chat namespace would accept a JWT
+   *  issued before the user invalidated their sessions. */
+  cache?: CachePort;
 }
 
 /**
@@ -59,29 +65,46 @@ export interface ChatRealtimePort {
 }
 
 function extractToken(handshake: WsHandshake): string | null {
-  // 1. httpOnly session cookie (browser clients)
+  // P1 #7 — JWTs MUST NOT travel in the query string. URLs end up in
+  // proxy/CDN logs, browser history, referer headers, and crash
+  // reports; a leaked WS upgrade URL hands the access token to
+  // whoever can read the log. Accepted carriers in order:
+  //
+  //   1. httpOnly session cookie (browser flow — primary, CSRF-protected
+  //      by the WS origin check below).
+  //   2. `Authorization: Bearer ...` header (native / programmatic clients
+  //      that can set headers on the upgrade).
+  //   3. `Sec-WebSocket-Protocol: bearer.<token>` subprotocol (browser
+  //      clients without cookie support that need an explicit token —
+  //      browsers DO allow `new WebSocket(url, protocols)`).
+  //   4. Socket.IO `auth.token` object (programmatic clients that go
+  //      through the SIO bridge).
   const cookieToken = handshake.cookies[AUTH_CONFIG.SESSION_COOKIE_NAME];
   if (typeof cookieToken === 'string' && cookieToken.length > 0) return cookieToken;
 
-  // 2. Socket.IO auth object (programmatic clients)
-  const authToken = handshake.auth.token;
-  if (typeof authToken === 'string' && authToken.length > 0) return authToken;
-
-  // 3. Query string (fallback for environments without cookie/auth support)
-  const queryToken = handshake.query.token;
-  if (typeof queryToken === 'string' && queryToken.length > 0) return queryToken;
-
-  // 4. Authorization header
   const authHeader = handshake.headers.authorization;
   if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
 
+  const subprotocol = handshake.headers['sec-websocket-protocol'];
+  if (typeof subprotocol === 'string') {
+    for (const part of subprotocol.split(',')) {
+      const trimmed = part.trim();
+      if (trimmed.startsWith('bearer.')) return trimmed.slice('bearer.'.length);
+    }
+  }
+
+  const authToken = handshake.auth.token;
+  if (typeof authToken === 'string' && authToken.length > 0) return authToken;
+
   return null;
 }
 
+const TOKEN_VALID_AFTER_KEY_PREFIX = 'auth:token_valid_after:';
+
 export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealtimePort {
-  const { ws, jwt, chat, conversationRepo, chatCache, logger } = deps;
+  const { ws, jwt, chat, conversationRepo, chatCache, logger, cache } = deps;
 
   // Local presence map (userId → set of socketIds). The adapter also
   // keeps one for `toUser`, but we expose `isUserOnline` synchronously
@@ -113,7 +136,18 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
     }
     try {
       const payload = await jwt.verifyAsync<JwtPayload>(token);
-      return payload.sub;
+      const userId = payload.sub;
+      // P1 #7 — apply the same session-invalidation gate the HTTP
+      // pipeline uses (JoseAuthExtractorAdapter). A JWT issued before
+      // the user's last credential change must not connect via WS.
+      if (cache?.isEnabled && typeof payload.iat === 'number') {
+        const validAfter = await cache.get<number>(`${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`);
+        if (typeof validAfter === 'number' && payload.iat <= validAfter) {
+          logger.warn('Connection rejected: token issued before session invalidation', CTX);
+          return null;
+        }
+      }
+      return userId;
     } catch {
       logger.warn('Connection rejected: invalid token', CTX);
       return null;
