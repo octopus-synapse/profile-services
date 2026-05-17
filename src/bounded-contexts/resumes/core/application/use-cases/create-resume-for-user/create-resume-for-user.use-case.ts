@@ -20,24 +20,18 @@ export class CreateResumeForUserUseCase {
   ) {}
 
   async execute(userId: string, data: CreateResume): Promise<ResumeResult> {
-    await this.ensureUserHasSlots(userId);
-
     const sanitizedTitle = sanitizeContent(data.title);
     const sanitizedSummary = sanitizeContent(data.summary);
 
     const sanitizedData = { ...data, title: sanitizedTitle ?? '', summary: sanitizedSummary };
 
-    const resume = await this.repository.createResumeForUser(userId, sanitizedData);
+    const resume = await this.repository.createResumeForUserWithQuota(userId, sanitizedData, {
+      max: MAX_RESUMES_PER_USER,
+      exception: new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER),
+    });
 
     this.eventPublisher.publishResumeCreated(resume.id, { userId, title: resume.title ?? '' });
 
     return resume;
-  }
-
-  private async ensureUserHasSlots(userId: string): Promise<void> {
-    const existing = await this.repository.listUserResumes(userId);
-    if (existing.length >= MAX_RESUMES_PER_USER) {
-      throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
-    }
   }
 }

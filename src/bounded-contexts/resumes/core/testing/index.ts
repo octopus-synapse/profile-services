@@ -6,6 +6,7 @@
  */
 
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
+import type { DomainException } from '@/shared-kernel/exceptions';
 import type { ResumeEventPublisher } from '../../domain/ports';
 import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
 import { type ResumeEntity, ResumesRepositoryPort } from '../ports/resumes-repository.port';
@@ -76,6 +77,18 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
     };
     this.resumes.set(id, resume);
     return resume;
+  }
+
+  async createResumeForUserWithQuota(
+    userId: string,
+    data: CreateResumeData,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<ResumeEntity> {
+    const existing = await this.listUserResumes(userId);
+    if (existing.length >= quota.max) {
+      throw quota.exception;
+    }
+    return this.createResumeForUser(userId, data);
   }
 
   async updateResumeForUser(

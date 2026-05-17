@@ -6,6 +6,7 @@
  */
 
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
+import type { DomainException } from '@/shared-kernel/exceptions';
 
 export interface ResumeEntity {
   id: string;
@@ -36,6 +37,20 @@ export abstract class ResumesRepositoryPort {
   abstract createResumeForUser(
     userId: string,
     resumeCreationData: CreateResumeData,
+  ): Promise<ResumeEntity>;
+
+  /**
+   * Race-free create (concurrency-sweep ticket). Counts the user's resumes
+   * inside a tx with `FOR UPDATE` so concurrent creators serialise on
+   * the locked rows; throws `exception` (an instance the caller
+   * pre-constructs) when the cap is reached, otherwise inserts. The
+   * TOCTOU window between count and insert is collapsed into a
+   * single locked tx.
+   */
+  abstract createResumeForUserWithQuota(
+    userId: string,
+    resumeCreationData: CreateResumeData,
+    quota: { readonly max: number; readonly exception: DomainException },
   ): Promise<ResumeEntity>;
 
   abstract updateResumeForUser(

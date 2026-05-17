@@ -141,7 +141,7 @@ export function buildCollaborationComposition(
   };
 
   // ─── sharing slice ──────────────────────────────────────────────────
-  const sharingRepo = new PrismaCollaborationRepository(prisma);
+  const sharingRepo = new PrismaCollaborationRepository(prisma, logger);
   const sharingUseCases = buildCollaborationUseCases(sharingRepo, eventPublisher, logger);
   const collabComments = new CollabCommentService(prisma);
   const sharingBundle: CollaborationHttpBundle = {

@@ -38,17 +38,18 @@ export class InviteCollaboratorUseCase {
     const existing = await this.repo.findCollaborator(params.resumeId, params.inviteeId);
     if (existing) throw new CollaboratorAlreadyInvitedException();
 
-    const currentCollaborators = await this.repo.findCollaborators(params.resumeId);
-    if (currentCollaborators.length >= MAX_COLLABORATORS_PER_RESUME) {
-      throw new CollaboratorLimitReachedException(MAX_COLLABORATORS_PER_RESUME);
-    }
-
-    const collaborator = await this.repo.createCollaborator({
-      resumeId: params.resumeId,
-      userId: params.inviteeId,
-      role: params.role,
-      invitedBy: params.inviterId,
-    });
+    const collaborator = await this.repo.createCollaboratorWithQuota(
+      {
+        resumeId: params.resumeId,
+        userId: params.inviteeId,
+        role: params.role,
+        invitedBy: params.inviterId,
+      },
+      {
+        max: MAX_COLLABORATORS_PER_RESUME,
+        exception: new CollaboratorLimitReachedException(MAX_COLLABORATORS_PER_RESUME),
+      },
+    );
 
     this.eventPublisher.publish(
       new CollaborationStartedEvent(collaborator.id, {

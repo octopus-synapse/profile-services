@@ -45,6 +45,18 @@ class StubResumesRepository {
     return newResume;
   }
 
+  async createResumeForUserWithQuota(
+    userId: string,
+    data: { title: string },
+    quota: { max: number; exception: Error },
+  ): Promise<Resume> {
+    const existing = this.resumes.filter((r) => r.userId === userId);
+    if (existing.length >= quota.max) {
+      throw quota.exception;
+    }
+    return this.createResumeForUser(userId, data);
+  }
+
   async updateResumeForUser(
     resumeId: string,
     _userId: string,

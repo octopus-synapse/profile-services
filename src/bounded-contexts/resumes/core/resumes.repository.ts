@@ -1,6 +1,9 @@
-import { Resume } from '@prisma/client';
+import { Prisma, Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
+import type { DomainException } from '@/shared-kernel/exceptions';
+import { enforceQuotaInTx } from '@/shared-kernel/persistence/quota-guard';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import { ResumeAccessDeniedException, ResumeNotFoundException } from '../domain/exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
@@ -47,6 +50,23 @@ export class ResumesRepository extends ResumesRepositoryPort {
     this.logger.log(`Creating resume for user: ${userId}`, CTX);
     const resumeData = { userId, ...resumeCreationData };
     return await this.prisma.resume.create({ data: resumeData });
+  }
+
+  async createResumeForUserWithQuota(
+    userId: string,
+    resumeCreationData: CreateResumeData,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<Resume> {
+    this.logger.log(`Creating resume (with quota guard) for user: ${userId}`, CTX);
+    return await runInTransaction(this.prisma, async (tx) => {
+      await enforceQuotaInTx(tx, {
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "Resume" WHERE "userId" = ${userId} FOR UPDATE`,
+        max: quota.max,
+        exception: quota.exception,
+      });
+      const resumeData = { userId, ...resumeCreationData };
+      return await tx.resume.create({ data: resumeData });
+    });
   }
 
   async updateResumeForUser(

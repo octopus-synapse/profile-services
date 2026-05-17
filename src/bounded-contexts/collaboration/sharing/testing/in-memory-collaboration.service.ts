@@ -5,6 +5,7 @@
  */
 
 import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
+import type { DomainException } from '@/shared-kernel/exceptions';
 import { CollaborationRepositoryPort } from '../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser, SharedResume } from '../domain/types/collaboration.types';
 
@@ -73,6 +74,22 @@ export class InMemoryCollaborationRepository extends CollaborationRepositoryPort
 
     this.collaborators.push(collaborator);
     return this.enrichCollaborator(collaborator);
+  }
+
+  async createCollaboratorWithQuota(
+    data: {
+      resumeId: string;
+      userId: string;
+      role: CollaboratorRole;
+      invitedBy: string;
+    },
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<CollaboratorWithUser> {
+    const currentCount = this.collaborators.filter((c) => c.resumeId === data.resumeId).length;
+    if (currentCount >= quota.max) {
+      throw quota.exception;
+    }
+    return this.createCollaborator(data);
   }
 
   async updateRole(
