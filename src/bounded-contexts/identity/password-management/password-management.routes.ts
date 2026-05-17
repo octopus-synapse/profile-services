@@ -76,10 +76,12 @@ export const passwordManagementRoutes: ReadonlyArray<Route<PasswordManagementUse
     body: ResetPasswordSchema,
     response: PasswordMessageResponseSchema,
     guards: [
-      // P0-#4: token is 256-bit base64url + sha256-hashed at rest, so it's
-      // infeasible to brute force; the IP cap exists to throttle a DoS
-      // angle (each call does a DB lookup + bcrypt re-hash on success).
-      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'ip' } },
+      // P0-#4 + P1 #5: token is 256-bit base64url + sha256-hashed at
+      // rest, so brute-forcing is infeasible; the IP cap exists to
+      // throttle the DoS angle (each call does a DB lookup + bcrypt
+      // re-hash on success). Tightened from 5/min to 5/hour per IP so
+      // an attacker can't sustain bcrypt churn against the route.
+      { id: 'rate-limit', metadata: { points: 5, duration: 3600, keyStrategy: 'ip' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
