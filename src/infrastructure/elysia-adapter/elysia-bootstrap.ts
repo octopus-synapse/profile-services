@@ -309,7 +309,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Infra port adapters (shared by BCs) ---
   // (`cache` is constructed earlier so the auth extractor can read it.)
   const sseStream = new InMemorySseStreamAdapter();
-  const cron = new CronerCronAdapter();
+  const cron = new CronerCronAdapter(logger);
   const eventBus = new EventPublisher();
   lifecycles.push(cron);
 
