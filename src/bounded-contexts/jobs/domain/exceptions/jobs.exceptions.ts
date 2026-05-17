@@ -1,7 +1,12 @@
 /**
  * Jobs Bounded Context Exceptions
  */
-import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class NoPrimaryResumeException extends ConflictException {
   override readonly code: string = 'NO_PRIMARY_RESUME';
@@ -35,6 +40,17 @@ export class ApplicationNotOwnedException extends ForbiddenException {
   override readonly code: string = 'APPLICATION_NOT_OWNED';
   constructor() {
     super('You do not own this application');
+  }
+}
+
+export class InvalidOccurredAtException extends ValidationException {
+  override readonly code: string = 'INVALID_OCCURRED_AT';
+  constructor(reason: 'future' | 'before_application') {
+    super(
+      reason === 'future'
+        ? 'occurredAt cannot be in the future'
+        : 'occurredAt cannot precede the application creation date',
+    );
   }
 }
 

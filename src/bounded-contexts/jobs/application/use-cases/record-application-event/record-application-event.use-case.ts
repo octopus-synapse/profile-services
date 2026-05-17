@@ -12,7 +12,10 @@
 
 import type { JobApplicationEventType } from '@prisma/client';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ApplicationNotOwnedException } from '../../../domain/exceptions/jobs.exceptions';
+import {
+  ApplicationNotOwnedException,
+  InvalidOccurredAtException,
+} from '../../../domain/exceptions/jobs.exceptions';
 import { ApplicationTrackerRepositoryPort } from '../../../domain/ports/application-tracker.repository.port';
 
 export interface RecordApplicationEventInput {
@@ -45,17 +48,24 @@ export class RecordApplicationEventUseCase {
     if (!owner) throw new EntityNotFoundException('JobApplication', input.applicationId);
     if (owner.userId !== input.userId) throw new ApplicationNotOwnedException();
 
-    const event = await this.repository.createEvent({
-      applicationId: input.applicationId,
-      type: input.type,
-      note: input.note ?? null,
-      occurredAt: input.occurredAt ?? new Date(),
-    });
-
-    const nextStatus = STATUS_MAP[input.type];
-    if (nextStatus) {
-      await this.repository.updateApplicationStatus(input.applicationId, nextStatus);
+    const occurredAt = input.occurredAt ?? new Date();
+    if (occurredAt.getTime() > Date.now()) {
+      throw new InvalidOccurredAtException('future');
     }
+    if (occurredAt.getTime() < owner.createdAt.getTime()) {
+      throw new InvalidOccurredAtException('before_application');
+    }
+
+    const nextStatus = STATUS_MAP[input.type] ?? null;
+    const event = await this.repository.recordEventWithStatusInTx(
+      {
+        applicationId: input.applicationId,
+        type: input.type,
+        note: input.note ?? null,
+        occurredAt,
+      },
+      nextStatus,
+    );
 
     return {
       id: event.id,

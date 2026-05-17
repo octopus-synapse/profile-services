@@ -30,14 +30,30 @@ export interface RecordEventInput {
   readonly occurredAt: Date;
 }
 
+export interface ApplicationOwnerRow {
+  readonly userId: string;
+  readonly createdAt: Date;
+}
+
 export abstract class ApplicationTrackerRepositoryPort {
   abstract listApplicationsForUser(userId: string): Promise<ApplicationWithEventsRow[]>;
 
-  abstract findApplicationOwner(applicationId: string): Promise<{ userId: string } | null>;
+  abstract findApplicationOwner(applicationId: string): Promise<ApplicationOwnerRow | null>;
 
   abstract createEvent(input: RecordEventInput): Promise<CreatedEventRow>;
 
   abstract updateApplicationStatus(applicationId: string, status: string): Promise<void>;
+
+  /**
+   * Atomic write: append the event and (optionally) bump the coarse
+   * status in the same transaction. Prevents a half-written timeline
+   * where the event landed but the status update crashed (or vice
+   * versa) — concurrent readers always see both halves or neither.
+   */
+  abstract recordEventWithStatusInTx(
+    input: RecordEventInput,
+    nextStatus: string | null,
+  ): Promise<CreatedEventRow>;
 
   abstract findCompanyResponseSamples(company: string): Promise<CompanyResponseSampleRow[]>;
 

@@ -20,6 +20,7 @@ import type {
   CreatedEventRow,
 } from '../domain/entities/application-tracker';
 import {
+  type ApplicationOwnerRow,
   ApplicationTrackerRepositoryPort,
   type RecordEventInput,
 } from '../domain/ports/application-tracker.repository.port';
@@ -98,9 +99,9 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
       }));
   }
 
-  async findApplicationOwner(applicationId: string): Promise<{ userId: string } | null> {
+  async findApplicationOwner(applicationId: string): Promise<ApplicationOwnerRow | null> {
     const row = this.applications.get(applicationId);
-    return row ? { userId: row.userId } : null;
+    return row ? { userId: row.userId, createdAt: row.createdAt } : null;
   }
 
   async createEvent(input: RecordEventInput): Promise<CreatedEventRow> {
@@ -120,6 +121,15 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
     const row = this.applications.get(applicationId);
     if (!row) throw new Error(`Application ${applicationId} not seeded`);
     row.status = status;
+  }
+
+  async recordEventWithStatusInTx(
+    input: RecordEventInput,
+    nextStatus: string | null,
+  ): Promise<CreatedEventRow> {
+    const event = await this.createEvent(input);
+    if (nextStatus) await this.updateApplicationStatus(input.applicationId, nextStatus);
+    return event;
   }
 
   async findCompanyResponseSamples(company: string): Promise<CompanyResponseSampleRow[]> {
