@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import { pseudoAnonymize } from '@/shared-kernel/crypto/pseudo-anonymize';
 import { AnalyticsEventBusPort } from '../application/ports/analytics-event-bus.port';
 import { ViewTrackingRepositoryPort } from '../application/ports/resume-analytics.port';
 import { TRAFFIC_SOURCES } from '../domain/value-objects/traffic-sources';
@@ -8,6 +9,7 @@ export class ViewTrackingService {
   constructor(
     private readonly repository: ViewTrackingRepositoryPort,
     private readonly eventBus: AnalyticsEventBusPort,
+    private readonly config: ConfigPort,
   ) {}
 
   async trackView(dto: TrackView): Promise<void> {
@@ -46,7 +48,7 @@ export class ViewTrackingService {
   }
 
   private anonymizeIP(ip: string): string {
-    return createHash('sha256').update(ip).digest('hex');
+    return pseudoAnonymize(ip, this.config);
   }
 
   private detectSource(referer?: string): string {

@@ -11,12 +11,20 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import type { EnvConfig } from '@/shared-kernel/config/config.schema';
 import {
   EntityNotFoundException,
   ForbiddenException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryShareAnalyticsRepository } from '../testing';
 import { ShareAnalyticsService } from './share-analytics.service';
+
+const stubConfig: ConfigPort = {
+  env: { IP_HASH_SALT: 'x'.repeat(64) } as EnvConfig,
+  get: () => undefined,
+  getOrDefault: <T>(_k: string, d: T) => d,
+} as ConfigPort;
 
 describe('ShareAnalyticsService', () => {
   let service: ShareAnalyticsService;
@@ -29,7 +37,7 @@ describe('ShareAnalyticsService', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    service = new ShareAnalyticsService(repository, { lookup: async () => null });
+    service = new ShareAnalyticsService(repository, { lookup: async () => null }, stubConfig);
 
     // Seed a share with owner
     repository.seedShare({

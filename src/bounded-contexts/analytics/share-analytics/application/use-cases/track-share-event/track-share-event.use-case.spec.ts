@@ -6,11 +6,19 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import type { EnvConfig } from '@/shared-kernel/config/config.schema';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { GeoLocation } from '../../../ports/geo-lookup.port';
 import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { TrackShareEventUseCase } from './track-share-event.use-case';
+
+const stubConfig: ConfigPort = {
+  env: { IP_HASH_SALT: 'x'.repeat(64) } as EnvConfig,
+  get: () => undefined,
+  getOrDefault: <T>(_k: string, d: T) => d,
+} as ConfigPort;
 
 class StubGeoLookup implements GeoLookupPort {
   constructor(private readonly result: GeoLocation | null) {}
@@ -25,7 +33,12 @@ describe('TrackShareEventUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    useCase = new TrackShareEventUseCase(repository, new StubGeoLookup(null), stubLogger);
+    useCase = new TrackShareEventUseCase(
+      repository,
+      new StubGeoLookup(null),
+      stubLogger,
+      stubConfig,
+    );
   });
 
   it('should create an analytics record with hashed IP', async () => {
@@ -114,6 +127,7 @@ describe('TrackShareEventUseCase', () => {
       repoWithGeo,
       new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
       stubLogger,
+      stubConfig,
     );
 
     const result = await geoCase.execute({
@@ -132,6 +146,7 @@ describe('TrackShareEventUseCase', () => {
       repoWithGeo,
       new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
       stubLogger,
+      stubConfig,
     );
 
     const result = await geoCase.execute({

@@ -453,6 +453,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     eventBus,
     logger,
+    config,
   );
   resumeAnalytics.registerCron(cron, distributedLock);
 
@@ -662,7 +663,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
   const platformEvents = buildPlatformEventsComposition(prisma as never, logger, config);
   const search = buildSearchComposition(prisma as never);
-  const shareAnalytics = buildShareAnalyticsComposition(prisma as never, logger);
+  const shareAnalytics = buildShareAnalyticsComposition(prisma as never, logger, config);
   for (const binding of shareAnalytics.eventHandlers ?? []) {
     eventBus.on(binding.eventType, binding.handler);
   }
