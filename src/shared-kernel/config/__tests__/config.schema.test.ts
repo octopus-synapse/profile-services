@@ -103,6 +103,32 @@ describe('EnvConfigSchema — production-required fields', () => {
   });
 });
 
+describe('EnvConfigSchema — SMTP coercion (P1 #41)', () => {
+  it('coerces SMTP_PORT="465" string to number 465', () => {
+    const cfg = parseEnvConfig(baseEnv({ SMTP_PORT: '465' }));
+    expect(cfg.SMTP_PORT).toBe(465);
+    expect(typeof cfg.SMTP_PORT).toBe('number');
+  });
+
+  it('rejects non-numeric SMTP_PORT', () => {
+    expect(() => parseEnvConfig(baseEnv({ SMTP_PORT: 'not-a-number' }))).toThrow(
+      ConfigValidationError,
+    );
+  });
+
+  it('coerces SMTP_SECURE="true" to boolean true', () => {
+    const cfg = parseEnvConfig(baseEnv({ SMTP_SECURE: 'true' }));
+    expect(cfg.SMTP_SECURE).toBe(true);
+    expect(typeof cfg.SMTP_SECURE).toBe('boolean');
+  });
+
+  it('coerces SMTP_SECURE="false" to boolean false', () => {
+    const cfg = parseEnvConfig(baseEnv({ SMTP_SECURE: 'false' }));
+    expect(cfg.SMTP_SECURE).toBe(false);
+    expect(typeof cfg.SMTP_SECURE).toBe('boolean');
+  });
+});
+
 describe('EnvConfigSchema — IP_HASH_SALT length floor', () => {
   it('rejects IP_HASH_SALT shorter than 32 chars', () => {
     expect(() => parseEnvConfig(baseEnv({ IP_HASH_SALT: 'short-salt' }))).toThrow(

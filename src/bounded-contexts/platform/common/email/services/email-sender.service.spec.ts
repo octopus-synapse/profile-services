@@ -28,6 +28,9 @@ const buildLogger = (): LoggerPort =>
 
 const buildConfig = (overrides: Record<string, unknown> = {}): ConfigPort =>
   ({
+    // P1 #41: callers now consume `env.X` (typed, validated) instead of
+    // `.get<X>('X')` (always string, type lie). Mirror that in the mock.
+    env: overrides as unknown as ConfigPort['env'],
     get: mock(<T = string>(key: string) => overrides[key] as T | undefined),
     getOrDefault: mock(<T>(key: string, d: T) => (overrides[key] as T) ?? d),
   }) as unknown as ConfigPort;
