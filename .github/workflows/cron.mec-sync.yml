@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # Need full history because the commit step does `git pull --rebase`.
@@ -28,7 +28,7 @@ jobs:
 
       # Reads version from .bun-version file
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
 
       - name: Configure GitHub Packages auth
         run: |
@@ -39,7 +39,7 @@ jobs:
 
       - name: Restore Dependencies Cache
         id: cache-deps
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             node_modules
@@ -63,7 +63,7 @@ jobs:
         run: bunx puppeteer browsers install chrome
 
       - name: Download MEC CSV (with retry)
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 15
           max_attempts: 3
@@ -93,7 +93,7 @@ jobs:
           fi
 
       - name: Commit and push CSV (with retry)
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 5
           max_attempts: 3
@@ -116,7 +116,7 @@ jobs:
 
       - name: Trigger database sync
         if: ${{ vars.MEC_SYNC_API_ENABLED == 'true' }}
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 5
           max_attempts: 3

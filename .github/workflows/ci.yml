@@ -26,7 +26,7 @@ jobs:
       should_skip: ${{ steps.skip.outputs.should_skip }}
     steps:
       - id: skip
-        uses: fkirc/skip-duplicate-actions@v5
+        uses: fkirc/skip-duplicate-actions@f75f66ce1886f00957d99748a42c724f4330bdcf # v5
         with:
           concurrent_skipping: "same_content_newer"
           skip_after_successful_duplicate: "true"
@@ -41,8 +41,8 @@ jobs:
       tests: ${{ steps.filter.outputs.tests }}
       prisma: ${{ steps.filter.outputs.prisma }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
         id: filter
         with:
           filters: |
@@ -64,8 +64,8 @@ jobs:
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: octopus-synapse/octopus-workflows/.github/actions/verify-attestation@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: octopus-synapse/octopus-workflows/.github/actions/verify-attestation@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
 
   build:
     needs: [should-skip, detect-changes]
@@ -113,7 +113,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: octopus-synapse/octopus-workflows/.github/actions/evaluate-ci-results@v1
+      - uses: octopus-synapse/octopus-workflows/.github/actions/evaluate-ci-results@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
         with:
           attestation: ${{ needs.verify-attestation.result }}
           build: ${{ needs.build.result }}

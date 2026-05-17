@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   deploy:
-    uses: octopus-synapse/octopus-workflows/.github/workflows/cd.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/cd.yml@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
     with:
       service-name: "profile-backend"
       deploy-path: "/opt/profile-services"

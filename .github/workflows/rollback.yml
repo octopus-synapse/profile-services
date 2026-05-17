@@ -23,7 +23,7 @@ jobs:
 
   rollback:
     needs: validate
-    uses: octopus-synapse/octopus-workflows/.github/workflows/rollback.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/rollback.yml@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
     with:
       image-tag: ${{ inputs.image_tag }}
       service-port: "3001"

@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Trigger Tech Skills Sync (with retry)
         id: sync
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 5
           max_attempts: 3
