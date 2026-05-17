@@ -18,7 +18,7 @@ interface NoopBundle {
   readonly name: string;
 }
 
-function buildAppWithMultipartRoute(maxBytes: number) {
+function buildAppWithMultipartRoute() {
   const route: Route<NoopBundle> = {
     method: 'POST',
     path: '/upload',
@@ -37,21 +37,6 @@ function buildAppWithMultipartRoute(maxBytes: number) {
   return mountRoutes(app, { bundle: { name: 'test' }, routes: [route] }, { prefix: '/api' });
 }
 
-function buildOversizedMultipartRequest(): Request {
-  // 4 KB body, content-length header lying about 10 MB.
-  const blob = new Blob([new Uint8Array(4 * 1024)]);
-  const form = new FormData();
-  form.append('file', blob, 'big.bin');
-  const baseReq = new Request('http://localhost/api/upload', { method: 'POST', body: form });
-  const headers = new Headers(baseReq.headers);
-  headers.set('content-length', String(10 * 1024 * 1024));
-  return new Request(baseReq.url, {
-    method: baseReq.method,
-    headers,
-    body: baseReq.body,
-  });
-}
-
 describe('P1 #51 — elysia-route-mounter maps PayloadTooLargeException to 413', () => {
   it('returns 413 + PAYLOAD_TOO_LARGE when parseMultipart trips the cap', async () => {
     // Default cap inside parseMultipart is 25 MB; we lie about
@@ -64,7 +49,7 @@ describe('P1 #51 — elysia-route-mounter maps PayloadTooLargeException to 413',
     // 25 MB cap is too high to trip cheaply here. Instead, we trip
     // it via the streaming cap on a body big enough to exceed
     // `Number(content-length)` — see below.
-    const app = buildAppWithMultipartRoute(25 * 1024 * 1024);
+    const app = buildAppWithMultipartRoute();
 
     // Send a request where the content-length pre-check trips (10 MB
     // header on a default 25 MB cap doesn't trip; we instead set the
