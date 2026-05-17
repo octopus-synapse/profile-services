@@ -6,11 +6,19 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
+import { secureRandomCode } from '@/shared-kernel/crypto';
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
 import { HashServicePort } from '../../../domain/ports/hash-service.port';
 import { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.repository.port';
 
 const BACKUP_CODE_COUNT = 10;
+// P1 #1 — the previous generator drew from `Math.random()` (V8 xorshift,
+// not a CSPRNG). An attacker who learned ~5 codes could derive the full
+// internal state and predict the rest. We keep the user-visible format
+// (`XXXX-XXXX`, 36-char alphabet) so existing UI copy still applies, but
+// every char now comes from `crypto.randomInt` via `secureRandomCode`.
+const BACKUP_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const BACKUP_CODE_HALF_LEN = 4;
 
 export interface RegenerateBackupCodesResult {
   backupCodes: string[];
@@ -51,17 +59,11 @@ export class RegenerateBackupCodesUseCase {
   }
 
   /**
-   * Generates a random backup code string in format XXXX-XXXX.
+   * Generates a CSPRNG-backed backup code string in format XXXX-XXXX.
    */
   private generateBackupCodeString(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-
-    for (let i = 0; i < 8; i++) {
-      if (i === 4) code += '-';
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    return code;
+    const left = secureRandomCode(BACKUP_CODE_HALF_LEN, BACKUP_CODE_ALPHABET);
+    const right = secureRandomCode(BACKUP_CODE_HALF_LEN, BACKUP_CODE_ALPHABET);
+    return `${left}-${right}`;
   }
 }
