@@ -867,11 +867,23 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   void onboarding;
 
   // Health BC — descriptor-driven `/api/health[/live|/ready]`.
+  // The SSE adapter exposes its in-process listener count via the
+  // `sse` probe so operators can spot a leak (or a stuck disconnect)
+  // without scraping Prometheus. `status: 'ok'` always; the probe is
+  // gauge-style, not pass/fail.
   const health = buildHealthComposition({
     prisma: prisma as never,
     cache,
     version: config.getOrDefault<string>('APP_VERSION', '0.0.0-dev'),
     startedAt: new Date(),
+    extraProbes: [
+      async () => ({
+        name: 'sse',
+        status: 'ok' as const,
+        latencyMs: 0,
+        detail: `listeners=${sseStream.totalListenerCount()}`,
+      }),
+    ],
   });
 
   // Config BC — exposes server-side constants the frontend mirrors
