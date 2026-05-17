@@ -90,6 +90,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
       // tripping the lock. 10/minute is generous for a real user that
       // mis-types twice and lenient for a slowly-cycling bot.
       { id: 'rate-limit', metadata: { points: 10, duration: 60, keyStrategy: 'ip' } },
+      // P1 #2 — pipeline-level fast-path: a locked email reaches the
+      // login handler today only to throw `AccountLockedException`
+      // from the use-case. The stage rejects with 423 + Retry-After
+      // before the request even hits the use-case so an attacker
+      // spraying a locked account can't sustain DB hits / bcrypt churn.
+      { id: 'auth-lockout', metadata: { keyStrategy: 'email' } },
     ],
     openapi: {
       summary: 'Authenticate user with email + password',

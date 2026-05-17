@@ -119,11 +119,41 @@ export class LoginUseCase implements LoginPort {
       throw new InvalidCredentialsException();
     }
 
+    // P1 #12 — verify-2fa was unprotected: an attacker who learned a
+    // userId (from a previous response or a side channel) could brute
+    // the 6-digit TOTP code. The login route locks the email after N
+    // password failures but verify-2fa skipped the same gate. Apply
+    // the same lockout policy here, keyed by the user's email so the
+    // counters share storage with the password failures.
+    const lock = await this.loginAttempts.getLockStatus(user.email);
+    if (lock.locked) {
+      const remainingMinutes = Math.max(1, Math.ceil((lock.resetInSeconds ?? 60) / 60));
+      this.eventBus.publish(new LoginFailedEvent(user.email, 'account_locked', ipAddress));
+      throw new AccountLockedException(remainingMinutes);
+    }
+
     const result = await this.validate2fa.validate(userId, code);
     if (!result.valid) {
+      await this.loginAttempts.record({
+        userId: user.id,
+        email: user.email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureCode: 'invalid_2fa',
+      });
       this.eventBus.publish(new LoginFailedEvent(user.email, 'invalid_2fa', ipAddress));
       throw new Invalid2faCodeException();
     }
+
+    await this.loginAttempts.clearFailedAttempts(user.email);
+    await this.loginAttempts.record({
+      userId: user.id,
+      email: user.email,
+      success: true,
+      ipAddress,
+      userAgent,
+    });
 
     const loginMethod = result.method === 'totp' ? '2fa_totp' : '2fa_backup_code';
     return this.issueTokens(user.id, user.email, loginMethod, ipAddress, userAgent);

@@ -20708,7 +20708,8 @@
         },
         "x-auth": "public",
         "x-guards": [
-          "rate-limit"
+          "rate-limit",
+          "auth-lockout"
         ]
       }
     },
