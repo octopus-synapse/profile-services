@@ -27,7 +27,7 @@ class StubSafeFetch extends SafeFetchPort {
       ok: true,
       headers: new Headers(),
       async text() {
-        return '<html><body>' + 'job description text '.repeat(20) + '</body></html>';
+        return `<html><body>${'job description text '.repeat(20)}</body></html>`;
       },
     };
   }

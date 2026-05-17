@@ -66,8 +66,8 @@ describe('arch: date fields in domain must not be string', () => {
 
     const total = offenders.length;
     if (process.env.UPDATE_BASELINE === '1') {
-      writeFileSync(BASELINE_PATH, total + '\n');
-      console.log('[date-in-domain] baseline updated to ' + total);
+      writeFileSync(BASELINE_PATH, `${total}\n`);
+      console.log(`[date-in-domain] baseline updated to ${total}`);
       return;
     }
 
@@ -76,9 +76,7 @@ describe('arch: date fields in domain must not be string', () => {
       : 0;
 
     if (total > baseline) {
-      const lines = offenders
-        .map((o) => '  - ' + o.file + ': ' + o.field + ': ' + o.type)
-        .join('\n');
+      const lines = offenders.map((o) => `  - ${o.file}: ${o.field}: ${o.type}`).join('\n');
       throw new Error(
         'Date-in-domain regression: ' +
           (total - baseline) +

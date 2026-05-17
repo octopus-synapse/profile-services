@@ -47,26 +47,20 @@ describe('arch: no dump-ground directories in BCs', () => {
 
     const total = offenders.length;
     if (process.env.UPDATE_BASELINE === '1') {
-      writeFileSync(BASELINE_PATH, total + '\n');
-      console.log('[no-dump-grounds] baseline updated to ' + total);
+      writeFileSync(BASELINE_PATH, `${total}\n`);
+      console.log(`[no-dump-grounds] baseline updated to ${total}`);
       return;
     }
     const baseline = existsSync(BASELINE_PATH)
       ? Number(readFileSync(BASELINE_PATH, 'utf8').trim())
       : 0;
     if (total > baseline) {
-      const lines = offenders.map((o) => '  - ' + o).join('\n');
+      const lines = offenders.map((o) => `  - ${o}`).join('\n');
       throw new Error(
-        'Dump-ground regression: ' +
-          (total - baseline) +
-          ' new offender(s). Total ' +
-          total +
-          ' (baseline ' +
-          baseline +
-          ').\n' +
+        `Dump-ground regression: ${total - baseline} new offender(s). ` +
+          `Total ${total} (baseline ${baseline}).\n` +
           'Force code into a typed namespace (service / port / adapter / value-object) ' +
-          'instead of lib/utils/helpers:\n' +
-          lines,
+          `instead of lib/utils/helpers:\n${lines}`,
       );
     }
     expect(total).toBeLessThanOrEqual(baseline);

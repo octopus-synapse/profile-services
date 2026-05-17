@@ -31,7 +31,7 @@ describe('AesGcmCipher', () => {
   it('returns null for tampered ciphertext', () => {
     const c = new AesGcmCipher(key);
     const ct = c.encrypt('abc');
-    const tampered = ct.slice(0, -2) + 'XX';
+    const tampered = `${ct.slice(0, -2)}XX`;
     expect(c.decrypt(tampered)).toBeNull();
   });
 
