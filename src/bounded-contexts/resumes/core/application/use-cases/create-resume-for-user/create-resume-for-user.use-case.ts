@@ -1,4 +1,5 @@
 import type { CreateResume, LoggerPort } from '@/shared-kernel';
+import { sanitizeHtmlContent } from '@/shared-kernel/validation';
 import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
@@ -9,7 +10,7 @@ const MAX_RESUMES_PER_USER = 4;
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return text.replace(/<[^>]*>/g, '');
+  return sanitizeHtmlContent(text, { allowedTags: [] });
 }
 
 export class CreateResumeForUserUseCase {

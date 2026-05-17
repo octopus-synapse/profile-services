@@ -1,5 +1,6 @@
 import type { LoggerPort, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { sanitizeHtmlContent } from '@/shared-kernel/validation';
 import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumeVersionServicePort } from '../../../ports/resume-version-service.port';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
@@ -8,7 +9,7 @@ import type { ResumeResult } from '../../../ports/resumes-service.port';
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return text.replace(/<[^>]*>/g, '');
+  return sanitizeHtmlContent(text, { allowedTags: [] });
 }
 
 export class UpdateResumeForUserUseCase {

@@ -1,5 +1,6 @@
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { sanitizeHtmlContent } from '@/shared-kernel/validation';
 import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumeEventPublisher } from '../domain/ports';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
@@ -8,15 +9,10 @@ import { ResumesServicePort, type UserResumesPaginatedResult } from './ports/res
 
 const MAX_RESUMES_PER_USER = 4;
 
-/**
- * Sanitize HTML content to prevent XSS attacks
- * Strips all HTML tags and scripts
- * Returns undefined if input is not a string
- */
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return text.replace(/<[^>]*>/g, '');
+  return sanitizeHtmlContent(text, { allowedTags: [] });
 }
 
 export class ResumesService extends ResumesServicePort {
