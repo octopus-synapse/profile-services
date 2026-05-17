@@ -151,11 +151,16 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     };
   }
 
+  readonly capturedRestoreSnapshots: Array<{
+    resumeId: string;
+    snapshot: Record<string, unknown>;
+  }> = [];
+
   async updateResumeFromSnapshot(
-    _resumeId: string,
-    _snapshot: Record<string, unknown>,
+    resumeId: string,
+    snapshot: Record<string, unknown>,
   ): Promise<void> {
-    // no-op for tests
+    this.capturedRestoreSnapshots.push({ resumeId, snapshot });
   }
 
   async findVersionIdsByResumeIdDesc(resumeId: string): Promise<string[]> {

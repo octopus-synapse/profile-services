@@ -102,4 +102,34 @@ describe('RestoreVersionUseCase', () => {
 
     expect(result.restoredFrom).toEqual(createdAt);
   });
+
+  // P1 #33 — monotonic counters must NOT be overwritten by a restore
+  it('does NOT restore profileViews / totalStars / publishedAt from the snapshot', async () => {
+    repository.seedResume({ id: resumeId, userId, resumeSections: [] });
+    repository.seedVersion({
+      id: versionId,
+      resumeId,
+      versionNumber: 1,
+      snapshot: {
+        resume: {
+          title: 'Restored Title',
+          profileViews: 999,
+          totalStars: 42,
+          publishedAt: new Date('2024-01-01').toISOString(),
+        },
+        sections: [],
+      },
+      label: null,
+      createdAt: new Date('2024-01-01'),
+    });
+
+    await useCase.execute(resumeId, versionId, userId);
+
+    const captured = repository.capturedRestoreSnapshots.find((c) => c.resumeId === resumeId);
+    expect(captured).toBeDefined();
+    expect(captured?.snapshot).not.toHaveProperty('profileViews');
+    expect(captured?.snapshot).not.toHaveProperty('totalStars');
+    expect(captured?.snapshot).not.toHaveProperty('publishedAt');
+    expect(captured?.snapshot).toHaveProperty('title', 'Restored Title');
+  });
 });
