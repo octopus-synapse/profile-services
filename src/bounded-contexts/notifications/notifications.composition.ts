@@ -116,7 +116,7 @@ export function buildNotificationsUseCases(
   const fitProfileExpiry = new PrismaFitProfileExpiryAdapter(prisma);
   const resumeQualitySnapshot = new PrismaResumeQualitySnapshotAdapter(prisma);
   const emailAdapter = new PlatformEmailAdapter(email);
-  const reminderState = new CacheReminderStateAdapter(cache);
+  const reminderState = new CacheReminderStateAdapter(cache, prisma, logger);
 
   const createNotification = new CreateNotificationUseCase(
     repository,

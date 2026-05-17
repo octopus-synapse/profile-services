@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { runInParallel } from '@test/infrastructure/shared/race-condition.helper';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
   InMemoryNotificationEmail,
@@ -8,6 +9,8 @@ import {
 } from '../../../testing';
 import { CreateNotificationUseCase } from '../create-notification/create-notification.use-case';
 import { SendExpiryReminderUseCase } from './send-expiry-reminder.use-case';
+
+const PARALLEL_FANOUT_WORKERS = 5;
 
 describe('SendExpiryReminderUseCase', () => {
   let repo: InMemoryNotificationsRepository;
@@ -48,5 +51,19 @@ describe('SendExpiryReminderUseCase', () => {
     });
 
     expect(repo.notifications).toHaveLength(0);
+  });
+
+  it('emits exactly one notification when N workers race past the Redis flag', async () => {
+    const { successes, failures } = await runInParallel(PARALLEL_FANOUT_WORKERS, () =>
+      useCase.execute({
+        userId: 'u-race',
+        daysLeft: 7,
+        expiresAt: '2026-05-04T00:00:00.000Z',
+      }),
+    );
+
+    expect(failures).toHaveLength(0);
+    expect(successes).toHaveLength(PARALLEL_FANOUT_WORKERS);
+    expect(repo.notifications).toHaveLength(1);
   });
 });

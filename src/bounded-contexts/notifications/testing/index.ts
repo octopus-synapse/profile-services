@@ -320,6 +320,7 @@ export class InMemoryFitProfileExpiryRead extends FitProfileExpiryReadPort {
 
 export class InMemoryReminderState extends ReminderStatePort {
   readonly seen = new Set<string>();
+  readonly claimedSlots = new Set<string>();
 
   async wasReminderSent(key: string): Promise<boolean> {
     return this.seen.has(key);
@@ -327,6 +328,17 @@ export class InMemoryReminderState extends ReminderStatePort {
 
   async recordReminderSent(key: string, _ttlSeconds: number): Promise<void> {
     this.seen.add(key);
+  }
+
+  async claimReminderSlot(input: {
+    userId: string;
+    daysLeft: number;
+    sentDate: string;
+  }): Promise<boolean> {
+    const slotKey = `${input.userId}:${input.daysLeft}:${input.sentDate}`;
+    if (this.claimedSlots.has(slotKey)) return false;
+    this.claimedSlots.add(slotKey);
+    return true;
   }
 }
 
