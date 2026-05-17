@@ -11,6 +11,8 @@ on:
 permissions:
   contents: write
   packages: read
+  # Needed so `gh pr create` works from the workflow without a PAT.
+  pull-requests: write
 
 jobs:
   download-and-sync:
@@ -92,7 +94,9 @@ jobs:
             exit 1
           fi
 
-      - name: Commit and push CSV (with retry)
+      - name: Open PR with new CSV (with retry)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 5
@@ -102,16 +106,34 @@ jobs:
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
 
-            # Pull latest changes to avoid conflicts
             git pull --rebase origin main || true
 
             if git diff --quiet data/mec-courses.csv 2>/dev/null; then
               echo "📌 No changes to commit"
+              exit 0
+            fi
+
+            BRANCH="chore/mec-sync-$(date +%Y%m%d)"
+            # If a previous attempt already opened a PR for today, reuse
+            # the branch (force-update with this run's CSV).
+            git checkout -B "$BRANCH"
+            git add data/mec-courses.csv
+            git commit -m "chore(mec): update courses data"
+            git push --force origin "$BRANCH"
+
+            # Idempotent PR: open if missing, otherwise leave the
+            # existing one untouched.
+            if ! gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
+              PR_BODY="Automated MEC CSV refresh produced a diff. Auto-merged once CI passes via the auto-merge label. Requires branch-protection allowing the label + an auto-merge bot that merges the PR when checks go green."
+              gh pr create \
+                --base main \
+                --head "$BRANCH" \
+                --title "chore(mec): update courses data" \
+                --body "$PR_BODY" \
+                --label "auto-merge"
+              echo "Opened PR for new MEC data"
             else
-              git add data/mec-courses.csv
-              git commit -m "chore(mec): update courses data [skip ci]"
-              git push
-              echo "✅ Committed new MEC data"
+              echo "PR for $BRANCH already exists - pushed latest CSV"
             fi
 
       - name: Trigger database sync
@@ -124,5 +146,5 @@ jobs:
           command: |
             curl -sf -X POST \
               -H "Content-Type: application/json" \
-              -H "x-internal-token: ${{ secrets.INTERNAL_API_TOKEN }}" \
+              -H "X-Internal-Token: ${{ secrets.INTERNAL_API_TOKEN }}" \
               "${{ secrets.BACKEND_URL }}/api/mec/internal/sync" | jq '.'
