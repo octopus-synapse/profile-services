@@ -8,6 +8,11 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import {
+  type CompositeCursor,
+  encodeCursor,
+  tryDecodeCursor,
+} from '@/shared-kernel/persistence/composite-cursor';
 import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
   BookmarkedFeedItem,
@@ -28,6 +33,29 @@ const AUTHOR_SELECT = {
   bio: true,
   location: true,
 } as const;
+
+/**
+ * P1 #35 — Build a Prisma `where` fragment for the composite
+ * `(createdAt, id)` cursor. Legacy callers that still pass a plain
+ * ISO string degrade gracefully to the single-column predicate
+ * (no tiebreaker, but no 400 either) so an SDK regen can roll out
+ * independently.
+ */
+function compositeCursorWhere(cursor: string | undefined): Prisma.PostWhereInput {
+  if (!cursor) return {};
+  const decoded: CompositeCursor | null = tryDecodeCursor(cursor);
+  if (decoded) {
+    return {
+      OR: [
+        { createdAt: { lt: decoded.createdAt } },
+        { createdAt: decoded.createdAt, id: { lt: decoded.id } },
+      ],
+    };
+  }
+  const legacy = new Date(cursor);
+  if (Number.isNaN(legacy.getTime())) return {};
+  return { createdAt: { lt: legacy } };
+}
 
 export class PrismaFeedRepository extends FeedRepositoryPort {
   constructor(
@@ -158,7 +186,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     return (await this.prisma.post.findMany({
       where: {
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
         ...(followingOnly
           ? { authorId: { in: followingIds }, isPublished: true }
           : { OR: [{ isPublished: true }, { authorId: userId, isPublished: false }] }),
@@ -167,7 +195,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
         author: { select: AUTHOR_SELECT },
         originalPost: { include: { author: { select: AUTHOR_SELECT } } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take,
     })) as unknown as PostWithRelations[];
   }
@@ -181,18 +209,19 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       where: {
         authorId: userId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
         originalPost: { include: { author: { select: AUTHOR_SELECT } } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as PostWithRelations[];
 
+    const last = posts[posts.length - 1];
     const nextCursor =
-      posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
+      posts.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
     return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 

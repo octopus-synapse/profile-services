@@ -5,6 +5,11 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import {
+  type CompositeCursor,
+  encodeCursor,
+  tryDecodeCursor,
+} from '@/shared-kernel/persistence/composite-cursor';
 import type {
   BookmarkedFeedItem,
   PersistPostInput,
@@ -15,6 +20,26 @@ import type {
   UserPostsResult,
 } from '../domain/entities';
 import { FeedRepositoryPort } from '../domain/ports/feed.repository.port';
+
+function decodeMixedCursor(cursor: string | undefined): CompositeCursor | null {
+  if (!cursor) return null;
+  const decoded = tryDecodeCursor(cursor);
+  if (decoded) return decoded;
+  const legacy = new Date(cursor);
+  return Number.isNaN(legacy.getTime()) ? null : { createdAt: legacy, id: '￿' };
+}
+
+function beforeCursor(p: Post, c: CompositeCursor): boolean {
+  if (p.createdAt.getTime() < c.createdAt.getTime()) return true;
+  if (p.createdAt.getTime() === c.createdAt.getTime()) return p.id < c.id;
+  return false;
+}
+
+function byCreatedAtIdDesc(a: Post, b: Post): number {
+  const dt = b.createdAt.getTime() - a.createdAt.getTime();
+  if (dt !== 0) return dt;
+  return b.id.localeCompare(a.id);
+}
 
 interface BookmarkRow {
   id: string;
@@ -225,18 +250,18 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     userId: string;
   }): Promise<PostWithRelations[]> {
     const { cursor, take, followingOnly, followingIds, userId } = params;
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const decoded = decodeMixedCursor(cursor);
 
     const rows = [...this.posts.values()].filter((p) => {
       if (p.isDeleted) return false;
-      if (cursorDate && p.createdAt >= cursorDate) return false;
+      if (decoded && !beforeCursor(p, decoded)) return false;
       if (followingOnly) {
         return followingIds.includes(p.authorId) && p.isPublished;
       }
       return p.isPublished || (p.authorId === userId && !p.isPublished);
     });
 
-    rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    rows.sort(byCreatedAtIdDesc);
     return rows.slice(0, take).map((p) => this.withRelations(p));
   }
 
@@ -245,17 +270,16 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<UserPostsResult> {
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const decoded = decodeMixedCursor(cursor);
     const rows = [...this.posts.values()]
       .filter(
-        (p) =>
-          p.authorId === userId && !p.isDeleted && (cursorDate ? p.createdAt < cursorDate : true),
+        (p) => p.authorId === userId && !p.isDeleted && (decoded ? beforeCursor(p, decoded) : true),
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort(byCreatedAtIdDesc)
       .slice(0, limit);
     const posts = rows.map((p) => this.withRelations(p));
-    const nextCursor =
-      posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
+    const last = rows[rows.length - 1];
+    const nextCursor = rows.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
     return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 

@@ -9,6 +9,7 @@
  */
 
 import { CachePort } from '@/shared-kernel/cache/cache.port';
+import { encodeCursor } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   FeedItem,
   FeedQuery,
@@ -101,8 +102,11 @@ export class FeedTimelineService {
       };
     });
 
+    // P1 #35 — composite (createdAt, id) so ties don't drop or
+    // duplicate rows across pages.
+    const last = enriched[enriched.length - 1];
     const nextCursor =
-      enriched.length === limit ? enriched[enriched.length - 1].createdAt.toISOString() : null;
+      enriched.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
 
     return { items: enriched, nextCursor, hasNext: nextCursor !== null };
   }
