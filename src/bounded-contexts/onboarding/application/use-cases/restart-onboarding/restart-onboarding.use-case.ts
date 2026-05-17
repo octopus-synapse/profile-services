@@ -113,19 +113,19 @@ export class RestartOnboardingUseCase {
             })) ?? [],
         };
 
-    await runInTransaction(this.prisma, async (_tx) => {
-      // The progress repo port doesn't yet accept a tx client; the
-      // ordering here (delete → upsert → user.update) keeps the
-      // critical invariant: the user-row flip happens after the
-      // progress is written, so a partial commit observed by another
-      // request never sees `onboardingCompletedAt: null` without a
-      // matching progress row.
-      await this.progressRepository.deleteProgress(userId);
-      await this.progressRepository.upsertProgress(userId, progressInput);
-      await this.prisma.user.update({
+    // P1 #17 — the previous wrapper opened a transaction but threaded
+    // neither the progress repo calls nor the user.update through the
+    // tx client, so a failure of one op left the others committed.
+    // We now route every write through `tx`: the user-row flip happens
+    // first so an unexpected error from the (heavier) progress write
+    // still rolls the user flag back to its prior state.
+    await runInTransaction(this.prisma, async (tx) => {
+      await tx.user.update({
         where: { id: userId },
         data: { onboardingCompletedAt: null },
       });
+      await this.progressRepository.deleteProgressWithTx(tx, userId);
+      await this.progressRepository.upsertProgressWithTx(tx, userId, progressInput);
     });
 
     return { success: true };

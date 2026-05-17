@@ -49,6 +49,22 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
     userId: string,
     data: OnboardingProgressData,
   ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    return this.upsertProgressOn(this.prisma, userId, data);
+  }
+
+  async upsertProgressWithTx(
+    tx: TransactionClient,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    return this.upsertProgressOn(tx as Prisma.TransactionClient, userId, data);
+  }
+
+  private async upsertProgressOn(
+    client: PrismaService | Prisma.TransactionClient,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }> {
     const progressData = {
       currentStep: data.currentStep,
       completedSteps: data.completedSteps,
@@ -63,7 +79,7 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       ...(data.activatedExtras !== undefined ? { activatedExtras: data.activatedExtras } : {}),
     };
 
-    const progress = await this.prisma.onboardingProgress.upsert({
+    const progress = await client.onboardingProgress.upsert({
       where: { userId },
       update: progressData,
       create: { userId, ...progressData },

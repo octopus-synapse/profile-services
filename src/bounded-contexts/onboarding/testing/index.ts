@@ -191,6 +191,14 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
   }
 
+  async upsertProgressWithTx(
+    _tx: TransactionClient,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    return this.upsertProgress(userId, data);
+  }
+
   async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
     const normalised = Array.from(new Set(extras.map((e) => e.trim()).filter(Boolean)));
     const existing = this.progressRecords.get(userId);

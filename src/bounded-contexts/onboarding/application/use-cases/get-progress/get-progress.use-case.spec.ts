@@ -69,6 +69,14 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
     await this.deleteProgress(userId);
   }
 
+  async upsertProgressWithTx(
+    _tx: unknown,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<SaveProgressResult> {
+    return this.upsertProgress(userId, data);
+  }
+
   async findUserByUsername(_username: string): Promise<{ id: string } | null> {
     return null;
   }
