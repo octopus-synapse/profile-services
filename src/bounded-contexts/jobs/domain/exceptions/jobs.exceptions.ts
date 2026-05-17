@@ -77,3 +77,15 @@ export class JobImportPageTooThinException extends DomainException {
     super('The page did not contain enough text to extract a job posting');
   }
 }
+
+/**
+ * P1 #24 — raised when an application state transition is rejected by
+ * the use-case-level state machine (e.g. trying to withdraw an
+ * already-WITHDRAWN or REJECTED row).
+ */
+export class InvalidApplicationStateException extends ConflictException {
+  override readonly code: string = 'INVALID_APPLICATION_STATE';
+  constructor(currentStatus: string, attemptedTransition: string) {
+    super(`Cannot ${attemptedTransition} an application in status ${currentStatus}`);
+  }
+}

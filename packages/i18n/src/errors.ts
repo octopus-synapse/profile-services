@@ -590,6 +590,10 @@ export const ERROR_DICTIONARY = {
     en: 'The page did not contain enough text to extract a job posting',
     'pt-BR': 'A página não tinha texto suficiente para extrair uma vaga',
   },
+  INVALID_APPLICATION_STATE: {
+    en: 'Application state does not allow this transition',
+    'pt-BR': 'O estado da candidatura não permite essa transição',
+  },
   LAST_ADMIN_CANNOT_BE_REMOVED: {
     en: 'Cannot remove admin role from the last admin user',
     'pt-BR': 'Não é possível remover o papel de admin do último administrador',
