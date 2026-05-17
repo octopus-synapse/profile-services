@@ -23,6 +23,14 @@ export class PollAlreadyVotedException extends ConflictException {
   }
 }
 
+export class PollOptionOutOfRangeException extends DomainException {
+  readonly code: string = 'POLL_OPTION_OUT_OF_RANGE';
+  readonly statusHint = 400;
+  constructor(optionIndex: number, optionCount: number) {
+    super(`Option index ${optionIndex} is out of range for a poll with ${optionCount} options`);
+  }
+}
+
 export class CannotDeleteOthersPostException extends ForbiddenException {
   override readonly code: string = 'CANNOT_DELETE_OTHERS_POST';
   constructor() {

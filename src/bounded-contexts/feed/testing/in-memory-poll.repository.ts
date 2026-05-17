@@ -4,7 +4,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type { PollResultBucket, PollVote, Post } from '../domain/entities';
-import { PollRepositoryPort } from '../domain/ports/poll.repository.port';
+import { type AtomicVoteResult, PollRepositoryPort } from '../domain/ports/poll.repository.port';
 
 function makePost(partial: Partial<Post> & { id: string }): Post {
   const now = new Date();
@@ -80,5 +80,14 @@ export class InMemoryPollRepository extends PollRepositoryPort {
       if (v.postId === postId) counts.set(v.optionIndex, (counts.get(v.optionIndex) ?? 0) + 1);
     }
     return [...counts.entries()].map(([optionIndex, count]) => ({ optionIndex, count }));
+  }
+
+  async voteAtomic(postId: string, userId: string, optionIndex: number): Promise<AtomicVoteResult> {
+    const existing = this.votes.find((v) => v.postId === postId && v.userId === userId);
+    if (existing) return { outcome: 'duplicate' };
+    const vote = this.seedVote(postId, userId, optionIndex);
+    const p = this.posts.get(postId);
+    if (p) this.posts.set(postId, { ...p, votesCount: p.votesCount + 1 });
+    return { outcome: 'created', vote };
   }
 }
