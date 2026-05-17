@@ -13,6 +13,12 @@ const TTL_SECONDS = 60;
 const REDIS_DEFAULT_PORT = 6379;
 const RETRY_DELAY_MAX = 2000;
 const RETRY_DELAY_MULTIPLIER = 50;
+// P1 #40 — SCAN page size + UNLINK batch concurrency.
+// SCAN_COUNT=200 keeps every Redis "tick" short; UNLINK_BATCH=10 caps
+// the in-flight pipeline so a huge keyspace doesn't queue thousands of
+// unanswered commands at once.
+const SCAN_COUNT = 200;
+const UNLINK_BATCH_CONCURRENCY = 10;
 
 /**
  * Caches per-roles-fingerprint evaluation snapshots in Redis with a dedicated
@@ -157,15 +163,21 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
       return;
     }
     try {
-      // P0-#13: replace `KEYS pattern` (blocks Redis on the entire keyspace,
-      // O(N)) with `SCAN + UNLINK` so feature-flag toggles can't freeze
-      // every other client during a rollout sweep.
-      const stream = client.scanStream({ match: `${SNAPSHOT_PREFIX}*`, count: 200 });
+      // P1 #40 / P0-#13: use `SCAN + UNLINK` instead of `KEYS pattern`.
+      // KEYS is O(keyspace) and blocks the single Redis thread for the
+      // full sweep, which freezes every other client mid-rollout. SCAN
+      // walks the keyspace in small COUNT-sized pages and UNLINK frees
+      // the slot asynchronously on the Redis side so we never stall the
+      // command loop here either.
+      const stream = client.scanStream({
+        match: `${SNAPSHOT_PREFIX}*`,
+        count: SCAN_COUNT,
+      });
       let pending: Promise<unknown>[] = [];
       for await (const keys of stream as AsyncIterable<string[]>) {
         if (keys.length === 0) continue;
         pending.push(client.unlink(...keys));
-        if (pending.length >= 10) {
+        if (pending.length >= UNLINK_BATCH_CONCURRENCY) {
           await Promise.all(pending);
           pending = [];
         }
