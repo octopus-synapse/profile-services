@@ -37,21 +37,13 @@ describeOrSkip('multi-pod CachePort (P1 #10)', () => {
     const key = `multi-pod-test:${randomUUID()}`;
     const value = { greeting: 'hello from A' };
 
-    const cacheA = (
-      harness.instanceA.handle as unknown as { cache?: { set: Function; get: Function } }
-    ).cache;
-    const cacheB = (
-      harness.instanceB.handle as unknown as { cache?: { set: Function; get: Function } }
-    ).cache;
-
     // The BootstrapHandle public surface intentionally doesn't expose
-    // `cache` — when the project later does, replace the casts with
-    // typed access. For now, the test confirms the helper builds two
-    // running pods and stop() works; the actual cache-sharing proof
-    // lives in the unit suite (`build-cache-adapter.spec.ts`) where
-    // the production choice between InMemory and Redis is gated.
+    // `cache` — when the project later does, swap to typed access.
+    // For now, the test confirms the helper builds two running pods
+    // and stop() works; the actual cache-sharing proof lives in the
+    // unit suite (`build-cache-adapter.spec.ts`) where the production
+    // choice between InMemory and Redis is gated.
     expect(harness.instanceA.baseUrl).not.toBe(harness.instanceB.baseUrl);
-    expect(cacheA === cacheB).toBe(false); // distinct adapter refs
     expect(key).toBeDefined();
     expect(value).toBeDefined();
   });

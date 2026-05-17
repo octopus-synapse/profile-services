@@ -147,6 +147,7 @@ import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
+import { assertBullmqRequiredInProd } from './assert-bullmq-required-in-prod';
 import { buildCacheAdapter } from './build-cache-adapter';
 import {
   applyCacheInvalidation,
@@ -313,8 +314,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // BullMQ-backed JobQueuePort. Opt-in via `ENABLE_BULLMQ=true` —
   // when off, the bootstrap uses a no-op queue so dev environments
-  // boot without a working Redis. Production sets the flag and gets
-  // the real BullMQ worker pool with `dispose()` wired into shutdown.
+  // boot without a working Redis. Production / staging MUST provide
+  // BOTH ENABLE_BULLMQ=true and REDIS_HOST or the bootstrap refuses
+  // to start: the no-op queue silently drops every enqueue() in those
+  // envs and we observed real ops outages where the email/notification
+  // pipeline went dark for hours (P1 #38).
+  assertBullmqRequiredInProd(config);
   const enableBullmq = config.getOrDefault<string>('ENABLE_BULLMQ', 'false') === 'true';
   const redisHost = config.get<string>('REDIS_HOST');
   const queue =
