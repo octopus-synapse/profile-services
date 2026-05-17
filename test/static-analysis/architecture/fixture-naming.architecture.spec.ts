@@ -52,6 +52,7 @@ describe('arch: factory naming — build* or freshInDb*', () => {
       const src = readFileSync(file, 'utf8');
       VALUE_EXPORT_RE.lastIndex = 0;
       let m: RegExpExecArray | null;
+      // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
       while ((m = VALUE_EXPORT_RE.exec(src)) !== null) {
         const name = m[1];
         if (IGNORED_NAMES.has(name)) continue;

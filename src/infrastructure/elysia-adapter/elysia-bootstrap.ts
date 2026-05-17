@@ -142,12 +142,12 @@ import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stori
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
-import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
+import { buildCacheAdapter } from './build-cache-adapter';
 import {
   applyCacheInvalidation,
   BullMQCacheInvalidationAdapter,
@@ -160,14 +160,12 @@ import { CronerCronAdapter } from './croner-cron.adapter';
 import { buildDefaultPipeline } from './elysia-pipeline';
 import { mountRoutes } from './elysia-route-mounter';
 import { FetchOAuthAdapter } from './fetch-oauth.adapter';
-import { InMemoryCacheAdapter } from './in-memory-cache.adapter';
 import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
-import { RedisCacheAdapter } from './redis-cache.adapter';
 import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
 import { applySecurityHeaders, enableCors } from './security-headers';
 
@@ -212,27 +210,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // by every BC that takes `CachePort`. Construct early so it can be
   // injected here; the remaining adapters keep their original order.
   //
-  // P0-#14: when REDIS_HOST is set we wire a real Redis-backed adapter so
-  // multi-pod deploys share rate-limit counters, idempotency keys and the
-  // post-credential-change token-valid-after gate. Without that, a password
-  // reset on pod A doesn't invalidate JWTs being served by pod B until the
-  // token's natural exp. In dev (no REDIS_HOST) we keep the in-memory
-  // adapter. In production the bootstrap fails fast below if Redis is
-  // missing.
-  const redisConnectionForCache = new RedisConnectionService(logger, config);
-  const cache: CachePort = redisConnectionForCache.client
-    ? new RedisCacheAdapter(redisConnectionForCache.client)
-    : new InMemoryCacheAdapter();
-  if (
-    !redisConnectionForCache.client &&
-    (config.env.NODE_ENV === 'production' || config.env.NODE_ENV === 'staging')
-  ) {
-    throw new Error(
-      'REDIS_HOST is required in production/staging — the in-memory cache ' +
-        'adapter does not share state between pods (auth invalidation, ' +
-        'rate-limit, idempotency would all be per-pod).',
-    );
-  }
+  // P1 #10: the selection (Redis vs in-memory) is centralised in
+  // `buildCacheAdapter` — production / staging without REDIS_HOST
+  // fails fast with ConfigValidationError, dev/test fall back to the
+  // in-memory adapter. The factory returns the underlying connection
+  // so the bootstrap can register it with the lifecycle list (a
+  // future cleanup; today the SIGTERM path already disposes the
+  // global Redis client via `sharedRedis` below).
+  const { cache } = buildCacheAdapter(config, logger);
   // SafeFetchPort: SSRF-defended HTTP client (P0-013/014).
   // - default: link-preview style (single shot, attacker-untrusted URL)
   // - strict:  webhook-delivery style (DNS-rebinding-resistant, repeated traffic)
@@ -1113,7 +1098,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Run lifecycles.init in order ---
   for (const l of lifecycles) await l.init?.();
 
-  const port = Number(process.env.PORT ?? 3010);
+  // P1 #49: read PORT via ConfigPort. The canonical EnvConfigSchema
+  // already coerces / validates the value so we don't go through
+  // process.env a second time and skip the schema floor.
+  const port = config.env.PORT ?? 3010;
   app.listen(port);
   logger.log(`Elysia listening on http://localhost:${port}`, 'ElysiaBootstrap');
   logger.log(
