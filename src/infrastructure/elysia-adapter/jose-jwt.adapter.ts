@@ -14,6 +14,11 @@
 import { type JWTPayload, errors as joseErrors, jwtVerify, SignJWT } from 'jose';
 import { JwtPort, type JwtSignOptions, type JwtVerifyOptions } from '@/shared-kernel/auth/jwt.port';
 
+/**
+ * `expiresIn`: relative duration ("15m") or relative seconds-from-now
+ * (number). Always returns an absolute epoch-seconds value computed
+ * against `Date.now()` — i.e. "this many seconds **from now**".
+ */
 function parseExpiresIn(expiresIn: string | number): number {
   if (typeof expiresIn === 'number') return Math.floor(Date.now() / 1000) + expiresIn;
   // jose understands strings like '15m', '7d' via `setExpirationTime` directly.
@@ -28,6 +33,27 @@ function parseExpiresIn(expiresIn: string | number): number {
   const unit = match[2];
   const seconds = n * (unit === 's' ? 1 : unit === 'm' ? 60 : unit === 'h' ? 3600 : 86400);
   return Math.floor(Date.now() / 1000) + seconds;
+}
+
+/**
+ * P1 #47 — `notBefore` has different semantics than `expiresIn`:
+ *
+ *   - `"1h"` / `"30s"` (string) → "valid from one hour from now",
+ *     i.e. duration relative to `Date.now()`. Reuse `parseExpiresIn`.
+ *   - `1700000000` (number)   → **absolute** epoch seconds. The old
+ *     code routed numbers through `parseExpiresIn` too, which added
+ *     `Date.now()` and produced a `nbf` ~54 years in the future.
+ *     Callers issuing pre-dated tokens (cron-scheduled actions, deferred
+ *     consent flows) saw the resulting JWT silently rejected as "not
+ *     yet valid" forever.
+ *
+ * Numbers therefore pass through unchanged; strings keep duration
+ * semantics for backwards compatibility with the few call sites that
+ * mirrored `expiresIn`.
+ */
+function parseNotBefore(notBefore: string | number): number {
+  if (typeof notBefore === 'number') return Math.floor(notBefore);
+  return parseExpiresIn(notBefore);
 }
 
 export interface JoseJwtConfig {
@@ -71,7 +97,7 @@ export class JoseJwtAdapter extends JwtPort {
     const audience = options.audience ?? this.config.audience;
     if (audience) builder.setAudience(audience);
     if (options.subject) builder.setSubject(options.subject);
-    if (options.notBefore !== undefined) builder.setNotBefore(parseExpiresIn(options.notBefore));
+    if (options.notBefore !== undefined) builder.setNotBefore(parseNotBefore(options.notBefore));
     builder.setIssuedAt();
     return builder.sign(this.secretKey(options.secret));
   }

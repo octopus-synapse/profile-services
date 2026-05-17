@@ -61,4 +61,27 @@ describe('JoseJwtAdapter', () => {
       await expect(adapter.verifyAsync(token, { secret: PRIMARY })).rejects.toThrow();
     });
   });
+
+  describe('notBefore semantics (P1 #47)', () => {
+    it('treats a numeric notBefore as literal epoch seconds (not "seconds from now")', async () => {
+      const adapter = new JoseJwtAdapter({ secret: PRIMARY });
+      const pastEpoch = Math.floor(Date.now() / 1000) - 600; // 10 minutes ago
+      const token = await adapter.signAsync({ sub: 'user-1' }, { notBefore: pastEpoch });
+      const decoded = adapter.decode<{ nbf?: number }>(token);
+      expect(decoded?.nbf).toBe(pastEpoch);
+      // And the token verifies — `nbf` is in the past so it's already valid.
+      await expect(adapter.verifyAsync(token)).resolves.toBeDefined();
+    });
+
+    it('treats a string notBefore as a duration from now', async () => {
+      const adapter = new JoseJwtAdapter({ secret: PRIMARY });
+      const now = Math.floor(Date.now() / 1000);
+      const token = await adapter.signAsync({ sub: 'user-1' }, { notBefore: '1h' });
+      const decoded = adapter.decode<{ nbf?: number }>(token);
+      // Should be ~one hour ahead; allow a 5-second margin for slow CI clocks.
+      const ONE_HOUR = 3600;
+      expect(decoded?.nbf).toBeGreaterThanOrEqual(now + ONE_HOUR - 5);
+      expect(decoded?.nbf).toBeLessThanOrEqual(now + ONE_HOUR + 5);
+    });
+  });
 });
