@@ -26,10 +26,13 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     body: VerifyEmailSchema,
     response: VerifyEmailResponseSchema,
     guards: [
-      // P0-#4: the verification code is 6 digits (10^6 keyspace, 15min TTL) —
-      // brute-forceable with ~1700 req/s. Cap aggressively per IP so even a
-      // botnet can't realistically enumerate.
-      { id: 'rate-limit', metadata: { points: 5, duration: 300, keyStrategy: 'ip' } },
+      // P0-#4 + P1 #4 — the verification code is 6 digits (10^6
+      // keyspace, 15min TTL); 5/5min keyed by IP was the original bar
+      // but a small botnet (~1000 IPs) could still sweep ~7% of the
+      // keyspace per token. Tighten to 3/5min and surface a tighter
+      // ceiling on a botnet-scale attack. A real user typing the code
+      // wrong twice still has a free attempt within the same window.
+      { id: 'rate-limit', metadata: { points: 3, duration: 300, keyStrategy: 'ip' } },
       { id: 'multi-step-flow' },
     ],
     openapi: {
