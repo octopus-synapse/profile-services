@@ -28,5 +28,4 @@ describe('GetPostUseCase', () => {
     repo.seedPost({ id: 'p1', authorId: 'a1', isDeleted: true });
     await expect(useCase.execute('p1')).rejects.toThrow(EntityNotFoundException);
   });
-
 });

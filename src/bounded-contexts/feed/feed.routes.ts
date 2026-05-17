@@ -42,8 +42,8 @@ import {
   UnlikePostResponseSchema,
   UserCommentsResponseSchema,
   UserIdParam,
-  UserPostsResponseSchema,
   UserLikesResponseSchema,
+  UserPostsResponseSchema,
   VoteBodySchema,
 } from './feed.routes.schemas';
 

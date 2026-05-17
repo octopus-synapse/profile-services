@@ -142,8 +142,8 @@ import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stori
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
-import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';

@@ -53,7 +53,11 @@ describe('Disable2faUseCase', () => {
 
   describe('execute', () => {
     it('throws TwoFactorNotSetupException when user has no 2FA record', async () => {
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(true), stubValidate2fa(true));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(true),
+        stubValidate2fa(true),
+      );
 
       await expect(useCase.execute('nonexistent-user', PASSWORD_OK_INPUT)).rejects.toBeInstanceOf(
         TwoFactorNotSetupException,
@@ -62,7 +66,11 @@ describe('Disable2faUseCase', () => {
 
     it('throws TwoFactorReauthRequiredException when neither password nor TOTP provided', async () => {
       repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(true), stubValidate2fa(true));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(true),
+        stubValidate2fa(true),
+      );
 
       await expect(useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, {})).rejects.toBeInstanceOf(
         TwoFactorReauthRequiredException,
@@ -71,7 +79,11 @@ describe('Disable2faUseCase', () => {
 
     it('throws TwoFactorInvalidReauthException when password is wrong AND no TOTP', async () => {
       repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(false), stubValidate2fa(false));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(false),
+        stubValidate2fa(false),
+      );
 
       await expect(
         useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT),
@@ -80,7 +92,11 @@ describe('Disable2faUseCase', () => {
 
     it('throws TwoFactorInvalidReauthException when TOTP is wrong AND no password', async () => {
       repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(false), stubValidate2fa(false));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(false),
+        stubValidate2fa(false),
+      );
 
       await expect(
         useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, TOTP_OK_INPUT),
@@ -89,7 +105,11 @@ describe('Disable2faUseCase', () => {
 
     it('deletes the 2FA record when password is correct', async () => {
       repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(true), stubValidate2fa(false));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(true),
+        stubValidate2fa(false),
+      );
 
       await useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);
 
@@ -98,7 +118,11 @@ describe('Disable2faUseCase', () => {
 
     it('deletes the 2FA record when password fails but TOTP succeeds', async () => {
       repository.seedTwoFactor(DEFAULT_TWO_FACTOR_RECORD);
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(false), stubValidate2fa(true));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(false),
+        stubValidate2fa(true),
+      );
 
       await useCase.execute(DEFAULT_TWO_FACTOR_RECORD.userId, TOTP_OK_INPUT);
 
@@ -110,7 +134,11 @@ describe('Disable2faUseCase', () => {
       for (const code of DEFAULT_BACKUP_CODES) {
         repository.seedBackupCode(code);
       }
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(true), stubValidate2fa(false));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(true),
+        stubValidate2fa(false),
+      );
 
       await useCase.execute(DEFAULT_ENABLED_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);
 
@@ -131,7 +159,11 @@ describe('Disable2faUseCase', () => {
       for (const code of DEFAULT_BACKUP_CODES) {
         repository.seedBackupCode(code);
       }
-      const useCase = new Disable2faUseCase(repository, new StubPasswordVerifier(true), stubValidate2fa(false));
+      const useCase = new Disable2faUseCase(
+        repository,
+        new StubPasswordVerifier(true),
+        stubValidate2fa(false),
+      );
 
       await useCase.execute(DEFAULT_ENABLED_TWO_FACTOR_RECORD.userId, PASSWORD_OK_INPUT);
 

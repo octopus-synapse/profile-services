@@ -22,6 +22,7 @@ import type { OnboardingProgressData } from '../../domain/ports/onboarding-progr
 const EXTRA_STEP_KEYS: ReadonlySet<string> = new Set(
   EXTRA_SECTION_KEYS.map((k) => extraStepKey(k)),
 );
+
 import type {
   OnboardingSessionDto,
   PersonalInfoDto,
@@ -244,8 +245,7 @@ export function buildSession(
 
   const rawPersonalInfo = toPersonalInfo(data.personalInfo);
   const personalInfo =
-    rawPersonalInfo ??
-    (userDefaults ? { fullName: userDefaults.name ?? '' } : undefined);
+    rawPersonalInfo ?? (userDefaults ? { fullName: userDefaults.name ?? '' } : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
   const templateSelection = toTemplateSelection(data.templateSelection);
 

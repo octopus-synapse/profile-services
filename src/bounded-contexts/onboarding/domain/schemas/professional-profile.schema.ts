@@ -24,10 +24,7 @@ const SummarySchema = z
   .max(500, 'Summary cannot exceed 500 characters')
   .trim();
 
-const HeadlineSchema = z
-  .string()
-  .max(120, 'Headline cannot exceed 120 characters')
-  .trim();
+const HeadlineSchema = z.string().max(120, 'Headline cannot exceed 120 characters').trim();
 
 export const ProfessionalProfileSchema = z.object({
   title: JobTitleSchema.optional(),

@@ -170,7 +170,10 @@ export class InMemoryEngagementRepository extends EngagementRepositoryPort {
   ): Promise<{ id: string } | null> {
     const found = [...this.posts.values()].find(
       (p) =>
-        p.isRepost && p.originalPostId === originalPostId && p.authorId === authorId && !p.isDeleted,
+        p.isRepost &&
+        p.originalPostId === originalPostId &&
+        p.authorId === authorId &&
+        !p.isDeleted,
     );
     return found ? { id: found.id } : null;
   }

@@ -195,7 +195,11 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
     const normalised = Array.from(new Set(extras.map((e) => e.trim()).filter(Boolean)));
     const existing = this.progressRecords.get(userId);
     if (existing) {
-      this.progressRecords.set(userId, { ...existing, activatedExtras: normalised, updatedAt: new Date() });
+      this.progressRecords.set(userId, {
+        ...existing,
+        activatedExtras: normalised,
+        updatedAt: new Date(),
+      });
       return;
     }
     this.progressRecords.set(userId, {

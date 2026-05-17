@@ -49,6 +49,11 @@ const ALLOWLIST = new Set([
   'src/bounded-contexts/integration/mec-sync/application/services/data-sync.service.ts',
   'src/bounded-contexts/collaboration/chat/services/chat-cache.service.ts',
   'src/bounded-contexts/identity/authorization/infrastructure/adapters/cache/authorization-cache.adapter.ts',
+  // `this.cache` here is a private `Map<UserId, CacheEntry>` backing the
+  // in-memory LRU; the regex matches the `.delete()` call but the
+  // primitive is not a CachePort — false positive that the regex can't
+  // distinguish without type info.
+  'src/bounded-contexts/identity/authorization/infrastructure/adapters/cache/in-memory-authorization-context.cache.ts',
   'src/bounded-contexts/identity/authorization/application/services/authorization.service.ts',
   'src/bounded-contexts/skills-catalog/tech-skills/services/tech-skills-sync.service.ts',
   'src/bounded-contexts/job-match/infrastructure/workers/job-match-recompute.worker.ts',

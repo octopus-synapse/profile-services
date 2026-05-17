@@ -833,8 +833,7 @@ async function main() {
       else attachment = 'none';
 
       const seed = `${u.username}-${i}`;
-      const imageUrl =
-        attachment === 'image' ? `https://picsum.photos/seed/${seed}/960/600` : null;
+      const imageUrl = attachment === 'image' ? `https://picsum.photos/seed/${seed}/960/600` : null;
       // Three public sample videos — cycle through them deterministically.
       const SAMPLE_VIDEOS = [
         'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
@@ -847,9 +846,7 @@ async function main() {
           ? (SAMPLE_VIDEOS[(seed.length + i) % SAMPLE_VIDEOS.length] as string)
           : null;
       const linkUrl =
-        attachment === 'link'
-          ? `https://github.com/${u.username}/${faker.lorem.slug()}`
-          : null;
+        attachment === 'link' ? `https://github.com/${u.username}/${faker.lorem.slug()}` : null;
       const pollOptions =
         attachment === 'poll'
           ? [

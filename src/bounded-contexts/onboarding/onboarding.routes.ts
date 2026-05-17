@@ -533,5 +533,4 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       return { config };
     },
   },
-
 ];

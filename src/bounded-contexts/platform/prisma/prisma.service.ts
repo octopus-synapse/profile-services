@@ -59,9 +59,7 @@ export class PrismaService extends PrismaClient {
       );
     }
     if (process.env.ALLOW_DESTRUCTIVE_DB_OPS !== 'true') {
-      throw new Error(
-        'cleanDatabase requires ALLOW_DESTRUCTIVE_DB_OPS=true to be set explicitly',
-      );
+      throw new Error('cleanDatabase requires ALLOW_DESTRUCTIVE_DB_OPS=true to be set explicitly');
     }
 
     // Delete in reverse order of dependencies to avoid FK constraint errors

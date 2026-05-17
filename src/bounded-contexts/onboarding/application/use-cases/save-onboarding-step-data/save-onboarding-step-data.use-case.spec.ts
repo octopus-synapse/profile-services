@@ -168,9 +168,9 @@ describe('SaveOnboardingStepDataUseCase', () => {
       stubLogger,
     );
 
-    await expect(
-      useCaseWithFailingSave.execute(USER_ID, { fullName: 'X' }),
-    ).rejects.toThrow(OnboardingSectionPersistenceFailedException);
+    await expect(useCaseWithFailingSave.execute(USER_ID, { fullName: 'X' })).rejects.toThrow(
+      OnboardingSectionPersistenceFailedException,
+    );
   });
 
   it('replaces section data for the same section type', async () => {

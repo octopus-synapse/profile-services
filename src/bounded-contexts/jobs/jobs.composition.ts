@@ -14,8 +14,8 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import type { SafeFetchPort } from '@/shared-kernel/http/safe-fetch.port';
+import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { FitScoreBatchService } from './application/services/fit-score-batch.service';
 import { JobEnrichmentService } from './application/services/job-enrichment.service';

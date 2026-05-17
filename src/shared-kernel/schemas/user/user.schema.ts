@@ -25,10 +25,7 @@ export const UpdateUserSchema = z
     name: FullNameSchema.optional(),
     username: UsernameSchema.optional(),
     bio: ShortDescriptionSchema.optional(),
-    headline: z
-      .string()
-      .max(120, 'Headline must be 120 characters or less')
-      .optional(),
+    headline: z.string().max(120, 'Headline must be 120 characters or less').optional(),
     location: UserLocationSchema,
     website: SocialUrlSchema.optional(),
     company: z.string().max(100, 'Company must be 100 characters or less').optional(),

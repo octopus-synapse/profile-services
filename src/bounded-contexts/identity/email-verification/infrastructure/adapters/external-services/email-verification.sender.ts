@@ -24,10 +24,6 @@ export class EmailVerificationSender extends VerificationEmailSenderPort {
     userName: string | null,
     verificationToken: string,
   ): Promise<void> {
-    await this.emailService.sendVerificationEmail(
-      email,
-      userName ?? 'User',
-      verificationToken,
-    );
+    await this.emailService.sendVerificationEmail(email, userName ?? 'User', verificationToken);
   }
 }

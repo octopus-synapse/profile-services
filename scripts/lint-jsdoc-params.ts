@@ -84,7 +84,16 @@ function splitParams(body: string): string[] {
 }
 
 function extractParamName(param: string): string | null {
-  const stripped = param.replace(/^public\s+|^private\s+|^protected\s+|^readonly\s+/g, '').trim();
+  // Strip any chain of access-/mutability-modifiers, not just one (e.g.
+  // `private readonly key: Buffer`). The previous single-pass replace
+  // left `readonly key` as the param body, which then matched the wrong
+  // identifier and produced spurious "@param key not in [readonly]"
+  // failures.
+  const MODIFIER_RE = /^(?:public|private|protected|readonly)\s+/;
+  let stripped = param.trim();
+  while (MODIFIER_RE.test(stripped)) {
+    stripped = stripped.replace(MODIFIER_RE, '').trim();
+  }
   if (stripped.startsWith('{')) {
     // Destructured: match the type alias `: TypeName` after the closing brace, else "options".
     const after = stripped.match(/\}\s*:\s*([A-Za-z_$][\w$]*)/);

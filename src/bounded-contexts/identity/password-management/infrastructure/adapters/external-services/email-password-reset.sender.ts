@@ -22,10 +22,6 @@ export class EmailPasswordResetSender extends PasswordResetEmailPort {
   }
 
   async sendResetEmail(email: string, userName: string | null, resetToken: string): Promise<void> {
-    await this.emailService.sendPasswordResetEmail(
-      email,
-      userName ?? 'User',
-      resetToken,
-    );
+    await this.emailService.sendPasswordResetEmail(email, userName ?? 'User', resetToken);
   }
 }

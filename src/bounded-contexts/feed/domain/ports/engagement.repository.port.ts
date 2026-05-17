@@ -3,13 +3,7 @@
  * matching denormalised counters on `Post`.
  */
 
-import type {
-  LikeWithPost,
-  Post,
-  PostBookmark,
-  PostLike,
-  PostWithAuthor,
-} from '../entities';
+import type { LikeWithPost, Post, PostBookmark, PostLike, PostWithAuthor } from '../entities';
 
 export abstract class EngagementRepositoryPort {
   abstract findPostById(id: string): Promise<Post | null>;

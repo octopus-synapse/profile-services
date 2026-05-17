@@ -66,8 +66,7 @@ export class FeedTimelineService {
       userId,
     });
 
-    const isPrioritized = (post: PostWithRelations) =>
-      prioritizedUserIds.has(post.authorId);
+    const isPrioritized = (post: PostWithRelations) => prioritizedUserIds.has(post.authorId);
 
     const sorted = [...candidates].sort((a, b) => {
       const aPrio = isPrioritized(a) ? 1 : 0;

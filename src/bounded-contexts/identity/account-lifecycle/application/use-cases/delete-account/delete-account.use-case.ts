@@ -9,8 +9,8 @@ import {
 } from '../../../application/ports';
 import { AccountDeletedEvent } from '../../../domain/events';
 import { AccountDeletionRequiresConfirmationException } from '../../../domain/exceptions';
-import type { PasswordHasherPort } from '../../../domain/ports/password-hasher.port';
 import { AccountLifecycleRepositoryPort } from '../../../domain/ports';
+import type { PasswordHasherPort } from '../../../domain/ports/password-hasher.port';
 
 export class DeleteAccountUseCase implements DeleteAccountPort {
   constructor(
