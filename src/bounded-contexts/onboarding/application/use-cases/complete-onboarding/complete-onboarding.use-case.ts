@@ -134,6 +134,14 @@ export class CompleteOnboardingUseCase {
     return error;
   }
 
+  /**
+   * P1 #28 — strictly narrowed to P2002 errors that name `username` in
+   * `meta.target`. The previous fallback to a substring match on the
+   * error message ("Unique constraint failed") classified ANY unique
+   * conflict (email reuse, slug collision, etc.) as a username conflict
+   * and rerouted the caller to `OnboardingUsernameTakenException`,
+   * masking the real cause.
+   */
   private isUsernameConflict(error: unknown): boolean {
     if (
       error === null ||
@@ -153,10 +161,13 @@ export class CompleteOnboardingUseCase {
       return target.some((field) => field === 'username');
     }
 
-    if (typeof target === 'string' && target.includes('username')) {
-      return true;
+    if (typeof target === 'string') {
+      // Postgres surfaces composite indexes as e.g. "User_username_key".
+      // Split on `_` and match the literal field token — never on the
+      // generic "Unique constraint failed" message text.
+      return target.split(/[_\W]/).some((token) => token.toLowerCase() === 'username');
     }
 
-    return error instanceof Error && error.message.includes('Unique constraint failed');
+    return false;
   }
 }

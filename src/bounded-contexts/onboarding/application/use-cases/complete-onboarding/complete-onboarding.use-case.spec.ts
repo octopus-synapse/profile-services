@@ -189,5 +189,57 @@ describe('CompleteOnboardingUseCase', () => {
         ERROR_MESSAGES.USERNAME_ALREADY_IN_USE,
       );
     });
+
+    // P1 #28 — non-username unique conflicts must propagate verbatim
+    it('does NOT classify a P2002 on email as a username conflict', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: { target: ['email'] },
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        /Unique constraint failed/,
+      );
+    });
+
+    it('does NOT classify a P2002 with no target meta as a username conflict', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: {},
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        /Unique constraint failed/,
+      );
+    });
+
+    it('detects username conflict surfaced as a composite index name string', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: { target: 'User_username_key' },
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        ConflictException,
+      );
+    });
   });
 });
