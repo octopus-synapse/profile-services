@@ -64,7 +64,12 @@ describe('CreateNotificationUseCase', () => {
   });
 
   it('creates the row, emits to the SSE bus, and returns the view', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
+    repo.setRecipient('u-1', {
+      id: 'u-1',
+      name: 'Enzo',
+      email: 'enzo@example.com',
+      language: 'en',
+    });
 
     const result = await useCase.execute({
       userId: 'u-1',
@@ -80,7 +85,7 @@ describe('CreateNotificationUseCase', () => {
   });
 
   it('does not send instant email when emailDelivery is DAILY', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: null, email: 'a@b.com' });
+    repo.setRecipient('u-1', { id: 'u-1', name: null, email: 'a@b.com', language: 'en' });
     repo.setPreferenceRow('u-1', 'POST_LIKED', {
       enabled: true,
       emailEnabled: true,

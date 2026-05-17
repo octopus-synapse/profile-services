@@ -37,6 +37,8 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
         message: data.message,
         entityType: data.entityType,
         entityId: data.entityId,
+        messageKey: data.messageKey,
+        messageParams: data.messageParams as never,
       },
     });
     return {
@@ -63,10 +65,20 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
   async findRecipient(userId: string): Promise<NotificationRecipient | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        preferences: { select: { language: true } },
+      },
     });
     if (!user?.email) return null;
-    return { id: user.id, name: user.name, email: user.email };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      language: user.preferences?.language ?? 'en',
+    };
   }
 
   async listForUser(

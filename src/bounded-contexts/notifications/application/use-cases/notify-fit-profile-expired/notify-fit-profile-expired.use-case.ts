@@ -17,6 +17,7 @@ import { CreateNotificationUseCase } from '../create-notification/create-notific
 
 const CTX = 'NotifyFitProfileExpiredUseCase';
 const SYSTEM_ACTOR = 'system';
+const FIT_QUIZ_QUESTION_COUNT = 20;
 
 export interface NotifyFitProfileExpiredInput {
   readonly userId: string;
@@ -34,7 +35,8 @@ export class NotifyFitProfileExpiredUseCase {
         userId: input.userId,
         type: 'FIT_PROFILE_EXPIRED',
         actorId: SYSTEM_ACTOR,
-        message: 'Seu perfil de fit expirou. Refaça o questionário para voltar a usar o match.',
+        messageKey: 'FIT_PROFILE_EXPIRED',
+        messageParams: { questionCount: FIT_QUIZ_QUESTION_COUNT },
         entityType: 'UserFitProfile',
         entityId: input.userId,
       });

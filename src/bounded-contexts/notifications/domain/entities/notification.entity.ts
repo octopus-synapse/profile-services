@@ -64,6 +64,15 @@ export interface CreateNotificationData {
   readonly message: string;
   readonly entityType?: string;
   readonly entityId?: string;
+  /**
+   * P1 #23 — stable i18n key for re-rendering at display time. When set
+   * together with `messageParams`, consumers should prefer rendering
+   * via `NOTIFICATION_DICTIONARY[messageKey]` over the literal
+   * `message` (which remains as a fallback for old rows / plain-text
+   * channels).
+   */
+  readonly messageKey?: string;
+  readonly messageParams?: Readonly<Record<string, string | number>>;
 }
 
 /** Minimal user contact row used when sending instant / digest /
@@ -72,6 +81,10 @@ export interface NotificationRecipient {
   readonly id: string;
   readonly name: string | null;
   readonly email: string;
+  /** User's preferred UI language (mirror of `User.language`). Defaults
+   *  to `'en'` when the column is null. Drives template rendering for
+   *  the instant email (P1 #23). */
+  readonly language: string;
 }
 
 /** Pending notification row pulled into the daily digest. */

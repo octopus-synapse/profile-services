@@ -9,6 +9,13 @@
  * blips must never block the caller.
  */
 
+import {
+  LOCALES,
+  type Locale,
+  NOTIFICATION_DICTIONARY,
+  type NotificationCode,
+  renderNotification,
+} from '@packages/i18n';
 import type { LoggerPort } from '@/shared-kernel';
 import type {
   NotificationStreamEvent,
@@ -53,9 +60,24 @@ export interface CreateNotificationInput {
   readonly userId: string;
   readonly type: NotificationType;
   readonly actorId: string;
-  readonly message: string;
+  /**
+   * Fallback literal — used as-is when `messageKey`/`messageParams`
+   * are absent (legacy callers) or as the persisted fallback for old
+   * clients reading the `message` column. New callers SHOULD set
+   * `messageKey` + `messageParams` so the notification is locale-aware
+   * (P1 #23) and re-renderable in any user-preferred language.
+   */
+  readonly message?: string;
   readonly entityType?: string;
   readonly entityId?: string;
+  /** i18n template code matching a `NOTIFICATION_DICTIONARY` entry. */
+  readonly messageKey?: NotificationCode;
+  /** Named params for the template (must include all `dict.params`). */
+  readonly messageParams?: Readonly<Record<string, string | number>>;
+}
+
+function isSupportedLocale(value: string): value is Locale {
+  return (LOCALES as ReadonlyArray<string>).includes(value);
 }
 
 export class CreateNotificationUseCase {
@@ -81,13 +103,32 @@ export class CreateNotificationUseCase {
       return null;
     }
 
+    // P1 #23 — render notification body via the i18n dictionary in the
+    // recipient's preferred locale when caller provides messageKey.
+    // Falls back to the literal `message` for legacy callers.
+    const recipient = await this.repository.findRecipient(input.userId);
+    const locale: Locale =
+      recipient && isSupportedLocale(recipient.language) ? recipient.language : 'en';
+
+    let renderedMessage = input.message ?? '';
+    if (input.messageKey && input.messageKey in NOTIFICATION_DICTIONARY) {
+      renderedMessage = renderNotification(
+        input.messageKey,
+        input.messageParams ?? {},
+        locale,
+        'body',
+      );
+    }
+
     const notification = await this.repository.create({
       userId: input.userId,
       type: input.type,
       actorId: input.actorId,
-      message: input.message,
+      message: renderedMessage,
       entityType: input.entityType,
       entityId: input.entityId,
+      messageKey: input.messageKey,
+      messageParams: input.messageParams,
     });
 
     const streamEvent: NotificationStreamEvent = {
@@ -103,7 +144,7 @@ export class CreateNotificationUseCase {
     this.stream.emit(input.userId, streamEvent);
 
     // Fire-and-forget email delivery; never block notification creation on SMTP.
-    void this.maybeSendInstantEmail(input.userId, input.type, notification.id, input.message);
+    void this.maybeSendInstantEmail(input.userId, input.type, notification.id, renderedMessage);
 
     return notification;
   }
