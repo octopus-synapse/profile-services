@@ -54,6 +54,9 @@ class CapturingRepo extends QualityScoreRepositoryPort {
   async findLatest() {
     return this.last;
   }
+  async findLatestForOwner() {
+    return { found: false, owned: false, snapshot: null };
+  }
   async findHistory() {
     return this.last ? [this.last] : [];
   }

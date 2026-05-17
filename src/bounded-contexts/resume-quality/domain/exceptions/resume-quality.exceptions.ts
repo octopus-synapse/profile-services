@@ -1,3 +1,4 @@
+import { OwnershipAccessDeniedException } from '@/shared-kernel/authorization';
 import {
   ConflictException,
   DomainException,
@@ -38,4 +39,9 @@ export class ResumeQualityScoreUnavailableException extends ConflictException {
   constructor() {
     super('Resume quality has not been computed yet. Trigger a recompute first.');
   }
+}
+
+/** P1 #32 — caller is authenticated but does not own the target resume. */
+export class ResumeQualityNotOwnedException extends OwnershipAccessDeniedException {
+  override readonly code: string = 'RESUME_QUALITY_NOT_OWNED';
 }

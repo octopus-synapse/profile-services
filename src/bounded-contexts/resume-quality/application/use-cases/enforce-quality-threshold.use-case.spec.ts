@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'bun:test';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ResumeQualityAuthenticatedUserMissingException,
   ResumeQualityBelowThresholdException,
+  ResumeQualityNotOwnedException,
   ResumeQualityScoreUnavailableException,
 } from '../../domain/exceptions/resume-quality.exceptions';
 import {
@@ -12,7 +14,10 @@ import type { QualityBreakdown } from '../../domain/types';
 import { EnforceQualityThresholdUseCase } from './enforce-quality-threshold.use-case';
 
 class StubRepo extends QualityScoreRepositoryPort {
-  constructor(private readonly latest: SavedQualityScore | null) {
+  constructor(
+    private readonly latest: SavedQualityScore | null,
+    private readonly ownerOpts: { found: boolean; owned: boolean } = { found: true, owned: true },
+  ) {
     super();
   }
   async save(_resumeId: string, _breakdown: QualityBreakdown): Promise<SavedQualityScore> {
@@ -20,6 +25,13 @@ class StubRepo extends QualityScoreRepositoryPort {
   }
   async findLatest() {
     return this.latest;
+  }
+  async findLatestForOwner(_u: string, _r: string) {
+    return {
+      found: this.ownerOpts.found,
+      owned: this.ownerOpts.owned,
+      snapshot: this.ownerOpts.owned ? this.latest : null,
+    };
   }
   async findHistory() {
     return [];
@@ -69,5 +81,24 @@ describe('EnforceQualityThresholdUseCase', () => {
     await expect(
       useCase.execute({ resumeId: 'r1', threshold: 80, userId: 'u1' }),
     ).resolves.toBeUndefined();
+  });
+
+  // P1 #32
+  it('throws EntityNotFoundException when the resume does not exist', async () => {
+    const useCase = new EnforceQualityThresholdUseCase(
+      new StubRepo(snapshot(90), { found: false, owned: false }),
+    );
+    await expect(
+      useCase.execute({ resumeId: 'r-missing', threshold: 70, userId: 'u1' }),
+    ).rejects.toBeInstanceOf(EntityNotFoundException);
+  });
+
+  it('throws ResumeQualityNotOwnedException when caller does not own the resume', async () => {
+    const useCase = new EnforceQualityThresholdUseCase(
+      new StubRepo(snapshot(90), { found: true, owned: false }),
+    );
+    await expect(
+      useCase.execute({ resumeId: 'r-other', threshold: 70, userId: 'u1' }),
+    ).rejects.toBeInstanceOf(ResumeQualityNotOwnedException);
   });
 });

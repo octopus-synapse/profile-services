@@ -11,9 +11,11 @@
  * gating actions get a typed exception with a translated message.
  */
 
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ResumeQualityAuthenticatedUserMissingException,
   ResumeQualityBelowThresholdException,
+  ResumeQualityNotOwnedException,
   ResumeQualityScoreUnavailableException,
 } from '../../domain/exceptions/resume-quality.exceptions';
 import { QualityScoreRepositoryPort } from '../../domain/ports/quality-score.repository.port';
@@ -34,7 +36,19 @@ export class EnforceQualityThresholdUseCase {
       throw new ResumeQualityAuthenticatedUserMissingException();
     }
 
-    const snapshot = await this.repository.findLatest(input.resumeId);
+    // P1 #32 — verify ownership of the resume before loading the
+    // snapshot so a foreign resumeId returns 403 rather than leaking
+    // the threshold outcome.
+    const { found, owned, snapshot } = await this.repository.findLatestForOwner(
+      input.userId,
+      input.resumeId,
+    );
+    if (!found) {
+      throw new EntityNotFoundException('Resume', input.resumeId);
+    }
+    if (!owned) {
+      throw new ResumeQualityNotOwnedException();
+    }
     if (!snapshot) {
       throw new ResumeQualityScoreUnavailableException();
     }

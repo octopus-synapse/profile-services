@@ -594,6 +594,10 @@ export const ERROR_DICTIONARY = {
     en: 'Application state does not allow this transition',
     'pt-BR': 'O estado da candidatura não permite essa transição',
   },
+  RESUME_QUALITY_NOT_OWNED: {
+    en: 'You do not own this resume',
+    'pt-BR': 'Você não é o dono deste currículo',
+  },
   LAST_ADMIN_CANNOT_BE_REMOVED: {
     en: 'Cannot remove admin role from the last admin user',
     'pt-BR': 'Não é possível remover o papel de admin do último administrador',

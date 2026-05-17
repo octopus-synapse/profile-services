@@ -55,6 +55,9 @@ class InMemoryQualityRepo extends QualityScoreRepositoryPort {
   async findLatest(resumeId: string) {
     return this.saved.filter((s) => s.resumeId === resumeId).at(-1) ?? null;
   }
+  async findLatestForOwner() {
+    return { found: false, owned: false, snapshot: null };
+  }
   async findHistory(resumeId: string, limit: number) {
     return this.saved.filter((s) => s.resumeId === resumeId).slice(-limit);
   }
