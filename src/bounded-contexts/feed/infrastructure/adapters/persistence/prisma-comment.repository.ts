@@ -56,6 +56,27 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     })) as Comment;
   }
 
+  async softDeleteCommentIfActive(
+    id: string,
+  ): Promise<{ mutated: boolean; postId: string | null }> {
+    // P1 #30 — idempotent flip using updateMany rowcount. The
+    // `isDeleted: false` filter races safely: only one concurrent
+    // caller observes a count of 1; the rest get 0 and skip the
+    // counter decrement so commentsCount stays correct.
+    const result = await this.prisma.postComment.updateMany({
+      where: { id, isDeleted: false },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+    if (result.count === 0) {
+      return { mutated: false, postId: null };
+    }
+    const row = await this.prisma.postComment.findUnique({
+      where: { id },
+      select: { postId: true },
+    });
+    return { mutated: true, postId: row?.postId ?? null };
+  }
+
   async incrementPostCommentsCount(postId: string, by: number): Promise<void> {
     await this.prisma.post.update({
       where: { id: postId },

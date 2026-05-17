@@ -125,6 +125,17 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
     return next;
   }
 
+  async softDeleteCommentIfActive(
+    id: string,
+  ): Promise<{ mutated: boolean; postId: string | null }> {
+    const idx = this.comments.findIndex((c) => c.id === id);
+    if (idx < 0) return { mutated: false, postId: null };
+    const current = this.comments[idx];
+    if (current.isDeleted) return { mutated: false, postId: current.postId };
+    this.comments[idx] = { ...current, isDeleted: true, deletedAt: new Date() };
+    return { mutated: true, postId: current.postId };
+  }
+
   async incrementPostCommentsCount(postId: string, by: number): Promise<void> {
     this.commentsCounts.set(postId, (this.commentsCounts.get(postId) ?? 0) + by);
   }
