@@ -93,6 +93,14 @@
         "description": "Short free-text description (1-500 characters).",
         "example": "A short description of the resource."
       },
+      "TwoFactorCode": {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 6,
+        "pattern": "^\\d{6}$",
+        "description": "6-digit numeric TOTP code from the authenticator app.",
+        "example": "123456"
+      },
       "PasswordMessageResponse": {
         "type": "object",
         "properties": {
@@ -1134,7 +1142,7 @@
     "/api/v1/accounts": {
       "delete": {
         "summary": "Delete account permanently",
-        "description": "Permanently deletes the user account. Requires confirmation phrase: \"DELETE MY ACCOUNT\".",
+        "description": "Permanently deletes the user account. Requires confirmation phrase: \"DELETE MY ACCOUNT\" AND the current password (re-authentication gate to prevent stolen-cookie deletes).",
         "tags": [
           "account-lifecycle"
         ],
@@ -1148,10 +1156,16 @@
                   "confirmationPhrase": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
                   }
                 },
                 "required": [
-                  "confirmationPhrase"
+                  "confirmationPhrase",
+                  "currentPassword"
                 ]
               }
             }
@@ -1253,7 +1267,8 @@
         },
         "x-auth": "jwt",
         "x-guards": [
-          "skip-tos-check"
+          "skip-tos-check",
+          "rate-limit"
         ]
       },
       "post": {
@@ -1350,7 +1365,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/accounts/deactivate": {
@@ -19586,11 +19604,30 @@
     "/api/v1/auth/2fa": {
       "delete": {
         "summary": "Disable 2FA",
-        "description": "Disables 2FA and removes all backup codes.",
+        "description": "Disables 2FA and removes all backup codes. Requires re-authentication via the current password OR a valid TOTP code (either suffices).",
         "tags": [
           "two-factor-auth"
         ],
         "operationId": "delete_v1_auth_2fa",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "totpCode": {
+                    "$ref": "#/components/schemas/TwoFactorCode"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Successful response"
@@ -19670,7 +19707,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/2fa/backup-codes/regenerate": {
@@ -20145,6 +20185,7 @@
         },
         "x-auth": "jwt",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -20483,6 +20524,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -20664,7 +20706,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/login/verify-2fa": {
@@ -21441,6 +21486,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -21513,6 +21559,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -45845,6 +45892,7 @@
         },
         "x-auth": "jwt",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
