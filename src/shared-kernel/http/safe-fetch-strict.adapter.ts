@@ -31,17 +31,29 @@ import {
   type SafeFetchInit,
   type SafeFetchResponse,
 } from './safe-fetch.port';
+import { BodyTooLargeException } from './streaming-fetch';
 
 interface SafeFetchStrictOptions {
   readonly defaultTimeoutMs?: number;
+  /**
+   * P1 #46 — hard cap on the bytes we will accumulate from a webhook
+   * response. A hostile target can otherwise return a multi-GB blob
+   * and OOM the worker. Default 5 MB matches the size of a typical
+   * webhook acknowledgement payload + slack for verbose error bodies.
+   */
+  readonly maxResponseBytes?: number;
 }
+
+const DEFAULT_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 
 export class SafeFetchStrictAdapter extends SafeFetchAdapter {
   private readonly strictTimeoutMs: number;
+  private readonly maxResponseBytes: number;
 
   constructor(options: SafeFetchStrictOptions = {}) {
     super(options);
     this.strictTimeoutMs = options.defaultTimeoutMs ?? 15_000;
+    this.maxResponseBytes = options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES;
   }
 
   override async fetch(url: string, init: SafeFetchInit = {}): Promise<SafeFetchResponse> {
@@ -87,11 +99,17 @@ export class SafeFetchStrictAdapter extends SafeFetchAdapter {
     const isHttps = parsed.protocol === 'https:';
     const requestFn = isHttps ? https.request : http.request;
     const port = parsed.port ? Number(parsed.port) : isHttps ? 443 : 80;
+    // P1 #45 — `parsed.host` already includes the non-default port
+    // (`example.com:8443`); `parsed.hostname` strips it. The previous
+    // code used `parsed.host` correctly but the invariant is load-bearing
+    // for vhost routing on non-standard ports, so we pin it with a
+    // comment + test fixture.
     const headers: Record<string, string> = {
       ...(init.headers ?? {}),
-      Host: parsed.host, // hostname[:port]
+      Host: parsed.host,
     };
     const path = `${parsed.pathname}${parsed.search}`;
+    const maxResponseBytes = this.maxResponseBytes;
 
     return new Promise<SafeFetchResponse>((resolve, reject) => {
       const req = requestFn({
@@ -107,8 +125,26 @@ export class SafeFetchStrictAdapter extends SafeFetchAdapter {
 
       req.on('response', (res) => {
         const chunks: Buffer[] = [];
-        res.on('data', (c) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)));
+        let total = 0;
+        let abortedForOversize = false;
+        res.on('data', (c) => {
+          if (abortedForOversize) return;
+          const chunk = Buffer.isBuffer(c) ? c : Buffer.from(c);
+          total += chunk.byteLength;
+          if (total > maxResponseBytes) {
+            // P1 #46 — destroy the socket so the producer stops sending
+            // bytes we'll never use. Reject the outer promise with the
+            // typed exception so callers can `instanceof`-classify it
+            // against other SafeFetch failures.
+            abortedForOversize = true;
+            req.destroy();
+            reject(new BodyTooLargeException(maxResponseBytes, total));
+            return;
+          }
+          chunks.push(chunk);
+        });
         res.on('end', () => {
+          if (abortedForOversize) return;
           const body = Buffer.concat(chunks).toString('utf8');
           const responseHeaders = new Headers();
           for (const [k, v] of Object.entries(res.headers)) {
