@@ -893,6 +893,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     skipTosCheck: config.getOrDefault<string>('SKIP_TOS_CHECK', 'false') === 'true',
     permissionChecker,
     rateLimiter: new CacheRateLimiter(cache),
+    // P1 #2 / #12 — feed the lockout status reader to the pipeline so
+    // routes that declare `guards: [{ id: 'auth-lockout' }]` short-
+    // circuit with 423 before reaching the handler. The use-case still
+    // runs its own check (it's the source of truth and the only path
+    // that records new failed attempts).
+    loginAttempts: authenticationUseCases.loginAttempts,
     ownershipRegistry,
     featureFlags: flags,
     internalApiToken: config.env.INTERNAL_API_TOKEN,

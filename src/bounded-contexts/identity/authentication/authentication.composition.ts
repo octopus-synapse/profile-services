@@ -56,6 +56,9 @@ export interface AuthenticationUseCases {
   readonly authRepository: PrismaAuthenticationRepository;
   readonly sessionStorage: CookieSessionStorage;
   readonly sessionDevices: SessionDeviceService;
+  /** P1 #2 / #12 — exposed so the bootstrap can hand the lockout
+   *  status reader to the HTTP pipeline (auth-lockout stage). */
+  readonly loginAttempts: PrismaLoginAttemptsAdapter;
 }
 
 export function buildAuthenticationUseCases(
@@ -140,6 +143,7 @@ export function buildAuthenticationUseCases(
     authRepository,
     sessionStorage,
     sessionDevices,
+    loginAttempts,
   };
 }
 

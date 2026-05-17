@@ -30,4 +30,12 @@ export const responseWrapperStage: PipelineStage = {
   },
 };
 
+export {
+  type AuthLockoutGuardMetadata,
+  type AuthLockoutKeyStrategy,
+  type AuthLockoutStageOptions,
+  type AuthLockoutStatus,
+  authLockoutStage,
+  type LoginAttemptsLookup,
+} from './auth-lockout.stage';
 export { wrapResponse } from './wrap-response';

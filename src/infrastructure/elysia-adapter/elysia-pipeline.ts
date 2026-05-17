@@ -31,7 +31,11 @@ import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
 import type { NextFn, PipelineStage } from '@/shared-kernel/http/pipeline';
 import { mapPrismaErrorToHttp } from '@/shared-kernel/http/prisma-error.mapper';
 import type { Route } from '@/shared-kernel/http/route.types';
-import { responseWrapperStage } from '@/shared-kernel/http/stages';
+import {
+  authLockoutStage,
+  type LoginAttemptsLookup,
+  responseWrapperStage,
+} from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
 import {
@@ -51,6 +55,8 @@ export interface PipelineDeps {
   readonly authExtractor?: AuthExtractorPort;
   readonly i18n?: TranslationPort;
   readonly rateLimiter?: CacheRateLimiter;
+  /** P1 #2 / #12 — auth-lockout fast-path (`authLockoutStage`). */
+  readonly loginAttempts?: LoginAttemptsLookup;
   /** When `true`, `consentGuard` short-circuits to next() — used by the
    *  dev compose where we don't want to enforce TOS on every request. */
   readonly skipTosCheck?: boolean;
@@ -126,6 +132,8 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
     errorMapperStage(deps),
   ];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
+  // P1 #2 / #12 — auth-lockout sits after rate-limit, before authExtractor.
+  if (deps.loginAttempts) stages.push(authLockoutStage({ attempts: deps.loginAttempts }));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
   if (deps.permissionChecker) {
     stages.push(
