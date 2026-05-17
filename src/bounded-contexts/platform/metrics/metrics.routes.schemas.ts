@@ -21,7 +21,7 @@ export const LatencyEntrySchema = z
     avgLatencyMs: z.number(),
     totalDurationS: z.number(),
   })
-  .passthrough();
+  .passthrough(); // lint-allow-passthrough: response-side; latency entries carry future Prometheus fields we don't want to strip.
 
 export const MetricsOverviewResponseSchema = z.object({
   counters: z.object({

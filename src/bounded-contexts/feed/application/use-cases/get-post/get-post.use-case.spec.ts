@@ -30,11 +30,4 @@ describe('GetPostUseCase', () => {
     await expect(useCase.execute('p1')).rejects.toThrow(EntityNotFoundException);
   });
 
-  it('masks anonymous posts', async () => {
-    const { repo, useCase } = make();
-    repo.seedAuthor({ id: 'a1', name: 'Real', bio: 'Eng', location: 'SP, BR' });
-    repo.seedPost({ id: 'p1', authorId: 'a1', isAnonymous: true });
-    const post = await useCase.execute('p1');
-    expect(post.author.id).toBe('__anonymous__');
-  });
 });

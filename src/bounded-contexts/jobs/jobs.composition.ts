@@ -15,6 +15,7 @@ import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
+import type { SafeFetchPort } from '@/shared-kernel/http/safe-fetch.port';
 import { JobsUseCases } from './application/ports/jobs.port';
 import { FitScoreBatchService } from './application/services/fit-score-batch.service';
 import { JobEnrichmentService } from './application/services/job-enrichment.service';
@@ -59,6 +60,7 @@ export function buildJobsUseCases(
   events: EventPublisherPort,
   llm: LlmPort,
   resumeAnalytics: ResumeAnalyticsFacade,
+  safeFetch: SafeFetchPort,
 ): JobsUseCases {
   // Repos
   const jobsRepo = new PrismaJobsRepository(prisma, logger);
@@ -72,7 +74,7 @@ export function buildJobsUseCases(
   // App services
   const enrichment = new JobEnrichmentService(jobsRepo);
   const fitBatch = new FitScoreBatchService(jobsRepo);
-  const importService = new JobImportService(llm);
+  const importService = new JobImportService(llm, safeFetch);
 
   // Tracker use cases (one instance of EnsureSubmittedEventUseCase
   // doubles as ApplicationTrackerPort for the catalog).
@@ -121,8 +123,17 @@ export function buildJobsComposition(
   events: EventPublisherPort,
   llm: LlmPort,
   resumeAnalytics: ResumeAnalyticsFacade,
+  safeFetch: SafeFetchPort,
 ): BoundedContextComposition<JobsUseCases> {
-  const useCases = buildJobsUseCases(prisma, email, logger, events, llm, resumeAnalytics);
+  const useCases = buildJobsUseCases(
+    prisma,
+    email,
+    logger,
+    events,
+    llm,
+    resumeAnalytics,
+    safeFetch,
+  );
 
   return {
     useCases,

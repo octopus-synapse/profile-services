@@ -16,6 +16,32 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
 
   const existing = await prisma.user.findFirst({ where: { username } });
   if (existing) {
+    // Repair-on-rerun: if a prior seed (before the role-grant fix) left
+    // the user without a UserRoleAssignment, grant the `user` role now
+    // so domain permissions (feed:use, resume:create, …) become available.
+    const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
+    if (userRole) {
+      await prisma.userRoleAssignment.upsert({
+        where: { userId_roleId: { userId: existing.id, roleId: userRole.id } },
+        create: { userId: existing.id, roleId: userRole.id, assignedBy: 'seed' },
+        update: {},
+      });
+    }
+    // Repair-on-rerun: when the resume-styles seed deletes-and-recreates
+    // the system styles, any resume.styleId pointing at an old row is set
+    // to NULL by `onDelete: SetNull`. The DSL render path then throws
+    // `DSL_RESUME_NO_ACTIVE_STYLE`. Re-attach the canonical default style
+    // so resume-download (and any rendering) keeps working idempotently.
+    const defaultStyle = await prisma.resumeStyle.findFirst({
+      where: { isSystem: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (defaultStyle) {
+      await prisma.resume.updateMany({
+        where: { userId: existing.id, styleId: null },
+        data: { styleId: defaultStyle.id },
+      });
+    }
     console.log(`✅ Seed user '${username}' already exists`);
     return;
   }
@@ -40,6 +66,20 @@ export async function seedEnzoferracini(prisma: PrismaClient): Promise<void> {
       roles: ['role_user', 'role_user_standard'],
     },
   });
+
+  // Pre-completing onboarding here skips the onboarding-complete use case,
+  // which is normally what grants the `user` role in UserRoleAssignment.
+  // Without this row the permission gate denies every domain perm
+  // (resume:create, feed:use, social:use, …). Mirror the same role grant
+  // the onboarding-completion adapter performs in production.
+  const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
+  if (userRole) {
+    await prisma.userRoleAssignment.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: userRole.id } },
+      create: { userId: user.id, roleId: userRole.id, assignedBy: 'seed' },
+      update: {},
+    });
+  }
 
   // Typst PDF generation requires an active style on the resume.
   const defaultStyle = await prisma.resumeStyle.findFirst({

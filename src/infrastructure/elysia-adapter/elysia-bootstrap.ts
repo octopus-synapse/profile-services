@@ -1,7 +1,7 @@
 /**
  * Production Elysia bootstrap (Phase 2 cutover). Boots all migrated
  * BCs on Elysia + Bun, end-to-end framework-free pipeline:
- *  - PinoLoggerAdapter   (LoggerPort)
+ *  - AppLoggerService    (LoggerPort, Winston-backed)
  *  - JoseJwtAdapter      (JwtPort)
  *  - JoseAuthExtractorAdapter (AuthExtractorPort)
  *  - InMemorySseStreamAdapter (SseStreamPort)
@@ -94,6 +94,7 @@ import { AuditLogServiceAdapter } from '@/bounded-contexts/platform/common/audit
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
 import { CacheInvalidationService } from '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service';
 import { buildEmailComposition } from '@/bounded-contexts/platform/common/email/email.composition';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { buildPlatformUseCases } from '@/bounded-contexts/platform/common/platform.composition';
 import { platformRoutes } from '@/bounded-contexts/platform/common/platform.routes';
 import { buildRateLimitService } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.composition';
@@ -142,6 +143,7 @@ import { buildTranslationComposition } from '@/bounded-contexts/translation/tran
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
 import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
@@ -163,9 +165,9 @@ import { InMemoryCacheLockAdapter } from './in-memory-cache-lock.adapter';
 import { InMemorySseStreamAdapter } from './in-memory-sse-stream.adapter';
 import { JoseAuthExtractorAdapter } from './jose-auth-extractor.adapter';
 import { JoseJwtAdapter } from './jose-jwt.adapter';
-import { PinoLoggerAdapter } from './pino-logger.adapter';
 import { PrismaUserSnapshotAdapter } from './prisma-user-snapshot.adapter';
 import { ProcessEnvConfigAdapter } from './process-env-config.adapter';
+import { RedisCacheAdapter } from './redis-cache.adapter';
 import { RedisDistributedLockAdapter } from './redis-distributed-lock.adapter';
 import { applySecurityHeaders, enableCors } from './security-headers';
 
@@ -191,12 +193,13 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
-  const logger = new PinoLoggerAdapter();
+  const logger = new AppLoggerService();
   // P0-001: JWT_SECRET is validated up front by the ConfigPort schema
   // (min 32 chars, required). No fallback default — boot fails before
   // any adapter is constructed if the var is missing.
   const jwt = new JoseJwtAdapter({
     secret: config.env.JWT_SECRET,
+    previousSecret: config.env.JWT_SECRET_PREVIOUS,
     issuer: config.env.JWT_ISSUER,
     audience: config.env.JWT_AUDIENCE,
   });
@@ -208,7 +211,28 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Cache is needed by the auth extractor (token-valid-after gate) and
   // by every BC that takes `CachePort`. Construct early so it can be
   // injected here; the remaining adapters keep their original order.
-  const cache = new InMemoryCacheAdapter();
+  //
+  // P0-#14: when REDIS_HOST is set we wire a real Redis-backed adapter so
+  // multi-pod deploys share rate-limit counters, idempotency keys and the
+  // post-credential-change token-valid-after gate. Without that, a password
+  // reset on pod A doesn't invalidate JWTs being served by pod B until the
+  // token's natural exp. In dev (no REDIS_HOST) we keep the in-memory
+  // adapter. In production the bootstrap fails fast below if Redis is
+  // missing.
+  const redisConnectionForCache = new RedisConnectionService(logger, config);
+  const cache: CachePort = redisConnectionForCache.client
+    ? new RedisCacheAdapter(redisConnectionForCache.client)
+    : new InMemoryCacheAdapter();
+  if (
+    !redisConnectionForCache.client &&
+    (config.env.NODE_ENV === 'production' || config.env.NODE_ENV === 'staging')
+  ) {
+    throw new Error(
+      'REDIS_HOST is required in production/staging — the in-memory cache ' +
+        'adapter does not share state between pods (auth invalidation, ' +
+        'rate-limit, idempotency would all be per-pod).',
+    );
+  }
   // SafeFetchPort: SSRF-defended HTTP client (P0-013/014).
   // - default: link-preview style (single shot, attacker-untrusted URL)
   // - strict:  webhook-delivery style (DNS-rebinding-resistant, repeated traffic)
@@ -253,11 +277,21 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // they fail before a listener attaches. The bootstrap-level handler
   // logs and survives — production deploys with a healthy Redis won't
   // hit it, dev without Redis won't crash because of it.
+  //
+  // P0-#16: Node docs are explicit that "the process should be considered
+  // to be in an undefined state" after an uncaught exception. Silently
+  // surviving meant half-committed Prisma transactions kept serving
+  // requests, distributed locks stayed unreleased and memory leaks
+  // accumulated for hours. We log, exit(1), and let the supervisor
+  // (Docker / k8s / PM2) restart us into a clean state.
   process.on('uncaughtException', (err) => {
-    logger.error(`Uncaught exception swallowed: ${err.message}`, {
+    logger.error(`Uncaught exception — exiting process`, {
       context: 'ElysiaBootstrap',
       stack: err.stack,
+      message: err.message,
     });
+    // Give the logger a tick to flush before the runtime dies.
+    setTimeout(() => process.exit(1), 50);
   });
   process.on('unhandledRejection', (reason) => {
     logger.error(
@@ -442,7 +476,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     cache,
   );
 
-  // Jobs needs llm + resumeAnalytics facade + email + eventBus.
+  // Jobs needs llm + resumeAnalytics facade + email + eventBus + safeFetch
+  // (P0-#9: job-import-from-url uses safeFetch to block SSRF instead of the
+  // raw `fetch` global).
   const jobs = buildJobsComposition(
     prisma as never,
     emailService,
@@ -450,6 +486,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     eventBus,
     ai.bundle.llm,
     resumeAnalytics.useCases,
+    safeFetch,
   );
 
   // Social: idempotency is the cache-backed `CacheIdempotencyAdapter`
@@ -642,7 +679,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Integration.
   const upload = buildUploadComposition(s3, prisma as never, logger);
 
-  // Onboarding consumes typst services exposed by export composition.
+  // Onboarding has no Typst/DSL dependency anymore — preview rendering
+  // moved out of the bounded context after the redesign.
   const cacheLock = new InMemoryCacheLockAdapter();
   const onboarding = buildOnboardingComposition({
     prisma: prisma as never,
@@ -650,9 +688,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     auditLog,
     cacheLock: cacheLock as never,
     sseStream,
-    dsl: { renderResumeDsl: dsl.useCases.renderResumeDsl },
-    typstSerializer: exportBc.typstDataSerializer,
-    typstCompiler: exportBc.typstCompiler,
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;

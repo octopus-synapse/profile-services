@@ -18,10 +18,22 @@ const EnvironmentSchema = z.object({
   PORT: z.coerce.number().int().min(1000).max(65535).default(3001), // Database
   DATABASE_URL: z.string().min(1), // Auth
   JWT_SECRET: z.string().min(32),
-  JWT_EXPIRATION: z.string().default('7d'), // When 'true', EmailVerifiedGuard is bypassed — safe default for dev &
-  // E2E, should be unset (or 'false') in production so unverified accounts
-  // can't hit protected endpoints.
-  SKIP_EMAIL_VERIFICATION: z.string().default('true'), // Redis
+  // Optional previous secret accepted by the verifier during rotation
+  // windows; signer always uses JWT_SECRET. Mirrors the canonical
+  // shared-kernel env schema.
+  JWT_SECRET_PREVIOUS: z.string().min(32).optional(),
+  JWT_EXPIRATION: z.string().default('7d'),
+  // P0-#1: When 'true', EmailVerifiedGuard is bypassed. Default was 'true'
+  // historically (because dev/E2E never had real SMTP), but that's an
+  // account-takeover-grade footgun the moment this schema is consulted in
+  // production with the env var unset. Default is now 'false'; dev/test
+  // suites that need the bypass MUST set `SKIP_EMAIL_VERIFICATION=true`
+  // explicitly.
+  //
+  // Note: this schema is a legacy duplicate of `shared-kernel/config/
+  // config.schema.ts`. Consolidation is tracked; until then keep both
+  // defaults in sync (the shared-kernel one was always optional/false).
+  SKIP_EMAIL_VERIFICATION: z.string().default('false'), // Redis
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().int().default(6379),
   REDIS_PASSWORD: z.string().optional(), // MinIO/S3
@@ -51,7 +63,7 @@ const EnvironmentSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().optional(), // OAuth — LinkedIn
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(), // OAuth — shared callback host (backend base URL used to build redirect URIs)
-  OAUTH_CALLBACK_BASE: z.string().url().default('http://localhost:3001'), // Password reset tokens
+  OAUTH_CALLBACK_BASE: z.string().url().default('http://localhost:13001'), // Password reset tokens
   PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(30), // Account lockout
   LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().positive().default(5),
   LOGIN_LOCK_DURATION_MINUTES: z.coerce.number().int().positive().default(15),

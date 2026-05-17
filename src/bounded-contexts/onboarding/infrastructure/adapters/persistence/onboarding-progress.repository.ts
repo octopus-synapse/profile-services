@@ -40,6 +40,7 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       professionalProfile: record.professionalProfile,
       sections: this.parseSections(record.sections),
       templateSelection: record.templateSelection,
+      activatedExtras: record.activatedExtras ?? [],
       updatedAt: record.updatedAt,
     };
   }
@@ -56,6 +57,10 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       professionalProfile: data.professionalProfile as InputJsonValue | undefined,
       sections: this.serializeSections(data.sections),
       templateSelection: data.templateSelection as InputJsonValue | undefined,
+      // Only included on the create branch — once a row exists, the
+      // `extras` mutation is the single writer for `activatedExtras`,
+      // so the regular `upsertProgress` path leaves it untouched.
+      ...(data.activatedExtras !== undefined ? { activatedExtras: data.activatedExtras } : {}),
     };
 
     const progress = await this.prisma.onboardingProgress.upsert({
@@ -65,6 +70,16 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
     });
 
     return { currentStep: progress.currentStep, completedSteps: progress.completedSteps };
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    // De-dupe and normalise so the column never carries redundant rows.
+    const normalised = Array.from(new Set(extras.map((e) => e.trim()).filter(Boolean)));
+    await this.prisma.onboardingProgress.upsert({
+      where: { userId },
+      update: { activatedExtras: normalised },
+      create: { userId, activatedExtras: normalised },
+    });
   }
 
   async deleteProgress(userId: string): Promise<void> {

@@ -30,7 +30,7 @@ export const JsonImportBodySchema = z
     // throws a 500 inside `validateJsonResume(undefined)`. Forcing
     // an object here keeps the failure mode at the schema layer
     // (400 Bad Request).
-    data: z.object({}).passthrough(),
+    data: z.object({}).passthrough(), // lint-allow-passthrough: JSON Resume payload is opaque here and validated downstream by validateJsonResume.
   })
   .openapi({
     example: {

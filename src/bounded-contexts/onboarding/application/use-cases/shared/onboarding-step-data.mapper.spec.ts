@@ -15,27 +15,26 @@ describe('OnboardingStepDataMapper', () => {
     it('should merge personalInfo when provided as nested object', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
       const stepData = {
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com', phone: '123456' },
+        personalInfo: { fullName: 'John Doe', phone: '123456' },
       };
 
       mapper.mergeStepData(update, 'personal-info', stepData, baseProgress);
 
       expect(update.personalInfo).toEqual({
         fullName: 'John Doe',
-        email: 'john@example.com',
         phone: '123456',
       });
     });
 
     it('should merge personalInfo when provided as root-level keys', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = { fullName: 'Jane Doe', email: 'jane@example.com', location: 'NYC' };
+      const stepData = { fullName: 'Jane Doe', phone: '+55 21 90000-0000', location: 'NYC' };
 
       mapper.mergeStepData(update, 'personal-info', stepData, baseProgress);
 
       expect(update.personalInfo).toEqual({
         fullName: 'Jane Doe',
-        email: 'jane@example.com',
+        phone: '+55 21 90000-0000',
         location: 'NYC',
       });
     });

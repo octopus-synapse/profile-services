@@ -120,13 +120,6 @@ export class CompleteOnboardingFromProgressUseCase {
         message: 'Full name is required',
       });
     }
-    if (!data.email || typeof data.email !== 'string' || !data.email.includes('@')) {
-      errors.push({
-        code: 'INVALID_EMAIL',
-        field: 'personalInfo.email',
-        message: 'Valid email is required',
-      });
-    }
   }
 
   private validateProfessionalProfile(

@@ -10,7 +10,7 @@ on:
       - "scripts/generate-swagger-from-decorators.ts"
       - "client-swagger.json"
       - "swagger.json"
-      - ".spectral.yaml"
+      - "config/spectral.yaml"
       - ".github/workflows/ci.contract.api.yml"
   workflow_dispatch:
 
@@ -257,7 +257,7 @@ jobs:
           name: drift-report
           path: docs/audits/response-drift-report.md
       - name: Run contract test suite
-        run: bun test --config=bunfig.contract.toml
+        run: bun test --config=config/bunfig.contract.toml
         env:
           DRIFT_BASE_URL: http://localhost:3010
       - name: Stop app

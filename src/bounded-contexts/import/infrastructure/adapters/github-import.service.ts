@@ -174,32 +174,22 @@ export class GithubImportService {
 
     let created = 0;
     for (const repo of candidates) {
-      // Idempotent: skip if a BUILD post already linking to this repo exists.
+      // Idempotent: skip if a post already linking to this repo exists.
       const existing = await this.prisma.post.findFirst({
-        where: { authorId: userId, type: 'BUILD', linkUrl: repo.url },
+        where: { authorId: userId, linkUrl: repo.url },
         select: { id: true },
       });
       if (existing) continue;
 
-      const stack = repo.languages.edges.slice(0, 5).map((e) => e.node.name);
       const topics = repo.repositoryTopics.nodes.map((n) => n.topic.name);
 
       await this.prisma.post.create({
         data: {
           authorId: userId,
-          type: 'BUILD',
           content: repo.description ?? repo.name,
           hashtags: topics.slice(0, 6),
-          hardSkills: stack,
           linkUrl: repo.url,
           imageUrl: repo.openGraphImageUrl ?? null,
-          data: {
-            repoName: repo.nameWithOwner,
-            stars: repo.stargazerCount,
-            stack,
-            repoUrl: repo.url,
-            primaryLanguage: repo.primaryLanguage?.name ?? null,
-          },
         },
       });
       created++;

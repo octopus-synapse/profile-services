@@ -57,7 +57,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         userId: USER_ID,
         currentStep: 'personal-info',
         completedSteps: ['welcome'],
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
       }),
     );
 
@@ -77,7 +77,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         currentStep: 'username',
         completedSteps: ['welcome', 'personal-info'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
       }),
     );
 
@@ -189,7 +189,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         currentStep: 'professional-profile',
         completedSteps: ['welcome', 'personal-info', 'username'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Software Engineer' },
       }),
     );

@@ -28,18 +28,28 @@ export class OnboardingConfigAdapter extends OnboardingConfigPort {
       orderBy: { order: 'asc' },
     });
 
-    return rows.map((row) => ({
-      key: row.key,
-      order: row.order,
-      component: row.component,
-      icon: row.icon,
-      required: row.required,
-      sectionTypeKey: row.sectionTypeKey,
-      fields: onboardingStepFieldsSchema.parse(row.fields),
-      translations: onboardingStepTranslationsSchema.parse(row.translations),
-      validation: onboardingStepValidationArgSchema.parse(row.validation),
-      strengthWeight: row.strengthWeight,
-    }));
+    return rows
+      .map((row) => ({
+        key: row.key,
+        order: row.order,
+        component: row.component,
+        icon: row.icon,
+        required: row.required,
+        sectionTypeKey: row.sectionTypeKey,
+        fields: onboardingStepFieldsSchema.parse(row.fields),
+        translations: onboardingStepTranslationsSchema.parse(row.translations),
+        validation: onboardingStepValidationArgSchema.parse(row.validation),
+        strengthWeight: row.strengthWeight,
+      }))
+      .filter((step) => {
+        // Defensive: a step with no English label has no usable copy and
+        // the presenter would fall back to rendering its raw `key`
+        // (e.g. `fixture-slug`, leftover Dredd fixtures) in the sidebar.
+        // Skip rather than expose the slug. Properly-configured steps
+        // always carry at least an English label.
+        const enLabel = step.translations.en?.label;
+        return typeof enLabel === 'string' && enLabel.trim().length > 0;
+      });
   }
 
   async getStrengthConfig(): Promise<StrengthConfig> {

@@ -30,7 +30,7 @@ import { ListFeedTimelineUseCase } from './application/use-cases/list-feed-timel
 import { ListPostCommentsUseCase } from './application/use-cases/list-post-comments/list-post-comments.use-case';
 import { ListUserCommentsUseCase } from './application/use-cases/list-user-comments/list-user-comments.use-case';
 import { ListUserPostsUseCase } from './application/use-cases/list-user-posts/list-user-posts.use-case';
-import { ListUserReactionsUseCase } from './application/use-cases/list-user-reactions/list-user-reactions.use-case';
+import { ListUserLikesUseCase } from './application/use-cases/list-user-reactions/list-user-reactions.use-case';
 import { ReportPostUseCase } from './application/use-cases/report-post/report-post.use-case';
 import { RepostPostUseCase } from './application/use-cases/repost-post/repost-post.use-case';
 import { UnbookmarkPostUseCase } from './application/use-cases/unbookmark-post/unbookmark-post.use-case';
@@ -98,7 +98,7 @@ export function buildFeedUseCases(
     bookmarkPost: new BookmarkPostUseCase(engagementRepo),
     unbookmarkPost: new UnbookmarkPostUseCase(engagementRepo),
     repostPost: new RepostPostUseCase(engagementRepo, notifier, hashtags, logger),
-    listUserReactions: new ListUserReactionsUseCase(engagementRepo),
+    listUserLikes: new ListUserLikesUseCase(engagementRepo),
 
     voteOnPoll: new VoteOnPollUseCase(pollRepo),
     getPollResults: new GetPollResultsUseCase(pollRepo),

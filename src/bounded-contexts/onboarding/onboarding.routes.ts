@@ -4,7 +4,6 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
-import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
@@ -35,6 +34,7 @@ import {
   OnboardingStepCreatedResponseSchema,
   OnboardingStepResponseSchema,
   OnboardingStepsResponseSchema,
+  RestartQuery,
   SaveProgressResponseSchema,
   StepDataBody,
   StepKeyParam,
@@ -71,7 +71,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         strengthConfig,
         locale,
         systemThemes,
-        { name: user.name, email: user.email },
+        { name: user.name },
         sectionTypes,
       );
     },
@@ -183,7 +183,6 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      bundle.sseStream.publish('onboarding.data.changed', { userId: user.userId });
       const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
@@ -223,12 +222,13 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
   },
   {
     method: 'POST',
-    path: '/v1/onboarding/session/restart',
+    path: '/v1/onboarding/session/extras',
     auth: { kind: 'jwt' },
+    body: z.object({ extras: z.array(z.string()).default([]) }),
     query: LocaleQuery,
     response: OnboardingSessionSchema,
     openapi: {
-      summary: 'Restart onboarding with existing profile data',
+      summary: 'Activate optional extra steps (projects, certifications, awards, publications)',
       tags: ['onboarding'],
       description: 'Onboarding API',
     },
@@ -237,10 +237,53 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
+      const body = ctx.body as { extras: string[] };
+      await bundle.activateExtras.execute(user.userId, body.extras);
+      // Return the updated session so the frontend can re-render the
+      // sidebar with the newly-visible extras in one round-trip.
+      const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+        bundle.progress.getProgressUseCase.execute(user.userId),
+        bundle.config.getActiveSteps(),
+        bundle.config.getStrengthConfig(),
+        getSystemThemes(bundle),
+        bundle.sectionTypes.listAll(locale),
+      ]);
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        systemThemes,
+        { name: user.name },
+        sectionTypes,
+      );
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/onboarding/session/restart',
+    auth: { kind: 'jwt' },
+    query: RestartQuery,
+    response: OnboardingSessionSchema,
+    openapi: {
+      summary: 'Restart onboarding (default: carry forward profile data; mode=clean: blank slate)',
+      tags: ['onboarding'],
+      description: 'Onboarding API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const user = ctx.user! as AuthUser;
+      const q = ctx.query as RestartQuery;
+      const locale = parseLocale(q.locale);
+      const clean = q.mode === 'clean';
       const stepConfigs = await bundle.config.getActiveSteps();
-      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs);
-      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false
-      bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs, { clean });
+      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false.
+      // Skipped on clean mode (tests) — the consumer reloads the page anyway and
+      // the SSE blast can race with `networkidle` waits, closing the test page.
+      if (!clean) {
+        bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      }
       // Reuse the GET /session payload shape for the response.
       const [data, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
@@ -254,7 +297,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         strengthConfig,
         locale,
         systemThemes,
-        { name: user.name, email: user.email },
+        { name: user.name },
         sectionTypes,
       );
     },
@@ -491,40 +534,4 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     },
   },
 
-  // ===== Live preview SSE stream =====
-  {
-    method: 'GET',
-    path: '/v1/onboarding/preview/stream',
-    auth: { kind: 'jwt' },
-    kind: 'sse',
-    openapi: {
-      summary: 'Subscribe to live resume preview updates',
-      tags: ['onboarding-preview'],
-      description: 'Streams PNG preview as base64 when onboarding data changes.',
-    },
-    handler: async (ctx, bundle) => {
-      const userId = ctx.user!.userId;
-      let version = 0;
-
-      return bundle.sseStream.subscribe<{ userId: string }>('onboarding.data.changed').pipe(
-        // Each consumer filters its own user — the channel is shared.
-        filter((event) => event.data.userId === userId),
-        // Coalesce bursts (e.g. autosave keystrokes) into a single render.
-        debounceTime(500),
-        switchMap(() => {
-          version++;
-          const currentVersion = version;
-          return from(bundle.previewRenderer.renderPreview(userId)).pipe(
-            filter((buffer): buffer is Buffer => buffer !== null),
-            map((buffer) => ({
-              data: { type: 'preview', version: currentVersion, image: buffer.toString('base64') },
-              id: `preview-${currentVersion}`,
-              type: 'preview',
-              retry: 15000,
-            })),
-          );
-        }),
-      );
-    },
-  },
 ];

@@ -25,6 +25,9 @@ model User {
   usernameUpdatedAt DateTime?
   photoURL          String?
   bio               String?   @db.Text
+  /// One-line professional headline shown in feed cards, e.g. "Frontend Engineer @ Vercel".
+  /// Distinct from `bio` (long paragraph). User-editable in /my-profile/edit + onboarding step.
+  headline          String?   @db.VarChar(120)
   location          String?
   phone             String?
   website           String?
@@ -111,7 +114,13 @@ model User {
   notificationActors Notification[]   @relation("NotificationActors")
 
   // Jobs
+  // P0-#25/#26 — explicit FK back-relations so prisma can enforce cascade.
   jobs               Job[]            @relation("UserJobs")
+  jobApplications    JobApplication[] @relation("UserApplications")
+  jobBookmarks       JobBookmark[]    @relation("UserBookmarks")
+
+  // Feed
+  pollVotes          PollVote[]       @relation("UserPollVotes")
 
   // Identity tokens
   passwordResetTokens      PasswordResetToken[]
@@ -218,6 +227,12 @@ model OnboardingProgress {
   currentStep    String   @default("welcome")
   completedSteps String[] @default([])
   username       String?
+
+  // Section-step keys the user opted into via the "what else?" gate
+  // (e.g. `section:project_v1`). Core required steps are always
+  // returned by the session presenter regardless of this list; only
+  // the optional extras gate filters off it.
+  activatedExtras String[] @default([])
 
   // Form data (JSON)
   personalInfo        Json?

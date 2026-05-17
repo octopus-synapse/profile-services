@@ -165,17 +165,10 @@ describe('E2E: Onboarding Validation', () => {
   });
 
   describe('Personal Info Validation', () => {
-    it.serial('should reject invalid email format', async () => {
-      const payload = createValidBasePayload('invalid_email');
-      payload.personalInfo.email = 'not-an-email';
-
-      const response = await app.request
-        .post('/api/v1/onboarding')
-        .set('Authorization', `Bearer ${testUser.token}`)
-        .send(payload);
-
-      expect(response.status).toBe(400);
-    });
+    // 'should reject invalid email format' — REMOVED. personalInfo.email
+    // no longer exists in the onboarding domain; the canonical email is
+    // `User.email` (signup) and is validated by the signup pipeline, not
+    // the onboarding payload.
 
     it.serial('should reject empty fullName', async () => {
       const payload = createValidBasePayload('empty_name');

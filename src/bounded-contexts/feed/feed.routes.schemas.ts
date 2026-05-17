@@ -8,7 +8,6 @@
  * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
-import { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { CursorPaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
@@ -23,21 +22,11 @@ export const PaginationQuery = z.object({
 });
 
 export const TimelineQuery = PaginationQuery.extend({
-  type: z.nativeEnum(PostType).optional(),
   followingOnly: z.string().optional(),
 });
 
-export const LikeBodySchema = z
-  .object({
-    reactionType: z
-      .enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const)
-      .optional(),
-  })
-  .openapi({
-    example: {
-      reactionType: 'LIKE',
-    },
-  });
+// Like is presence/absence of a PostLike row — no body needed.
+export const LikeBodySchema = z.object({}).openapi({ example: {} });
 
 export const RepostBodySchema = z.object({ commentary: z.string().optional() }).openapi({
   example: {
@@ -80,14 +69,14 @@ export const FEED_MAX_PAGE_SIZE = 50;
 export const COMPOSER_CONFIG = {
   maxLength: 3000,
   mediaTypes: ['image/png', 'image/jpeg', 'image/webp'] as const,
-  maxImages: 4,
+  maxImages: 1,
   maxImageBytes: 5 * 1024 * 1024,
   pollEnabled: true,
   pollMaxOptions: 4,
   pollMaxOptionLength: 80,
   repostEnabled: true,
   mentionLimit: 10,
-  postTypes: Object.values(PostType),
+  codeEnabled: true,
 } as const;
 
 export const ComposerConfigResponseSchema = z.object({
@@ -100,21 +89,17 @@ export const ComposerConfigResponseSchema = z.object({
   pollMaxOptionLength: z.number().int(),
   repostEnabled: z.boolean(),
   mentionLimit: z.number().int(),
-  postTypes: z.array(z.nativeEnum(PostType)),
+  codeEnabled: z.boolean(),
 });
 
 // ─── Shared post-shape schemas ────────────────────────────────────────
-//
-// These mirror the domain entities from `domain/entities/*`. The post
-// `data`, `linkPreview`, and `codeSnippet` columns are persisted as
-// JSON; we expose them as permissive `passthrough()` objects so
-// arbitrary structured payloads round-trip without losing fields.
 
 export const PostAuthorSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   username: z.string().nullable(),
   photoURL: z.string().nullable(),
+  headline: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
 });
@@ -128,45 +113,35 @@ export const LinkPreviewDataSchema = z
   })
   .nullable();
 
-export const CodeSnippetSchema = z
-  .object({
-    language: z.string(),
-    code: z.string(),
-    filename: z.string().optional(),
-  })
-  .nullable();
-
-export const PostDataSchema = z.object({}).passthrough().nullable();
+export const PollOptionsSchema = z
+  .array(z.object({ label: z.string() }))
+  .nullable()
+  .optional();
 
 export const BasePostSchema = z.object({
   id: z.string(),
   authorId: z.string().uuid(),
-  type: z.nativeEnum(PostType),
-  subtype: z.string().nullable(),
   content: z.string().nullable(),
-  hardSkills: z.array(z.string()),
-  softSkills: z.array(z.string()),
   hashtags: z.array(z.string()),
-  data: PostDataSchema,
   imageUrl: z.string().nullable(),
   linkUrl: z.string().nullable(),
   linkPreview: LinkPreviewDataSchema,
+  isRepost: z.boolean(),
   originalPostId: z.string().uuid().nullable(),
-  coAuthors: z.array(z.string()),
   scheduledAt: IsoDateTimeSchema.nullable(),
   isPublished: z.boolean(),
   threadId: z.string().uuid().nullable(),
+  pollOptions: PollOptionsSchema,
   pollDeadline: IsoDateTimeSchema.nullable(),
   votesCount: z.number().int(),
-  codeSnippet: CodeSnippetSchema,
+  codeSnippet: z.string().nullable(),
+  codeLanguage: z.string().nullable(),
   likesCount: z.number().int(),
   commentsCount: z.number().int(),
   repostsCount: z.number().int(),
   bookmarksCount: z.number().int(),
   isDeleted: z.boolean(),
   deletedAt: IsoDateTimeSchema.nullable(),
-  isAnonymous: z.boolean(),
-  anonymousCategory: z.nativeEnum(AnonymousCategory).nullable(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
 });
@@ -181,7 +156,6 @@ export const PostWithRelationsSchema = PostWithAuthorSchema.extend({
 
 export const FeedItemSchema = PostWithRelationsSchema.extend({
   isLiked: z.boolean(),
-  reactionType: z.nativeEnum(ReactionType).nullable(),
   isBookmarked: z.boolean(),
   isReposted: z.boolean(),
   hasVoted: z.boolean(),
@@ -222,7 +196,6 @@ export const CommentWithRepliesSchema = CommentWithAuthorSchema.extend({
 export const CommentWithPostSchema = CommentWithAuthorSchema.extend({
   post: z.object({
     id: z.string(),
-    type: z.string(),
     content: z.string().nullable(),
     authorId: z.string().uuid(),
     author: PostAuthorSchema,
@@ -236,10 +209,8 @@ export const UserCommentsResponseSchema = CursorPaginatedResponseSchema(CommentW
 export const LikePostResponseSchema = z.object({
   postId: z.string().uuid(),
   userId: z.string().uuid(),
-  reactionType: z.nativeEnum(ReactionType),
   postAuthorId: z.string().uuid().optional(),
   alreadyLiked: z.boolean(),
-  updated: z.boolean().optional(),
 });
 
 export const UnlikePostResponseSchema = z.object({
@@ -288,21 +259,19 @@ export const PollVoteResponseSchema = z.object({
   createdAt: IsoDateTimeSchema,
 });
 
-export const ReactionWithPostSchema = z.object({
+export const LikeWithPostSchema = z.object({
   postId: z.string().uuid(),
   userId: z.string().uuid(),
-  reactionType: z.nativeEnum(ReactionType),
   createdAt: IsoDateTimeSchema,
   post: z.object({
     id: z.string(),
-    type: z.string(),
     content: z.string().nullable(),
     authorId: z.string().uuid(),
     author: PostAuthorSchema,
   }),
 });
 
-export const UserReactionsResponseSchema = CursorPaginatedResponseSchema(ReactionWithPostSchema);
+export const UserLikesResponseSchema = CursorPaginatedResponseSchema(LikeWithPostSchema);
 
 // ─── Misc ───────────────────────────────────────────────────────────
 export const DeletedResponseSchema = z.object({ deleted: z.literal(true) });

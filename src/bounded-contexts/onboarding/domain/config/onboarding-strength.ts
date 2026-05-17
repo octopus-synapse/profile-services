@@ -18,7 +18,7 @@ export interface ResumeStrength {
 }
 
 interface StrengthInput {
-  personalInfo?: { fullName?: string; email?: string };
+  personalInfo?: { fullName?: string };
   username?: string;
   professionalProfile?: { jobTitle?: string; summary?: string };
   sections?: Array<{ sectionTypeKey: string; items?: unknown[]; noData?: boolean }>;
@@ -35,7 +35,7 @@ function hasItems(sections: StrengthInput['sections'], key: string): boolean {
 function isStepFilled(step: OnboardingStepConfig, data: StrengthInput): boolean {
   switch (step.component) {
     case 'personal-info':
-      return Boolean(data.personalInfo?.fullName && data.personalInfo?.email);
+      return Boolean(data.personalInfo?.fullName);
     case 'username':
       return Boolean(data.username);
     case 'professional-profile':

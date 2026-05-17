@@ -37,6 +37,10 @@ function buildCache(initial?: { dailyCount?: number; lockTaken?: boolean }): Cac
     async getOrSet<T>(_key: string, fn: () => Promise<T>): Promise<T> {
       return fn();
     },
+    async incrWithTtl(_key: string, _ttl: number): Promise<number> {
+      count += 1;
+      return count;
+    },
   } as CachePort;
 }
 

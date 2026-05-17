@@ -126,7 +126,8 @@ export class CreateNotificationUseCase {
       await this.email.send({
         to: recipient.email,
         subject: `[ProFile] ${humanizeType(type)}`,
-        html: `<p>Hi ${recipient.name ?? 'there'},</p><p>${escapeHtml(message)}</p>`,
+        // P0-#10: escape recipient.name (attacker-controlled display name).
+        html: `<p>Hi ${escapeHtml(recipient.name ?? 'there')},</p><p>${escapeHtml(message)}</p>`,
         text: message,
       });
 

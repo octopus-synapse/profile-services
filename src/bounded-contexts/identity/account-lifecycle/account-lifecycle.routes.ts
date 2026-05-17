@@ -43,6 +43,14 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     auth: { kind: 'public' },
     body: CreateAccountSchema,
     response: CreateAccountResponseSchema,
+    guards: [
+      // P0-#4: signup is unauthenticated and costs ~80ms per bcrypt hash
+      // (cost 12). Without an IP cap a bot creates accounts faster than the
+      // SMTP server can flush verification emails, polluting the userbase
+      // and damaging deliverability. 3/10min is generous for a real human
+      // and crushes a botnet origin.
+      { id: 'rate-limit', metadata: { points: 3, duration: 600, keyStrategy: 'ip' } },
+    ],
     openapi: {
       summary: 'Create new account',
       tags: ['accounts'],
@@ -108,20 +116,26 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     body: DeleteAccountSchema,
     // SkipTosCheck — the user can't be forced to accept new TOS before
     // deleting their account (LGPD parity).
-    guards: [{ id: 'skip-tos-check' }],
+    guards: [
+      { id: 'skip-tos-check' },
+      // P0-#8 follow-up: rate-limit re-auth attempts.
+      { id: 'rate-limit', metadata: { points: 3, duration: 60, keyStrategy: 'userId' } },
+    ],
     response: MessageResponseSchema,
     openapi: {
       summary: 'Delete account permanently',
       tags: ['account-lifecycle'],
       description:
-        'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT".',
+        'Permanently deletes the user account. Requires confirmation phrase: "DELETE MY ACCOUNT" ' +
+        'AND the current password (re-authentication gate to prevent stolen-cookie deletes).',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      const body = ctx.body as { confirmationPhrase: string };
+      const body = ctx.body as { confirmationPhrase: string; currentPassword: string };
       await bc.deleteAccount.execute({
         userId: ctx.user!.userId,
         confirmationPhrase: body.confirmationPhrase,
+        currentPassword: body.currentPassword,
       });
       return { code: 'ACCOUNT_DELETED' as const };
     },

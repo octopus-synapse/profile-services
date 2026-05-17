@@ -6,16 +6,21 @@
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
+  LikeWithPost,
   Post,
   PostBookmark,
   PostLike,
   PostWithAuthor,
-  ReactionType,
-  ReactionWithPost,
 } from '../../../domain/entities';
 import { EngagementRepositoryPort } from '../../../domain/ports/engagement.repository.port';
 
-const AUTHOR_SELECT = { id: true, name: true, username: true, photoURL: true } as const;
+const AUTHOR_SELECT = {
+  id: true,
+  name: true,
+  username: true,
+  photoURL: true,
+  headline: true,
+} as const;
 
 export class PrismaEngagementRepository extends EngagementRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
@@ -33,19 +38,8 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     })) as PostLike | null;
   }
 
-  async createLike(postId: string, userId: string, reactionType: ReactionType): Promise<void> {
-    await this.prisma.postLike.create({ data: { postId, userId, reactionType } });
-  }
-
-  async updateLikeReaction(
-    postId: string,
-    userId: string,
-    reactionType: ReactionType,
-  ): Promise<void> {
-    await this.prisma.postLike.update({
-      where: { postId_userId: { postId, userId } },
-      data: { reactionType },
-    });
+  async createLike(postId: string, userId: string): Promise<void> {
+    await this.prisma.postLike.create({ data: { postId, userId } });
   }
 
   async deleteLike(postId: string, userId: string): Promise<void> {
@@ -59,18 +53,17 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     });
   }
 
-  async listReactionsByUser(
+  async listLikesByUser(
     userId: string,
     cursor: string | undefined,
     limit: number,
-  ): Promise<ReactionWithPost[]> {
+  ): Promise<LikeWithPost[]> {
     return (await this.prisma.postLike.findMany({
       where: { userId, ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}) },
       include: {
         post: {
           select: {
             id: true,
-            type: true,
             content: true,
             authorId: true,
             author: { select: AUTHOR_SELECT },
@@ -79,7 +72,7 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
-    })) as unknown as ReactionWithPost[];
+    })) as unknown as LikeWithPost[];
   }
 
   // ---------- Bookmarks ----------
@@ -110,7 +103,7 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     authorId: string,
   ): Promise<{ id: string } | null> {
     return this.prisma.post.findFirst({
-      where: { type: 'REPOST', originalPostId, authorId, isDeleted: false },
+      where: { isRepost: true, originalPostId, authorId, isDeleted: false },
       select: { id: true },
     });
   }
@@ -124,7 +117,7 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     return (await this.prisma.post.create({
       data: {
         authorId: input.authorId,
-        type: 'REPOST',
+        isRepost: true,
         content: input.content,
         hashtags: input.hashtags,
         originalPostId: input.originalPostId,

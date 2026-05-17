@@ -4,7 +4,6 @@
   "files": {
     "includes": [
       "!**/swagger.json",
-      "!**/swagger-test.json",
       "!**/swagger-generation-report.json",
       "!docs",
       "!test/infrastructure/_legacy"

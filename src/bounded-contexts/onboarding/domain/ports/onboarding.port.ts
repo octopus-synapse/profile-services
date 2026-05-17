@@ -79,6 +79,10 @@ export abstract class OnboardingUseCases {
     execute: (locale?: string) => Promise<SectionTypeData[]>;
   };
   abstract readonly restartOnboardingUseCase: {
-    execute: (userId: string, steps: OnboardingStepConfig[]) => Promise<{ success: boolean }>;
+    execute: (
+      userId: string,
+      steps: OnboardingStepConfig[],
+      options?: { clean?: boolean },
+    ) => Promise<{ success: boolean }>;
   };
 }

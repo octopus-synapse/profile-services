@@ -16,10 +16,10 @@ import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import type { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
 import type { OnboardingProgressUseCases } from '../../domain/ports/onboarding-progress.port';
-import type { PreviewRendererPort } from '../../domain/ports/preview-renderer.port';
 import type { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
 import type { SystemThemesPort } from '../../domain/ports/system-themes.port';
 import type { AdminOnboardingService } from '../../infrastructure/services/admin-onboarding.service';
+import type { ActivateOnboardingExtrasUseCase } from '../use-cases/activate-onboarding-extras/activate-onboarding-extras.use-case';
 
 export abstract class OnboardingHttpBundle {
   abstract readonly useCases: OnboardingUseCases;
@@ -30,5 +30,5 @@ export abstract class OnboardingHttpBundle {
   abstract readonly cacheLock: CacheLockService;
   abstract readonly sseStream: SseStreamPort;
   abstract readonly admin: AdminOnboardingService;
-  abstract readonly previewRenderer: PreviewRendererPort;
+  abstract readonly activateExtras: ActivateOnboardingExtrasUseCase;
 }

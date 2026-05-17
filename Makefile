@@ -182,7 +182,7 @@ setup:
 # ==========================================
 health:
 	@echo "Checking services health..."
-	@curl -f http://localhost:3001/health || echo "Backend: DOWN"
+	@curl -f http://localhost:13001/health || echo "Backend: DOWN"
 	@curl -f http://localhost:3000/api/health || echo "Frontend: DOWN"
 	@$(DOCKER_COMPOSE) exec postgres pg_isready -U postgres || echo "PostgreSQL: DOWN"
 	@$(DOCKER_COMPOSE) exec redis redis-cli ping || echo "Redis: DOWN"

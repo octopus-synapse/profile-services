@@ -41,6 +41,7 @@ export type UserProfile = {
   name?: string | null;
   photoURL?: string | null;
   bio?: string | null;
+  headline?: string | null;
   location?: string | null;
   phone?: string | null;
   website?: string | null;
@@ -55,6 +56,7 @@ export type UpdateProfileData = {
   name?: string;
   username?: string;
   bio?: string;
+  headline?: string;
   location?: string;
   website?: string;
   company?: string;

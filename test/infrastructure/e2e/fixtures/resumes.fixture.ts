@@ -15,7 +15,7 @@ export function createMinimalOnboardingData(suffix?: string) {
   const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
   return {
     username: `e2e_${sanitizedSuffix}`,
-    personalInfo: { fullName: 'E2E Test User', email: 'e2e@example.com' },
+    personalInfo: { fullName: 'E2E Test User' },
     professionalProfile: {
       jobTitle: 'Software Developer',
       summary: 'Experienced developer with modern web technologies.',
@@ -40,7 +40,7 @@ export function createFullOnboardingData(suffix?: string) {
   const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
   return {
     username: `e2e_full_${sanitizedSuffix}`,
-    personalInfo: { fullName: 'E2E Full Profile User', email: 'e2e-full@example.com' },
+    personalInfo: { fullName: 'E2E Full Profile User' },
     professionalProfile: {
       jobTitle: 'Lead Engineer',
       summary: 'Full-stack engineer with 10+ years building scalable applications.',

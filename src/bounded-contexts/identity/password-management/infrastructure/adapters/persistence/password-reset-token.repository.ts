@@ -1,13 +1,24 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { hashToken } from '@/shared-kernel/crypto';
 import { InvalidResetTokenException } from '../../../domain/exceptions';
 import { PasswordResetTokenPort } from '../../../domain/ports';
 
 const TOKEN_EXPIRATION_HOURS = 24;
 
+/**
+ * Persists SHA-256 *fingerprints* of password-reset tokens (column name kept
+ * as `token` for backward compatibility; semantics changed in P0-#5 fix).
+ * Plaintext only exists in the email sent to the user; a DB dump can never
+ * be used to reset anyone's password.
+ *
+ * Migration note: existing rows from before this commit hold plaintext UUIDs
+ * — those rows are silently invalidated (their plaintext won't equal the
+ * sha256 lookup) and the user must re-request a reset email.
+ */
 export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createToken(userId: string, token: string): Promise<void> {
+  async createToken(userId: string, plaintext: string): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + TOKEN_EXPIRATION_HOURS);
 
@@ -16,15 +27,16 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
       where: { userId },
     });
 
-    // Create new token
+    // Persist the fingerprint, never the plaintext.
     await this.prisma.passwordResetToken.create({
-      data: { userId, token, expiresAt },
+      data: { userId, token: hashToken(plaintext), expiresAt },
     });
   }
 
-  async validateToken(token: string): Promise<string> {
+  async validateToken(plaintext: string): Promise<string> {
+    const tokenHash = hashToken(plaintext);
     const resetToken = await this.prisma.passwordResetToken.findUnique({
-      where: { token },
+      where: { token: tokenHash },
     });
 
     if (!resetToken) {
@@ -32,9 +44,8 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
     }
 
     if (new Date() > resetToken.expiresAt) {
-      // Delete expired token (use deleteMany to avoid "not found" errors)
       await this.prisma.passwordResetToken.deleteMany({
-        where: { token },
+        where: { token: tokenHash },
       });
       throw new InvalidResetTokenException();
     }
@@ -46,11 +57,11 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
    * Atomically validates and consumes a token using Prisma transaction.
    * This prevents race conditions where the same token could be used twice.
    */
-  async validateAndConsumeToken(token: string): Promise<string> {
+  async validateAndConsumeToken(plaintext: string): Promise<string> {
+    const tokenHash = hashToken(plaintext);
     return this.prisma.$transaction(async (tx) => {
-      // Find the token first
       const resetToken = await tx.passwordResetToken.findUnique({
-        where: { token },
+        where: { token: tokenHash },
       });
 
       if (!resetToken) {
@@ -58,20 +69,17 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
       }
 
       if (new Date() > resetToken.expiresAt) {
-        // Delete expired token (use deleteMany to avoid "not found" errors)
         await tx.passwordResetToken.deleteMany({
-          where: { token },
+          where: { token: tokenHash },
         });
         throw new InvalidResetTokenException();
       }
 
-      // Atomically consume the token - use deleteMany and check count
-      // This prevents race conditions where another process already consumed it
+      // Atomically consume - deleteMany returns count for race detection.
       const result = await tx.passwordResetToken.deleteMany({
-        where: { token },
+        where: { token: tokenHash },
       });
 
-      // If count is 0, the token was already consumed by another request
       if (result.count === 0) {
         throw new InvalidResetTokenException();
       }
@@ -80,9 +88,9 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
     });
   }
 
-  async invalidateToken(token: string): Promise<void> {
+  async invalidateToken(plaintext: string): Promise<void> {
     await this.prisma.passwordResetToken.deleteMany({
-      where: { token },
+      where: { token: hashToken(plaintext) },
     });
   }
 }

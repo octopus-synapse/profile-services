@@ -82,10 +82,38 @@ export const EnvConfigSchema = z.object({
   JWT_SECRET: z
     .string()
     .min(32, 'JWT_SECRET must be at least 32 characters; use a long random string'),
+  // Optional previous secret kept valid for verification only (zero-downtime
+  // rotation window). The verifier tries `JWT_SECRET` first; on signature
+  // mismatch it falls back to `JWT_SECRET_PREVIOUS` if set. The signer
+  // always uses `JWT_SECRET`. Drop the env var once all tokens issued with
+  // the previous secret have expired.
+  JWT_SECRET_PREVIOUS: z
+    .string()
+    .min(32, 'JWT_SECRET_PREVIOUS must be at least 32 characters if set')
+    .optional(),
   JWT_EXPIRATION: z.string().optional(),
   JWT_ISSUER: z.string().optional(),
   JWT_AUDIENCE: z.string().optional(),
   AUTH_COOKIE_NAME: z.string().optional(),
+
+  // --- Symmetric encryption for stored secrets (P0-007 — OAuth tokens) ---
+  // 32 raw bytes encoded as base64 (44 chars). Used to AES-256-GCM encrypt
+  // 3rd-party OAuth access/refresh tokens before persisting in Account rows.
+  // Optional in dev (encryption silently degrades to passthrough) but the
+  // composition root MUST refuse to boot in production without it.
+  TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .refine(
+      (s) => {
+        try {
+          return Buffer.from(s, 'base64').length === 32;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'TOKEN_ENCRYPTION_KEY must be 32 raw bytes encoded as base64' },
+    )
+    .optional(),
 
   // --- LGPD / Consent versioning ---
   TOS_VERSION: z.string().optional(),
@@ -118,10 +146,9 @@ export const EnvConfigSchema = z.object({
   PUBLIC_APP_URL: OptionalUrl,
   API_BASE_URL: OptionalUrl,
   UI_BASE_URL: OptionalUrl,
-  // P1-032 — APP_URL is the canonical link base for outbound emails
-  // (password reset, verification). Optional in the schema so dev
-  // boots don't break, but the email sender refuses to operate
-  // without it (see `EmailPasswordResetSender`).
+  // Legacy link base — outbound email link bases are now built by
+  // `EmailTemplateService` from `FRONTEND_URL` (with prod fail-fast).
+  // Kept optional so older deploys don't break.
   APP_URL: OptionalUrl,
   APP_VERSION: z.string().optional(),
 

@@ -15,6 +15,7 @@ import { z } from 'zod';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { TwoFactorAuthUseCases } from './application/ports/two-factor-auth.port';
+import { Disable2faSchema } from './application/use-cases/disable-2fa/disable-2fa.schema';
 
 const VerifyAndEnable2faSchema = z.object({ code: z.string().length(6) }).openapi({
   example: {
@@ -68,7 +69,13 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     auth: { kind: 'jwt' },
     body: VerifyAndEnable2faSchema,
     response: VerifyAndEnable2faResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: TOTP is 6 digits per 30s window; without a cap an attacker
+      // with a stolen session could enumerate ~1M codes / second. Keyed by
+      // userId since the route is jwt-gated.
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Verify token and enable 2FA',
       tags: ['two-factor-auth'],
@@ -118,14 +125,22 @@ export const twoFactorAuthRoutes: ReadonlyArray<Route<TwoFactorAuthUseCases>> = 
     path: '/v1/auth/2fa',
     statusCode: 204,
     auth: { kind: 'jwt' },
+    body: Disable2faSchema,
+    guards: [
+      // P0-#4: keyed by userId since the route is jwt-gated.
+      { id: 'rate-limit', metadata: { points: 5, duration: 60, keyStrategy: 'userId' } },
+    ],
     openapi: {
       summary: 'Disable 2FA',
       tags: ['two-factor-auth'],
-      description: 'Disables 2FA and removes all backup codes.',
+      description:
+        'Disables 2FA and removes all backup codes. Requires re-authentication ' +
+        'via the current password OR a valid TOTP code (either suffices).',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
-      await bc.disable2fa.execute(ctx.user!.userId);
+      const body = ctx.body as { currentPassword?: string; totpCode?: string };
+      await bc.disable2fa.execute(ctx.user!.userId, body);
     },
   },
 ];

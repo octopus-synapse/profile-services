@@ -57,7 +57,6 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
       completedSteps: ['welcome'],
       personalInfo: {
         fullName: 'Progress Test User',
-        email: 'progress@example.com',
       },
     };
 
@@ -185,7 +184,6 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
           completedSteps: ['welcome', 'personal-info'],
           personalInfo: {
             fullName: 'Complete After Progress User',
-            email: 'complete@example.com',
           },
         });
 
@@ -197,7 +195,6 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
           username: `complete_${Date.now()}`,
           personalInfo: {
             fullName: 'Complete After Progress User',
-            email: 'complete@example.com',
           },
           professionalProfile: {
             jobTitle: 'Software Engineer',

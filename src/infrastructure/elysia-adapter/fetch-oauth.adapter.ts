@@ -109,7 +109,45 @@ export class FetchOAuthAdapter extends OAuthPort {
     });
     if (!profileRes.ok) throw new Error(`OAuth profile fetch failed: ${profileRes.status}`);
     const raw = (await profileRes.json()) as Record<string, unknown>;
-    return normalizeProfile(provider, raw, accessToken, tokenJson.refresh_token ?? null);
+
+    // GitHub's `/user` endpoint omits non-public emails and never carries a
+    // verification flag. We must call `/user/emails` and find the primary +
+    // verified entry; without this any user who registers a GitHub account
+    // claiming the victim's email could squat-link to their account.
+    let githubVerifiedEmail: { email: string; verified: boolean } | null = null;
+    if (provider === 'github') {
+      githubVerifiedEmail = await this.fetchGithubPrimaryVerifiedEmail(accessToken);
+    }
+
+    return normalizeProfile(
+      provider,
+      raw,
+      accessToken,
+      tokenJson.refresh_token ?? null,
+      githubVerifiedEmail,
+    );
+  }
+
+  /**
+   * GET `/user/emails` and return the primary, verified entry (or null).
+   * Per GitHub docs the response is an array; we pick the entry with
+   * `primary: true && verified: true`.
+   */
+  private async fetchGithubPrimaryVerifiedEmail(
+    accessToken: string,
+  ): Promise<{ email: string; verified: boolean } | null> {
+    const res = await fetch('https://api.github.com/user/emails', {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as Array<{
+      email?: string;
+      primary?: boolean;
+      verified?: boolean;
+    }>;
+    const primary = body.find((e) => e.primary === true);
+    if (!primary || typeof primary.email !== 'string') return null;
+    return { email: primary.email, verified: primary.verified === true };
   }
 }
 
@@ -118,6 +156,7 @@ function normalizeProfile(
   raw: Record<string, unknown>,
   accessToken: string,
   refreshToken: string | null,
+  githubVerifiedEmail: { email: string; verified: boolean } | null = null,
 ): OAuthProfile {
   const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
   switch (provider) {
@@ -146,10 +185,14 @@ function normalizeProfile(
       };
     }
     case 'github': {
+      // Prefer the explicitly-verified primary email; fall back to `raw.email`
+      // (always unverified) only when `/user/emails` returned nothing.
+      const email = githubVerifiedEmail?.email ?? str(raw.email);
+      const emailVerified = githubVerifiedEmail?.verified === true;
       return {
         providerId: String(raw.id ?? ''),
-        email: str(raw.email),
-        emailVerified: Boolean(raw.email),
+        email,
+        emailVerified,
         displayName: str(raw.name) ?? str(raw.login),
         avatarUrl: str(raw.avatar_url),
         accessToken,

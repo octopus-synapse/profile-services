@@ -46,6 +46,7 @@ export interface OnboardingProgressRecord {
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
   templateSelection: unknown;
+  activatedExtras: string[];
   updatedAt: Date;
 }
 
@@ -156,6 +157,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       professionalProfile: record.professionalProfile,
       sections: record.sections,
       templateSelection: record.templateSelection,
+      activatedExtras: record.activatedExtras ?? [],
       updatedAt: record.updatedAt,
     };
   }
@@ -164,6 +166,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
     userId: string,
     data: OnboardingProgressData,
   ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    const existing = this.progressRecords.get(userId);
     const record: OnboardingProgressRecord = {
       userId,
       currentStep: data.currentStep,
@@ -173,12 +176,40 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       professionalProfile: data.professionalProfile ?? null,
       sections: data.sections ?? null,
       templateSelection: data.templateSelection ?? null,
+      // Mirror the production repo: only the dedicated extras mutation
+      // writes `activatedExtras` once a row exists. New records pick
+      // up whatever the caller passes (or default to empty).
+      activatedExtras:
+        data.activatedExtras !== undefined
+          ? data.activatedExtras
+          : (existing?.activatedExtras ?? []),
       updatedAt: new Date(),
     };
 
     this.progressRecords.set(userId, record);
 
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    const normalised = Array.from(new Set(extras.map((e) => e.trim()).filter(Boolean)));
+    const existing = this.progressRecords.get(userId);
+    if (existing) {
+      this.progressRecords.set(userId, { ...existing, activatedExtras: normalised, updatedAt: new Date() });
+      return;
+    }
+    this.progressRecords.set(userId, {
+      userId,
+      currentStep: 'welcome',
+      completedSteps: [],
+      username: null,
+      personalInfo: null,
+      professionalProfile: null,
+      sections: null,
+      templateSelection: null,
+      activatedExtras: normalised,
+      updatedAt: new Date(),
+    });
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -260,6 +291,7 @@ export function createOnboardingProgress(
     professionalProfile: null,
     sections: null,
     templateSelection: null,
+    activatedExtras: [],
     updatedAt: new Date(),
     ...overrides,
   };
@@ -270,7 +302,6 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
     username: 'johndoe',
     personalInfo: {
       fullName: 'John Doe',
-      email: 'john@example.com',
       phone: '+1234567890',
       location: 'New York, USA',
     },
@@ -310,7 +341,7 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
   currentStep: 'personal-info',
   completedSteps: ['welcome'],
   username: 'johndoe',
-  personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+  personalInfo: { fullName: 'John Doe' },
 });
 
 // ============================================================================

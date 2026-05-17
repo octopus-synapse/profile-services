@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { EmailSchema, PhoneSchema, UserLocationSchema } from '@/shared-kernel/schemas/primitives';
+import { PhoneSchema, UserLocationSchema } from '@/shared-kernel/schemas/primitives';
 import { normalizeSectionTypeKey } from '@/shared-kernel/utils/section-type-key.util';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
@@ -33,9 +33,10 @@ export const LanguageProficiencyEnum = z.enum([
 export const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 
 // PersonalInfoSchema (exported for onboarding-progress.dto.ts)
+// Single source of truth for the user's email is `User.email` (signup) — no
+// separate contact email is collected during onboarding.
 export const PersonalInfoSchema = z.object({
   fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
-  email: EmailSchema,
   phone: PhoneSchema,
   location: UserLocationSchema,
 });
@@ -119,7 +120,6 @@ export const OnboardingDataSchema = z
       username: 'janedoe',
       personalInfo: {
         fullName: 'Jane Doe',
-        email: 'jane.doe@example.com',
         phone: '+1 415 555 1234',
         location: 'San Francisco, CA',
       },

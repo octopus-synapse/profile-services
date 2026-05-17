@@ -3,7 +3,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import type { PollResultBucket, PollVote, Post, PostType } from '../domain/entities';
+import type { PollResultBucket, PollVote, Post } from '../domain/entities';
 import { PollRepositoryPort } from '../domain/ports/poll.repository.port';
 
 function makePost(partial: Partial<Post> & { id: string }): Post {
@@ -11,32 +11,27 @@ function makePost(partial: Partial<Post> & { id: string }): Post {
   return {
     id: partial.id,
     authorId: partial.authorId ?? 'someone',
-    type: (partial.type ?? 'POLL') as PostType,
-    subtype: partial.subtype ?? null,
     content: partial.content ?? null,
-    hardSkills: [],
-    softSkills: [],
     hashtags: [],
-    data: null,
     imageUrl: null,
     linkUrl: null,
     linkPreview: null,
+    isRepost: false,
     originalPostId: null,
-    coAuthors: [],
     scheduledAt: null,
     isPublished: true,
     threadId: null,
+    pollOptions: partial.pollOptions ?? null,
     pollDeadline: partial.pollDeadline ?? null,
     votesCount: partial.votesCount ?? 0,
     codeSnippet: null,
+    codeLanguage: null,
     likesCount: 0,
     commentsCount: 0,
     repostsCount: 0,
     bookmarksCount: 0,
     isDeleted: partial.isDeleted ?? false,
     deletedAt: null,
-    isAnonymous: false,
-    anonymousCategory: null,
     createdAt: now,
     updatedAt: now,
   };

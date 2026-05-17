@@ -12,10 +12,8 @@ import type {
   BookmarkedFeedItem,
   PersistPostInput,
   Post,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
@@ -25,6 +23,7 @@ const AUTHOR_SELECT = {
   name: true,
   username: true,
   photoURL: true,
+  headline: true,
   bio: true,
   location: true,
 } as const;
@@ -42,26 +41,20 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     return (await this.prisma.post.create({
       data: {
         authorId,
-        type: input.type,
-        subtype: input.subtype,
         content: input.content,
-        hardSkills: input.hardSkills ?? [],
-        softSkills: input.softSkills ?? [],
         hashtags: input.hashtags,
-        data: (input.data as Prisma.InputJsonValue | undefined) ?? undefined,
         imageUrl: input.imageUrl,
         linkUrl: input.linkUrl,
         linkPreview: (input.linkPreview as Prisma.InputJsonValue | undefined) ?? undefined,
+        isRepost: input.isRepost === true,
         originalPostId: input.originalPostId,
-        coAuthors: input.coAuthors ?? [],
         scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
         isPublished: input.isPublished,
         threadId: input.threadId,
-        codeSnippet: input.codeSnippet
-          ? (input.codeSnippet as unknown as Prisma.InputJsonValue)
-          : undefined,
-        isAnonymous: input.isAnonymous === true,
-        anonymousCategory: input.isAnonymous ? (input.anonymousCategory ?? null) : null,
+        pollOptions: (input.pollOptions as Prisma.InputJsonValue | undefined) ?? undefined,
+        pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : undefined,
+        codeSnippet: input.codeSnippet,
+        codeLanguage: input.codeLanguage,
       },
       include: { author: { select: AUTHOR_SELECT } },
     })) as unknown as PostWithAuthor;
@@ -124,16 +117,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
   async listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
   }): Promise<PostWithRelations[]> {
-    const { cursor, take, type, followingOnly, followingIds, userId } = params;
+    const { cursor, take, followingOnly, followingIds, userId } = params;
     return (await this.prisma.post.findMany({
       where: {
         isDeleted: false,
-        ...(type ? { type } : {}),
         ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
         ...(followingOnly
           ? { authorId: { in: followingIds }, isPublished: true }
@@ -211,14 +202,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;
   }> {
     if (postIds.length === 0) {
       return {
-        likedPostMap: new Map(),
+        likedPostIds: new Set(),
         bookmarkedPostIds: new Set(),
         repostedPostIds: new Set(),
         voteByPostId: new Map(),
@@ -228,7 +219,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     const [likes, bookmarks, myReposts, myVotes] = await Promise.all([
       this.prisma.postLike.findMany({
         where: { postId: { in: postIds }, userId },
-        select: { postId: true, reactionType: true },
+        select: { postId: true },
       }),
       this.prisma.postBookmark.findMany({
         where: { postId: { in: postIds }, userId },
@@ -237,7 +228,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       this.prisma.post.findMany({
         where: {
           authorId: userId,
-          type: 'REPOST',
+          isRepost: true,
           originalPostId: { in: postIds },
           isDeleted: false,
         },
@@ -250,7 +241,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     ]);
 
     return {
-      likedPostMap: new Map(likes.map((l) => [l.postId, l.reactionType])),
+      likedPostIds: new Set(likes.map((l) => l.postId)),
       bookmarkedPostIds: new Set(bookmarks.map((b) => b.postId)),
       repostedPostIds: new Set(
         myReposts.map((r) => r.originalPostId).filter((id): id is string => Boolean(id)),

@@ -51,6 +51,11 @@ export const OnboardingSessionSchema = z.object({
   nextStep: z.string().nullable().optional(),
   previousStep: z.string().nullable().optional(),
   steps: z.array(StepMetaSchema),
+  // Optional extra steps the user can opt into via POST
+  // /v1/onboarding/session/extras. Catalog only — these don't show up in
+  // `steps` until they're listed in `activatedExtras`.
+  availableExtras: z.array(StepMetaSchema).optional(),
+  activatedExtras: z.array(z.string()).optional(),
   username: z.string().optional(),
   personalInfo: PersonalInfoSchema.optional(),
   professionalProfile: ProfessionalProfileSchema.optional(),

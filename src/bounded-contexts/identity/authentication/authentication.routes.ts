@@ -46,7 +46,12 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     auth: { kind: 'public' },
     body: RefreshTokenSchema,
     response: RefreshResponseSchema,
-    guards: [{ id: 'multi-step-flow' }],
+    guards: [
+      // P0-#4: refresh is brute-forceable by an attacker who steals a near-
+      // expired refresh token and tries to roll it; cap per IP.
+      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
+      { id: 'multi-step-flow' },
+    ],
     openapi: {
       summary: 'Refresh access token',
       tags: ['auth'],
@@ -79,6 +84,13 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     body: LoginSchema,
     statusCode: 200,
     response: LoginResponseSchema,
+    guards: [
+      // P0-#4: lockout is per-email (5/15min); without an IP cap an attacker
+      // can probe many emails in parallel from the same IP without ever
+      // tripping the lock. 10/minute is generous for a real user that
+      // mis-types twice and lenient for a slowly-cycling bot.
+      { id: 'rate-limit', metadata: { points: 10, duration: 60, keyStrategy: 'ip' } },
+    ],
     openapi: {
       summary: 'Authenticate user with email + password',
       tags: ['auth'],

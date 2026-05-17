@@ -47,6 +47,18 @@ const MAGIC_BYTES: Readonly<Record<string, ReadonlyArray<readonly number[]>>> = 
   'image/webp': [],
 };
 
+/**
+ * Map of validated mime types to file extensions used in storage keys.
+ * Driven by the magic-bytes validation above — every entry here must have a
+ * corresponding signature check in {@link MAGIC_BYTES} or {@link matchesMagic}.
+ */
+const MIME_EXTENSION: Readonly<Record<string, string>> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+};
+
 function matchesMagic(buffer: Buffer, mimetype: string): boolean {
   if (mimetype === 'image/webp') {
     if (buffer.length < 12) return false;
@@ -91,7 +103,12 @@ export class UploadPostImageUseCase {
       throw new InvalidFileTypeException([...allowedTypes]);
     }
 
-    const extension = input.originalName.split('.').pop()?.toLowerCase() ?? 'jpg';
+    // P0-#11: previously `input.originalName.split('.').pop()` — for a
+    // filename like `foo.jpg/../bar`, "extension" became `jpg/../bar` and
+    // the storage key escaped the per-user prefix entirely, breaking
+    // IAM policies anchored on `posts/<userId>/`. Derive the extension
+    // strictly from the (already validated by magic-bytes) mimetype.
+    const extension = MIME_EXTENSION[input.mimetype] ?? 'bin';
     const key = `posts/${input.userId}/${randomUUID()}.${extension}`;
 
     const result = await this.storage.upload(input.buffer, key, input.mimetype);

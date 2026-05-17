@@ -1,18 +1,31 @@
 /**
  * Delete Account Use Case Tests
  *
- * Uses In-Memory repositories for clean, behavior-focused testing.
+ * P0-#8 follow-up coverage: re-authentication via currentPassword is now
+ * mandatory before the account is erased.
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException, UnauthorizedException } from '@/shared-kernel/exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { DELETION_CONFIRMATION_PHRASE } from '../../../application/ports';
 import { AccountDeletedEvent } from '../../../domain/events';
 import { AccountDeletionRequiresConfirmationException } from '../../../domain/exceptions';
+import type { PasswordHasherPort } from '../../../domain/ports/password-hasher.port';
 import { createAccountData, InMemoryAccountLifecycleRepository } from '../../../testing';
 import { DeleteAccountUseCase } from './delete-account.use-case';
+
+const FAKE_HASH = '$bcrypt$stub';
+
+class StubPasswordHasher implements PasswordHasherPort {
+  async hash(plain: string): Promise<string> {
+    return `hashed:${plain}`;
+  }
+  async compare(plain: string, hash: string): Promise<boolean> {
+    return hash === FAKE_HASH && plain === 'correct';
+  }
+}
 
 describe('DeleteAccountUseCase', () => {
   let useCase: DeleteAccountUseCase;
@@ -22,37 +35,34 @@ describe('DeleteAccountUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryAccountLifecycleRepository();
     eventBus = new InMemoryEventBus();
-
-    useCase = new DeleteAccountUseCase(repository, eventBus, stubLogger);
+    useCase = new DeleteAccountUseCase(repository, new StubPasswordHasher(), eventBus, stubLogger);
   });
 
-  it('should permanently delete an account', async () => {
-    // Arrange
+  it('permanently deletes an account when phrase + password are correct', async () => {
     repository.seedAccount(createAccountData({ id: 'user-1', email: 'delete@example.com' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
 
-    // Act
     const result = await useCase.execute({
       userId: 'user-1',
       confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+      currentPassword: 'correct',
     });
 
-    // Assert
     expect(result.success).toBe(true);
     const account = await repository.findById('user-1');
     expect(account).toBeNull();
   });
 
-  it('should publish AccountDeletedEvent with user email', async () => {
-    // Arrange
+  it('publishes AccountDeletedEvent with user email', async () => {
     repository.seedAccount(createAccountData({ id: 'user-1', email: 'delete@example.com' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
 
-    // Act
     await useCase.execute({
       userId: 'user-1',
       confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+      currentPassword: 'correct',
     });
 
-    // Assert
     expect(eventBus.hasPublished(AccountDeletedEvent)).toBe(true);
     const events = eventBus.getEventsByType(AccountDeletedEvent);
     expect(events).toHaveLength(1);
@@ -60,87 +70,101 @@ describe('DeleteAccountUseCase', () => {
     expect(events[0].email).toBe('delete@example.com');
   });
 
-  it('should throw AccountDeletionRequiresConfirmationException for wrong phrase', async () => {
-    // Arrange
+  it('throws AccountDeletionRequiresConfirmationException for wrong phrase', async () => {
     repository.seedAccount(createAccountData({ id: 'user-1' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
 
-    // Act & Assert
     expect(
       useCase.execute({
         userId: 'user-1',
         confirmationPhrase: 'wrong phrase',
+        currentPassword: 'correct',
       }),
     ).rejects.toThrow(AccountDeletionRequiresConfirmationException);
   });
 
-  it('should throw EntityNotFoundException when account does not exist', async () => {
-    // Act & Assert
+  // P0-#8 follow-up regression: cookie-only attacker can't delete.
+  it('throws UnauthorizedException when currentPassword is wrong', async () => {
+    repository.seedAccount(createAccountData({ id: 'user-1' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
+
+    expect(
+      useCase.execute({
+        userId: 'user-1',
+        confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+        currentPassword: 'wrong',
+      }),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('throws UnauthorizedException when user has no password (OAuth-only)', async () => {
+    repository.seedAccount(createAccountData({ id: 'user-oauth' }));
+    // no seedPasswordHash → findPasswordHashById returns null
+
+    expect(
+      useCase.execute({
+        userId: 'user-oauth',
+        confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+        currentPassword: 'anything',
+      }),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('throws EntityNotFoundException when account does not exist (with valid phrase + password gate seeded)', async () => {
+    // To exercise the EntityNotFound branch we have to bypass the password
+    // gate; the use-case checks password first, so simulate a phantom user
+    // by seeding a hash for an id we never seeded as an account.
+    repository.seedPasswordHash('nonexistent', FAKE_HASH);
     expect(
       useCase.execute({
         userId: 'nonexistent',
         confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+        currentPassword: 'correct',
       }),
     ).rejects.toThrow(EntityNotFoundException);
   });
 
-  it('should not delete account when confirmation phrase is wrong', async () => {
-    // Arrange
+  it('does not delete account when confirmation phrase is wrong', async () => {
     repository.seedAccount(createAccountData({ id: 'user-1', email: 'keep@example.com' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
 
-    // Act
     try {
       await useCase.execute({
         userId: 'user-1',
         confirmationPhrase: 'wrong',
+        currentPassword: 'correct',
       });
     } catch {
       // expected
     }
 
-    // Assert
     const account = await repository.findById('user-1');
     expect(account).not.toBeNull();
   });
 
-  it('should not publish events when confirmation phrase is wrong', async () => {
-    // Arrange
+  it('does not publish events when password is wrong', async () => {
     repository.seedAccount(createAccountData({ id: 'user-1' }));
+    repository.seedPasswordHash('user-1', FAKE_HASH);
 
-    // Act
     try {
       await useCase.execute({
         userId: 'user-1',
-        confirmationPhrase: 'wrong',
-      });
-    } catch {
-      // expected
-    }
-
-    // Assert
-    expect(eventBus.getPublishedEvents()).toHaveLength(0);
-  });
-
-  it('should not publish events when account is not found', async () => {
-    // Act
-    try {
-      await useCase.execute({
-        userId: 'nonexistent',
         confirmationPhrase: DELETION_CONFIRMATION_PHRASE,
+        currentPassword: 'wrong',
       });
     } catch {
       // expected
     }
 
-    // Assert
     expect(eventBus.getPublishedEvents()).toHaveLength(0);
   });
 
-  it('should validate confirmation phrase before looking up account', async () => {
-    // Act & Assert - wrong phrase should throw even if account doesn't exist
+  it('validates confirmation phrase before looking up account', async () => {
     expect(
       useCase.execute({
         userId: 'nonexistent',
         confirmationPhrase: 'wrong',
+        currentPassword: 'correct',
       }),
     ).rejects.toThrow(AccountDeletionRequiresConfirmationException);
   });

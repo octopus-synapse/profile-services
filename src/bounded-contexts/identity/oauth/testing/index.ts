@@ -7,12 +7,16 @@
  */
 
 import type { OAuthProfile, OAuthProvider } from '../domain/entities/oauth-profile';
-import { OAuthAccountsRepositoryPort } from '../domain/ports/oauth-accounts.repository.port';
+import {
+  OAuthAccountsRepositoryPort,
+  type OAuthUserByEmailResult,
+} from '../domain/ports/oauth-accounts.repository.port';
 import { OAuthProviderConfigPort } from '../domain/ports/oauth-provider-config.port';
 
 interface UserRow {
   readonly id: string;
   readonly email: string | null;
+  readonly emailVerified: boolean;
   readonly displayName: string | null;
   readonly photoURL: string | null;
 }
@@ -31,11 +35,12 @@ export class InMemoryOAuthAccountsRepository extends OAuthAccountsRepositoryPort
   readonly users = new Map<string, UserRow>();
   readonly accounts: AccountRow[] = [];
 
-  seedUser(row: { id?: string; email?: string | null }): UserRow {
+  seedUser(row: { id?: string; email?: string | null; emailVerified?: boolean }): UserRow {
     const id = row.id ?? `u-${++userCounter}`;
     const user: UserRow = {
       id,
       email: row.email ?? null,
+      emailVerified: row.emailVerified ?? false,
       displayName: null,
       photoURL: null,
     };
@@ -58,8 +63,10 @@ export class InMemoryOAuthAccountsRepository extends OAuthAccountsRepositoryPort
     );
   }
 
-  async findUserIdByEmail(email: string): Promise<string | null> {
-    for (const u of this.users.values()) if (u.email === email) return u.id;
+  async findUserByEmail(email: string): Promise<OAuthUserByEmailResult | null> {
+    for (const u of this.users.values()) {
+      if (u.email === email) return { userId: u.id, emailVerified: u.emailVerified };
+    }
     return null;
   }
 
@@ -68,6 +75,7 @@ export class InMemoryOAuthAccountsRepository extends OAuthAccountsRepositoryPort
     this.users.set(id, {
       id,
       email: profile.email,
+      emailVerified: profile.emailVerified,
       displayName: profile.displayName,
       photoURL: profile.photoURL,
     });

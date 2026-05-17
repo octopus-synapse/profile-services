@@ -145,7 +145,9 @@ describe('GoBackOnboardingStepUseCase', () => {
     // Act
     const result = await useCase.execute(USER_ID);
 
-    // Assert
-    expect(result.currentStep).toBe('section:language_v1');
+    // Assert — `publication_v1` is the last extra in the canonical
+    // section order; the new flow ships extras after languages, so
+    // template's previous step is now publication.
+    expect(result.currentStep).toBe('section:publication_v1');
   });
 });

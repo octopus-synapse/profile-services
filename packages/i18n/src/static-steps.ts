@@ -48,14 +48,13 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
     en: {
       label: 'Personal Info',
       description: 'Personal Information',
-      fields: { fullName: 'Full Name', email: 'Email', phone: 'Phone', location: 'Location' },
+      fields: { fullName: 'Full Name', phone: 'Phone', location: 'Location' },
     },
     'pt-BR': {
       label: 'Dados Pessoais',
       description: 'Informações Pessoais',
       fields: {
         fullName: 'Nome Completo',
-        email: 'E-mail',
         phone: 'Telefone',
         location: 'Localização',
       },
@@ -79,6 +78,7 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
       description: 'Professional Profile',
       fields: {
         jobTitle: 'Job Title',
+        headline: 'Headline (1 line)',
         summary: 'Summary',
         linkedin: 'LinkedIn',
         github: 'GitHub',
@@ -90,6 +90,7 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
       description: 'Perfil Profissional',
       fields: {
         jobTitle: 'Cargo',
+        headline: 'Headline (1 linha)',
         summary: 'Resumo',
         linkedin: 'LinkedIn',
         github: 'GitHub',

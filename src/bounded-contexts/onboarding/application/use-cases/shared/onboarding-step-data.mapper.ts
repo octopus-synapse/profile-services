@@ -13,9 +13,10 @@ import type {
  * Pure data transformation — no side effects, no I/O.
  */
 export class OnboardingStepDataMapper {
-  private readonly personalInfoKeys = ['fullName', 'email', 'phone', 'location'] as const;
+  private readonly personalInfoKeys = ['fullName', 'phone', 'location'] as const;
   private readonly professionalProfileKeys = [
     'jobTitle',
+    'headline',
     'summary',
     'linkedin',
     'github',

@@ -11,9 +11,6 @@ serial:
     stage:
       - swagger.json
       - client-swagger.json
-      - swagger-generation-report.json
-      - src/graphql/schema.graphql
-      - generated/schema.graphql
 
 checks:
   - name: lockfile
@@ -42,3 +39,53 @@ checks:
   - name: contract
     cmd: bun test ./test/static-analysis/contracts
     runner: bun
+  - name: no-prisma-push
+    cmd: bun run scripts/lint-no-prisma-push.ts
+  - name: no-passthrough
+    cmd: bun run scripts/lint-no-passthrough.ts
+  - name: no-prisma-transaction
+    cmd: bun run scripts/lint-no-prisma-transaction.ts
+  - name: no-post-200
+    cmd: bun run scripts/lint-no-post-200.ts
+  - name: no-success-envelope
+    cmd: bun run scripts/lint-no-success-envelope.ts
+  - name: no-bc-cache-ttl
+    cmd: bun run scripts/lint-no-bc-cache-ttl.ts
+  - name: pii-extended
+    cmd: bun run scripts/lint-pii-extended.ts
+  - name: ts-directives
+    cmd: bun run scripts/lint-ts-directives.ts
+  - name: no-prisma-mock-in-integration
+    cmd: bun run scripts/lint-no-prisma-mock-in-integration.ts
+  - name: no-db-helpers-in-unit
+    cmd: bun run scripts/lint-no-db-helpers-in-unit.ts
+  - name: skip-todo-deadline
+    cmd: bun run scripts/lint-skip-todo-deadline.ts
+  - name: e2e-cleanup
+    cmd: bun run scripts/lint-e2e-cleanup.ts
+  - name: cron-wrapper
+    cmd: bun run scripts/lint-cron-wrapper.ts
+  - name: ws-validate
+    cmd: bun run scripts/lint-ws-validate.ts
+  - name: no-mutable-module-state
+    cmd: bun run scripts/lint-no-mutable-module-state.ts
+  - name: no-process-env-in-domain
+    cmd: bun run scripts/lint-no-process-env-in-domain.ts
+  - name: deprecated-removeby
+    cmd: bun run scripts/lint-deprecated-removeby.ts
+  - name: no-unknown-cast
+    cmd: bun run scripts/lint-no-unknown-cast.ts
+  - name: pagination-adhoc
+    cmd: bun run scripts/lint-pagination-adhoc.ts
+  - name: file-size
+    cmd: bun run scripts/lint-file-size.ts
+  - name: no-cyclic-imports
+    cmd: bun run scripts/lint-no-cyclic-imports.ts
+  - name: boolean-trap
+    cmd: bun run scripts/lint-boolean-trap.ts
+  - name: jsdoc-params
+    cmd: bun run scripts/lint-jsdoc-params.ts
+  - name: no-console-in-features
+    cmd: bun run scripts/lint-no-console-in-features.ts
+  - name: magic-numbers
+    cmd: bun run scripts/lint-magic-numbers.ts

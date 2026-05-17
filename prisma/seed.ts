@@ -3,6 +3,7 @@ import { seedAuthorization } from '../src/bounded-contexts/identity/authorizatio
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedDreddFixtures } from './seeds/dredd-fixtures.seed';
+import { seedE2EOnboardingUser } from './seeds/e2e-onboarding-user.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
 import { seedFitQuestions } from './seeds/fit-questions.seed';
 import { seedJobs } from './seeds/job.seed';
@@ -117,43 +118,74 @@ async function main() {
   // Seed usernames for existing users without one
   await seedUsernames(prisma);
 
-  // Seed E2E test user for performance testing
-  const e2eTestEmail = 'e2e-test@profile.local';
-  const existingE2eUser = await prisma.user.findFirst({
-    where: { email: e2eTestEmail },
-  });
-
-  if (!existingE2eUser) {
-    const e2ePassword = 'E2E_Test_Password_123!';
-    const hashedE2ePassword = await Bun.password.hash(e2ePassword, {
-      algorithm: 'bcrypt',
-      cost: 10,
+  // ──────────────────────────────────────────────────────────────
+  // Dev-only fixtures.
+  //
+  // Reference data above (roles, permissions, resume styles, catalogs)
+  // is needed in production. Test users are NOT — accidentally seeding
+  // them in prod would install real account rows with known passwords.
+  // Gate everything below behind `NODE_ENV !== 'production'`.
+  // ──────────────────────────────────────────────────────────────
+  if (process.env.NODE_ENV !== 'production') {
+    // Seed E2E test user for performance testing (verified + onboarded)
+    const e2eTestEmail = 'e2e-test@profile.local';
+    let e2eUser = await prisma.user.findFirst({
+      where: { email: e2eTestEmail },
     });
 
-    await prisma.user.create({
-      data: {
-        email: e2eTestEmail,
-        passwordHash: hashedE2ePassword,
-        name: 'E2E Test User',
-        username: 'e2e-test-user',
-        emailVerified: new Date(),
-        isActive: true,
-        onboardingCompletedAt: new Date(),
-      },
-    });
+    if (!e2eUser) {
+      const e2ePassword = 'E2E_Test_Password_123!';
+      const hashedE2ePassword = await Bun.password.hash(e2ePassword, {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
 
-    console.log('✅ E2E test user created successfully!');
-    console.log(`📧 E2E Email: ${e2eTestEmail}`);
-    console.log(`🔑 E2E Password: ${e2ePassword}`);
+      e2eUser = await prisma.user.create({
+        data: {
+          email: e2eTestEmail,
+          passwordHash: hashedE2ePassword,
+          name: 'E2E Test User',
+          username: 'e2e-test-user',
+          emailVerified: new Date(),
+          isActive: true,
+          onboardingCompletedAt: new Date(),
+        },
+      });
+
+      console.log('✅ E2E test user created successfully!');
+      console.log(`📧 E2E Email: ${e2eTestEmail}`);
+      console.log(`🔑 E2E Password: ${e2ePassword}`);
+    } else {
+      console.log('✅ E2E test user already exists');
+    }
+
+    // Assign the `user` role to the e2e fixture so domain permissions
+    // (feed:use, social:use, resume:create, …) are available. The
+    // onboarding-completion use case usually grants this, but the seed
+    // shortcuts onboarding via `onboardingCompletedAt`. Idempotent.
+    const userRoleForE2e = await prisma.role.findUnique({ where: { name: 'user' } });
+    if (userRoleForE2e) {
+      await prisma.userRoleAssignment.upsert({
+        where: { userId_roleId: { userId: e2eUser.id, roleId: userRoleForE2e.id } },
+        create: { userId: e2eUser.id, roleId: userRoleForE2e.id, assignedBy: 'seed' },
+        update: {},
+      });
+    }
+
+    // Seed enzoferracini fixture user (verified + onboarded + resume)
+    await seedEnzoferracini(prisma);
+
+    // Seed e2e-onboarding user (verified + NOT onboarded). Used by
+    // `loginAsUnonboardedUser` in patch-careers-ui's e2e helper to
+    // drive onboarding stepper specs without staging through the
+    // email-verification gate.
+    await seedE2EOnboardingUser(prisma);
+
+    if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
+      await seedDreddFixtures(prisma, admin.id);
+    }
   } else {
-    console.log('✅ E2E test user already exists');
-  }
-
-  // Seed enzoferracini fixture user (patch-careers-ui e2e resume-download + search-people tests)
-  await seedEnzoferracini(prisma);
-
-  if (process.env.NODE_ENV === 'test' || process.env.SEED_DREDD_FIXTURES === '1') {
-    await seedDreddFixtures(prisma, admin.id);
+    console.log('⏭️  Skipping dev fixtures (NODE_ENV=production)');
   }
 
   // Seed analytics projections from existing resumes (runs LAST so it

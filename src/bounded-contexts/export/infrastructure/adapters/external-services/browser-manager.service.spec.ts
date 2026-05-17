@@ -1,15 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { BrowserManagerService } from './browser-manager.service';
 
 describe('BrowserManagerService', () => {
   let service: BrowserManagerService;
   let mockBrowser: Browser;
+  let mockPage: Page;
 
   beforeEach(() => {
+    mockPage = {
+      close: mock().mockResolvedValue(undefined),
+    } as unknown as Page;
+
     mockBrowser = {
-      newPage: mock(),
+      newPage: mock().mockResolvedValue(mockPage),
       close: mock().mockResolvedValue(undefined),
     } as unknown as Browser;
 
@@ -110,6 +115,62 @@ describe('BrowserManagerService', () => {
       // Note: Due to async nature, launch might be called multiple times
       // before first resolves. Real implementation might need mutex.
       expect(puppeteer.launch).toHaveBeenCalled();
+    });
+  });
+
+  describe('withPage', () => {
+    it('opens a page, runs fn, closes the page', async () => {
+      const result = await service.withPage(async (page) => {
+        expect(page).toBe(mockPage);
+        return 42;
+      });
+
+      expect(result).toBe(42);
+      expect(mockBrowser.newPage).toHaveBeenCalledTimes(1);
+      expect(mockPage.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the page even when fn throws', async () => {
+      await expect(
+        service.withPage(async () => {
+          throw new Error('boom');
+        }),
+      ).rejects.toThrow('boom');
+      expect(mockPage.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('never exceeds MAX_CONCURRENT_TABS (5) in flight', async () => {
+      let concurrent = 0;
+      let maxObserved = 0;
+      const jobs = Array.from({ length: 10 }, (_, i) =>
+        service.withPage(async () => {
+          concurrent += 1;
+          if (concurrent > maxObserved) maxObserved = concurrent;
+          await new Promise<void>((r) => setTimeout(r, 5));
+          concurrent -= 1;
+          return i;
+        }),
+      );
+      const results = await Promise.all(jobs);
+      expect(results).toHaveLength(10);
+      expect(maxObserved).toBeLessThanOrEqual(5);
+      expect(maxObserved).toBeGreaterThan(0);
+      expect(mockPage.close).toHaveBeenCalledTimes(10);
+    });
+
+    it('recycles the browser after JOBS_PER_RESTART (100) jobs', async () => {
+      for (let i = 0; i < 100; i++) {
+        await service.withPage(async () => undefined);
+      }
+
+      // First launch happened on first acquire; recycle should have triggered
+      // after the 100th release (active tabs back to 0).
+      expect(mockBrowser.close).toHaveBeenCalledTimes(1);
+      expect(service.isActive()).toBe(false);
+
+      // Next acquire re-launches.
+      await service.withPage(async () => undefined);
+      expect(puppeteer.launch).toHaveBeenCalledTimes(2);
     });
   });
 });

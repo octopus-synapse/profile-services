@@ -21,6 +21,21 @@ export abstract class CachePort {
 
   abstract acquireLock(key: string, ttlSeconds: number): Promise<CacheLock | null>;
 
+  /**
+   * Atomic increment with TTL-on-create — semantics of Redis
+   * `INCR key; EXPIRE key ttl NX`. Returns the post-increment value.
+   *
+   * P0-#15: used by the rate-limit adapter so concurrent requests can't
+   * race between read-then-write. The default fallback implementation is a
+   * non-atomic get/set composition that subclasses MUST override.
+   */
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const current = (await this.get<number>(key)) ?? 0;
+    const next = current + 1;
+    await this.set(key, next, ttlSeconds);
+    return next;
+  }
+
   /** Cache-aside: return cached value or compute via `fn` and store. */
   async getOrSet<T>(key: string, fn: () => Promise<T>, ttlSeconds?: number): Promise<T> {
     const cached = await this.get<T>(key);

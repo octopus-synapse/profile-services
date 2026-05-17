@@ -15,7 +15,10 @@ import type { BrowserManagerService } from './browser-manager.service';
 
 describe('BannerCaptureService', () => {
   let service: BannerCaptureService;
-  let browserManagerService: { getBrowser: ReturnType<typeof mock> };
+  let browserManagerService: {
+    getBrowser: ReturnType<typeof mock>;
+    withPage: ReturnType<typeof mock>;
+  };
   let configGetMock: ReturnType<typeof mock>;
   let mockPage: MockPage;
   let mockBrowser: MockBrowser;
@@ -48,7 +51,17 @@ describe('BannerCaptureService', () => {
     // Setup page.$ to return element handle for #banner
     mockPage.$.mockResolvedValue(mockElementHandle);
 
-    browserManagerService = { getBrowser: mock().mockResolvedValue(mockBrowser) };
+    browserManagerService = {
+      getBrowser: mock().mockResolvedValue(mockBrowser),
+      withPage: mock(async <T>(fn: (page: MockPage) => Promise<T>): Promise<T> => {
+        const page = (await mockBrowser.newPage()) as MockPage;
+        try {
+          return await fn(page);
+        } finally {
+          await page.close();
+        }
+      }),
+    };
     service = new BannerCaptureService(
       browserManagerService as unknown as BrowserManagerService,
       { get: configGetMock } as unknown as ConfigPort,
@@ -62,7 +75,7 @@ describe('BannerCaptureService', () => {
     it('should capture banner screenshot with default parameters', async () => {
       const result = await service.capture();
 
-      expect(browserManagerService.getBrowser).toHaveBeenCalledTimes(1);
+      expect(browserManagerService.withPage).toHaveBeenCalledTimes(1);
       expect(mockBrowser.newPage).toHaveBeenCalledTimes(1);
       expect(mockPage.setViewport).toHaveBeenCalledWith({
         width: VIEWPORT.BANNER.WIDTH,

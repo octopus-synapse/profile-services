@@ -52,7 +52,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'template',
         ],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
         templateSelection: { colorScheme: 'ocean' },
         sections: [
@@ -91,7 +91,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'template',
         ],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
         templateSelection: { colorScheme: 'ocean' },
         sections: [
@@ -122,7 +122,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         // missing 'username' on purpose
         completedSteps: ['welcome', 'personal-info', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
       }),
     );
@@ -138,7 +138,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: null,
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
       }),
     );
@@ -172,7 +172,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: null,
       }),
     );
@@ -189,7 +189,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { email: 'john@example.com' }, // missing fullName
+        personalInfo: {}, // missing fullName
         professionalProfile: { jobTitle: 'Engineer' },
       }),
     );
@@ -198,22 +198,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
   });
 
-  it('throws when personalInfo.email is invalid', async () => {
-    // Arrange
-    progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'review',
-        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
-        username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'not-an-email' }, // invalid email
-        professionalProfile: { jobTitle: 'Engineer' },
-      }),
-    );
-
-    // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
-  });
+  // 'throws when personalInfo.email is invalid' — REMOVED. The User.email
+  // (signup) is the canonical email; there is no separate personalInfo.email
+  // field anymore. See onboarding-data.schema.ts.
 
   it('throws when professionalProfile.jobTitle is missing', async () => {
     // Arrange
@@ -223,7 +210,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { summary: 'No job title' }, // missing jobTitle
       }),
     );
@@ -240,7 +227,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
         templateSelection: null,
       }),
@@ -263,7 +250,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         currentStep: 'review',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
         sections: [],
       }),

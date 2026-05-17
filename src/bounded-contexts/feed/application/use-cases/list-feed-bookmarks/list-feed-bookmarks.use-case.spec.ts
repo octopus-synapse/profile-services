@@ -12,7 +12,7 @@ describe('ListFeedBookmarksUseCase', () => {
     const { repo, useCase } = make();
     repo.seedPost({ id: 'p1', authorId: 'a' });
     repo.seedBookmark('p1', 'viewer');
-    repo.seedLike('p1', 'viewer', 'LIKE');
+    repo.seedLike('p1', 'viewer');
 
     const out = await useCase.execute('viewer', undefined, 20);
     expect(out.items).toHaveLength(1);

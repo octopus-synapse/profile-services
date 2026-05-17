@@ -23,7 +23,6 @@ import {
   ModifierEffect,
   ModifierType,
   NotificationType,
-  PostType,
   type Prisma,
   type PrismaClient,
 } from '@prisma/client';
@@ -281,7 +280,6 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_POST_ID,
       authorId: EXAMPLE_USER_ID,
-      type: PostType.ACHIEVEMENT,
       content: 'Dredd fixture post body.',
     },
     update: {},
@@ -293,7 +291,6 @@ export async function seedDreddFixtures(
     create: {
       id: EXAMPLE_GENERIC_ID,
       authorId: EXAMPLE_USER_ID,
-      type: PostType.ACHIEVEMENT,
       content: 'Dredd generic post body.',
     },
     update: {},
@@ -386,7 +383,9 @@ export async function seedDreddFixtures(
     },
   });
 
-  // OnboardingStep with key = fixture-slug
+  // OnboardingStep with key = fixture-slug — kept `isActive: false` so the
+  // session presenter never returns it in user-facing flows (the contract
+  // tests still hit it through the admin endpoints by exact key).
   await prisma.onboardingStep.upsert({
     where: { key: EXAMPLE_SLUG },
     create: {
@@ -397,8 +396,9 @@ export async function seedDreddFixtures(
       required: false,
       fields: [],
       translations: {},
+      isActive: false,
     },
-    update: {},
+    update: { isActive: false },
   });
 
   // ProgrammingLanguage with slug = fixture-slug

@@ -3,14 +3,9 @@
  * application layer without forcing use cases / services to import
  * Prisma types directly.
  *
- * `data`, `linkPreview`, and `codeSnippet` are kept as `unknown` so the
- * domain layer stays free of Prisma's `Json` / `InputJsonValue` types;
- * adapters cast at the boundary.
+ * `linkPreview` is kept as `unknown` so the domain layer stays free of
+ * Prisma's `Json` / `InputJsonValue` types; adapters cast at the boundary.
  */
-
-import type { AnonymousCategory, PostType, ReactionType } from '@prisma/client';
-
-export type { AnonymousCategory, PostType, ReactionType };
 
 /** Author fields denormalised onto post views for the UI. */
 export interface PostAuthor {
@@ -18,40 +13,41 @@ export interface PostAuthor {
   readonly name: string | null;
   readonly username: string | null;
   readonly photoURL: string | null;
+  readonly headline?: string | null;
   readonly bio?: string | null;
   readonly location?: string | null;
+}
+
+/** Poll option label stored as JSON array on `Post.pollOptions`. */
+export interface PollOption {
+  readonly label: string;
 }
 
 /** Persisted post row. */
 export interface Post {
   readonly id: string;
   readonly authorId: string;
-  readonly type: PostType;
-  readonly subtype: string | null;
   readonly content: string | null;
-  readonly hardSkills: string[];
-  readonly softSkills: string[];
   readonly hashtags: string[];
-  readonly data: unknown;
   readonly imageUrl: string | null;
   readonly linkUrl: string | null;
   readonly linkPreview: unknown;
+  readonly isRepost: boolean;
   readonly originalPostId: string | null;
-  readonly coAuthors: string[];
   readonly scheduledAt: Date | null;
   readonly isPublished: boolean;
   readonly threadId: string | null;
+  readonly pollOptions: PollOption[] | null;
   readonly pollDeadline: Date | null;
   readonly votesCount: number;
-  readonly codeSnippet: unknown;
+  readonly codeSnippet: string | null;
+  readonly codeLanguage: string | null;
   readonly likesCount: number;
   readonly commentsCount: number;
   readonly repostsCount: number;
   readonly bookmarksCount: number;
   readonly isDeleted: boolean;
   readonly deletedAt: Date | null;
-  readonly isAnonymous: boolean;
-  readonly anonymousCategory: AnonymousCategory | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -68,22 +64,18 @@ export interface PostWithRelations extends PostWithAuthor {
 
 /** Fields accepted when creating a post. */
 export interface CreatePostInput {
-  readonly type: PostType;
-  readonly subtype?: string;
   readonly content?: string;
-  readonly hardSkills?: string[];
-  readonly softSkills?: string[];
-  readonly data?: unknown;
   readonly imageUrl?: string;
   readonly linkUrl?: string;
   readonly linkPreview?: unknown;
+  readonly isRepost?: boolean;
   readonly originalPostId?: string;
-  readonly coAuthors?: string[];
   readonly scheduledAt?: string;
   readonly threadId?: string;
-  readonly codeSnippet?: { language: string; code: string; filename?: string };
-  readonly isAnonymous?: boolean;
-  readonly anonymousCategory?: 'SALARY' | 'INTERVIEW' | 'LAYOFF' | 'TOXIC_CULTURE' | 'HARASSMENT';
+  readonly pollOptions?: PollOption[];
+  readonly pollDeadline?: string;
+  readonly codeSnippet?: string;
+  readonly codeLanguage?: string;
 }
 
 /** Repository-level shape: same as `CreatePostInput` plus the parsed
@@ -100,6 +92,5 @@ export interface FeedQuery {
   readonly userId: string;
   readonly cursor?: string;
   readonly limit: number;
-  readonly type?: PostType;
   readonly followingOnly: boolean;
 }

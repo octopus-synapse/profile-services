@@ -76,7 +76,6 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       expect(sessionResponse.status).toBe(200);
       expect(sessionResponse.body.personalInfo).toBeDefined();
       expect(sessionResponse.body.personalInfo.fullName).toBe('Test Persistence User');
-      expect(sessionResponse.body.personalInfo.email).toBe(testUser.email);
     });
 
     it.serial('should persist username when advancing from username step', async () => {

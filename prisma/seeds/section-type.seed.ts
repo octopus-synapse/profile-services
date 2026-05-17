@@ -114,8 +114,8 @@ export const sectionTypes: SectionTypeSeedData[] = [
           type: 'enum',
           required: true,
           semanticRole: 'PROFICIENCY',
-          enum: ['BASIC', 'INTERMEDIATE', 'FLUENT', 'NATIVE'],
-          meta: { label: 'Proficiency' },
+          enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'NATIVE'],
+          meta: { label: 'CEFR Level' },
         },
       ],
       ats: {
@@ -186,7 +186,7 @@ export const sectionTypes: SectionTypeSeedData[] = [
           type: 'enum',
           required: false,
           semanticRole: 'EMPLOYMENT_TYPE',
-          enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'],
+          enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Volunteer'],
           meta: { label: 'Employment Type' },
         },
         {
@@ -389,11 +389,35 @@ export const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Degree' },
         },
         {
+          key: 'degreeType',
+          type: 'enum',
+          required: false,
+          semanticRole: 'DEGREE_TYPE',
+          enum: [
+            'High School',
+            'Technical',
+            'Bachelor',
+            'Master',
+            'Doctorate',
+            'Bootcamp',
+            'Self-taught',
+          ],
+          meta: { label: 'Degree Type' },
+        },
+        {
           key: 'field',
           type: 'string',
           required: false,
           semanticRole: 'FIELD_OF_STUDY',
           meta: { label: 'Field of Study' },
+        },
+        {
+          key: 'status',
+          type: 'enum',
+          required: false,
+          semanticRole: 'STATUS',
+          enum: ['In Progress', 'Completed', 'Paused', 'Dropped'],
+          meta: { label: 'Status' },
         },
         {
           key: 'startDate',
@@ -409,6 +433,13 @@ export const sectionTypes: SectionTypeSeedData[] = [
           nullable: true,
           semanticRole: 'END_DATE',
           meta: { label: 'End Date' },
+        },
+        {
+          key: 'description',
+          type: 'string',
+          required: false,
+          semanticRole: 'DESCRIPTION',
+          meta: { label: 'Description', widget: 'textarea' },
         },
       ],
       ats: {
@@ -1257,6 +1288,56 @@ export const sectionTypes: SectionTypeSeedData[] = [
           dateFields: ['date'],
           descriptionField: 'description',
         },
+      },
+    },
+  },
+  {
+    key: 'soft_skill_set_v1',
+    slug: 'soft-skills',
+    title: 'Soft Skills',
+    description: 'Behavioral and interpersonal skills (leadership, communication, …)',
+    semanticKind: 'SOFT_SKILL_SET',
+    version: 1,
+    isRepeatable: true,
+    minItems: 0,
+    renderHints: {
+      layout: 'grid',
+      columns: 3,
+      itemLayout: 'horizontal',
+    },
+    fieldStyles: {
+      name: { semantic: 'chip', widget: 'text', width: 'auto' },
+    },
+    definition: {
+      schemaVersion: 1,
+      kind: 'SOFT_SKILL_SET',
+      fields: [
+        {
+          key: 'name',
+          type: 'string',
+          required: true,
+          semanticRole: 'SKILL_NAME',
+          meta: { label: 'Soft Skill' },
+        },
+      ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 5,
+        sectionDetection: {
+          keywords: ['soft skills', 'interpersonal', 'behavioral'],
+          multiWord: ['soft skills', 'behavioral skills'],
+        },
+        scoring: {
+          baseScore: 25,
+          fieldWeights: { SKILL_NAME: 50 },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'soft_skills',
+          fieldMapping: { name: 'name' },
+        },
+        dsl: { sectionId: 'soft-skills', astType: 'skills' },
       },
     },
   },

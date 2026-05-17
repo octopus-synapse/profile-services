@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'bun:test';
-import type { PostType } from '@prisma/client';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import { InMemoryFeedRepository, InMemoryLinkPreviewFetcher } from '../../../testing';
 import { HashtagParserService } from '../../services/hashtag-parser.service';
 import { CreatePostUseCase } from './create-post.use-case';
-
-const TEXT = 'TEXT' as PostType;
-const REPOST = 'REPOST' as PostType;
 
 function make() {
   const repo = new InMemoryFeedRepository();
@@ -19,7 +15,6 @@ describe('CreatePostUseCase', () => {
   it('creates a post with parsed hashtags', async () => {
     const { repo, useCase } = make();
     const post = await useCase.execute('user-1', {
-      type: TEXT,
       content: 'Hello #World #Tech',
     });
     expect(post.authorId).toBe('user-1');
@@ -37,19 +32,18 @@ describe('CreatePostUseCase', () => {
       domain: 'example.com',
     });
     const post = await useCase.execute('u1', {
-      type: TEXT,
       content: 'check this',
       linkUrl: 'https://example.com',
     });
     expect((post as { linkPreview: unknown }).linkPreview).toMatchObject({ domain: 'example.com' });
   });
 
-  it('increments repost count on REPOST', async () => {
+  it('increments repost count when isRepost is true', async () => {
     const { repo, useCase } = make();
     repo.seedPost({ id: 'orig', authorId: 'a', isPublished: true, repostsCount: 0 });
     await useCase.execute('u1', {
-      type: REPOST,
       content: 'cool',
+      isRepost: true,
       originalPostId: 'orig',
     });
     expect(repo.posts.get('orig')?.repostsCount).toBe(1);
@@ -59,7 +53,6 @@ describe('CreatePostUseCase', () => {
     const { useCase } = make();
     const future = new Date(Date.now() + 86400_000).toISOString();
     const post = await useCase.execute('u1', {
-      type: TEXT,
       content: 'later',
       scheduledAt: future,
     });

@@ -10,9 +10,21 @@
 import { randomBytes } from 'node:crypto';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { signState, verifyState } from '@/shared-kernel/auth';
 import type { HttpCtx } from '@/shared-kernel/http/context';
+import { stageClearCookie, stageSetCookie } from '@/shared-kernel/http/cookie-jar';
 import { withRedirect } from '@/shared-kernel/http/route.types';
 import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
+import { OAuthStateMismatchException } from './domain/exceptions/oauth.exceptions';
+
+/** Cookie name for the signed OAuth `state` parameter (one per provider). */
+function stateCookieName(provider: Provider): string {
+  return `oauth_state_${provider}`;
+}
+
+/** TTL for the OAuth state cookie. The IdP redirect dance should complete in
+ *  well under 10 minutes; cookies older than this are rejected. */
+const STATE_TTL_MS = 10 * 60 * 1000;
 
 extendZodWithOpenApi(z);
 
@@ -54,11 +66,26 @@ export function callbackUri(bundle: OAuthHttpBundle, provider: Provider): string
   return `${base}/api/v1/auth/oauth/${provider}/callback`;
 }
 
-export function handleStart(bundle: OAuthHttpBundle, provider: Provider) {
+export function handleStart(ctx: HttpCtx, bundle: OAuthHttpBundle, provider: Provider) {
   if (!bundle.availability.execute(provider).available) {
     throw new Error(`${provider} OAuth is not configured`);
   }
   const state = randomBytes(16).toString('hex');
+
+  // Persist the state via a signed, short-lived, httpOnly cookie. The IdP
+  // echoes `state` back on callback; the callback handler enforces that the
+  // echoed value matches what we signed here (prevents login-CSRF).
+  const secret = bundle.config.get<string>('JWT_SECRET');
+  if (!secret) throw new Error('JWT_SECRET is required to sign OAuth state cookie');
+  const signed = signState(state, secret);
+  stageSetCookie(ctx, stateCookieName(provider), signed, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: STATE_TTL_MS,
+  });
+
   const url = bundle.oauth.buildAuthorizeUrl(provider, {
     redirectUri: callbackUri(bundle, provider),
     state,
@@ -71,11 +98,30 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
     throw new Error(`${provider} OAuth is not configured`);
   }
   const code = (ctx.query as { code?: string }).code;
+  const incomingState = (ctx.query as { state?: string }).state;
   if (!code) throw new Error('OAuth callback missing code');
+
+  // Verify the signed state cookie matches the IdP-echoed `state`. The cookie
+  // is set on `/start`; without it (or with mismatch / expired signature) the
+  // request is rejected to block login-CSRF.
+  const secret = bundle.config.get<string>('JWT_SECRET');
+  if (!secret) throw new Error('JWT_SECRET is required to verify OAuth state cookie');
+  const cookieName = stateCookieName(provider);
+  const cookieValue = ctx.cookies[cookieName];
+  const expectedState = verifyState(cookieValue, { secret, ttlMs: STATE_TTL_MS });
+  if (!expectedState || !incomingState || expectedState !== incomingState) {
+    // Clear the cookie regardless — even a malformed one shouldn't linger.
+    stageClearCookie(ctx, cookieName, { path: '/' });
+    throw new OAuthStateMismatchException();
+  }
+  // Single-use: clear the cookie after a successful match so replay attempts
+  // can't reuse it.
+  stageClearCookie(ctx, cookieName, { path: '/' });
 
   const portProfile = await bundle.oauth.exchangeCode(provider, {
     code,
     redirectUri: callbackUri(bundle, provider),
+    state: incomingState,
   });
 
   // Bridge between the framework-free `OAuthPort.OAuthProfile` (port shape)
@@ -84,6 +130,7 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
     provider,
     providerAccountId: portProfile.providerId,
     email: portProfile.email,
+    emailVerified: portProfile.emailVerified,
     displayName: portProfile.displayName,
     photoURL: portProfile.avatarUrl,
     accessToken: portProfile.accessToken,

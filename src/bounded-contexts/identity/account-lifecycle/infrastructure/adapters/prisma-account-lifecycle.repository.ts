@@ -50,6 +50,14 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
     return user !== null;
   }
 
+  async findPasswordHashById(userId: string): Promise<string | null> {
+    const row = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+    return row?.passwordHash ?? null;
+  }
+
   async create(data: CreateAccountData): Promise<AccountData> {
     // New auth model: signup creates the bare user. The `user` role
     // (with all domain permissions) is granted later by the
@@ -90,14 +98,36 @@ export class PrismaAccountLifecycleRepository implements AccountLifecycleReposit
   }
 
   async delete(userId: string): Promise<void> {
-    // Delete all associated data in a transaction
+    // P0-#25 follow-up: snapshot the user's job applications into the
+    // userId-free AnonymizedApplicationStat before cascading them away.
+    // The snapshot keeps company-level + per-job aggregates intact for
+    // analytics that must survive an LGPD erasure. We do it INSIDE the
+    // same transaction so a failure leaves the User row in place (no
+    // partial delete that would also lose the snapshot opportunity).
     await this.prisma.$transaction(async (tx) => {
-      // Delete tokens
+      // 1. Anonymise application history (drops userId, keeps shape).
+      await tx.$executeRaw`
+        INSERT INTO "AnonymizedApplicationStat" ("id", "jobId", "company", "status", "occurredAt", "createdAt")
+        SELECT
+          gen_random_uuid()::text,
+          ja."jobId",
+          j."company",
+          ja."status",
+          ja."createdAt",
+          CURRENT_TIMESTAMP
+        FROM "JobApplication" ja
+        JOIN "Job" j ON j."id" = ja."jobId"
+        WHERE ja."userId" = ${userId}
+      `;
+
+      // 2. Manual token sweep (kept from earlier — covers tables whose
+      //    cascade was previously the only erasure path).
       await tx.passwordResetToken.deleteMany({ where: { userId } });
       await tx.emailVerificationToken.deleteMany({ where: { userId } });
       await tx.refreshToken.deleteMany({ where: { userId } });
 
-      // Delete user
+      // 3. Delete user. Newly-added FK constraints cascade JobApplication /
+      //    JobBookmark / PollVote and set Job.authorId to NULL.
       await tx.user.delete({ where: { id: userId } });
     });
   }

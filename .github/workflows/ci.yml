@@ -49,7 +49,10 @@ jobs:
             src:
               - 'src/**'
               - 'package.json'
-              - 'bun.lockb'
+              # P0-#28: Bun 1.3+ writes `bun.lock` (text); the old `bun.lockb`
+              # is never created so dep bumps were silently skipping every
+              # tier that listed only the binary lockfile.
+              - 'bun.lock'
               - 'tsconfig*.json'
             tests:
               - 'test/**'

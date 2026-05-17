@@ -10,6 +10,7 @@
       "automation:rage_apply",
       "feature_flag:manage",
       "feature_flag:read",
+      "job:create",
       "job:manage",
       "platform:manage",
       "platform:stats_read",
@@ -91,6 +92,14 @@
         "maxLength": 500,
         "description": "Short free-text description (1-500 characters).",
         "example": "A short description of the resource."
+      },
+      "TwoFactorCode": {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 6,
+        "pattern": "^\\d{6}$",
+        "description": "6-digit numeric TOTP code from the authenticator app.",
+        "example": "123456"
       },
       "PasswordMessageResponse": {
         "type": "object",
@@ -1133,7 +1142,7 @@
     "/api/v1/accounts": {
       "delete": {
         "summary": "Delete account permanently",
-        "description": "Permanently deletes the user account. Requires confirmation phrase: \"DELETE MY ACCOUNT\".",
+        "description": "Permanently deletes the user account. Requires confirmation phrase: \"DELETE MY ACCOUNT\" AND the current password (re-authentication gate to prevent stolen-cookie deletes).",
         "tags": [
           "account-lifecycle"
         ],
@@ -1147,10 +1156,16 @@
                   "confirmationPhrase": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
                   }
                 },
                 "required": [
-                  "confirmationPhrase"
+                  "confirmationPhrase",
+                  "currentPassword"
                 ]
               }
             }
@@ -1252,7 +1267,8 @@
         },
         "x-auth": "jwt",
         "x-guards": [
-          "skip-tos-check"
+          "skip-tos-check",
+          "rate-limit"
         ]
       },
       "post": {
@@ -1349,7 +1365,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/accounts/deactivate": {
@@ -19585,11 +19604,30 @@
     "/api/v1/auth/2fa": {
       "delete": {
         "summary": "Disable 2FA",
-        "description": "Disables 2FA and removes all backup codes.",
+        "description": "Disables 2FA and removes all backup codes. Requires re-authentication via the current password OR a valid TOTP code (either suffices).",
         "tags": [
           "two-factor-auth"
         ],
         "operationId": "delete_v1_auth_2fa",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "totpCode": {
+                    "$ref": "#/components/schemas/TwoFactorCode"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "Successful response"
@@ -19669,7 +19707,10 @@
             }
           }
         },
-        "x-auth": "jwt"
+        "x-auth": "jwt",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/2fa/backup-codes/regenerate": {
@@ -20144,6 +20185,7 @@
         },
         "x-auth": "jwt",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -20482,6 +20524,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -20663,7 +20706,10 @@
             }
           }
         },
-        "x-auth": "public"
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/login/verify-2fa": {
@@ -21440,6 +21486,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -21512,6 +21559,7 @@
         },
         "x-auth": "public",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -31194,23 +31242,6 @@
           },
           {
             "schema": {
-              "type": "string",
-              "enum": [
-                "ACHIEVEMENT",
-                "OPPORTUNITY",
-                "LEARNING",
-                "BUILD",
-                "QUESTION",
-                "REPOST",
-                "CHALLENGE"
-              ]
-            },
-            "required": false,
-            "name": "type",
-            "in": "query"
-          },
-          {
-            "schema": {
               "type": "string"
             },
             "required": false,
@@ -31238,48 +31269,15 @@
                             "type": "string",
                             "format": "uuid"
                           },
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "ACHIEVEMENT",
-                              "OPPORTUNITY",
-                              "LEARNING",
-                              "BUILD",
-                              "QUESTION",
-                              "REPOST",
-                              "CHALLENGE"
-                            ]
-                          },
-                          "subtype": {
-                            "type": "string",
-                            "nullable": true
-                          },
                           "content": {
                             "type": "string",
                             "nullable": true
-                          },
-                          "hardSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "softSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "hashtags": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             }
-                          },
-                          "data": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {}
                           },
                           "imageUrl": {
                             "type": "string",
@@ -31316,16 +31314,13 @@
                               "domain"
                             ]
                           },
+                          "isRepost": {
+                            "type": "boolean"
+                          },
                           "originalPostId": {
                             "type": "string",
                             "nullable": true,
                             "format": "uuid"
-                          },
-                          "coAuthors": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "scheduledAt": {
                             "type": "string",
@@ -31342,6 +31337,21 @@
                             "nullable": true,
                             "format": "uuid"
                           },
+                          "pollOptions": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label"
+                              ]
+                            }
+                          },
                           "pollDeadline": {
                             "type": "string",
                             "nullable": true,
@@ -31353,23 +31363,12 @@
                             "type": "integer"
                           },
                           "codeSnippet": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "language": {
-                                "type": "string"
-                              },
-                              "code": {
-                                "type": "string"
-                              },
-                              "filename": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "language",
-                              "code"
-                            ]
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "codeLanguage": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "likesCount": {
                             "type": "integer"
@@ -31392,20 +31391,6 @@
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "isAnonymous": {
-                            "type": "boolean"
-                          },
-                          "anonymousCategory": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "SALARY",
-                              "INTERVIEW",
-                              "LAYOFF",
-                              "TOXIC_CULTURE",
-                              "HARASSMENT"
-                            ]
                           },
                           "createdAt": {
                             "type": "string",
@@ -31437,6 +31422,10 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "headline": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "bio": {
                                 "type": "string",
                                 "nullable": true
@@ -31464,48 +31453,15 @@
                                 "type": "string",
                                 "format": "uuid"
                               },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "ACHIEVEMENT",
-                                  "OPPORTUNITY",
-                                  "LEARNING",
-                                  "BUILD",
-                                  "QUESTION",
-                                  "REPOST",
-                                  "CHALLENGE"
-                                ]
-                              },
-                              "subtype": {
-                                "type": "string",
-                                "nullable": true
-                              },
                               "content": {
                                 "type": "string",
                                 "nullable": true
-                              },
-                              "hardSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "softSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "hashtags": {
                                 "type": "array",
                                 "items": {
                                   "type": "string"
                                 }
-                              },
-                              "data": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
                               },
                               "imageUrl": {
                                 "type": "string",
@@ -31542,16 +31498,13 @@
                                   "domain"
                                 ]
                               },
+                              "isRepost": {
+                                "type": "boolean"
+                              },
                               "originalPostId": {
                                 "type": "string",
                                 "nullable": true,
                                 "format": "uuid"
-                              },
-                              "coAuthors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "scheduledAt": {
                                 "type": "string",
@@ -31568,6 +31521,21 @@
                                 "nullable": true,
                                 "format": "uuid"
                               },
+                              "pollOptions": {
+                                "type": "array",
+                                "nullable": true,
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "label": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "label"
+                                  ]
+                                }
+                              },
                               "pollDeadline": {
                                 "type": "string",
                                 "nullable": true,
@@ -31579,23 +31547,12 @@
                                 "type": "integer"
                               },
                               "codeSnippet": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {
-                                  "language": {
-                                    "type": "string"
-                                  },
-                                  "code": {
-                                    "type": "string"
-                                  },
-                                  "filename": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "language",
-                                  "code"
-                                ]
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "codeLanguage": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "likesCount": {
                                 "type": "integer"
@@ -31618,20 +31575,6 @@
                                 "format": "date-time",
                                 "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                 "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "isAnonymous": {
-                                "type": "boolean"
-                              },
-                              "anonymousCategory": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                  "SALARY",
-                                  "INTERVIEW",
-                                  "LAYOFF",
-                                  "TOXIC_CULTURE",
-                                  "HARASSMENT"
-                                ]
                               },
                               "createdAt": {
                                 "type": "string",
@@ -31663,6 +31606,10 @@
                                     "type": "string",
                                     "nullable": true
                                   },
+                                  "headline": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "bio": {
                                     "type": "string",
                                     "nullable": true
@@ -31683,32 +31630,26 @@
                             "required": [
                               "id",
                               "authorId",
-                              "type",
-                              "subtype",
                               "content",
-                              "hardSkills",
-                              "softSkills",
                               "hashtags",
-                              "data",
                               "imageUrl",
                               "linkUrl",
                               "linkPreview",
+                              "isRepost",
                               "originalPostId",
-                              "coAuthors",
                               "scheduledAt",
                               "isPublished",
                               "threadId",
                               "pollDeadline",
                               "votesCount",
                               "codeSnippet",
+                              "codeLanguage",
                               "likesCount",
                               "commentsCount",
                               "repostsCount",
                               "bookmarksCount",
                               "isDeleted",
                               "deletedAt",
-                              "isAnonymous",
-                              "anonymousCategory",
                               "createdAt",
                               "updatedAt",
                               "author"
@@ -31716,17 +31657,6 @@
                           },
                           "isLiked": {
                             "type": "boolean"
-                          },
-                          "reactionType": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "LIKE",
-                              "CELEBRATE",
-                              "LOVE",
-                              "INSIGHTFUL",
-                              "CURIOUS"
-                            ]
                           },
                           "isBookmarked": {
                             "type": "boolean"
@@ -31753,48 +31683,15 @@
                                   "type": "string",
                                   "format": "uuid"
                                 },
-                                "type": {
-                                  "type": "string",
-                                  "enum": [
-                                    "ACHIEVEMENT",
-                                    "OPPORTUNITY",
-                                    "LEARNING",
-                                    "BUILD",
-                                    "QUESTION",
-                                    "REPOST",
-                                    "CHALLENGE"
-                                  ]
-                                },
-                                "subtype": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
                                 "content": {
                                   "type": "string",
                                   "nullable": true
-                                },
-                                "hardSkills": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
-                                },
-                                "softSkills": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
                                 },
                                 "hashtags": {
                                   "type": "array",
                                   "items": {
                                     "type": "string"
                                   }
-                                },
-                                "data": {
-                                  "type": "object",
-                                  "nullable": true,
-                                  "properties": {}
                                 },
                                 "imageUrl": {
                                   "type": "string",
@@ -31831,16 +31728,13 @@
                                     "domain"
                                   ]
                                 },
+                                "isRepost": {
+                                  "type": "boolean"
+                                },
                                 "originalPostId": {
                                   "type": "string",
                                   "nullable": true,
                                   "format": "uuid"
-                                },
-                                "coAuthors": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
                                 },
                                 "scheduledAt": {
                                   "type": "string",
@@ -31857,6 +31751,21 @@
                                   "nullable": true,
                                   "format": "uuid"
                                 },
+                                "pollOptions": {
+                                  "type": "array",
+                                  "nullable": true,
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "label"
+                                    ]
+                                  }
+                                },
                                 "pollDeadline": {
                                   "type": "string",
                                   "nullable": true,
@@ -31868,23 +31777,12 @@
                                   "type": "integer"
                                 },
                                 "codeSnippet": {
-                                  "type": "object",
-                                  "nullable": true,
-                                  "properties": {
-                                    "language": {
-                                      "type": "string"
-                                    },
-                                    "code": {
-                                      "type": "string"
-                                    },
-                                    "filename": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "language",
-                                    "code"
-                                  ]
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "codeLanguage": {
+                                  "type": "string",
+                                  "nullable": true
                                 },
                                 "likesCount": {
                                   "type": "integer"
@@ -31907,20 +31805,6 @@
                                   "format": "date-time",
                                   "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                   "example": "2026-05-07T00:00:00.000Z"
-                                },
-                                "isAnonymous": {
-                                  "type": "boolean"
-                                },
-                                "anonymousCategory": {
-                                  "type": "string",
-                                  "nullable": true,
-                                  "enum": [
-                                    "SALARY",
-                                    "INTERVIEW",
-                                    "LAYOFF",
-                                    "TOXIC_CULTURE",
-                                    "HARASSMENT"
-                                  ]
                                 },
                                 "createdAt": {
                                   "type": "string",
@@ -31952,6 +31836,10 @@
                                       "type": "string",
                                       "nullable": true
                                     },
+                                    "headline": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
                                     "bio": {
                                       "type": "string",
                                       "nullable": true
@@ -31979,48 +31867,15 @@
                                       "type": "string",
                                       "format": "uuid"
                                     },
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "ACHIEVEMENT",
-                                        "OPPORTUNITY",
-                                        "LEARNING",
-                                        "BUILD",
-                                        "QUESTION",
-                                        "REPOST",
-                                        "CHALLENGE"
-                                      ]
-                                    },
-                                    "subtype": {
-                                      "type": "string",
-                                      "nullable": true
-                                    },
                                     "content": {
                                       "type": "string",
                                       "nullable": true
-                                    },
-                                    "hardSkills": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "softSkills": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string"
-                                      }
                                     },
                                     "hashtags": {
                                       "type": "array",
                                       "items": {
                                         "type": "string"
                                       }
-                                    },
-                                    "data": {
-                                      "type": "object",
-                                      "nullable": true,
-                                      "properties": {}
                                     },
                                     "imageUrl": {
                                       "type": "string",
@@ -32057,16 +31912,13 @@
                                         "domain"
                                       ]
                                     },
+                                    "isRepost": {
+                                      "type": "boolean"
+                                    },
                                     "originalPostId": {
                                       "type": "string",
                                       "nullable": true,
                                       "format": "uuid"
-                                    },
-                                    "coAuthors": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "string"
-                                      }
                                     },
                                     "scheduledAt": {
                                       "type": "string",
@@ -32083,6 +31935,21 @@
                                       "nullable": true,
                                       "format": "uuid"
                                     },
+                                    "pollOptions": {
+                                      "type": "array",
+                                      "nullable": true,
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "label": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "label"
+                                        ]
+                                      }
+                                    },
                                     "pollDeadline": {
                                       "type": "string",
                                       "nullable": true,
@@ -32094,23 +31961,12 @@
                                       "type": "integer"
                                     },
                                     "codeSnippet": {
-                                      "type": "object",
-                                      "nullable": true,
-                                      "properties": {
-                                        "language": {
-                                          "type": "string"
-                                        },
-                                        "code": {
-                                          "type": "string"
-                                        },
-                                        "filename": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "language",
-                                        "code"
-                                      ]
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "codeLanguage": {
+                                      "type": "string",
+                                      "nullable": true
                                     },
                                     "likesCount": {
                                       "type": "integer"
@@ -32133,20 +31989,6 @@
                                       "format": "date-time",
                                       "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                       "example": "2026-05-07T00:00:00.000Z"
-                                    },
-                                    "isAnonymous": {
-                                      "type": "boolean"
-                                    },
-                                    "anonymousCategory": {
-                                      "type": "string",
-                                      "nullable": true,
-                                      "enum": [
-                                        "SALARY",
-                                        "INTERVIEW",
-                                        "LAYOFF",
-                                        "TOXIC_CULTURE",
-                                        "HARASSMENT"
-                                      ]
                                     },
                                     "createdAt": {
                                       "type": "string",
@@ -32178,6 +32020,10 @@
                                           "type": "string",
                                           "nullable": true
                                         },
+                                        "headline": {
+                                          "type": "string",
+                                          "nullable": true
+                                        },
                                         "bio": {
                                           "type": "string",
                                           "nullable": true
@@ -32198,32 +32044,26 @@
                                   "required": [
                                     "id",
                                     "authorId",
-                                    "type",
-                                    "subtype",
                                     "content",
-                                    "hardSkills",
-                                    "softSkills",
                                     "hashtags",
-                                    "data",
                                     "imageUrl",
                                     "linkUrl",
                                     "linkPreview",
+                                    "isRepost",
                                     "originalPostId",
-                                    "coAuthors",
                                     "scheduledAt",
                                     "isPublished",
                                     "threadId",
                                     "pollDeadline",
                                     "votesCount",
                                     "codeSnippet",
+                                    "codeLanguage",
                                     "likesCount",
                                     "commentsCount",
                                     "repostsCount",
                                     "bookmarksCount",
                                     "isDeleted",
                                     "deletedAt",
-                                    "isAnonymous",
-                                    "anonymousCategory",
                                     "createdAt",
                                     "updatedAt",
                                     "author"
@@ -32233,32 +32073,26 @@
                               "required": [
                                 "id",
                                 "authorId",
-                                "type",
-                                "subtype",
                                 "content",
-                                "hardSkills",
-                                "softSkills",
                                 "hashtags",
-                                "data",
                                 "imageUrl",
                                 "linkUrl",
                                 "linkPreview",
+                                "isRepost",
                                 "originalPostId",
-                                "coAuthors",
                                 "scheduledAt",
                                 "isPublished",
                                 "threadId",
                                 "pollDeadline",
                                 "votesCount",
                                 "codeSnippet",
+                                "codeLanguage",
                                 "likesCount",
                                 "commentsCount",
                                 "repostsCount",
                                 "bookmarksCount",
                                 "isDeleted",
                                 "deletedAt",
-                                "isAnonymous",
-                                "anonymousCategory",
                                 "createdAt",
                                 "updatedAt",
                                 "author"
@@ -32269,37 +32103,30 @@
                         "required": [
                           "id",
                           "authorId",
-                          "type",
-                          "subtype",
                           "content",
-                          "hardSkills",
-                          "softSkills",
                           "hashtags",
-                          "data",
                           "imageUrl",
                           "linkUrl",
                           "linkPreview",
+                          "isRepost",
                           "originalPostId",
-                          "coAuthors",
                           "scheduledAt",
                           "isPublished",
                           "threadId",
                           "pollDeadline",
                           "votesCount",
                           "codeSnippet",
+                          "codeLanguage",
                           "likesCount",
                           "commentsCount",
                           "repostsCount",
                           "bookmarksCount",
                           "isDeleted",
                           "deletedAt",
-                          "isAnonymous",
-                          "anonymousCategory",
                           "createdAt",
                           "updatedAt",
                           "author",
                           "isLiked",
-                          "reactionType",
                           "isBookmarked",
                           "isReposted",
                           "hasVoted",
@@ -32488,48 +32315,15 @@
                             "type": "string",
                             "format": "uuid"
                           },
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "ACHIEVEMENT",
-                              "OPPORTUNITY",
-                              "LEARNING",
-                              "BUILD",
-                              "QUESTION",
-                              "REPOST",
-                              "CHALLENGE"
-                            ]
-                          },
-                          "subtype": {
-                            "type": "string",
-                            "nullable": true
-                          },
                           "content": {
                             "type": "string",
                             "nullable": true
-                          },
-                          "hardSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "softSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "hashtags": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             }
-                          },
-                          "data": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {}
                           },
                           "imageUrl": {
                             "type": "string",
@@ -32566,16 +32360,13 @@
                               "domain"
                             ]
                           },
+                          "isRepost": {
+                            "type": "boolean"
+                          },
                           "originalPostId": {
                             "type": "string",
                             "nullable": true,
                             "format": "uuid"
-                          },
-                          "coAuthors": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "scheduledAt": {
                             "type": "string",
@@ -32592,6 +32383,21 @@
                             "nullable": true,
                             "format": "uuid"
                           },
+                          "pollOptions": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label"
+                              ]
+                            }
+                          },
                           "pollDeadline": {
                             "type": "string",
                             "nullable": true,
@@ -32603,23 +32409,12 @@
                             "type": "integer"
                           },
                           "codeSnippet": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "language": {
-                                "type": "string"
-                              },
-                              "code": {
-                                "type": "string"
-                              },
-                              "filename": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "language",
-                              "code"
-                            ]
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "codeLanguage": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "likesCount": {
                             "type": "integer"
@@ -32642,20 +32437,6 @@
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "isAnonymous": {
-                            "type": "boolean"
-                          },
-                          "anonymousCategory": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "SALARY",
-                              "INTERVIEW",
-                              "LAYOFF",
-                              "TOXIC_CULTURE",
-                              "HARASSMENT"
-                            ]
                           },
                           "createdAt": {
                             "type": "string",
@@ -32687,6 +32468,10 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "headline": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "bio": {
                                 "type": "string",
                                 "nullable": true
@@ -32714,48 +32499,15 @@
                                 "type": "string",
                                 "format": "uuid"
                               },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "ACHIEVEMENT",
-                                  "OPPORTUNITY",
-                                  "LEARNING",
-                                  "BUILD",
-                                  "QUESTION",
-                                  "REPOST",
-                                  "CHALLENGE"
-                                ]
-                              },
-                              "subtype": {
-                                "type": "string",
-                                "nullable": true
-                              },
                               "content": {
                                 "type": "string",
                                 "nullable": true
-                              },
-                              "hardSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "softSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "hashtags": {
                                 "type": "array",
                                 "items": {
                                   "type": "string"
                                 }
-                              },
-                              "data": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
                               },
                               "imageUrl": {
                                 "type": "string",
@@ -32792,16 +32544,13 @@
                                   "domain"
                                 ]
                               },
+                              "isRepost": {
+                                "type": "boolean"
+                              },
                               "originalPostId": {
                                 "type": "string",
                                 "nullable": true,
                                 "format": "uuid"
-                              },
-                              "coAuthors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "scheduledAt": {
                                 "type": "string",
@@ -32818,6 +32567,21 @@
                                 "nullable": true,
                                 "format": "uuid"
                               },
+                              "pollOptions": {
+                                "type": "array",
+                                "nullable": true,
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "label": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "label"
+                                  ]
+                                }
+                              },
                               "pollDeadline": {
                                 "type": "string",
                                 "nullable": true,
@@ -32829,23 +32593,12 @@
                                 "type": "integer"
                               },
                               "codeSnippet": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {
-                                  "language": {
-                                    "type": "string"
-                                  },
-                                  "code": {
-                                    "type": "string"
-                                  },
-                                  "filename": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "language",
-                                  "code"
-                                ]
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "codeLanguage": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "likesCount": {
                                 "type": "integer"
@@ -32868,20 +32621,6 @@
                                 "format": "date-time",
                                 "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                 "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "isAnonymous": {
-                                "type": "boolean"
-                              },
-                              "anonymousCategory": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                  "SALARY",
-                                  "INTERVIEW",
-                                  "LAYOFF",
-                                  "TOXIC_CULTURE",
-                                  "HARASSMENT"
-                                ]
                               },
                               "createdAt": {
                                 "type": "string",
@@ -32913,6 +32652,10 @@
                                     "type": "string",
                                     "nullable": true
                                   },
+                                  "headline": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "bio": {
                                     "type": "string",
                                     "nullable": true
@@ -32933,32 +32676,26 @@
                             "required": [
                               "id",
                               "authorId",
-                              "type",
-                              "subtype",
                               "content",
-                              "hardSkills",
-                              "softSkills",
                               "hashtags",
-                              "data",
                               "imageUrl",
                               "linkUrl",
                               "linkPreview",
+                              "isRepost",
                               "originalPostId",
-                              "coAuthors",
                               "scheduledAt",
                               "isPublished",
                               "threadId",
                               "pollDeadline",
                               "votesCount",
                               "codeSnippet",
+                              "codeLanguage",
                               "likesCount",
                               "commentsCount",
                               "repostsCount",
                               "bookmarksCount",
                               "isDeleted",
                               "deletedAt",
-                              "isAnonymous",
-                              "anonymousCategory",
                               "createdAt",
                               "updatedAt",
                               "author"
@@ -32980,32 +32717,26 @@
                         "required": [
                           "id",
                           "authorId",
-                          "type",
-                          "subtype",
                           "content",
-                          "hardSkills",
-                          "softSkills",
                           "hashtags",
-                          "data",
                           "imageUrl",
                           "linkUrl",
                           "linkPreview",
+                          "isRepost",
                           "originalPostId",
-                          "coAuthors",
                           "scheduledAt",
                           "isPublished",
                           "threadId",
                           "pollDeadline",
                           "votesCount",
                           "codeSnippet",
+                          "codeLanguage",
                           "likesCount",
                           "commentsCount",
                           "repostsCount",
                           "bookmarksCount",
                           "isDeleted",
                           "deletedAt",
-                          "isAnonymous",
-                          "anonymousCategory",
                           "createdAt",
                           "updatedAt",
                           "author",
@@ -33511,48 +33242,15 @@
                             "type": "string",
                             "format": "uuid"
                           },
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "ACHIEVEMENT",
-                              "OPPORTUNITY",
-                              "LEARNING",
-                              "BUILD",
-                              "QUESTION",
-                              "REPOST",
-                              "CHALLENGE"
-                            ]
-                          },
-                          "subtype": {
-                            "type": "string",
-                            "nullable": true
-                          },
                           "content": {
                             "type": "string",
                             "nullable": true
-                          },
-                          "hardSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "softSkills": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "hashtags": {
                             "type": "array",
                             "items": {
                               "type": "string"
                             }
-                          },
-                          "data": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {}
                           },
                           "imageUrl": {
                             "type": "string",
@@ -33589,16 +33287,13 @@
                               "domain"
                             ]
                           },
+                          "isRepost": {
+                            "type": "boolean"
+                          },
                           "originalPostId": {
                             "type": "string",
                             "nullable": true,
                             "format": "uuid"
-                          },
-                          "coAuthors": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           },
                           "scheduledAt": {
                             "type": "string",
@@ -33615,6 +33310,21 @@
                             "nullable": true,
                             "format": "uuid"
                           },
+                          "pollOptions": {
+                            "type": "array",
+                            "nullable": true,
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label"
+                              ]
+                            }
+                          },
                           "pollDeadline": {
                             "type": "string",
                             "nullable": true,
@@ -33626,23 +33336,12 @@
                             "type": "integer"
                           },
                           "codeSnippet": {
-                            "type": "object",
-                            "nullable": true,
-                            "properties": {
-                              "language": {
-                                "type": "string"
-                              },
-                              "code": {
-                                "type": "string"
-                              },
-                              "filename": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "language",
-                              "code"
-                            ]
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "codeLanguage": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "likesCount": {
                             "type": "integer"
@@ -33665,20 +33364,6 @@
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
-                          },
-                          "isAnonymous": {
-                            "type": "boolean"
-                          },
-                          "anonymousCategory": {
-                            "type": "string",
-                            "nullable": true,
-                            "enum": [
-                              "SALARY",
-                              "INTERVIEW",
-                              "LAYOFF",
-                              "TOXIC_CULTURE",
-                              "HARASSMENT"
-                            ]
                           },
                           "createdAt": {
                             "type": "string",
@@ -33710,6 +33395,10 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "headline": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "bio": {
                                 "type": "string",
                                 "nullable": true
@@ -33737,48 +33426,15 @@
                                 "type": "string",
                                 "format": "uuid"
                               },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "ACHIEVEMENT",
-                                  "OPPORTUNITY",
-                                  "LEARNING",
-                                  "BUILD",
-                                  "QUESTION",
-                                  "REPOST",
-                                  "CHALLENGE"
-                                ]
-                              },
-                              "subtype": {
-                                "type": "string",
-                                "nullable": true
-                              },
                               "content": {
                                 "type": "string",
                                 "nullable": true
-                              },
-                              "hardSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "softSkills": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "hashtags": {
                                 "type": "array",
                                 "items": {
                                   "type": "string"
                                 }
-                              },
-                              "data": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {}
                               },
                               "imageUrl": {
                                 "type": "string",
@@ -33815,16 +33471,13 @@
                                   "domain"
                                 ]
                               },
+                              "isRepost": {
+                                "type": "boolean"
+                              },
                               "originalPostId": {
                                 "type": "string",
                                 "nullable": true,
                                 "format": "uuid"
-                              },
-                              "coAuthors": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
                               },
                               "scheduledAt": {
                                 "type": "string",
@@ -33841,6 +33494,21 @@
                                 "nullable": true,
                                 "format": "uuid"
                               },
+                              "pollOptions": {
+                                "type": "array",
+                                "nullable": true,
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "label": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "label"
+                                  ]
+                                }
+                              },
                               "pollDeadline": {
                                 "type": "string",
                                 "nullable": true,
@@ -33852,23 +33520,12 @@
                                 "type": "integer"
                               },
                               "codeSnippet": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {
-                                  "language": {
-                                    "type": "string"
-                                  },
-                                  "code": {
-                                    "type": "string"
-                                  },
-                                  "filename": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "language",
-                                  "code"
-                                ]
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "codeLanguage": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "likesCount": {
                                 "type": "integer"
@@ -33891,20 +33548,6 @@
                                 "format": "date-time",
                                 "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                                 "example": "2026-05-07T00:00:00.000Z"
-                              },
-                              "isAnonymous": {
-                                "type": "boolean"
-                              },
-                              "anonymousCategory": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                  "SALARY",
-                                  "INTERVIEW",
-                                  "LAYOFF",
-                                  "TOXIC_CULTURE",
-                                  "HARASSMENT"
-                                ]
                               },
                               "createdAt": {
                                 "type": "string",
@@ -33936,6 +33579,10 @@
                                     "type": "string",
                                     "nullable": true
                                   },
+                                  "headline": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "bio": {
                                     "type": "string",
                                     "nullable": true
@@ -33956,32 +33603,26 @@
                             "required": [
                               "id",
                               "authorId",
-                              "type",
-                              "subtype",
                               "content",
-                              "hardSkills",
-                              "softSkills",
                               "hashtags",
-                              "data",
                               "imageUrl",
                               "linkUrl",
                               "linkPreview",
+                              "isRepost",
                               "originalPostId",
-                              "coAuthors",
                               "scheduledAt",
                               "isPublished",
                               "threadId",
                               "pollDeadline",
                               "votesCount",
                               "codeSnippet",
+                              "codeLanguage",
                               "likesCount",
                               "commentsCount",
                               "repostsCount",
                               "bookmarksCount",
                               "isDeleted",
                               "deletedAt",
-                              "isAnonymous",
-                              "anonymousCategory",
                               "createdAt",
                               "updatedAt",
                               "author"
@@ -33991,32 +33632,26 @@
                         "required": [
                           "id",
                           "authorId",
-                          "type",
-                          "subtype",
                           "content",
-                          "hardSkills",
-                          "softSkills",
                           "hashtags",
-                          "data",
                           "imageUrl",
                           "linkUrl",
                           "linkPreview",
+                          "isRepost",
                           "originalPostId",
-                          "coAuthors",
                           "scheduledAt",
                           "isPublished",
                           "threadId",
                           "pollDeadline",
                           "votesCount",
                           "codeSnippet",
+                          "codeLanguage",
                           "likesCount",
                           "commentsCount",
                           "repostsCount",
                           "bookmarksCount",
                           "isDeleted",
                           "deletedAt",
-                          "isAnonymous",
-                          "anonymousCategory",
                           "createdAt",
                           "updatedAt",
                           "author"
@@ -46257,6 +45892,7 @@
         },
         "x-auth": "jwt",
         "x-guards": [
+          "rate-limit",
           "multi-step-flow"
         ]
       }
@@ -50253,9 +49889,6 @@
                         "minLength": 2,
                         "maxLength": 100
                       },
-                      "email": {
-                        "$ref": "#/components/schemas/Email"
-                      },
                       "phone": {
                         "$ref": "#/components/schemas/Phone"
                       },
@@ -50264,8 +49897,7 @@
                       }
                     },
                     "required": [
-                      "fullName",
-                      "email"
+                      "fullName"
                     ]
                   },
                   "professionalProfile": {
@@ -50280,6 +49912,10 @@
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100
+                      },
+                      "headline": {
+                        "type": "string",
+                        "maxLength": 120
                       },
                       "summary": {
                         "type": "string",
@@ -50366,7 +50002,6 @@
                   "username": "janedoe",
                   "personalInfo": {
                     "fullName": "Jane Doe",
-                    "email": "jane.doe@example.com",
                     "phone": "+1 415 555 1234",
                     "location": "San Francisco, CA"
                   },
@@ -50403,96 +50038,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-auth": "jwt"
-      }
-    },
-    "/api/v1/onboarding/preview/stream": {
-      "get": {
-        "summary": "Subscribe to live resume preview updates",
-        "description": "Streams PNG preview as base64 when onboarding data changes.",
-        "tags": [
-          "onboarding-preview"
-        ],
-        "operationId": "get_v1_onboarding_preview_stream",
-        "responses": {
-          "200": {
-            "description": "Successful response"
           },
           "400": {
             "description": "Validation error",
@@ -50751,6 +50296,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -50759,9 +50414,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -50998,9 +50650,6 @@
                         "minLength": 2,
                         "maxLength": 100
                       },
-                      "email": {
-                        "$ref": "#/components/schemas/Email"
-                      },
                       "phone": {
                         "$ref": "#/components/schemas/Phone"
                       },
@@ -51021,6 +50670,10 @@
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100
+                      },
+                      "headline": {
+                        "type": "string",
+                        "maxLength": 120
                       },
                       "summary": {
                         "type": "string",
@@ -51097,8 +50750,7 @@
                     "welcome"
                   ],
                   "personalInfo": {
-                    "fullName": "Jane Doe",
-                    "email": "jane.doe@example.com"
+                    "fullName": "Jane Doe"
                   }
                 }
               }
@@ -51398,6 +51050,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -51406,9 +51168,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -51602,6 +51361,501 @@
                   },
                   "required": [
                     "resumeId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/onboarding/session/extras": {
+      "post": {
+        "summary": "Activate optional extra steps (projects, certifications, awards, publications)",
+        "description": "Onboarding API",
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "post_v1_onboarding_session_extras",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "locale",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "extras": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "currentStep": {
+                      "type": "string"
+                    },
+                    "completedSteps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "strength": {
+                      "type": "object",
+                      "properties": {
+                        "score": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "level": {
+                          "type": "string",
+                          "enum": [
+                            "weak",
+                            "growing",
+                            "strong",
+                            "excellent",
+                            "complete"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "score",
+                        "message",
+                        "level"
+                      ]
+                    },
+                    "canProceed": {
+                      "type": "boolean"
+                    },
+                    "missingRequired": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "nextStep": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "previousStep": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "personalInfo": {
+                      "type": "object",
+                      "properties": {
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "$ref": "#/components/schemas/Phone"
+                        },
+                        "location": {
+                          "$ref": "#/components/schemas/UserLocation"
+                        }
+                      },
+                      "required": [
+                        "fullName"
+                      ]
+                    },
+                    "professionalProfile": {
+                      "type": "object",
+                      "properties": {
+                        "jobTitle": {
+                          "type": "string"
+                        },
+                        "summary": {
+                          "type": "string"
+                        },
+                        "linkedin": {
+                          "type": "string"
+                        },
+                        "github": {
+                          "type": "string"
+                        },
+                        "website": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "jobTitle"
+                      ]
+                    },
+                    "sections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "nullable": true
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "noData": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "sectionTypeKey"
+                        ]
+                      }
+                    },
+                    "templateSelection": {
+                      "type": "object",
+                      "properties": {
+                        "templateId": {
+                          "type": "string"
+                        },
+                        "colorScheme": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "currentStep",
+                    "completedSteps",
+                    "progress",
+                    "canProceed",
+                    "steps"
                   ]
                 }
               }
@@ -51895,6 +52149,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -51903,9 +52267,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -52281,6 +52642,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -52289,9 +52760,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -52651,6 +53119,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -52659,9 +53237,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -52834,7 +53409,7 @@
     },
     "/api/v1/onboarding/session/restart": {
       "post": {
-        "summary": "Restart onboarding with existing profile data",
+        "summary": "Restart onboarding (default: carry forward profile data; mode=clean: blank slate)",
         "description": "Onboarding API",
         "tags": [
           "onboarding"
@@ -52847,6 +53422,17 @@
             },
             "required": false,
             "name": "locale",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "clean"
+              ]
+            },
+            "required": false,
+            "name": "mode",
             "in": "query"
           }
         ],
@@ -53021,6 +53607,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -53029,9 +53725,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -53407,6 +54100,116 @@
                         ]
                       }
                     },
+                    "availableExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "required": {
+                            "type": "boolean"
+                          },
+                          "component": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "required": {
+                                  "type": "boolean"
+                                },
+                                "options": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "widget": {
+                                  "type": "string"
+                                },
+                                "minLength": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "maxLength": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "exclusiveMinimum": true
+                                },
+                                "pattern": {
+                                  "type": "string"
+                                },
+                                "examples": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "type",
+                                "label",
+                                "required"
+                              ]
+                            }
+                          },
+                          "noDataLabel": {
+                            "type": "string"
+                          },
+                          "placeholder": {
+                            "type": "string"
+                          },
+                          "addLabel": {
+                            "type": "string"
+                          },
+                          "multipleItems": {
+                            "type": "boolean"
+                          },
+                          "sectionTypeKey": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "description",
+                          "required",
+                          "component"
+                        ]
+                      }
+                    },
+                    "activatedExtras": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "username": {
                       "type": "string"
                     },
@@ -53415,9 +54218,6 @@
                       "properties": {
                         "fullName": {
                           "type": "string"
-                        },
-                        "email": {
-                          "$ref": "#/components/schemas/Email"
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -54576,63 +55376,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "ACHIEVEMENT",
-                      "OPPORTUNITY",
-                      "LEARNING",
-                      "BUILD",
-                      "QUESTION",
-                      "REPOST",
-                      "CHALLENGE"
-                    ]
-                  },
-                  "subtype": {
-                    "type": "string",
-                    "maxLength": 60
-                  },
                   "content": {
                     "type": "string",
                     "maxLength": 5000
-                  },
-                  "hardSkills": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 60
-                    },
-                    "maxItems": 40
-                  },
-                  "softSkills": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "maxLength": 60
-                    },
-                    "maxItems": 20
-                  },
-                  "data": {
-                    "type": "object",
-                    "properties": {}
                   },
                   "imageUrl": {
                     "$ref": "#/components/schemas/SocialUrl"
                   },
                   "linkUrl": {
                     "$ref": "#/components/schemas/SocialUrl"
-                  },
-                  "originalPostId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "coAuthors": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "maxItems": 8
                   },
                   "scheduledAt": {
                     "type": "string",
@@ -54644,51 +55396,41 @@
                     "type": "string",
                     "format": "uuid"
                   },
-                  "codeSnippet": {
-                    "type": "object",
-                    "properties": {
-                      "language": {
-                        "type": "string",
-                        "maxLength": 40
+                  "pollOptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        }
                       },
-                      "code": {
-                        "type": "string",
-                        "maxLength": 20000
-                      },
-                      "filename": {
-                        "type": "string",
-                        "maxLength": 120
-                      }
+                      "required": [
+                        "label"
+                      ]
                     },
-                    "required": [
-                      "language",
-                      "code"
-                    ]
+                    "minItems": 2,
+                    "maxItems": 4
                   },
-                  "isAnonymous": {
-                    "type": "boolean"
-                  },
-                  "anonymousCategory": {
+                  "pollDeadline": {
                     "type": "string",
-                    "enum": [
-                      "SALARY",
-                      "INTERVIEW",
-                      "LAYOFF",
-                      "TOXIC_CULTURE",
-                      "HARASSMENT"
-                    ]
+                    "format": "date-time",
+                    "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
+                    "example": "2026-05-07T00:00:00.000Z"
+                  },
+                  "codeSnippet": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "codeLanguage": {
+                    "type": "string",
+                    "maxLength": 40
                   }
                 },
-                "required": [
-                  "type"
-                ],
                 "example": {
-                  "type": "ACHIEVEMENT",
-                  "content": "Excited to share that I just shipped my first open-source library!",
-                  "hardSkills": [
-                    "typescript",
-                    "nodejs"
-                  ]
+                  "content": "Just shipped my first open-source library! Took 3 weeks of nights and weekends."
                 }
               }
             }
@@ -54718,48 +55460,15 @@
                       "type": "string",
                       "format": "uuid"
                     },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "ACHIEVEMENT",
-                        "OPPORTUNITY",
-                        "LEARNING",
-                        "BUILD",
-                        "QUESTION",
-                        "REPOST",
-                        "CHALLENGE"
-                      ]
-                    },
-                    "subtype": {
-                      "type": "string",
-                      "nullable": true
-                    },
                     "content": {
                       "type": "string",
                       "nullable": true
-                    },
-                    "hardSkills": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "softSkills": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     },
                     "hashtags": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "data": {
-                      "type": "object",
-                      "nullable": true,
-                      "properties": {}
                     },
                     "imageUrl": {
                       "type": "string",
@@ -54796,16 +55505,13 @@
                         "domain"
                       ]
                     },
+                    "isRepost": {
+                      "type": "boolean"
+                    },
                     "originalPostId": {
                       "type": "string",
                       "nullable": true,
                       "format": "uuid"
-                    },
-                    "coAuthors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     },
                     "scheduledAt": {
                       "type": "string",
@@ -54822,6 +55528,21 @@
                       "nullable": true,
                       "format": "uuid"
                     },
+                    "pollOptions": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label"
+                        ]
+                      }
+                    },
                     "pollDeadline": {
                       "type": "string",
                       "nullable": true,
@@ -54833,23 +55554,12 @@
                       "type": "integer"
                     },
                     "codeSnippet": {
-                      "type": "object",
-                      "nullable": true,
-                      "properties": {
-                        "language": {
-                          "type": "string"
-                        },
-                        "code": {
-                          "type": "string"
-                        },
-                        "filename": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "language",
-                        "code"
-                      ]
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "codeLanguage": {
+                      "type": "string",
+                      "nullable": true
                     },
                     "likesCount": {
                       "type": "integer"
@@ -54872,20 +55582,6 @@
                       "format": "date-time",
                       "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                       "example": "2026-05-07T00:00:00.000Z"
-                    },
-                    "isAnonymous": {
-                      "type": "boolean"
-                    },
-                    "anonymousCategory": {
-                      "type": "string",
-                      "nullable": true,
-                      "enum": [
-                        "SALARY",
-                        "INTERVIEW",
-                        "LAYOFF",
-                        "TOXIC_CULTURE",
-                        "HARASSMENT"
-                      ]
                     },
                     "createdAt": {
                       "type": "string",
@@ -54917,6 +55613,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "headline": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "bio": {
                           "type": "string",
                           "nullable": true
@@ -54937,32 +55637,26 @@
                   "required": [
                     "id",
                     "authorId",
-                    "type",
-                    "subtype",
                     "content",
-                    "hardSkills",
-                    "softSkills",
                     "hashtags",
-                    "data",
                     "imageUrl",
                     "linkUrl",
                     "linkPreview",
+                    "isRepost",
                     "originalPostId",
-                    "coAuthors",
                     "scheduledAt",
                     "isPublished",
                     "threadId",
                     "pollDeadline",
                     "votesCount",
                     "codeSnippet",
+                    "codeLanguage",
                     "likesCount",
                     "commentsCount",
                     "repostsCount",
                     "bookmarksCount",
                     "isDeleted",
                     "deletedAt",
-                    "isAnonymous",
-                    "anonymousCategory",
                     "createdAt",
                     "updatedAt",
                     "author"
@@ -55330,20 +56024,8 @@
                     "mentionLimit": {
                       "type": "integer"
                     },
-                    "postTypes": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "ACHIEVEMENT",
-                          "OPPORTUNITY",
-                          "LEARNING",
-                          "BUILD",
-                          "QUESTION",
-                          "REPOST",
-                          "CHALLENGE"
-                        ]
-                      }
+                    "codeEnabled": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -55356,7 +56038,7 @@
                     "pollMaxOptionLength",
                     "repostEnabled",
                     "mentionLimit",
-                    "postTypes"
+                    "codeEnabled"
                   ]
                 }
               }
@@ -55857,48 +56539,15 @@
                       "type": "string",
                       "format": "uuid"
                     },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "ACHIEVEMENT",
-                        "OPPORTUNITY",
-                        "LEARNING",
-                        "BUILD",
-                        "QUESTION",
-                        "REPOST",
-                        "CHALLENGE"
-                      ]
-                    },
-                    "subtype": {
-                      "type": "string",
-                      "nullable": true
-                    },
                     "content": {
                       "type": "string",
                       "nullable": true
-                    },
-                    "hardSkills": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "softSkills": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     },
                     "hashtags": {
                       "type": "array",
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "data": {
-                      "type": "object",
-                      "nullable": true,
-                      "properties": {}
                     },
                     "imageUrl": {
                       "type": "string",
@@ -55935,16 +56584,13 @@
                         "domain"
                       ]
                     },
+                    "isRepost": {
+                      "type": "boolean"
+                    },
                     "originalPostId": {
                       "type": "string",
                       "nullable": true,
                       "format": "uuid"
-                    },
-                    "coAuthors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     },
                     "scheduledAt": {
                       "type": "string",
@@ -55961,6 +56607,21 @@
                       "nullable": true,
                       "format": "uuid"
                     },
+                    "pollOptions": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label"
+                        ]
+                      }
+                    },
                     "pollDeadline": {
                       "type": "string",
                       "nullable": true,
@@ -55972,23 +56633,12 @@
                       "type": "integer"
                     },
                     "codeSnippet": {
-                      "type": "object",
-                      "nullable": true,
-                      "properties": {
-                        "language": {
-                          "type": "string"
-                        },
-                        "code": {
-                          "type": "string"
-                        },
-                        "filename": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "language",
-                        "code"
-                      ]
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "codeLanguage": {
+                      "type": "string",
+                      "nullable": true
                     },
                     "likesCount": {
                       "type": "integer"
@@ -56011,20 +56661,6 @@
                       "format": "date-time",
                       "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                       "example": "2026-05-07T00:00:00.000Z"
-                    },
-                    "isAnonymous": {
-                      "type": "boolean"
-                    },
-                    "anonymousCategory": {
-                      "type": "string",
-                      "nullable": true,
-                      "enum": [
-                        "SALARY",
-                        "INTERVIEW",
-                        "LAYOFF",
-                        "TOXIC_CULTURE",
-                        "HARASSMENT"
-                      ]
                     },
                     "createdAt": {
                       "type": "string",
@@ -56056,6 +56692,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "headline": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "bio": {
                           "type": "string",
                           "nullable": true
@@ -56083,48 +56723,15 @@
                           "type": "string",
                           "format": "uuid"
                         },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "ACHIEVEMENT",
-                            "OPPORTUNITY",
-                            "LEARNING",
-                            "BUILD",
-                            "QUESTION",
-                            "REPOST",
-                            "CHALLENGE"
-                          ]
-                        },
-                        "subtype": {
-                          "type": "string",
-                          "nullable": true
-                        },
                         "content": {
                           "type": "string",
                           "nullable": true
-                        },
-                        "hardSkills": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "softSkills": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
                         },
                         "hashtags": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
-                        },
-                        "data": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {}
                         },
                         "imageUrl": {
                           "type": "string",
@@ -56161,16 +56768,13 @@
                             "domain"
                           ]
                         },
+                        "isRepost": {
+                          "type": "boolean"
+                        },
                         "originalPostId": {
                           "type": "string",
                           "nullable": true,
                           "format": "uuid"
-                        },
-                        "coAuthors": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
                         },
                         "scheduledAt": {
                           "type": "string",
@@ -56187,6 +56791,21 @@
                           "nullable": true,
                           "format": "uuid"
                         },
+                        "pollOptions": {
+                          "type": "array",
+                          "nullable": true,
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "label"
+                            ]
+                          }
+                        },
                         "pollDeadline": {
                           "type": "string",
                           "nullable": true,
@@ -56198,23 +56817,12 @@
                           "type": "integer"
                         },
                         "codeSnippet": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {
-                            "language": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string"
-                            },
-                            "filename": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "language",
-                            "code"
-                          ]
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "codeLanguage": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "likesCount": {
                           "type": "integer"
@@ -56237,20 +56845,6 @@
                           "format": "date-time",
                           "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                           "example": "2026-05-07T00:00:00.000Z"
-                        },
-                        "isAnonymous": {
-                          "type": "boolean"
-                        },
-                        "anonymousCategory": {
-                          "type": "string",
-                          "nullable": true,
-                          "enum": [
-                            "SALARY",
-                            "INTERVIEW",
-                            "LAYOFF",
-                            "TOXIC_CULTURE",
-                            "HARASSMENT"
-                          ]
                         },
                         "createdAt": {
                           "type": "string",
@@ -56282,6 +56876,10 @@
                               "type": "string",
                               "nullable": true
                             },
+                            "headline": {
+                              "type": "string",
+                              "nullable": true
+                            },
                             "bio": {
                               "type": "string",
                               "nullable": true
@@ -56302,32 +56900,26 @@
                       "required": [
                         "id",
                         "authorId",
-                        "type",
-                        "subtype",
                         "content",
-                        "hardSkills",
-                        "softSkills",
                         "hashtags",
-                        "data",
                         "imageUrl",
                         "linkUrl",
                         "linkPreview",
+                        "isRepost",
                         "originalPostId",
-                        "coAuthors",
                         "scheduledAt",
                         "isPublished",
                         "threadId",
                         "pollDeadline",
                         "votesCount",
                         "codeSnippet",
+                        "codeLanguage",
                         "likesCount",
                         "commentsCount",
                         "repostsCount",
                         "bookmarksCount",
                         "isDeleted",
                         "deletedAt",
-                        "isAnonymous",
-                        "anonymousCategory",
                         "createdAt",
                         "updatedAt",
                         "author"
@@ -56337,32 +56929,26 @@
                   "required": [
                     "id",
                     "authorId",
-                    "type",
-                    "subtype",
                     "content",
-                    "hardSkills",
-                    "softSkills",
                     "hashtags",
-                    "data",
                     "imageUrl",
                     "linkUrl",
                     "linkPreview",
+                    "isRepost",
                     "originalPostId",
-                    "coAuthors",
                     "scheduledAt",
                     "isPublished",
                     "threadId",
                     "pollDeadline",
                     "votesCount",
                     "codeSnippet",
+                    "codeLanguage",
                     "likesCount",
                     "commentsCount",
                     "repostsCount",
                     "bookmarksCount",
                     "isDeleted",
                     "deletedAt",
-                    "isAnonymous",
-                    "anonymousCategory",
                     "createdAt",
                     "updatedAt",
                     "author"
@@ -57030,6 +57616,10 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "headline": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "bio": {
                                 "type": "string",
                                 "nullable": true
@@ -57100,6 +57690,10 @@
                                       "nullable": true
                                     },
                                     "photoURL": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "headline": {
                                       "type": "string",
                                       "nullable": true
                                     },
@@ -57419,6 +58013,10 @@
                           "nullable": true
                         },
                         "photoURL": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "headline": {
                           "type": "string",
                           "nullable": true
                         },
@@ -57832,21 +58430,8 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "properties": {
-                  "reactionType": {
-                    "type": "string",
-                    "enum": [
-                      "LIKE",
-                      "CELEBRATE",
-                      "LOVE",
-                      "INSIGHTFUL",
-                      "CURIOUS"
-                    ]
-                  }
-                },
-                "example": {
-                  "reactionType": "LIKE"
-                }
+                "properties": {},
+                "example": {}
               }
             }
           }
@@ -57867,31 +58452,17 @@
                       "type": "string",
                       "format": "uuid"
                     },
-                    "reactionType": {
-                      "type": "string",
-                      "enum": [
-                        "LIKE",
-                        "CELEBRATE",
-                        "LOVE",
-                        "INSIGHTFUL",
-                        "CURIOUS"
-                      ]
-                    },
                     "postAuthorId": {
                       "type": "string",
                       "format": "uuid"
                     },
                     "alreadyLiked": {
                       "type": "boolean"
-                    },
-                    "updated": {
-                      "type": "boolean"
                     }
                   },
                   "required": [
                     "postId",
                     "userId",
-                    "reactionType",
                     "alreadyLiked"
                   ]
                 }
@@ -58582,48 +59153,15 @@
                           "type": "string",
                           "format": "uuid"
                         },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "ACHIEVEMENT",
-                            "OPPORTUNITY",
-                            "LEARNING",
-                            "BUILD",
-                            "QUESTION",
-                            "REPOST",
-                            "CHALLENGE"
-                          ]
-                        },
-                        "subtype": {
-                          "type": "string",
-                          "nullable": true
-                        },
                         "content": {
                           "type": "string",
                           "nullable": true
-                        },
-                        "hardSkills": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "softSkills": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
                         },
                         "hashtags": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
-                        },
-                        "data": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {}
                         },
                         "imageUrl": {
                           "type": "string",
@@ -58660,16 +59198,13 @@
                             "domain"
                           ]
                         },
+                        "isRepost": {
+                          "type": "boolean"
+                        },
                         "originalPostId": {
                           "type": "string",
                           "nullable": true,
                           "format": "uuid"
-                        },
-                        "coAuthors": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
                         },
                         "scheduledAt": {
                           "type": "string",
@@ -58686,6 +59221,21 @@
                           "nullable": true,
                           "format": "uuid"
                         },
+                        "pollOptions": {
+                          "type": "array",
+                          "nullable": true,
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "label"
+                            ]
+                          }
+                        },
                         "pollDeadline": {
                           "type": "string",
                           "nullable": true,
@@ -58697,23 +59247,12 @@
                           "type": "integer"
                         },
                         "codeSnippet": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {
-                            "language": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string"
-                            },
-                            "filename": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "language",
-                            "code"
-                          ]
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "codeLanguage": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "likesCount": {
                           "type": "integer"
@@ -58736,20 +59275,6 @@
                           "format": "date-time",
                           "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                           "example": "2026-05-07T00:00:00.000Z"
-                        },
-                        "isAnonymous": {
-                          "type": "boolean"
-                        },
-                        "anonymousCategory": {
-                          "type": "string",
-                          "nullable": true,
-                          "enum": [
-                            "SALARY",
-                            "INTERVIEW",
-                            "LAYOFF",
-                            "TOXIC_CULTURE",
-                            "HARASSMENT"
-                          ]
                         },
                         "createdAt": {
                           "type": "string",
@@ -58781,6 +59306,10 @@
                               "type": "string",
                               "nullable": true
                             },
+                            "headline": {
+                              "type": "string",
+                              "nullable": true
+                            },
                             "bio": {
                               "type": "string",
                               "nullable": true
@@ -58807,32 +59336,26 @@
                       "required": [
                         "id",
                         "authorId",
-                        "type",
-                        "subtype",
                         "content",
-                        "hardSkills",
-                        "softSkills",
                         "hashtags",
-                        "data",
                         "imageUrl",
                         "linkUrl",
                         "linkPreview",
+                        "isRepost",
                         "originalPostId",
-                        "coAuthors",
                         "scheduledAt",
                         "isPublished",
                         "threadId",
                         "pollDeadline",
                         "votesCount",
                         "codeSnippet",
+                        "codeLanguage",
                         "likesCount",
                         "commentsCount",
                         "repostsCount",
                         "bookmarksCount",
                         "isDeleted",
                         "deletedAt",
-                        "isAnonymous",
-                        "anonymousCategory",
                         "createdAt",
                         "updatedAt",
                         "author",
@@ -94717,6 +95240,10 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "headline": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "location": {
                       "type": "string",
                       "nullable": true
@@ -94901,6 +95428,10 @@
                   "bio": {
                     "$ref": "#/components/schemas/ShortDescription"
                   },
+                  "headline": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
                   "location": {
                     "$ref": "#/components/schemas/UserLocation"
                   },
@@ -94969,6 +95500,10 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "headline": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "location": {
                       "type": "string",
                       "nullable": true
@@ -95028,6 +95563,10 @@
                           "nullable": true
                         },
                         "bio": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "headline": {
                           "type": "string",
                           "nullable": true
                         },
@@ -96615,6 +97154,10 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "headline": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "bio": {
                                 "type": "string",
                                 "nullable": true
@@ -96635,9 +97178,6 @@
                             "type": "object",
                             "properties": {
                               "id": {
-                                "type": "string"
-                              },
-                              "type": {
                                 "type": "string"
                               },
                               "content": {
@@ -96666,6 +97206,10 @@
                                     "type": "string",
                                     "nullable": true
                                   },
+                                  "headline": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "bio": {
                                     "type": "string",
                                     "nullable": true
@@ -96685,7 +97229,6 @@
                             },
                             "required": [
                               "id",
-                              "type",
                               "content",
                               "authorId",
                               "author"
@@ -98996,14 +99539,14 @@
         "x-permission": "social:use"
       }
     },
-    "/api/v1/users/{userId}/reactions": {
+    "/api/v1/users/{userId}/likes": {
       "get": {
-        "summary": "List reactions given by a user",
+        "summary": "List likes given by a user",
         "description": "User-scoped feed engagement",
         "tags": [
           "user-engagement"
         ],
-        "operationId": "get_v1_users_userId_reactions",
+        "operationId": "get_v1_users_userId_likes",
         "parameters": [
           {
             "schema": {
@@ -99055,16 +99598,6 @@
                             "type": "string",
                             "format": "uuid"
                           },
-                          "reactionType": {
-                            "type": "string",
-                            "enum": [
-                              "LIKE",
-                              "CELEBRATE",
-                              "LOVE",
-                              "INSIGHTFUL",
-                              "CURIOUS"
-                            ]
-                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time",
@@ -99075,9 +99608,6 @@
                             "type": "object",
                             "properties": {
                               "id": {
-                                "type": "string"
-                              },
-                              "type": {
                                 "type": "string"
                               },
                               "content": {
@@ -99106,6 +99636,10 @@
                                     "type": "string",
                                     "nullable": true
                                   },
+                                  "headline": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "bio": {
                                     "type": "string",
                                     "nullable": true
@@ -99125,7 +99659,6 @@
                             },
                             "required": [
                               "id",
-                              "type",
                               "content",
                               "authorId",
                               "author"
@@ -99135,7 +99668,6 @@
                         "required": [
                           "postId",
                           "userId",
-                          "reactionType",
                           "createdAt",
                           "post"
                         ]
@@ -102162,9 +102694,6 @@
     },
     {
       "name": "onboarding"
-    },
-    {
-      "name": "onboarding-preview"
     },
     {
       "name": "pages"

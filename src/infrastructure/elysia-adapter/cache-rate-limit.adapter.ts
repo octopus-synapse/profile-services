@@ -33,14 +33,17 @@ export class CacheRateLimiter {
       return { allowed: true, remaining: spec.limit, resetAt: Date.now() + spec.ttl * 1000 };
     }
     const counterKey = `ratelimit:${key}`;
-    const current = (await this.cache.get<number>(counterKey)) ?? 0;
-    if (current >= spec.limit) {
+    // P0-#15: use an atomic increment so two concurrent requests can't both
+    // observe `current < limit` and both pass. With the old `get → check →
+    // set` an attacker could spray N parallel login attempts and have all N
+    // succeed even though `limit=5`; INCR is the standard Redis-side fix.
+    const next = await this.cache.incrWithTtl(counterKey, spec.ttl);
+    if (next > spec.limit) {
       return { allowed: false, remaining: 0, resetAt: Date.now() + spec.ttl * 1000 };
     }
-    await this.cache.set(counterKey, current + 1, spec.ttl);
     return {
       allowed: true,
-      remaining: spec.limit - current - 1,
+      remaining: spec.limit - next,
       resetAt: Date.now() + spec.ttl * 1000,
     };
   }
