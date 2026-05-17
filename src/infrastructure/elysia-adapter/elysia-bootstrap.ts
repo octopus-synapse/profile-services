@@ -145,6 +145,7 @@ import { OwnershipRegistry } from '@/shared-kernel/authorization';
 import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
+import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
 import { InProcessShutdownOrchestrator } from '@/shared-kernel/lifecycle/on-shutdown.port';
 import { assertBullmqRequiredInProd } from './assert-bullmq-required-in-prod';
@@ -937,34 +938,14 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // --- Mount routes on Elysia ---
   // CORS + security-header defaults are wired here so they apply to
-  // every route uniformly. Origin allowlist is environment-driven —
-  // wildcard is rejected outside development to avoid the
-  // OWASP A05 misconfiguration (P1-029).
+  // every route uniformly. P1 #11 — `buildCorsAllowlist` always
+  // returns an explicit array, NEVER `true` (which would have echoed
+  // the caller's Origin under `credentials: true`). Production /
+  // staging boots fail-fast if no allowlist is configured.
   const app = new Elysia();
-  const corsOrigin = config.getOrDefault<string>('CORS_ORIGIN', '');
-  const allowedOrigins = corsOrigin
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  const isProduction = config.get('NODE_ENV') === 'production';
-  // P1-029 — fail-closed when `CORS_ORIGIN` is empty in non-dev. The
-  // previous default `origin: true` echoed any caller's `Origin` back
-  // and let credentialed cross-site requests through. In production we
-  // now reject every cross-origin request (`origin: false`) until an
-  // explicit allowlist is provisioned. Dev keeps the wildcard so local
-  // tooling (Postman, Storybook on a different port) just works.
-  const corsOriginConfig: string[] | true | false =
-    allowedOrigins.length > 0 ? allowedOrigins : !isProduction;
-  if (allowedOrigins.length === 0 && isProduction) {
-    logger.warn(
-      'CORS_ORIGIN not set in production — rejecting all cross-origin requests',
-      'ElysiaBootstrap',
-    );
-  }
-  enableCors(app, {
-    origin: corsOriginConfig,
-    isProduction,
-  });
+  const isProduction = config.env.NODE_ENV === 'production';
+  const allowlist = buildCorsAllowlist(config);
+  enableCors(app, { origin: allowlist, isProduction });
   applySecurityHeaders(app);
   for (const bc of [
     badges,

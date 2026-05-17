@@ -155,6 +155,10 @@ export const EnvConfigSchema = z
 
     // --- CORS / WebSocket origin allowlist ---
     CORS_ORIGIN: z.string().optional(),
+    // P1 #11 — alias / extension of CORS_ORIGIN. `buildCorsAllowlist`
+    // merges both into the final list so an operator can split the
+    // legacy single-source config without disturbing existing deploys.
+    CORS_ALLOWED_ORIGINS: z.string().optional(),
     ALLOWED_WS_ORIGINS: z.string().optional(),
 
     // --- Logging ---

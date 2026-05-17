@@ -18,8 +18,11 @@ import { cors } from '@elysiajs/cors';
 import type { Elysia } from 'elysia';
 
 export interface CorsOptions {
-  /** Origin allowlist, or `true` to mirror the requesting origin. */
-  origin: string | string[] | boolean;
+  /** Explicit origin allowlist. P1 #11 — booleans (which echo back
+   *  the caller's `Origin`) are intentionally rejected at the type
+   *  level so a future refactor can't silently re-enable origin
+   *  reflection while `credentials: true` is set. */
+  origin: string | string[];
   isProduction?: boolean;
 }
 
