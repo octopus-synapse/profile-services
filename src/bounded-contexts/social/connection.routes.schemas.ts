@@ -6,12 +6,10 @@
  */
 
 import { z } from 'zod';
-import {
-  PaginatedResponseSchema,
-  PaginationQuerySchema,
-} from '@/shared-kernel/schemas/common/api.types';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { LimitSchema, PageSchema } from '@/shared-kernel/schemas/primitives/pagination.schema';
 import type { ConnectionService } from './services/connection.service';
 import type { FollowService } from './services/follow.service';
 
@@ -22,7 +20,10 @@ export abstract class ConnectionRoutesBundle {
 
 export const UserIdParam = UserIdParamSchema;
 export const IdParam = IdParamSchema;
-export const PageQuery = PaginationQuerySchema;
+// P1 #34 — connection listing routes do not accept `sortBy`. Build
+// the schema without it so an unrecognised query param is a 400 at
+// the schema layer rather than silently ignored by the use case.
+export const PageQuery = z.object({ page: PageSchema, limit: LimitSchema });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const ConnectionUserSchema = z.object({

@@ -91082,27 +91082,6 @@
             "required": false,
             "name": "limit",
             "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
           }
         ],
         "responses": {
@@ -91412,27 +91391,6 @@
             },
             "required": false,
             "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
             "in": "query"
           }
         ],
@@ -91744,27 +91702,6 @@
             "required": false,
             "name": "limit",
             "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
           }
         ],
         "responses": {
@@ -92074,27 +92011,6 @@
             },
             "required": false,
             "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
             "in": "query"
           }
         ],
@@ -96472,27 +96388,6 @@
             "required": false,
             "name": "limit",
             "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
           }
         ],
         "responses": {
@@ -96785,27 +96680,6 @@
             },
             "required": false,
             "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
             "in": "query"
           }
         ],
@@ -97772,27 +97646,6 @@
             "required": false,
             "name": "limit",
             "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
           }
         ],
         "responses": {
@@ -98504,27 +98357,6 @@
             "required": false,
             "name": "limit",
             "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
-            "in": "query"
           }
         ],
         "responses": {
@@ -98844,27 +98676,6 @@
             },
             "required": false,
             "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
             "in": "query"
           }
         ],
@@ -100558,27 +100369,6 @@
             },
             "required": false,
             "name": "limit",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "required": false,
-            "name": "sortBy",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "required": false,
-            "name": "sortOrder",
             "in": "query"
           }
         ],

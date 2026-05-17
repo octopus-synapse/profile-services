@@ -4,12 +4,10 @@
  */
 
 import { z } from 'zod';
-import {
-  PaginatedResponseSchema,
-  PaginationQuerySchema,
-} from '@/shared-kernel/schemas/common/api.types';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { LimitSchema, PageSchema } from '@/shared-kernel/schemas/primitives/pagination.schema';
 import type { SkillEndorsementService } from './services/skill-endorsement.service';
 
 export abstract class SkillEndorsementRoutesBundle {
@@ -18,7 +16,9 @@ export abstract class SkillEndorsementRoutesBundle {
 
 export const UserIdParam = UserIdParamSchema;
 export const UserIdAndSkillParam = UserIdParamSchema.extend({ skill: z.string() });
-export const PageQuery = PaginationQuerySchema;
+// P1 #34 — endorsement listing routes do not accept `sortBy`. Reject
+// unknown query params at the schema layer.
+export const PageQuery = z.object({ page: PageSchema, limit: LimitSchema });
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const UserSkillSummarySchema = z.object({

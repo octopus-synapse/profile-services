@@ -7,12 +7,10 @@
  */
 
 import { z } from 'zod';
-import {
-  PaginatedResponseSchema,
-  PaginationQuerySchema,
-} from '@/shared-kernel/schemas/common/api.types';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { IdParamSchema, UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { LimitSchema, PageSchema } from '@/shared-kernel/schemas/primitives/pagination.schema';
 import type {
   ActivityLoggerPort,
   ConnectionReaderPort,
@@ -26,7 +24,9 @@ export abstract class FollowRoutesBundle {
 }
 
 export const UserIdParam = UserIdParamSchema;
-export const PageQuery = PaginationQuerySchema;
+// P1 #34 — follow listing routes do not accept `sortBy` (chronological
+// only). Reject unknown query params at the schema layer.
+export const PageQuery = z.object({ page: PageSchema, limit: LimitSchema });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 export const FollowUserSchema = z.object({

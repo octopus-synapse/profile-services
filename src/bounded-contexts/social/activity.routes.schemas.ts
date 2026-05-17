@@ -30,18 +30,23 @@ export abstract class ActivitySseBundle {
   ): Observable<ActivityFeedSseEvent>;
 }
 
-import {
-  PaginatedResponseSchema,
-  PaginationQuerySchema,
-} from '@/shared-kernel/schemas/common/api.types';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
 import { UserIdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+import { LimitSchema, PageSchema } from '@/shared-kernel/schemas/primitives/pagination.schema';
 
 export const UserIdParam = UserIdParamSchema;
 export const UserIdAndTypeParam = UserIdParamSchema.extend({ type: z.string() }).openapi({
   example: { userId: '01900000-0000-7000-a000-000000000020', type: 'RESUME_CREATED' },
 });
-export const PageQuery = PaginationQuerySchema;
+
+// P1 #34 — activity feed routes do not accept `sortBy`; the default
+// ordering is `createdAt DESC` and there is no UI surface to change
+// it. Build the schema explicitly (instead of inheriting the open
+// `PaginationQuerySchema` which would silently tolerate any sortBy
+// string) so a request shipping `?sortBy=anything` gets a 400 from
+// the schema layer, not a use-case that silently ignores it.
+export const PageQuery = z.object({ page: PageSchema, limit: LimitSchema });
 
 // ─── Response schemas ─────────────────────────────────────────────────
 //
