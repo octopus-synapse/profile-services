@@ -78,15 +78,23 @@ export class InProcessShutdownOrchestrator extends OnShutdownPort {
   private async runOne(task: ShutdownTask, failFast: boolean): Promise<void> {
     const timeoutMs = task.timeoutMs ?? this.defaultTimeoutMs;
     const startedAt = Date.now();
+    // P1 #48 — the previous body created a `setTimeout`, raced it
+    // against `task.run()`, and never cleared the handle on the happy
+    // path. Each successful shutdown task left a live timer in the
+    // event loop, holding the process open past SIGTERM until the
+    // longest-configured timeout elapsed. Hoist the handle so the
+    // `finally` block clears it on every path (success, throw,
+    // timeout) — the orchestrator now leaks zero timers per call.
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       await Promise.race([
         Promise.resolve(task.run()),
-        new Promise<never>((_, reject) =>
-          setTimeout(
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
             () => reject(new Error(`shutdown task ${task.name} timed out after ${timeoutMs}ms`)),
             timeoutMs,
-          ),
-        ),
+          );
+        }),
       ]);
       this.logger?.debug(
         `Shutdown task ${task.name} done in ${Date.now() - startedAt}ms`,
@@ -99,6 +107,8 @@ export class InProcessShutdownOrchestrator extends OnShutdownPort {
         stack: err instanceof Error ? err.stack : undefined,
       });
       if (failFast) throw err;
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
     }
   }
 }
