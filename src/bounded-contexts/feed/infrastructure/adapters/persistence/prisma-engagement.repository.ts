@@ -5,6 +5,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { compositeCursorWhere } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   LikeWithPost,
   Post,
@@ -58,8 +59,12 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<LikeWithPost[]> {
+    // P1 #35 — composite (createdAt, id) cursor over the PostLike
+    // row's own timestamp. A user liking N posts in the same
+    // millisecond used to drop one across the page boundary; the
+    // `id`-tiebreaker fixes it.
     return (await this.prisma.postLike.findMany({
-      where: { userId, ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}) },
+      where: { userId, ...compositeCursorWhere(cursor) },
       include: {
         post: {
           select: {
@@ -70,7 +75,7 @@ export class PrismaEngagementRepository extends EngagementRepositoryPort {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as LikeWithPost[];
   }

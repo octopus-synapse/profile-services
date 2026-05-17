@@ -94,3 +94,56 @@ export function tryDecodeCursor(raw: string | null | undefined): CompositeCursor
     return null;
   }
 }
+
+/**
+ * Build a Prisma-style `where` fragment expressing the composite
+ * `(createdAt, id)` strict-less-than predicate for any model that has
+ * those two columns. Returns `{}` when `cursor` is undefined / null so
+ * callers can spread the result unconditionally:
+ *
+ *   where: { userId, ...compositeCursorWhere(cursor) }
+ *
+ * Legacy callers that still pass a plain ISO timestamp degrade
+ * gracefully to the single-column predicate (no tiebreaker, but no
+ * 400 either) so SDK regens can roll out independently from server
+ * deploys.
+ *
+ * Lifted from `prisma-feed.repository.ts` (P1 #35 — Wave 1.3 first
+ * adopter) so the remaining cursor-paginated read paths
+ * (`listBookmarks`, `PrismaCommentRepository`, `PrismaEngagementRepository`)
+ * can share the same implementation.
+ */
+export type CompositeCursorWhere =
+  | Record<string, never>
+  | { createdAt: { lt: Date } }
+  | {
+      OR: Array<{ createdAt: { lt: Date } } | { createdAt: Date; id: { lt: string } }>;
+    };
+
+export function compositeCursorWhere(cursor: string | undefined | null): CompositeCursorWhere {
+  if (!cursor) return {};
+  const decoded = tryDecodeCursor(cursor);
+  if (decoded) {
+    return {
+      OR: [
+        { createdAt: { lt: decoded.createdAt } },
+        { createdAt: decoded.createdAt, id: { lt: decoded.id } },
+      ],
+    };
+  }
+  const legacy = new Date(cursor);
+  if (Number.isNaN(legacy.getTime())) return {};
+  return { createdAt: { lt: legacy } };
+}
+
+/** Encode the trailing row of a page into a cursor; returns `null`
+ *  when the page is incomplete (signals end-of-list to the client). */
+export function nextCursorFromPage<T extends { readonly createdAt: Date; readonly id: string }>(
+  items: ReadonlyArray<T>,
+  limit: number,
+): string | null {
+  if (items.length < limit) return null;
+  const last = items[items.length - 1];
+  if (!last) return null;
+  return encodeCursor(last.createdAt, last.id);
+}

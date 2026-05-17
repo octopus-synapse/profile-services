@@ -20,6 +20,11 @@ export class ListUserLikesUseCase {
   ): Promise<ReactionsResult<LikeWithPost>> {
     const safeLimit = Math.min(limit ?? 20, MAX_LIMIT);
     const likes = await this.repository.listLikesByUser(userId, cursor, safeLimit);
+    // P1 #35 — repo `where` now decodes both legacy ISO and composite
+    // cursors; the entity does not expose the like's own `id`, so the
+    // next-cursor stays single-column for now. `LikeWithPost` would
+    // need an extra `id` field to upgrade encoding here without
+    // breaking the public response shape.
     const nextCursor =
       likes.length === safeLimit ? likes[likes.length - 1].createdAt.toISOString() : null;
     const sanitized = likes.map(({ postId, userId, createdAt, post }) => ({

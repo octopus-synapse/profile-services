@@ -9,9 +9,8 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import {
-  type CompositeCursor,
+  compositeCursorWhere as buildCompositeCursorWhere,
   encodeCursor,
-  tryDecodeCursor,
 } from '@/shared-kernel/persistence/composite-cursor';
 import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
@@ -36,25 +35,14 @@ const AUTHOR_SELECT = {
 
 /**
  * P1 #35 — Build a Prisma `where` fragment for the composite
- * `(createdAt, id)` cursor. Legacy callers that still pass a plain
- * ISO string degrade gracefully to the single-column predicate
- * (no tiebreaker, but no 400 either) so an SDK regen can roll out
- * independently.
+ * `(createdAt, id)` cursor. Thin wrapper around the shared-kernel
+ * helper to keep the local `Prisma.PostWhereInput` signature inferred
+ * cleanly at every call site (the shared union type widens to "any
+ * model with createdAt+id", which Prisma's generated where types
+ * cannot narrow on their own).
  */
 function compositeCursorWhere(cursor: string | undefined): Prisma.PostWhereInput {
-  if (!cursor) return {};
-  const decoded: CompositeCursor | null = tryDecodeCursor(cursor);
-  if (decoded) {
-    return {
-      OR: [
-        { createdAt: { lt: decoded.createdAt } },
-        { createdAt: decoded.createdAt, id: { lt: decoded.id } },
-      ],
-    };
-  }
-  const legacy = new Date(cursor);
-  if (Number.isNaN(legacy.getTime())) return {};
-  return { createdAt: { lt: legacy } };
+  return buildCompositeCursorWhere(cursor) as Prisma.PostWhereInput;
 }
 
 export class PrismaFeedRepository extends FeedRepositoryPort {
@@ -230,10 +218,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<{ posts: BookmarkedFeedItem[]; nextCursor: string | null }> {
+    // P1 #35 — composite (createdAt, id) cursor over the
+    // `PostBookmark` row's own timestamp so two users bookmarking the
+    // same post inside the same millisecond don't drop either bookmark
+    // from the page boundary.
     const bookmarks = await this.prisma.postBookmark.findMany({
       where: {
         userId,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...buildCompositeCursorWhere(cursor),
       },
       include: {
         post: {
@@ -243,7 +235,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
 
@@ -254,8 +246,9 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       isLiked: false,
       isBookmarked: true,
     }));
+    const last = bookmarks[bookmarks.length - 1];
     const nextCursor =
-      bookmarks.length === limit ? bookmarks[bookmarks.length - 1].createdAt.toISOString() : null;
+      bookmarks.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
     return { posts, nextCursor };
   }
 

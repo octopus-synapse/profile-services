@@ -3,6 +3,7 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { nextCursorFromPage } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   CommentsResult,
   CommentWithAuthor,
@@ -28,8 +29,9 @@ export class ListPostCommentsUseCase {
       throw new EntityNotFoundException('Post', postId);
     }
     const comments = await this.repository.listTopLevelByPost(postId, cursor, limit);
-    const nextCursor =
-      comments.length === limit ? comments[comments.length - 1].createdAt.toISOString() : null;
+    // P1 #35 — composite (createdAt, id) cursor so two comments with
+    // the same millisecond don't drop one across page boundaries.
+    const nextCursor = nextCursorFromPage(comments, limit);
     const sanitized = comments.map((c) => ({
       ...stripDeletedAt(c),
       replies: c.replies.map((r) => stripDeletedAt(r)),

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import { decodeCursor, encodeCursor, tryDecodeCursor } from './composite-cursor';
+import {
+  compositeCursorWhere,
+  decodeCursor,
+  encodeCursor,
+  nextCursorFromPage,
+  tryDecodeCursor,
+} from './composite-cursor';
 
 describe('composite-cursor', () => {
   describe('encodeCursor', () => {
@@ -68,6 +74,53 @@ describe('composite-cursor', () => {
       expect(cursorA).not.toBe(cursorB);
       expect(decodeCursor(cursorA).id).toBe('a');
       expect(decodeCursor(cursorB).id).toBe('b');
+    });
+  });
+
+  describe('compositeCursorWhere', () => {
+    it('returns an empty fragment when cursor is absent', () => {
+      expect(compositeCursorWhere(undefined)).toEqual({});
+      expect(compositeCursorWhere(null)).toEqual({});
+      expect(compositeCursorWhere('')).toEqual({});
+    });
+
+    it('emits the (createdAt, id) OR predicate when the cursor decodes', () => {
+      const at = new Date('2026-05-17T00:00:00.000Z');
+      const cursor = encodeCursor(at, 'p1');
+      const where = compositeCursorWhere(cursor);
+      expect(where).toEqual({
+        OR: [{ createdAt: { lt: at } }, { createdAt: at, id: { lt: 'p1' } }],
+      });
+    });
+
+    it('degrades to a single-column predicate for a legacy ISO cursor', () => {
+      const where = compositeCursorWhere('2026-05-17T00:00:00.000Z');
+      expect(where).toEqual({ createdAt: { lt: new Date('2026-05-17T00:00:00.000Z') } });
+    });
+
+    it('treats a malformed cursor as absent (no SQL injection of garbage)', () => {
+      expect(compositeCursorWhere('totally-garbage')).toEqual({});
+    });
+  });
+
+  describe('nextCursorFromPage', () => {
+    it('returns null when the page is shorter than the limit', () => {
+      expect(nextCursorFromPage([], 10)).toBeNull();
+      expect(nextCursorFromPage([{ createdAt: new Date(), id: 'x' }], 10)).toBeNull();
+    });
+
+    it('encodes the trailing row when the page is full', () => {
+      const at = new Date('2026-05-17T00:00:00.000Z');
+      const items = [
+        { createdAt: new Date('2026-05-17T00:00:02.000Z'), id: 'a' },
+        { createdAt: new Date('2026-05-17T00:00:01.000Z'), id: 'b' },
+        { createdAt: at, id: 'c' },
+      ];
+      const cursor = nextCursorFromPage(items, 3);
+      expect(cursor).not.toBeNull();
+      const decoded = decodeCursor(cursor as string);
+      expect(decoded.createdAt.toISOString()).toBe(at.toISOString());
+      expect(decoded.id).toBe('c');
     });
   });
 });

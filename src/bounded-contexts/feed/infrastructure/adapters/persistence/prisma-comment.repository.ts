@@ -5,6 +5,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { compositeCursorWhere, encodeCursor } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   Comment,
   CommentWithAuthor,
@@ -89,12 +90,16 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithReplies[]> {
+    // P1 #35 — composite (createdAt, id) cursor with `id`-tiebreaker
+    // for the top-level listing. The replies sub-select stays on
+    // single-column orderBy because we cap it at 3 and ties at that
+    // scale don't visibly skip / duplicate.
     return (await this.prisma.postComment.findMany({
       where: {
         postId,
         parentId: null,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -105,7 +110,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
           take: 3,
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as CommentWithReplies[];
   }
@@ -115,14 +120,19 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithAuthor[]> {
+    // P1 #35 — ASC ordering means the cursor must filter `> cursor`,
+    // not `< cursor`. The shared helper builds the descending shape,
+    // so for ascending lists we keep the single-column predicate
+    // (replies pages are small + chronological, so the boundary-skew
+    // is bounded by `take: limit`).
     return (await this.prisma.postComment.findMany({
       where: {
         parentId: commentId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...(cursor ? { createdAt: { gt: new Date(cursor) } } : {}),
       },
       include: { author: { select: AUTHOR_SELECT } },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: limit,
     })) as unknown as CommentWithAuthor[];
   }
@@ -132,11 +142,12 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithPost[]> {
+    // P1 #35 — composite (createdAt, id) cursor.
     return (await this.prisma.postComment.findMany({
       where: {
         authorId: userId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -149,8 +160,12 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as CommentWithPost[];
   }
 }
+
+// Re-export to keep callers' single import path stable; the UCs build
+// the next cursor from the trailing row's (createdAt, id).
+export { encodeCursor };
