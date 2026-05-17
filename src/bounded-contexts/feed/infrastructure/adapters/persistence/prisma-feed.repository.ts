@@ -8,6 +8,7 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
   BookmarkedFeedItem,
   PersistPostInput,
@@ -85,6 +86,38 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     await this.prisma.post.update({
       where: { id: originalPostId },
       data: { repostsCount: { increment: by } },
+    });
+  }
+
+  async softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }> {
+    // P1 #31 — atomic soft-delete + repost-count decrement. Reading
+    // originalPostId before the flip and decrementing inside the
+    // same tx prevents a window where the post is tombstoned but
+    // the original still advertises an inflated repostsCount.
+    return runInTransaction(this.prisma, async (tx) => {
+      const row = await tx.post.findUnique({
+        where: { id },
+        select: { originalPostId: true, isDeleted: true },
+      });
+      if (!row || row.isDeleted) {
+        return { mutated: false, originalPostId: row?.originalPostId ?? null };
+      }
+      const result = await tx.post.updateMany({
+        where: { id, isDeleted: false },
+        data: { isDeleted: true, deletedAt: new Date() },
+      });
+      if (result.count === 0) {
+        return { mutated: false, originalPostId: row.originalPostId };
+      }
+      if (row.originalPostId) {
+        await tx.post.update({
+          where: { id: row.originalPostId },
+          data: { repostsCount: { decrement: 1 } }, // lint-allow-magic-number: one repost removed = -1
+        });
+      }
+      return { mutated: true, originalPostId: row.originalPostId };
     });
   }
 

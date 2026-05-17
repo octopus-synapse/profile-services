@@ -27,4 +27,39 @@ describe('DeletePostUseCase', () => {
     const { useCase } = make();
     await expect(useCase.execute('missing', 'me')).rejects.toThrow(EntityNotFoundException);
   });
+
+  it('decrements the original post repostsCount when deleting a repost', async () => {
+    const { repo, useCase } = make();
+    repo.seedPost({ id: 'p-original', authorId: 'op', repostsCount: 1 });
+    repo.seedPost({
+      id: 'p-repost',
+      authorId: 'me',
+      isRepost: true,
+      originalPostId: 'p-original',
+    });
+    await useCase.execute('p-repost', 'me');
+    expect(repo.posts.get('p-repost')?.isDeleted).toBe(true);
+    expect(repo.posts.get('p-original')?.repostsCount).toBe(0);
+  });
+
+  it('does not decrement repostsCount when deleting a non-repost', async () => {
+    const { repo, useCase } = make();
+    repo.seedPost({ id: 'standalone', authorId: 'me', repostsCount: 0 });
+    await useCase.execute('standalone', 'me');
+    expect(repo.posts.get('standalone')?.isDeleted).toBe(true);
+  });
+
+  it('is idempotent: second delete is a no-op and does not double-decrement', async () => {
+    const { repo, useCase } = make();
+    repo.seedPost({ id: 'p-original', authorId: 'op', repostsCount: 1 });
+    repo.seedPost({
+      id: 'p-repost',
+      authorId: 'me',
+      isRepost: true,
+      originalPostId: 'p-original',
+    });
+    await useCase.execute('p-repost', 'me');
+    await useCase.execute('p-repost', 'me');
+    expect(repo.posts.get('p-original')?.repostsCount).toBe(0);
+  });
 });

@@ -185,6 +185,26 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     this.posts.set(originalPostId, { ...current, repostsCount: current.repostsCount + by });
   }
 
+  async softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }> {
+    const current = this.posts.get(id);
+    if (!current || current.isDeleted) {
+      return { mutated: false, originalPostId: current?.originalPostId ?? null };
+    }
+    this.posts.set(id, { ...current, isDeleted: true, deletedAt: new Date() });
+    if (current.originalPostId) {
+      const original = this.posts.get(current.originalPostId);
+      if (original) {
+        this.posts.set(current.originalPostId, {
+          ...original,
+          repostsCount: original.repostsCount - 1,
+        });
+      }
+    }
+    return { mutated: true, originalPostId: current.originalPostId };
+  }
+
   async listFollowedAndConnectionIds(
     userId: string,
   ): Promise<{ followingIds: string[]; connectionIds: string[] }> {

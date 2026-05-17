@@ -23,6 +23,16 @@ export abstract class FeedRepositoryPort {
   abstract markPostDeleted(id: string): Promise<Post>;
   abstract incrementRepostCount(originalPostId: string, by: number): Promise<void>;
 
+  /**
+   * Idempotent soft-delete that, when the post is a repost, decrements
+   * `originalPost.repostsCount` in the same transaction. Returns
+   * `mutated: true` iff this call was the one that flipped the row,
+   * so the caller can publish exactly one DomainEvent.
+   */
+  abstract softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }>;
+
   // -------- Timeline / listings --------
   abstract listFollowedAndConnectionIds(
     userId: string,
