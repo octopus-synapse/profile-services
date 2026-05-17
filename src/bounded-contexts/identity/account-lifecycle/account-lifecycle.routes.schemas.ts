@@ -23,15 +23,16 @@ import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.s
 
 export const AcceptConsentRequestSchema = z
   .object({
+    // P1 #14 — `ipAddress` and `userAgent` are intentionally NOT
+    // accepted from the client body. They are server-derived from the
+    // request (ctx.ip / ctx.userAgent) so the audit trail cannot be
+    // forged by a caller passing a fake IP. The schema is the
+    // narrowest possible to keep the contract honest.
     documentType: z.enum(['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT']),
-    ipAddress: z.string().ip().optional(),
-    userAgent: z.string().optional(),
   })
   .openapi({
     example: {
       documentType: 'TERMS_OF_SERVICE',
-      ipAddress: '203.0.113.42',
-      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
     },
   });
 

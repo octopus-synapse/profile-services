@@ -182,8 +182,11 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof AcceptConsentRequestSchema>;
       const userId = ctx.user!.userId;
-      const ipAddress = dto.ipAddress ?? ctx.ip ?? '';
-      const userAgent = dto.userAgent ?? ctx.userAgent ?? '';
+      // P1 #14 — audit trail MUST be server-derived. Never trust a
+      // client-supplied IP / userAgent here; the schema dropped both
+      // fields so even a misbehaving client can't smuggle them in.
+      const ipAddress = ctx.ip ?? '';
+      const userAgent = ctx.userAgent ?? '';
 
       const consent = await bc.acceptConsent.execute({
         userId,
