@@ -52,8 +52,8 @@ describe('arch: repository naming — no findAll*', () => {
     }
 
     if (offenders.length > 0) {
-      const lines = offenders.map((o) => '  - ' + o.file + ': ' + o.method).join('\n');
-      throw new Error('findAll* antipattern detected — rename to list*:\n' + lines);
+      const lines = offenders.map((o) => `  - ${o.file}: ${o.method}`).join('\n');
+      throw new Error(`findAll* antipattern detected — rename to list*:\n${lines}`);
     }
     expect(offenders).toEqual([]);
   });
