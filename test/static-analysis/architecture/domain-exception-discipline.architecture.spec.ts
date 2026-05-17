@@ -133,7 +133,6 @@ describe('DomainException discipline', () => {
       '/infrastructure/strategies/jwt.strategy.ts',
       '/prisma/prisma-client-options.ts',
       '/prisma/prisma.service.ts',
-      '/config/schemas/env.schema.ts',
       '/cache/decorators/cacheable.decorator.ts',
       '/cache/decorators/cache-invalidate.decorator.ts',
       '/rate-limit/rate-limit.guard.ts',
