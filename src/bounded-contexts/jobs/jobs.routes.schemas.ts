@@ -22,6 +22,7 @@ import {
   PaginatedResponseSchema,
   PaginationQuerySchema,
 } from '@/shared-kernel/schemas/common/api.types';
+import { makePaginationSchema } from '@/shared-kernel/schemas/common/pagination.factory';
 import { IdParamSchema } from '@/shared-kernel/schemas/params';
 import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import {
@@ -36,7 +37,11 @@ export const IdParam = IdParamSchema;
 export const ApplicationIdParam = z.object({ applicationId: z.string().uuid() });
 export const CompanyParam = z.object({ company: z.string() });
 
-export const JobListQuerySchema = PaginationQuerySchema.extend({
+// P1 #34 — sortBy is locked to a literal allowlist via the factory so
+// requests with an arbitrary column get a 400 before the use case runs.
+export const JobListSortFields = ['createdAt', 'updatedAt', 'salaryMin', 'salaryMax'] as const;
+
+export const JobListQuerySchema = makePaginationSchema(JobListSortFields).extend({
   search: z.string().max(500).optional(),
   jobType: z.string().optional(),
   skills: z.string().max(500).optional(),

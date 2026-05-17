@@ -36126,7 +36126,13 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "salaryMin",
+                "salaryMax"
+              ]
             },
             "required": false,
             "name": "sortBy",
@@ -39456,7 +39462,13 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "salaryMin",
+                "salaryMax"
+              ]
             },
             "required": false,
             "name": "sortBy",
