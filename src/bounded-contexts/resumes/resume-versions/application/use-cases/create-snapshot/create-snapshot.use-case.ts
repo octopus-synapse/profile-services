@@ -32,21 +32,21 @@ export class CreateSnapshotUseCase {
       throw new ResumeNotFoundException();
     }
 
-    const lastVersionNumber = await this.repository.findLastVersionNumber(resumeId);
-    const versionNumber = (lastVersionNumber ?? 0) + 1;
-
     const snapshot = this.normalizeSnapshot(resume);
 
-    const version = await this.repository.createResumeVersion({
-      resumeId,
-      versionNumber,
+    // P1 #16 — let the adapter allocate the next version atomically
+    // (read + insert + retry-on-unique-violation). The previous
+    // pattern (`findLast → +1 → create`) raced with concurrent
+    // tailor/snapshot calls and either silently produced duplicates
+    // (no unique) or surfaced a P2002 to the user.
+    const version = await this.repository.createNextResumeVersion(resumeId, {
       snapshot,
       label,
     });
 
     this.eventPublisher.publishVersionCreated(resumeId, {
       userId: resume.userId,
-      versionNumber,
+      versionNumber: version.versionNumber,
       snapshotData: snapshot,
     });
 

@@ -7,6 +7,7 @@
  * `prisma-resume-versions.mappers.ts`.
  */
 
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import type {
@@ -27,6 +28,12 @@ import {
 } from './prisma-resume-versions.mappers';
 
 const CTX = 'PrismaResumeVersionsRepository';
+
+// Retry budget for the `@@unique([resumeId, versionNumber])` race.
+// Real-world contention is two concurrent tailor calls; ten retries
+// covers far worse pathology while still failing fast on a genuine bug.
+const CREATE_VERSION_MAX_RETRIES = 10;
+const UNIQUE_VIOLATION_CODE = 'P2002';
 
 export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort {
   constructor(
@@ -97,6 +104,67 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       },
     });
     return { ...created, snapshot: fromPrismaJson(created.snapshot) };
+  }
+
+  async createNextResumeVersion(
+    resumeId: string,
+    data: {
+      snapshot: Record<string, unknown>;
+      label?: string;
+      isTailored?: boolean;
+      tailoredJobId?: string | null;
+    },
+  ): Promise<ResumeVersionRecord> {
+    // P1 #16 — two concurrent snapshot/tailor calls used to race on
+    // `lastVersion + 1`, both insert rows with the same versionNumber,
+    // and one always failed (or worse — a missing unique would let
+    // duplicates land). With the `@@unique([resumeId, versionNumber])`
+    // constraint Postgres rejects the loser; we catch the violation
+    // and retry with the next sequence value.
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < CREATE_VERSION_MAX_RETRIES; attempt++) {
+      const lastVersion = await this.prisma.resumeVersion.findFirst({
+        where: { resumeId },
+        orderBy: { versionNumber: 'desc' },
+        select: { versionNumber: true },
+      });
+      const versionNumber = (lastVersion?.versionNumber ?? 0) + 1;
+      try {
+        const created = await this.prisma.resumeVersion.create({
+          data: {
+            resumeId,
+            versionNumber,
+            snapshot: toPrismaInputJsonObject(data.snapshot),
+            label: data.label ?? null,
+            isTailored: data.isTailored ?? false,
+            tailoredJobId: data.tailoredJobId ?? null,
+          },
+          select: {
+            id: true,
+            resumeId: true,
+            versionNumber: true,
+            snapshot: true,
+            label: true,
+            createdAt: true,
+          },
+        });
+        return { ...created, snapshot: fromPrismaJson(created.snapshot) };
+      } catch (err) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === UNIQUE_VIOLATION_CODE
+        ) {
+          lastError = err;
+          continue;
+        }
+        throw err;
+      }
+    }
+    this.logger.error?.('ResumeVersion next-version retry budget exhausted', {
+      context: CTX,
+      resumeId,
+    });
+    throw lastError ?? new Error('createNextResumeVersion: retry budget exhausted');
   }
 
   findResumeOwner(resumeId: string): Promise<{ userId: string } | null> {

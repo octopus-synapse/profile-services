@@ -61,9 +61,6 @@ export class TailorResumeForJobUseCase {
       throw new TailorEngineUnavailableException();
     }
 
-    const lastVersionNumber = await this.repository.findLastVersionNumber(resume.id);
-    const nextNumber = (lastVersionNumber ?? 0) + 1;
-
     const label = this.labelFor(job);
 
     const snapshot = {
@@ -79,9 +76,10 @@ export class TailorResumeForJobUseCase {
       },
     };
 
-    const created = await this.repository.createResumeVersion({
-      resumeId: resume.id,
-      versionNumber: nextNumber,
+    // P1 #16 — adapter allocates versionNumber under the unique
+    // constraint with retry, so two concurrent tailor calls for the
+    // same resume both succeed with distinct sequential numbers.
+    const created = await this.repository.createNextResumeVersion(resume.id, {
       snapshot,
       label,
       isTailored: true,
