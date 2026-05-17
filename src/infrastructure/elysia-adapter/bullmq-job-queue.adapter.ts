@@ -96,12 +96,23 @@ export class BullMQJobQueueAdapter extends JobQueuePort implements Lifecycle {
 
   async enqueue<T>(name: string, data: T, opts?: JobOpts): Promise<void> {
     const queue = this.getOrCreateQueue<T>(name);
+    // P1 #42: BullMQ honours `jobId` as a native dedup primitive — when
+    // two `.add()` calls share the same jobId the second one is silently
+    // dropped. Surface it explicitly here (separate from the rest of
+    // `opts` so a future refactor can't accidentally drop it) and pass
+    // it as the 4th positional `{ jobId }` BullMQ slot. Callers that
+    // need idempotency build a deterministic id from the payload via
+    // `deterministicJobId()` (see helper below).
+    const bullOpts = { ...DEFAULT_JOB_OPTIONS, ...opts };
+    if (opts?.jobId !== undefined) {
+      (bullOpts as { jobId?: string }).jobId = opts.jobId;
+    }
     await (queue as unknown as { add: (n: string, d: T, o?: unknown) => Promise<unknown> }).add(
       name,
       data,
       // P1-034: merge so per-call opts can override the defaults
       // (e.g. an `attempts: 1` for fire-and-forget jobs).
-      { ...DEFAULT_JOB_OPTIONS, ...opts },
+      bullOpts,
     );
   }
 
