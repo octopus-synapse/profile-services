@@ -72,3 +72,21 @@ model UserWeeklyDigestLog {
   @@index([userId])
   @@map("user_weekly_digest_logs")
 }
+
+// One row per (user, reminder-window, day) for the fit-profile expiry
+// reminder fanout — DB-level idempotency (Wave 1.3 P1 #29). The Redis
+// flag in `ReminderStatePort` is fast-path dedup; this table is the
+// authoritative lock that survives Redis flushes / multi-instance races.
+// `sentDate` is a date-only string (YYYY-MM-DD) so two reminders within
+// the same calendar day collapse onto one row regardless of clock skew.
+model FitProfileReminderLog {
+  id        String   @id @default(dbgenerated("uuidv7()"))
+  userId    String
+  daysLeft  Int // 7 / 3 / 1 — the window the reminder belongs to
+  sentDate  String // YYYY-MM-DD
+  sentAt    DateTime @default(now())
+
+  @@unique([userId, daysLeft, sentDate])
+  @@index([sentDate])
+  @@map("fit_profile_reminder_logs")
+}
