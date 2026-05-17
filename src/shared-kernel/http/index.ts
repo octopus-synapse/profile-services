@@ -10,5 +10,6 @@ export * from './safe-fetch.adapter';
 export * from './safe-fetch.port';
 export * from './safe-fetch-strict.adapter';
 export * from './sse-stream.port';
+export * from './streaming-fetch';
 export * from './success-message';
 export * from './validator.port';
