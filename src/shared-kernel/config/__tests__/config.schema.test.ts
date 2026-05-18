@@ -24,13 +24,44 @@ function baseEnv(overrides: Record<string, string | undefined> = {}): Record<str
 }
 
 describe('EnvConfigSchema — BCRYPT_COST floor', () => {
-  it('rejects BCRYPT_COST below 10', () => {
-    expect(() => parseEnvConfig(baseEnv({ BCRYPT_COST: '8' }))).toThrow(ConfigValidationError);
+  // P1-#A1-17: the OWASP-recommended floor of 10 is enforced only in
+  // production. Dev/test/CI may lower the cost (down to bcrypt's
+  // structural minimum of 4) for speed; the prod superRefine still
+  // refuses to boot a `NODE_ENV=production` server with cost < 10.
+  it('rejects BCRYPT_COST below 10 in production', () => {
+    expect(() =>
+      parseEnvConfig(
+        baseEnv({
+          NODE_ENV: 'production',
+          BCRYPT_COST: '8',
+          JWT_ISSUER: 'iss',
+          JWT_AUDIENCE: 'aud',
+          IP_HASH_SALT: 'x'.repeat(32),
+        }),
+      ),
+    ).toThrow(ConfigValidationError);
   });
 
-  it('accepts BCRYPT_COST = 10 (boundary)', () => {
-    const cfg = parseEnvConfig(baseEnv({ BCRYPT_COST: '10' }));
+  it('accepts BCRYPT_COST = 10 in production (boundary)', () => {
+    const cfg = parseEnvConfig(
+      baseEnv({
+        NODE_ENV: 'production',
+        BCRYPT_COST: '10',
+        JWT_ISSUER: 'iss',
+        JWT_AUDIENCE: 'aud',
+        IP_HASH_SALT: 'x'.repeat(32),
+      }),
+    );
     expect(cfg.BCRYPT_COST).toBe(10);
+  });
+
+  it('allows BCRYPT_COST = 4 outside production (test/CI speed override)', () => {
+    const cfg = parseEnvConfig(baseEnv({ BCRYPT_COST: '4' }));
+    expect(cfg.BCRYPT_COST).toBe(4);
+  });
+
+  it('rejects BCRYPT_COST below 4 anywhere (bcrypt structural minimum)', () => {
+    expect(() => parseEnvConfig(baseEnv({ BCRYPT_COST: '3' }))).toThrow(ConfigValidationError);
   });
 
   it('defaults BCRYPT_COST to 12 when unset', () => {
