@@ -190,6 +190,12 @@ export class ElysiaWebSocketAdapter extends WebSocketPort {
           ws?.send(JSON.stringify(frame));
         }
       }
+      // P3-#A1-31 (deferred): `room: string` is callable from any handler
+      // without proof of participation. The follow-up plan introduces an
+      // `OpaqueRoomKey` branded type + `roomKeyFor(conversationId, ...)`
+      // helper that only construct after a participation check. Until
+      // that lands, the chat handler discipline is the safeguard.
+      // Tracked in BUG_REPORT.md PD-A1-31.
       toRoom(room: string, event: string, payload: unknown): void {
         const members = state.rooms.get(room);
         if (!members) return;

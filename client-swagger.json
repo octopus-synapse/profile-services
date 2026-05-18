@@ -36864,7 +36864,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -38033,7 +38035,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -38694,7 +38698,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -39054,7 +39060,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -40998,7 +41006,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
