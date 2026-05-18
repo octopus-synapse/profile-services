@@ -37869,8 +37869,7 @@
                 ],
                 "example": {
                   "type": "INTERVIEW_SCHEDULED",
-                  "note": "Initial screening with the hiring manager.",
-                  "occurredAt": "2026-05-15T14:00:00Z"
+                  "note": "Initial screening with the hiring manager."
                 }
               }
             }

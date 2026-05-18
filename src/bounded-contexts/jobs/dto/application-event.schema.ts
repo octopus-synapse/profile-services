@@ -20,10 +20,15 @@ export const RecordApplicationEventSchema = z
     occurredAt: IsoDateTimeSchema.optional(),
   })
   .openapi({
+    // `occurredAt` is intentionally omitted from the example so the use
+    // case defaults to `new Date()`. A hard-coded date would 400 in CI
+    // whenever the contract probe runs more than a few days after the
+    // example was authored — `RecordApplicationEventUseCase` rejects
+    // any `occurredAt < application.createdAt`, and the fixture
+    // application's `createdAt` is set to `now()` by the seed.
     example: {
       type: 'INTERVIEW_SCHEDULED',
       note: 'Initial screening with the hiring manager.',
-      occurredAt: '2026-05-15T14:00:00Z',
     },
   });
 
