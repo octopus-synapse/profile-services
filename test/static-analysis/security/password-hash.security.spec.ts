@@ -15,7 +15,10 @@ import { describe, expect, it } from 'bun:test';
 import { BcryptPasswordHasher } from '@/bounded-contexts/identity/account-lifecycle/infrastructure/adapters/bcrypt-password.hasher';
 
 describe('BcryptPasswordHasher [Security]', () => {
-  const hasher = new BcryptPasswordHasher();
+  // P1-#A1-17: hasher now takes cost via constructor; mirror the prior
+  // BCRYPT_COST env-driven contract (default 12) for parity with prod.
+  const TEST_COST = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
+  const hasher = new BcryptPasswordHasher(TEST_COST);
 
   describe('hash', () => {
     it('should produce bcrypt hash with correct format', async () => {

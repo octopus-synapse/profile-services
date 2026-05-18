@@ -55,8 +55,10 @@ export class ViewCareerGraphUseCase {
           maxBuckets: input.maxBuckets,
         }),
       ]);
-    } catch {
-      throw new CareerGraphRepositoryUnavailableException();
+    } catch (err) {
+      // P2-#A2-30: forward root cause so logs / exception filter see why
+      // the repository failed, instead of erasing it with a bare `catch`.
+      throw new CareerGraphRepositoryUnavailableException(err);
     }
 
     if (rawBuckets.length === 0) {

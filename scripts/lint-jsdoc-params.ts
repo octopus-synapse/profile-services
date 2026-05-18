@@ -142,15 +142,21 @@ for (const file of walk(SRC)) {
   const rel = relative(ROOT, file);
   const src = readFileSync(file, 'utf8');
   JSDOC_RE.lastIndex = 0;
-  let block: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-  while ((block = JSDOC_RE.exec(src)) !== null) {
+  for (
+    let block: RegExpExecArray | null = JSDOC_RE.exec(src);
+    block !== null;
+    block = JSDOC_RE.exec(src)
+  ) {
     const text = block[0];
     PARAM_TAG_RE.lastIndex = 0;
     const tagNames: string[] = [];
-    let pm: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-    while ((pm = PARAM_TAG_RE.exec(text)) !== null) tagNames.push(pm[1]);
+    for (
+      let pm: RegExpExecArray | null = PARAM_TAG_RE.exec(text);
+      pm !== null;
+      pm = PARAM_TAG_RE.exec(text)
+    ) {
+      tagNames.push(pm[1]);
+    }
     if (tagNames.length === 0) continue;
 
     // Look at the block's opening line for escape.

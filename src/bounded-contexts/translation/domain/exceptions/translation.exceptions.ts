@@ -8,8 +8,13 @@ import { DomainException, ValidationException } from '@/shared-kernel/exceptions
 export class TranslationBackendUnavailableException extends DomainException {
   readonly code: string = 'TRANSLATION_BACKEND_UNAVAILABLE';
   readonly statusHint = 503;
-  constructor() {
-    super('Translation backend is temporarily unavailable');
+  constructor(detail?: string, cause?: unknown) {
+    super(
+      detail
+        ? `Translation backend is temporarily unavailable (${detail})`
+        : 'Translation backend is temporarily unavailable',
+      { cause },
+    );
   }
 }
 

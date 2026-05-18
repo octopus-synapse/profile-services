@@ -47,8 +47,10 @@ export class MatchCandidatesForJobUseCase {
         excludeUserId: input.requesterId,
         poolCap: CANDIDATE_POOL_CAP,
       });
-    } catch {
-      throw new CandidateDirectoryUnavailableException();
+    } catch (err) {
+      // P2-#A2-30: forward root cause so logs / exception filter see why
+      // the repository failed, instead of erasing it with a bare `catch`.
+      throw new CandidateDirectoryUnavailableException(err);
     }
 
     if (pool.length === 0) {

@@ -121,9 +121,7 @@ for (const file of walk(SRC)) {
   const src = readFileSync(file, 'utf8');
   const lines = src.split('\n');
   SIG_RE.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-  while ((m = SIG_RE.exec(src)) !== null) {
+  for (let m: RegExpExecArray | null = SIG_RE.exec(src); m !== null; m = SIG_RE.exec(src)) {
     const openIdx = m.index + m[0].length - 1;
     const paren = extractParenBody(src, openIdx);
     if (!paren) continue;

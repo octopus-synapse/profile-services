@@ -62,9 +62,11 @@ for (const file of walk(SRC)) {
   const lines = src.split('\n');
 
   DEPRECATED_RE.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-  while ((m = DEPRECATED_RE.exec(src)) !== null) {
+  for (
+    let m: RegExpExecArray | null = DEPRECATED_RE.exec(src);
+    m !== null;
+    m = DEPRECATED_RE.exec(src)
+  ) {
     const lineNum = src.slice(0, m.index).split('\n').length;
     if (ESCAPE_RE.test(lines[lineNum - 1] || '')) continue;
 

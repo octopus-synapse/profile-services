@@ -73,7 +73,8 @@ export function buildAuthenticationUseCases(
 ): AuthenticationUseCases {
   // Outbound adapters
   const authRepository = new PrismaAuthenticationRepository(prisma, cache);
-  const passwordHasher = new BcryptPasswordHasher();
+  // P1-#A1-17: cost from validated `EnvConfigSchema.BCRYPT_COST`.
+  const passwordHasher = new BcryptPasswordHasher(config.env.BCRYPT_COST);
   const tokenGenerator = new JwtTokenGenerator(jwt, config);
   const sessionStorage = new CookieSessionStorage(config);
   const loginAttempts = new PrismaLoginAttemptsAdapter(prisma, config);

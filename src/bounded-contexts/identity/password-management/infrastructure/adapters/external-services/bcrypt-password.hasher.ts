@@ -1,10 +1,12 @@
 import { PasswordHasherPort } from '../../../domain/ports';
 
-const BCRYPT_COST = 12;
-
+// P1-#A1-17: cost is injected by composition via ConfigPort (validated
+// by `EnvConfigSchema.BCRYPT_COST`, min(10).default(12)).
 export class BcryptPasswordHasher implements PasswordHasherPort {
+  constructor(private readonly cost: number) {}
+
   async hash(password: string): Promise<string> {
-    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });
+    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: this.cost });
   }
 
   async compare(password: string, hash: string): Promise<boolean> {

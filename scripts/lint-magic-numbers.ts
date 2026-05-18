@@ -113,9 +113,11 @@ for (const file of walk(SRC)) {
   for (let i = 0; i < lines.length; i++) {
     const stripped = stripStringsAndComments(lines[i]);
     NUM_RE.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-    while ((m = NUM_RE.exec(stripped)) !== null) {
+    for (
+      let m: RegExpExecArray | null = NUM_RE.exec(stripped);
+      m !== null;
+      m = NUM_RE.exec(stripped)
+    ) {
       const raw = m[0];
       // Skip when number is inside an exponent/version-like token (already filtered by lookarounds).
       const n = Number(raw);

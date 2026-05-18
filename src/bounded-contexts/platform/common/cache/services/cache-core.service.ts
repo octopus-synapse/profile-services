@@ -6,6 +6,12 @@
 import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { RedisConnectionService } from '../redis-connection.service';
 
+// P2-#A3-25: any single legitimate cache value in the codebase fits well
+// under this cap; anything larger is either a misuse or a poisoned key
+// planted by an attacker with Redis write access (where the goal is to
+// stall the event loop on `JSON.parse`).
+const MAX_CACHE_VALUE_BYTES = 1_048_576; // 1 MiB
+
 /**
  * Error thrown when cache is unavailable for security-critical operations.
  */
@@ -60,7 +66,20 @@ export class CacheCoreService {
 
     try {
       const value = await client.get(key);
-      return value ? (JSON.parse(value) as T) : null;
+      if (!value) return null;
+      // P2-#A3-25: cap payload size before `JSON.parse` so a single
+      // attacker-planted oversized Redis value can't block the event
+      // loop for hundreds of ms. 1 MiB is far above any legitimate
+      // cache entry in this codebase (largest writers cap themselves
+      // around 200 KiB).
+      if (value.length > MAX_CACHE_VALUE_BYTES) {
+        this.logger.warn(
+          `Refusing to parse oversized cache value: key=${key} bytes=${value.length}`,
+          'CacheCoreService',
+        );
+        return null;
+      }
+      return JSON.parse(value) as T;
     } catch (error) {
       this.logger.error(`Failed to get cache key: ${key}`, {
         context: 'CacheCoreService',
@@ -89,7 +108,15 @@ export class CacheCoreService {
 
     try {
       const value = await client.get(key);
-      return value ? (JSON.parse(value) as T) : null;
+      if (!value) return null;
+      // P2-#A3-25: same JSON-bomb guard as `get`. Secure path throws
+      // on oversize so callers (token-valid-after etc.) fail-closed.
+      if (value.length > MAX_CACHE_VALUE_BYTES) {
+        throw new CacheReadError(
+          `Refusing to parse oversized cache value: key=${key} bytes=${value.length}`,
+        );
+      }
+      return JSON.parse(value) as T;
     } catch (error) {
       this.logger.error(`Failed to get cache key (secure): ${key}`, {
         context: 'CacheCoreService',

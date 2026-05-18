@@ -48,7 +48,11 @@ function englishAtLeast(
   resume: EnglishLevel | null | undefined,
   job: EnglishLevel | null | undefined,
 ): number {
-  if (!job) return 1;
+  // P1-#A2-28: when the job declares no English requirement, neutralise
+  // (0.5) rather than inflate to 1. Same `unknown ⇒ neutral` semantics
+  // as `remoteMatch` — otherwise every job that omits the field appears
+  // to "fully match" any candidate, even those without English at all.
+  if (!job) return 0.5;
   if (!resume) return 0.5;
   return ENGLISH_ORDER.indexOf(resume) >= ENGLISH_ORDER.indexOf(job) ? 1 : 0;
 }

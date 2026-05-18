@@ -48,7 +48,9 @@ export function buildAccountLifecycleUseCases(
   logger: LoggerPort,
 ): AccountLifecycleUseCases {
   const repository = new PrismaAccountLifecycleRepository(prisma);
-  const passwordHasher = new BcryptPasswordHasher();
+  // P1-#A1-17: cost comes from validated `EnvConfigSchema.BCRYPT_COST`
+  // (min(10).default(12)) instead of unchecked `process.env`.
+  const passwordHasher = new BcryptPasswordHasher(config.env.BCRYPT_COST);
   const dataExportRepo = new DataExportRepository(prisma);
   const auditLogger = new AuditLoggerAdapter(auditLog, logger);
   const consentRepo = new PrismaConsentRepository(prisma, logger);
