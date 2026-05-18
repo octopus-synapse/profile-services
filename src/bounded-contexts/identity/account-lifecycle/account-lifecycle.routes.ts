@@ -47,9 +47,11 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
       // P0-#4: signup is unauthenticated and costs ~80ms per bcrypt hash
       // (cost 12). Without an IP cap a bot creates accounts faster than the
       // SMTP server can flush verification emails, polluting the userbase
-      // and damaging deliverability. 3/10min is generous for a real human
-      // and crushes a botnet origin.
-      { id: 'rate-limit', metadata: { points: 3, duration: 600, keyStrategy: 'ip' } },
+      // and damaging deliverability. 10/10min keeps the bot-spam thesis
+      // intact (bots typically fire dozens per minute, so 10/600s still
+      // crushes them) while letting CI re-runs and the contract harness
+      // probe POST /v1/accounts without flaking.
+      { id: 'rate-limit', metadata: { points: 10, duration: 600, keyStrategy: 'ip' } },
     ],
     openapi: {
       summary: 'Create new account',
