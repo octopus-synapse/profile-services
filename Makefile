@@ -71,17 +71,22 @@ prod-logs:
 # ==========================================
 # Database Commands
 # ==========================================
+# P2-#36: the migrate/studio/seed targets used to `exec frontend`,
+# but this repo's compose only ships `backend`. The frontend lives in
+# the sibling `patch-careers-ui` repo. Targets exec `backend` so they
+# actually do something instead of always erroring with
+# "service 'frontend' not found".
 db-migrate:
-	$(DOCKER_COMPOSE) exec frontend bunx prisma migrate dev
+	$(DOCKER_COMPOSE) exec backend bunx prisma migrate dev
 
 db-migrate-deploy:
-	$(DOCKER_COMPOSE) exec frontend bunx prisma migrate deploy
+	$(DOCKER_COMPOSE) exec backend bunx prisma migrate deploy
 
 db-studio:
-	$(DOCKER_COMPOSE) exec frontend bunx prisma studio
+	$(DOCKER_COMPOSE) exec backend bunx prisma studio
 
 db-seed:
-	$(DOCKER_COMPOSE) exec frontend bunx prisma db seed
+	$(DOCKER_COMPOSE) exec backend bunx prisma db seed
 
 db-backup:
 	@echo "Creating database backup..."
@@ -171,10 +176,10 @@ clean-all:
 # ==========================================
 setup:
 	@echo "Setting up the project..."
+	# P2-#37: only the root `.env` exists in this repo; the historic
+	# `backend/`+`frontend/` layout was split into separate repos.
 	cp .env.example .env || true
-	cp backend/.env.example backend/.env || true
-	cp frontend/.env.example frontend/.env || true
-	@echo "Environment files created. Please update them with your values."
+	@echo "Environment file created. Please update it with your values."
 	@echo "Run 'make dev-build' to start development environment."
 
 # ==========================================
@@ -182,7 +187,9 @@ setup:
 # ==========================================
 health:
 	@echo "Checking services health..."
-	@curl -f http://localhost:13001/health || echo "Backend: DOWN"
+	# P2-#38: backend exposes its health endpoint under `/api/health`,
+	# not `/health` — the previous form always reported "Backend: DOWN".
+	@curl -f http://localhost:13001/api/health || echo "Backend: DOWN"
 	@curl -f http://localhost:3000/api/health || echo "Frontend: DOWN"
 	@$(DOCKER_COMPOSE) exec postgres pg_isready -U postgres || echo "PostgreSQL: DOWN"
 	@$(DOCKER_COMPOSE) exec redis redis-cli ping || echo "Redis: DOWN"

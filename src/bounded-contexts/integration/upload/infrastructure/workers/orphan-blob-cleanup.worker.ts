@@ -1,27 +1,25 @@
 /**
- * P1-060 — orphan blob cleanup worker (stub).
+ * P1-060 — orphan blob cleanup worker (DEFERRED, UNWIRED).
  *
  * MinIO/S3 stores the actual file bytes; the `Upload` table records
  * ownership + metadata. A failed DB write between the two leaves a
  * blob with no DB row — orphan storage that grows unbounded.
  *
- * This worker reconciles them: enumerate every object under the
- * `posts/`, `photos/`, and `logos/` prefixes; drop any blob older
- * than `ORPHAN_GRACE_HOURS` whose key has no matching `Upload` row.
+ * This worker is **intentionally unregistered**. The bootstrap does NOT
+ * call `OrphanBlobCleanupWorker.run` — wiring is gated on two pieces of
+ * infrastructure that don't ship yet:
  *
- * IMPORTANT: this file currently exposes the wrapped `runGuardedJob`
- * skeleton without the MinIO list-objects implementation — that
- * requires either upgrading `S3UploadService` to expose a
- * `listObjects(prefix, cursor)` method or piping the MinIO admin
- * client straight in. Both are non-trivial because they need to
- * paginate (a single bucket can have millions of keys) and respect
- * the same configuration knobs as the rest of the storage stack.
+ *   1. `S3UploadService.listObjects(prefix, cursor)` — paginated key
+ *      enumeration with bucket-millions tolerance.
+ *   2. `Upload.deletedAt` schema column — so pass 1 (DB-side cleanup
+ *      retry) can find rows where the blob delete failed.
  *
- * The skeleton lives here so the wiring + cron schedule are visible
- * during review and the implementation PR is a contained edit. The
- * worker registers via the same `JobQueuePort.register` path as the
- * rest of the platform jobs; the cron runs daily at 03:30 UTC
- * (chosen to overlap with the lowest traffic window).
+ * BUG_REPORT P2-#31 originally read "wired in cron but no-op" — the
+ * cron registration has since been removed, so the file is dead code
+ * pending implementation. Leaving the class in place keeps the design
+ * intent visible until a follow-up lands both prerequisites + the
+ * dry-run-then-enable rollout (7 days of structured logs before any
+ * delete is issued).
  */
 
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';

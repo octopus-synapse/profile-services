@@ -29,5 +29,8 @@ export function parsePositiveIntParam(
   if (value === undefined || value === null || value === '') return fallback;
   const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n) || n < 1) return fallback;
-  return max !== undefined ? Math.min(n, max) : n;
+  // P2-#9: floor to integer. `?limit=1.5` previously slipped through
+  // and Prisma threw a confusing runtime error when it hit `take: 1.5`.
+  const intN = Math.floor(n);
+  return max !== undefined ? Math.min(intN, max) : intN;
 }

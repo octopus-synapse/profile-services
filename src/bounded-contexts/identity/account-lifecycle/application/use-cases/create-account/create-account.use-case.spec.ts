@@ -6,7 +6,6 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { InMemoryTokenGenerator } from '../../../../authentication/testing';
 import { WeakPasswordException } from '../../../../password-management/domain/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { AccountCreatedEvent } from '../../../domain/events';
@@ -101,7 +100,6 @@ describe('CreateAccountUseCase', () => {
   let repository: InMemoryAccountLifecycleRepository;
   let passwordHasher: InMemoryPasswordHasher;
   let eventBus: InMemoryEventBus;
-  let tokenGenerator: InMemoryTokenGenerator;
 
   const VALID_PASSWORD = 'StrongPass1!';
 
@@ -109,21 +107,19 @@ describe('CreateAccountUseCase', () => {
     repository = new InMemoryAccountLifecycleRepository();
     passwordHasher = new InMemoryPasswordHasher();
     eventBus = new InMemoryEventBus();
-    tokenGenerator = new InMemoryTokenGenerator();
     const { acceptConsent, versionConfig } = makeConsentStubs();
 
     useCase = new CreateAccountUseCase(
       repository,
       passwordHasher,
       eventBus,
-      tokenGenerator,
       acceptConsent,
       versionConfig,
       stubLogger,
     );
   });
 
-  it('should create an account and return user data with auth tokens', async () => {
+  it('should create an account and return identity (no tokens — cookie carries auth)', async () => {
     const command = baseCommand({
       name: 'John Doe',
       email: 'john@example.com',
@@ -134,9 +130,9 @@ describe('CreateAccountUseCase', () => {
 
     expect(result.userId).toBeDefined();
     expect(result.email).toBe('john@example.com');
-    expect(result.accessToken).toBeDefined();
-    expect(result.refreshToken).toBeDefined();
-    expect(result.expiresIn).toBeGreaterThan(0);
+    expect(result).not.toHaveProperty('accessToken');
+    expect(result).not.toHaveProperty('refreshToken');
+    expect(result).not.toHaveProperty('expiresIn');
   });
 
   it('should persist the account in the repository', async () => {

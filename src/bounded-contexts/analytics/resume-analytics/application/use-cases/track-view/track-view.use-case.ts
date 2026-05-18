@@ -51,9 +51,15 @@ export class TrackViewUseCase {
 
   private detectSource(referer?: string): string {
     if (!referer) return 'direct';
-    const refererLower = referer.toLowerCase();
+    // P2-#15: parse the URL and compare hostname *labels* instead of
+    // substring includes. `https://evil.com/?ref=google.com` used to
+    // be classified as "google" via the previous `includes` match.
+    // `URL.canParse` pre-checks without a try/catch so this stays a
+    // pure function.
+    if (!URL.canParse(referer)) return 'other';
+    const labels = new Set(new URL(referer).hostname.toLowerCase().split('.'));
     for (const [domain, source] of Object.entries(TRAFFIC_SOURCES)) {
-      if (refererLower.includes(domain)) return source;
+      if (labels.has(domain.toLowerCase())) return source;
     }
     return 'other';
   }

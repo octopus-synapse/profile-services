@@ -54,7 +54,8 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
     openapi: {
       summary: 'Create new account',
       tags: ['accounts'],
-      description: 'Registers a new user account and returns auth tokens for auto-login.',
+      description:
+        'Registers a new user account. Authentication is established via httpOnly session cookie set in parallel; no bearer tokens are returned in the body.',
     },
     sdk: { exported: true, name: 'signup' },
     handler: async (ctx, bc) => {
@@ -82,9 +83,6 @@ export const accountLifecycleRoutes: ReadonlyArray<Route<AccountLifecycleUseCase
         userId: result.userId,
         email: result.email,
         message: 'Account created successfully.',
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresIn: result.expiresIn,
       };
     },
   },

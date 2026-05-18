@@ -75,6 +75,14 @@ export class TranslationCoreService {
         signal: AbortSignal.timeout(15000),
       });
 
+      // P2-#21: LibreTranslate sometimes returns 500/502 with an HTML
+      // body. `response.json()` then throws, the catch silently returns
+      // `original === translated` with no signal that anything failed.
+      // Surface the upstream error so the caller can degrade explicitly.
+      if (!response.ok) {
+        throw new Error(`LibreTranslate ${response.status} ${response.statusText}`);
+      }
+
       const data = (await response.json()) as {
         translatedText?: string;
         detectedLanguage?: { language?: string };

@@ -114,7 +114,7 @@ export class CompleteOnboardingUseCase {
   /** Translate an infrastructure failure into the right domain exception
    *  (or pass it through). Logs once with full context so the caller's
    *  rethrow doesn't double-log. */
-  private toDomainError(error: unknown, userId: string, data: OnboardingData): unknown {
+  private toDomainError(error: unknown, userId: string, _data: OnboardingData): unknown {
     this.logger.error('Onboarding completion failed, progress preserved', {
       context: 'CompleteOnboardingUseCase',
       stack: error instanceof Error ? error.stack : 'Unknown error',
@@ -123,10 +123,13 @@ export class CompleteOnboardingUseCase {
     });
 
     if (this.isUsernameConflict(error)) {
+      // P2-#12: don't log the raw username — it's PII that can correlate
+      // a user across tenants in a centralised log store. `userId` is the
+      // canonical correlation identifier.
       this.logger.warn(
         'Username conflict detected during transaction',
         'CompleteOnboardingUseCase',
-        { username: data.username, userId },
+        { userId },
       );
       return new OnboardingUsernameTakenException();
     }

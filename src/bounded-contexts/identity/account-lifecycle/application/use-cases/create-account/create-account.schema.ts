@@ -31,19 +31,18 @@ export const CreateAccountSchema = z
     },
   });
 
-// Response Schema - includes tokens for auto-login after signup
+// Response Schema — identity-only. The httpOnly session cookie is set by
+// the route handler via `createSession.execute`; tokens are NOT exposed
+// to JS (P2 hardening: would defeat XSS-exfiltration defense of httpOnly).
 export const CreateAccountResponseSchema = z
   .object({
     userId: z.string(),
     email: z.string(),
-    message: z.string(), // Auth tokens (auto-login)
-    accessToken: z.string(),
-    refreshToken: z.string(),
-    expiresIn: z.number(),
+    message: z.string(),
   })
   .openapi('CreateAccountResponse', {
     description:
-      'Sign-up response with auth tokens for auto-login. The session cookie is also set in parallel.',
+      'Sign-up response. Authentication is established via the httpOnly session cookie set in parallel; no tokens are returned in the body.',
   });
 
 // DTO Classes

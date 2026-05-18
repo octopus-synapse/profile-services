@@ -164,6 +164,37 @@ export class CacheCoreService {
   }
 
   /**
+   * Atomic set-if-not-exists (Redis `SET key value NX EX ttl`).
+   *
+   * Returns `true` when this caller created the key, `false` when the
+   * key already existed (someone else set it first). Used as a
+   * single-step gate where a get-then-set has a race window (see
+   * `Validate2faUseCase` replay protection — P3-#33).
+   *
+   * Fail-open: a cache outage returns `false`, which makes the caller
+   * treat the lock as "lost" and degrade safely. Callers that need
+   * fail-closed semantics should use `setSecure` + an explicit check.
+   */
+  async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    if (!this.isEnabled) return false;
+
+    const client = this.redisConnection.client;
+    if (!client) return false;
+
+    try {
+      const serialized = JSON.stringify(value);
+      const result = await client.set(key, serialized, 'EX', ttlSeconds, 'NX');
+      return result === 'OK';
+    } catch (error) {
+      this.logger.error(`Failed setIfAbsent for key: ${key}`, {
+        context: 'CacheCoreService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      return false;
+    }
+  }
+
+  /**
    * Delete key from cache
    */
   async delete(key: string): Promise<void> {

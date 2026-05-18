@@ -27,6 +27,7 @@ import { buildShareAnalyticsComposition } from '@/bounded-contexts/analytics/sha
 import { CuratedSelectorService } from '@/bounded-contexts/automation/application/services/curated-selector.service';
 import { buildAutomationComposition } from '@/bounded-contexts/automation/automation.composition';
 import { ResumeAnalyticsJobMatcherAdapter } from '@/bounded-contexts/automation/infrastructure/adapters/external-services/resume-analytics-job-matcher.adapter';
+import { PrismaCuratedSelectorRepository } from '@/bounded-contexts/automation/infrastructure/adapters/persistence/prisma-curated-selector.repository';
 import { buildBadgesComposition } from '@/bounded-contexts/badges/badges.composition';
 import { buildCareerGraphComposition } from '@/bounded-contexts/career-graph/career-graph.composition';
 import { buildCollaborationComposition } from '@/bounded-contexts/collaboration/collaboration.composition';
@@ -508,7 +509,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // via ResumeAnalyticsJobMatcherAdapter) + ResumeTailorService (from
   // resume-versions composition).
   const matcher = new ResumeAnalyticsJobMatcherAdapter(resumeAnalytics.useCases);
-  const selector = new CuratedSelectorService(prisma as never, matcher, logger);
+  const curatedSelectorRepository = new PrismaCuratedSelectorRepository(prisma as never);
+  const selector = new CuratedSelectorService(curatedSelectorRepository, matcher, logger);
   const automation = buildAutomationComposition(
     prisma as never,
     logger,
@@ -632,7 +634,6 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     auditLog,
     config as never,
     eventBus as never,
-    authenticationUseCases.tokenGenerator,
     authenticationUseCases.createSession,
     logger,
   ) as never;

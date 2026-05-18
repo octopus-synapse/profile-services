@@ -65,6 +65,14 @@ model Job {
   @@index([authorId])
   @@index([jobType, createdAt])
   @@index([isActive, createdAt])
+  // P2-#35 (audit deferred): the three composite indexes below look
+  // like over-indexing at first glance, but each one services a
+  // distinct filter combination used by the jobs board (currency
+  // filter, remote-policy filter, active-only feed). Consolidating
+  // would need an `EXPLAIN ANALYZE` pass against prod-shaped data —
+  // see the BUG_REPORT P2-#35 follow-up. The implicit `isActive`
+  // membership means dropping `[isActive, createdAt]` would also
+  // require a partial index on the others; not a free swap.
   @@index([paymentCurrency, isActive, createdAt])
   @@index([remotePolicy, isActive, createdAt])
 }

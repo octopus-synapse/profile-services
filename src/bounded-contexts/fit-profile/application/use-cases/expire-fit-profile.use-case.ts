@@ -36,6 +36,8 @@ export class ExpireFitProfileUseCase {
     const isExpired = profile.expiresAt.getTime() <= now.getTime();
     if (isExpired) {
       this.logger.log(`UserFitProfile expired for user ${userId}`, 'ExpireFitProfileUseCase');
+      // P2-#7 (intentional: telemetry): cache-invalidation handler is
+      // best-effort — the cron retries next tick if anything got dropped.
       this.events.publish(
         new UserFitProfileUpdatedEvent(userId, { version: profile.version, cause: 'expired' }),
       );

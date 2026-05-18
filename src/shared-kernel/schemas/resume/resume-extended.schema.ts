@@ -9,11 +9,28 @@ import { z } from 'zod';
 
 /**
  * Date Format
- * Backend accepts both YYYY-MM-DD (from date inputs) and YYYY-MM (display)
+ * Backend accepts both YYYY-MM-DD (from date inputs) and YYYY-MM (display).
+ *
+ * P2-#25: the previous shape-only regex accepted `"9999-99-99"` and
+ * `"0000-00-00"`, which then `new Date(...)`'d to `Invalid Date` and
+ * landed in the DB. The refine below parses the value (substituting a
+ * `01` day for `YYYY-MM`) and confirms it's a real calendar date.
  */
 const DateString = z
   .string()
-  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)')
+  .refine(
+    (s) => {
+      const full = s.length === 7 ? `${s}-01` : s;
+      const parsed = new Date(full);
+      if (Number.isNaN(parsed.getTime())) return false;
+      // `new Date("2026-02-30")` silently rolls over to 2026-03-02 in
+      // some engines. Round-trip the formatted value to reject overflow.
+      const iso = parsed.toISOString().slice(0, 10);
+      return iso === full;
+    },
+    { message: 'Invalid calendar date' },
+  );
 
 /**
  * Publication Schema

@@ -33,5 +33,13 @@ export function extractSoftSignals(text: string | null | undefined): string[] {
     'presentation',
   ];
   const lower = text.toLowerCase();
-  return vocab.filter((v) => lower.includes(v));
+  // P2-#14: substring `includes()` matched 'english' inside
+  // 'non-english-speaking' / 'englishman'. Use word-boundary regex
+  // so the signal only fires on the actual token. `-` is allowed
+  // inside vocab entries (`problem-solving`) so we escape regex
+  // metacharacters before assembling the pattern.
+  return vocab.filter((v) => {
+    const escaped = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`, 'i').test(lower);
+  });
 }

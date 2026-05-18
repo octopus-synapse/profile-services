@@ -74,9 +74,14 @@ export class AccessPublicResumeUseCase {
       if (!isValid) throw new SharePasswordInvalidException();
     }
 
+    // P2-#18: load the resume FIRST and only publish a view event after
+    // we successfully resolved it. Publishing before the read meant a
+    // load failure (cache miss, repo timeout) still counted as a view
+    // in analytics — phantom traffic.
+    const resume = await this.shares.getResumeWithCache(share.resumeId);
+
     this.publishAccessEvent(share, input);
 
-    const resume = await this.shares.getResumeWithCache(share.resumeId);
     return {
       resume,
       share: { slug: share.slug, expiresAt: share.expiresAt },

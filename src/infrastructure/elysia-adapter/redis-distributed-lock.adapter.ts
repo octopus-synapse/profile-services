@@ -23,6 +23,8 @@ import {
 } from '@/shared-kernel/concurrency/distributed-lock.port';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 // Lua: only DEL the key if its value matches the token we hold.
 // Returns 1 on success, 0 if someone else now owns the lock.
 const RELEASE_SCRIPT = `
@@ -43,8 +45,24 @@ export class RedisDistributedLockAdapter extends DistributedLockPort {
 
   async acquire(key: string, options: AcquireLockOptions): Promise<DistributedLockHandle | null> {
     if (!this.redis.isEnabled || !this.redis.client) {
-      // No Redis → grant a no-op handle. Single-instance dev only;
-      // production multi-pod deploys are required to set REDIS_HOST.
+      // P2-#27: in production a missing Redis is a configuration
+      // emergency — every cron / single-flight path would run on
+      // every pod simultaneously (multiplying notification emails,
+      // metrics writes, OpenAI spend, etc.). Fail closed with a
+      // null lock so guarded jobs skip instead of fanning out.
+      if (IS_PRODUCTION) {
+        this.logger.error(
+          `Distributed lock requested for ${key} but Redis is disabled in production — refusing to issue a no-op lock`,
+          { context: 'RedisDistributedLockAdapter' },
+        );
+        return null;
+      }
+      // Single-instance dev only. We surface a warn the first time
+      // so it's not invisible.
+      this.logger.warn(
+        `Distributed lock for ${key} is running without Redis (dev-only no-op handle)`,
+        'RedisDistributedLockAdapter',
+      );
       return {
         token: 'dev-no-redis',
         release: async () => {

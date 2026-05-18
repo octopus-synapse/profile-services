@@ -24,6 +24,10 @@ interface CacheService {
   isEnabled?: boolean;
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, value: T, ttlSeconds?: number): Promise<void>;
+  // P3-#33: atomic test-and-set so concurrent validations with the
+  // same TOTP can't both pass the replay check (was a race between
+  // `get` and the subsequent `set`).
+  setIfAbsent?(key: string, value: unknown, ttlSeconds: number): Promise<boolean>;
 }
 
 export class Validate2faUseCase implements Validate2faInboundPort {
@@ -38,6 +42,12 @@ export class Validate2faUseCase implements Validate2faInboundPort {
   /**
    * Validates TOTP token for a user.
    * Implements replay attack prevention by tracking used tokens.
+   *
+   * P3-#33: when the cache supports `setIfAbsent` we use it as an
+   * atomic gate so two concurrent requests for the same TOTP can't
+   * both pass replay protection. Older deployments still use the
+   * (slightly racy) get-then-set fallback so we don't break dev
+   * setups without Redis.
    */
   async validateToken(userId: string, token: string): Promise<boolean> {
     const twoFactorAuth = await this.repository.findByUserId(userId);
@@ -46,7 +56,23 @@ export class Validate2faUseCase implements Validate2faInboundPort {
       return false;
     }
 
-    // Replay attack prevention: check if token was already used
+    if (this.cacheService?.isEnabled && this.cacheService.setIfAbsent) {
+      // Reserve the cache slot atomically BEFORE we verify the TOTP.
+      // If another request already consumed this token, our setIfAbsent
+      // returns false and we treat it as replayed.
+      const cacheKey = this.getUsedTokenCacheKey(userId, token);
+      const reserved = await this.cacheService.setIfAbsent(cacheKey, '1', USED_TOKEN_TTL_SECONDS);
+      if (!reserved) return false;
+
+      const isValid = this.totpService.verifyToken(twoFactorAuth.secret, token);
+      if (isValid) {
+        await this.repository.updateLastUsed(userId);
+      }
+      return isValid;
+    }
+
+    // Fallback for cache-less or legacy adapter — keeps the original
+    // semantics (get-then-set with a narrow race window).
     if (await this.isTokenUsed(userId, token)) {
       return false;
     }
@@ -54,7 +80,6 @@ export class Validate2faUseCase implements Validate2faInboundPort {
     const isValid = this.totpService.verifyToken(twoFactorAuth.secret, token);
 
     if (isValid) {
-      // Mark token as used to prevent replay attacks
       await this.markTokenAsUsed(userId, token);
       await this.repository.updateLastUsed(userId);
     }

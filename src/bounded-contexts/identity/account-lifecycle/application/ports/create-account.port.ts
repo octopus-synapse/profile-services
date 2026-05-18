@@ -19,15 +19,14 @@ export interface CreateAccountCommand {
 export interface CreateAccountResult {
   userId: string;
   email: string;
-  // Auth tokens for auto-login after signup (eliminates extra login request)
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
 }
 
 export abstract class CreateAccountPort {
   /**
-   * Creates a new user account and generates auth tokens for auto-login.
+   * Creates a new user account. The session cookie (httpOnly) is established
+   * by the route handler via `createSession.execute`. Auth tokens are NOT
+   * returned in the response body — exposing them to JS would defeat the
+   * httpOnly cookie defense against XSS exfiltration (P2 hardening).
    * @throws AccountAlreadyExistsException if email is already registered
    * @throws WeakPasswordException if password doesn't meet requirements
    */

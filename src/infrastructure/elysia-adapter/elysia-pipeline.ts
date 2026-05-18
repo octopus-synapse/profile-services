@@ -240,13 +240,16 @@ export function requestLoggingStage(deps: {
           ip: ctx.ip,
           userAgent: ctx.userAgent,
         });
-        // P1-023 — feed the same measurement into the Prometheus
+        // P1-023 / P2-#26 — feed the same measurement into the Prometheus
         // histogram. Use the route template (`/v1/users/:userId`) when
-        // available so we don't blow up label cardinality with
-        // millions of paths; fall back to the literal `ctx.path` only
-        // when the mounter didn't tag the matched route.
+        // available so we don't blow up label cardinality. If the
+        // mounter didn't tag the matched route (404, OPTIONS preflight,
+        // etc.) bucket under `<unmatched>` instead of the literal
+        // `ctx.path` — the previous fallback to `ctx.path` let cardinality
+        // explode whenever an unrouted request slipped in with a UUID in
+        // the URL.
         if (deps.observeApiLatency) {
-          const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? ctx.path;
+          const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? '<unmatched>';
           deps.observeApiLatency(duration / 1000, {
             method: ctx.method,
             route,

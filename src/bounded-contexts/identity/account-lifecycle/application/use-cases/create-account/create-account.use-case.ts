@@ -1,4 +1,3 @@
-import { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/domain/ports';
 import { LoggerPort } from '@/shared-kernel';
 import { Password } from '../../../../password-management/domain/value-objects';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
@@ -24,7 +23,6 @@ export class CreateAccountUseCase implements CreateAccountPort {
     private readonly repository: AccountLifecycleRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
     private readonly eventBus: EventBusPort,
-    private readonly tokenGenerator: TokenGeneratorPort,
     private readonly acceptConsent: AcceptConsentUseCase,
     private readonly versionConfig: VersionConfigPort,
     private readonly logger: LoggerPort,
@@ -94,12 +92,6 @@ export class CreateAccountUseCase implements CreateAccountPort {
       userAgent,
     });
 
-    // Generate auth tokens for auto-login (eliminates extra login request)
-    const tokens = await this.tokenGenerator.generateTokenPair({
-      userId: account.id,
-      email: account.email,
-    });
-
     // Publish domain event
     const event = new AccountCreatedEvent(account.id, account.email);
     this.eventBus.publish(event);
@@ -107,9 +99,6 @@ export class CreateAccountUseCase implements CreateAccountPort {
     return {
       userId: account.id,
       email: account.email,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresIn: tokens.expiresIn,
     };
   }
 }

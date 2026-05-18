@@ -28,6 +28,10 @@ export class AcceptConnectionUseCase {
 
     const updated = await this.repository.updateConnectionStatus(connectionId, 'ACCEPTED');
 
+    // P2-#7 (intentional: telemetry/notification): downstream handlers
+    // (push notification to requester, activity feed bump) are
+    // telemetry-only — failure here must not roll back the accepted
+    // connection that the user already sees in their UI.
     this.eventPublisher.publish(
       new ConnectionAcceptedEvent(connection.requesterId, {
         requesterId: connection.requesterId,

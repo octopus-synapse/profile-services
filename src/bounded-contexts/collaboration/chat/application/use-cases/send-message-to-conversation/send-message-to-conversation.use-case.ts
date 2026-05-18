@@ -67,11 +67,24 @@ export class SendMessageToConversationUseCase {
       );
     }
 
-    await Promise.all([
+    // P2-#19: `Promise.all` aborted the remaining invalidations on the
+    // first rejection — leaving the recipient with stale "unread = 0"
+    // because their cache key never got busted. `allSettled` lets every
+    // key get its chance and surfaces failures via logs so the cache
+    // recovers on the next read (TTL) without dropping reads now.
+    const results = await Promise.allSettled([
       this.chatCache.invalidateUnread(otherParticipant.id),
       this.chatCache.invalidateConversations(senderId),
       this.chatCache.invalidateConversations(otherParticipant.id),
     ]);
+    for (const r of results) {
+      if (r.status === 'rejected') {
+        this.logger.warn(
+          `Chat cache invalidation failed: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`,
+          'SendMessageToConversation',
+        );
+      }
+    }
 
     return toMessageResponseDto(message);
   }

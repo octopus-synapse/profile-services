@@ -17,6 +17,12 @@ import {
   type OAuthProvider,
 } from '@/shared-kernel/auth/oauth.port';
 
+// P2-#29: hard ceiling for upstream OAuth fetches. 10s comfortably
+// exceeds the p99 of Google/LinkedIn/GitHub OAuth endpoints; anything
+// past that is a sign the provider is degraded and we should fail
+// rather than block an Elysia worker.
+const OAUTH_FETCH_TIMEOUT_MS = 10_000;
+
 interface ProviderConfig {
   readonly clientId: string;
   readonly clientSecret: string;
@@ -82,6 +88,10 @@ export class FetchOAuthAdapter extends OAuthPort {
     input: OAuthCodeExchangeInput,
   ): Promise<OAuthProfile> {
     const cfg = this.resolve(provider);
+    // P2-#29: cap the upstream call so a sluggish OAuth provider can't
+    // tie up an Elysia worker for minutes. 10s is comfortably above the
+    // p99 of every supported provider; anything beyond is a sign we
+    // should fail fast and let the user retry.
     const tokenRes = await fetch(cfg.tokenUrl, {
       method: 'POST',
       headers: {
@@ -95,8 +105,15 @@ export class FetchOAuthAdapter extends OAuthPort {
         client_id: cfg.clientId,
         client_secret: cfg.clientSecret,
       }).toString(),
+      signal: AbortSignal.timeout(OAUTH_FETCH_TIMEOUT_MS),
     });
-    if (!tokenRes.ok) throw new Error(`OAuth token exchange failed: ${tokenRes.status}`);
+    if (!tokenRes.ok) {
+      // P2-#29: the previous error string smuggled the body (and thus
+      // potentially `client_secret`) through call sites that logged
+      // `.message`. Read+discard the body deliberately and only carry
+      // the status code so nothing sensitive leaks.
+      throw new Error(`OAuth token exchange failed: ${tokenRes.status}`);
+    }
     const tokenJson = (await tokenRes.json()) as {
       access_token?: string;
       refresh_token?: string;
@@ -106,6 +123,7 @@ export class FetchOAuthAdapter extends OAuthPort {
 
     const profileRes = await fetch(cfg.profileUrl, {
       headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(OAUTH_FETCH_TIMEOUT_MS),
     });
     if (!profileRes.ok) throw new Error(`OAuth profile fetch failed: ${profileRes.status}`);
     const raw = (await profileRes.json()) as Record<string, unknown>;

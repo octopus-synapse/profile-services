@@ -108,6 +108,10 @@ class StubResumeEventPublisher implements ResumeEventPublisher {
   publishSectionRemoved(): void {}
   publishVersionCreated(): void {}
   publishVersionRestored(): void {}
+  async publishResumeCreatedAsync(): Promise<void> {}
+  async publishResumeDeletedAsync(): Promise<void> {}
+  async publishVersionCreatedAsync(): Promise<void> {}
+  async publishVersionRestoredAsync(): Promise<void> {}
 }
 
 // ============================================================================

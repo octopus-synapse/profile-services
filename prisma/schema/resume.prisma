@@ -80,7 +80,9 @@ model Resume {
   collabComments  CollaborationComment[]   @relation("ResumeComments")
 
   @@index([userId])
-  @@index([slug])
+  // P2-#34: `slug` is already `@unique` which implicitly creates an
+  // index; the redundant `@@index([slug])` was a write-amplification cost
+  // with no read benefit.
   @@index([isPublic])
   @@index([createdAt])
   @@index([techPersona])

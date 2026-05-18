@@ -34,6 +34,15 @@ export class CacheService implements Lifecycle {
   }
 
   /**
+   * Atomic set-if-not-exists. Returns `true` when the caller created
+   * the key, `false` otherwise. See `CacheCoreService.setIfAbsent` for
+   * semantics and `Validate2faUseCase` for the canonical caller.
+   */
+  async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    return this.coreService.setIfAbsent(key, value, ttlSeconds);
+  }
+
+  /**
    * Set value in cache with security guarantees.
    * Throws error if cache is unavailable or write fails.
    * Use for security-critical operations like session invalidation.

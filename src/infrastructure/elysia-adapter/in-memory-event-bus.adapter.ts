@@ -36,8 +36,25 @@ export class InMemoryEventBusAdapter extends EventBusPort {
     this.emitter.emit(event.eventType, event);
   }
 
+  /**
+   * P2-#7 (event-publishing async leak): unlike `publish`, this variant
+   * actually awaits each subscribed handler — even async ones. Node's
+   * `EventEmitter.emit()` invokes listeners synchronously and silently
+   * drops any Promise they return, which the BUG_REPORT flagged as an
+   * async leak. We replicate `emit`'s listener-snapshot semantics (so
+   * a listener that unsubscribes mid-emit doesn't trip us up) and then
+   * await the collected promises with `Promise.allSettled`, surfacing
+   * the first rejection on the caller side. State-mutating callers
+   * (audit, cleanup, projection sync) use this method so a handler
+   * failure becomes visible at the publisher.
+   */
   async publishAsync<T extends DomainEvent>(event: T): Promise<void> {
-    this.emitter.emit(event.eventType, event);
+    const listeners = this.emitter.listeners(event.eventType) as Array<
+      (event: T) => unknown | Promise<unknown>
+    >;
+    const results = await Promise.allSettled(listeners.map((fn) => fn(event)));
+    const firstRejection = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (firstRejection) throw firstRejection.reason;
   }
 
   on<T extends DomainEvent>(eventType: string, handler: EventHandler<T>): void {

@@ -17,6 +17,27 @@ import type { TrackEventsBodyDto } from '../../../dto/track-event.schema';
 
 const CTX = 'TrackPlatformEventsUseCase';
 
+// P2-#23: client-supplied `occurredAt` is clamped to a 7-day past
+// window + 5-minute future tolerance. The past bound throttles backfill
+// abuse (e.g. a malicious client trying to seed events with year-old
+// timestamps that distort cohort dashboards). The future bound covers
+// minor client clock skew while rejecting `"9999-12-31"` values that
+// previously broke retention queries and dashboard widgets.
+const PAST_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const FUTURE_TOLERANCE_MS = 5 * 60 * 1000;
+
+function clampOccurredAt(input: string, now: Date): Date {
+  const parsed = new Date(input);
+  const nowMs = now.getTime();
+  // Invalid date → snap to "now" so downstream consumers don't choke
+  // on `Invalid Date` while we still preserve the row.
+  if (Number.isNaN(parsed.getTime())) return now;
+  const t = parsed.getTime();
+  if (t < nowMs - PAST_WINDOW_MS) return new Date(nowMs - PAST_WINDOW_MS);
+  if (t > nowMs + FUTURE_TOLERANCE_MS) return new Date(nowMs + FUTURE_TOLERANCE_MS);
+  return parsed;
+}
+
 export class TrackPlatformEventsUseCase {
   constructor(
     private readonly repository: PlatformEventsRepositoryPort,
@@ -25,11 +46,12 @@ export class TrackPlatformEventsUseCase {
   ) {}
 
   async execute(userId: string | null, body: TrackEventsBodyDto): Promise<{ accepted: number }> {
+    const now = new Date();
     const events: PlatformEvent[] = body.events.map((e) => ({
       userId,
       event: e.event,
       props: e.props ?? null,
-      occurredAt: new Date(e.occurredAt),
+      occurredAt: clampOccurredAt(e.occurredAt, now),
     }));
 
     const result = await this.repository.persist(events);

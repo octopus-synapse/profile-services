@@ -244,8 +244,9 @@
       "Page": {
         "type": "integer",
         "minimum": 1,
+        "maximum": 1000,
         "default": 1,
-        "description": "1-indexed page number for offset pagination.",
+        "description": "1-indexed page number for offset pagination (max 1000).",
         "example": 1
       },
       "Limit": {
@@ -1273,7 +1274,7 @@
       },
       "post": {
         "summary": "Create new account",
-        "description": "Registers a new user account and returns auth tokens for auto-login.",
+        "description": "Registers a new user account. Authentication is established via httpOnly session cookie set in parallel; no bearer tokens are returned in the body.",
         "tags": [
           "accounts"
         ],
@@ -1304,24 +1305,12 @@
                     },
                     "message": {
                       "type": "string"
-                    },
-                    "accessToken": {
-                      "type": "string"
-                    },
-                    "refreshToken": {
-                      "type": "string"
-                    },
-                    "expiresIn": {
-                      "type": "integer"
                     }
                   },
                   "required": [
                     "userId",
                     "email",
-                    "message",
-                    "accessToken",
-                    "refreshToken",
-                    "expiresIn"
+                    "message"
                   ]
                 }
               }
@@ -88648,6 +88637,9 @@
           {
             "schema": {
               "type": "string",
+              "minLength": 1,
+              "maxLength": 512,
+              "pattern": "^[A-Za-z0-9/_.-]+$",
               "example": "fixture-slug"
             },
             "required": true,

@@ -8,12 +8,20 @@
 import { PrismaClient } from '@prisma/client';
 import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 import { Permission } from '@/shared-kernel/authorization/permission.enum';
+import { ConsoleLoggerAdapter } from '@/shared-kernel/logger/console-adapter';
 import type { CreatePermissionInput } from '../domain/entities/permission.entity';
 import { SYSTEM_PERMISSIONS as LEGACY_PERMISSIONS } from './permissions';
 import { SYSTEM_ROLES } from './system-roles';
 
 // lint-allow-mutable-module-state: CLI seed runner lazy-init — process is one-shot, no DI graph available here
 let cliPrisma: PrismaClient | null = null;
+
+// P3-#32: replace direct console.* with the project's seed-tier logger.
+// `ConsoleLoggerAdapter` writes to stdout/stderr but goes through the
+// `LoggerPort` shape so prod log aggregators don't see ad-hoc lines
+// from this CLI when it runs inside a deployed image. Convention
+// established in profile-services/CLAUDE.md (Q22).
+const seedLogger = new ConsoleLoggerAdapter('authz-seed');
 
 // Source of truth: the Permission enum. Every value `resource:action` is
 // mirrored as a Permission row. Legacy SYSTEM_PERMISSIONS adds a few
@@ -45,7 +53,7 @@ function buildPermissionList(): CreatePermissionInput[] {
 }
 
 async function seedPermissions(prisma: PrismaClient): Promise<Map<string, string>> {
-  console.log('🔐 Seeding permissions...');
+  seedLogger.log('🔐 Seeding permissions...');
   const permissionMap = new Map<string, string>();
   const allPermissions = buildPermissionList();
 
@@ -68,7 +76,7 @@ async function seedPermissions(prisma: PrismaClient): Promise<Map<string, string
     permissionMap.set(key, result.id);
   }
 
-  console.log(`  Created/updated ${permissionMap.size} permissions\n`);
+  seedLogger.log(`  Created/updated ${permissionMap.size} permissions`);
   return permissionMap;
 }
 
@@ -76,7 +84,7 @@ async function seedRoles(
   prisma: PrismaClient,
   permissionMap: Map<string, string>,
 ): Promise<Map<string, string>> {
-  console.log('👤 Seeding roles...');
+  seedLogger.log('👤 Seeding roles...');
   const roleMap = new Map<string, string>();
 
   for (const roleDef of SYSTEM_ROLES) {
@@ -116,14 +124,14 @@ async function seedRoles(
           update: {},
         });
       } else {
-        console.warn(`  ⚠ Permission "${permKey}" not found for role "${roleDef.name}"`);
+        seedLogger.warn(`  ⚠ Permission "${permKey}" not found for role "${roleDef.name}"`);
       }
     }
 
-    console.log(`  ✓ ${roleDef.name} (${grants.length} permissions)`);
+    seedLogger.log(`  ✓ ${roleDef.name} (${grants.length} permissions)`);
   }
 
-  console.log(`  Created/updated ${roleMap.size} roles\n`);
+  seedLogger.log(`  Created/updated ${roleMap.size} roles`);
   return roleMap;
 }
 
@@ -132,7 +140,7 @@ export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void>
     cliPrisma = new PrismaClient(createPrismaClientOptions());
   }
   const prisma = prismaArg ?? (cliPrisma as PrismaClient);
-  console.log('\n🚀 Starting authorization seed...\n');
+  seedLogger.log('🚀 Starting authorization seed...');
 
   try {
     const permissionMap = await seedPermissions(prisma);
@@ -140,9 +148,12 @@ export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void>
     // P0-009: Group hierarchy was dropped by 20260430040810_authz_refactor;
     // the seed step that bootstrapped SYSTEM_GROUPS was removed alongside.
 
-    console.log('✅ Authorization seed completed successfully!\n');
+    seedLogger.log('✅ Authorization seed completed successfully!');
   } catch (error) {
-    console.error('❌ Authorization seed failed:', { stack: error });
+    seedLogger.error('❌ Authorization seed failed', {
+      context: 'seedAuthorization',
+      stack: error instanceof Error ? error.stack : String(error),
+    });
     throw error;
   }
 }
@@ -152,7 +163,10 @@ if (require.main === module) {
   void seedAuthorization()
     .then(() => cliPrisma?.$disconnect())
     .catch((error) => {
-      console.error(error);
+      seedLogger.error('Authorization seed runner crashed', {
+        context: 'seedAuthorization.cli',
+        stack: error instanceof Error ? error.stack : String(error),
+      });
       void cliPrisma?.$disconnect();
       process.exit(1);
     });

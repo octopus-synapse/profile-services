@@ -4,14 +4,13 @@
  * via `useFactory`, the Elysia path will use the same composition.
  *
  * Cross-BC: `createSession` (authentication BC) is required to issue a
- * cookie session right after signup — pass it in from outside.
- *
- * `tokenGenerator` is also authentication-owned (issues access/refresh
- * pairs returned to the client for auto-login post-signup).
+ * cookie session right after signup — pass it in from outside. The
+ * cookie alone carries auth; token generation has been removed from this
+ * BC after the P2 hardening that stopped exposing bearer tokens in the
+ * signup response body.
  */
 
 import type { CreateSessionPort } from '@/bounded-contexts/identity/authentication/application/ports/create-session.port';
-import type { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/domain/ports';
 import type { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
@@ -45,7 +44,6 @@ export function buildAccountLifecycleUseCases(
   auditLog: AuditLogService,
   config: ConfigPort,
   eventBus: EventBusPort,
-  tokenGenerator: TokenGeneratorPort,
   createSession: CreateSessionPort,
   logger: LoggerPort,
 ): AccountLifecycleUseCases {
@@ -63,7 +61,6 @@ export function buildAccountLifecycleUseCases(
     repository,
     passwordHasher,
     eventBus,
-    tokenGenerator,
     acceptConsent,
     versionConfig,
     logger,
@@ -89,7 +86,6 @@ export function buildAccountLifecycleComposition(
   auditLog: AuditLogService,
   config: ConfigPort,
   eventBus: EventBusPort,
-  tokenGenerator: TokenGeneratorPort,
   createSession: CreateSessionPort,
   logger: LoggerPort,
 ): BoundedContextComposition<AccountLifecycleUseCases> {
@@ -98,7 +94,6 @@ export function buildAccountLifecycleComposition(
     auditLog,
     config,
     eventBus,
-    tokenGenerator,
     createSession,
     logger,
   );

@@ -60,6 +60,9 @@ export class CreateShareUseCase {
       expiresAt: dto.expiresAt ?? null,
     });
 
+    // P2-#7 (intentional: telemetry): activity feed handler is the only
+    // subscriber today; a feed-bump failure must not roll back the
+    // already-created share row visible to the user.
     this.eventPublisher.publish(
       new ResumePublishedEvent(dto.resumeId, { userId: resume.userId, slug }),
     );

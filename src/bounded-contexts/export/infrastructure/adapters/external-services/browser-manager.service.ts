@@ -30,8 +30,11 @@ export class BrowserManagerService {
    * page-lifecycles have completed AND no tabs remain in flight, the
    * underlying browser is recycled — the next acquire will re-launch.
    */
-  async withPage<T>(fn: (page: Page) => Promise<T>): Promise<T> {
-    await this.acquireTabSlot();
+  async withPage<T>(
+    fn: (page: Page) => Promise<T>,
+    options?: { signal?: AbortSignal },
+  ): Promise<T> {
+    await this.acquireTabSlot(options?.signal);
     let page: Page | null = null;
     try {
       const browser = await this.getBrowser();
@@ -86,16 +89,33 @@ export class BrowserManagerService {
     return this.browser !== null;
   }
 
-  private acquireTabSlot(): Promise<void> {
+  private acquireTabSlot(signal?: AbortSignal): Promise<void> {
     if (this.activeTabs < MAX_CONCURRENT_TABS) {
       this.activeTabs += 1;
       return Promise.resolve();
     }
-    return new Promise<void>((resolve) => {
-      this.waitQueue.push(() => {
+    // P2-#30: the previous form left orphaned `() => ...` thunks in
+    // `waitQueue` when the caller cancelled or timed out — each one
+    // counted against the semaphore on the next release and slowly
+    // starved the pool to zero. Wire an AbortSignal so cancellation
+    // pops our entry and rejects the promise instead of leaking.
+    return new Promise<void>((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(signal.reason ?? new Error('acquireTabSlot aborted'));
+        return;
+      }
+      const grant = () => {
+        if (signal) signal.removeEventListener('abort', onAbort);
         this.activeTabs += 1;
         resolve();
-      });
+      };
+      const onAbort = () => {
+        const idx = this.waitQueue.indexOf(grant);
+        if (idx !== -1) this.waitQueue.splice(idx, 1);
+        reject(signal?.reason ?? new Error('acquireTabSlot aborted'));
+      };
+      this.waitQueue.push(grant);
+      signal?.addEventListener('abort', onAbort, { once: true });
     });
   }
 

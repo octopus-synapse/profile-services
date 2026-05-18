@@ -11,7 +11,21 @@ import type { Route } from '@/shared-kernel/http/route.types';
 import { UploadUseCases } from './application/ports/upload.port';
 
 const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
-const KeyParams = z.object({ key: z.string() });
+
+// P2-#6: path-traversal hardening. Restrict the `key` param to the
+// alphabet emitted by the upload pipeline (UUID/v7 + slash for the
+// bucket prefix + dotted extension). `..` is rejected so a crafted
+// `posts/<uuid>/..` can't escape the upload prefix into another
+// tenant's blobs.
+const STORAGE_KEY_REGEX = /^[A-Za-z0-9/_.-]+$/;
+const KeyParams = z.object({
+  key: z
+    .string()
+    .min(1)
+    .max(512)
+    .regex(STORAGE_KEY_REGEX, 'Storage key contains forbidden characters')
+    .refine((k) => !k.includes('..'), 'Storage key may not contain ..'),
+});
 
 const UploadResponseSchema = z.object({
   url: z.string().url(),

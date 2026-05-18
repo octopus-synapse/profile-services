@@ -37,6 +37,14 @@ export class BullMQCacheInvalidationAdapter extends CacheInvalidationQueuePort {
   }
 }
 
+// P2-#28: refuse pattern wipes that would match the entire keyspace.
+// `deletePattern('')` previously turned into `new RegExp('^.*$')` in
+// the in-memory adapter and `KEYS *` in Redis — a cache wipe disguised
+// as a per-key invalidation. Insist on a 3-char minimum so a typo or
+// missing value bubbles up loudly here instead of silently nuking
+// every cached entry.
+const MIN_INVALIDATION_PATTERN_LENGTH = 3;
+
 /**
  * Apply a queued `CacheInvalidationJob` against the cache. Exported so
  * the bootstrap can wire it as the queue processor without coupling
@@ -47,10 +55,19 @@ export async function applyCacheInvalidation(
   job: CacheInvalidationJob,
 ): Promise<void> {
   if (job.kind === 'invalidate-key') {
+    if (!job.key || job.key.trim().length === 0) {
+      throw new Error('applyCacheInvalidation: refusing to delete a blank cache key');
+    }
     await cache.delete(job.key);
     return;
   }
   if (job.kind === 'invalidate-pattern') {
-    await cache.deletePattern(job.pattern);
+    const pattern = job.pattern ?? '';
+    if (pattern.trim().length < MIN_INVALIDATION_PATTERN_LENGTH) {
+      throw new Error(
+        `applyCacheInvalidation: refusing to flush the whole cache (pattern="${pattern}")`,
+      );
+    }
+    await cache.deletePattern(pattern);
   }
 }

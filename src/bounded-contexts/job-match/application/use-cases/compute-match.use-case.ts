@@ -74,7 +74,7 @@ export class ComputeMatchUseCase {
     const cacheKey = `match:${resumeId}:${jobId}:${userId}:${MATCH_RULES_VERSION}`;
     const cached = await this.cache.get(cacheKey);
     if (cached) {
-      this.publishComputed({
+      await this.publishComputed({
         userId,
         resumeId,
         jobId,
@@ -100,7 +100,7 @@ export class ComputeMatchUseCase {
       await new Promise((r) => setTimeout(r, 250));
       const followerHit = await this.cache.get(cacheKey);
       if (followerHit) {
-        this.publishComputed({
+        await this.publishComputed({
           userId,
           resumeId,
           jobId,
@@ -145,7 +145,14 @@ export class ComputeMatchUseCase {
         );
       }
 
-      this.publishComputed({ userId, resumeId, jobId, breakdown, fromCache: false, startedAt });
+      await this.publishComputed({
+        userId,
+        resumeId,
+        jobId,
+        breakdown,
+        fromCache: false,
+        startedAt,
+      });
 
       return breakdown;
     } finally {
@@ -153,21 +160,24 @@ export class ComputeMatchUseCase {
     }
   }
 
-  private publishComputed(args: {
+  // P2-#7 (event-publishing async leak): state-mutating event — match
+  // score persistence + downstream cache invalidations subscribe. Await
+  // so a failed handler surfaces here instead of being dropped.
+  private async publishComputed(args: {
     userId: string;
     resumeId: string;
     jobId: string;
     breakdown: MatchBreakdown;
     fromCache: boolean;
     startedAt: number;
-  }): void {
+  }): Promise<void> {
     const subScores: Record<string, number | null> = {
       keyword: args.breakdown.subScores.keyword.score,
       requirements: args.breakdown.subScores.requirements.score,
       semantic: args.breakdown.subScores.semantic.score,
       fit: args.breakdown.subScores.fit.score,
     };
-    this.events.publish(
+    await this.events.publishAsync(
       new MatchComputedEvent(args.jobId, {
         userId: args.userId,
         resumeId: args.resumeId,

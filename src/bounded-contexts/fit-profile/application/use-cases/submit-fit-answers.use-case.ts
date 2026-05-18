@@ -192,7 +192,9 @@ export class SubmitFitAnswersUseCase {
     // this event; we keep emission at the very end so a crash earlier
     // in the sequence leaves no phantom recomputes chasing the old
     // vector.
-    this.events.publish(
+    // P2-#7: await so the cache-invalidation handler reports failures
+    // back here instead of vanishing into an unhandled rejection.
+    await this.events.publishAsync(
       new UserFitProfileUpdatedEvent(input.userId, { version: saved.version, cause: 'remap' }),
     );
 

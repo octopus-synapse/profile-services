@@ -51,7 +51,8 @@ export class InviteCollaboratorUseCase {
       },
     );
 
-    this.eventPublisher.publish(
+    // P2-#7: await so projection / audit handlers can surface failures.
+    await this.eventPublisher.publishAsync(
       new CollaborationStartedEvent(collaborator.id, {
         resumeId: params.resumeId,
         ownerId: params.inviterId,

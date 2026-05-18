@@ -33,6 +33,8 @@ const RESPONSE_EVENT_TYPES: ReadonlySet<JobApplicationEventType> = new Set<JobAp
 );
 
 export const DEFAULT_SILENT_THRESHOLD_DAYS = 10;
+export const MIN_SILENT_THRESHOLD_DAYS = 1;
+export const MAX_SILENT_THRESHOLD_DAYS = 365;
 
 export class ListApplicationTimelineUseCase {
   constructor(private readonly repository: ApplicationTrackerRepositoryPort) {}
@@ -42,18 +44,32 @@ export class ListApplicationTimelineUseCase {
     silentThresholdDays: number = DEFAULT_SILENT_THRESHOLD_DAYS,
     now: Date = new Date(),
   ): Promise<TrackedApplication[]> {
+    // P2-#20: clamp the silence threshold so a caller can't pass `0`
+    // (every app would always need a follow-up) or e.g. `99999` (no
+    // app ever does). Bound applies to the input, not to data shape.
+    const threshold = Math.max(
+      MIN_SILENT_THRESHOLD_DAYS,
+      Math.min(MAX_SILENT_THRESHOLD_DAYS, Math.floor(silentThresholdDays)),
+    );
     const applications = await this.repository.listApplicationsForUser(userId);
     const nowMs = now.getTime();
 
     return applications.map((app) => {
-      const events = app.events.map((e) => ({
+      // P2-#20: don't trust event ordering from the repo — sort by
+      // `occurredAt` ascending so "last response" really is the most
+      // recent event, even if the repository ever returns them out of
+      // order (BUG_REPORT noted the use case assumed sorted input).
+      const sortedEvents = [...app.events].sort(
+        (a, b) => a.occurredAt.getTime() - b.occurredAt.getTime(),
+      );
+      const events = sortedEvents.map((e) => ({
         id: e.id,
         type: e.type,
         note: e.note,
         occurredAt: e.occurredAt.toISOString(),
       }));
 
-      const responseEvents = app.events.filter((e) => RESPONSE_EVENT_TYPES.has(e.type));
+      const responseEvents = sortedEvents.filter((e) => RESPONSE_EVENT_TYPES.has(e.type));
       const lastResponseAt = responseEvents.length
         ? responseEvents[responseEvents.length - 1]?.occurredAt
         : null;
@@ -65,19 +81,17 @@ export class ListApplicationTimelineUseCase {
       // Silence is "no response ever" + more than N days since submission, OR
       // last response is older than threshold — minus when the user already
       // sent a follow-up (don't nag twice).
-      const lastFollowUp = [...app.events].reverse().find((e) => e.type === 'FOLLOW_UP_SENT');
+      const lastFollowUp = [...sortedEvents].reverse().find((e) => e.type === 'FOLLOW_UP_SENT');
       const blockedByRecentFollowUp =
         lastFollowUp != null &&
-        Math.floor((nowMs - lastFollowUp.occurredAt.getTime()) / MS_PER_DAY) < silentThresholdDays;
+        Math.floor((nowMs - lastFollowUp.occurredAt.getTime()) / MS_PER_DAY) < threshold;
 
-      const inTerminalState = app.events.some(
+      const inTerminalState = sortedEvents.some(
         (e) => e.type === 'OFFER_RECEIVED' || e.type === 'REJECTED',
       );
 
       const needsFollowUp =
-        !inTerminalState &&
-        !blockedByRecentFollowUp &&
-        daysSinceLastResponse >= silentThresholdDays;
+        !inTerminalState && !blockedByRecentFollowUp && daysSinceLastResponse >= threshold;
 
       return {
         id: app.id,

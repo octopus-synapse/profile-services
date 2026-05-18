@@ -127,8 +127,11 @@ export class PrismaApplicationTrackerRepository extends ApplicationTrackerReposi
   }
 
   async findCompanyResponseSamples(company: string): Promise<CompanyResponseSampleRow[]> {
+    // P2-#16: case-insensitive match so "Google"/"GOOGLE"/"google"
+    // bucket together. Avoids three artificial datasets for the same
+    // employer.
     const rows = await this.prisma.jobApplication.findMany({
-      where: { job: { company } },
+      where: { job: { company: { equals: company, mode: 'insensitive' } } },
       select: {
         createdAt: true,
         events: {

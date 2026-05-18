@@ -31,7 +31,11 @@ export class CreateResumeForUserUseCase {
       exception: new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER),
     });
 
-    this.eventPublisher.publishResumeCreated(resume.id, { userId, title: resume.title ?? '' });
+    // P2-#7: await so a failed audit/projection handler surfaces to the caller.
+    await this.eventPublisher.publishResumeCreatedAsync(resume.id, {
+      userId,
+      title: resume.title ?? '',
+    });
 
     return resume;
   }

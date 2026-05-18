@@ -297,11 +297,17 @@ export class S3UploadService {
       throw new StorageConfigurationException();
     }
 
-    const safeFilename = opts.filename.replace(/"/g, '');
+    // RFC 5987 encoded form sanitises CR/LF and quote injection (P2-#4).
+    // The plain `filename=` is kept ASCII-only for legacy clients that
+    // can't parse `filename*=`; the encoded form takes precedence in
+    // every modern browser.
+    const asciiFallback = opts.filename.replace(/[^A-Za-z0-9._-]/g, '_');
+    const encoded = encodeURIComponent(opts.filename);
+    const contentDisposition = `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`;
     try {
       await this.client.putObject(this.bucket, opts.key, opts.body, opts.body.length, {
         'Content-Type': opts.contentType,
-        'Content-Disposition': `attachment; filename="${safeFilename}"`,
+        'Content-Disposition': contentDisposition,
         'Cache-Control': PRIVATE_CACHE_CONTROL,
         'x-amz-acl': 'private',
       });

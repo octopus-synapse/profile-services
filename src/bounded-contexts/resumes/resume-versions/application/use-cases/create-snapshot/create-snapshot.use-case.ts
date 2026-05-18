@@ -44,7 +44,8 @@ export class CreateSnapshotUseCase {
       label,
     });
 
-    this.eventPublisher.publishVersionCreated(resumeId, {
+    // P2-#7: await so version-projection handlers surface failures.
+    await this.eventPublisher.publishVersionCreatedAsync(resumeId, {
       userId: resume.userId,
       versionNumber: version.versionNumber,
       snapshotData: snapshot,

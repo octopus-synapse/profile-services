@@ -94,7 +94,8 @@ export class RestoreVersionUseCase {
 
     await this.repository.updateResumeFromSnapshot(resumeId, resumeData);
 
-    this.eventPublisher.publishVersionRestored(resumeId, {
+    // P2-#7: await so projection-sync handlers can surface failures.
+    await this.eventPublisher.publishVersionRestoredAsync(resumeId, {
       userId,
       restoredFromVersion: version.versionNumber,
     });

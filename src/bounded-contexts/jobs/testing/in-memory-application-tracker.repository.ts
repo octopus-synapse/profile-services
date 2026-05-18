@@ -140,8 +140,10 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
       'OFFER_RECEIVED',
       'REJECTED',
     ]);
+    // P2-#16: parity with Prisma's case-insensitive matching.
+    const needle = company.toLowerCase();
     return [...this.applications.values()]
-      .filter((a) => a.job.company === company)
+      .filter((a) => a.job.company.toLowerCase() === needle)
       .map((a) => {
         const firstResponse = [...a.events]
           .sort((x, y) => x.occurredAt.getTime() - y.occurredAt.getTime())

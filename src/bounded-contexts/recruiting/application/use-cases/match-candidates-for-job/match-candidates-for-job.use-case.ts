@@ -73,6 +73,10 @@ export class MatchCandidatesForJobUseCase {
       .slice(0, input.limit);
 
     const candidates: MatchCandidatesForJobOutputItem[] = ranked.map((c) => c.toPlain());
-    return { candidates, poolSize: candidates.length };
+    // P2-#11: report the SIZE OF THE POOL we scanned, not the slice we
+    // returned — the former is what callers care about to gauge match
+    // strength; the latter is just `min(limit, candidates.length)` and
+    // can be recomputed client-side.
+    return { candidates, poolSize: pool.length };
   }
 }

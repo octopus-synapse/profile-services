@@ -29,10 +29,22 @@ export class GetCompanyResponseStatsUseCase {
   constructor(private readonly repository: ApplicationTrackerRepositoryPort) {}
 
   async execute(company: string): Promise<CompanyResponseStats> {
-    const samples = await this.repository.findCompanyResponseSamples(company);
+    // P2-#16: trim whitespace before lookup ("Google " from a CSV won't
+    // match "Google"). Repository now does case-insensitive comparison
+    // so "Google"/"GOOGLE"/"google" no longer produce three datasets.
+    // Response keeps the user-supplied casing so the UI label echoes
+    // what was typed.
+    const trimmedCompany = company.trim();
+    const samples = await this.repository.findCompanyResponseSamples(trimmedCompany);
     const sampleSize = samples.length;
     if (sampleSize === 0) {
-      return { company, sampleSize: 0, p50Days: null, p90Days: null, responseRate: 0 };
+      return {
+        company: trimmedCompany,
+        sampleSize: 0,
+        p50Days: null,
+        p90Days: null,
+        responseRate: 0,
+      };
     }
 
     const responseDays: number[] = [];
@@ -55,7 +67,7 @@ export class GetCompanyResponseStatsUseCase {
     };
 
     return {
-      company,
+      company: trimmedCompany,
       sampleSize,
       p50Days: percentile(0.5),
       p90Days: percentile(0.9),

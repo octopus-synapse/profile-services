@@ -14,6 +14,7 @@ export class DeleteResumeForUserUseCase {
     const deleted = await this.repository.deleteResumeForUser(id, userId);
     if (!deleted) throw new EntityNotFoundException('Resume', id);
 
-    this.eventPublisher.publishResumeDeleted(id, { userId });
+    // P2-#7: await so cleanup-on-delete handlers can fail loud.
+    await this.eventPublisher.publishResumeDeletedAsync(id, { userId });
   }
 }

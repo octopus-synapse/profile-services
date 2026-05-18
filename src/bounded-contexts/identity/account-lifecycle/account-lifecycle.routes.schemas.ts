@@ -39,14 +39,13 @@ export const AcceptConsentRequestSchema = z
 // ─── Response schemas ────────────────────────────────────────────────
 export const MessageResponseSchema = z.object({ message: z.string() });
 
-// POST /v1/accounts handler returns userId/email + auth tokens for auto-login.
+// POST /v1/accounts handler returns userId/email. The httpOnly session
+// cookie carries auth — tokens are intentionally NOT exposed in the body
+// (P2 hardening: prevents XSS exfiltration of bearer tokens).
 export const CreateAccountResponseSchema = z.object({
   userId: z.string().uuid(),
   email: z.string(),
   message: z.string(),
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number().int(),
 });
 
 // Mirrors `GdprExportData` from export-data.use-case.ts. The two

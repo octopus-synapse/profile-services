@@ -27,9 +27,10 @@ export const PageSchema = z.coerce
   .number()
   .int()
   .min(1, 'page must be a positive integer')
+  .max(PAGINATION.MAX_PAGE, `page cannot exceed ${PAGINATION.MAX_PAGE}`)
   .default(PAGINATION.DEFAULT_PAGE)
   .openapi('Page', {
-    description: '1-indexed page number for offset pagination.',
+    description: `1-indexed page number for offset pagination (max ${PAGINATION.MAX_PAGE}).`,
     example: PAGINATION.DEFAULT_PAGE,
   });
 
