@@ -51487,6 +51487,12 @@
                     },
                     "default": []
                   }
+                },
+                "example": {
+                  "extras": [
+                    "section:project_v1",
+                    "section:certification_v1"
+                  ]
                 }
               }
             }

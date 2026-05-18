@@ -224,7 +224,14 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'POST',
     path: '/v1/onboarding/session/extras',
     auth: { kind: 'jwt' },
-    body: z.object({ extras: z.array(z.string()).default([]) }),
+    body: z
+      .object({ extras: z.array(z.string()).default([]) })
+      // Use canonical extra step keys (`section:<sectionTypeKey>`) so
+      // contract probes hit a valid path, not the OnboardingUnknownStep
+      // 400 branch. Allowed set lives in
+      // bounded-contexts/onboarding/domain/config/onboarding-section-defaults.config
+      // (EXTRA_SECTION_KEYS + extraStepKey()).
+      .openapi({ example: { extras: ['section:project_v1', 'section:certification_v1'] } }),
     query: LocaleQuery,
     response: OnboardingSessionSchema,
     openapi: {

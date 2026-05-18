@@ -1,9 +1,13 @@
-import { EntityNotFoundException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 import { InvalidSkillCategoryException } from '../../../../domain/exceptions/skills-catalog.exceptions';
 import type { CreateSkillData, Skill } from '../../../domain/ports/skill-management.port';
 import type { SkillManagementRepositoryPort } from '../../../domain/ports/skill-management.repository.port';
 
-class DuplicateSkillException extends ValidationException {
+class DuplicateSkillException extends ConflictException {
   override readonly code: string = 'DUPLICATE_SKILL_NAME';
   constructor(name: string) {
     super(`Skill "${name}" already exists on this resume`);
