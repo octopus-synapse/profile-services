@@ -81,7 +81,12 @@ export class PrismaCollaborationRepository extends CollaborationRepositoryPort {
     this.logger.log(`Inviting collaborator ${data.userId} to resume ${data.resumeId}`, CTX);
     return runInTransaction(this.prisma, async (tx) => {
       await enforceQuotaInTx(tx, {
-        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "ResumeCollaborator" WHERE "resumeId" = ${data.resumeId} FOR UPDATE`,
+        // Serialise on the Resume row so two concurrent POST /v1/resumes/
+        // :resumeId/collaborators observe each other. `FOR UPDATE` can't
+        // share a query with `COUNT(*)` (Postgres error 0A000), so lock
+        // + count are two queries inside one tx.
+        lockSql: Prisma.sql`SELECT 1 FROM "Resume" WHERE "id" = ${data.resumeId} FOR UPDATE`,
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "ResumeCollaborator" WHERE "resumeId" = ${data.resumeId}`,
         max: quota.max,
         exception: quota.exception,
       });
