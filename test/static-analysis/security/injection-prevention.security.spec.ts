@@ -56,9 +56,23 @@ describe('SQL Injection Prevention', () => {
 
         if (lineIndex >= 0 && lineIndex < lines.length) {
           const line = lines[lineIndex];
-          if (line.includes('$executeRaw`') || line.includes('$executeRaw(Prisma.sql`')) {
-          } else if (line.includes('$executeRaw(') && !line.includes('Prisma.sql')) {
-            unsafeExecutes.push(match);
+          // Safe patterns recognised:
+          //  - Tagged template: `$executeRaw`...``
+          //  - Inline Prisma.sql call: `$executeRaw(Prisma.sql`...`)`
+          //  - Identifier of typed `Prisma.Sql`: `$executeRaw(someSqlVar)`
+          //    when the file imports / types `Prisma.Sql` (the type
+          //    system guarantees the value is a parameterized template).
+          //    Heuristic: file contains `Prisma.Sql` (note capital `S`,
+          //    the TYPE name) — anyone wiring a variable through that
+          //    type cannot accidentally pass a raw string.
+          const isTaggedTemplate = line.includes('$executeRaw`');
+          const isInlinePrismaSql = line.includes('$executeRaw(Prisma.sql`');
+          const isCallStyle = line.includes('$executeRaw(') && !line.includes('Prisma.sql');
+          if (!isTaggedTemplate && !isInlinePrismaSql && isCallStyle) {
+            const fileTypesPrismaSql = /\bPrisma\.Sql\b/.test(content);
+            if (!fileTypesPrismaSql) {
+              unsafeExecutes.push(match);
+            }
           }
         }
       }

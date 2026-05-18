@@ -294,6 +294,10 @@ export const ERROR_DICTIONARY = {
     en: 'Account deletion requires explicit confirmation',
     'pt-BR': 'A exclusão da conta exige confirmação explícita',
   },
+  DUPLICATE_SKILL_NAME: {
+    en: 'A skill with this name already exists on the resume',
+    'pt-BR': 'Já existe uma habilidade com esse nome no currículo',
+  },
   DSL_CYCLIC_REFERENCE: {
     en: 'DSL has a cyclic reference',
     'pt-BR': 'A DSL possui uma referência cíclica',
@@ -799,6 +803,10 @@ export const ERROR_DICTIONARY = {
   POLL_CLOSED: {
     en: 'This poll is closed to new votes',
     'pt-BR': 'Esta enquete está fechada para novos votos',
+  },
+  POLL_OPTION_OUT_OF_RANGE: {
+    en: 'Selected option is out of range for this poll',
+    'pt-BR': 'A opção selecionada está fora do intervalo desta enquete',
   },
   POST_ALREADY_REPORTED: {
     en: 'You have already reported this post',

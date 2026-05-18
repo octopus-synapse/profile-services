@@ -116,6 +116,22 @@ export async function seedDreddFixtures(
     });
   }
 
+  // The contract harness probes PATCH /v1/jobs/:id and DELETE /v1/jobs/:id
+  // as the dredd-fixture persona; both routes are gated by
+  // `Permission.JOB_CREATE`, which is granted to the `recruiter` role
+  // (migration 20260514145936). Grant the role to the fixture user so
+  // those mutation probes don't 403 with "Missing: job:create".
+  const recruiterRole = await prisma.role.findUnique({ where: { name: 'recruiter' } });
+  if (recruiterRole) {
+    await prisma.userRoleAssignment.upsert({
+      where: {
+        userId_roleId: { userId: EXAMPLE_USER_ID, roleId: recruiterRole.id },
+      },
+      create: { userId: EXAMPLE_USER_ID, roleId: recruiterRole.id },
+      update: {},
+    });
+  }
+
   // ── Generic-id fixture user (for /users/manage/{id} routes) ──────────
   // This user has EXAMPLE_GENERIC_ID so admin manage-user routes resolve.
   // It must not be destroyed during the Dredd run; the DELETE is in
@@ -286,14 +302,22 @@ export async function seedDreddFixtures(
   });
 
   // ── Generic-id post (for /posts/{id} routes that use EXAMPLE_GENERIC_ID) ─
+  // Carries pollOptions so the contract probe of POST /v1/posts/:id/poll/vote
+  // (which resolves :id → FIXTURE_GENERIC_ID via the fallback in
+  // test/infrastructure/contract/engine/param-resolver.ts) can vote on a
+  // real option. Other post mutations (like, comment, repost, report)
+  // don't care that pollOptions is set.
   await prisma.post.upsert({
     where: { id: EXAMPLE_GENERIC_ID },
     create: {
       id: EXAMPLE_GENERIC_ID,
       authorId: EXAMPLE_USER_ID,
       content: 'Dredd generic post body.',
+      pollOptions: [{ label: 'Option A' }, { label: 'Option B' }],
     },
-    update: {},
+    update: {
+      pollOptions: [{ label: 'Option A' }, { label: 'Option B' }],
+    },
   });
 
   // ── Conversation (already seeded) ─────────────────────────────────────

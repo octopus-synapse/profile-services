@@ -8,6 +8,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
+import { TranslationBackendUnavailableException } from '../../domain/exceptions/translation.exceptions';
 import type {
   LanguageDetectionResult,
   SourceLanguage,
@@ -79,8 +80,12 @@ export class TranslationCoreService {
       // body. `response.json()` then throws, the catch silently returns
       // `original === translated` with no signal that anything failed.
       // Surface the upstream error so the caller can degrade explicitly.
+      // Arch test (domain-exception-discipline) requires a typed
+      // DomainException here, not a bare `new Error`.
       if (!response.ok) {
-        throw new Error(`LibreTranslate ${response.status} ${response.statusText}`);
+        throw new TranslationBackendUnavailableException(
+          `LibreTranslate ${response.status} ${response.statusText}`,
+        );
       }
 
       const data = (await response.json()) as {

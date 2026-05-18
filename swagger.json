@@ -31273,6 +31273,12 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "videoUrl": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional video attachment URL.",
+                            "example": null
+                          },
                           "linkUrl": {
                             "type": "string",
                             "nullable": true
@@ -31457,6 +31463,12 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "videoUrl": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Optional video attachment URL.",
+                                "example": null
+                              },
                               "linkUrl": {
                                 "type": "string",
                                 "nullable": true
@@ -31623,6 +31635,7 @@
                               "content",
                               "hashtags",
                               "imageUrl",
+                              "videoUrl",
                               "linkUrl",
                               "linkPreview",
                               "isRepost",
@@ -31686,6 +31699,12 @@
                                 "imageUrl": {
                                   "type": "string",
                                   "nullable": true
+                                },
+                                "videoUrl": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "description": "Optional video attachment URL.",
+                                  "example": null
                                 },
                                 "linkUrl": {
                                   "type": "string",
@@ -31871,6 +31890,12 @@
                                       "type": "string",
                                       "nullable": true
                                     },
+                                    "videoUrl": {
+                                      "type": "string",
+                                      "nullable": true,
+                                      "description": "Optional video attachment URL.",
+                                      "example": null
+                                    },
                                     "linkUrl": {
                                       "type": "string",
                                       "nullable": true
@@ -32037,6 +32062,7 @@
                                     "content",
                                     "hashtags",
                                     "imageUrl",
+                                    "videoUrl",
                                     "linkUrl",
                                     "linkPreview",
                                     "isRepost",
@@ -32066,6 +32092,7 @@
                                 "content",
                                 "hashtags",
                                 "imageUrl",
+                                "videoUrl",
                                 "linkUrl",
                                 "linkPreview",
                                 "isRepost",
@@ -32096,6 +32123,7 @@
                           "content",
                           "hashtags",
                           "imageUrl",
+                          "videoUrl",
                           "linkUrl",
                           "linkPreview",
                           "isRepost",
@@ -32319,6 +32347,12 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "videoUrl": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional video attachment URL.",
+                            "example": null
+                          },
                           "linkUrl": {
                             "type": "string",
                             "nullable": true
@@ -32503,6 +32537,12 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "videoUrl": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Optional video attachment URL.",
+                                "example": null
+                              },
                               "linkUrl": {
                                 "type": "string",
                                 "nullable": true
@@ -32669,6 +32709,7 @@
                               "content",
                               "hashtags",
                               "imageUrl",
+                              "videoUrl",
                               "linkUrl",
                               "linkPreview",
                               "isRepost",
@@ -32710,6 +32751,7 @@
                           "content",
                           "hashtags",
                           "imageUrl",
+                          "videoUrl",
                           "linkUrl",
                           "linkPreview",
                           "isRepost",
@@ -33246,6 +33288,12 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "videoUrl": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Optional video attachment URL.",
+                            "example": null
+                          },
                           "linkUrl": {
                             "type": "string",
                             "nullable": true
@@ -33430,6 +33478,12 @@
                                 "type": "string",
                                 "nullable": true
                               },
+                              "videoUrl": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Optional video attachment URL.",
+                                "example": null
+                              },
                               "linkUrl": {
                                 "type": "string",
                                 "nullable": true
@@ -33596,6 +33650,7 @@
                               "content",
                               "hashtags",
                               "imageUrl",
+                              "videoUrl",
                               "linkUrl",
                               "linkPreview",
                               "isRepost",
@@ -33625,6 +33680,7 @@
                           "content",
                           "hashtags",
                           "imageUrl",
+                          "videoUrl",
                           "linkUrl",
                           "linkPreview",
                           "isRepost",
@@ -36864,7 +36920,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -37811,8 +37869,7 @@
                 ],
                 "example": {
                   "type": "INTERVIEW_SCHEDULED",
-                  "note": "Initial screening with the hiring manager.",
-                  "occurredAt": "2026-05-15T14:00:00Z"
+                  "note": "Initial screening with the hiring manager."
                 }
               }
             }
@@ -38033,7 +38090,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -38694,7 +38753,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -39054,7 +39115,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -40998,7 +41061,9 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
             },
             "required": false,
             "name": "sortBy",
@@ -51477,6 +51542,12 @@
                     },
                     "default": []
                   }
+                },
+                "example": {
+                  "extras": [
+                    "section:project_v1",
+                    "section:certification_v1"
+                  ]
                 }
               }
             }
@@ -55476,6 +55547,12 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "videoUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional video attachment URL.",
+                      "example": null
+                    },
                     "linkUrl": {
                       "type": "string",
                       "nullable": true
@@ -55642,6 +55719,7 @@
                     "content",
                     "hashtags",
                     "imageUrl",
+                    "videoUrl",
                     "linkUrl",
                     "linkPreview",
                     "isRepost",
@@ -56555,6 +56633,12 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "videoUrl": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Optional video attachment URL.",
+                      "example": null
+                    },
                     "linkUrl": {
                       "type": "string",
                       "nullable": true
@@ -56739,6 +56823,12 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "videoUrl": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Optional video attachment URL.",
+                          "example": null
+                        },
                         "linkUrl": {
                           "type": "string",
                           "nullable": true
@@ -56905,6 +56995,7 @@
                         "content",
                         "hashtags",
                         "imageUrl",
+                        "videoUrl",
                         "linkUrl",
                         "linkPreview",
                         "isRepost",
@@ -56934,6 +57025,7 @@
                     "content",
                     "hashtags",
                     "imageUrl",
+                    "videoUrl",
                     "linkUrl",
                     "linkPreview",
                     "isRepost",
@@ -59169,6 +59261,12 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "videoUrl": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Optional video attachment URL.",
+                          "example": null
+                        },
                         "linkUrl": {
                           "type": "string",
                           "nullable": true
@@ -59341,6 +59439,7 @@
                         "content",
                         "hashtags",
                         "imageUrl",
+                        "videoUrl",
                         "linkUrl",
                         "linkPreview",
                         "isRepost",
@@ -77286,7 +77385,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/skills/{skillId}": {
@@ -77498,7 +77600,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       },
       "patch": {
         "summary": "Update a resume skill",
@@ -77751,7 +77856,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/style": {

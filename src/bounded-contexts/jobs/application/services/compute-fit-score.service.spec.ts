@@ -49,12 +49,16 @@ describe('computeFitScore', () => {
     expect(result?.breakdown.englishMatch).toBe(0);
   });
 
-  it('treats missing english requirement as neutral (1)', () => {
+  it('treats missing english requirement as neutral (0.5)', () => {
+    // P1-#A2-28: when the job declares no English requirement, the
+    // dimension neutralises to 0.5 (matching remoteMatch semantics)
+    // rather than inflating to 1. Otherwise every job that omits the
+    // field appears to perfectly match any candidate's English level.
     const result = computeFitScore({
       resumeSkills: ['typescript'],
       jobSkills: ['typescript'],
     });
-    expect(result?.breakdown.englishMatch).toBe(1);
+    expect(result?.breakdown.englishMatch).toBe(0.5);
   });
 
   it('rewards aligned remote preferences fully', () => {

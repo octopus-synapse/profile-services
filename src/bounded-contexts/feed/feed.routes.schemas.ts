@@ -124,6 +124,15 @@ export const BasePostSchema = z.object({
   content: z.string().nullable(),
   hashtags: z.array(z.string()),
   imageUrl: z.string().nullable(),
+  // The Post model carries an optional videoUrl column (prisma/schema/feed.prisma);
+  // the presenter spreads the row so the field is in the response payload as
+  // `null` when unset. Schema needs to declare it so happy-path drift analysis
+  // doesn't flag every post as having an extra-field. Previously masked by
+  // the contract auth cascade — surfaced once login rate-limit was relaxed.
+  videoUrl: z
+    .string()
+    .nullable()
+    .openapi({ example: null, description: 'Optional video attachment URL.' }),
   linkUrl: z.string().nullable(),
   linkPreview: LinkPreviewDataSchema,
   isRepost: z.boolean(),

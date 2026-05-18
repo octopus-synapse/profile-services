@@ -34,7 +34,7 @@ export class CandidatePoolEmptyException extends DomainException {
 export class CandidateDirectoryUnavailableException extends DomainException {
   readonly code: string = 'CANDIDATE_DIRECTORY_UNAVAILABLE';
   readonly statusHint = 503;
-  constructor() {
-    super('Candidate directory is temporarily unavailable');
+  constructor(cause?: unknown) {
+    super('Candidate directory is temporarily unavailable', { cause });
   }
 }

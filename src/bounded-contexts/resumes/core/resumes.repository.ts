@@ -60,7 +60,12 @@ export class ResumesRepository extends ResumesRepositoryPort {
     this.logger.log(`Creating resume (with quota guard) for user: ${userId}`, CTX);
     return await runInTransaction(this.prisma, async (tx) => {
       await enforceQuotaInTx(tx, {
-        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "Resume" WHERE "userId" = ${userId} FOR UPDATE`,
+        // Serialise on the User row so two concurrent POST /v1/resumes from
+        // the same user observe each other's counts. Postgres rejects
+        // `FOR UPDATE` in the same query as `COUNT(*)` (error 0A000), so
+        // lock + count are split into two queries inside one tx.
+        lockSql: Prisma.sql`SELECT 1 FROM "User" WHERE "id" = ${userId} FOR UPDATE`,
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "Resume" WHERE "userId" = ${userId}`,
         max: quota.max,
         exception: quota.exception,
       });

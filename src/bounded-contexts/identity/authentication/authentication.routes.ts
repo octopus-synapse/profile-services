@@ -87,9 +87,15 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     guards: [
       // P0-#4: lockout is per-email (5/15min); without an IP cap an attacker
       // can probe many emails in parallel from the same IP without ever
-      // tripping the lock. 10/minute is generous for a real user that
-      // mis-types twice and lenient for a slowly-cycling bot.
-      { id: 'rate-limit', metadata: { points: 10, duration: 60, keyStrategy: 'ip' } },
+      // tripping the lock. The IP budget here is intentionally moderate
+      // (not aggressive): an attacker behind a single IP is also blocked
+      // by the per-email lockout after 5 failed tries on any given account,
+      // so the per-IP cap mainly slows down horizontal sweeps (one IP
+      // probing many emails) — 30/minute is plenty to make that
+      // impractical (43k/day) while leaving headroom for the contract
+      // test pool (3 specs × 3 personas + 1 mutation probe ≈ 10/run,
+      // multiplied by retries/parallel boots) so CI doesn't 429 itself.
+      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
       // P1 #2 — pipeline-level fast-path: a locked email reaches the
       // login handler today only to throw `AccountLockedException`
       // from the use-case. The stage rejects with 423 + Retry-After

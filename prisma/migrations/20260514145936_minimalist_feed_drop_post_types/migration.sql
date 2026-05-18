@@ -77,18 +77,31 @@ SELECT
 WHERE NOT EXISTS (SELECT 1 FROM "Role" WHERE "name" = 'recruiter');
 
 -- 8b. Grant Permission.JOB_CREATE (resource=job, action=create) to recruiter.
+--
+-- Permission rows are populated by the authorization seed runner
+-- (`src/bounded-contexts/identity/authorization/seeds/seed.runner.ts`),
+-- which runs AFTER `prisma migrate deploy`. On a fresh DB the
+-- `(SELECT id FROM Permission ...)` subquery returns NULL and the
+-- INSERT violates `RolePermission.permissionId NOT NULL` (Postgres
+-- 23502). The seed runner reconciles the recruiter→job:create grant
+-- via SYSTEM_ROLES on its own, so guarding the INSERT with EXISTS
+-- makes it a no-op on fresh DBs without losing the grant. On older
+-- DBs where Permission/Role were already seeded the INSERT proceeds
+-- as before.
 INSERT INTO "RolePermission" ("id", "roleId", "permissionId", "assignedAt")
 SELECT
   uuidv7(),
   (SELECT "id" FROM "Role" WHERE "name" = 'recruiter'),
   (SELECT "id" FROM "Permission" WHERE "resource" = 'job' AND "action" = 'create'),
   NOW()
-WHERE NOT EXISTS (
-  SELECT 1 FROM "RolePermission" rp
-  JOIN "Role" r ON r."id" = rp."roleId"
-  JOIN "Permission" p ON p."id" = rp."permissionId"
-  WHERE r."name" = 'recruiter' AND p."resource" = 'job' AND p."action" = 'create'
-);
+WHERE EXISTS (SELECT 1 FROM "Permission" WHERE "resource" = 'job' AND "action" = 'create')
+  AND EXISTS (SELECT 1 FROM "Role" WHERE "name" = 'recruiter')
+  AND NOT EXISTS (
+    SELECT 1 FROM "RolePermission" rp
+    JOIN "Role" r ON r."id" = rp."roleId"
+    JOIN "Permission" p ON p."id" = rp."permissionId"
+    WHERE r."name" = 'recruiter' AND p."resource" = 'job' AND p."action" = 'create'
+  );
 
 -- 8c. Revoke Permission.JOB_CREATE from `user` role (MEMBER no longer publishes jobs).
 DELETE FROM "RolePermission"

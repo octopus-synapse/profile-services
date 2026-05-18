@@ -99,11 +99,20 @@ export type PaginatedResult<T> = PaginatedResponse<T>;
  * Pagination Query Schema. Composes the canonical `PageSchema` and
  * `LimitSchema` primitives so a single change to either ripples
  * everywhere via the SDK regen.
+ *
+ * P1-#A2-24: `sortBy` here is intentionally restrictive — bare
+ * identifier chars only, capped at 64 chars — so even when a route
+ * inherits this schema without using the safer `makePaginationSchema`
+ * factory, a payload like `?sortBy=; DROP TABLE …` is rejected at
+ * request validation rather than reaching any repo that may forward
+ * it to `prisma.orderBy`. Per-route allowlist remains the canonical
+ * pattern (factory); this is defence-in-depth.
  */
+const SORTBY_IDENTIFIER_RE = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export const PaginationQuerySchema = z.object({
   page: PageSchema,
   limit: LimitSchema,
-  sortBy: z.string().optional(),
+  sortBy: z.string().regex(SORTBY_IDENTIFIER_RE).max(64).optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 

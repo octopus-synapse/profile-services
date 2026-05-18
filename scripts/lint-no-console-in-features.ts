@@ -81,9 +81,7 @@ for (const r of ROOTS) {
     const src = readFileSync(file, 'utf8');
     const lines = src.split('\n');
     CALL_RE.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    // biome-ignore lint/suspicious/noAssignInExpressions: regex.exec idiom
-    while ((m = CALL_RE.exec(src)) !== null) {
+    for (let m: RegExpExecArray | null = CALL_RE.exec(src); m !== null; m = CALL_RE.exec(src)) {
       const lineNum = src.slice(0, m.index).split('\n').length;
       if (ESCAPE_RE.test(lines[lineNum - 1] || '')) continue;
       offenses.push({ file: rel, line: lineNum });

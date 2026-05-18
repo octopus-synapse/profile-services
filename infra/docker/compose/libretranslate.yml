@@ -1,6 +1,10 @@
 services:
   libretranslate:
-    image: libretranslate/libretranslate:latest
+    # P1-#A6-7: pin tag — `:latest` lets upstream breaking changes (new
+    # CLI flags, removed languages, port shifts) land silently between
+    # deploys. Override via `LIBRETRANSLATE_VERSION` if a newer build is
+    # explicitly green in CI.
+    image: libretranslate/libretranslate:${LIBRETRANSLATE_VERSION:-v1.7.4}
     restart: unless-stopped
     environment:
       LT_LOAD_ONLY: "pt,en"

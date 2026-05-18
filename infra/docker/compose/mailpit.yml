@@ -1,6 +1,7 @@
 services:
   mailpit:
-    image: axllent/mailpit:latest
+    # P1-#A6-7: pin tag. Override via `MAILPIT_VERSION`.
+    image: axllent/mailpit:${MAILPIT_VERSION:-v1.20.6}
     restart: unless-stopped
     ports:
       - "${MAILPIT_UI_PORT:-8025}:8025"

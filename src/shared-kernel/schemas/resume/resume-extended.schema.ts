@@ -102,8 +102,17 @@ export const CreateBugBountySchema = z.object({
   severity: BugBountySeverityEnum,
   vulnerabilityType: z.string().min(1, 'Vulnerability type is required').max(100, 'Type too long'),
   cveId: z.string().max(50, 'CVE ID too long').optional(),
+  // P2-#A2-35 (deferred): `reward` + `currency` are independent here so a
+  // payload like `{ reward: 1000, currency: 'BRL' }` parses, but presenters
+  // and FE assume USD. Follow-up plan introduces a `MoneyVO` value object
+  // (`{ amount: number; currency: ISO4217 }`) reused across Job.salaryRange.
+  // Until that lands, accept ISO-4217 codes only so the field is at least
+  // structured. Tracked in BUG_REPORT.md PD-A2-35.
   reward: z.number().min(0).optional(),
-  currency: z.string().max(10).default('USD'),
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/, 'currency must be an ISO-4217 3-letter code')
+    .default('USD'),
   description: z.string().max(5000, 'Description too long').optional(),
   reportedAt: DateString,
   fixedAt: DateString.optional(),

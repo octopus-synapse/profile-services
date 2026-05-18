@@ -33,7 +33,7 @@ export class CareerCohortEmptyException extends DomainException {
 export class CareerGraphRepositoryUnavailableException extends DomainException {
   readonly code: string = 'CAREER_GRAPH_REPOSITORY_UNAVAILABLE';
   readonly statusHint = 503;
-  constructor() {
-    super('Career graph data is temporarily unavailable');
+  constructor(cause?: unknown) {
+    super('Career graph data is temporarily unavailable', { cause });
   }
 }

@@ -50,7 +50,6 @@ FROM deps AS builder
 COPY src ./src
 COPY tsconfig*.json ./
 COPY prisma.config.ts ./
-COPY data ./data
 COPY fonts ./fonts
 
 RUN bun run build

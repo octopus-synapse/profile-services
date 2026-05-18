@@ -54,6 +54,21 @@ export function toSwaggerPathTemplate(routePath: string): string {
   return withApi.replace(/:([A-Za-z_][A-Za-z0-9_]*)/g, '{$1}');
 }
 
+/**
+ * Permissions that are "admin-only" by the swagger generator's classifier
+ * (not in `ROLES.USER.groups`) but in reality belong to the dynamic
+ * `recruiter` role granted via migration 20260514145936 + the dredd
+ * fixtures seed. Routes gated by these permissions also do inline
+ * ownership checks at the use-case layer, so the right persona is
+ * `user` (the fixture user owns the resource AND has the recruiter
+ * role) — using `admin` here hits the ownership rejection
+ * (CANNOT_MODIFY_OTHERS_JOB) on the way back.
+ *
+ * Keep in sync with PERMISSION_GROUPS.RECRUITER in
+ * `src/shared-kernel/authorization/permission-groups.config.ts`.
+ */
+const RECRUITER_PERMISSIONS: ReadonlySet<string> = new Set(['job:create']);
+
 export function pickPersona(
   method: string,
   routePath: string,
@@ -63,6 +78,22 @@ export function pickPersona(
   const meta = info.operationMetadata.get(key) ?? null;
   if (!meta) return { persona: 'admin', meta: null };
   if (meta.auth === 'public') return { persona: 'anonymous', meta };
+  // Ownership-guard routes always probe as `user` — the fixture user
+  // owns every ownership-checked fixture (job, resume, post).
+  if (meta.guards?.includes('ownership')) {
+    return { persona: 'user', meta };
+  }
+  // Recruiter-domain routes (job:create) also probe as `user` — the
+  // dredd fixture user has the recruiter role from the seed AND owns
+  // the fixture job, so it passes both the permission stage and the
+  // inline ownership check inside the use case. The swagger
+  // generator's `computeAdminOnlyPermissions` mislabels these as
+  // admin-only because the static USER role definition doesn't
+  // include recruiter groups (those are added dynamically per-user
+  // via UserRoleAssignment).
+  if (meta.permission && RECRUITER_PERMISSIONS.has(meta.permission)) {
+    return { persona: 'user', meta };
+  }
   if (meta.permission && info.adminPermissions.has(meta.permission)) {
     return { persona: 'admin', meta };
   }

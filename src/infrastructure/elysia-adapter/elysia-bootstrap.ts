@@ -662,6 +662,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     i18n.translation,
     logger,
     auditPort,
+    config,
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;

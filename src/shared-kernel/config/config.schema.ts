@@ -174,12 +174,16 @@ export const EnvConfigSchema = z
     LOGIN_LOCK_DURATION_MINUTES: PositiveIntString.optional(),
 
     // --- Bcrypt ---
-    // Minimum cost = 10. Below 10 the cost factor falls into the range
-    // OWASP considers brute-forceable on commodity GPUs today; the
-    // default 12 leaves ~2^12 hash invocations per attempted login.
-    // Read at boot — runtime callers must not bypass this floor by
-    // touching process.env directly.
-    BCRYPT_COST: z.coerce.number().int().min(10).default(12),
+    // OWASP recommends cost ≥ 10 in production (below 10 is brute-forceable
+    // on commodity GPUs today); the default 12 leaves ~2^12 hash invocations
+    // per attempted login.
+    //
+    // Tests, CI, and dev override with `BCRYPT_COST=4` (~6ms vs ~80ms at
+    // cost 12) so a single suite isn't dominated by hash time — the
+    // hashes are thrown away after a few seconds. The minimum here is
+    // therefore 4 (bcrypt's lowest accepted cost) and the production
+    // floor of 10 is re-imposed by the `superRefine` block below.
+    BCRYPT_COST: z.coerce.number().int().min(4).default(12),
 
     // --- Privacy: deterministic IP hashing (Wave 1.4) ---
     // 32+ char salt mixed into the IP-hash so the bucket can't be
@@ -244,6 +248,15 @@ export const EnvConfigSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') return;
+    // P1-#A1-17: BCRYPT_COST floor of 10 only applies in production.
+    // Test/dev are allowed to lower it (typically to 4) for speed.
+    if (data.BCRYPT_COST < 10) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['BCRYPT_COST'],
+        message: 'BCRYPT_COST must be ≥ 10 in production (OWASP guidance)',
+      });
+    }
     // JWT issuer/audience are optional in dev so the local server boots
     // without setting them. In production both are required so refresh
     // tokens minted on one deploy can't be replayed against another

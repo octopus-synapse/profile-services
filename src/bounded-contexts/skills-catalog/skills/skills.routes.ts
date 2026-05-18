@@ -63,6 +63,10 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: Ownership guard rejects cross-tenant writes before the
+    // handler runs. Without this, `Permission.RESUME_UPDATE` only checks
+    // that the caller can update *some* resume, not that they own this one.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     body: CreateSkillBody,
     response: SkillResponseSchema,
@@ -102,6 +106,8 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills/:skillId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: same cross-tenant guard as POST above.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: SkillRefParams,
     body: UpdateSkillBody,
     response: SkillResponseSchema,
@@ -122,6 +128,8 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills/:skillId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: same cross-tenant guard as POST above.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: SkillRefParams,
     response: DeleteSkillResponseSchema,
     openapi: {

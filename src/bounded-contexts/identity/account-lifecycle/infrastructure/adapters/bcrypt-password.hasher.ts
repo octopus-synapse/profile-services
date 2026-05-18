@@ -1,14 +1,14 @@
 import { PasswordHasherPort } from '../../domain/ports';
 
-// Default cost 12 matches OWASP guidance for bcrypt. Tests override
-// via `BCRYPT_COST=4` (≈6ms vs ≈80ms at cost 12) — same algorithm,
-// just fewer rounds, which is fine because test fixtures throw the
-// hashes away after a few seconds.
-const BCRYPT_COST = Number.parseInt(process.env.BCRYPT_COST ?? '12', 10);
-
+// P1-#A1-17: cost is injected by composition via ConfigPort
+// (`EnvConfigSchema.BCRYPT_COST` enforces `min(10).default(12)`),
+// so this adapter no longer reads `process.env` directly. Tests
+// override the schema via fixtures, not via env at module load.
 export class BcryptPasswordHasher implements PasswordHasherPort {
+  constructor(private readonly cost: number) {}
+
   async hash(password: string): Promise<string> {
-    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });
+    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: this.cost });
   }
 
   async compare(password: string, hash: string): Promise<boolean> {
