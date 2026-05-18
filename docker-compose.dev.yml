@@ -49,7 +49,8 @@ services:
       - profile-dev-network
 
   minio-init:
-    image: minio/mc
+    # P1-#A6-7: pin tag for parity with the prod `minio` image bump.
+    image: minio/mc:${MINIO_MC_VERSION:-RELEASE.2024-10-08T09-37-26Z}
     container_name: profile-minio-init
     depends_on:
       minio:
@@ -82,7 +83,8 @@ services:
       - profile-dev-network
 
   mailpit:
-    image: axllent/mailpit:latest
+    # P1-#A6-7: pin tag. Override via `MAILPIT_VERSION`.
+    image: axllent/mailpit:${MAILPIT_VERSION:-v1.20.6}
     container_name: profile-mailpit-dev
     restart: unless-stopped
     # SMTP (1025) stays internal — the backend writes to

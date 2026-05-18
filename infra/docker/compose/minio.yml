@@ -1,6 +1,8 @@
 services:
   minio:
-    image: minio/minio:latest
+    # P1-#A6-7: pin tag — MinIO has had breaking changes between
+    # `RELEASE.*` tags. Override via `MINIO_VERSION` for upgrades.
+    image: minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:

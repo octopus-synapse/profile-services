@@ -77286,7 +77286,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/skills/{skillId}": {
@@ -77498,7 +77501,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       },
       "patch": {
         "summary": "Update a resume skill",
@@ -77751,7 +77757,10 @@
           }
         },
         "x-auth": "jwt",
-        "x-permission": "resume:update"
+        "x-permission": "resume:update",
+        "x-guards": [
+          "ownership"
+        ]
       }
     },
     "/api/v1/resumes/{resumeId}/style": {
