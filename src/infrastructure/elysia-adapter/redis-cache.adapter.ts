@@ -95,6 +95,17 @@ export class RedisCacheAdapter extends CachePort {
   }
 
   /**
+   * Atomic `SET key value EX ttl NX` — usado por replay-guards
+   * (e.g. TOTP single-use). Retorna true se a key não existia (e
+   * portanto este caller "ganhou" o slot), false se já existia.
+   */
+  override async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    const payload = JSON.stringify(value);
+    const result = await this.client.set(key, payload, 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
+  }
+
+  /**
    * Atomic INCR + EXPIRE-NX. Closes the read/check/write race the
    * non-atomic CachePort default left open in multi-pod deploys.
    */

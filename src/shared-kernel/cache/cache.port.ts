@@ -51,6 +51,23 @@ export abstract class CachePort {
     return value;
   }
 
+  /**
+   * Atomic "set only if key does not exist" — semantics of Redis
+   * `SET key value EX ttl NX`. Returns `true` se gravou (key não
+   * existia), `false` se já existia.
+   *
+   * Usado por flows que precisam de mutex/replay-guard atômico
+   * (e.g. Validate2faUseCase: TOTP single-use window). Default
+   * fallback é get-then-set (racy); subclasses DEVEM sobrescrever
+   * com a operação atômica do backend.
+   */
+  async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    const existing = await this.get(key);
+    if (existing !== null) return false;
+    await this.set(key, value, ttlSeconds);
+    return true;
+  }
+
   /** Optional: POJO impls expose explicit lifecycle. */
   init?(): Promise<void>;
   dispose?(): Promise<void>;

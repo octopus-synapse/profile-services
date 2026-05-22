@@ -29,6 +29,9 @@ function buildCache(initial?: { dailyCount?: number; lockTaken?: boolean }): Cac
     async setSecure<T>(_key: string, value: T): Promise<void> {
       count = value as unknown as number;
     },
+    async setIfAbsent(_key: string, _value: unknown, _ttl: number): Promise<boolean> {
+      return true;
+    },
     async delete(): Promise<void> {},
     async deletePattern(): Promise<void> {},
     async flush(): Promise<void> {},
