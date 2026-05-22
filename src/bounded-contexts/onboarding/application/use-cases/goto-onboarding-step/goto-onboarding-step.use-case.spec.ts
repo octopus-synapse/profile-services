@@ -125,6 +125,24 @@ describe('GotoOnboardingStepUseCase', () => {
     expect(result.currentStep).toBe('personal-info');
   });
 
+  it('rejects when progress.currentStep is not in the step config (B6 fix)', async () => {
+    // Stale row: a step that used to exist but was removed from the
+    // config. Previously the `currentIndex >= 0` guard silently let any
+    // forward jump through. Now we refuse upfront.
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'removed-step-from-old-config',
+        completedSteps: ['welcome'],
+      }),
+    );
+
+    await expect(useCase.execute(USER_ID, 'personal-info')).rejects.toThrow(ValidationException);
+    await expect(useCase.execute(USER_ID, 'personal-info')).rejects.toThrow(
+      'Unknown step: removed-step-from-old-config',
+    );
+  });
+
   it('navigates to a section step when it is the next sequential step', async () => {
     // Arrange — currentStep points at the last canonical step before
     // section:work_experience_v1; section: steps come last in

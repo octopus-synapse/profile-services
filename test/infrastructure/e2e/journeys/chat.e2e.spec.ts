@@ -90,7 +90,7 @@ describe('E2E Journey: Chat', () => {
         console.log('Response body:', JSON.stringify(response.body, null, 2));
       }
       expect(response.status).toBe(200);
-      expect(response.body.conversations.conversations).toHaveLength(0);
+      expect(response.body.items).toHaveLength(0);
     });
 
     it.serial('should have zero unread count initially', async () => {
@@ -136,11 +136,9 @@ describe('E2E Journey: Chat', () => {
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.conversations.conversations.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
 
-      const conv = response.body.conversations.conversations.find(
-        (c: { id: string }) => c.id === conversationId,
-      );
+      const conv = response.body.items.find((c: { id: string }) => c.id === conversationId);
       expect(conv).toBeDefined();
       expect(conv.lastMessage?.content).toBe('Hello from User 1!');
     });
@@ -151,7 +149,7 @@ describe('E2E Journey: Chat', () => {
         .set('Authorization', `Bearer ${user2.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.conversations.conversations.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should get conversation details', async () => {
@@ -212,9 +210,9 @@ describe('E2E Journey: Chat', () => {
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.messages.messages).toHaveLength(2);
+      expect(response.body.items).toHaveLength(2);
 
-      const messages = response.body.messages.messages;
+      const messages = response.body.items;
       expect(messages.some((m: { content: string }) => m.content === 'Hello from User 1!')).toBe(
         true,
       );
@@ -230,8 +228,8 @@ describe('E2E Journey: Chat', () => {
         .set('Authorization', `Bearer ${user1.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.messages.messages).toHaveLength(1);
-      expect(response.body.messages.hasMore).toBe(true);
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.hasNext).toBe(true);
     });
 
     it.serial('should reject non-participant viewing messages', async () => {

@@ -30,7 +30,14 @@ export class GotoOnboardingStepUseCase {
     // unvisited steps. Backward navigation to any earlier step stays
     // free, and re-selecting the current step is a no-op.
     const currentIndex = getStepIndex(progress.currentStep, steps);
-    if (currentIndex >= 0 && targetIndex > currentIndex + 1) {
+    if (currentIndex < 0) {
+      // Progress refers to a step that was removed from the config — refuse
+      // the jump rather than allow arbitrary forward movement, otherwise
+      // the guard below silently disengages and the user lands anywhere.
+      // Caller must normalise via restart first.
+      throw new OnboardingUnknownStepException(progress.currentStep);
+    }
+    if (targetIndex > currentIndex + 1) {
       throw new OnboardingAlreadyAtLastStepException();
     }
 

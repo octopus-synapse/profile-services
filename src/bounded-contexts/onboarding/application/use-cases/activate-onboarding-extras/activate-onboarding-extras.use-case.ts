@@ -24,11 +24,15 @@ export class ActivateOnboardingExtrasUseCase {
   constructor(private readonly repository: OnboardingProgressRepositoryPort) {}
 
   async execute(userId: string, extras: string[]): Promise<void> {
-    for (const key of extras) {
+    // Normalize before validating so casing/whitespace differences from the
+    // wire (e.g. "Section:Project_V1") don't slip through and break the
+    // presenter when it tries to render the step.
+    const normalized = extras.map((k) => k.trim().toLowerCase());
+    for (const key of normalized) {
       if (!ALLOWED_EXTRA_KEYS.has(key)) {
         throw new OnboardingUnknownStepException(key);
       }
     }
-    await this.repository.setActivatedExtras(userId, extras);
+    await this.repository.setActivatedExtras(userId, normalized);
   }
 }

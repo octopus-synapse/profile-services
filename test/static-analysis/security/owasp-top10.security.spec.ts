@@ -242,7 +242,7 @@ describe('OWASP Top 10 Security Tests', () => {
         // - comments
         // - SVG/HTML namespace URLs (not actual requests)
         // - String manipulation (replace operations)
-        // - Internal services (libretranslate, swagger, config)
+        // - Internal services (swagger, config)
         // - Template files
         const colonIdx = match.indexOf(':');
         const sourceLine =
@@ -260,7 +260,6 @@ describe('OWASP Top 10 Security Tests', () => {
           !match.includes('example.com') &&
           !match.includes('xmlns') &&
           !match.includes('.replace(') &&
-          !match.includes('libretranslate') &&
           !match.includes('helper.ts') &&
           !match.includes('swagger') &&
           !match.includes('config') &&

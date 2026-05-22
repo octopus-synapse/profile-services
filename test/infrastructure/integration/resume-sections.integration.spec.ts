@@ -78,9 +78,9 @@ describe('Resume Sections Integration', () => {
       .set(authHeader(accessToken));
 
     expect(res.status).toBe(200);
-    const list = unwrapApiData<Array<{ key: string }>>(res.body);
-    expect(Array.isArray(list)).toBe(true);
-    expect(list.some((item) => item.key === sectionTypeKey)).toBe(true);
+    const sectionTypes = res.body.sectionTypes as Array<{ key: string }>;
+    expect(Array.isArray(sectionTypes)).toBe(true);
+    expect(sectionTypes.some((item) => item.key === sectionTypeKey)).toBe(true);
   });
 
   it('creates and lists a section item', async () => {
@@ -91,8 +91,7 @@ describe('Resume Sections Integration', () => {
 
     expect([200, 201].includes(createRes.status)).toBe(true);
 
-    const created = unwrapApiData<{ id: string }>(createRes.body);
-    itemId = created.id;
+    itemId = createRes.body.item.id as string;
     expect(itemId).toBeDefined();
 
     const listRes = await getRequest()
@@ -101,9 +100,10 @@ describe('Resume Sections Integration', () => {
 
     expect(listRes.status).toBe(200);
 
-    const sections = unwrapApiData<
-      Array<{ sectionType: { key: string }; items: Array<{ id: string; content: unknown }> }>
-    >(listRes.body);
+    const sections = listRes.body.sections as Array<{
+      sectionType: { key: string };
+      items: Array<{ id: string; content: unknown }>;
+    }>;
 
     const targetSection = sections.find((section) => section.sectionType.key === sectionTypeKey);
     expect(targetSection).toBeDefined();
@@ -117,18 +117,14 @@ describe('Resume Sections Integration', () => {
       .send({ content: { headline: 'Updated headline for dynamic section' } });
 
     expect(updateRes.status).toBe(200);
-
-    const updated = unwrapApiData<{ content?: { headline?: string } }>(updateRes.body);
-    expect(updated.content?.headline).toBe('Updated headline for dynamic section');
+    expect(updateRes.body.item.content?.headline).toBe('Updated headline for dynamic section');
 
     const deleteRes = await getRequest()
       .delete(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
       .set(authHeader(accessToken));
 
     expect(deleteRes.status).toBe(200);
-
-    const deleted = unwrapApiData<{ success?: boolean }>(deleteRes.body);
-    expect(deleted.success ?? true).toBe(true);
+    expect(deleteRes.body.deleted).toBe(true);
   });
 
   it('rejects invalid payload for section definition', async () => {

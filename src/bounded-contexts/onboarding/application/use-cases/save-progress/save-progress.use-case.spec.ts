@@ -43,7 +43,7 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       personalInfo: data.personalInfo ?? existing?.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
       sections: data.sections ?? existing?.sections ?? null,
-      templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? existing?.resumeStyleId ?? null,
       activatedExtras:
         data.activatedExtras !== undefined
           ? data.activatedExtras
@@ -142,6 +142,86 @@ describe('SaveProgressUseCase', () => {
     const result = await useCase.execute('user-1', data);
 
     expect(result.currentStep).toBe('personal-info');
+  });
+
+  describe('Username normalization (B2 fix)', () => {
+    it('rejects username with spaces / uppercase rather than persisting raw', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'Enzo Patti',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects username with hyphens (regex)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'enzo-patti',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects username shorter than min length', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'ab',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects reserved username (admin)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'admin',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('accepts and normalizes uppercase + trim before persisting', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: '  EnzoDev  ',
+      };
+      await useCase.execute('user-1', data);
+      const persisted = await repository.findProgressByUserId('user-1');
+      expect(persisted?.username).toBe('enzodev');
+    });
+
+    it('treats undefined/null/empty username as skip (no validation)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'welcome',
+        completedSteps: [],
+        username: '',
+      };
+      const result = await useCase.execute('user-1', data);
+      expect(result.currentStep).toBe('welcome');
+    });
+  });
+});
+
+describe('SaveProgressUseCase — case-insensitive uniqueness (B1 fix)', () => {
+  let useCase: SaveProgressUseCase;
+  let repository: InMemoryOnboardingProgressRepository;
+
+  beforeEach(() => {
+    repository = new InMemoryOnboardingProgressRepository();
+    useCase = new SaveProgressUseCase(repository);
+  });
+
+  it('rejects a normalized username already owned by another user (case clash)', async () => {
+    // Existing user owns "enzodev" (committed). New user submits "ENZODEV".
+    repository.addUser('enzodev', 'other-user');
+    const data: OnboardingProgress = {
+      currentStep: 'username',
+      completedSteps: ['welcome'],
+      username: 'ENZODEV',
+    };
+    await expect(useCase.execute('user-new', data)).rejects.toThrow(ConflictException);
   });
 
   describe('Section validation', () => {

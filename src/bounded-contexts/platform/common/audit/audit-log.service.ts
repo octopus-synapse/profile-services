@@ -15,6 +15,21 @@ import { AuditLogFailedException } from '../exceptions/platform.exceptions';
 import { extractAuditMetadata } from './audit-log.helpers';
 import type { AuditMetadata, RequestMetadataSource } from './audit-log.types';
 
+/**
+ * Detect the specific Prisma error that surfaces when AuditLog.userId
+ * FK points at a row that was deleted in the race window between an
+ * auth event publishing and the audit handler firing. Other FK
+ * violations (e.g. malformed AuditAction enum) shouldn't trigger the
+ * AuditLogLost fallback — only this case.
+ */
+function isUserFkViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
+  if (error.code !== 'P2003') return false;
+  const meta = (error.meta ?? {}) as { field_name?: string; constraint?: string };
+  const target = meta.field_name ?? meta.constraint ?? '';
+  return /userid|user_fkey|AuditLog_userId_fkey/i.test(target);
+}
+
 export type { AuditMetadata, RequestMetadataSource };
 
 export class AuditLogService {
@@ -71,6 +86,29 @@ export class AuditLogService {
       });
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'unknown error';
+
+      // Race-window fallback (see docs/audits/integration-test-triage-2026-05-21.md
+      // bug #4): the audit handler can fire after the user row was
+      // deleted (admin tool, GDPR erase, or a fast-delete test). FK
+      // violation here is NOT a real audit failure — the event was
+      // produced legitimately, the target row just vanished. Persist
+      // to `AuditLogLost` so the trail survives reaper review, then
+      // return success without propagating the exception.
+      if (isUserFkViolation(error)) {
+        await this.persistLostAudit({
+          userId,
+          action,
+          entityType,
+          entityId,
+          changes,
+          // Re-extract — the `metadata` declared inside `try` is out
+          // of scope in `catch`.
+          metadata: extractAuditMetadata(request),
+          reason,
+        });
+        return;
+      }
+
       this.logger.error(
         options.lenient
           ? 'Audit log write failed (lenient — swallowed)'
@@ -88,6 +126,59 @@ export class AuditLogService {
       if (!options.lenient) {
         throw new AuditLogFailedException(reason);
       }
+    }
+  }
+
+  /**
+   * Best-effort persistence to `AuditLogLost` when the primary write
+   * lost the FK race. If this insert ALSO fails (e.g. DB down), we
+   * log loudly but never throw — at that point the original event is
+   * already gone and propagating would just break the auth/session
+   * flow that already succeeded for the user.
+   */
+  private async persistLostAudit(args: {
+    userId: string;
+    action: AuditAction;
+    entityType: string;
+    entityId: string;
+    changes?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue };
+    metadata: ReturnType<typeof extractAuditMetadata>;
+    reason: string;
+  }): Promise<void> {
+    try {
+      await this.prisma.auditLogLost.create({
+        data: {
+          originalUserId: args.userId,
+          action: args.action,
+          entityType: args.entityType,
+          entityId: args.entityId,
+          eventPayload: {
+            changesBefore: args.changes?.before ?? null,
+            changesAfter: args.changes?.after ?? null,
+            ipAddress: args.metadata.ipAddress ?? null,
+            userAgent: args.metadata.userAgent ?? null,
+            metadata: args.metadata.metadata ?? null,
+          } as Prisma.InputJsonValue,
+          reason: 'user_deleted_in_race_window',
+        },
+      });
+      this.logger.warn('Audit log redirected to AuditLogLost', 'AuditLogService', {
+        userId: args.userId,
+        action: args.action,
+        entityType: args.entityType,
+        entityId: args.entityId,
+        reason: args.reason,
+      });
+    } catch (sinkError) {
+      this.logger.error('AuditLogLost sink itself failed — audit fully lost', {
+        context: 'AuditLogService',
+        stack: sinkError instanceof Error ? sinkError.stack : 'Unknown error',
+        userId: args.userId,
+        action: args.action,
+        entityType: args.entityType,
+        entityId: args.entityId,
+        primaryReason: args.reason,
+      });
     }
   }
 

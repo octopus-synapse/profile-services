@@ -136,9 +136,9 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'languages',
     sectionTypeKey: 'language_v1',
-    // Required: name, level (enum: BASIC, INTERMEDIATE, FLUENT, NATIVE)
+    // Required: name, level (CEFR enum: A1, A2, B1, B2, C1, C2, NATIVE)
     createPayload: { name: 'English', level: 'NATIVE' },
-    updatePayload: { name: 'English', level: 'FLUENT' },
+    updatePayload: { name: 'English', level: 'C2' },
   },
   {
     name: 'interests',
@@ -232,7 +232,6 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('sectionTypes');
       expect(Array.isArray(res.body.sectionTypes)).toBe(true);
       expect(res.body.sectionTypes.length).toBeGreaterThan(0);
@@ -244,7 +243,6 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('sections');
       expect(Array.isArray(res.body.sections)).toBe(true);
     });
@@ -271,7 +269,6 @@ describe('Generic Sections Smoke Tests', () => {
 
       // Accept both 200 and 201 as success
       expect([200, 201].includes(res.status)).toBe(true);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('item');
       expect(res.body.item).toHaveProperty('id');
 
@@ -284,7 +281,6 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('sections');
 
       // Find the section for this type (structure is sectionType.key)
@@ -321,7 +317,6 @@ describe('Generic Sections Smoke Tests', () => {
       }
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('item');
     });
 
@@ -336,7 +331,6 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('deleted', true);
     });
   });

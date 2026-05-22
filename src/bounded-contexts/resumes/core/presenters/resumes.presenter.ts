@@ -30,7 +30,12 @@ export function toResumeResponseDto(resume: ResumeResult): ResumeResponseDto {
 }
 
 export function toResumeListItemDto(resume: ResumeResult): ResumeListItemDto {
-  return toResumeResponseDto(resume);
+  return {
+    ...toResumeResponseDto(resume),
+    fullName: resume.fullName ?? undefined,
+    jobTitle: resume.jobTitle ?? undefined,
+    summary: resume.summary ?? undefined,
+  };
 }
 
 export function toResumeFullResponseDto(resume: ResumeResult): ResumeFullResponseDto {

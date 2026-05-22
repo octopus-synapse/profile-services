@@ -49,12 +49,12 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'personal-info',
           'username',
           'professional-profile',
-          'template',
+          'resume-style',
         ],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: { colorScheme: 'ocean' },
+        resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
         sections: [
           {
             sectionTypeKey: 'work_experience_v1',
@@ -88,12 +88,12 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'personal-info',
           'username',
           'professional-profile',
-          'template',
+          'resume-style',
         ],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: { colorScheme: 'ocean' },
+        resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
         sections: [
           {
             sectionTypeKey: 'work_experience_v1',
@@ -219,7 +219,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
   });
 
-  it('defaults templateSelection to empty object when missing', async () => {
+  it('passes resumeStyleId=null through when the user skipped the picker', async () => {
     // Arrange
     progressRepo.seedProgress(
       createOnboardingProgress({
@@ -229,17 +229,17 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: null,
+        resumeStyleId: null,
       }),
     );
 
     // Act
     const result = await useCase.execute(USER_ID);
 
-    // Assert — should succeed with default empty templateSelection
+    // Assert — completion picks the default style downstream when null
     expect(result.resumeId).toBeDefined();
     const stored = completion.getCompletion(USER_ID);
-    expect(stored?.data.templateSelection).toEqual({});
+    expect(stored?.data.resumeStyleId).toBeNull();
   });
 
   it('handles empty sections gracefully', async () => {

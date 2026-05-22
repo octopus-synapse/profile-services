@@ -57,6 +57,24 @@ export const CheckUsernameResponseSchema = z.object({
   reason: z.enum(['taken', 'reserved', 'invalid_format']).optional(),
 });
 
+/**
+ * Public username rules — fetched once by the frontend at boot so the
+ * client can validate input locally without round-tripping for every
+ * keystroke. Mirrors the constants in
+ * `bounded-contexts/identity/users/domain/value-objects/username-rules.const.ts`.
+ * The `pattern` is a RegExp source string (no flags), safe to compile
+ * with `new RegExp(pattern)`. Reserved list intentionally omitted —
+ * use `GET /v1/users/username/check` (debounced) for that signal.
+ */
+export const UsernameRulesResponseSchema = z.object({
+  pattern: z.string(),
+  startsWithPattern: z.string().openapi({ example: '^[a-z]' }),
+  endsWithPattern: z.string().openapi({ example: '[a-z0-9]$' }),
+  forbiddenSubstring: z.string().openapi({ example: '__' }),
+  minLength: z.number().int().positive(),
+  maxLength: z.number().int().positive(),
+});
+
 // POST /v1/users/username/validate — multi-error validation for client
 // forms. Codes match `@packages/i18n/ERROR_DICTIONARY`; the route handler
 // localizes each via `localizeDomainCodes` against `Accept-Language` so

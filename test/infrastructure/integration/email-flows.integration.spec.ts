@@ -13,11 +13,18 @@
  * - Graceful degradation when email not configured
  */
 
-import { afterAll, beforeAll, describe, expect, it, mock } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp, tokenFromResponse, waitFor } from '../shared';
-import { acceptTosWithPrisma, assignUserRole, getApp, signupBody, uniqueTestId } from './setup';
+import {
+  acceptTosWithPrisma,
+  assignUserRole,
+  clearAuthRateLimits,
+  getApp,
+  signupBody,
+  uniqueTestId,
+} from './setup';
 
 describe('Email Flows Integration', () => {
   let app: TestApp;
@@ -26,6 +33,10 @@ describe('Email Flows Integration', () => {
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
   });
 
@@ -153,7 +164,8 @@ describe('Email Flows Integration', () => {
         .post('/api/v1/auth/forgot-password')
         .send({ email: `nonexistent-${uniqueTestId()}@example.com` });
 
-      // Should always return success to prevent email enumeration
+      // Should always return success to prevent email enumeration.
+      // forgot-password emite 200 (statusCode:200 explícito).
       expect(response.status).toBe(200);
     });
   });

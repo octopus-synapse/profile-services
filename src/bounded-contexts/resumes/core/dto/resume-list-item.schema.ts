@@ -5,6 +5,9 @@ import { ResumeResponseSchema } from './resume-response.schema';
 export const ResumeListItemSchema = ResumeResponseSchema.extend({
   viewCount: z.number().int().optional(),
   lastViewedAt: IsoDateTimeSchema.optional(),
+  fullName: z.string().nullable().optional(),
+  jobTitle: z.string().nullable().optional(),
+  summary: z.string().nullable().optional(),
 });
 
 export type ResumeListItemDto = z.infer<typeof ResumeListItemSchema>;

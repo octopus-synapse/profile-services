@@ -42,7 +42,7 @@ function createValidBasePayload(suffix: string = '') {
     education: [],
     noEducation: true,
     languages: [{ name: 'English', level: 'FLUENT' }],
-    templateSelection: { template: 'modern', palette: 'default' },
+    resumeStyleId: null,
   };
 }
 
@@ -113,16 +113,25 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it.serial('should reject missing templateSelection', async () => {
-      const payload = createValidBasePayload('missing_template');
-      const { templateSelection: _template, ...payloadWithoutTemplate } = payload;
+    it.serial('accepts payload without resumeStyleId (optional → defaults applied)', async () => {
+      // Resume-style is intentionally optional at completion time: the
+      // adapter falls back to the seeded "default" ResumeStyle when the
+      // user skipped the picker, so a missing field MUST NOT 400.
+      // Suffix kept short — `valid_user_${suffix}_${Date.now()}` must
+      // fit USERNAME_MAX_LENGTH (30 chars) or the whole payload 400s
+      // for an unrelated reason.
+      const payload = createValidBasePayload('rno');
+      const { resumeStyleId: _omit, ...payloadWithoutStyle } = payload;
 
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .send(payloadWithoutTemplate);
+        .send(payloadWithoutStyle);
 
-      expect(response.status).toBe(400);
+      // 200/201 = accepted; 409 = already onboarded (test order); 422 = other
+      // validation failure unrelated to this assertion (sections, etc.). The
+      // only outcome this test rejects is 400 caused by the missing field.
+      expect(response.status).not.toBe(400);
     });
   });
 
@@ -209,10 +218,13 @@ describe('E2E: Onboarding Validation', () => {
     });
   });
 
-  describe('Template Selection Validation', () => {
-    it.serial('should reject empty template', async () => {
-      const payload = createValidBasePayload('empty_template');
-      payload.templateSelection = { template: '', palette: 'default' };
+  describe('Resume Style Validation', () => {
+    it.serial('rejects non-UUID resumeStyleId', async () => {
+      const payload = createValidBasePayload('rbd');
+      // `resumeStyleId` is typed as `z.string().uuid().nullable()` — a free
+      // string like "modern" used to be allowed via the legacy
+      // `templateSelection.template` field; the new schema is strict.
+      (payload as Record<string, unknown>).resumeStyleId = 'modern';
 
       const response = await app.request
         .post('/api/v1/onboarding')
@@ -222,16 +234,18 @@ describe('E2E: Onboarding Validation', () => {
       expect(response.status).toBe(400);
     });
 
-    it.serial('should reject empty palette', async () => {
-      const payload = createValidBasePayload('empty_palette');
-      payload.templateSelection = { template: 'modern', palette: '' };
+    it.serial('accepts resumeStyleId=null (skipped picker → default style)', async () => {
+      const payload = createValidBasePayload('rnl');
+      (payload as Record<string, unknown>).resumeStyleId = null;
 
       const response = await app.request
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(payload);
 
-      expect(response.status).toBe(400);
+      const body =
+        typeof response.body === 'string' ? response.body : JSON.stringify(response.body);
+      expect(response.status, `400 body: ${body}`).not.toBe(400);
     });
   });
 

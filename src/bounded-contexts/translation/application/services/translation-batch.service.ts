@@ -1,45 +1,38 @@
 /**
  * Batch Translation Service
- * Handles batch translation operations
+ *
+ * Delegates to `TranslationLlmPort.translateBatch` (which performs
+ * one LLM call per chunk, with provider-level caching). The BC keeps a
+ * thin layer that shapes the LLM result into the BC's
+ * `BatchTranslationResult` DTO.
  */
 
+import type { TranslationLlmPort } from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import type {
   BatchTranslationResult,
   SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../domain/types/translation.types';
-import { TranslationCoreService } from './translation-core.service';
-
-const BATCH_SIZE = 5;
 
 export class TranslationBatchService {
-  constructor(private readonly coreService: TranslationCoreService) {}
+  constructor(private readonly translationLlm: TranslationLlmPort) {}
 
   async translateBatch(
     texts: string[],
     sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult> {
-    const translations: TranslationResult[] = [];
-    const failed: Array<{ text: string; error: string }> = [];
+    if (texts.length === 0) return { translations: [], failed: [] };
 
-    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-      const batch = texts.slice(i, i + BATCH_SIZE);
-      const results = await Promise.allSettled(
-        batch.map((text) => this.coreService.translate(text, sourceLanguage, targetLanguage)),
-      );
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-          translations.push(result.value);
-        } else {
-          const error = result.reason as Error | undefined;
-          failed.push({ text: batch[index], error: error?.message ?? 'Unknown error' });
-        }
-      });
-    }
-
-    return { translations, failed };
+    const result = await this.translationLlm.translateBatch(texts, sourceLanguage, targetLanguage);
+    const translations: TranslationResult[] = result.translations.map((t) => ({
+      original: t.original,
+      translated: t.translated,
+      sourceLanguage,
+      targetLanguage,
+      detectedLanguage: t.detectedLanguage ?? undefined,
+    }));
+    return { translations, failed: [...result.failed] };
   }
 }

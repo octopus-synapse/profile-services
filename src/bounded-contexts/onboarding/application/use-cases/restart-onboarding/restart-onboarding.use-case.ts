@@ -105,7 +105,7 @@ export class RestartOnboardingUseCase {
             github: userData?.github ?? '',
             website: userData?.website ?? '',
           },
-          templateSelection: resume?.styleId ? { templateId: resume.styleId } : undefined,
+          resumeStyleId: resume?.styleId ?? null,
           sections:
             resume?.resumeSections?.map((section) => ({
               sectionTypeKey: section.sectionType.key,

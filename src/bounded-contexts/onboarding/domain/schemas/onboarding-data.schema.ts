@@ -42,33 +42,6 @@ export const PersonalInfoSchema = z.object({
 });
 
 /**
- * Template Selection Schema
- * Accepts both SDK format (templateId/colorScheme) and legacy format (template/palette)
- */
-export const TemplateSelectionSchema = z.object({
-  // SDK format (primary)
-  templateId: z.string().optional(),
-  colorScheme: z.string().optional(), // Legacy format (backward compat)
-  template: z.string().optional(),
-  palette: z.string().optional(),
-});
-
-export type TemplateSelection = z.infer<typeof TemplateSelectionSchema>;
-
-/**
- * Validates and normalizes template selection data.
- * Ensures at least template+palette or templateId+colorScheme is present.
- */
-export function normalizeTemplateSelection(data: TemplateSelection): {
-  templateId: string;
-  colorScheme: string;
-} {
-  const templateId = data.templateId || data.template || 'professional';
-  const colorScheme = data.colorScheme || data.palette || 'ocean';
-  return { templateId, colorScheme };
-}
-
-/**
  * Generic Section Item Schema
  *
  * Content is validated dynamically against SectionType.definition.
@@ -112,7 +85,12 @@ export const OnboardingDataSchema = z
     username: UsernameSchema,
     personalInfo: PersonalInfoSchema,
     professionalProfile: ProfessionalProfileSchema,
-    templateSelection: TemplateSelectionSchema,
+    /**
+     * FK to `ResumeStyle.id` chosen on the resume-style step. `null` is
+     * valid (the step is optional at completion time — the resume gets
+     * the seeded default style if missing).
+     */
+    resumeStyleId: z.string().uuid().nullable().optional(),
     sections: z.array(OnboardingSectionSchema).default([]),
   })
   .openapi({
@@ -127,10 +105,7 @@ export const OnboardingDataSchema = z
         jobTitle: 'Senior Backend Engineer',
         summary: 'Backend engineer with 8+ years building distributed systems.',
       },
-      templateSelection: {
-        templateId: 'professional',
-        colorScheme: 'ocean',
-      },
+      resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
       sections: [],
     },
   });
@@ -138,8 +113,6 @@ export const OnboardingDataSchema = z
 export type OnboardingData = z.infer<typeof OnboardingDataSchema>;
 
 export type PersonalInfoDto = z.infer<typeof PersonalInfoSchema>;
-
-export type TemplateSelectionDto = z.infer<typeof TemplateSelectionSchema>;
 
 export type OnboardingSectionItemDto = z.infer<typeof OnboardingSectionItemSchema>;
 

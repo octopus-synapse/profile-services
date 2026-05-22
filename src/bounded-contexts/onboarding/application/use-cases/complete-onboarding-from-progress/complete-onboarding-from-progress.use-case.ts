@@ -52,7 +52,6 @@ export class CompleteOnboardingFromProgressUseCase {
   private buildOnboardingDataFromProgress(progress: OnboardingProgressData) {
     const personalInfo = progress.personalInfo as Record<string, unknown> | undefined;
     const professionalProfile = progress.professionalProfile as Record<string, unknown> | undefined;
-    const templateSelection = progress.templateSelection as Record<string, unknown> | undefined;
 
     this.validateProgressCompleteness(
       progress.username ?? undefined,
@@ -64,7 +63,7 @@ export class CompleteOnboardingFromProgressUseCase {
       username: progress.username,
       personalInfo,
       professionalProfile,
-      templateSelection: templateSelection ?? {},
+      resumeStyleId: progress.resumeStyleId ?? null,
       sections: this.mapProgressSections(progress),
     };
   }

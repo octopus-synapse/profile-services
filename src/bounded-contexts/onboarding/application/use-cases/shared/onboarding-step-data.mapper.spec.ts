@@ -121,29 +121,24 @@ describe('OnboardingStepDataMapper', () => {
     });
   });
 
-  describe('template step', () => {
-    it('should merge templateSelection when provided as nested object', () => {
+  describe('resume-style step', () => {
+    it('should set resumeStyleId from the step payload', () => {
+      const styleId = '019e4a58-581a-7679-9351-df6a83687eed';
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = {
-        templateSelection: { templateId: 'modern', colorScheme: 'dark' },
-      };
+      const stepData = { resumeStyleId: styleId };
 
-      mapper.mergeStepData(update, 'template', stepData, baseProgress);
+      mapper.mergeStepData(update, 'resume-style', stepData, baseProgress);
 
-      expect(update.templateSelection).toEqual({ templateId: 'modern', colorScheme: 'dark' });
+      expect(update.resumeStyleId).toBe(styleId);
     });
 
-    it('should merge templateSelection from root-level keys', () => {
+    it('leaves resumeStyleId untouched when payload omits it', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
-      const stepData = { colorScheme: 'light', template: 'classic', palette: 'warm' };
+      const stepData = {};
 
-      mapper.mergeStepData(update, 'template', stepData, baseProgress);
+      mapper.mergeStepData(update, 'resume-style', stepData, baseProgress);
 
-      expect(update.templateSelection).toEqual({
-        colorScheme: 'light',
-        template: 'classic',
-        palette: 'warm',
-      });
+      expect(update.resumeStyleId).toBeUndefined();
     });
   });
 

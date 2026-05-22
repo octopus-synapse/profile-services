@@ -16,10 +16,10 @@ import type {
 import type { TranslationCoreService } from '../../services/translation-core.service';
 
 /**
- * Hard cap for a single translate call. LibreTranslate accepts large
- * payloads but the upstream cost / latency tradeoff means we reject
- * anything wildly oversized at the use-case boundary instead of forwarding
- * a multi-megabyte payload to the engine.
+ * Hard cap for a single translate call. Reject wildly oversized payloads
+ * at the use-case boundary so the LLM provider isn't asked to chew through
+ * multi-megabyte inputs (each call has a tokens-per-request budget and a
+ * per-token cost).
  */
 const MAX_TRANSLATION_CHARS = 50_000;
 

@@ -25,7 +25,7 @@ import {
   CompleteOnboardingResponseSchema,
   EmptyResponseSchema,
   GotoStepBody,
-  getSystemThemes,
+  getSystemResumeStyles,
   LocaleQuery,
   OnboardingConfigResponseSchema,
   OnboardingConfigUpdatedResponseSchema,
@@ -58,11 +58,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
-      const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+      const [data, stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
         bundle.sectionTypes.listAll(locale),
       ]);
       return buildSession(
@@ -70,7 +70,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         stepConfigs,
         strengthConfig,
         locale,
-        systemThemes,
+        resumeStyles,
         { name: user.name },
         sectionTypes,
       );
@@ -98,12 +98,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -123,12 +123,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
       const rawData = await bundle.useCases.goBackOnboardingStepUseCase.execute(user.userId);
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -153,12 +153,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         body.stepId,
       );
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -183,12 +183,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes);
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -248,11 +248,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       await bundle.activateExtras.execute(user.userId, body.extras);
       // Return the updated session so the frontend can re-render the
       // sidebar with the newly-visible extras in one round-trip.
-      const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+      const [data, stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
         bundle.sectionTypes.listAll(locale),
       ]);
       return buildSession(
@@ -260,7 +260,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         stepConfigs,
         strengthConfig,
         locale,
-        systemThemes,
+        resumeStyles,
         { name: user.name },
         sectionTypes,
       );
@@ -292,10 +292,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
       }
       // Reuse the GET /session payload shape for the response.
-      const [data, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+      const [data, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
         bundle.sectionTypes.listAll(locale),
       ]);
       return buildSession(
@@ -303,7 +303,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         stepConfigs,
         strengthConfig,
         locale,
-        systemThemes,
+        resumeStyles,
         { name: user.name },
         sectionTypes,
       );

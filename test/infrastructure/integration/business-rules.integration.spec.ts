@@ -7,9 +7,10 @@
  * These tests verify that business rules are enforced correctly.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import type { TestResponse as Response } from '../shared';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -26,6 +27,10 @@ describe('Business Rules Integration', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin();
     accessToken = auth.accessToken;
     userId = auth.userId;

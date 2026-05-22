@@ -121,12 +121,12 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.users).toBeArray();
-      expect(response.body.users.length).toBeGreaterThanOrEqual(2);
-      expect(response.body.pagination).toBeDefined();
+      expect(response.body.items).toBeArray();
+      expect(response.body.items.length).toBeGreaterThanOrEqual(2);
+      expect(response.body.total).toBeGreaterThanOrEqual(2);
+      expect(response.body.page).toBe(1);
 
-      // Verify users have expected shape
-      const firstUser = response.body.users[0];
+      const firstUser = response.body.items[0];
       expect(firstUser).toHaveProperty('id');
       expect(firstUser).toHaveProperty('email');
       expect(firstUser).toHaveProperty('createdAt');
@@ -138,7 +138,7 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.users).toBeArray();
+      expect(response.body.items).toBeArray();
     });
   });
 

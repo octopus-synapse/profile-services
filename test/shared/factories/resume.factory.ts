@@ -79,7 +79,6 @@ const defaultResume: Resume = {
   accentColor: '#3B82F6',
   customTheme: null,
   styleId: null,
-  template: null,
   profileViews: 0,
   totalStars: 0,
   totalCommits: 0,

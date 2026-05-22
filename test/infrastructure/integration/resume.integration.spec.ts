@@ -6,7 +6,6 @@ import {
   getApp,
   getRequest,
   testContext,
-  unwrapApiData,
 } from './setup';
 
 describe('Resume Smoke Tests', () => {
@@ -31,7 +30,6 @@ describe('Resume Smoke Tests', () => {
       });
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('id');
       expect(res.body.title).toBe('Smoke Test Resume');
 
@@ -52,7 +50,6 @@ describe('Resume Smoke Tests', () => {
         .send({ title: 'Smoke Test Resume' });
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('id');
     });
   });
@@ -62,9 +59,8 @@ describe('Resume Smoke Tests', () => {
       const res = await getRequest().get('/api/v1/resumes').set(authHeader());
 
       expect(res.status).toBe(200);
-      const list = unwrapApiData<{ data: unknown[]; meta: Record<string, unknown> }>(res.body);
-      expect(Array.isArray(list.data)).toBe(true);
-      expect(list.data.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should support pagination', async () => {
@@ -74,9 +70,8 @@ describe('Resume Smoke Tests', () => {
         .set(authHeader());
 
       expect(res.status).toBe(200);
-      const list = unwrapApiData<{ data: unknown[]; meta: Record<string, unknown> }>(res.body);
-      expect(Array.isArray(list.data)).toBe(true);
-      expect(list.meta).toBeDefined();
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.totalPages).toBeDefined();
     });
 
     it('should reject without authentication', async () => {
@@ -91,7 +86,6 @@ describe('Resume Smoke Tests', () => {
       const res = await getRequest().get(`/api/v1/resumes/${resumeId}`).set(authHeader());
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body.id).toBe(resumeId);
       expect(res.body.title).toBe('Smoke Test Resume');
     });
@@ -119,7 +113,6 @@ describe('Resume Smoke Tests', () => {
         .send({ title: 'Updated Smoke Test Resume', jobTitle: 'Senior Software Engineer' });
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body.title).toBe('Updated Smoke Test Resume');
     });
 
@@ -140,7 +133,6 @@ describe('Resume Smoke Tests', () => {
       const res = await getRequest().get(`/api/v1/resumes/${resumeId}/full`).set(authHeader());
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('id');
       expect(res.body).toHaveProperty('resumeSections');
     });

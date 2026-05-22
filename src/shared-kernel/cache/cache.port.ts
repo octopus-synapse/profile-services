@@ -15,6 +15,12 @@ export abstract class CachePort {
   abstract get<T>(key: string): Promise<T | null>;
   abstract getSecure<T>(key: string): Promise<T | null>;
   abstract set<T>(key: string, value: T, ttlSeconds?: number): Promise<void>;
+  /**
+   * Fail-closed write — semanticamente igual a `set` mas a expectativa
+   * é que a implementação throw quando o adapter está desativado /
+   * indisponível. Usada por flows críticos (e.g. invalidate-sessions).
+   */
+  abstract setSecure<T>(key: string, value: T, ttlSeconds?: number): Promise<void>;
   abstract delete(key: string): Promise<void>;
   abstract deletePattern(pattern: string): Promise<void>;
   abstract flush(): Promise<void>;

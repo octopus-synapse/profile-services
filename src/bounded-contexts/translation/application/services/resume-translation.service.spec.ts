@@ -1,113 +1,83 @@
-/**
- * Resume Translation Service Tests
- * Focus: Resume field translation
- *
- * Key scenarios:
- * - Translate string fields
- * - Translate array fields
- * - Translate nested objects
- * - Skip non-translatable fields
- */
-
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type {
+  JsonValue,
+  TranslationLlmPort,
+} from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import { ResumeTranslationService } from './resume-translation.service';
-import type { TranslationCoreService } from './translation-core.service';
+
+function buildFakePort(rewriter: (obj: JsonValue) => JsonValue = (o) => o): TranslationLlmPort {
+  return {
+    translate: mock(async () => ({}) as never),
+    translateBatch: mock(async () => ({ translations: [], failed: [], tokensUsed: 0 })),
+    translateObject: mock(async (obj: JsonValue, source, target) => ({
+      translated: rewriter(obj),
+      source,
+      target,
+      tokensUsed: 100,
+      cacheHit: false,
+    })),
+    detectLanguage: mock(async () => ({
+      language: null,
+      confidence: 0,
+      tokensUsed: 0,
+      cacheHit: false,
+    })),
+    isAvailable: () => true,
+  } as unknown as TranslationLlmPort;
+}
 
 describe('ResumeTranslationService', () => {
   let service: ResumeTranslationService;
-  let fakeCoreService: { translate: ReturnType<typeof mock> };
+  let port: TranslationLlmPort;
 
   beforeEach(() => {
-    fakeCoreService = {
-      translate: mock((text: string) =>
-        Promise.resolve({ original: text, translated: `[EN] ${text}` }),
-      ),
-    };
-    service = new ResumeTranslationService(fakeCoreService as unknown as TranslationCoreService);
+    port = buildFakePort((obj) => {
+      // Simulate the LLM: traverse and prepend `[EN]` to every string leaf.
+      const visit = (v: JsonValue): JsonValue => {
+        if (typeof v === 'string') return `[EN] ${v}`;
+        if (Array.isArray(v)) return v.map(visit);
+        if (v && typeof v === 'object') {
+          const out: Record<string, JsonValue> = {};
+          for (const [k, val] of Object.entries(v)) out[k] = visit(val as JsonValue);
+          return out;
+        }
+        return v;
+      };
+      return visit(obj);
+    });
+    service = new ResumeTranslationService(port);
   });
 
-  describe('translateToEnglish', () => {
-    it('should translate string fields', async () => {
-      const resume = { summary: 'Desenvolvedor experiente' };
+  it('translates string fields via translateObject (single call)', async () => {
+    const resume = { summary: 'Desenvolvedor experiente' };
+    const result = await service.translateToEnglish(resume);
+    expect(result.summary).toBe('[EN] Desenvolvedor experiente');
+    expect(
+      (port.translateObject as unknown as { mock: { calls: unknown[] } }).mock.calls,
+    ).toHaveLength(1);
+  });
 
-      const result = await service.translateToEnglish(resume);
+  it('preserves array structure across the round-trip', async () => {
+    const result = await service.translateToEnglish({ skills: ['JavaScript', 'TypeScript'] });
+    expect(result.skills).toEqual(['[EN] JavaScript', '[EN] TypeScript']);
+  });
 
-      expect(result.summary).toBe('[EN] Desenvolvedor experiente');
-      expect(fakeCoreService.translate).toHaveBeenCalledWith(
-        'Desenvolvedor experiente',
-        'pt',
-        'en',
-      );
+  it('traverses nested objects', async () => {
+    const result = await service.translateToEnglish({
+      experience: { title: 'Senior Developer', description: 'Led team of 5' },
     });
-
-    it('should translate array of strings', async () => {
-      const resume = { skills: ['JavaScript', 'TypeScript'] };
-
-      const result = await service.translateToEnglish(resume);
-
-      expect(result.skills).toEqual(['[EN] JavaScript', '[EN] TypeScript']);
-    });
-
-    it('should skip non-translatable fields', async () => {
-      const resume = { id: '123', email: 'test@example.com', summary: 'Test' };
-
-      const result = await service.translateToEnglish(resume);
-
-      expect(result.id).toBe('123');
-      expect(result.email).toBe('test@example.com');
-      expect(result.summary).toBe('[EN] Test');
-    });
-
-    it('should skip empty/null fields', async () => {
-      const resume = { summary: '', headline: null };
-
-      const result = await service.translateToEnglish(resume);
-
-      expect(result.summary).toBe('');
-      expect(result.headline).toBe(null);
-      expect(fakeCoreService.translate).not.toHaveBeenCalled();
+    expect(result.experience).toEqual({
+      title: '[EN] Senior Developer',
+      description: '[EN] Led team of 5',
     });
   });
 
-  describe('translateToPortuguese', () => {
-    it('should use pt as target language', async () => {
-      fakeCoreService.translate.mockResolvedValue({
-        original: 'Developer',
-        translated: '[PT] Developer',
-      });
-
-      const resume = { summary: 'Experienced developer' };
-
-      await service.translateToPortuguese(resume);
-
-      expect(fakeCoreService.translate).toHaveBeenCalledWith('Experienced developer', 'en', 'pt');
-    });
-  });
-
-  describe('nested objects', () => {
-    it('should translate nested object fields', async () => {
-      const resume = {
-        experience: { title: 'Senior Developer', description: 'Led team of 5' },
-      };
-
-      const result = await service.translateToEnglish(resume);
-
-      expect(result.experience).toEqual({
-        title: '[EN] Senior Developer',
-        description: '[EN] Led team of 5',
-      });
-    });
-
-    it('should translate arrays with nested objects', async () => {
-      const resume = {
-        responsibilities: [{ description: 'Build APIs' }],
-      };
-
-      const result = (await service.translateToEnglish(resume)) as {
-        responsibilities: Array<{ description: string }>;
-      };
-
-      expect(result.responsibilities[0].description).toBe('[EN] Build APIs');
-    });
+  it('uses pt as target in translateToPortuguese', async () => {
+    await service.translateToPortuguese({ summary: 'Experienced developer' });
+    const calls = (
+      port.translateObject as unknown as { mock: { calls: [JsonValue, string, string][] } }
+    ).mock.calls;
+    expect(calls[0][1]).toBe('en');
+    expect(calls[0][2]).toBe('pt');
   });
 });

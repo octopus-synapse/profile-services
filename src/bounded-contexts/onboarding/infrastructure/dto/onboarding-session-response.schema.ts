@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import { PersonalInfoSchema } from './personal-info.schema';
-import { ProfessionalProfileSchema } from './professional-profile.schema';
+import { PersonalInfoViewSchema } from './personal-info.schema';
+import { ProfessionalProfileViewSchema } from './professional-profile.schema';
 import { SectionProgressSchema } from './section-progress.schema';
-import { TemplateSelectionSchema } from './template-selection.schema';
 
 // StepMeta and StepField schemas are duplicated here for the composed schema
 // (they are internal to step-meta.dto.ts, but we need the shape for OnboardingSessionSchema)
@@ -57,10 +56,16 @@ export const OnboardingSessionSchema = z.object({
   availableExtras: z.array(StepMetaSchema).optional(),
   activatedExtras: z.array(z.string()).optional(),
   username: z.string().optional(),
-  personalInfo: PersonalInfoSchema.optional(),
-  professionalProfile: ProfessionalProfileSchema.optional(),
+  personalInfo: PersonalInfoViewSchema.optional(),
+  professionalProfile: ProfessionalProfileViewSchema.optional(),
   sections: z.array(SectionProgressSchema).optional(),
-  templateSelection: TemplateSelectionSchema.optional(),
+  /** FK to `ResumeStyle.id` chosen on the resume-style step. */
+  resumeStyleId: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional()
+    .openapi({ example: '01900000-0000-7000-a000-000000000001' }),
 });
 
 export type OnboardingSessionDto = z.infer<typeof OnboardingSessionSchema>;

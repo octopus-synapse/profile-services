@@ -26,7 +26,8 @@ export type OnboardingProgressData = {
   personalInfo?: unknown;
   professionalProfile?: unknown;
   sections?: SectionProgressData[];
-  templateSelection?: unknown;
+  /** FK to `ResumeStyle.id` chosen on the resume-style step. */
+  resumeStyleId?: string | null;
   // Section-step keys the user opted into via the "what else?" gate.
   // The presenter filters optional extras off this list.
   activatedExtras?: string[];
@@ -42,7 +43,7 @@ export type ProgressRecord = {
   personalInfo: unknown;
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
-  templateSelection: unknown;
+  resumeStyleId: string | null;
   activatedExtras: string[];
   updatedAt: Date;
 };

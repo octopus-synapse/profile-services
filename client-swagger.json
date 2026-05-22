@@ -631,19 +631,6 @@
           "website": {
             "$ref": "#/components/schemas/SocialUrl"
           },
-          "template": {
-            "type": "string",
-            "enum": [
-              "PROFESSIONAL",
-              "CREATIVE",
-              "TECHNICAL",
-              "MINIMAL",
-              "MODERN",
-              "EXECUTIVE",
-              "ACADEMIC"
-            ],
-            "description": "Visual template the resume should render with."
-          },
           "sections": {
             "type": "array",
             "items": {
@@ -710,19 +697,6 @@
           },
           "website": {
             "$ref": "#/components/schemas/SocialUrl"
-          },
-          "template": {
-            "type": "string",
-            "enum": [
-              "PROFESSIONAL",
-              "CREATIVE",
-              "TECHNICAL",
-              "MINIMAL",
-              "MODERN",
-              "EXECUTIVE",
-              "ACADEMIC"
-            ],
-            "description": "Visual template the resume should render with."
           },
           "sections": {
             "type": "array",
@@ -49982,6 +49956,7 @@
                       },
                       "headline": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 120
                       },
                       "summary": {
@@ -50003,22 +49978,10 @@
                       "summary"
                     ]
                   },
-                  "templateSelection": {
-                    "type": "object",
-                    "properties": {
-                      "templateId": {
-                        "type": "string"
-                      },
-                      "colorScheme": {
-                        "type": "string"
-                      },
-                      "template": {
-                        "type": "string"
-                      },
-                      "palette": {
-                        "type": "string"
-                      }
-                    }
+                  "resumeStyleId": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "uuid"
                   },
                   "sections": {
                     "type": "array",
@@ -50062,8 +50025,7 @@
                 "required": [
                   "username",
                   "personalInfo",
-                  "professionalProfile",
-                  "templateSelection"
+                  "professionalProfile"
                 ],
                 "example": {
                   "username": "janedoe",
@@ -50076,10 +50038,7 @@
                     "jobTitle": "Senior Backend Engineer",
                     "summary": "Backend engineer with 8+ years building distributed systems."
                   },
-                  "templateSelection": {
-                    "templateId": "professional",
-                    "colorScheme": "ocean"
-                  },
+                  "resumeStyleId": "019e4a58-581a-7679-9351-df6a83687eed",
                   "sections": []
                 }
               }
@@ -50480,7 +50439,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -50488,33 +50449,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -50550,16 +50519,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -50672,7 +50636,7 @@
                           "personal-info",
                           "username",
                           "professional-profile",
-                          "template",
+                          "resume-style",
                           "review",
                           "complete"
                         ]
@@ -50694,7 +50658,7 @@
                             "personal-info",
                             "username",
                             "professional-profile",
-                            "template",
+                            "resume-style",
                             "review",
                             "complete"
                           ]
@@ -50740,6 +50704,7 @@
                       },
                       "headline": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 120
                       },
                       "summary": {
@@ -50789,22 +50754,10 @@
                       ]
                     }
                   },
-                  "templateSelection": {
-                    "type": "object",
-                    "properties": {
-                      "templateId": {
-                        "type": "string"
-                      },
-                      "colorScheme": {
-                        "type": "string"
-                      },
-                      "template": {
-                        "type": "string"
-                      },
-                      "palette": {
-                        "type": "string"
-                      }
-                    }
+                  "resumeStyleId": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -51234,7 +51187,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -51242,33 +51197,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -51304,16 +51267,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -51841,7 +51799,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -51849,33 +51809,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -51911,16 +51879,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -52339,7 +52302,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -52347,33 +52312,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -52409,16 +52382,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -52832,7 +52800,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -52840,33 +52810,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -52902,16 +52880,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -53309,7 +53282,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -53317,33 +53292,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -53379,16 +53362,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -53797,7 +53775,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -53805,33 +53785,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -53867,16 +53855,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -54290,7 +54273,9 @@
                       "type": "object",
                       "properties": {
                         "fullName": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
                         },
                         "phone": {
                           "$ref": "#/components/schemas/Phone"
@@ -54298,33 +54283,41 @@
                         "location": {
                           "$ref": "#/components/schemas/UserLocation"
                         }
-                      },
-                      "required": [
-                        "fullName"
-                      ]
+                      }
                     },
                     "professionalProfile": {
                       "type": "object",
                       "properties": {
+                        "title": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
                         "jobTitle": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "headline": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
                         },
                         "summary": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 10,
+                          "maxLength": 500
                         },
                         "linkedin": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/LinkedInUrl"
                         },
                         "github": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
-                      },
-                      "required": [
-                        "jobTitle"
-                      ]
+                      }
                     },
                     "sections": {
                       "type": "array",
@@ -54360,16 +54353,11 @@
                         ]
                       }
                     },
-                    "templateSelection": {
-                      "type": "object",
-                      "properties": {
-                        "templateId": {
-                          "type": "string"
-                        },
-                        "colorScheme": {
-                          "type": "string"
-                        }
-                      }
+                    "resumeStyleId": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "uuid",
+                      "example": "01900000-0000-7000-a000-000000000001"
                     }
                   },
                   "required": [
@@ -62231,6 +62219,18 @@
                             "format": "date-time",
                             "description": "ISO-8601 timestamp with timezone offset (RFC 3339).",
                             "example": "2026-05-07T00:00:00.000Z"
+                          },
+                          "fullName": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "jobTitle": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "summary": {
+                            "type": "string",
+                            "nullable": true
                           }
                         },
                         "required": [
@@ -68046,10 +68046,6 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "template": {
-                          "type": "string",
-                          "nullable": true
-                        },
                         "summary": {
                           "type": "string",
                           "nullable": true
@@ -68424,7 +68420,6 @@
                         "linkedin",
                         "github",
                         "website",
-                        "template",
                         "summary",
                         "currentCompanyLogo",
                         "twitter",
@@ -96188,9 +96183,72 @@
                 }
               }
             }
+          }
+        },
+        "x-auth": "jwt",
+        "x-guards": [
+          "allow-unverified-email",
+          "skip-tos-check",
+          "rate-limit"
+        ]
+      }
+    },
+    "/api/v1/users/username/rules": {
+      "get": {
+        "summary": "Get username format rules (single source of truth for client gating)",
+        "description": "Returns the regex sources + min/max so the frontend can compile a matching RegExp and validate input without a round-trip per keystroke. The body never changes between requests of the same backend version, hence the long cache.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "get_v1_users_username_rules",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pattern": {
+                      "type": "string"
+                    },
+                    "startsWithPattern": {
+                      "type": "string",
+                      "example": "^[a-z]"
+                    },
+                    "endsWithPattern": {
+                      "type": "string",
+                      "example": "[a-z0-9]$"
+                    },
+                    "forbiddenSubstring": {
+                      "type": "string",
+                      "example": "__"
+                    },
+                    "minLength": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    },
+                    "maxLength": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "exclusiveMinimum": true
+                    }
+                  },
+                  "required": [
+                    "pattern",
+                    "startsWithPattern",
+                    "endsWithPattern",
+                    "forbiddenSubstring",
+                    "minLength",
+                    "maxLength"
+                  ]
+                }
+              }
+            }
           },
-          "403": {
-            "description": "Forbidden",
+          "400": {
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -96227,8 +96285,7 @@
             }
           }
         },
-        "x-auth": "jwt",
-        "x-permission": "user:profile_read"
+        "x-auth": "public"
       }
     },
     "/api/v1/users/username/validate": {
@@ -96410,47 +96467,14 @@
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "statusCode",
-                    "code",
-                    "message",
-                    "severity"
-                  ],
-                  "properties": {
-                    "statusCode": {
-                      "type": "integer"
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "severity": {
-                      "type": "string",
-                      "enum": [
-                        "toast",
-                        "modal",
-                        "banner",
-                        "inline",
-                        "silent"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
           }
         },
         "x-auth": "jwt",
-        "x-permission": "user:profile_read"
+        "x-guards": [
+          "allow-unverified-email",
+          "skip-tos-check",
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/users/{userId}/activities": {

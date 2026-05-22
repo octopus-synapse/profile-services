@@ -69,10 +69,9 @@ describeIntegration('Pagination & Filtering Integration', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      // The response wraps data in data.data for list endpoints
-      const listData = res.body || res.body;
-      expect(Array.isArray(listData)).toBe(true);
-      expect(listData.length).toBe(3);
+      // Pagination envelope (Q1): { items, total, page, limit, totalPages, hasNext, hasPrev }
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBe(3);
     });
 
     it('should return empty results for unauthenticated request', async () => {

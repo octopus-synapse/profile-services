@@ -1,11 +1,19 @@
-import { z } from 'zod';
+/**
+ * Professional profile DTO — re-exports the domain schema as the single
+ * source of truth. Strict shape used for write-side routes (SaveProgress,
+ * CompleteOnboarding). Response routes that may surface legacy rows use
+ * `ProfessionalProfileViewSchema`, which strips required-field gates.
+ */
 
-export const ProfessionalProfileSchema = z.object({
-  jobTitle: z.string(),
-  summary: z.string().optional(),
-  linkedin: z.string().optional(),
-  github: z.string().optional(),
-  website: z.string().optional(),
-});
+import { ProfessionalProfileSchema } from '../../domain/schemas/professional-profile.schema';
 
-export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;
+export type { ProfessionalProfileDto } from '../../domain/schemas/professional-profile.schema';
+export { ProfessionalProfileSchema };
+
+/** Permissive read-side view — drops `.min` / `.required` so a legacy
+ * row missing `summary` (or any new field added later) doesn't break the
+ * response. Structural typing only. */
+export const ProfessionalProfileViewSchema = ProfessionalProfileSchema.partial();
+
+import type { z } from 'zod';
+export type ProfessionalProfileViewDto = z.infer<typeof ProfessionalProfileViewSchema>;

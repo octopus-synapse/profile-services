@@ -123,12 +123,12 @@ describe('GoBackOnboardingStepUseCase', () => {
     expect(result.currentStep).toBe('section:work_experience_v1');
   });
 
-  it('goes back from template to last section step', async () => {
+  it('goes back from resume-style to last section step', async () => {
     // Arrange
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
-        currentStep: 'template',
+        currentStep: 'resume-style',
         completedSteps: [
           'welcome',
           'personal-info',
@@ -147,7 +147,7 @@ describe('GoBackOnboardingStepUseCase', () => {
 
     // Assert — `publication_v1` is the last extra in the canonical
     // section order; the new flow ships extras after languages, so
-    // template's previous step is now publication.
+    // resume-style's previous step is now publication.
     expect(result.currentStep).toBe('section:publication_v1');
   });
 });

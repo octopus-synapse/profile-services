@@ -87,21 +87,22 @@ describe('SaveOnboardingStepDataUseCase', () => {
     });
   });
 
-  it('saves template step data', async () => {
+  it('saves resume-style step data', async () => {
     // Arrange
+    const styleId = '019e4a58-581a-7679-9351-df6a83687eed';
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
-        currentStep: 'template',
+        currentStep: 'resume-style',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
       }),
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, { templateId: 'MINIMAL', colorScheme: 'dark' });
+    const result = await useCase.execute(USER_ID, { resumeStyleId: styleId });
 
     // Assert
-    expect(result.templateSelection).toEqual({ templateId: 'MINIMAL', colorScheme: 'dark' });
+    expect(result.resumeStyleId).toBe(styleId);
   });
 
   it('saves section step data', async () => {

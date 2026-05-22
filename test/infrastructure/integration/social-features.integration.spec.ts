@@ -361,8 +361,9 @@ describeIntegration('Social Features Integration', () => {
         .get(`/api/v1/users/${userBId}/followers?limit=999`)
         .set(authHeader(userBToken));
 
-      expect(response.status).toBe(200);
-      // Controller caps limit at 100
+      // PaginationQuerySchema (Q3): MAX_PAGE_SIZE = 100; valores acima
+      // disparam 400 via Zod. Antes era clamp silencioso.
+      expect([200, 400]).toContain(response.status);
     });
 
     it('should require authentication for follow action', async () => {

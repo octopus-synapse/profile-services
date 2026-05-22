@@ -1,7 +1,8 @@
 /**
  * Translation Bounded Context Exceptions
  *
- * Wraps the LibreTranslate adapter used by resume auto-translation.
+ * Wraps the LLM-based translation provider (TranslationLlmPort from
+ * the BC AI) used by resume / text / batch translation.
  */
 import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
 

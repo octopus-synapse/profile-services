@@ -19,7 +19,7 @@ import {
   STATIC_STEPS_BEFORE,
 } from './onboarding-static-steps.config';
 import type {
-  OnboardingThemeOption,
+  OnboardingResumeStyleOption,
   SectionStep,
   SectionTypeData,
   StepField,
@@ -27,8 +27,8 @@ import type {
 } from './onboarding-steps.types';
 
 export type {
+  OnboardingResumeStyleOption,
   OnboardingStepId,
-  OnboardingThemeOption,
   SectionStep,
   SectionTypeData,
   StaticStep,
@@ -71,7 +71,7 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
 export function buildOnboardingSteps(
   sectionTypeData?: SectionTypeData[],
   locale = 'en',
-  systemThemes?: OnboardingThemeOption[],
+  resumeStyles?: OnboardingResumeStyleOption[],
 ): StepMeta[] {
   const sectionMap = new Map((sectionTypeData ?? []).map((st) => [st.key, st]));
 
@@ -115,16 +115,18 @@ export function buildOnboardingSteps(
 
   const afterSteps = buildStaticSteps(STATIC_STEPS_AFTER, locale);
 
-  // Inject system themes as data into the template step
-  if (systemThemes?.length) {
-    const templateStep = afterSteps.find((s) => s.id === 'template');
-    if (templateStep) {
-      templateStep.data = systemThemes.map((t) => ({
-        id: t.id,
-        name: t.name,
-        description: t.description,
-        styleScore: t.styleScore,
-        thumbnailUrl: t.thumbnailUrl,
+  // Inject the available system resume styles as data into the
+  // resume-style step. The step id stays 'resume-style' so the
+  // frontend stepper can branch on it.
+  if (resumeStyles?.length) {
+    const styleStep = afterSteps.find((s) => s.id === 'resume-style');
+    if (styleStep) {
+      styleStep.data = resumeStyles.map((s) => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        styleScore: s.styleScore,
+        thumbnailUrl: s.thumbnailUrl,
       }));
     }
   }

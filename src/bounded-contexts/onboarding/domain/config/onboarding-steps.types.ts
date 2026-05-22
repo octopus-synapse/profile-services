@@ -76,8 +76,8 @@ export interface SectionTypeData {
   addLabel: string;
 }
 
-/** Minimal style data for the onboarding style-picker step. */
-export interface OnboardingThemeOption {
+/** Minimal style data for the onboarding resume-style picker step. */
+export interface OnboardingResumeStyleOption {
   id: string;
   name: string;
   description: string | null;

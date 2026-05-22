@@ -50,6 +50,7 @@ export type ResumeResult = {
     items: Array<{ id: string; order: number; content?: Record<string, unknown> | null }>;
   }>;
   fullName?: string | null;
+  jobTitle?: string | null;
   email?: string | null;
   phone?: string | null;
   location?: string | null;

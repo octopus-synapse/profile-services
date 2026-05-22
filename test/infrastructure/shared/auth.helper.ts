@@ -59,6 +59,18 @@ export class AuthHelper {
   async registerAndLogin(user?: TestUser, opts: RegisterAndLoginOptions = {}): Promise<TestUser> {
     const u = user ?? this.createTestUser();
 
+    // `.env.test` keeps RATE_LIMIT_ENABLED=true (security specs depend on
+    // the gate being live), but the suite-level beforeEach only resets
+    // buckets between `it()` blocks. Tests using `beforeAll` to signup
+    // share the same IP bucket across the whole spec file, and parallel
+    // shards all bind localhost — without a pre-flight reset here every
+    // 11th signup in the suite would 429. The pipeline key shape is
+    // `ratelimit:<ip>:<method>:<path>` (see elysia-pipeline.ts), so only
+    // the auth-endpoint buckets are cleared — other rate-limit
+    // assertions (login throttling, password-reset, etc.) stay live.
+    await this.app.cache.deletePattern('ratelimit:*:POST:/v1/accounts');
+    await this.app.cache.deletePattern('ratelimit:*:POST:/v1/auth/login');
+
     const signup = await this.app.request.post('/api/v1/accounts').send({
       email: u.email,
       password: u.password,

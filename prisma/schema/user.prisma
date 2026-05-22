@@ -57,18 +57,18 @@ model User {
   authoredStyles ResumeStyle[] @relation("StyleAuthor")
 
   // Scoring subsystem: fit profile + per-user answers/question sets
-  fitProfile        UserFitProfile?
-  fitAnswers        FitAnswer[]       @relation("UserFitAnswers")
-  fitQuestionSets   FitQuestionSet[]  @relation("UserFitQuestionSets")
-  fitRemapHistory   FitRemapHistory[] @relation("UserFitRemapHistory")
+  fitProfile      UserFitProfile?
+  fitAnswers      FitAnswer[]       @relation("UserFitAnswers")
+  fitQuestionSets FitQuestionSet[]  @relation("UserFitQuestionSets")
+  fitRemapHistory FitRemapHistory[] @relation("UserFitRemapHistory")
 
   // Chat system
-  conversationsAsParticipant1 Conversation[]            @relation("ConversationParticipant1")
-  conversationsAsParticipant2 Conversation[]            @relation("ConversationParticipant2")
-  sentMessages                Message[]                 @relation("SentMessages")
-  blockedUsers                BlockedUser[]             @relation("Blocker")
-  blockedByUsers              BlockedUser[]             @relation("Blocked")
-  conversationPreferences     ConversationPreference[]  @relation("UserConversationPrefs")
+  conversationsAsParticipant1 Conversation[]           @relation("ConversationParticipant1")
+  conversationsAsParticipant2 Conversation[]           @relation("ConversationParticipant2")
+  sentMessages                Message[]                @relation("SentMessages")
+  blockedUsers                BlockedUser[]            @relation("Blocker")
+  blockedByUsers              BlockedUser[]            @relation("Blocked")
+  conversationPreferences     ConversationPreference[] @relation("UserConversationPrefs")
 
   // Social features
   followers  Follow[]   @relation("Following")
@@ -90,9 +90,9 @@ model User {
   resumeImports ResumeImport[]
 
   // Resume collaborations
-  collaborations       ResumeCollaborator[]    @relation("UserCollaborations")
+  collaborations         ResumeCollaborator[]   @relation("UserCollaborations")
   authoredCollabComments CollaborationComment[] @relation("AuthoredCollabComments")
-  skillProficiencies   UserSkillProficiency[]  @relation("UserSkillProficiencies")
+  skillProficiencies     UserSkillProficiency[] @relation("UserSkillProficiencies")
 
   // RBAC: roles assigned via UserRoleAssignment, plus per-user
   // grants/suspensions via AccessModifier (see authorization.prisma).
@@ -100,34 +100,34 @@ model User {
   accessModifiers AccessModifier[]
 
   // Feed
-  posts              Post[]           @relation("UserPosts")
-  postComments       PostComment[]    @relation("UserComments")
-  postLikes          PostLike[]       @relation("UserLikes")
-  postBookmarks      PostBookmark[]   @relation("UserBookmarks")
-  postReports        PostReport[]     @relation("UserReports")
+  posts         Post[]         @relation("UserPosts")
+  postComments  PostComment[]  @relation("UserComments")
+  postLikes     PostLike[]     @relation("UserLikes")
+  postBookmarks PostBookmark[] @relation("UserBookmarks")
+  postReports   PostReport[]   @relation("UserReports")
 
   // Upload ownership (P0-005)
-  uploads            Upload[]         @relation("UserUploads")
+  uploads Upload[] @relation("UserUploads")
 
   // Notifications
-  notifications      Notification[]   @relation("UserNotifications")
-  notificationActors Notification[]   @relation("NotificationActors")
+  notifications      Notification[] @relation("UserNotifications")
+  notificationActors Notification[] @relation("NotificationActors")
 
   // Jobs
   // P0-#25/#26 — explicit FK back-relations so prisma can enforce cascade.
-  jobs               Job[]            @relation("UserJobs")
-  jobApplications    JobApplication[] @relation("UserApplications")
-  jobBookmarks       JobBookmark[]    @relation("UserBookmarks")
+  jobs            Job[]            @relation("UserJobs")
+  jobApplications JobApplication[] @relation("UserApplications")
+  jobBookmarks    JobBookmark[]    @relation("UserBookmarks")
 
   // Feed
-  pollVotes          PollVote[]       @relation("UserPollVotes")
+  pollVotes PollVote[] @relation("UserPollVotes")
 
   // Identity tokens
-  passwordResetTokens      PasswordResetToken[]
-  emailVerificationTokens  EmailVerificationToken[]
-  refreshTokens            RefreshToken[]
-  loginAttempts            LoginAttempt[]
-  webhooks                 WebhookConfig[] @relation("UserWebhooks")
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  refreshTokens           RefreshToken[]
+  loginAttempts           LoginAttempt[]
+  webhooks                WebhookConfig[]          @relation("UserWebhooks")
 
   // Automation
   curatedBatches WeeklyCuratedBatch[] @relation("UserCuratedBatches")
@@ -207,13 +207,13 @@ model UserApplyCriteria {
   preferencesId String          @unique
   preferences   UserPreferences @relation(fields: [preferencesId], references: [id], onDelete: Cascade)
 
-  minFit          Int?           // Skip jobs below this fit score (0–100).
-  stacks          String[]       @default([])  // Preferred stacks / tech skills.
-  seniorities     String[]       @default([])  // e.g. "Mid", "Senior", "Staff".
-  remotePolicies  RemotePolicy[] @default([])
+  minFit            Int? // Skip jobs below this fit score (0–100).
+  stacks            String[]          @default([]) // Preferred stacks / tech skills.
+  seniorities       String[]          @default([]) // e.g. "Mid", "Senior", "Staff".
+  remotePolicies    RemotePolicy[]    @default([])
   paymentCurrencies PaymentCurrency[] @default([])
-  minSalaryUsd    Int?           // Annual USD floor; null means "don't filter".
-  defaultCover    String?        @db.Text
+  minSalaryUsd      Int? // Annual USD floor; null means "don't filter".
+  defaultCover      String?           @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -237,8 +237,15 @@ model OnboardingProgress {
   // Form data (JSON)
   personalInfo        Json?
   professionalProfile Json?
-  sections            Json?  // Generic sections array: [{ sectionTypeKey, items, noData }]
-  templateSelection   Json?
+  sections            Json? // Generic sections array: [{ sectionTypeKey, items, noData }]
+
+  // The resume style picked during onboarding. Replaces the legacy
+  // `templateSelection` JSON (which stored `{templateId, colorScheme}`
+  // where `templateId` was already a ResumeStyle.id, just misnamed).
+  // SET NULL so the user's progress survives a style being deleted —
+  // they can re-pick on the resume-style step.
+  resumeStyleId String?
+  resumeStyle   ResumeStyle? @relation("OnboardingProgressStyle", fields: [resumeStyleId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -246,6 +253,7 @@ model OnboardingProgress {
 
   @@index([userId])
   @@index([expiresAt])
+  @@index([resumeStyleId])
 }
 
 model AuditLog {
@@ -273,6 +281,46 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([entityType, entityId])
   @@index([createdAt]) // For retention policy cleanup
+}
+
+// Audit fallback table — receives audit entries that couldn't be
+// written to AuditLog because the referenced User row was removed in
+// the race window between the auth event publishing and the audit
+// handler firing (see docs/audits/integration-test-triage-2026-05-21.md).
+//
+// Why a separate table:
+//   - AuditLog.userId is a hard FK (Cascade) by design — losing it
+//     would weaken the compliance guarantee on the happy path.
+//   - The race only happens when the user was deleted mid-flow.
+//     Persisting to AuditLogLost preserves the audit trail (LGPD Art.
+//     16 / GDPR Art. 30) while letting the AuditLog FK stay strict.
+//
+// A reaper job (or manual ops query) reviews these rows and either
+// reconciles them or marks them resolved.
+model AuditLogLost {
+  id String @id @default(dbgenerated("uuidv7()"))
+
+  // Original user id from the event payload — intentionally NOT a FK
+  // (the user was already gone when we tried to insert into AuditLog).
+  originalUserId String
+
+  action     AuditAction
+  entityType String
+  entityId   String
+
+  // Full event payload as JSON so we can reconstruct the lost audit
+  // row if/when the user is restored, or correlate forensically.
+  eventPayload Json
+
+  // Why the primary write failed. Today the only known reason is
+  // `user_deleted_in_race_window`; the column is open-typed so future
+  // failure modes can land here without a migration.
+  reason String
+
+  attemptedAt DateTime @default(now())
+
+  @@index([originalUserId, attemptedAt])
+  @@index([attemptedAt])
 }
 
 // GDPR Compliance: Track ToS/Privacy Policy acceptance (#75)

@@ -48,11 +48,15 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
     data: OnboardingData,
   ): Promise<void> {
     for (const section of data.sections) {
-      if (!section.noData && section.items.length > 0) {
+      // `items` is defaulted to `[]` by the Zod schema; the `?? []` belt
+      // is for the rare case where this adapter is invoked outside the
+      // parse pipeline (e.g. internal callers passing a hand-built shape).
+      const items = section.items ?? [];
+      if (!section.noData && items.length > 0) {
         await this.sectionAdapter.replaceSectionItems(tx, {
           resumeId,
           sectionTypeKey: section.sectionTypeKey,
-          items: section.items.map((item) => item.content as Prisma.InputJsonValue),
+          items: items.map((item) => item.content as Prisma.InputJsonValue),
         });
       }
     }

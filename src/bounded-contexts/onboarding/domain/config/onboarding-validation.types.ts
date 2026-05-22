@@ -6,8 +6,7 @@ export interface OnboardingDataForValidation {
   professionalProfile?:
     | { jobTitle?: string; summary?: string }
     | Record<string, string | undefined>;
-  templateSelection?:
-    | { colorScheme?: string; templateId?: string }
-    | Record<string, string | undefined>;
+  /** FK to `ResumeStyle.id` chosen on the resume-style step. */
+  resumeStyleId?: string | null;
   [key: string]: unknown;
 }

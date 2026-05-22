@@ -12,9 +12,10 @@
  * - Old token validity after new request
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -29,6 +30,10 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin({
       email: `reset-test-${uniqueTestId()}@example.com`,
     });
@@ -439,20 +444,25 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       // past before invalidation.
       await new Promise((r) => setTimeout(r, 1100));
 
-      const token = randomUUID();
+      // Token é armazenado como SHA-256 (token-hash.ts); o cliente
+      // recebe plaintext, o backend grava o hash. Spec precisa hashear
+      // antes de inserir.
+      const { createHash } = await import('node:crypto');
+      const plainToken = randomUUID();
+      const tokenHash = createHash('sha256').update(plainToken).digest('hex');
       await prisma.passwordResetToken.create({
         data: {
-          token,
+          token: tokenHash,
           userId: testUser.userId,
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       });
 
       const resetResponse = await getRequest().post('/api/v1/auth/reset-password').send({
-        token,
+        token: plainToken,
         newPassword: 'CompletelyNewPassword123!',
       });
-      expect(resetResponse.status).toBe(200);
+      expect(resetResponse.status).toBe(201);
 
       const afterReset = await getRequest()
         .get('/api/v1/resumes')

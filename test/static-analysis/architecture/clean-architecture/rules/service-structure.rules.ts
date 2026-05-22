@@ -49,7 +49,7 @@ const MODULES_WITHOUT_PERSISTENCE = [
   'identity/account-lifecycle', // Uses other modules' repositories
   'identity/authentication', // Uses other modules' repositories
   'identity/authorization', // In-memory/cross-cutting
-  'translation', // External API (LibreTranslate) - no database
+  'translation', // Provider: TranslationLlmPort from BC AI (OpenAI) - no database
   'ai', // External API (OpenAI) - no database
   'integration/upload', // S3/MinIO blob storage - no database
 ];

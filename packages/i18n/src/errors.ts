@@ -736,6 +736,10 @@ export const ERROR_DICTIONARY = {
     en: 'Invalid section type for onboarding',
     'pt-BR': 'Tipo de seção inválido para o onboarding',
   },
+  ONBOARDING_RESUME_STYLE_NOT_FOUND: {
+    en: 'Selected resume style could not be found',
+    'pt-BR': 'Não foi possível encontrar o estilo de currículo selecionado',
+  },
   ONBOARDING_SESSION_EXPIRED: {
     en: 'Onboarding session has expired',
     'pt-BR': 'A sessão do onboarding expirou',
