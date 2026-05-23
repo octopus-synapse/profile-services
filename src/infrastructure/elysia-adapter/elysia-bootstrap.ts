@@ -1082,6 +1082,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // staging boots fail-fast if no allowlist is configured.
   const app = new Elysia();
   const isProduction = config.env.NODE_ENV === 'production';
+  // V2 D43: `buildCorsAllowlist` now auto-includes the Expo dev
+  // origins (localhost:8081/19000/19006 + `https://*.expo.dev`) in
+  // non-production so the RN/Expo app can hit the API without
+  // operator-side env tweaks. Production stays operator-controlled
+  // (CORS_ORIGIN only). `enableCors` compiles wildcard strings to
+  // RegExp internally before handing the list to `@elysiajs/cors`.
   const allowlist = buildCorsAllowlist(config);
   enableCors(app, { origin: allowlist, isProduction });
   applySecurityHeaders(app);
