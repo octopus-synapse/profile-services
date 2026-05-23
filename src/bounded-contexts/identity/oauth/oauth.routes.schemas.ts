@@ -46,20 +46,19 @@ export const ProviderParam = z
   .openapi({ example: { provider: 'github' } });
 
 // ─── Query schemas (V2 D41) ──────────────────────────────────────────
-export const StartQuerySchema = z
-  .object({
-    redirect_uri: z.string().min(1).optional(),
-    state: z.string().min(1).optional(),
-  })
-  .passthrough();
+// `.strip()` (the default) silently drops unknown query params — keeps
+// the surface mass-assignment safe while still letting providers append
+// vendor-specific params we don't care about (e.g. `code_challenge`).
+export const StartQuerySchema = z.object({
+  redirect_uri: z.string().min(1).optional().openapi({ example: 'patchcareers://auth/callback' }),
+  state: z.string().min(1).optional().openapi({ example: 'csrf-nonce-123' }),
+});
 
-export const CallbackQuerySchema = z
-  .object({
-    redirect_uri: z.string().min(1).optional(),
-    state: z.string().min(1).optional(),
-    code: z.string().optional(),
-  })
-  .passthrough();
+export const CallbackQuerySchema = z.object({
+  redirect_uri: z.string().min(1).optional().openapi({ example: 'patchcareers://auth/callback' }),
+  state: z.string().min(1).optional().openapi({ example: 'csrf-nonce-123' }),
+  code: z.string().optional().openapi({ example: 'oauth_code_abc123' }),
+});
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const OAuthAvailabilityResponseSchema = z.object({ available: z.boolean() });

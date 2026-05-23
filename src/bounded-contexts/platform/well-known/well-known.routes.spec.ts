@@ -5,8 +5,8 @@
 
 import { describe, expect, it } from 'bun:test';
 import type { HttpCtx } from '@/shared-kernel/http/context';
-import type { Route } from '@/shared-kernel/http/route';
 import { isResponseWithHeaders } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { WellKnownBundle } from './well-known.bundle';
 import { wellKnownRoutes } from './well-known.routes';
 

@@ -24,6 +24,7 @@ describe('Auth Flow Integration', () => {
   let prisma: PrismaClient;
   let cacheService: ReturnType<typeof getCacheService>;
   let accessToken: string;
+  // biome-ignore lint/correctness/noUnusedVariables: kept for future assertions on session lifecycle (refresh + revoke flows)
   let refreshToken: string;
 
   /**

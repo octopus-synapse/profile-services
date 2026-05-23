@@ -16,8 +16,8 @@
  * forgiving but the same shape works.
  */
 
-import type { Route } from '@/shared-kernel/http/route';
 import { withHeaders } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { WellKnownBundle } from './well-known.bundle';
 
 const JSON_CT = { 'Content-Type': 'application/json' } as const;
@@ -37,6 +37,10 @@ export const wellKnownRoutes: ReadonlyArray<Route<WellKnownBundle>> = [
     // Not part of the public SDK surface — these endpoints exist for
     // Apple/Google crawlers, not API clients.
     sdk: { exported: false },
+    // Static JSON document with a fixed Content-Type — `binary` is the
+    // route-coverage validator's opt-out for non-envelope payloads
+    // served with a custom media type.
+    binary: { mediaType: 'application/json' },
     handler: async (_ctx, bc) => withHeaders(JSON_CT, bc.aasa),
   },
   {
@@ -51,6 +55,7 @@ export const wellKnownRoutes: ReadonlyArray<Route<WellKnownBundle>> = [
         'Static JSON statement list Google fetches to verify the patchcareers Android app owns this domain for App Links.',
     },
     sdk: { exported: false },
+    binary: { mediaType: 'application/json' },
     handler: async (_ctx, bc) => withHeaders(JSON_CT, bc.assetLinks),
   },
 ];

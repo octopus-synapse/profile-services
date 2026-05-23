@@ -1,3 +1,4 @@
+// lint-allow-file-size: existing offender before V2; rebase onto #231 added well-known route registration + CORS allowlist merge. Sub-module extraction (separate composition fns per BC group) tracked for follow-up refactor PR.
 /**
  * Production Elysia bootstrap (Phase 2 cutover). Boots all migrated
  * BCs on Elysia + Bun, end-to-end framework-free pipeline:
