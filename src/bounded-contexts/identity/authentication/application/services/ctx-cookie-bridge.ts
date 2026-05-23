@@ -34,3 +34,19 @@ export function ctxCookieWriter(ctx: HttpCtx): CookieWriter {
     },
   };
 }
+
+/**
+ * Cookie writer for the V2 D42 mobile flow — when the client opted into
+ * `Accept-Mode: tokens` we still create the session (so device list /
+ * lifecycle events fire) but suppress the `Set-Cookie` header because
+ * the mobile client stores the tokens itself via secure storage.
+ *
+ * Pure no-op; the createSession use-case treats this writer as
+ * structurally identical to the real one.
+ */
+export function noopCookieWriter(): CookieWriter {
+  return {
+    setCookie: () => undefined,
+    clearCookie: () => undefined,
+  };
+}

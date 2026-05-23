@@ -8,6 +8,12 @@
  *   - Server-to-server clients can still pass `refreshToken` in the body
  *     (kept for compatibility with non-browser callers).
  *
+ * V2 D42: mobile clients send `Accept-Mode: tokens` (see `readAcceptMode`)
+ * so the login / verify-2fa handlers suppress the Set-Cookie write via
+ * `noopCookieWriter()` while still recording the session (device list +
+ * `SessionCreatedEvent` fire either way). The token pair travels in the
+ * response body instead.
+ *
  * Pipeline glue:
  *   - Cookie writes are staged via `ctxCookieWriter(ctx)` (which writes
  *     into `ctx.state.__cookieJar`); the synthesizer flushes the jar
@@ -25,7 +31,12 @@ import { Permission } from '@/shared-kernel/authorization';
 import { UnauthorizedException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
-import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
+import { readAcceptMode } from './application/services/accept-mode';
+import {
+  ctxCookieReader,
+  ctxCookieWriter,
+  noopCookieWriter,
+} from './application/services/ctx-cookie-bridge';
 import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.schema';
 import {
   ListSessionsResponseSchema,
@@ -112,6 +123,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'login' },
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof LoginSchema>;
+      const acceptMode = readAcceptMode(ctx);
       const result = await bc.login.execute({
         email: dto.email,
         password: dto.password,
@@ -124,10 +136,13 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         return { userId: result.userId, twoFactorRequired: true as const };
       }
 
+      // V2 D42: mobile clients send `Accept-Mode: tokens` so we
+      // suppress the Set-Cookie write but still record the session
+      // (device list / SessionCreatedEvent fire either way).
       await bc.createSession.execute({
         userId: result.userId,
         email: dto.email,
-        cookieWriter: ctxCookieWriter(ctx),
+        cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       });
@@ -157,6 +172,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'verify2fa' },
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof LoginVerify2faSchema>;
+      const acceptMode = readAcceptMode(ctx);
       const result = await bc.login.completeWithTwoFactor({
         userId: dto.userId,
         code: dto.code,
@@ -164,10 +180,11 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         userAgent: ctx.userAgent,
       });
 
+      // V2 D42: same Accept-Mode plumbing as POST /auth/login.
       await bc.createSession.execute({
         userId: result.userId,
         email: result.email ?? '',
-        cookieWriter: ctxCookieWriter(ctx),
+        cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       });
