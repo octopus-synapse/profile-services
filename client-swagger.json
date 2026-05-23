@@ -792,6 +792,126 @@
     "parameters": {}
   },
   "paths": {
+    "/.well-known/apple-app-site-association": {
+      "get": {
+        "summary": "Apple App Site Association (Universal Links)",
+        "description": "Static JSON document Apple fetches to associate this domain with the patchcareers iOS app. Served without a .json extension per Apple spec.",
+        "tags": [
+          "well-known"
+        ],
+        "operationId": "get_well_known_apple_app_site_association",
+        "responses": {
+          "200": {
+            "description": "Binary response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/assetlinks.json": {
+      "get": {
+        "summary": "Android Digital Asset Links (App Links)",
+        "description": "Static JSON statement list Google fetches to verify the patchcareers Android app owns this domain for App Links.",
+        "tags": [
+          "well-known"
+        ],
+        "operationId": "get_well_known_assetlinks_json",
+        "responses": {
+          "200": {
+            "description": "Binary response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Liveness probe — always 200 once the process is booted",
@@ -20593,7 +20713,8 @@
                       "properties": {
                         "userId": {
                           "type": "string",
-                          "format": "uuid"
+                          "format": "uuid",
+                          "example": "550e8400-e29b-41d4-a716-446655440000"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
@@ -20605,26 +20726,40 @@
                       "required": [
                         "userId",
                         "twoFactorRequired"
-                      ]
+                      ],
+                      "example": {
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "twoFactorRequired": true
+                      }
                     },
                     {
                       "type": "object",
                       "properties": {
                         "userId": {
                           "type": "string",
-                          "format": "uuid"
+                          "format": "uuid",
+                          "example": "550e8400-e29b-41d4-a716-446655440000"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
                           "enum": [
                             false
                           ]
+                        },
+                        "sessionExchangeId": {
+                          "type": "string",
+                          "example": "sxc_abc123def456"
                         }
                       },
                       "required": [
                         "userId",
                         "twoFactorRequired"
-                      ]
+                      ],
+                      "example": {
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "twoFactorRequired": false,
+                        "sessionExchangeId": "sxc_abc123def456"
+                      }
                     }
                   ]
                 }
@@ -20721,12 +20856,21 @@
                   "properties": {
                     "userId": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "sessionExchangeId": {
+                      "type": "string",
+                      "example": "sxc_abc123def456"
                     }
                   },
                   "required": [
                     "userId"
-                  ]
+                  ],
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "sessionExchangeId": "sxc_abc123def456"
+                  }
                 }
               }
             }
@@ -21029,11 +21173,42 @@
     "/api/v1/auth/oauth/github/callback": {
       "get": {
         "summary": "GitHub OAuth callback.",
-        "description": "OAuth login endpoints",
+        "description": "OAuth login endpoints. When `redirect_uri` was supplied at start and validates against the allowlist, redirects there instead of UI_BASE_URL.",
         "tags": [
           "auth-oauth"
         ],
         "operationId": "get_v1_auth_oauth_github_callback",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "patchcareers://auth/callback"
+            },
+            "required": false,
+            "name": "redirect_uri",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "csrf-nonce-123"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "oauth_code_abc123"
+            },
+            "required": false,
+            "name": "code",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -21082,11 +21257,33 @@
     "/api/v1/auth/oauth/github/start": {
       "get": {
         "summary": "Start GitHub OAuth sign-in.",
-        "description": "OAuth login endpoints",
+        "description": "OAuth login endpoint. Optional `redirect_uri` query param enables the mobile deep-link flow when present in OAUTH_REDIRECT_URI_ALLOWLIST.",
         "tags": [
           "auth-oauth"
         ],
         "operationId": "get_v1_auth_oauth_github_start",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "patchcareers://auth/callback"
+            },
+            "required": false,
+            "name": "redirect_uri",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "csrf-nonce-123"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -21135,11 +21332,42 @@
     "/api/v1/auth/oauth/linkedin/callback": {
       "get": {
         "summary": "LinkedIn OAuth callback.",
-        "description": "OAuth login endpoints",
+        "description": "OAuth login endpoints. When `redirect_uri` was supplied at start and validates against the allowlist, redirects there instead of UI_BASE_URL.",
         "tags": [
           "auth-oauth"
         ],
         "operationId": "get_v1_auth_oauth_linkedin_callback",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "patchcareers://auth/callback"
+            },
+            "required": false,
+            "name": "redirect_uri",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "csrf-nonce-123"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "oauth_code_abc123"
+            },
+            "required": false,
+            "name": "code",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -21188,11 +21416,33 @@
     "/api/v1/auth/oauth/linkedin/start": {
       "get": {
         "summary": "Start LinkedIn OAuth sign-in.",
-        "description": "OAuth login endpoints",
+        "description": "OAuth login endpoint. Optional `redirect_uri` query param enables the mobile deep-link flow when present in OAUTH_REDIRECT_URI_ALLOWLIST.",
         "tags": [
           "auth-oauth"
         ],
         "operationId": "get_v1_auth_oauth_linkedin_start",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "patchcareers://auth/callback"
+            },
+            "required": false,
+            "name": "redirect_uri",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "csrf-nonce-123"
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response"
@@ -21651,6 +21901,122 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/auth/session/tokens": {
+      "post": {
+        "summary": "Exchange a one-shot sessionExchangeId for a token pair (mobile)",
+        "description": "V2 D42 — native clients that opted out of cookies via `Accept-Mode: tokens` receive a one-shot `sessionExchangeId` in the login / verify-2fa response. This endpoint swaps that id for a real access/refresh token pair. The id is single-use (the second call returns 401) and expires 60 seconds after issuance.",
+        "tags": [
+          "auth"
+        ],
+        "operationId": "exchangeSessionForTokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionExchangeId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "sxc_abc123def456"
+                  }
+                },
+                "required": [
+                  "sessionExchangeId"
+                ],
+                "example": {
+                  "sessionExchangeId": "sxc_abc123def456"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "rt_eyJhbGciOiJIUzI1NiJ9.fixture"
+                    },
+                    "expiresIn": {
+                      "type": "number",
+                      "example": 900
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "accessToken",
+                    "refreshToken",
+                    "expiresIn"
+                  ],
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture",
+                    "refreshToken": "rt_eyJhbGciOiJIUzI1NiJ9.fixture",
+                    "expiresIn": 900
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/sessions": {
@@ -102738,6 +103104,9 @@
     },
     {
       "name": "webhooks"
+    },
+    {
+      "name": "well-known"
     }
   ]
 }

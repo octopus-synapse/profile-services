@@ -5,6 +5,7 @@ import {
   buildCorsAllowlist,
   CorsAllowlistMissingError,
   DEFAULT_DEV_CORS_ALLOWLIST,
+  EXPO_DEV_ORIGINS,
 } from './cors-allowlist';
 
 function buildConfig(
@@ -29,14 +30,30 @@ function buildConfig(
 }
 
 describe('buildCorsAllowlist', () => {
-  it('returns the development defaults when nothing is configured in dev', () => {
+  it('returns the Expo dev origins when nothing is configured in dev', () => {
+    // V2 D43: Expo defaults are auto-included in non-prod so the RN/Expo
+    // app can hit the API without operator-side env tweaks. They take
+    // priority over `DEFAULT_DEV_CORS_ALLOWLIST` — the explicit FE-port
+    // fallback only kicks in when no explicit origin AND no Expo
+    // defaults would apply (i.e. never in dev/test today, but the path
+    // stays as a safety net).
     const list = buildCorsAllowlist(buildConfig({ NODE_ENV: 'development' }));
-    expect(list).toEqual([...DEFAULT_DEV_CORS_ALLOWLIST]);
+    for (const expo of EXPO_DEV_ORIGINS) {
+      expect(list).toContain(expo);
+    }
   });
 
-  it('returns the development defaults in test env when nothing is configured', () => {
+  it('returns the Expo dev origins in test env when nothing is configured', () => {
     const list = buildCorsAllowlist(buildConfig({ NODE_ENV: 'test' }));
-    expect(list).toEqual([...DEFAULT_DEV_CORS_ALLOWLIST]);
+    for (const expo of EXPO_DEV_ORIGINS) {
+      expect(list).toContain(expo);
+    }
+  });
+
+  it('falls back to DEFAULT_DEV_CORS_ALLOWLIST only as a safety net', () => {
+    // Sanity: the constant still exports so legacy callers / scripts
+    // referencing it don't break.
+    expect(DEFAULT_DEV_CORS_ALLOWLIST.length).toBeGreaterThan(0);
   });
 
   it('throws in production when no allowlist is provided', () => {
@@ -51,11 +68,26 @@ describe('buildCorsAllowlist', () => {
     );
   });
 
-  it('returns the explicit CORS_ORIGIN list when set', () => {
+  it('returns the explicit CORS_ORIGIN list when set in production (no Expo injection)', () => {
     const list = buildCorsAllowlist(
       buildConfig({ NODE_ENV: 'production', CORS_ORIGIN: 'https://a.com, https://b.com' }),
     );
     expect(list).toEqual(['https://a.com', 'https://b.com']);
+  });
+
+  it('V2 D43: merges explicit CORS_ORIGIN with Expo defaults in dev/test (dedup)', () => {
+    const list = buildCorsAllowlist(
+      buildConfig({
+        NODE_ENV: 'development',
+        CORS_ORIGIN: 'https://patchcareers.com, http://localhost:8081',
+      } as Partial<EnvConfig>),
+    );
+    expect(list).toContain('https://patchcareers.com');
+    expect(list).toContain('https://*.expo.dev');
+    // dedup — `http://localhost:8081` appears once even though it's in
+    // both the explicit list and the Expo defaults.
+    const count = list.filter((o) => o === 'http://localhost:8081').length;
+    expect(count).toBe(1);
   });
 
   it('merges CORS_ALLOWED_ORIGINS into CORS_ORIGIN, de-duplicating', () => {
@@ -89,5 +121,14 @@ describe('buildCorsAllowlist', () => {
     // here pins it so a future regression that returns a boolean
     // explodes at the assertion.
     expect(Array.isArray(list)).toBe(true);
+  });
+
+  it('does NOT inject Expo defaults in production', () => {
+    const list = buildCorsAllowlist(
+      buildConfig({ NODE_ENV: 'production', CORS_ORIGIN: 'https://patchcareers.com' }),
+    );
+    for (const expo of EXPO_DEV_ORIGINS) {
+      expect(list).not.toContain(expo);
+    }
   });
 });

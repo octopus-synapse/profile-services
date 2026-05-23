@@ -2,6 +2,16 @@
 
 // Session use cases
 export { CreateSessionUseCase } from './create-session';
+export {
+  type CreateSessionExchangeCommand,
+  type CreateSessionExchangeResult,
+  CreateSessionExchangeUseCase,
+} from './create-session-exchange';
+export {
+  type ExchangeSessionForTokensCommand,
+  type ExchangeSessionForTokensResult,
+  ExchangeSessionForTokensUseCase,
+} from './exchange-session-for-tokens';
 export type { LoginDto, LoginResponseDto, LoginVerify2faDto } from './login';
 export { LoginUseCase } from './login';
 export type { LogoutDto, LogoutResponseDto } from './logout';

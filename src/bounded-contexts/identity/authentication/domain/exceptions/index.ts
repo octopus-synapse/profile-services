@@ -5,6 +5,7 @@ export {
   InvalidRefreshTokenException,
   InvalidSessionException,
   InvalidTokenException,
+  SessionExchangeInvalidException,
   SessionExpiredException,
   SessionNotFoundException,
   SessionUserNotFoundException,

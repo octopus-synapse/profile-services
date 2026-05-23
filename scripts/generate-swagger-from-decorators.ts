@@ -516,6 +516,11 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
   const querySchema = unwrapToZodObject(route.query);
   const bodySchema = route.body && isZodSchema(route.body) ? route.body : undefined;
 
+  // Routes under `/.well-known/` (AASA, assetlinks) are mounted at the
+  // root path by the bootstrap (no `/api` prefix) because Apple/Google
+  // crawlers expect them at `https://<host>/.well-known/…` exactly.
+  const isWellKnown = path.startsWith('/.well-known/');
+  const fullPath = isWellKnown ? path : `/api${path}`;
   registry.registerPath({
     method: route.method.toLowerCase() as
       | 'get'
@@ -525,7 +530,7 @@ function registerRoute(route: Route, registry: OpenAPIRegistry): void {
       | 'delete'
       | 'head'
       | 'options',
-    path: `/api${path}`,
+    path: fullPath,
     summary: route.openapi.summary,
     description: route.openapi.description,
     tags: [...route.openapi.tags],

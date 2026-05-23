@@ -8,6 +8,12 @@
  *   - Server-to-server clients can still pass `refreshToken` in the body
  *     (kept for compatibility with non-browser callers).
  *
+ * V2 D42: mobile clients send `Accept-Mode: tokens` (see `readAcceptMode`)
+ * so the login / verify-2fa handlers suppress the Set-Cookie write via
+ * `noopCookieWriter()` while still recording the session (device list +
+ * `SessionCreatedEvent` fire either way). The token pair travels in the
+ * response body instead.
+ *
  * Pipeline glue:
  *   - Cookie writes are staged via `ctxCookieWriter(ctx)` (which writes
  *     into `ctx.state.__cookieJar`); the synthesizer flushes the jar
@@ -25,7 +31,12 @@ import { Permission } from '@/shared-kernel/authorization';
 import { UnauthorizedException } from '@/shared-kernel/exceptions';
 import type { Route } from '@/shared-kernel/http/route.types';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
-import { ctxCookieReader, ctxCookieWriter } from './application/services/ctx-cookie-bridge';
+import { readAcceptMode } from './application/services/accept-mode';
+import {
+  ctxCookieReader,
+  ctxCookieWriter,
+  noopCookieWriter,
+} from './application/services/ctx-cookie-bridge';
 import { LoginSchema, LoginVerify2faSchema } from './application/use-cases/login/login.schema';
 import {
   ListSessionsResponseSchema,
@@ -36,6 +47,8 @@ import {
   RefreshTokenSchema,
   RevokeSessionParams,
   SessionResponseSchema,
+  SessionTokensRequestSchema,
+  SessionTokensResponseSchema,
   Verify2faResponseSchema,
 } from './authentication.routes.schemas';
 
@@ -112,6 +125,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'login' },
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof LoginSchema>;
+      const acceptMode = readAcceptMode(ctx);
       const result = await bc.login.execute({
         email: dto.email,
         password: dto.password,
@@ -124,13 +138,32 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         return { userId: result.userId, twoFactorRequired: true as const };
       }
 
+      // V2 D42: mobile clients send `Accept-Mode: tokens` so we
+      // suppress the Set-Cookie write but still record the session
+      // (device list / SessionCreatedEvent fire either way).
       await bc.createSession.execute({
         userId: result.userId,
         email: dto.email,
-        cookieWriter: ctxCookieWriter(ctx),
+        cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       });
+
+      // V2 D42: when the cookie was suppressed, the mobile client has
+      // no way to authenticate the next request — issue a one-shot
+      // exchange id it can immediately swap for a token pair via
+      // `POST /v1/auth/session/tokens`. Cookie clients skip this.
+      if (acceptMode === 'tokens') {
+        const exchange = await bc.createSessionExchange.execute({
+          userId: result.userId,
+          email: dto.email,
+        });
+        return {
+          userId: result.userId,
+          twoFactorRequired: false as const,
+          sessionExchangeId: exchange.sessionExchangeId,
+        };
+      }
 
       return { userId: result.userId, twoFactorRequired: false as const };
     },
@@ -157,6 +190,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'verify2fa' },
     handler: async (ctx, bc) => {
       const dto = ctx.body as z.infer<typeof LoginVerify2faSchema>;
+      const acceptMode = readAcceptMode(ctx);
       const result = await bc.login.completeWithTwoFactor({
         userId: dto.userId,
         code: dto.code,
@@ -164,15 +198,65 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         userAgent: ctx.userAgent,
       });
 
+      // V2 D42: same Accept-Mode plumbing as POST /auth/login.
       await bc.createSession.execute({
         userId: result.userId,
         email: result.email ?? '',
-        cookieWriter: ctxCookieWriter(ctx),
+        cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       });
 
+      // V2 D42: emit the one-shot exchange id for native clients so
+      // they can swap it for a token pair on the next call.
+      if (acceptMode === 'tokens') {
+        const exchange = await bc.createSessionExchange.execute({
+          userId: result.userId,
+          email: result.email ?? '',
+        });
+        return {
+          userId: result.userId,
+          sessionExchangeId: exchange.sessionExchangeId,
+        };
+      }
+
       return { userId: result.userId };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/auth/session/tokens',
+    auth: { kind: 'public' },
+    body: SessionTokensRequestSchema,
+    statusCode: 200,
+    response: SessionTokensResponseSchema,
+    guards: [
+      // The exchange id itself is opaque + one-shot, but cap per-IP
+      // to keep brute-force scanning (and downstream JWT signing
+      // churn) inexpensive at the edge.
+      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'ip' } },
+    ],
+    openapi: {
+      summary: 'Exchange a one-shot sessionExchangeId for a token pair (mobile)',
+      tags: ['auth'],
+      description:
+        'V2 D42 — native clients that opted out of cookies via `Accept-Mode: tokens` ' +
+        'receive a one-shot `sessionExchangeId` in the login / verify-2fa response. ' +
+        'This endpoint swaps that id for a real access/refresh token pair. The id is ' +
+        'single-use (the second call returns 401) and expires 60 seconds after issuance.',
+    },
+    sdk: { exported: true, name: 'exchangeSessionForTokens' },
+    handler: async (ctx, bc) => {
+      const dto = ctx.body as z.infer<typeof SessionTokensRequestSchema>;
+      const result = await bc.exchangeSessionForTokens.execute({
+        sessionExchangeId: dto.sessionExchangeId,
+      });
+      return {
+        userId: result.userId,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
+      };
     },
   },
   {

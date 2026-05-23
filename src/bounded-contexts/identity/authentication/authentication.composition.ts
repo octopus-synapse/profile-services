@@ -25,7 +25,9 @@ import type { Validate2faInboundPort } from '../two-factor-auth/application/port
 import { registerAuthenticationHandlers } from './application/handlers/register-handlers';
 import { AuthenticationHttpBundle } from './application/ports/authentication-http.bundle';
 import {
+  CreateSessionExchangeUseCase,
   CreateSessionUseCase,
+  ExchangeSessionForTokensUseCase,
   LoginUseCase,
   LogoutUseCase,
   RefreshTokenUseCase,
@@ -35,6 +37,7 @@ import {
 import { authenticationRoutes } from './authentication.routes';
 import {
   BcryptPasswordHasher,
+  CacheSessionExchangeAdapter,
   CookieSessionStorage,
   JwtTokenGenerator,
   PrismaAuthenticationRepository,
@@ -52,6 +55,9 @@ export interface AuthenticationUseCases {
   readonly createSession: CreateSessionUseCase;
   readonly validateSession: ValidateSessionUseCase;
   readonly terminateSession: TerminateSessionUseCase;
+  /** V2 D42 — mobile token-exchange flow. */
+  readonly createSessionExchange: CreateSessionExchangeUseCase;
+  readonly exchangeSessionForTokens: ExchangeSessionForTokensUseCase;
   readonly tokenGenerator: JwtTokenGenerator;
   readonly authRepository: PrismaAuthenticationRepository;
   readonly sessionStorage: CookieSessionStorage;
@@ -79,6 +85,7 @@ export function buildAuthenticationUseCases(
   const sessionStorage = new CookieSessionStorage(config);
   const loginAttempts = new PrismaLoginAttemptsAdapter(prisma, config);
   const sessionDevices = new SessionDeviceService(prisma);
+  const sessionExchange = new CacheSessionExchangeAdapter(cache);
 
   // Use cases
   const login = new LoginUseCase(
@@ -113,6 +120,13 @@ export function buildAuthenticationUseCases(
     eventBus,
     logger,
   );
+  const createSessionExchange = new CreateSessionExchangeUseCase(sessionExchange, logger);
+  const exchangeSessionForTokens = new ExchangeSessionForTokensUseCase(
+    sessionExchange,
+    tokenGenerator,
+    authRepository,
+    logger,
+  );
 
   // Register cross-BC event handlers (idempotent at module init).
   registerAuthenticationHandlers({
@@ -130,6 +144,8 @@ export function buildAuthenticationUseCases(
     terminateSession,
     refreshToken,
     sessionDevices,
+    createSessionExchange,
+    exchangeSessionForTokens,
   };
 
   return {
@@ -140,6 +156,8 @@ export function buildAuthenticationUseCases(
     createSession,
     validateSession,
     terminateSession,
+    createSessionExchange,
+    exchangeSessionForTokens,
     tokenGenerator,
     authRepository,
     sessionStorage,

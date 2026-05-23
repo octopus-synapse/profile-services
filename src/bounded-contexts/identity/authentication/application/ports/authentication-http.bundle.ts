@@ -12,6 +12,8 @@
  * The wiring lives in `authentication.module.ts` (`useFactory`).
  */
 
+import type { CreateSessionExchangeUseCase } from '../use-cases/create-session-exchange';
+import type { ExchangeSessionForTokensUseCase } from '../use-cases/exchange-session-for-tokens';
 import type { CreateSessionPort } from './create-session.port';
 import type { LoginPort } from './login.port';
 import type { LogoutPort } from './logout.port';
@@ -28,4 +30,8 @@ export abstract class AuthenticationHttpBundle {
   abstract readonly terminateSession: TerminateSessionPort;
   abstract readonly refreshToken: RefreshTokenPort;
   abstract readonly sessionDevices: SessionDevicePort;
+  /** V2 D42 — native mobile clients use these to swap the cookie-free
+   *  login response for a real access/refresh pair. */
+  abstract readonly createSessionExchange: CreateSessionExchangeUseCase;
+  abstract readonly exchangeSessionForTokens: ExchangeSessionForTokensUseCase;
 }

@@ -976,6 +976,10 @@ export const ERROR_DICTIONARY = {
     en: 'A section type with this slug and version already exists',
     'pt-BR': 'Já existe um tipo de seção com este slug e versão',
   },
+  SESSION_EXCHANGE_INVALID: {
+    en: 'Session exchange invalid or expired',
+    'pt-BR': 'Sessão de troca inválida ou expirada',
+  },
   SESSION_EXPIRED: {
     en: 'Session has expired. Log in again.',
     'pt-BR': 'Sessão expirada. Faça login novamente.',

@@ -1,3 +1,4 @@
+// lint-allow-file-size: existing offender before V2; rebase onto #231 added well-known route registration + CORS allowlist merge. Sub-module extraction (separate composition fns per BC group) tracked for follow-up refactor PR.
 /**
  * Production Elysia bootstrap (Phase 2 cutover). Boots all migrated
  * BCs on Elysia + Bun, end-to-end framework-free pipeline:
@@ -113,6 +114,7 @@ import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-run
 import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
 import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/webhooks.composition';
+import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-known/well-known.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
 import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
 import { buildRecruitingComposition } from '@/bounded-contexts/recruiting/recruiting.composition';
@@ -1082,6 +1084,12 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // staging boots fail-fast if no allowlist is configured.
   const app = new Elysia();
   const isProduction = config.env.NODE_ENV === 'production';
+  // V2 D43: `buildCorsAllowlist` now auto-includes the Expo dev
+  // origins (localhost:8081/19000/19006 + `https://*.expo.dev`) in
+  // non-production so the RN/Expo app can hit the API without
+  // operator-side env tweaks. Production stays operator-controlled
+  // (CORS_ORIGIN only). `enableCors` compiles wildcard strings to
+  // RegExp internally before handing the list to `@elysiajs/cors`.
   const allowlist = buildCorsAllowlist(config);
   enableCors(app, { origin: allowlist, isProduction });
   applySecurityHeaders(app);
@@ -1224,6 +1232,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // Health endpoint to prove the server is up.
   // `/api/health[/live|/ready]` are mounted via the health BC's Route descriptors above.
+
+  // V2 D75: Mobile Universal Links / App Links discovery files.
+  // Mounted at the **root** path (no `/api` prefix) because Apple's
+  // and Google's crawlers expect them at `https://<host>/.well-known/…`.
+  const wellKnown = buildWellKnownComposition(config, logger);
+  mountRoutes(
+    app,
+    { bundle: wellKnown.useCases, routes: wellKnown.routes },
+    { prefix: '', pipeline },
+  );
 
   // --- Run lifecycles.init in order ---
   for (const l of lifecycles) await l.init?.();

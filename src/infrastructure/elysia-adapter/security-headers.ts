@@ -7,6 +7,19 @@
  * unconfigured origins to avoid the OWASP A05:2021 misconfiguration
  * trap.
  *
+ * V2 D43 (mobile): the allowlist accepts wildcard patterns
+ * (`https://*.expo.dev`, `exp://*`). Strings containing `*` are
+ * compiled to RegExp **internally** before being handed to
+ * `@elysiajs/cors`, so the public `CorsOptions.origin` type stays the
+ * P1 #11 strict `string | string[]` form — callers can't smuggle in a
+ * raw `RegExp` (and a future refactor can't silently re-enable origin
+ * reflection while `credentials: true` is set). Native deep-link
+ * schemes (`patchcareers://`) don't trigger CORS at all (no Origin
+ * header on native fetch) — they're only listed in the redirect-uri
+ * allowlist. The `Accept-Mode` request header is now in the
+ * allowed-headers list so mobile clients can opt into the token-body
+ * login flow without preflight rejection.
+ *
  * `applySecurityHeaders`: helmet-equivalent — sets the headers
  * helmet's defaults emit so the codebase passes the OWASP A05/A06
  * static-analysis checks even though we don't ship the `helmet`
@@ -21,28 +34,68 @@ export interface CorsOptions {
   /** Explicit origin allowlist. P1 #11 — booleans (which echo back
    *  the caller's `Origin`) are intentionally rejected at the type
    *  level so a future refactor can't silently re-enable origin
-   *  reflection while `credentials: true` is set. */
+   *  reflection while `credentials: true` is set. Strings may contain
+   *  `*` wildcards (e.g. `https://*.expo.dev`) which are compiled to
+   *  RegExp by `compileWildcardOrigins` before reaching the cors
+   *  plugin — wildcards stay an internal implementation detail. */
   origin: string | string[];
   isProduction?: boolean;
+}
+
+/** Allowed request headers — kept as a named const so specs can import
+ *  and assert membership without re-stating the list. */
+export const ALLOWED_REQUEST_HEADERS = [
+  'Content-Type',
+  'Authorization',
+  'X-Request-Id',
+  // V2 D42: mobile flag to receive tokens in body instead of cookie.
+  'Accept-Mode',
+  // Locale negotiation (existing browser flow already includes it by
+  // default, but explicit listing avoids stricter clients tripping
+  // preflight when they advertise an Accept-Language other than the
+  // browser default).
+  'Accept-Language',
+];
+
+/**
+ * Compile each entry in `origins`:
+ *  - Plain string (no `*`) → passes through unchanged.
+ *  - Wildcard string (contains `*`) → RegExp anchored end-to-end,
+ *    case-insensitive. `*` matches one-or-more characters (including
+ *    `/`). The literal prefix the operator writes is what guards
+ *    against confusion attacks (`https://patchcareers.com.evil.com`).
+ *
+ * Internal helper — the public `CorsOptions.origin` type is
+ * `string | string[]` so callers never construct RegExps themselves.
+ */
+export function compileWildcardOrigins(origins: string[]): Array<string | RegExp> {
+  return origins.map((entry) => {
+    if (!entry.includes('*')) return entry;
+    const escaped = entry.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.+');
+    return new RegExp(`^${escaped}$`, 'i');
+  });
 }
 
 /**
  * Wires CORS onto the Elysia app. Throws on misconfigured wildcard in
  * production so deploys fail fast instead of leaking origins.
+ *
+ * A bare `*` string (matches everything) is still rejected in
+ * production — pattern-based wildcards (`https://*.expo.dev`) are
+ * allowed everywhere because they're bounded by the literal prefix.
  */
 export function enableCors(app: Elysia, options: CorsOptions): void {
-  if (
-    options.isProduction &&
-    (options.origin === '*' || (Array.isArray(options.origin) && options.origin.includes('*')))
-  ) {
+  const originList = Array.isArray(options.origin) ? options.origin : [options.origin];
+  if (options.isProduction && originList.some((o) => o === '*')) {
     throw new Error('CORS misconfiguration: wildcard origin is forbidden in production');
   }
+  const compiled = compileWildcardOrigins(originList);
   app.use(
     cors({
-      origin: options.origin,
+      origin: compiled,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+      allowedHeaders: ALLOWED_REQUEST_HEADERS,
       maxAge: 600,
     }),
   );
