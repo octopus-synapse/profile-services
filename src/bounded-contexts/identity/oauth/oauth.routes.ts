@@ -5,11 +5,16 @@
  * provider's authorize URL; `callback` exchanges the code for a profile,
  * upserts the user, and redirects to the UI. Both are `kind: 'redirect'`
  * so the SDK skips them and the swagger generator emits 302 responses.
+ *
+ * V2 D41: `start` and `callback` accept an optional `redirect_uri`
+ * query param validated against `bundle.redirectUriAllowlist` (see
+ * `./oauth.routes.schemas.ts` for the validator + handlers).
  */
 
 import type { Route } from '@/shared-kernel/http/route.types';
 import type { OAuthHttpBundle } from './application/ports/oauth-http.bundle';
 import {
+  CallbackQuerySchema,
   handleCallback,
   handleStart,
   OAuthAvailabilityResponseSchema,
@@ -17,7 +22,12 @@ import {
   PROVIDER_CATALOG,
   Provider,
   ProviderParam,
+  StartQuerySchema,
+  validateRedirectUriFromQuery,
 } from './oauth.routes.schemas';
+
+// Re-export for tests that target the route module directly.
+export { validateRedirectUriFromQuery };
 
 export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
   {
@@ -26,10 +36,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
+    query: StartQuerySchema,
     openapi: {
       summary: 'Start GitHub OAuth sign-in.',
       tags: ['auth-oauth'],
-      description: 'OAuth login endpoints',
+      description:
+        'OAuth login endpoint. Optional `redirect_uri` query param enables the mobile deep-link flow when present in OAUTH_REDIRECT_URI_ALLOWLIST.',
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => handleStart(ctx, bundle, 'github'),
@@ -40,10 +52,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
+    query: CallbackQuerySchema,
     openapi: {
       summary: 'GitHub OAuth callback.',
       tags: ['auth-oauth'],
-      description: 'OAuth login endpoints',
+      description:
+        'OAuth login endpoints. When `redirect_uri` was supplied at start and validates against the allowlist, redirects there instead of UI_BASE_URL.',
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => handleCallback(ctx, bundle, 'github'),
@@ -54,10 +68,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
+    query: StartQuerySchema,
     openapi: {
       summary: 'Start LinkedIn OAuth sign-in.',
       tags: ['auth-oauth'],
-      description: 'OAuth login endpoints',
+      description:
+        'OAuth login endpoint. Optional `redirect_uri` query param enables the mobile deep-link flow when present in OAUTH_REDIRECT_URI_ALLOWLIST.',
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => handleStart(ctx, bundle, 'linkedin'),
@@ -68,10 +84,12 @@ export const oauthRoutes: ReadonlyArray<Route<OAuthHttpBundle>> = [
     auth: { kind: 'public' },
     headers: { 'Cache-Control': 'no-store' },
     kind: 'redirect' as const,
+    query: CallbackQuerySchema,
     openapi: {
       summary: 'LinkedIn OAuth callback.',
       tags: ['auth-oauth'],
-      description: 'OAuth login endpoints',
+      description:
+        'OAuth login endpoints. When `redirect_uri` was supplied at start and validates against the allowlist, redirects there instead of UI_BASE_URL.',
     },
     sdk: { exported: false },
     handler: async (ctx, bundle) => handleCallback(ctx, bundle, 'linkedin'),

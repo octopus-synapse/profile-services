@@ -15,6 +15,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import type { OAuthPort } from '@/shared-kernel/auth/oauth.port';
+import { parseAllowlist } from '@/shared-kernel/auth/redirect-uri-allowlist';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { ConfigPort } from '@/shared-kernel/config';
 import { AesGcmCipher, type CipherPort, NoopCipher } from '@/shared-kernel/crypto';
@@ -57,7 +58,17 @@ export function buildOAuthUseCases(
   const availability = new CheckOAuthProviderAvailabilityUseCase(providerConfig);
   const getOAuthAccessToken = new GetOAuthAccessTokenUseCase(accounts);
 
-  const bundle: OAuthHttpBundle = { upsert, availability, config, oauth };
+  const redirectUriAllowlist = parseAllowlist(
+    config.getOrDefault<string>('OAUTH_REDIRECT_URI_ALLOWLIST', ''),
+  );
+
+  const bundle: OAuthHttpBundle = {
+    upsert,
+    availability,
+    config,
+    oauth,
+    redirectUriAllowlist,
+  };
 
   return { bundle, upsert, availability, getOAuthAccessToken };
 }

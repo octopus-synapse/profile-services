@@ -5,12 +5,25 @@
  * provider's authorize URL; `callback` exchanges the code for a profile,
  * upserts the user, and redirects to the UI. Both are `kind: 'redirect'`
  * so the SDK skips them and the swagger generator emits 302 responses.
+ *
+ * V2 D41: `start` and `callback` accept an optional `redirect_uri`
+ * query param. When supplied **and** validated against
+ * `bundle.redirectUriAllowlist`, the callback redirects to that URI
+ * with `provider`/`userId`/`created` (and email/githubLogin when
+ * available) so a native client can finish the flow over a deep link.
+ * When absent, the legacy `UI_BASE_URL`-rooted redirect runs unchanged.
+ *
+ * Token issuance on the dynamic-redirect path stays a TODO until the
+ * Elysia-side OAuth strategy plumbing lands. See the v2 plan PR for the
+ * follow-up that wires `TokenGeneratorPort` through the bundle so tokens
+ * can ride in the deep-link query string.
  */
 
 import { randomBytes } from 'node:crypto';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { signState, verifyState } from '@/shared-kernel/auth';
+import { isRedirectUriAllowed } from '@/shared-kernel/auth/redirect-uri-allowlist';
 import type { HttpCtx } from '@/shared-kernel/http/context';
 import { stageClearCookie, stageSetCookie } from '@/shared-kernel/http/cookie-jar';
 import { withRedirect } from '@/shared-kernel/http/route.types';
@@ -31,6 +44,22 @@ extendZodWithOpenApi(z);
 export const ProviderParam = z
   .object({ provider: z.enum(['github', 'linkedin']) })
   .openapi({ example: { provider: 'github' } });
+
+// ─── Query schemas (V2 D41) ──────────────────────────────────────────
+export const StartQuerySchema = z
+  .object({
+    redirect_uri: z.string().min(1).optional(),
+    state: z.string().min(1).optional(),
+  })
+  .passthrough();
+
+export const CallbackQuerySchema = z
+  .object({
+    redirect_uri: z.string().min(1).optional(),
+    state: z.string().min(1).optional(),
+    code: z.string().optional(),
+  })
+  .passthrough();
 
 // ─── Response schemas ────────────────────────────────────────────────
 export const OAuthAvailabilityResponseSchema = z.object({ available: z.boolean() });
@@ -66,10 +95,49 @@ export function callbackUri(bundle: OAuthHttpBundle, provider: Provider): string
   return `${base}/api/v1/auth/oauth/${provider}/callback`;
 }
 
+/**
+ * V2 D41: Reads the `redirect_uri` from query string and validates it
+ * against the configured allowlist. Returns:
+ *  - `{ ok: true, uri }` when present + allowed
+ *  - `{ ok: true, uri: null }` when absent (fall back to legacy flow)
+ *  - `{ ok: false, reason }` when present + rejected
+ */
+export function validateRedirectUriFromQuery(
+  query: Record<string, unknown>,
+  allowlist: readonly string[],
+): { ok: true; uri: string | null } | { ok: false; reason: string } {
+  const raw = query.redirect_uri;
+  if (raw === undefined || raw === null || raw === '') {
+    return { ok: true, uri: null };
+  }
+  if (typeof raw !== 'string') {
+    return { ok: false, reason: 'redirect_uri must be a string' };
+  }
+  if (allowlist.length === 0) {
+    return { ok: false, reason: 'redirect_uri rejected: allowlist is empty' };
+  }
+  if (!isRedirectUriAllowed(raw, allowlist)) {
+    return { ok: false, reason: 'redirect_uri rejected: not in allowlist' };
+  }
+  return { ok: true, uri: raw };
+}
+
 export function handleStart(ctx: HttpCtx, bundle: OAuthHttpBundle, provider: Provider) {
   if (!bundle.availability.execute(provider).available) {
     throw new Error(`${provider} OAuth is not configured`);
   }
+
+  // V2 D41: validate any client-supplied `redirect_uri` up-front so a
+  // misconfigured client gets a clear 400 instead of a silent fallthrough
+  // to the cookie-based web flow on callback.
+  const queryAsObj = ctx.query as Record<string, unknown>;
+  const validation = validateRedirectUriFromQuery(queryAsObj, bundle.redirectUriAllowlist);
+  if (!validation.ok) {
+    const err = new Error(validation.reason) as Error & { statusCode?: number };
+    err.statusCode = 400;
+    throw err;
+  }
+
   const state = randomBytes(16).toString('hex');
 
   // Persist the state via a signed, short-lived, httpOnly cookie. The IdP
@@ -140,7 +208,21 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
 
   const { userId, created } = await bundle.upsert.execute(profile);
 
-  const base = bundle.config.get<string>('UI_BASE_URL') ?? '';
+  // V2 D41: resolve the redirect target — dynamic mode (mobile deep link)
+  // when `redirect_uri` was supplied + validated, otherwise the legacy
+  // `UI_BASE_URL`-rooted `/auth/oauth-complete` redirect.
+  const queryAsObj = ctx.query as Record<string, unknown>;
+  const validation = validateRedirectUriFromQuery(queryAsObj, bundle.redirectUriAllowlist);
+  if (!validation.ok) {
+    // Surface as a 400 — the start endpoint also validates, so reaching
+    // here means the client tampered with the query mid-flow.
+    const err = new Error(validation.reason) as Error & { statusCode?: number };
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const base =
+    validation.uri ?? `${bundle.config.get<string>('UI_BASE_URL') ?? ''}/auth/oauth-complete`;
   const params = new URLSearchParams({
     provider,
     userId,
@@ -151,5 +233,11 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
   if (provider === 'github' && typeof externalLogin === 'string') {
     params.set('githubLogin', externalLogin);
   }
-  return withRedirect(`${base}/auth/oauth-complete?${params.toString()}`);
+  // TODO(v2-mobile): once the Elysia OAuth strategy is fully wired,
+  // generate a token pair here (via a `TokenGeneratorPort` added to the
+  // bundle) and append `accessToken`/`refreshToken`/`expiresIn` to the
+  // deep-link query so the native client can hydrate session state
+  // without a follow-up POST.
+  const separator = base.includes('?') ? '&' : '?';
+  return withRedirect(`${base}${separator}${params.toString()}`);
 }
