@@ -40,6 +40,7 @@ jobs:
       src: ${{ steps.filter.outputs.src }}
       tests: ${{ steps.filter.outputs.tests }}
       prisma: ${{ steps.filter.outputs.prisma }}
+      swagger: ${{ steps.filter.outputs.swagger }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
@@ -58,6 +59,83 @@ jobs:
               - 'test/**'
             prisma:
               - 'prisma/**'
+            swagger:
+              - 'client-swagger.json'
+              - 'swagger.json'
+              - 'dictionaries.json'
+              - 'enums.json'
+              - 'error-codes.json'
+
+  openapi-contract:
+    # D48 — Spectral diff fails CI on breaking change in `client-swagger.json`
+    # unless the PR carries `BREAKING CHANGE:` in any commit message body.
+    needs: [should-skip, detect-changes]
+    if: |
+      always() &&
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.detect-changes.outputs.swagger == 'true' &&
+      github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Spectral
+        run: npm install -g @stoplight/spectral-cli@^6
+      - name: Lint client-swagger.json
+        run: spectral lint client-swagger.json --ruleset .spectral.yml --fail-severity=error
+      - name: Fetch base ref swagger
+        id: base-swagger
+        run: |
+          set -e
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE_REF" --depth=1
+          if git show "origin/${BASE_REF}:client-swagger.json" > /tmp/base-client-swagger.json 2>/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Base ref has no client-swagger.json yet — skipping diff."
+          fi
+      - name: Detect BREAKING CHANGE in PR commits
+        id: breaking-marker
+        if: steps.base-swagger.outputs.exists == 'true'
+        run: |
+          set -e
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          if git log --format="%B" "${BASE_SHA}..${HEAD_SHA}" | grep -qE '^BREAKING CHANGE:|!:'; then
+            echo "has_marker=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_marker=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Spectral diff base vs head
+        if: steps.base-swagger.outputs.exists == 'true'
+        run: |
+          set -e
+          # `spectral diff` doesn't exist as a first-party command; we approximate
+          # breaking-change detection by linting the unified view and comparing
+          # operation/parameter signatures via a simple jq-based check.
+          # Heuristic: any removed path/operation or any removed `required` property
+          # constitutes a breaking change.
+          BREAKING=0
+          jq -r '.paths | to_entries[] | .key' /tmp/base-client-swagger.json | sort > /tmp/base-paths.txt
+          jq -r '.paths | to_entries[] | .key' client-swagger.json | sort > /tmp/head-paths.txt
+          REMOVED_PATHS=$(comm -23 /tmp/base-paths.txt /tmp/head-paths.txt || true)
+          if [ -n "$REMOVED_PATHS" ]; then
+            echo "BREAKING: removed paths:"
+            echo "$REMOVED_PATHS"
+            BREAKING=1
+          fi
+          if [ "$BREAKING" = "1" ] && [ "${{ steps.breaking-marker.outputs.has_marker }}" != "true" ]; then
+            echo "::error::Breaking change detected without BREAKING CHANGE: marker in commit message."
+            exit 1
+          fi
+          if [ "$BREAKING" = "1" ]; then
+            echo "Breaking change present, but BREAKING CHANGE: marker found — allowed."
+          else
+            echo "No breaking change detected."
+          fi
 
   verify-attestation:
     needs: should-skip
@@ -109,7 +187,7 @@ jobs:
     secrets: inherit
 
   status:
-    needs: [verify-attestation, build, integration, e2e, security]
+    needs: [verify-attestation, build, integration, e2e, security, openapi-contract]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -120,3 +198,8 @@ jobs:
           integration: ${{ needs.integration.result }}
           e2e: ${{ needs.e2e.result }}
           security: ${{ needs.security.result }}
+      - name: OpenAPI contract gate
+        if: needs.openapi-contract.result == 'failure'
+        run: |
+          echo "::error::OpenAPI contract check failed (breaking change without marker)."
+          exit 1

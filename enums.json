@@ -1,0 +1,280 @@
+{
+  "ActivityType": [
+    "ACHIEVEMENT_EARNED",
+    "CONNECTED_USER",
+    "FOLLOWED_USER",
+    "PROFILE_UPDATED",
+    "RESUME_CREATED",
+    "RESUME_PUBLISHED",
+    "RESUME_SHARED",
+    "RESUME_UPDATED",
+    "SKILL_ADDED",
+    "THEME_PUBLISHED"
+  ],
+  "AnalyticsEvent": [
+    "DOWNLOAD",
+    "VIEW"
+  ],
+  "ApplyMode": [
+    "AUTO_APPLY",
+    "ONE_CLICK",
+    "WEEKLY_CURATED"
+  ],
+  "AttestationWitnessStatus": [
+    "FAILED",
+    "PENDING",
+    "RUNNING",
+    "SUCCEEDED"
+  ],
+  "AuditAction": [
+    "ACCESS_MODIFIER_APPLIED",
+    "ACCESS_MODIFIER_REVOKED",
+    "ACCOUNT_DELETED",
+    "CONNECTION_REQUESTED",
+    "DATA_EXPORT_DOWNLOADED",
+    "DATA_EXPORT_REQUESTED",
+    "EMAIL_CHANGED",
+    "EXPORT_COMPLETED",
+    "EXPORT_FAILED",
+    "EXPORT_REQUESTED",
+    "FEATURE_FLAG_TOGGLED",
+    "LOGIN_FAILED",
+    "ONBOARDING_COMPLETED",
+    "PASSWORD_CHANGED",
+    "PREFERENCES_UPDATED",
+    "PRIVACY_POLICY_ACCEPTED",
+    "PROFILE_UPDATED",
+    "RESUME_CREATED",
+    "RESUME_DELETED",
+    "RESUME_UPDATED",
+    "RESUME_VERSION_CREATED",
+    "RESUME_VERSION_RESTORED",
+    "RESUME_VISIBILITY_CHANGED",
+    "ROLE_CHANGED",
+    "SESSION_CREATED",
+    "SESSION_TERMINATED",
+    "SHARE_DOWNLOADED",
+    "TOKEN_REFRESHED",
+    "TOS_ACCEPTED",
+    "TWO_FACTOR_DISABLED",
+    "TWO_FACTOR_ENABLED",
+    "UNAUTHORIZED_ACCESS_ATTEMPT",
+    "USERNAME_CHANGED",
+    "USER_FOLLOWED",
+    "USER_LOGGED_IN",
+    "USER_LOGGED_OUT",
+    "USER_LOGIN",
+    "USER_LOGOUT"
+  ],
+  "BadgeKind": [
+    "ATS_90_PLUS",
+    "CONTRIBUTOR",
+    "EVENT_SPEAKER",
+    "FIRST_BUILD",
+    "INTERVIEWS_5",
+    "MENTORED_10"
+  ],
+  "CollaboratorRole": [
+    "ADMIN",
+    "EDITOR",
+    "VIEWER"
+  ],
+  "ConnectionStatus": [
+    "ACCEPTED",
+    "PENDING",
+    "REJECTED"
+  ],
+  "ConsentDocumentType": [
+    "MARKETING_CONSENT",
+    "PRIVACY_POLICY",
+    "TERMS_OF_SERVICE"
+  ],
+  "DigestFrequency": [
+    "DAILY",
+    "MONTHLY",
+    "NEVER",
+    "WEEKLY"
+  ],
+  "EmailDeliveryMode": [
+    "DAILY",
+    "INSTANT",
+    "OFF",
+    "WEEKLY"
+  ],
+  "EmailStatus": [
+    "BOUNCED",
+    "FAILED",
+    "PENDING",
+    "SENT"
+  ],
+  "EnglishLevel": [
+    "ADVANCED",
+    "BASIC",
+    "FLUENT",
+    "INTERMEDIATE"
+  ],
+  "FitDimension": [
+    "BIG_FIVE_AGREEABLENESS",
+    "BIG_FIVE_CONSCIENTIOUSNESS",
+    "BIG_FIVE_EXTRAVERSION",
+    "BIG_FIVE_NEUROTICISM",
+    "BIG_FIVE_OPENNESS",
+    "SCHWARTZ_ACHIEVEMENT",
+    "SCHWARTZ_BENEVOLENCE",
+    "SCHWARTZ_CONFORMITY",
+    "SCHWARTZ_HEDONISM",
+    "SCHWARTZ_POWER",
+    "SCHWARTZ_SECURITY",
+    "SCHWARTZ_SELF_DIRECTION",
+    "SCHWARTZ_STIMULATION",
+    "SCHWARTZ_TRADITION",
+    "SCHWARTZ_UNIVERSALISM",
+    "SDT_AUTONOMY",
+    "SDT_COMPETENCE",
+    "SDT_RELATEDNESS"
+  ],
+  "ImportSource": [
+    "DOCX",
+    "GITHUB",
+    "JSON",
+    "LINKEDIN",
+    "PDF"
+  ],
+  "ImportStatus": [
+    "COMPLETED",
+    "FAILED",
+    "IMPORTING",
+    "MAPPING",
+    "PARTIAL",
+    "PENDING",
+    "PROCESSING",
+    "VALIDATING"
+  ],
+  "JobApplicationEventType": [
+    "FOLLOW_UP_SENT",
+    "INTERVIEW_COMPLETED",
+    "INTERVIEW_SCHEDULED",
+    "OFFER_RECEIVED",
+    "REJECTED",
+    "SUBMITTED",
+    "VIEWED",
+    "WITHDRAWN"
+  ],
+  "JobApplicationStatus": [
+    "ACCEPTED",
+    "REJECTED",
+    "SUBMITTED",
+    "VIEWED",
+    "WITHDRAWN"
+  ],
+  "JobType": [
+    "CONTRACT",
+    "FREELANCE",
+    "FULL_TIME",
+    "INTERNSHIP",
+    "PART_TIME",
+    "VOLUNTEER"
+  ],
+  "LayoutKind": [
+    "DOUBLE_COLUMN",
+    "SINGLE_COLUMN"
+  ],
+  "MecSyncStatus": [
+    "FAILED",
+    "PARTIAL",
+    "RUNNING",
+    "SUCCESS"
+  ],
+  "ModifierEffect": [
+    "DENY",
+    "GRANT"
+  ],
+  "ModifierType": [
+    "GRANT_PERMISSION",
+    "SUSPEND_EMAIL_VERIFIED",
+    "SUSPEND_ONBOARDING",
+    "SUSPEND_ROLE_ADMIN",
+    "SUSPEND_ROLE_USER"
+  ],
+  "NotificationType": [
+    "APPLICATION_STALE",
+    "COMMENT_REPLIED",
+    "CONNECTION_ACCEPTED",
+    "CONNECTION_RECOMMENDATION",
+    "CONNECTION_REQUEST",
+    "FIT_PROFILE_EXPIRED",
+    "FIT_PROFILE_EXPIRY_REMINDER",
+    "FOLLOW_NEW",
+    "MATCH_RECOMMENDATIONS_READY",
+    "POST_BOOKMARKED",
+    "POST_COMMENTED",
+    "POST_LIKED",
+    "POST_REPOSTED",
+    "RESUME_QUALITY_IMPROVED",
+    "RESUME_QUALITY_REGRESSED",
+    "SKILL_DECAY"
+  ],
+  "PaymentCurrency": [
+    "BRL",
+    "EUR",
+    "GBP",
+    "USD"
+  ],
+  "RemotePolicy": [
+    "HYBRID",
+    "ONSITE",
+    "REMOTE"
+  ],
+  "ReportStatus": [
+    "DISMISSED",
+    "PENDING",
+    "REVIEWED"
+  ],
+  "SkillProficiency": [
+    "ADVANCED",
+    "BEGINNER",
+    "EXPERT",
+    "INTERMEDIATE"
+  ],
+  "SkillType": [
+    "CERTIFICATION",
+    "DATABASE",
+    "FRAMEWORK",
+    "LANGUAGE",
+    "LIBRARY",
+    "METHODOLOGY",
+    "OTHER",
+    "PLATFORM",
+    "SOFT_SKILL",
+    "TOOL"
+  ],
+  "SuccessStoryStatus": [
+    "ARCHIVED",
+    "DRAFT",
+    "PENDING_REVIEW",
+    "PUBLISHED"
+  ],
+  "TechAreaType": [
+    "DATA",
+    "DESIGN",
+    "DEVELOPMENT",
+    "DEVOPS",
+    "INFRASTRUCTURE",
+    "OTHER",
+    "PRODUCT",
+    "QA",
+    "SECURITY"
+  ],
+  "WeeklyCuratedBatchStatus": [
+    "COMPLETED",
+    "FAILED",
+    "PENDING",
+    "SENT"
+  ],
+  "WeeklyCuratedItemStatus": [
+    "APPROVED",
+    "EXPIRED",
+    "PENDING_APPROVAL",
+    "REJECTED"
+  ]
+}
