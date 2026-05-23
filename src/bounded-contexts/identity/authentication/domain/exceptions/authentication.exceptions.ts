@@ -144,3 +144,22 @@ export class SessionNotFoundException extends UnauthorizedException {
     super('Session not found');
   }
 }
+
+/**
+ * Session exchange invalid / expired (V2 D42 mobile flow).
+ *
+ * Thrown when a native client calls `POST /v1/auth/session/tokens`
+ * with a `sessionExchangeId` that either never existed, was already
+ * consumed (the exchange is one-shot — first call wins), or whose
+ * 60-second TTL elapsed before the client could swap it for a token
+ * pair. Distinct from `InvalidRefreshTokenException` so the i18n
+ * catalog can phrase the cause precisely and the mobile client can
+ * route the user back to the login form instead of silently retrying
+ * the refresh endpoint.
+ */
+export class SessionExchangeInvalidException extends UnauthorizedException {
+  override readonly code: string = 'SESSION_EXCHANGE_INVALID';
+  constructor() {
+    super('Session exchange invalid or expired');
+  }
+}
