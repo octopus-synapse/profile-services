@@ -9,6 +9,13 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { EXAMPLE_USERNAME } from '@/shared-kernel/schemas/params/example-values.const';
 import { RESERVED_USERNAMES } from '../value-objects/reserved-usernames.const';
+import {
+  USERNAME_ENDS_OK_RE,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_PATTERN_RE,
+  USERNAME_STARTS_OK_RE,
+} from '../value-objects/username-rules.const';
 
 extendZodWithOpenApi(z);
 
@@ -20,8 +27,8 @@ export { RESERVED_USERNAMES };
 /**
  * Username Format Schema
  *
- * Rules:
- * - Length: 3-30 characters
+ * Rules (single source of truth: `username-rules.const.ts`):
+ * - Length: USERNAME_MIN_LENGTH..USERNAME_MAX_LENGTH characters
  * - Format: lowercase letters, numbers, underscores only
  * - No consecutive underscores
  * - Cannot start/end with underscore
@@ -31,11 +38,14 @@ export const UsernameSchema = z
   .string()
   .toLowerCase()
   .trim()
-  .min(3, 'Username must be at least 3 characters')
-  .max(30, 'Username cannot exceed 30 characters')
-  .regex(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores')
-  .regex(/^[a-z0-9]/, 'Username must start with a letter or number')
-  .regex(/[a-z0-9]$/, 'Username must end with a letter or number')
+  .min(USERNAME_MIN_LENGTH, `Username must be at least ${USERNAME_MIN_LENGTH} characters`)
+  .max(USERNAME_MAX_LENGTH, `Username cannot exceed ${USERNAME_MAX_LENGTH} characters`)
+  .regex(
+    USERNAME_PATTERN_RE,
+    'Username can only contain lowercase letters, numbers, and underscores',
+  )
+  .regex(USERNAME_STARTS_OK_RE, 'Username must start with a letter or number')
+  .regex(USERNAME_ENDS_OK_RE, 'Username must end with a letter or number')
   .regex(/^(?!.*__)/, 'Username cannot contain consecutive underscores')
   .refine((username) => !(RESERVED_USERNAMES as readonly string[]).includes(username), {
     message: 'This username is reserved',

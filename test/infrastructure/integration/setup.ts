@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
+import { waitForPendingHandlers } from '@/shared-kernel/event-bus/pending-handler-tracker';
 import {
   AuthHelper,
   freshInDbUser,
@@ -17,6 +18,8 @@ import {
   type TestApp,
   type TestRequest,
 } from '../shared';
+
+export { waitForPendingHandlers };
 
 // Load test env so DATABASE_URL / REDIS_HOST / JWT_SECRET land before
 // the bootstrap reads process.env.
@@ -156,19 +159,22 @@ export function authHeader(token?: string): { Authorization: string } {
   return { Authorization: `Bearer ${t}` };
 }
 
+/**
+ * @deprecated Q18 stripped the `{data: ...}` envelope from 2xx
+ * responses. This helper was guessing-mode (peel `data` if present,
+ * peel single-key objects, otherwise pass-through) — it papered over
+ * shape drift instead of catching it.
+ *
+ * New code reads `res.body` directly and asserts the shape via
+ * `expectResource(res, Schema)` from `./helpers/expect-resource`.
+ *
+ * Kept as a pass-through for existing call sites until they're
+ * migrated, so deleting the import doesn't cascade-break the suite.
+ * The body shape it returns now matches what the route actually
+ * emits — the guessing modes were removed.
+ */
 export function unwrapApiData<T>(body: unknown): T {
-  const envelope =
-    body && typeof body === 'object' && 'data' in body ? (body as { data?: unknown }).data : body;
-  if (
-    envelope &&
-    typeof envelope === 'object' &&
-    !Array.isArray(envelope) &&
-    Object.keys(envelope).length === 1
-  ) {
-    const [onlyKey] = Object.keys(envelope);
-    return (envelope as Record<string, unknown>)[onlyKey] as T;
-  }
-  return envelope as T;
+  return body as T;
 }
 
 // ─── DB helpers ───────────────────────────────────────────────────
@@ -249,17 +255,66 @@ export async function refreshSectionTypeCache(): Promise<void> {
   // until tests actually need it.
 }
 
-// Legacy hooks used by auth/2fa/password-reset suites. The legacy code
-// reached into the rate-limit and user-cache services directly; the
-// migrated bootstrap doesn't surface a global cache instance, but the
-// rate-limit buckets live in Redis and tests run against a flushed
-// instance, so these calls are safe no-ops.
-export async function clearRateLimitState(_key?: string): Promise<void> {
-  // intentionally no-op
+/**
+ * Clear rate-limit buckets in Redis. `key` is the prefix-specific
+ * fragment when callers want surgical resets (e.g. `'ip:127.0.0.1'`);
+ * omit to flush every `ratelimit:*` key.
+ *
+ * `.env.test` keeps `RATE_LIMIT_ENABLED=true` so the security specs
+ * remain meaningful, which means a long-running suite would otherwise
+ * exhaust the per-IP / per-user buckets after a few signups and the
+ * remaining tests all 429. Resetting between specs preserves the
+ * limit's correctness *within* a spec without leaking state across.
+ */
+export async function clearRateLimitState(key?: string): Promise<void> {
+  if (!cachedAppRef) return;
+  const pattern = key ? `ratelimit:${key}*` : 'ratelimit:*';
+  // `CacheCoreService.deletePattern` short-circuits when the adapter is
+  // disabled (no REDIS_HOST) — calling it on a unit-test setup is a
+  // free no-op. A genuine Redis error here (unreachable, auth) does
+  // throw, which is what we want: a loud failure beats every downstream
+  // test silently 429-ing in the background.
+  await cachedAppRef.cache.deletePattern(pattern);
 }
 
 export async function clearUserCacheState(_userId?: string): Promise<void> {
   // intentionally no-op
+}
+
+/**
+ * Shorthand for the IP-keyed rate-limit buckets the integration specs
+ * hit repeatedly. Drop in a top-level `beforeEach` for any spec that
+ * does multiple signups / logins / password-reset / email-verification
+ * requests per run.
+ *
+ * Routes covered (all IP-keyed; values from each route's
+ * `metadata.points / duration`):
+ *   - POST /v1/accounts               10 / 600s
+ *   - POST /v1/auth/login             30 /  60s
+ *   - POST /v1/auth/login/verify-2fa  30 /  60s
+ *   - POST /v1/auth/email-verification/verify  3 / 300s
+ *   - POST /v1/auth/password/reset     5 / 3600s  (the slow bucket
+ *     that caught password-reset specs even when no other auth
+ *     route was getting throttled)
+ *
+ * userId-keyed buckets (e.g. password change with currentPassword)
+ * stay live so specs exercising those throttles still get coverage.
+ */
+export async function clearAuthRateLimits(): Promise<void> {
+  await Promise.all([
+    clearRateLimitState('*:POST:/v1/accounts'),
+    clearRateLimitState('*:POST:/v1/auth/login'),
+    clearRateLimitState('*:POST:/v1/auth/login/verify-2fa'),
+    clearRateLimitState('*:POST:/v1/auth/email-verification/verify'),
+    clearRateLimitState('*:POST:/v1/auth/password/reset'),
+    // The actual route is `/v1/auth/reset-password` (singular) — the
+    // path lives in password-management.routes.ts. Both spellings live
+    // in the codebase historically; we clear both to be safe.
+    clearRateLimitState('*:POST:/v1/auth/reset-password'),
+    clearRateLimitState('*:POST:/v1/auth/forgot-password'),
+    // DELETE /v1/accounts re-auth gate: 3/60s per userId.
+    clearRateLimitState('*:DELETE:/v1/accounts'),
+  ]);
 }
 
 export function getCacheService(): {

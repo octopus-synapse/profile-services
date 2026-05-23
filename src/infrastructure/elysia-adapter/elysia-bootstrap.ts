@@ -143,8 +143,13 @@ import { buildSuccessStoriesComposition } from '@/bounded-contexts/success-stori
 import { buildTranslationComposition } from '@/bounded-contexts/translation/translation.composition';
 import { translationRoutes } from '@/bounded-contexts/translation/translation.routes';
 import { OwnershipRegistry } from '@/shared-kernel/authorization';
+import type { CachePort } from '@/shared-kernel/cache';
 import type { CacheInvalidationJob } from '@/shared-kernel/cache/cache-invalidation.queue';
 import { EventPublisher } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  enableTracking as enablePendingHandlerTracking,
+  track as trackPendingHandler,
+} from '@/shared-kernel/event-bus/pending-handler-tracker';
 import { SafeFetchAdapter, SafeFetchStrictAdapter } from '@/shared-kernel/http';
 import { buildCorsAllowlist } from '@/shared-kernel/http/cors-allowlist';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
@@ -177,6 +182,10 @@ export interface BootstrapHandle {
   readonly app: Elysia;
   /** PrismaClient already connected — reused by test harnesses. */
   readonly prisma: PrismaClient;
+  /** Cache adapter (Redis-backed in dev/e2e/prod, no-op in unit tests
+   * without REDIS_HOST). Exposed so test harnesses can reset the
+   * rate-limit buckets between specs without spinning their own client. */
+  readonly cache: CachePort;
   /** Stop the listener + drain lifecycles (reverse order). Idempotent. */
   stop(): Promise<void>;
 }
@@ -195,6 +204,27 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     process.exit(1);
   }
   const logger = new AppLoggerService();
+
+  // Belt-and-suspenders: capture any Promise rejection that escapes
+  // both the explicit `.catch` in `bindAuditListener` and the
+  // `Pending.track` instrumentation. In production this should be
+  // mute after the audit-race fix; if it fires, we want the structured
+  // log instead of Node's default stderr dump so the observability
+  // pipeline keeps it.
+  //
+  // Idempotent guard — bootstrap can run twice in dev/HMR; we don't
+  // want N copies of the listener fanning out the same error.
+  if (!(globalThis as { __unhandledRejectionWired?: boolean }).__unhandledRejectionWired) {
+    (globalThis as { __unhandledRejectionWired?: boolean }).__unhandledRejectionWired = true;
+    process.on('unhandledRejection', (reason) => {
+      logger.error('Unhandled promise rejection', {
+        context: 'Bootstrap',
+        stack: reason instanceof Error ? reason.stack : undefined,
+        reason: reason instanceof Error ? reason.message : String(reason),
+      });
+    });
+  }
+
   // P0-001: JWT_SECRET is validated up front by the ConfigPort schema
   // (min 32 chars, required). No fallback default — boot fails before
   // any adapter is constructed if the var is missing.
@@ -363,7 +393,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // --- Cross-cutting service factories (no routes; consumed by BCs) ---
   const { emailService } = buildEmailComposition(config, logger);
   const s3 = buildS3UploadService(config, logger);
-  const ai = buildAiComposition(config, logger);
+  const ai = buildAiComposition(config, logger, cache);
   await ai.init();
   logger.log('AI adapter initialized', 'ElysiaBootstrap');
 
@@ -743,11 +773,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const skillsCatalog = buildSkillsCatalogCompositions(prisma as never, cache as never, logger);
   const skillsCatalogAdmin = buildAdminCatalogUseCases(prisma as never, logger);
 
-  // Translation.
-  const translation = buildTranslationComposition(
-    config.getOrDefault<string>('LIBRETRANSLATE_URL', 'http://localhost:5000'),
-    logger,
-  ) as never;
+  // Translation — provider is the BC AI's TranslationLlmPort (OpenAI).
+  const translation = buildTranslationComposition(ai.bundle.translation, logger) as never;
 
   // MEC sync — public catalog routes (`/api/v1/mec/...`).
   const mecSync = buildMecSyncUseCases(prisma as never, cache as never, logger);
@@ -810,19 +837,83 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   );
 
   // P1-035: wire the four audit handlers (auth/export/social/version)
-  // against their respective DomainEvents. Strict mode by default —
-  // a missing audit row is a compliance failure (Q51 + LGPD).
+  // against their respective DomainEvents.
+  //
+  // Handlers are wrapped via `bindAuditListener` (defined just below)
+  // — async listeners' rejections are no longer dropped into Node's
+  // unhandledRejection sink; they're caught + logged with structured
+  // metadata, and the AuditLogService routes FK-violation races to
+  // `AuditLogLost` (compliance trail preserved without breaking the
+  // HTTP flow that already succeeded for the user). See
+  // docs/audits/integration-test-triage-2026-05-21.md bug #4.
+  //
   // `auditPort` instantiated earlier so user-preferences UCs can audit.
+  const bindAuditListener = <T>(
+    eventType: string,
+    handler: (event: T) => Promise<void>,
+    ctx: string,
+  ): void => {
+    eventBus.on(
+      eventType as never,
+      ((event: T) => {
+        // Listeners on `EventEmitter` are invoked synchronously; the
+        // returned Promise is otherwise orphaned. We attach a `.catch`
+        // so failures land in the logger pipeline instead of
+        // `process.on('unhandledRejection')`. In `NODE_ENV=test`,
+        // `trackPendingHandler` also registers the Promise in a
+        // bootstrap-shared set so the test setup can `await` them in
+        // `afterEach` (eliminates "unhandled error between tests").
+        const work = handler(event).catch((err: unknown) => {
+          logger.error(`Audit listener ${ctx} failed`, {
+            context: ctx,
+            stack: err instanceof Error ? err.stack : undefined,
+            eventType,
+            reason: err instanceof Error ? err.message : String(err),
+          });
+        });
+        trackPendingHandler(work);
+      }) as never,
+    );
+  };
+
+  // Test-only: enable pending-handler tracking so the integration
+  // setup's `afterEach` can drain async handlers before the next
+  // test starts. Cheap no-op in prod.
+  if (process.env.NODE_ENV === 'test') {
+    enablePendingHandlerTracking();
+  }
+
   const authAudit = new AuthAuditHandler(auditPort, logger);
-  eventBus.on('auth.login.failed' as never, authAudit.onLoginFailed.bind(authAudit) as never);
-  eventBus.on('auth.user.logged_in' as never, authAudit.onUserLoggedIn.bind(authAudit) as never);
-  eventBus.on('auth.user.logged_out' as never, authAudit.onUserLoggedOut.bind(authAudit) as never);
-  eventBus.on('auth.session.created' as never, authAudit.onSessionCreated.bind(authAudit) as never);
-  eventBus.on(
-    'auth.session.terminated' as never,
-    authAudit.onSessionTerminated.bind(authAudit) as never,
+  bindAuditListener(
+    'auth.login.failed',
+    authAudit.onLoginFailed.bind(authAudit),
+    'AuthAudit.onLoginFailed',
   );
-  eventBus.on('auth.token.refreshed' as never, authAudit.onTokenRefreshed.bind(authAudit) as never);
+  bindAuditListener(
+    'auth.user.logged_in',
+    authAudit.onUserLoggedIn.bind(authAudit),
+    'AuthAudit.onUserLoggedIn',
+  );
+  bindAuditListener(
+    'auth.user.logged_out',
+    authAudit.onUserLoggedOut.bind(authAudit),
+    'AuthAudit.onUserLoggedOut',
+  );
+  bindAuditListener(
+    'auth.session.created',
+    authAudit.onSessionCreated.bind(authAudit),
+    'AuthAudit.onSessionCreated',
+  );
+  bindAuditListener(
+    'auth.session.terminated',
+    authAudit.onSessionTerminated.bind(authAudit),
+    'AuthAudit.onSessionTerminated',
+  );
+  bindAuditListener(
+    'auth.token.refreshed',
+    authAudit.onTokenRefreshed.bind(authAudit),
+    'AuthAudit.onTokenRefreshed',
+  );
   // Touch the imported event classes so the static analyser sees the
   // dependency (handler params reference them by type only).
   void LoginFailedEvent;
@@ -833,23 +924,49 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   void TokenRefreshedEvent;
 
   const exportAudit = new ExportAuditHandler(auditPort, logger);
-  eventBus.on(ExportRequestedEvent.TYPE, exportAudit.onRequested.bind(exportAudit) as never);
-  eventBus.on(ExportCompletedEvent.TYPE, exportAudit.onCompleted.bind(exportAudit) as never);
-  eventBus.on(ExportFailedEvent.TYPE, exportAudit.onFailed.bind(exportAudit) as never);
+  bindAuditListener(
+    ExportRequestedEvent.TYPE,
+    exportAudit.onRequested.bind(exportAudit),
+    'ExportAudit.onRequested',
+  );
+  bindAuditListener(
+    ExportCompletedEvent.TYPE,
+    exportAudit.onCompleted.bind(exportAudit),
+    'ExportAudit.onCompleted',
+  );
+  bindAuditListener(
+    ExportFailedEvent.TYPE,
+    exportAudit.onFailed.bind(exportAudit),
+    'ExportAudit.onFailed',
+  );
 
   const socialAudit = new SocialAuditHandler(auditPort, logger);
-  eventBus.on(UserFollowedEvent.TYPE, socialAudit.onUserFollowed.bind(socialAudit) as never);
-  eventBus.on(
-    ConnectionRequestedEvent.TYPE,
-    socialAudit.onConnectionRequested.bind(socialAudit) as never,
+  bindAuditListener(
+    UserFollowedEvent.TYPE,
+    socialAudit.onUserFollowed.bind(socialAudit),
+    'SocialAudit.onUserFollowed',
   );
-  eventBus.on(ShareDownloadedEvent.TYPE, socialAudit.onShareDownloaded.bind(socialAudit) as never);
+  bindAuditListener(
+    ConnectionRequestedEvent.TYPE,
+    socialAudit.onConnectionRequested.bind(socialAudit),
+    'SocialAudit.onConnectionRequested',
+  );
+  bindAuditListener(
+    ShareDownloadedEvent.TYPE,
+    socialAudit.onShareDownloaded.bind(socialAudit),
+    'SocialAudit.onShareDownloaded',
+  );
 
   const versionAudit = new VersionAuditHandler(auditPort, logger);
-  eventBus.on(VersionCreatedEvent.TYPE, versionAudit.onVersionCreated.bind(versionAudit) as never);
-  eventBus.on(
+  bindAuditListener(
+    VersionCreatedEvent.TYPE,
+    versionAudit.onVersionCreated.bind(versionAudit),
+    'VersionAudit.onVersionCreated',
+  );
+  bindAuditListener(
     VersionRestoredEvent.TYPE,
-    versionAudit.onVersionRestored.bind(versionAudit) as never,
+    versionAudit.onVersionRestored.bind(versionAudit),
+    'VersionAudit.onVersionRestored',
   );
 
   void shadowProfile;
@@ -1170,6 +1287,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   return {
     app,
     prisma,
+    cache,
     async stop(): Promise<void> {
       await app.stop();
       await drainLifecycles();

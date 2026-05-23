@@ -56,6 +56,7 @@ import {
   UpdateUserProfileResponseSchema,
   UserIdParam,
   UsernameParam,
+  UsernameRulesResponseSchema,
   UserProfileResponseSchema,
   ValidateUsernameRequestBodySchema,
   ValidateUsernameResponseSchema,
@@ -175,9 +176,37 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
   },
   {
     method: 'GET',
+    path: '/v1/users/username/rules',
+    auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800' },
+    response: UsernameRulesResponseSchema,
+    openapi: {
+      summary: 'Get username format rules (single source of truth for client gating)',
+      tags: ['users'],
+      description:
+        'Returns the regex sources + min/max so the frontend can compile a matching RegExp and validate input without a round-trip per keystroke. The body never changes between requests of the same backend version, hence the long cache.',
+    },
+    sdk: { exported: true },
+    handler: async (_ctx, bundle) => {
+      return bundle.useCases.getUsernameRules.execute();
+    },
+  },
+  {
+    method: 'GET',
     path: '/v1/users/username/check',
     auth: { kind: 'jwt' },
-    permission: Permission.USER_PROFILE_READ,
+    // No `permission` gate: the onboarding stepper calls this on every
+    // keystroke of the username field, and at that point the user has
+    // not been granted the `user` role yet (assignment happens at
+    // onboarding completion). `USER_PROFILE_READ` made the route
+    // unreachable from the only flow that uses it. The endpoint returns
+    // a boolean availability signal — no other user's data — so the
+    // JWT gate alone is the right surface.
+    guards: [
+      { id: 'allow-unverified-email' },
+      { id: 'skip-tos-check' },
+      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'userId' } },
+    ],
     query: CheckUsernameQuery,
     response: CheckUsernameResponseSchema,
     openapi: {
@@ -203,7 +232,15 @@ export const usersRoutes: ReadonlyArray<Route<UsersHttpBundle>> = [
     method: 'POST',
     path: '/v1/users/username/validate',
     auth: { kind: 'jwt' },
-    permission: Permission.USER_PROFILE_READ,
+    // Same reasoning as `/v1/users/username/check`: this is called from
+    // onboarding before the `user` role is granted, so a permission
+    // gate locks the only consumer out. JWT + bypass guards mirror the
+    // sibling endpoint.
+    guards: [
+      { id: 'allow-unverified-email' },
+      { id: 'skip-tos-check' },
+      { id: 'rate-limit', metadata: { points: 30, duration: 60, keyStrategy: 'userId' } },
+    ],
     body: ValidateUsernameRequestBodySchema,
     response: ValidateUsernameResponseSchema,
     openapi: {

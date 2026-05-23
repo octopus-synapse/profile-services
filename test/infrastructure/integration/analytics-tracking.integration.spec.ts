@@ -93,7 +93,7 @@ describe('Analytics Tracking Integration', () => {
         .send({})
         .set('User-Agent', 'TestBrowser/1.0');
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.message).toContain('tracked');
     });
 
@@ -115,7 +115,7 @@ describe('Analytics Tracking Integration', () => {
           .set('User-Agent', `TestBrowser/${i}`)
           .set('X-Forwarded-For', `192.0.2.${10 + i}`);
 
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(201);
       }
 
       // Fetch views and verify count reflects all tracked views
@@ -136,7 +136,7 @@ describe('Analytics Tracking Integration', () => {
         .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set(authHeader(accessToken));
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
       expect(response.body.atsScore).toBeDefined();
       expect(typeof response.body.atsScore).toBe('number');
@@ -215,7 +215,7 @@ describe('Analytics Tracking Integration', () => {
         .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set(authHeader(accessToken));
 
-      expect(snapshotResponse.status).toBe(200);
+      expect(snapshotResponse.status).toBe(201);
 
       // Check progression now has 2+ points
       const response = await getRequest()
@@ -230,7 +230,7 @@ describe('Analytics Tracking Integration', () => {
 
   describe('Error Cases', () => {
     it('should return 404 for analytics on non-existent resume', async () => {
-      const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await getRequest()
         .get(`/api/v1/resumes/${fakeResumeId}/analytics/ats-score`)
@@ -240,7 +240,7 @@ describe('Analytics Tracking Integration', () => {
     });
 
     it('should return 404 for track-view on non-existent resume', async () => {
-      const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await getRequest()
         .post(`/api/v1/resumes/${fakeResumeId}/analytics/track-view`)

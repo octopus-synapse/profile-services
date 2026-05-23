@@ -22,6 +22,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { tokenFromResponse } from '../shared';
 import {
   acceptTosForUser,
+  clearAuthRateLimits,
   closeApp,
   getApp,
   getPrisma,
@@ -30,6 +31,7 @@ import {
   uniqueTestUsername,
   unwrapApiData,
   verifyUserEmail,
+  waitForPendingHandlers,
 } from './setup';
 
 /** Generate unique email for each test to avoid conflicts */
@@ -68,6 +70,10 @@ async function createTestAccount(
   password = 'SecurePass123!',
 ): Promise<TestAccount> {
   const email = uniqueEmail(prefix);
+  // Defensive: the top-level `beforeEach` already calls
+  // `clearAuthRateLimits`, but specs that signup multiple users in a
+  // single `it()` would still hit the cap on the second one. Cheap.
+  await clearAuthRateLimits();
   const response = await getRequest()
     .post('/api/v1/accounts')
     .send({
@@ -111,7 +117,7 @@ async function loginTestAccount(email: string, password: string): Promise<string
  * - education: array (can be empty)
  * - noEducation: boolean
  * - languages: array with at least name + level
- * - templateSelection: template + palette
+ * - resumeStyleId: FK to ResumeStyle (uuid | null, optional)
  */
 function createOnboardingPayload(
   overrides: {
@@ -166,7 +172,7 @@ function createOnboardingPayload(
       : [],
     noEducation: !hasEducation,
     languages: [{ name: 'English', level: 'NATIVE' }],
-    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+    resumeStyleId: null,
   };
 }
 
@@ -177,6 +183,24 @@ describe('Complete Onboarding Flow', () => {
 
   afterAll(async () => {
     await closeApp();
+  });
+
+  // `.env.test` keeps RATE_LIMIT_ENABLED=true so the security specs
+  // remain meaningful. This suite signs up dozens of users in a single
+  // run, so without a per-test reset the 10/600s POST /v1/accounts cap
+  // turns every later test into a 429 cascade. `clearAuthRateLimits`
+  // is surgical — leaves password-reset / userId-keyed buckets live
+  // for specs that exercise those throttles.
+  beforeEach(async () => {
+    await clearAuthRateLimits();
+  });
+
+  // Drain async audit handlers from the previous test before deleting
+  // users in this one — otherwise the FK race surfaces as
+  // `# Unhandled error between tests`. See
+  // docs/audits/integration-test-triage-2026-05-21.md bug #4.
+  afterEach(async () => {
+    await waitForPendingHandlers();
   });
 
   describe('Step 1: Account Creation (Signup)', () => {
@@ -341,7 +365,8 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: uniqueTestUsername('tospre') }));
 
-      expect([200, 403]).toContain(response.status);
+      // POST /v1/onboarding sem statusCode → auto-201; 403 vem do ToS guard.
+      expect([200, 201, 403]).toContain(response.status);
     });
 
     it('should allow onboarding after ToS acceptance', async () => {
@@ -772,9 +797,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(unwrapApiData<{ data: unknown[] }>(response.body).data.length).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should have cleared onboarding progress', async () => {

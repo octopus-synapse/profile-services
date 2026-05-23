@@ -16,7 +16,7 @@ export const INITIAL_PROGRESS: OnboardingProgressData = {
   personalInfo: null,
   professionalProfile: null,
   sections: [],
-  templateSelection: null,
+  resumeStyleId: null,
   activatedExtras: [],
 };
 
@@ -57,7 +57,7 @@ export class GetProgressUseCase {
       personalInfo: progress.personalInfo,
       professionalProfile: progress.professionalProfile,
       sections: progress.sections ?? [],
-      templateSelection: progress.templateSelection,
+      resumeStyleId: progress.resumeStyleId,
       activatedExtras: progress.activatedExtras,
     };
   }

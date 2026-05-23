@@ -10,9 +10,11 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { UsernameRepository } from '../infrastructure/adapters/persistence/username.repository';
 import { CheckUsernameAvailabilityUseCasePort } from './ports/check-username-availability.use-case.port';
+import { GetUsernameRulesUseCasePort } from './ports/get-username-rules.use-case.port';
 import { UpdateUsernameUseCasePort } from './ports/update-username.use-case.port';
 import { ValidateUsernameUseCasePort } from './ports/validate-username.use-case.port';
 import { CheckUsernameAvailabilityUseCase } from './use-cases/username/check-username-availability.use-case';
+import { GetUsernameRulesUseCase } from './use-cases/username/get-username-rules.use-case';
 import { UpdateUsernameUseCase } from './use-cases/username/update-username.use-case';
 import { ValidateUsernameUseCase } from './use-cases/username/validate-username.use-case';
 
@@ -20,6 +22,7 @@ export interface UsernameUseCasesBundle {
   readonly updateUsername: UpdateUsernameUseCasePort;
   readonly checkUsernameAvailability: CheckUsernameAvailabilityUseCasePort;
   readonly validateUsername: ValidateUsernameUseCasePort;
+  readonly getUsernameRules: GetUsernameRulesUseCasePort;
 }
 
 export function buildUsernameUseCases(prisma: PrismaService): UsernameUseCasesBundle {
@@ -28,5 +31,6 @@ export function buildUsernameUseCases(prisma: PrismaService): UsernameUseCasesBu
     updateUsername: new UpdateUsernameUseCase(repository),
     checkUsernameAvailability: new CheckUsernameAvailabilityUseCase(repository),
     validateUsername: new ValidateUsernameUseCase(repository),
+    getUsernameRules: new GetUsernameRulesUseCase(),
   };
 }

@@ -53,14 +53,11 @@ export const STATIC_STEPS_BEFORE: StaticStepBase[] = [
 
 export const STATIC_STEPS_AFTER: StaticStepBase[] = [
   {
-    id: 'template',
+    id: 'resume-style',
     required: true,
-    component: 'template',
+    component: 'resume-style',
     icon: '🎨',
-    fields: [
-      { key: 'templateId', type: 'text', required: false },
-      { key: 'colorScheme', type: 'text', required: true },
-    ],
+    fields: [{ key: 'resumeStyleId', type: 'text', required: true }],
   },
   { id: 'review', required: true, component: 'review', icon: '✓' },
   { id: 'complete', required: true, component: 'complete', icon: '🎉' },

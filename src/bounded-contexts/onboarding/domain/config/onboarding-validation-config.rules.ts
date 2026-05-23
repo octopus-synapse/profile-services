@@ -7,8 +7,12 @@ function getFieldValue(
   fieldKey: string,
 ): string | undefined {
   if (fieldKey === 'username') return (data.username as string) ?? undefined;
+  // The resume-style step lives off the FK column, not a nested object —
+  // the validator needs a special-case lookup so step configs that mark
+  // `resumeStyleId` as required can still gate completion.
+  if (fieldKey === 'resumeStyleId') return data.resumeStyleId ?? undefined;
 
-  const dataSources = [data.personalInfo, data.professionalProfile, data.templateSelection];
+  const dataSources = [data.personalInfo, data.professionalProfile];
   for (const source of dataSources) {
     if (source && typeof source === 'object' && fieldKey in source) {
       const val = (source as Record<string, unknown>)[fieldKey];

@@ -80,11 +80,11 @@ model UserWeeklyDigestLog {
 // `sentDate` is a date-only string (YYYY-MM-DD) so two reminders within
 // the same calendar day collapse onto one row regardless of clock skew.
 model FitProfileReminderLog {
-  id        String   @id @default(dbgenerated("uuidv7()"))
-  userId    String
-  daysLeft  Int // 7 / 3 / 1 — the window the reminder belongs to
-  sentDate  String // YYYY-MM-DD
-  sentAt    DateTime @default(now())
+  id       String   @id @default(dbgenerated("uuidv7()"))
+  userId   String
+  daysLeft Int // 7 / 3 / 1 — the window the reminder belongs to
+  sentDate String // YYYY-MM-DD
+  sentAt   DateTime @default(now())
 
   @@unique([userId, daysLeft, sentDate])
   @@index([sentDate])

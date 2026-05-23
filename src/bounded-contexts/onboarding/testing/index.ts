@@ -45,7 +45,7 @@ export interface OnboardingProgressRecord {
   personalInfo: unknown;
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
-  templateSelection: unknown;
+  resumeStyleId: string | null;
   activatedExtras: string[];
   updatedAt: Date;
 }
@@ -156,7 +156,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       personalInfo: record.personalInfo,
       professionalProfile: record.professionalProfile,
       sections: record.sections,
-      templateSelection: record.templateSelection,
+      resumeStyleId: record.resumeStyleId,
       activatedExtras: record.activatedExtras ?? [],
       updatedAt: record.updatedAt,
     };
@@ -175,7 +175,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       personalInfo: data.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? null,
       sections: data.sections ?? null,
-      templateSelection: data.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? null,
       // Mirror the production repo: only the dedicated extras mutation
       // writes `activatedExtras` once a row exists. New records pick
       // up whatever the caller passes (or default to empty).
@@ -218,7 +218,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       personalInfo: null,
       professionalProfile: null,
       sections: null,
-      templateSelection: null,
+      resumeStyleId: null,
       activatedExtras: normalised,
       updatedAt: new Date(),
     });
@@ -302,7 +302,7 @@ export function createOnboardingProgress(
     personalInfo: null,
     professionalProfile: null,
     sections: null,
-    templateSelection: null,
+    resumeStyleId: null,
     activatedExtras: [],
     updatedAt: new Date(),
     ...overrides,
@@ -324,7 +324,7 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
       github: 'https://github.com/johndoe',
       website: 'https://johndoe.dev',
     },
-    templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'ocean' },
+    resumeStyleId: null,
     sections: [],
     ...overrides,
   };

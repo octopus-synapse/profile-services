@@ -79,10 +79,6 @@ export const CreateResumeBody = z
     linkedin: LinkedInUrlSchema.optional(),
     github: GitHubUrlSchema.optional(),
     website: SocialUrlSchema.optional(),
-    template: z
-      .enum(['PROFESSIONAL', 'CREATIVE', 'TECHNICAL', 'MINIMAL', 'MODERN', 'EXECUTIVE', 'ACADEMIC'])
-      .optional()
-      .openapi({ description: 'Visual template the resume should render with.' }),
     sections: z.array(z.record(z.unknown())).optional().openapi({
       description: 'Generic resume sections. Each item references a SectionType by key.',
     }),
@@ -146,7 +142,11 @@ export const ResumeBaseSchema = z.object({
   updatedAt: IsoDateTimeSchema,
 });
 
-export const ResumeListItemSchema = ResumeBaseSchema;
+export const ResumeListItemSchema = ResumeBaseSchema.extend({
+  fullName: z.string().nullable().optional(),
+  jobTitle: z.string().nullable().optional(),
+  summary: z.string().nullable().optional(),
+});
 
 export const PaginatedResumesResponseSchema = z.object({
   items: z.array(ResumeListItemSchema),
@@ -301,7 +301,6 @@ export const MgmtResumeDetailsSchema = z.object({
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
-  template: z.string().nullable(),
   summary: z.string().nullable(),
   currentCompanyLogo: z.string().nullable(),
   twitter: z.string().nullable(),

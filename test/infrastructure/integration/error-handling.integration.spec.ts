@@ -8,8 +8,9 @@
  * These tests verify that errors are handled gracefully.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -24,6 +25,10 @@ describe('Error Handling Integration', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin();
     accessToken = auth.accessToken;
     userId = auth.userId;
@@ -40,10 +45,10 @@ describe('Error Handling Integration', () => {
 
   describe('BUG-026: Consistent 404 Responses', () => {
     it('should return 404 for non-existent resume', async () => {
-      // Use valid CUID format that doesn't exist (25 chars, starts with 'c')
-      const nonExistentCuid = 'cnonexistent123456789abcd';
+      // IDs são UUID v7 (Q11). UUID válido mas inexistente → 404.
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
       const response = await getRequest()
-        .get(`/api/v1/resumes/${nonExistentCuid}`)
+        .get(`/api/v1/resumes/${nonExistentId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(404);
@@ -59,12 +64,10 @@ describe('Error Handling Integration', () => {
     });
 
     it('should not leak existence information', async () => {
-      // When accessing another user's resource, should return 404 not 403
-      // to prevent enumeration attacks
-      // Use valid CUID format that doesn't exist
-      const nonExistentCuid = 'cnonexistent987654321zyxw';
+      // UUID válido mas inexistente; rotas privadas devem uniformizar 404.
+      const nonExistentId = '019eee00-0000-0000-0000-000000000001';
       const response = await getRequest()
-        .get(`/api/v1/resumes/${nonExistentCuid}`)
+        .get(`/api/v1/resumes/${nonExistentId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Should not reveal if resource exists

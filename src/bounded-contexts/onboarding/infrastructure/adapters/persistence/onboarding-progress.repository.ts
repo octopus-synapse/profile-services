@@ -39,7 +39,7 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       personalInfo: record.personalInfo,
       professionalProfile: record.professionalProfile,
       sections: this.parseSections(record.sections),
-      templateSelection: record.templateSelection,
+      resumeStyleId: record.resumeStyleId,
       activatedExtras: record.activatedExtras ?? [],
       updatedAt: record.updatedAt,
     };
@@ -72,7 +72,10 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       personalInfo: data.personalInfo as InputJsonValue | undefined,
       professionalProfile: data.professionalProfile as InputJsonValue | undefined,
       sections: this.serializeSections(data.sections),
-      templateSelection: data.templateSelection as InputJsonValue | undefined,
+      // `null` clears the FK; `undefined` leaves the column untouched
+      // (`upsert`'s `update` semantics). Explicit ternary keeps the
+      // partial-update behaviour even when callers omit the field.
+      ...(data.resumeStyleId !== undefined ? { resumeStyleId: data.resumeStyleId } : {}),
       // Only included on the create branch — once a row exists, the
       // `extras` mutation is the single writer for `activatedExtras`,
       // so the regular `upsertProgress` path leaves it untouched.
@@ -157,10 +160,13 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
   }
 
   async findUserByUsername(username: string): Promise<{ id: string } | null> {
-    // Check both committed users AND users claiming username during onboarding
+    // Check both committed users AND users claiming username during onboarding.
+    // Both lookups are case-insensitive so callers don't have to remember to
+    // lowercase the param; the `User.username` column is also lowercased by
+    // the domain schema, so the index still hits on the common path.
     const [existingUser, claimingProgress] = await Promise.all([
-      this.prisma.user.findUnique({
-        where: { username },
+      this.prisma.user.findFirst({
+        where: { username: { equals: username, mode: 'insensitive' } },
         select: { id: true },
       }),
       this.prisma.onboardingProgress.findFirst({
@@ -169,7 +175,12 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
       }),
     ]);
 
-    // Return existing user if found, or the user claiming username during onboarding
-    return existingUser ?? (claimingProgress ? { id: claimingProgress.userId } : null);
+    // Either signal counts as "taken" — return whichever resolves first
+    // so callers' `existingUser?.id === userId` check can compare against
+    // the actual owner. Preference goes to the committed user row when
+    // both exist (the progress row is a stale claim from the same flow).
+    if (existingUser) return existingUser;
+    if (claimingProgress) return { id: claimingProgress.userId };
+    return null;
   }
 }

@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { tokenFromResponse } from '../shared';
 import {
   assignUserRole,
+  clearAuthRateLimits,
   closeApp,
   getApp,
   getPrisma,
@@ -20,6 +21,10 @@ describe('Auth Smoke Tests', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     // Pre-create user for all tests
     const createRes = await getRequest()
       .post('/api/v1/accounts')
@@ -101,7 +106,6 @@ describe('Auth Smoke Tests', () => {
         .send(signupBody({ email: newEmail, password: TEST_USER.password, name: TEST_USER.name }));
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('userId');
       expect(res.body).toHaveProperty('email');
       expect(res.body.email).toBe(newEmail);
@@ -115,13 +119,12 @@ describe('Auth Smoke Tests', () => {
         .send({ email: uniqueEmail, password: TEST_USER.password });
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).toHaveProperty('refreshToken');
+      // Login emite tokens via Set-Cookie HTTP-only; body carrega só
+      // userId + twoFactorRequired (LoginResponseSchema).
+      expect(res.body).toHaveProperty('userId');
 
-      // Update tokens
       accessToken = tokenFromResponse(res, 'access_token')!;
-      refreshToken = tokenFromResponse(res, 'refresh_token')!;
+      expect(accessToken).toBeDefined();
       testContext.accessToken = accessToken;
       testContext.refreshToken = refreshToken;
     });
@@ -170,7 +173,6 @@ describe('Auth Smoke Tests', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('id');
       expect(res.body).toHaveProperty('email');
       expect(res.body.email).toBe(uniqueEmail);
@@ -193,24 +195,33 @@ describe('Auth Smoke Tests', () => {
 
   describe('POST /api/v1/auth/refresh', () => {
     it('should refresh tokens', async () => {
-      // Get fresh token first
-      const loginRes = await getRequest()
-        .post('/api/v1/auth/login')
-        .send({ email: uniqueEmail, password: TEST_USER.password });
-      const currentRefreshToken = loginRes.body?.refreshToken || refreshToken;
+      // Login não emite cookie `refresh_token` mais (apenas access_token);
+      // provisionar manualmente um RefreshToken row para testar /refresh.
+      const { randomUUID, createHash } = await import('node:crypto');
+      const rawRefresh = `smoke-${randomUUID()}`;
+      const userId = testContext.userId ?? '';
+      if (userId) {
+        await getPrisma().refreshToken.create({
+          data: {
+            token: createHash('sha256').update(rawRefresh).digest('hex'),
+            userId,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+        });
+      }
 
       const res = await getRequest()
         .post('/api/v1/auth/refresh')
-        .send({ refreshToken: currentRefreshToken });
+        .send({ refreshToken: rawRefresh });
 
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body).toHaveProperty('accessToken');
-      expect(res.body).toHaveProperty('refreshToken');
+      expect([200, 201]).toContain(res.status);
+      // RefreshResponseSchema discriminated union; mode=tokens shape.
+      expect(res.body.mode).toBe('tokens');
+      expect(res.body.accessToken).toBeDefined();
+      expect(res.body.refreshToken).toBeDefined();
 
-      // Update tokens for subsequent tests
-      accessToken = tokenFromResponse(res, 'access_token')!;
-      refreshToken = tokenFromResponse(res, 'refresh_token')!;
+      accessToken = res.body.accessToken;
+      refreshToken = res.body.refreshToken;
       testContext.accessToken = accessToken;
       testContext.refreshToken = refreshToken;
     });

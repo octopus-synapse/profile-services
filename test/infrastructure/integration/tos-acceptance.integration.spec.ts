@@ -6,12 +6,12 @@
  *
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
 import { ConsentDocumentType } from '@prisma/client';
 import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
-import { assignUserRole, getApp, signupBody } from './setup';
+import { assignUserRole, clearAuthRateLimits, getApp, signupBody } from './setup';
 
 function uniqueTestId(): string {
   return randomUUID().slice(0, 8);
@@ -73,6 +73,10 @@ describe('ToS Acceptance Flow Integration', () => {
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
 
     // Set initial ToS version

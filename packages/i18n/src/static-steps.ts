@@ -98,16 +98,16 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
       },
     },
   },
-  template: {
+  'resume-style': {
     en: {
-      label: 'Theme',
-      description: 'Choose Your Theme',
-      fields: { templateId: 'Template', colorScheme: 'Color Scheme' },
+      label: 'Resume style',
+      description: 'Pick a resume style',
+      fields: { resumeStyleId: 'Resume style' },
     },
     'pt-BR': {
-      label: 'Tema',
-      description: 'Escolha seu Tema',
-      fields: { templateId: 'Modelo', colorScheme: 'Esquema de Cores' },
+      label: 'Estilo do currículo',
+      description: 'Escolha um estilo de currículo',
+      fields: { resumeStyleId: 'Estilo do currículo' },
     },
   },
   review: {

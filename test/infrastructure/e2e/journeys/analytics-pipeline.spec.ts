@@ -282,7 +282,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
 
   describe('Step 10: Error Boundaries', () => {
     it.serial('should return 404 for non-existent resume analytics', async () => {
-      const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await app.request
         .get(`/api/v1/resumes/${fakeResumeId}/analytics/dashboard`)

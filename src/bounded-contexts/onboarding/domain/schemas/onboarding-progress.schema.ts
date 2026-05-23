@@ -11,11 +11,7 @@
 
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import {
-  OnboardingSectionItemSchema,
-  PersonalInfoSchema,
-  TemplateSelectionSchema,
-} from './onboarding-data.schema';
+import { OnboardingSectionItemSchema, PersonalInfoSchema } from './onboarding-data.schema';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
 
@@ -26,7 +22,7 @@ const StaticOnboardingStepSchema = z.enum([
   'personal-info',
   'username',
   'professional-profile',
-  'template',
+  'resume-style',
   'review',
   'complete',
 ]);
@@ -64,7 +60,6 @@ const PartialSectionItemSchema = OnboardingSectionItemSchema.partial();
  */
 const PartialPersonalInfoSchema = PersonalInfoSchema.partial();
 const PartialProfessionalProfileSchema = ProfessionalProfileSchema.partial();
-const PartialTemplateSelectionSchema = TemplateSelectionSchema.partial();
 
 /**
  * Generic Section Progress Schema
@@ -93,7 +88,7 @@ export const OnboardingProgressSchema = z
     personalInfo: PartialPersonalInfoSchema.optional(),
     professionalProfile: PartialProfessionalProfileSchema.optional(),
     sections: z.array(SectionProgressSchema).optional(),
-    templateSelection: PartialTemplateSelectionSchema.optional(),
+    resumeStyleId: z.string().uuid().nullable().optional(),
   })
   .openapi({
     example: {
@@ -161,7 +156,7 @@ export const SubmitOnboardingDtoSchema = z.object({
       noData: z.boolean().default(false),
     }),
   ),
-  templateSelection: TemplateSelectionSchema,
+  resumeStyleId: z.string().uuid().nullable().optional(),
 });
 
 export type SubmitOnboardingDto = z.infer<typeof SubmitOnboardingDtoSchema>;
@@ -215,7 +210,5 @@ export type PartialSectionItemDto = z.infer<typeof PartialSectionItemSchema>;
 export type PartialPersonalInfoDto = z.infer<typeof PartialPersonalInfoSchema>;
 
 export type PartialProfessionalProfileDto = z.infer<typeof PartialProfessionalProfileSchema>;
-
-export type PartialTemplateSelectionDto = z.infer<typeof PartialTemplateSelectionSchema>;
 
 export type SectionProgressDto = z.infer<typeof SectionProgressSchema>;

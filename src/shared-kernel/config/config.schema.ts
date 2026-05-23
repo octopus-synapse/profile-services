@@ -211,9 +211,9 @@ export const EnvConfigSchema = z
     OPENAI_SCORING_MODEL: z.string().optional(),
     OPENAI_SCORING_MAX_TOKENS: PositiveIntString.optional(),
     OPENAI_EMBEDDING_MODEL: z.string().optional(),
-
-    // --- Translation ---
-    LIBRETRANSLATE_URL: OptionalUrl,
+    // Translation reuses OPENAI_MODEL but caps output tokens separately —
+    // single-call resume translations need more headroom than tailor/extract.
+    OPENAI_TRANSLATION_MAX_TOKENS: PositiveIntString.optional(),
 
     // --- Analytics (PostHog) ---
     POSTHOG_HOST: OptionalUrl,

@@ -207,7 +207,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
           education: [],
           noEducation: true,
           languages: [{ name: 'English', level: 'NATIVE' }],
-          templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+          resumeStyleId: null,
         });
 
       expect(response.status).toBe(201);

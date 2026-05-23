@@ -20,6 +20,9 @@ export const CACHE_PRESETS = {
   SESSION: 3600,
   /** 24 hours. Catalogs (skills, languages, MEC institutions, locales). */
   CATALOG: 86400,
+  /** 30 days. Deterministic LLM outputs keyed by sha256(input) — same prompt
+   * version + input always yields same translation, so we cache aggressively. */
+  TRANSLATION: 2592000,
 } as const;
 
 export type CachePresetKey = keyof typeof CACHE_PRESETS;

@@ -11,7 +11,14 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
-import { acceptTosWithPrisma, assignUserRole, getApp, signupBody, uniqueTestId } from './setup';
+import {
+  acceptTosWithPrisma,
+  assignUserRole,
+  clearAuthRateLimits,
+  getApp,
+  signupBody,
+  uniqueTestId,
+} from './setup';
 
 describe('Resume CRUD Integration', () => {
   let app: TestApp;
@@ -19,15 +26,24 @@ describe('Resume CRUD Integration', () => {
   let accessToken: string;
   let userId: string;
 
-  const testUser = {
-    email: `resume-test-${uniqueTestId()}@example.com`,
-    password: 'SecurePass123!',
-    name: 'Resume Test User',
-  };
+  // testUser é declarado por test (escopo beforeEach) para evitar
+  // colisão de email entre tests sequenciais — `afterEach` limpa
+  // apenas resumes, então reusar o mesmo email faria signup 409.
+  let testUser: { email: string; password: string; name: string };
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
+
+    testUser = {
+      email: `resume-test-${uniqueTestId()}@example.com`,
+      password: 'SecurePass123!',
+      name: 'Resume Test User',
+    };
 
     // Create test user
     const signupResponse = await app.request
@@ -71,8 +87,13 @@ describe('Resume CRUD Integration', () => {
   }, 20000);
 
   afterEach(async () => {
-    // Clean up resumes after each test
-    await prisma.resume.deleteMany({ where: { userId } });
+    // Limpa resumes e o user criado neste test — beforeEach gera
+    // email novo, então usuários antigos só ocupam espaço se não
+    // forem removidos.
+    if (userId) {
+      await prisma.resume.deleteMany({ where: { userId } });
+      await prisma.user.deleteMany({ where: { id: userId } }).catch(() => {});
+    }
   });
 
   describe('Resume Creation', () => {

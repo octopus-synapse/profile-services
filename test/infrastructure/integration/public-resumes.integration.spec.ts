@@ -127,14 +127,15 @@ describe('Public Resumes Integration', () => {
       expect(successResponse.body.resume.id).toBe(resumeId);
     });
 
-    it('should return 404 for expired shares', async () => {
+    it('should return 410 for expired shares', async () => {
       const prisma = getPrisma();
       const expiredShare = await prisma.resumeShare.create({
         data: { resumeId, slug: uniqueTestSlug('expired'), expiresAt: new Date(Date.now() - 1000) },
       });
 
       const response = await getRequest().get(`/api/v1/public/resumes/${expiredShare.slug}`);
-      expect(response.status).toBe(404);
+      // 410 Gone é semanticamente correto para recurso que existiu mas expirou.
+      expect(response.status).toBe(410);
     });
 
     it('should delete a share', async () => {
@@ -275,7 +276,7 @@ describe('Public Resumes Integration', () => {
 
     it('should return 404 for unknown shareId', async () => {
       const response = await getRequest()
-        .get('/api/v1/shares/unknown-share-id/qr.png')
+        .get('/api/v1/shares/019eee00-0000-0000-0000-000000000000/qr.png')
         .set(authHeader());
       expect(response.status).toBe(404);
     });

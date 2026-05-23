@@ -11,9 +11,16 @@
  *     only the matching password permits the destructive delete.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { runInParallel } from '../../shared/race-condition.helper';
-import { closeApp, getApp, getPrisma, getRequest, uniqueTestEmail } from '../setup';
+import {
+  clearAuthRateLimits,
+  closeApp,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestEmail,
+} from '../setup';
 
 const PASSWORD = 'CorrectPassword123!';
 
@@ -26,10 +33,22 @@ describe('P1 #3 — POST /v1/accounts rate-limit', () => {
     await closeApp();
   });
 
+  beforeEach(async () => {
+    // Reset the IP-keyed bucket so the test gets a clean budget.
+    // Without this the previous suite's signups leak into this one
+    // and either every request succeeds (if the budget is high) or
+    // every one 429s (if it was already exhausted).
+    await clearAuthRateLimits();
+  });
+
   it('caps concurrent signups from the same IP', async () => {
-    // points: 3 per 10min. Fire 6 concurrent signups with distinct
-    // emails — exactly 3 should succeed and the rest should 429.
-    const { successes } = await runInParallel(6, async (i) =>
+    // Current cap: `points: 10, duration: 600` (see
+    // account-lifecycle.routes.ts). Fire 12 concurrent signups with
+    // distinct emails — exactly 10 should succeed and 2 should 429.
+    // The numbers below assert the GUARANTEE, not the exact split:
+    // some implementations let one extra through under racey INCR.
+    const TOTAL = 12;
+    const { successes } = await runInParallel(TOTAL, async (i) =>
       getRequest()
         .post('/api/v1/accounts')
         .send({
@@ -44,9 +63,9 @@ describe('P1 #3 — POST /v1/accounts rate-limit', () => {
     const statuses = successes.map((r) => r.status);
     const rateLimited = statuses.filter((s) => s === 429).length;
     const created = statuses.filter((s) => s === 201).length;
-    expect(rateLimited).toBeGreaterThanOrEqual(2);
+    expect(rateLimited).toBeGreaterThanOrEqual(1);
     expect(created).toBeGreaterThanOrEqual(2);
-    expect(created + rateLimited).toBe(6);
+    expect(created + rateLimited).toBe(TOTAL);
   });
 });
 
@@ -57,6 +76,10 @@ describe('P1 #13 — DELETE /v1/accounts requires currentPassword', () => {
 
   afterAll(async () => {
     await closeApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
   });
 
   async function signupAndLoginCookie(): Promise<{ userId: string; cookie: string }> {

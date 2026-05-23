@@ -111,6 +111,22 @@ export class OnboardingUsernameTakenException extends ConflictException {
 }
 
 /**
+ * Raised when the resume style requested during onboarding can't be
+ * resolved by id or name, AND no fallback default style is seeded. This
+ * is a configuration-level failure: the seed missed `default`, or the
+ * style was deleted from the table.
+ */
+export class OnboardingResumeStyleNotFoundException extends DomainException {
+  readonly code: string = 'ONBOARDING_RESUME_STYLE_NOT_FOUND';
+  readonly statusHint = 500;
+  constructor(public readonly requested: string) {
+    super(
+      `Resume style "${requested}" was not found and no default style is seeded — refusing to create a styleless resume.`,
+    );
+  }
+}
+
+/**
  * Wraps an unexpected persistence failure during onboarding section
  * persistence (Prisma error, transaction rollback, etc.). The audit
  * trail preserves the original cause; this exception carries the stable

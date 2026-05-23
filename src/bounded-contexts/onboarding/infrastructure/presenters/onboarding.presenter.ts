@@ -4,7 +4,7 @@ import {
   extraStepKey,
 } from '../../domain/config/onboarding-section-defaults.config';
 import type {
-  OnboardingThemeOption,
+  OnboardingResumeStyleOption,
   SectionTypeData,
 } from '../../domain/config/onboarding-steps.config';
 import { calculateStrength } from '../../domain/config/onboarding-strength';
@@ -26,9 +26,8 @@ const EXTRA_STEP_KEYS: ReadonlySet<string> = new Set(
 import type {
   OnboardingSessionDto,
   PersonalInfoDto,
-  ProfessionalProfileDto,
+  ProfessionalProfileViewDto,
   SectionItemDto,
-  TemplateSelectionDto,
 } from '../dto';
 
 /**
@@ -48,24 +47,15 @@ export function toPersonalInfo(value: unknown): PersonalInfoDto | undefined {
   };
 }
 
-export function toProfessionalProfile(value: unknown): ProfessionalProfileDto | undefined {
+export function toProfessionalProfile(value: unknown): ProfessionalProfileViewDto | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const obj = value as Record<string, unknown>;
   return {
-    jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : '',
+    jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : undefined,
     summary: typeof obj.summary === 'string' ? obj.summary : undefined,
     linkedin: typeof obj.linkedin === 'string' ? obj.linkedin : undefined,
     github: typeof obj.github === 'string' ? obj.github : undefined,
     website: typeof obj.website === 'string' ? obj.website : undefined,
-  };
-}
-
-export function toTemplateSelection(value: unknown): TemplateSelectionDto | undefined {
-  if (!value || typeof value !== 'object') return undefined;
-  const obj = value as Record<string, unknown>;
-  return {
-    templateId: typeof obj.templateId === 'string' ? obj.templateId : undefined,
-    colorScheme: typeof obj.colorScheme === 'string' ? obj.colorScheme : undefined,
   };
 }
 
@@ -155,20 +145,20 @@ function buildFieldsFromStep(
   return out;
 }
 
-function buildThemeOptions(systemThemes: OnboardingThemeOption[]) {
-  return systemThemes.map((th) => ({
-    id: th.id,
-    name: th.name,
-    description: th.description,
-    styleScore: th.styleScore,
-    thumbnailUrl: th.thumbnailUrl,
+function buildResumeStyleOptions(styles: OnboardingResumeStyleOption[]) {
+  return styles.map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    styleScore: s.styleScore,
+    thumbnailUrl: s.thumbnailUrl,
   }));
 }
 
 export function resolveSteps(
   stepConfigs: OnboardingStepConfig[],
   locale: string,
-  systemThemes?: OnboardingThemeOption[],
+  resumeStyles?: OnboardingResumeStyleOption[],
   sectionTypes?: SectionTypeData[],
 ): ResolvedStep[] {
   const sectionMap = new Map<string, SectionTypeData>();
@@ -199,8 +189,8 @@ export function resolveSteps(
       ...(step.sectionTypeKey ? { multipleItems: true, sectionTypeKey: step.sectionTypeKey } : {}),
     };
 
-    if (step.component === 'template' && systemThemes?.length) {
-      result.data = buildThemeOptions(systemThemes);
+    if (step.component === 'resume-style' && resumeStyles?.length) {
+      result.data = buildResumeStyleOptions(resumeStyles);
     }
 
     out.push(result);
@@ -226,11 +216,11 @@ export function buildSession(
   stepConfigs: OnboardingStepConfig[],
   strengthConfig?: StrengthConfig,
   locale = 'en',
-  systemThemes?: OnboardingThemeOption[],
+  resumeStyles?: OnboardingResumeStyleOption[],
   userDefaults?: { name?: string },
   sectionTypes?: SectionTypeData[],
 ): OnboardingSessionDto {
-  const allResolved = resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
+  const allResolved = resolveSteps(stepConfigs, locale, resumeStyles, sectionTypes);
   // Split the resolved set into core steps (always shown) and extras
   // (only shown after the user opts into them). The catalog of every
   // extra still ships back as `availableExtras` so the gate UI can
@@ -247,7 +237,7 @@ export function buildSession(
   const personalInfo =
     rawPersonalInfo ?? (userDefaults ? { fullName: userDefaults.name ?? '' } : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
-  const templateSelection = toTemplateSelection(data.templateSelection);
+  const resumeStyleId = data.resumeStyleId ?? undefined;
 
   const currentStepConfig = stepConfigs.find((s) => s.key === data.currentStep);
   const canProceed = currentStepConfig
@@ -255,7 +245,7 @@ export function buildSession(
         username: data.username,
         personalInfo,
         professionalProfile,
-        templateSelection,
+        resumeStyleId,
       })
     : true;
 
@@ -268,7 +258,7 @@ export function buildSession(
         username: data.username ?? undefined,
         professionalProfile,
         sections: data.sections,
-        templateSelection,
+        resumeStyleId,
       })
     : undefined;
 
@@ -277,7 +267,7 @@ export function buildSession(
   const { missingSteps: missingRequired } = canCompleteOnboarding(
     stepConfigs,
     data.completedSteps,
-    { username: data.username, personalInfo, professionalProfile, templateSelection },
+    { username: data.username, personalInfo, professionalProfile, resumeStyleId },
   );
 
   return {
@@ -298,6 +288,6 @@ export function buildSession(
     personalInfo,
     professionalProfile,
     sections: buildSectionsView(data.sections),
-    templateSelection,
+    resumeStyleId,
   } as OnboardingSessionDto;
 }

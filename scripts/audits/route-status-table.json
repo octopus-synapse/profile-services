@@ -1,0 +1,2970 @@
+[
+  {
+    "method": "GET",
+    "path": "/health",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/health/health.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/health/live",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/health/health.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/health/health.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/metrics",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/metrics/metrics.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/accounts",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/accounts",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/accounts/deactivate",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/alerts",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/analytics/overview",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/admin/admin-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/chat/conversations",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/admin/admin-collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/chat/stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/admin/admin-collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/collaborations",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/admin/admin-collaboration.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/collaborations/:resumeId/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/admin/admin-collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/collaborations/stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/admin/admin-collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/dashboard/metrics",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/feature-flags",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/feature-flags/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/feature-flags/:key/impact",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/feature-flags/broadcast-refresh",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/fit-questions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/fit-questions",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/fit-questions/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/fit-questions/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/fit-questions/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/metrics/overview",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/metrics/metrics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/onboarding/config",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/admin/onboarding/config",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/onboarding/stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/onboarding/steps",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/onboarding/steps",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/onboarding/steps/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/onboarding/steps/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/admin/onboarding/steps/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/programming-languages",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/programming-languages",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/programming-languages/:slug",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/programming-languages/:slug",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/programming-languages/:slug",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/resume-styles",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/resume-styles/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/resume-styles/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/section-types",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/section-types",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/section-types/:key",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/section-types/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/section-types/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/section-types/semantic-kinds",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/section-types/admin-section-types.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/spoken-languages",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/spoken-languages",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/spoken-languages/:code",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/spoken-languages/:code",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/spoken-languages/:code",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-areas",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/tech-areas",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/tech-areas/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-areas/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/tech-areas/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-niches",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/tech-niches",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/tech-niches/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-niches/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/tech-niches/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/tech-skills",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/tech-skills/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/tech-skills/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/admin/tech-skills/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/admin/admin-catalog.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/test/run",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/platform/test-runner/test-runner.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/test/suites",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/test-runner/test-runner.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/admin/users/:userId/access-modifiers",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/authorization/access-modifier.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/admin/users/:userId/access-modifiers",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authorization/access-modifier.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/admin/users/:userId/access-modifiers/:modifierId",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authorization/access-modifier.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analytics/:resumeId/ats-score",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analytics/:resumeId/live",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analytics/:resumeId/views",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analytics/:shareId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/share-analytics/share-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/analytics/:shareId/events",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/share-analytics/share-analytics.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/apply-mode/weekly-curated/:itemId/approve",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/automation/automation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/apply-mode/weekly-curated/:itemId/reject",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/automation/automation.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/apply-mode/weekly-curated/current",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/automation/automation.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/ats/simulate/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/auth/2fa",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/two-factor-auth/two-factor-auth.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/2fa/backup-codes/regenerate",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/two-factor-auth/two-factor-auth.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/2fa/setup",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/two-factor-auth/two-factor-auth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/2fa/status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/two-factor-auth/two-factor-auth.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/2fa/verify",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/two-factor-auth/two-factor-auth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/email-verification/resend-status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/email-verification/email-verification.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/email-verification/send",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/email-verification/email-verification.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/email-verification/verify",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/email-verification/email-verification.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/forgot-password",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/password-management/password-management.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/login",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/login/verify-2fa",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/logout",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/available/:provider",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/github/callback",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/github/start",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/linkedin/callback",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/linkedin/start",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/oauth/providers",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/oauth/oauth.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/refresh",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/auth/reset-password",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/password-management/password-management.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/session",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/auth/sessions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/auth/sessions/:id",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/automation/rage-apply",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/automation/automation.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/badges/me",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/badges/badges.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/badges/user/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/badges/badges.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/career-graph/view",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/career-graph/career-graph.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/blocked",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/blocked",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/chat/blocked/:userId",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/blocked/:userId/status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/conversation-with/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/conversations",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/conversations/:conversationId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/conversations/:conversationId/messages",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/conversations/:conversationId/messages",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/conversations/:conversationId/preferences/mute",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/conversations/:conversationId/preferences/pin",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/conversations/:conversationId/read",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/chat/messages",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/unread",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/chat/users/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/chat/chat.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/config/password-policy",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/config/config.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/connections/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/connections/:id/accept",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/connections/:id/reject",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/connections/:id/withdraw",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/dsl/preview",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/dsl/dsl.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/dsl/render/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/dsl/dsl.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/dsl/render/public/:slug",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/dsl/dsl.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/dsl/validate",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/dsl/dsl.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/enums",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/enums/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/enums/export-formats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/enums/section-types",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/enums/user-roles",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/events",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/analytics/platform-events/platform-events.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/events/schemas",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/platform-events/platform-events.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/export/:resumeId/bundle",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/:resumeId/json",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/:resumeId/latex",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/banner",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/resume/docx",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/resume/pdf",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/export/user/:userId/resume/pdf",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/export/export.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feature-flags/active",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feature-flags/evaluate",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feature-flags/stream",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/feature-flags/feature-flags.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feed",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feed/bookmarks",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feed/subscribe",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/activity.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feed/subscribe/:type",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/activity.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/feed/user/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/fit-profile/answers",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/fit-profile/answers",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/fit-profile/me",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/fit-profile/me",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/fit-profile/questions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/i18n/dictionary/enums",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/i18n/i18n.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/i18n/dictionary/errors",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/i18n/i18n.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/i18n/dictionary/notifications",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/i18n/i18n.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/import/github/parse",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/integrations/github/summary/:username",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/github/github.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/integrations/github/sync",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/integration/github/github.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/integrations/github/sync-status/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/github/github.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/integrations/github/sync/:resumeId/auto",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/integration/github/github.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/jobs/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/jobs/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id/applications",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/jobs/:id/apply",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/:id/apply",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id/apply-context",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/jobs/:id/bookmark",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/:id/bookmark",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id/fit",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id/fit-profile",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/:id/fit-profile",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/fit-profile/fit-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/:id/match",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/job-match/job-match.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/:id/similar",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/applications",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/applications/:applicationId/events",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/applications/companies/:company/response-stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/applications/tracker",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/bookmarks",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/jobs/import-from-url",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/mine",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/recommended",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/jobs/with-fit-score",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/jobs/jobs.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/match",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/job-match/job-match.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/match/:resumeId/:jobId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/job-match/job-match.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/me/gdpr-export",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/me/menu",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/me/password/change",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/password-management/password-management.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/me/skill-proficiency",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-proficiency.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/me/skill-proficiency/:skillName",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-proficiency.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/me/skill-proficiency/:skillName",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-proficiency.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/me/ui-state",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/ui-state/ui-state.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/me/ui-state/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/ui-state/ui-state.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/me/ui-state/:key",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/ui-state/ui-state.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/areas",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/courses/:codigoCurso",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/courses/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/institutions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/institutions/:codigoIes",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/institutions/:codigoIes/courses",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/institutions/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/mec/internal/sync",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/internal/sync/history",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/internal/sync/status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/mec/ufs",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/integration/mec-sync/mec-sync.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/notifications",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/notifications/mark-read",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/notifications/preferences",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/notifications/preferences/:type",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/notifications/subscribe",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/notifications/types",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/notifications/unread-count",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/notifications/notifications.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/onboarding/progress",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/onboarding/progress",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/onboarding/session",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/complete",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/extras",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/goto",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/next",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/previous",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/restart",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/onboarding/session/save",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/onboarding/status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/onboarding/onboarding.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/pages/me-dashboard",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/pages/settings/:section",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/ui-metadata/ui-metadata.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/platform/stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/common/platform.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/posts/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/posts/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/posts/:id/bookmark",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/bookmark",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/posts/:id/comments",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/comments",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/posts/:id/like",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/like",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/poll/vote",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/report",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/:id/repost",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/posts/comments/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/posts/composer-config",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/posts/upload-image",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/profiles/:username",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/public/resumes/:slug",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/public/resumes/:slug/download",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/public/resumes/:slug/og.png",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/recruiting/jobs/form-config",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/recruiting/recruiting.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/recruiting/match-candidates",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/recruiting/recruiting.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resume-styles",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resume-styles/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resume-styles/:id/preview.pdf",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/resumes/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/ats-score",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/benchmark",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/dashboard",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/history",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/keywords",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/analytics/match-job",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/progression",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/analytics/snapshot",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/analytics/track-view",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/analytics/views",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/collaborators",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/collaborators",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/:resumeId/collaborators/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/resumes/:resumeId/collaborators/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/comments",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/comments",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/diff",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/full",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/quality",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resume-quality/resume-quality.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/quality/recompute",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/resume-quality/resume-quality.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/sections",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/sections/:sectionTypeKey/items",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/sections/types",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/shares/:shareId/analytics",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/share-analytics/share-analytics.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/skills/skills.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/skills",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/skills/skills.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/:resumeId/skills/:skillId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/skills/skills.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/resumes/:resumeId/skills/:skillId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/skills/skills.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/style",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/resume-styles/resume-styles.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/tailor",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/tailored-versions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/thumbnail.svg",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/:resumeId/versions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/:resumeId/versions/:versionId/restore",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/comments/:commentId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/comments/:commentId/resolve",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/imports",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/imports/:importId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/imports/:importId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/:importId/retry",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/github",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/json",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/linkedin",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/parse",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/resumes/imports/pdf",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/import/import.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/resumes/manage/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/manage/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/manage/user/:userId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/shared-with-me",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/collaboration/sharing/collaboration.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/resumes/slots",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/search/search.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/search/global",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/search/search.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/search/similar/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/search/search.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/search/suggestions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/analytics/search/search.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/shadow-profiles/:id/claim",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/users/shadow-profile/shadow-profile.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/shadow-profiles/candidates",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/shadow-profile/shadow-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/shadow-profiles/github",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/users/shadow-profile/shadow-profile.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/shares",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/shares/:shareId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/shares/:shareId/aliases",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/shares/:shareId/aliases",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/shares/:shareId/qr.png",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/shares/aliases/:aliasId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/shares/resume/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/spoken-languages",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/spoken-languages/:code",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/spoken-languages/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/stream",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/realtime/infrastructure/http/realtime.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/success-stories",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/success-stories/success-stories.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/success-stories",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/success-stories/success-stories.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/success-stories/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/success-stories/success-stories.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/success-stories/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/success-stories/success-stories.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-areas",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-areas/:areaType/niches",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-niches",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-niches/:nicheSlug/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/areas",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/areas/:areaType/niches",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/languages",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/languages/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/niches",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/niches/:nicheSlug/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/skills/search",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/skills/type/:type",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/tech-skills/sync",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/tech-skills/type/:type",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/skills-catalog/tech-skills/tech-skills.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/translation/batch",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/translation/detect",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/translation/en-to-pt",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/translation/health",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/translation/pt-to-en",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/translation/text",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/translation/translation.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/upload/company-logo/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/integration/upload/upload.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/upload/file/:key",
+    "expectedStatus": 204,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/integration/upload/upload.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/upload/profile-image",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/integration/upload/upload.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/activities",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/activity.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/activities/by-type/:type",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/activity.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/comments",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/:userId/connect",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/connection-stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/feed",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/activity.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/users/:userId/follow",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/:userId/follow",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/followers",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/following",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/is-connected",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/is-following",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/likes",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/feed/feed.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-endorsement.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/users/:userId/skills/:skill/endorse",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-endorsement.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/:userId/skills/:skill/endorse",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/social/skill-endorsement.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/skills/:skill/endorsers",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-endorsement.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/:userId/social-stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/manage",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/manage",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/users/manage/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/manage/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/manage/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/manage/:id/reset-password",
+    "expectedStatus": 200,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/manage/:id/roles",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/me/accept-consent",
+    "expectedStatus": 201,
+    "statusSource": "explicit",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/connection-recommendations",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection-recs.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/connections",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/connections/pending",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/connections/sent",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/connections/suggestions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/consent-history",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/consent-status",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/account-lifecycle/account-lifecycle.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/network-summary",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/connection.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/one-click-apply",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/v1/users/me/one-click-apply",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/permissions",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/skills",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/skill-endorsement.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/me/social-stats",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/social/follow.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/preferences",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/preferences",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/preferences/full",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/preferences/full",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/profile",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/profile",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/public",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/users/username",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/username/check",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/users/username/rules",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/users/username/validate",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/identity/users/users.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/versions/:resumeId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/versions/:resumeId/:versionId",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/versions/:resumeId/restore/:versionId",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/resumes/resume-versions/resume-versions.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/webhooks",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/webhooks/webhooks.routes.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/v1/webhooks",
+    "expectedStatus": 201,
+    "statusSource": "auto-201-post",
+    "file": "src/bounded-contexts/platform/webhooks/webhooks.routes.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/v1/webhooks/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/webhooks/webhooks.routes.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/v1/webhooks/:id",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/webhooks/webhooks.routes.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/webhooks/:id/deliveries",
+    "expectedStatus": 200,
+    "statusSource": "default-200",
+    "file": "src/bounded-contexts/platform/webhooks/webhooks.routes.ts"
+  }
+]

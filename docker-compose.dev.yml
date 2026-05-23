@@ -69,19 +69,6 @@ services:
     networks:
       - profile-dev-network
 
-  libretranslate:
-    extends:
-      file: infra/docker/compose/libretranslate.yml
-      service: libretranslate
-    container_name: profile-libretranslate-dev
-    # Backend hits libretranslate via `http://libretranslate:5000`
-    # internally; the host doesn't need it.
-    ports: !override []
-    volumes:
-      - libretranslate_models:/home/libretranslate/.local
-    networks:
-      - profile-dev-network
-
   mailpit:
     # P1-#A6-7: pin tag. Override via `MAILPIT_VERSION`.
     image: axllent/mailpit:${MAILPIT_VERSION:-v1.20.6}
@@ -145,7 +132,6 @@ services:
       # the docker network; override via .env for a host-reachable value
       # when serving the URL to a real browser on the host.
       MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://minio:9000}
-      LIBRETRANSLATE_URL: http://libretranslate:5000
       LOG_LEVEL: debug
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-mec-sync-token-123}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
@@ -168,8 +154,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      libretranslate:
-        condition: service_healthy
       mailpit:
         condition: service_healthy
     networks:
@@ -184,6 +168,10 @@ services:
       - ./tsconfig.json:/app/tsconfig.json:delegated
       - ./scripts:/app/scripts:delegated
       - ./bunfig.toml:/app/bunfig.toml:delegated
+      # `config/` holds the bunfig.{integration,e2e,static-analysis}.toml
+      # variants. Mounted so `bun run test:e2e` (which docker-execs into
+      # this container) can pick them up without a docker cp dance.
+      - ./config:/app/config:delegated
       - ./package.json:/app/package.json:delegated
       - /app/node_modules
       - ./logs:/app/logs
@@ -202,6 +190,3 @@ volumes:
     external: true
   minio_dev_data:
     name: profile-minio-dev-data
-  libretranslate_models:
-    name: profile-libretranslate-models
-    external: true

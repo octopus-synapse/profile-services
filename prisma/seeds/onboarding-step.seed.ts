@@ -14,7 +14,7 @@ interface OnboardingStepSeed {
   strengthWeight: number;
 }
 
-const steps: OnboardingStepSeed[] = [
+export const steps: OnboardingStepSeed[] = [
   {
     key: 'welcome',
     order: 0,
@@ -430,29 +430,29 @@ const steps: OnboardingStepSeed[] = [
     strengthWeight: 5,
   },
   {
-    key: 'template',
+    key: 'resume-style',
     order: 14,
-    component: 'template',
+    component: 'resume-style',
     icon: '🎨',
     required: true,
     sectionTypeKey: null,
-    fields: [
-      { key: 'templateId', type: 'text', required: false },
-      { key: 'colorScheme', type: 'text', required: true },
-    ],
+    fields: [{ key: 'resumeStyleId', type: 'text', required: true }],
     translations: {
       en: {
-        label: 'Theme',
-        description: 'Choose Your Theme',
-        fieldLabels: { templateId: 'Template', colorScheme: 'Color Scheme' },
+        label: 'Resume style',
+        description: 'Pick a resume style',
+        fieldLabels: { resumeStyleId: 'Resume style' },
       },
       'pt-BR': {
-        label: 'Tema',
-        description: 'Escolha seu Tema',
-        fieldLabels: { templateId: 'Modelo', colorScheme: 'Esquema de Cores' },
+        label: 'Estilo do currículo',
+        description: 'Escolha um estilo de currículo',
+        fieldLabels: { resumeStyleId: 'Estilo do currículo' },
       },
     },
-    validation: { requiredFields: ['colorScheme'] },
+    // `resumeStyleId` is intentionally not required at completion time —
+    // the resume-onboarding adapter falls back to the seeded default
+    // style when the user skipped the picker.
+    validation: {},
     strengthWeight: 10,
   },
   {
@@ -546,6 +546,11 @@ for (const step of steps) {
 
 export async function seedOnboardingSteps(prisma: PrismaClient) {
   console.log('🚀 Seeding onboarding steps...');
+
+  // Drop the legacy 'template' step that the resume-style refactor
+  // replaced. Without this cleanup, a re-seed leaves both rows in
+  // the DB and the presenter picks the wrong one by order index.
+  await prisma.onboardingStep.deleteMany({ where: { key: 'template' } });
 
   for (const step of steps) {
     await prisma.onboardingStep.upsert({

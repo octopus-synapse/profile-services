@@ -106,7 +106,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: jsonResume });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.importId).toBeDefined();
       expect(response.body.status).toBeDefined();
 
@@ -213,7 +213,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: jsonResume });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.personalInfo).toBeDefined();
       expect(response.body.personalInfo.name).toBe(jsonResume.basics.name);
       expect(response.body.sections).toBeDefined();
@@ -281,7 +281,7 @@ describeIntegration('Resume Import Integration Tests', () => {
         });
 
       // Should succeed with minimal data
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
     });
   });
 

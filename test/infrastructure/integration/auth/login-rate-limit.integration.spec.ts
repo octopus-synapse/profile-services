@@ -12,9 +12,16 @@
  * auth-lockout stage → use-case lockout check → password compare).
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { runInParallel } from '../../shared/race-condition.helper';
-import { closeApp, getApp, getPrisma, getRequest, uniqueTestEmail } from '../setup';
+import {
+  clearRateLimitState,
+  closeApp,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestEmail,
+} from '../setup';
 
 const VALID_PASSWORD = 'CorrectPassword123!';
 const WRONG_PASSWORD = 'WrongPassword123!';
@@ -41,6 +48,15 @@ async function signupVerified(email: string): Promise<string> {
 }
 
 describe('P1 #2 — POST /v1/auth/login rate-limit + lockout', () => {
+  beforeEach(async () => {
+    // Both buckets need a clean slate — the IP-keyed signup bucket
+    // (account creation) plus the IP-keyed login bucket the spec
+    // itself probes. We don't reset the email-keyed lockout state
+    // because the test asserts it accumulates across `it()` blocks.
+    await clearRateLimitState('*:POST:/v1/accounts');
+    await clearRateLimitState('*:POST:/v1/auth/login');
+  });
+
   beforeAll(async () => {
     await getApp();
   });
@@ -49,15 +65,15 @@ describe('P1 #2 — POST /v1/auth/login rate-limit + lockout', () => {
     await closeApp();
   });
 
-  it('caps concurrent login attempts at the per-IP rate-limit (10/minute)', async () => {
+  it('caps concurrent login attempts at the per-IP rate-limit (30/minute)', async () => {
     const email = uniqueTestEmail('login-ratelimit');
     await signupVerified(email);
 
-    // Fire 15 concurrent attempts with the wrong password from the
-    // same IP. The rate-limit guard is `points: 10, duration: 60s, ip` →
-    // exactly 10 should pass through to the auth layer (and 401), the
-    // other 5 should bounce at the pipeline with 429.
-    const { successes } = await runInParallel(15, async () =>
+    // Rate-limit atual: `points: 30, duration: 60s, ip` (ver
+    // authentication.routes.ts:98). 35 concurrent attempts: 30 passam
+    // pelo handler, 5 batem 429.
+    const total = 35;
+    const { successes } = await runInParallel(total, async () =>
       getRequest().post('/api/v1/auth/login').send({ email, password: WRONG_PASSWORD }),
     );
 
@@ -65,13 +81,11 @@ describe('P1 #2 — POST /v1/auth/login rate-limit + lockout', () => {
     const rateLimited = statuses.filter((s) => s === 429).length;
     const passedThrough = statuses.filter((s) => s === 401 || s === 423).length;
 
-    // INCR-backed limiter guarantees exactly `limit` get through. Allow
-    // a tiny tolerance for clock-skew edge cases that hand 11 through
-    // when the next minute window rolls during the test.
+    // Tolerância pequena para clock-skew na transição de janela.
     expect(rateLimited).toBeGreaterThanOrEqual(4);
     expect(rateLimited).toBeLessThanOrEqual(6);
-    expect(passedThrough).toBeGreaterThanOrEqual(9);
-    expect(rateLimited + passedThrough).toBe(15);
+    expect(passedThrough).toBeGreaterThanOrEqual(29);
+    expect(rateLimited + passedThrough).toBe(total);
   });
 
   it('locks the email after the configured failure threshold and emits 423 + Retry-After', async () => {

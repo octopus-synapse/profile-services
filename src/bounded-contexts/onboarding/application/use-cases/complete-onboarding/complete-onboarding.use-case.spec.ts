@@ -65,7 +65,7 @@ describe('CompleteOnboardingUseCase', () => {
           github: 'https://github.com/johndoe',
           website: 'https://johndoe.com',
         },
-        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
+        resumeStyleId: null,
         sections: [
           {
             sectionTypeKey: 'skills_v1',
@@ -111,7 +111,7 @@ describe('CompleteOnboardingUseCase', () => {
           jobTitle: 'Developer',
           summary: 'A passionate developer looking to make a difference in tech',
         },
-        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
+        resumeStyleId: null,
         sections: [],
       });
 

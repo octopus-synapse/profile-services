@@ -23,7 +23,7 @@ model Upload {
   /// MIME type stored at upload time. Optional for legacy backfilled rows.
   contentType String?
   /// Size in bytes (when known at upload time).
-  sizeBytes Int?
+  sizeBytes   Int?
 
   createdAt DateTime @default(now())
 

@@ -5,13 +5,45 @@
  * bootstrap. Suites use `app.request.post(...).send(...)`.
  */
 
-import { setDefaultTimeout } from 'bun:test';
+import { beforeEach, setDefaultTimeout } from 'bun:test';
 import type { PrismaClient } from '@prisma/client';
 import { startTestApp, type TestApp } from '../shared';
 import { AuthHelper } from '../shared/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
 
 setDefaultTimeout(15000);
+
+/**
+ * Global rate-limit reset. `.env.test` keeps `RATE_LIMIT_ENABLED=true`
+ * (security specs need the gate live), but each test fixture signs up
+ * 1–3 fresh users — without resetting the buckets between specs the
+ * suite-wide IP / auth-endpoint quotas get exhausted after a handful of
+ * tests and every subsequent signup returns 429.
+ *
+ * `bun:test` exposes `beforeEach` at module scope, applied to every
+ * `it()` defined in any spec that imports this setup file. If Redis
+ * is down the deletePattern call rejects — we let it propagate so the
+ * failure is loud (a 429-cascade is much worse to debug than a single
+ * "Redis unreachable" report). When the cache is intentionally
+ * disabled (`REDIS_HOST` unset), `CacheCoreService` short-circuits and
+ * returns without throwing, so this hook is a free no-op there.
+ */
+beforeEach(async () => {
+  if (!cachedAppRef) return;
+  await cachedAppRef.cache.deletePattern('ratelimit:*');
+});
+
+/**
+ * Manually clear the rate-limit state. Most specs don't need this — the
+ * global `beforeEach` above runs before every `it()`. Exported for the
+ * rare case of multiple sub-flows inside a single `it()` that all
+ * trigger the per-endpoint quota (e.g. 2fa enrol + verify + lockout).
+ */
+export async function clearRateLimitState(key?: string): Promise<void> {
+  if (!cachedAppRef) return;
+  const pattern = key ? `ratelimit:${key}*` : 'ratelimit:*';
+  await cachedAppRef.cache.deletePattern(pattern);
+}
 
 // AuthHelper / CleanupHelper hold a Prisma reference. When a spec
 // calls `stopTestApp()` the shared module nulls its TestApp cache;

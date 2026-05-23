@@ -26,7 +26,7 @@ import { ActivateOnboardingExtrasUseCase } from './application/use-cases/activat
 import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-config.adapter';
 import { OnboardingProgressRepository } from './infrastructure/adapters/persistence/onboarding-progress.repository';
 import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
-import { SystemThemesAdapter } from './infrastructure/adapters/system-themes.adapter';
+import { ResumeStylesQueryAdapter } from './infrastructure/adapters/resume-styles-query.adapter';
 import { AdminOnboardingService } from './infrastructure/services/admin-onboarding.service';
 import { onboardingRoutes } from './onboarding.routes';
 
@@ -49,7 +49,7 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
 
   const useCases = buildOnboardingUseCases(prisma, logger, auditLog);
   const progress = buildOnboardingProgressUseCases(prisma, logger);
-  const systemThemes = new SystemThemesAdapter(prisma);
+  const resumeStyles = new ResumeStylesQueryAdapter(prisma);
   const config = new OnboardingConfigAdapter(prisma);
   const sectionTypes = new SectionTypeDefinitionAdapter(prisma);
   const admin = new AdminOnboardingService(prisma);
@@ -63,7 +63,7 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
   const httpBundle: OnboardingHttpBundle = {
     useCases,
     progress,
-    systemThemes,
+    resumeStyles,
     config,
     sectionTypes,
     cacheLock,

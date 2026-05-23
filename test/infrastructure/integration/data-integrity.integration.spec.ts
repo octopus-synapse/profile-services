@@ -10,10 +10,11 @@
  * NOTE: Uses Generic Sections API - the standard way to manage resume content.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
   authHeader,
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -39,6 +40,10 @@ describe('Data Integrity Integration', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin();
     accessToken = auth.accessToken;
     userId = auth.userId;

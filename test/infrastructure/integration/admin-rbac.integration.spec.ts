@@ -176,8 +176,8 @@ describeIntegration('Admin RBAC Integration', () => {
       const response = await getRequest().get('/api/v1/users/manage').set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.users).toBeArray();
-      expect(response.body.pagination).toBeDefined();
+      expect(response.body.items).toBeArray();
+      expect(response.body.totalPages).toBeGreaterThanOrEqual(0);
     });
 
     it('should support pagination parameters', async () => {
@@ -186,8 +186,8 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.users.length).toBeLessThanOrEqual(5);
-      expect(response.body.pagination).toBeDefined();
+      expect(response.body.items.length).toBeLessThanOrEqual(5);
+      expect(response.body.totalPages).toBeGreaterThanOrEqual(0);
     });
 
     it('should support search parameter', async () => {
@@ -196,7 +196,7 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.users).toBeArray();
+      expect(response.body.items).toBeArray();
     });
   });
 
@@ -456,9 +456,9 @@ describeIntegration('Admin RBAC Integration', () => {
         .set(authHeader(adminToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.users).toBeArray();
+      expect(response.body.items).toBeArray();
       // Should return empty array for out-of-range page
-      expect(response.body.users.length).toBe(0);
+      expect(response.body.items.length).toBe(0);
     });
 
     it('should handle negative pagination values', async () => {

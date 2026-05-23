@@ -47,6 +47,16 @@ export class RedisCacheAdapter extends CachePort {
     }
   }
 
+  /**
+   * Fail-closed write — usado por flows críticos (e.g.
+   * `SessionInvalidationAdapter` no token-valid-after gate). A
+   * implementação Redis simplesmente chama `set`: o cliente é
+   * exigido no construtor e qualquer falha de I/O propaga.
+   */
+  async setSecure<T>(key: string, value: T, ttlSeconds = 0): Promise<void> {
+    return this.set(key, value, ttlSeconds);
+  }
+
   async delete(key: string): Promise<void> {
     await this.client.unlink(key);
   }
@@ -82,6 +92,17 @@ export class RedisCacheAdapter extends CachePort {
         await this.client.unlink(lockKey);
       },
     };
+  }
+
+  /**
+   * Atomic `SET key value EX ttl NX` — usado por replay-guards
+   * (e.g. TOTP single-use). Retorna true se a key não existia (e
+   * portanto este caller "ganhou" o slot), false se já existia.
+   */
+  override async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    const payload = JSON.stringify(value);
+    const result = await this.client.set(key, payload, 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
   }
 
   /**

@@ -165,7 +165,7 @@ model AccessModifier {
   reason String
 
   /// When the modifier becomes active.
-  startsAt DateTime @default(now())
+  startsAt DateTime  @default(now())
   /// When the modifier expires. `null` = active until revoked.
   endsAt   DateTime?
 

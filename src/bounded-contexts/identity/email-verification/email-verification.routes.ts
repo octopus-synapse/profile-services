@@ -10,6 +10,7 @@
  */
 
 import type { Route } from '@/shared-kernel/http/route.types';
+import { renderSuccessMessageForRequest } from '@/shared-kernel/http/success-message';
 import { EmailVerificationUseCases } from './application/ports/email-verification.port';
 import {
   ResendCooldownResponseSchema,
@@ -62,7 +63,14 @@ export const emailVerificationRoutes: ReadonlyArray<Route<EmailVerificationUseCa
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const cooldown = await bc.sendVerificationEmail.execute({ userId: ctx.user!.userId });
-      return { code: 'EMAIL_VERIFICATION_SENT' as const, cooldown };
+      // The mounter's `isSuccessMessage` only renders `message` when the
+      // body is exactly `{ code, params? }`. The extra `cooldown` field
+      // makes it bail, so render the localized `message` inline here.
+      const { message } = renderSuccessMessageForRequest(
+        { code: 'EMAIL_VERIFICATION_SENT' },
+        ctx.headers['accept-language'],
+      );
+      return { code: 'EMAIL_VERIFICATION_SENT' as const, message, cooldown };
     },
   },
   {

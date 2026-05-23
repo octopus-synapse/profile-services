@@ -11,7 +11,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
-import { getApp, uniqueTestId, uniqueTestUsername } from './setup';
+import { clearAuthRateLimits, getApp, uniqueTestId, uniqueTestUsername } from './setup';
 
 describe('Onboarding Flow Integration', () => {
   let app: TestApp;
@@ -27,6 +27,10 @@ describe('Onboarding Flow Integration', () => {
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
   });
 
@@ -151,10 +155,7 @@ describe('Onboarding Flow Integration', () => {
         noSkills: true,
         skills: [],
         languages: [{ name: 'English', level: 'NATIVE' }],
-        templateSelection: {
-          template: 'PROFESSIONAL',
-          palette: 'DEFAULT',
-        },
+        resumeStyleId: null,
       };
 
       const response = await app.request

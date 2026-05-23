@@ -34,6 +34,14 @@ export class CacheServicePortAdapter extends CachePort {
     return this.inner.set(key, value, ttlSeconds);
   }
 
+  async setSecure<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
+    return this.inner.setSecure(key, value, ttlSeconds);
+  }
+
+  override async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    return this.inner.setIfAbsent(key, value, ttlSeconds);
+  }
+
   async delete(key: string): Promise<void> {
     return this.inner.delete(key);
   }

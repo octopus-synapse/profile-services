@@ -98,6 +98,23 @@ declare -A DEFAULT_BACKEND_PORT=(
     ["dev"]="3001" ["e2e"]="3001" ["prod"]="3001"
 )
 
+# When running tests via `docker exec` inside the backend container,
+# DATABASE_URL/REDIS_HOST must point at the docker-network service
+# aliases (not localhost). These mirror the names declared in each
+# compose file. Override on a per-deploy basis by exporting
+# `INTERNAL_PG_HOST_OVERRIDE` / `INTERNAL_REDIS_HOST_OVERRIDE`.
+declare -A INTERNAL_PG_HOST=(
+    ["dev"]="postgres" ["e2e"]="postgres" ["test"]="postgres-test" ["prod"]="postgres"
+)
+declare -A INTERNAL_REDIS_HOST=(
+    ["dev"]="redis" ["e2e"]="redis" ["test"]="redis-test" ["prod"]="redis"
+)
+
+# Tests run against a separate logical DB (`profile_test`) inside the
+# detected env's Postgres container — keeps dev/prod data intact. The
+# runner creates the DB on demand and runs `db:setup:test` against it.
+TEST_DB_NAME="profile_test"
+
 # ─── Container helpers ───────────────────────────────────────────────
 get_container_port() {
     local container=$1
@@ -188,6 +205,109 @@ wait_for_backend() {
         sleep 1
     done
     return 0
+}
+
+# ─── Docker-exec mode (run tests inside the backend container) ───────
+# When the detected env has a backend container running, we run
+# `bun test` inside it so internal DB/Redis are reachable via the
+# compose network — no need to publish 5432/6379 on the host.
+
+# True iff we should pipe tests through `docker exec`. Refresh on each
+# call so flags / env changes don't lock the decision early.
+tr_should_exec_in_container() {
+    [[ -n "${BACKEND_CONTAINER:-}" ]] || return 1
+    is_container_running "$BACKEND_CONTAINER" || return 1
+    return 0
+}
+
+# Create the isolated test DB inside the env's Postgres container (if
+# missing) and apply migrations + seed. Schema lives next to the dev /
+# prod DB; data is fully separate (`TEST_DB_NAME`).
+tr_setup_isolated_test_db() {
+    local pg_container="$PG_CONTAINER"
+    local internal_pg_host="${INTERNAL_PG_HOST_OVERRIDE:-${INTERNAL_PG_HOST[$ENVIRONMENT]:-postgres}}"
+    log_step "Provisioning isolated test database '$TEST_DB_NAME' in $pg_container..."
+
+    # Idempotent: psql returns "1" iff the DB exists; create only when
+    # missing. `pg_isready` may report ready before listen_addresses is
+    # fully wired, so retry a couple times on failure.
+    local exists=""
+    local attempt
+    for attempt in 1 2 3; do
+        exists=$(docker exec "$pg_container" psql -U postgres -tAc \
+            "SELECT 1 FROM pg_database WHERE datname='${TEST_DB_NAME}'" 2>/dev/null || true)
+        [[ -n "$exists" ]] && break
+        # If the query worked but DB doesn't exist, exists="" — also
+        # falls through the create branch below, so the "missing" and
+        # "still booting" paths converge.
+        break
+    done
+
+    if [[ "$exists" != "1" ]]; then
+        if ! docker exec "$pg_container" createdb -U postgres "$TEST_DB_NAME" 2>/dev/null; then
+            # Race / pre-existing: re-query, accept either outcome.
+            exists=$(docker exec "$pg_container" psql -U postgres -tAc \
+                "SELECT 1 FROM pg_database WHERE datname='${TEST_DB_NAME}'" 2>/dev/null || true)
+            if [[ "$exists" != "1" ]]; then
+                log_error "Failed to create test database '$TEST_DB_NAME'"
+                exit 1
+            fi
+        fi
+    fi
+
+    # Replicate what `infra/docker/postgres/init/00-extensions.sql` does
+    # in the primary DB: enable pg_uuidv7 / pgvector and expose the
+    # `uuidv7()` alias the migrations call (the upstream extension ships
+    # `uuid_generate_v7()` only). The init script only runs against the
+    # POSTGRES_DB at container boot — DBs we create on the fly need this
+    # applied manually. Idempotent (`IF NOT EXISTS` + `OR REPLACE`).
+    if ! docker exec "$pg_container" psql -U postgres -d "$TEST_DB_NAME" -v ON_ERROR_STOP=1 -c "
+        CREATE EXTENSION IF NOT EXISTS vector;
+        CREATE EXTENSION IF NOT EXISTS pg_uuidv7;
+        CREATE OR REPLACE FUNCTION uuidv7()
+        RETURNS uuid LANGUAGE sql VOLATILE AS \$\$
+          SELECT uuid_generate_v7();
+        \$\$;
+    " > /dev/null 2>&1; then
+        log_warn "Could not pre-install extensions on $TEST_DB_NAME — migrations may fail if they rely on uuidv7()/vector."
+    fi
+
+    log_step "Applying migrations + seed catalogs to $TEST_DB_NAME (inside $BACKEND_CONTAINER)..."
+    local db_url="postgresql://postgres:postgres@${internal_pg_host}:5432/${TEST_DB_NAME}"
+    if ! docker exec \
+            -e DATABASE_URL="$db_url" \
+            -e NODE_ENV=test \
+            "$BACKEND_CONTAINER" \
+            bun run db:setup:test > "/tmp/${TR_LABEL}-db-setup.log" 2>&1; then
+        log_error "Database setup failed; see /tmp/${TR_LABEL}-db-setup.log"
+        tail -30 "/tmp/${TR_LABEL}-db-setup.log" >&2 || true
+        exit 1
+    fi
+    # `db:setup:test` already ran prisma/seed.ts (superset of the
+    # per-worker `seedTestCatalogs`). Tell each test worker to skip its
+    # own re-seed so they don't fight over catalog upserts.
+    export E2E_SKIP_SEED=1
+}
+
+# Run `bun test` either on the host or via `docker exec`, depending on
+# whether a backend container is available. Args appended verbatim.
+tr_run_bun_test() {
+    if tr_should_exec_in_container; then
+        local internal_pg_host="${INTERNAL_PG_HOST_OVERRIDE:-${INTERNAL_PG_HOST[$ENVIRONMENT]:-postgres}}"
+        local internal_redis_host="${INTERNAL_REDIS_HOST_OVERRIDE:-${INTERNAL_REDIS_HOST[$ENVIRONMENT]:-redis}}"
+        local db_url="postgresql://postgres:postgres@${internal_pg_host}:5432/${TEST_DB_NAME}"
+        docker exec \
+            -e DATABASE_URL="$db_url" \
+            -e REDIS_HOST="$internal_redis_host" \
+            -e REDIS_PORT="6379" \
+            -e JWT_SECRET="${JWT_SECRET:-test_secret_key_minimum_32_characters_long_pad}" \
+            -e NODE_ENV=test \
+            -e E2E_SKIP_SEED="${E2E_SKIP_SEED:-}" \
+            "$BACKEND_CONTAINER" \
+            bun test "$@"
+    else
+        bun test "$@"
+    fi
 }
 
 # ─── CLI parsing ─────────────────────────────────────────────────────
@@ -332,23 +452,42 @@ tr_ensure_services() {
         log_info "All services ready"
     else
         log_step "Verifying services..."
-        [[ -z "$PG_PORT" ]]    && { log_error "Could not determine PostgreSQL port"; exit 1; }
-        [[ -z "$REDIS_PORT" ]] && { log_error "Could not determine Redis port"; exit 1; }
-
-        if ! wait_for_postgres "$PG_PORT"; then
-            log_error "PostgreSQL not responding on port $PG_PORT"
-            exit 1
-        fi
-        if ! wait_for_redis "$REDIS_PORT"; then
-            log_error "Redis not responding on port $REDIS_PORT"
-            exit 1
-        fi
-        if [[ -n "$BACKEND_CONTAINER" ]] && [[ -n "$BACKEND_PORT" ]]; then
-            if ! curl -sf "http://localhost:${BACKEND_PORT}/api/health" > /dev/null 2>&1; then
-                log_warn "Backend not responding on port $BACKEND_PORT — tests may fail if they need the API"
+        # If we're going to run tests via `docker exec` inside the
+        # backend container, the host port reachability is irrelevant —
+        # the container reaches Postgres/Redis via the internal compose
+        # network. Verify by docker-side health probes instead.
+        if tr_should_exec_in_container; then
+            if ! docker exec "$PG_CONTAINER" pg_isready -U postgres > /dev/null 2>&1; then
+                log_error "PostgreSQL container ($PG_CONTAINER) not ready"
+                exit 1
             fi
+            if ! docker exec "$REDIS_CONTAINER" redis-cli ping > /dev/null 2>&1; then
+                log_error "Redis container ($REDIS_CONTAINER) not ready"
+                exit 1
+            fi
+            log_info "Services verified (internal — tests will run via docker exec on $BACKEND_CONTAINER)"
+        else
+            [[ -z "$PG_PORT" ]]    && { log_error "Could not determine PostgreSQL port"; exit 1; }
+            [[ -z "$REDIS_PORT" ]] && { log_error "Could not determine Redis port"; exit 1; }
+            if ! wait_for_postgres "$PG_PORT"; then
+                log_error "PostgreSQL not responding on port $PG_PORT"
+                exit 1
+            fi
+            if ! wait_for_redis "$REDIS_PORT"; then
+                log_error "Redis not responding on port $REDIS_PORT"
+                exit 1
+            fi
+            log_info "Services verified"
         fi
-        log_info "Services verified"
+    fi
+
+    # Provision the isolated test DB (`profile_test`) inside the env's
+    # Postgres container. Idempotent — picks up an existing DB on
+    # subsequent runs without re-seeding. Only happens when we have a
+    # backend container to run the setup script inside; the legacy host
+    # path is already handled by the matching `test:e2e:run` script.
+    if tr_should_exec_in_container; then
+        tr_setup_isolated_test_db
     fi
 }
 
@@ -381,10 +520,20 @@ tr_print_banner() {
     log_info "Configuration:"
     log_info "  Environment:  $ENVIRONMENT"
     log_info "  Compose:      $COMPOSE_FILE"
-    log_info "  PostgreSQL:   localhost:$PG_PORT (user: ${POSTGRES_USER:-postgres})"
-    log_info "  Redis:        localhost:$REDIS_PORT"
-    [[ -n "$BACKEND_PORT" ]] && log_info "  Backend:      localhost:$BACKEND_PORT"
-    log_info "  Database:     $DB_NAME"
+    if tr_should_exec_in_container; then
+        local internal_pg_host="${INTERNAL_PG_HOST_OVERRIDE:-${INTERNAL_PG_HOST[$ENVIRONMENT]:-postgres}}"
+        local internal_redis_host="${INTERNAL_REDIS_HOST_OVERRIDE:-${INTERNAL_REDIS_HOST[$ENVIRONMENT]:-redis}}"
+        log_info "  Mode:         docker exec ($BACKEND_CONTAINER)"
+        log_info "  PostgreSQL:   ${internal_pg_host}:5432 (internal)"
+        log_info "  Redis:        ${internal_redis_host}:6379 (internal)"
+        log_info "  Database:     $TEST_DB_NAME (isolated from $DB_NAME)"
+    else
+        log_info "  Mode:         host"
+        log_info "  PostgreSQL:   localhost:$PG_PORT (user: ${POSTGRES_USER:-postgres})"
+        log_info "  Redis:        localhost:$REDIS_PORT"
+        [[ -n "$BACKEND_PORT" ]] && log_info "  Backend:      localhost:$BACKEND_PORT"
+        log_info "  Database:     $DB_NAME"
+    fi
     log_info "  Bunfig:       $TR_BUNFIG"
     log_info "  Spec dir:     $TR_SPEC_DIR"
     echo ""
@@ -408,9 +557,11 @@ tr_run_tests() {
     fi
 
     # Pre-seed once before fanning out workers so they don't fight over
-    # catalog upserts at boot. Skipped when sharding is disabled or the
-    # caller has nothing to seed.
-    if (( shards > 1 )) && [[ -n "${TR_PRESEED_CMD:-}" ]]; then
+    # catalog upserts at boot. Skipped when sharding is disabled, the
+    # caller has nothing to seed, or we're in docker-exec mode (where
+    # `tr_setup_isolated_test_db` already ran the full `db:setup:test`
+    # inside the container and exported `E2E_SKIP_SEED=1`).
+    if (( shards > 1 )) && [[ -n "${TR_PRESEED_CMD:-}" ]] && ! tr_should_exec_in_container; then
         log_info "Pre-seeding catalogs..."
         if ! eval "$TR_PRESEED_CMD"; then
             log_error "Pre-seed failed"
@@ -426,10 +577,10 @@ tr_run_tests() {
     if (( shards == 1 )); then
         log_info "Running ${total} spec file(s) in a single process..."
         if [[ -n "$FILTER" ]]; then
-            bun test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
+            tr_run_bun_test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
                 --test-name-pattern "$FILTER" "${ALL_FILES[@]}" || exit_code=$?
         else
-            bun test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
+            tr_run_bun_test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
                 "${ALL_FILES[@]}" || exit_code=$?
         fi
     else
@@ -448,10 +599,10 @@ tr_run_tests() {
             shard_logs+=("$log_file")
 
             if [[ -n "$FILTER" ]]; then
-                (bun test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
+                (tr_run_bun_test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
                     --test-name-pattern "$FILTER" "${shard_files[@]}" >"$log_file" 2>&1) &
             else
-                (bun test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
+                (tr_run_bun_test --config="$TR_BUNFIG" --concurrent --max-concurrency=8 \
                     "${shard_files[@]}" >"$log_file" 2>&1) &
             fi
             shard_pids+=("$!")

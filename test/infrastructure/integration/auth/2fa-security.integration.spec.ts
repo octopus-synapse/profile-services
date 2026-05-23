@@ -52,7 +52,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
         .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body?.secret).toBeDefined();
       expect(response.body?.qrCode).toBeDefined();
 
@@ -70,7 +70,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ code: token });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body?.enabled).toBe(true);
     });
   });
@@ -130,7 +130,8 @@ describe('2FA Security - Bug Discovery Tests', () => {
         });
 
       expect(firstUse.status).toBe(200);
-      expect(firstUse.body?.accessToken).toBeDefined();
+      // verify-2fa response: Verify2faResponseSchema = { userId }
+      expect(firstUse.body?.userId).toBeDefined();
 
       // Step 3: REUSE same token - THIS SHOULD FAIL but will pass if bug exists
       const secondUse = await getRequest()

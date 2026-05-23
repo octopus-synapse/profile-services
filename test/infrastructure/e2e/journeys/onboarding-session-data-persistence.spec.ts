@@ -1,12 +1,14 @@
 /**
  * E2E Test: Onboarding Session Data Persistence
  *
- * TDD: Tests that step data is correctly persisted when advancing through onboarding.
+ * Locks the contract that `/session/next` actually persists each step's
+ * payload before advancing. The original bug we caught here was that the
+ * server returned the new currentStep but left `professionalProfile` /
+ * resume-style selection null in the next `/session` read.
  *
- * Bug discovered: The /session/next endpoint advances steps but does NOT persist
- * step data (professionalProfile, template, palette are all null after advancing).
- *
- * This test MUST FAIL until the bug is fixed.
+ * After the ResumeStyle canonicalization refactor, the picker step is
+ * `resume-style` and stores `resumeStyleId` (FK to ResumeStyle) instead
+ * of the legacy `templateSelection.{templateId, colorScheme}` blob.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
@@ -130,43 +132,50 @@ describe('E2E: Onboarding Session Data Persistence', () => {
       },
     );
 
-    it.serial('should persist templateSelection when advancing from template step', async () => {
-      // First, advance through all section steps to reach template
-      // Current step after professionalProfile test is section:work_experience_v1
-      for (let i = 0; i < 4; i++) {
+    it.serial('persists resumeStyleId when advancing from the resume-style step', async () => {
+      // Advance through the section block — the canonical order ships
+      // 5 core sections (work_experience, education, skill_set,
+      // soft_skill_set, language) before the resume-style step. We
+      // drive the cursor forward by reading the session in a loop until
+      // we hit `resume-style`, so the test is robust to section count
+      // tweaks in the seed.
+      for (let i = 0; i < 10; i++) {
+        const session = await app.request
+          .get('/api/v1/onboarding/session')
+          .set('Authorization', `Bearer ${testUser.token}`);
+        if (session.body.currentStep === 'resume-style') break;
         await app.request
           .post('/api/v1/onboarding/session/next')
           .set('Authorization', `Bearer ${testUser.token}`)
           .send({ noData: true });
       }
 
-      // Verify we're now at template step
-      const beforeTemplate = await app.request
+      // Verify we're now at the resume-style step.
+      const beforeStyle = await app.request
         .get('/api/v1/onboarding/session')
         .set('Authorization', `Bearer ${testUser.token}`);
-      expect(beforeTemplate.body.currentStep).toBe('template');
+      expect(beforeStyle.body.currentStep).toBe('resume-style');
 
-      // Now advance from template to review WITH template data
-      const templateData = { templateId: 'modern', colorScheme: 'blue' };
+      // The available styles are injected as `data` on the step config.
+      const styleStep = beforeStyle.body.steps.find((s: { id: string }) => s.id === 'resume-style');
+      const firstStyleId = (styleStep?.data as Array<{ id: string }> | undefined)?.[0]?.id;
+      expect(firstStyleId).toBeTypeOf('string');
 
+      // Now advance from resume-style to review WITH a real style id.
       const advanceResponse = await app.request
         .post('/api/v1/onboarding/session/next')
         .set('Authorization', `Bearer ${testUser.token}`)
-        .send(templateData);
+        .send({ resumeStyleId: firstStyleId });
 
       expect(advanceResponse.status).toBe(201);
 
-      // Verify template was persisted
+      // Verify the style id was persisted on the session payload.
       const sessionResponse = await app.request
         .get('/api/v1/onboarding/session')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(sessionResponse.status).toBe(200);
-
-      // templateSelection is returned in the session response
-      expect(sessionResponse.body.templateSelection).toBeDefined();
-      expect(sessionResponse.body.templateSelection.templateId).toBe('modern');
-      expect(sessionResponse.body.templateSelection.colorScheme).toBe('blue');
+      expect(sessionResponse.body.resumeStyleId).toBe(firstStyleId);
     });
   });
 
@@ -223,19 +232,35 @@ describe('E2E: Onboarding Session Data Persistence', () => {
             summary: 'Experienced developer building web applications with React and Node.js.',
           });
 
-        // Steps 5-8: Skip all section steps (work_experience, education, skills, language)
-        for (let i = 0; i < 4; i++) {
+        // Skip all section steps (work_experience, education, skill_set,
+        // soft_skill_set, language) — drive the cursor forward until we
+        // hit `resume-style` instead of hardcoding the count.
+        for (let i = 0; i < 10; i++) {
+          const session = await app.request
+            .get('/api/v1/onboarding/session')
+            .set('Authorization', `Bearer ${completeTestUser.token}`);
+          if (session.body.currentStep === 'resume-style') break;
           await app.request
             .post('/api/v1/onboarding/session/next')
             .set('Authorization', `Bearer ${completeTestUser.token}`)
             .send({ noData: true });
         }
 
-        // Step 9: template -> review WITH template data
+        // resume-style -> review WITH a chosen style id.
+        // Read the style id from the session — the picker step ships the
+        // available styles as `data`, mirroring the production flow.
+        const sessionAtStyleStep = await app.request
+          .get('/api/v1/onboarding/session')
+          .set('Authorization', `Bearer ${completeTestUser.token}`);
+        const styleStep = sessionAtStyleStep.body.steps.find(
+          (s: { id: string }) => s.id === 'resume-style',
+        );
+        const chosenStyleId = (styleStep?.data as Array<{ id: string }> | undefined)?.[0]?.id;
+
         await app.request
           .post('/api/v1/onboarding/session/next')
           .set('Authorization', `Bearer ${completeTestUser.token}`)
-          .send({ templateId: 'default', colorScheme: 'blue' });
+          .send({ resumeStyleId: chosenStyleId });
 
         // Check we're at review
         const sessionBeforeComplete = await app.request
@@ -248,7 +273,7 @@ describe('E2E: Onboarding Session Data Persistence', () => {
         expect(sessionBeforeComplete.body.personalInfo).toBeDefined();
         expect(sessionBeforeComplete.body.username).toBe(completeUsername);
         expect(sessionBeforeComplete.body.professionalProfile).toBeDefined();
-        expect(sessionBeforeComplete.body.templateSelection).toBeDefined();
+        expect(sessionBeforeComplete.body.resumeStyleId).toBe(chosenStyleId);
 
         // Now complete - this SHOULD succeed if data was persisted
         const completeResponse = await app.request

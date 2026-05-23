@@ -45,7 +45,8 @@ model ResumeStyle {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resumes Resume[] @relation("ResumeActiveStyle")
+  resumes            Resume[]             @relation("ResumeActiveStyle")
+  onboardingProgress OnboardingProgress[] @relation("OnboardingProgressStyle")
 
   @@index([authorId])
   @@index([isSystem])

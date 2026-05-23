@@ -117,9 +117,9 @@ export const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string().
 
 export const EmptyResponseSchema = z.null();
 
-// Helper to fetch system themes through the bundle.
-export async function getSystemThemes(bundle: OnboardingHttpBundle) {
-  return bundle.systemThemes.getSystemThemes();
+// Helper to fetch the system resume styles shown on the picker step.
+export async function getSystemResumeStyles(bundle: OnboardingHttpBundle) {
+  return bundle.resumeStyles.listSystemStyles();
 }
 
 export type AuthUser = { userId: string; email: string; name?: string };

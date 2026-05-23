@@ -14,4 +14,3 @@ export * from './section-item.schema';
 export * from './section-progress.schema';
 // Response DTOs
 export * from './step-meta.schema';
-export * from './template-selection.schema';

@@ -42,7 +42,7 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       personalInfo: data.personalInfo ?? existing?.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
       sections: data.sections ?? existing?.sections ?? null,
-      templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? existing?.resumeStyleId ?? null,
       activatedExtras:
         data.activatedExtras !== undefined
           ? data.activatedExtras
@@ -93,7 +93,7 @@ describe('GetProgressUseCase', () => {
     personalInfo: { fullName: 'John Doe' },
     professionalProfile: null,
     sections: null,
-    templateSelection: null,
+    resumeStyleId: null,
     activatedExtras: [],
     updatedAt: new Date(),
   };

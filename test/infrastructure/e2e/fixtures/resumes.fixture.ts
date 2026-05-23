@@ -27,7 +27,7 @@ export function createMinimalOnboardingData(suffix?: string) {
         noData: false,
       },
     ],
-    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+    resumeStyleId: null,
   };
 }
 
@@ -91,7 +91,7 @@ export function createFullOnboardingData(suffix?: string) {
         noData: false,
       },
     ],
-    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+    resumeStyleId: null,
   };
 }
 

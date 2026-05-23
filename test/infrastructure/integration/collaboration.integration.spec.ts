@@ -106,7 +106,7 @@ describeIntegration('Collaboration Integration Tests', () => {
         .set('Authorization', `Bearer ${ownerToken}`)
         .send({ userId: collaboratorUserId, role: 'VIEWER' });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.collaborator).toBeDefined();
       expect(response.body.collaborator.userId).toBe(collaboratorUserId);
       expect(response.body.collaborator.role).toBe('VIEWER');
@@ -118,7 +118,7 @@ describeIntegration('Collaboration Integration Tests', () => {
         .set('Authorization', `Bearer ${ownerToken}`)
         .send({ userId: collaborator2UserId, role: 'EDITOR' });
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body.collaborator.role).toBe('EDITOR');
     });
 
