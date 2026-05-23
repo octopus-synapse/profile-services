@@ -1,0 +1,10 @@
+# Spectral ruleset for OpenAPI contract checks on profile-services.
+#
+# Used by the `openapi-contract` CI job to:
+#   1. Lint `client-swagger.json` against OpenAPI 3 best practices
+#   2. Detect breaking changes via `spectral diff` (PR head vs base ref)
+#
+# Decision trace: D48 — Spectral diff fails CI on breaking change unless
+# the PR has `BREAKING CHANGE:` in commit body (checked in CI step, not here).
+extends:
+  - spectral:oas
