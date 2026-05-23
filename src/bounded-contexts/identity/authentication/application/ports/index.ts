@@ -22,6 +22,8 @@ export {
 
 export { SessionDevicePort, type SessionDeviceView } from './session-device.port';
 
+export { type SessionExchangePayload, SessionExchangePort } from './session-exchange.port';
+
 export {
   type TerminateSessionCommand,
   TerminateSessionPort,
