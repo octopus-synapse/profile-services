@@ -76,13 +76,68 @@ export const RefreshResponseSchema = z.discriminatedUnion('mode', [
 
 // Login returns `{userId, twoFactorRequired}` — the literal value of
 // `twoFactorRequired` discriminates the 2FA-challenge variant from the
-// session-issued variant.
+// session-issued variant. V2 D42: native clients (Accept-Mode: tokens)
+// also receive a one-shot `sessionExchangeId` they immediately swap for
+// a token pair via `POST /v1/auth/session/tokens`. The field is optional
+// because cookie clients never receive it.
 export const LoginResponseSchema = z.discriminatedUnion('twoFactorRequired', [
-  z.object({ userId: z.string().uuid(), twoFactorRequired: z.literal(true) }),
-  z.object({ userId: z.string().uuid(), twoFactorRequired: z.literal(false) }),
+  z
+    .object({
+      userId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      twoFactorRequired: z.literal(true),
+    })
+    .openapi({
+      example: { userId: '550e8400-e29b-41d4-a716-446655440000', twoFactorRequired: true },
+    }),
+  z
+    .object({
+      userId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      twoFactorRequired: z.literal(false),
+      sessionExchangeId: z.string().optional().openapi({ example: 'sxc_abc123def456' }),
+    })
+    .openapi({
+      example: {
+        userId: '550e8400-e29b-41d4-a716-446655440000',
+        twoFactorRequired: false,
+        sessionExchangeId: 'sxc_abc123def456',
+      },
+    }),
 ]);
 
-export const Verify2faResponseSchema = z.object({ userId: z.string().uuid() });
+export const Verify2faResponseSchema = z
+  .object({
+    userId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+    sessionExchangeId: z.string().optional().openapi({ example: 'sxc_abc123def456' }),
+  })
+  .openapi({
+    example: {
+      userId: '550e8400-e29b-41d4-a716-446655440000',
+      sessionExchangeId: 'sxc_abc123def456',
+    },
+  });
+
+// V2 D42 — POST /v1/auth/session/tokens body + response.
+export const SessionTokensRequestSchema = z
+  .object({
+    sessionExchangeId: z.string().min(1).openapi({ example: 'sxc_abc123def456' }),
+  })
+  .openapi({ example: { sessionExchangeId: 'sxc_abc123def456' } });
+
+export const SessionTokensResponseSchema = z
+  .object({
+    userId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+    accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture' }),
+    refreshToken: z.string().openapi({ example: 'rt_eyJhbGciOiJIUzI1NiJ9.fixture' }),
+    expiresIn: z.number().openapi({ example: 900 }),
+  })
+  .openapi({
+    example: {
+      userId: '550e8400-e29b-41d4-a716-446655440000',
+      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture',
+      refreshToken: 'rt_eyJhbGciOiJIUzI1NiJ9.fixture',
+      expiresIn: 900,
+    },
+  });
 
 export const LogoutResponseSchema = z.object({ message: z.string() });
 

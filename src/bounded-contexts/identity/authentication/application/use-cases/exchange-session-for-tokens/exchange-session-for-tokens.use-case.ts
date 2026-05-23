@@ -4,7 +4,7 @@ import type { AuthenticationRepositoryPort, TokenGeneratorPort } from '../../../
 import type { SessionExchangePort } from '../../ports/session-exchange.port';
 
 // Refresh token expiration: 7 days (matches LoginUseCase + RefreshTokenUseCase).
-const REFRESH_TOKEN_DAYS = 7;
+const REFRESH_TOKEN_DAYS = 7; // lint-allow-magic-number: mirrors LoginUseCase / RefreshTokenUseCase
 
 export interface ExchangeSessionForTokensCommand {
   readonly sessionExchangeId: string;

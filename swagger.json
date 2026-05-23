@@ -20713,7 +20713,8 @@
                       "properties": {
                         "userId": {
                           "type": "string",
-                          "format": "uuid"
+                          "format": "uuid",
+                          "example": "550e8400-e29b-41d4-a716-446655440000"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
@@ -20725,26 +20726,40 @@
                       "required": [
                         "userId",
                         "twoFactorRequired"
-                      ]
+                      ],
+                      "example": {
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "twoFactorRequired": true
+                      }
                     },
                     {
                       "type": "object",
                       "properties": {
                         "userId": {
                           "type": "string",
-                          "format": "uuid"
+                          "format": "uuid",
+                          "example": "550e8400-e29b-41d4-a716-446655440000"
                         },
                         "twoFactorRequired": {
                           "type": "boolean",
                           "enum": [
                             false
                           ]
+                        },
+                        "sessionExchangeId": {
+                          "type": "string",
+                          "example": "sxc_abc123def456"
                         }
                       },
                       "required": [
                         "userId",
                         "twoFactorRequired"
-                      ]
+                      ],
+                      "example": {
+                        "userId": "550e8400-e29b-41d4-a716-446655440000",
+                        "twoFactorRequired": false,
+                        "sessionExchangeId": "sxc_abc123def456"
+                      }
                     }
                   ]
                 }
@@ -20841,12 +20856,21 @@
                   "properties": {
                     "userId": {
                       "type": "string",
-                      "format": "uuid"
+                      "format": "uuid",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "sessionExchangeId": {
+                      "type": "string",
+                      "example": "sxc_abc123def456"
                     }
                   },
                   "required": [
                     "userId"
-                  ]
+                  ],
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "sessionExchangeId": "sxc_abc123def456"
+                  }
                 }
               }
             }
@@ -21877,6 +21901,122 @@
           }
         },
         "x-auth": "jwt"
+      }
+    },
+    "/api/v1/auth/session/tokens": {
+      "post": {
+        "summary": "Exchange a one-shot sessionExchangeId for a token pair (mobile)",
+        "description": "V2 D42 — native clients that opted out of cookies via `Accept-Mode: tokens` receive a one-shot `sessionExchangeId` in the login / verify-2fa response. This endpoint swaps that id for a real access/refresh token pair. The id is single-use (the second call returns 401) and expires 60 seconds after issuance.",
+        "tags": [
+          "auth"
+        ],
+        "operationId": "exchangeSessionForTokens",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionExchangeId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "sxc_abc123def456"
+                  }
+                },
+                "required": [
+                  "sessionExchangeId"
+                ],
+                "example": {
+                  "sessionExchangeId": "sxc_abc123def456"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "550e8400-e29b-41d4-a716-446655440000"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "example": "rt_eyJhbGciOiJIUzI1NiJ9.fixture"
+                    },
+                    "expiresIn": {
+                      "type": "number",
+                      "example": 900
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "accessToken",
+                    "refreshToken",
+                    "expiresIn"
+                  ],
+                  "example": {
+                    "userId": "550e8400-e29b-41d4-a716-446655440000",
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fixture",
+                    "refreshToken": "rt_eyJhbGciOiJIUzI1NiJ9.fixture",
+                    "expiresIn": 900
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "public",
+        "x-guards": [
+          "rate-limit"
+        ]
       }
     },
     "/api/v1/auth/sessions": {
