@@ -113,6 +113,7 @@ import { buildTestRunnerComposition } from '@/bounded-contexts/platform/test-run
 import { testRunnerRoutes } from '@/bounded-contexts/platform/test-runner/test-runner.routes';
 import { buildUiMetadataComposition } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.composition';
 import { buildWebhooksComposition } from '@/bounded-contexts/platform/webhooks/webhooks.composition';
+import { buildWellKnownComposition } from '@/bounded-contexts/platform/well-known/well-known.composition';
 import { buildPublicResumesComposition } from '@/bounded-contexts/presentation/public-resumes/public-resumes.composition';
 import { ShareDownloadedEvent } from '@/bounded-contexts/presentation/shared-kernel/domain/events/share-downloaded.event';
 import { buildRecruitingComposition } from '@/bounded-contexts/recruiting/recruiting.composition';
@@ -1230,6 +1231,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
 
   // Health endpoint to prove the server is up.
   // `/api/health[/live|/ready]` are mounted via the health BC's Route descriptors above.
+
+  // V2 D75: Mobile Universal Links / App Links discovery files.
+  // Mounted at the **root** path (no `/api` prefix) because Apple's
+  // and Google's crawlers expect them at `https://<host>/.well-known/…`.
+  const wellKnown = buildWellKnownComposition(config, logger);
+  mountRoutes(
+    app,
+    { bundle: wellKnown.useCases, routes: wellKnown.routes },
+    { prefix: '', pipeline },
+  );
 
   // --- Run lifecycles.init in order ---
   for (const l of lifecycles) await l.init?.();
