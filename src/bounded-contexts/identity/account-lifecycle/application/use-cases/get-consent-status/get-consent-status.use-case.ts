@@ -7,7 +7,7 @@
 import { LoggerPort } from '@/shared-kernel';
 import { ConsentRepositoryPort } from '../accept-consent/accept-consent.port';
 import { VersionConfigPort } from '../accept-consent/accept-consent.use-case';
-import type { GetConsentStatusInput, GetConsentStatusOutput } from './get-consent-status.dto';
+import type { GetConsentStatusInput, GetConsentStatusOutput } from './get-consent-status.schema';
 
 export class GetConsentStatusUseCase {
   constructor(

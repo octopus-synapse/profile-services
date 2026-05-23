@@ -1,4 +1,8 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { EXAMPLE_PASSWORD } from '../params/example-values.const';
+
+extendZodWithOpenApi(z);
 
 /**
  * Password Policy Configuration
@@ -31,6 +35,18 @@ export const PASSWORD_MESSAGES = {
 } as const;
 
 /**
+ * Combined regex enforcing all four character-class requirements of
+ * `PASSWORD_POLICY` in a single pattern. We keep the per-rule `.regex()`
+ * calls below for granular validation messages on the backend, and use
+ * this combined pattern in the OpenAPI envelope so the wire contract
+ * (and any client SDK derived from it via kubb) communicates the full
+ * policy — OpenAPI only allows one `pattern` per field.
+ */
+const PASSWORD_COMBINED_PATTERN = `^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[${PASSWORD_POLICY.specialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]).{${PASSWORD_POLICY.minLength},${PASSWORD_POLICY.maxLength}}$`;
+
+const PASSWORD_DESCRIPTION = `Password (${PASSWORD_POLICY.minLength}-${PASSWORD_POLICY.maxLength} chars). Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (${PASSWORD_POLICY.specialChars}).`;
+
+/**
  * Password Schema
  *
  * Strict validation for new passwords (registration, password change).
@@ -42,18 +58,32 @@ export const PasswordSchema = z
   .regex(/[A-Z]/, PASSWORD_MESSAGES.requireUppercase)
   .regex(/[a-z]/, PASSWORD_MESSAGES.requireLowercase)
   .regex(/[0-9]/, PASSWORD_MESSAGES.requireNumber)
-  .regex(/[@$!%*?&]/, PASSWORD_MESSAGES.requireSpecialChar);
+  .regex(/[@$!%*?&]/, PASSWORD_MESSAGES.requireSpecialChar)
+  .openapi('Password', {
+    example: EXAMPLE_PASSWORD,
+    description: PASSWORD_DESCRIPTION,
+    pattern: PASSWORD_COMBINED_PATTERN,
+  });
 
 export type Password = z.infer<typeof PasswordSchema>;
 
 /**
  * Password Input Schema
  *
- * Lenient validation for login (allows legacy passwords).
+ * Lenient validation for login (allows legacy passwords created before
+ * stricter rules were enforced).
  */
 export const PasswordInputSchema = z
   .string()
   .min(1, 'Password is required')
-  .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength);
+  .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength)
+  .openapi('PasswordInput', {
+    example: EXAMPLE_PASSWORD,
+    description: `Account password for authentication. Lenient validation (1-${PASSWORD_POLICY.maxLength} chars) to support legacy accounts; new passwords must satisfy the stricter PasswordSchema policy.`,
+  });
 
 export type PasswordInput = z.infer<typeof PasswordInputSchema>;
+
+export type PasswordDto = z.infer<typeof PasswordSchema>;
+
+export type PasswordInputDto = z.infer<typeof PasswordInputSchema>;

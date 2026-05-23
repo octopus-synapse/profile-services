@@ -25,6 +25,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import {
   createExpiringShare,
@@ -32,7 +33,6 @@ import {
   createShareData,
   createShareWithCustomSlug,
 } from '../fixtures/shares.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -77,10 +77,10 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(onboardingResponse.status).toBe(200);
-      expect(onboardingResponse.body.data.resumeId).toBeDefined();
+      expect(onboardingResponse.status).toBe(201);
+      expect(onboardingResponse.body.resumeId).toBeDefined();
 
-      resumeId = onboardingResponse.body.data.resumeId;
+      resumeId = onboardingResponse.body.resumeId;
     });
   });
 
@@ -96,15 +96,15 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
       expect(response.status).toBe(201);
 
       // Response wrapped in data.share
-      expect(response.body.data.share.slug).toBe(shareData.slug);
-      expect(response.body.data.share.resumeId).toBe(resumeId);
-      expect(response.body.data.share.isActive).toBe(true);
-      expect(response.body.data.share.hasPassword).toBe(false);
-      expect(response.body.data.share.publicUrl).toBeDefined();
-      expect(response.body.data.share.publicUrl).toContain(shareData.slug);
+      expect(response.body.share.slug).toBe(shareData.slug);
+      expect(response.body.share.resumeId).toBe(resumeId);
+      expect(response.body.share.isActive).toBe(true);
+      expect(response.body.share.hasPassword).toBe(false);
+      expect(response.body.share.publicUrl).toBeDefined();
+      expect(response.body.share.publicUrl).toContain(shareData.slug);
 
-      shareSlug = response.body.data.share.slug;
-      shareId = response.body.data.share.id;
+      shareSlug = response.body.share.slug;
+      shareId = response.body.share.id;
     });
 
     it.serial('should reject share creation without authentication', async () => {
@@ -135,12 +135,11 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.shares).toBeDefined();
-      expect(Array.isArray(response.body.data.shares)).toBe(true);
-      expect(response.body.data.shares.length).toBeGreaterThan(0);
+      expect(response.body.shares).toBeDefined();
+      expect(Array.isArray(response.body.shares)).toBe(true);
+      expect(response.body.shares.length).toBeGreaterThan(0);
 
-      const share = response.body.data.shares.find((s: { slug: string }) => s.slug === shareSlug);
+      const share = response.body.shares.find((s: { slug: string }) => s.slug === shareSlug);
       expect(share).toBeDefined();
       expect(share.isActive).toBe(true);
     });
@@ -151,10 +150,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
       const response = await app.request.get(`/api/v1/public/resumes/${shareSlug}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resume).toBeDefined();
-      expect(response.body.data.share).toBeDefined();
-      expect(response.body.data.share.slug).toBe(shareSlug);
+      expect(response.body.resume).toBeDefined();
+      expect(response.body.share).toBeDefined();
+      expect(response.body.share.slug).toBe(shareSlug);
     });
 
     it.serial('should return 404 for non-existent share slug', async () => {
@@ -171,8 +169,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
       const response = await app.request.get(`/api/v1/public/resumes/${shareSlug}/download`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resume).toBeDefined();
+      expect(response.body.resume).toBeDefined();
     });
   });
 
@@ -188,18 +185,17 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .send(shareData);
 
       expect(response.status).toBe(201);
-      expect(response.body.data.share.hasPassword).toBe(true);
-      expect(response.body.data.share.password).toBeUndefined(); // Password not returned
+      expect(response.body.share.hasPassword).toBe(true);
+      expect(response.body.share.password).toBeUndefined(); // Password not returned
 
-      passwordProtectedSlug = response.body.data.share.slug;
-      passwordProtectedId = response.body.data.share.id;
+      passwordProtectedSlug = response.body.share.slug;
+      passwordProtectedId = response.body.share.id;
     });
 
     it.serial('should deny access without password', async () => {
       const response = await app.request.get(`/api/v1/public/resumes/${passwordProtectedSlug}`);
 
       expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
     });
 
     it.serial('should deny access with incorrect password', async () => {
@@ -216,8 +212,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .set('x-share-password', password);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.resume).toBeDefined();
+      expect(response.body.resume).toBeDefined();
     });
   });
 
@@ -232,15 +227,16 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .send(shareData);
 
       expect(response.status).toBe(201);
-      expect(response.body.data.share.expiresAt).toBeDefined();
+      expect(response.body.share.expiresAt).toBeDefined();
 
-      expiredShareSlug = response.body.data.share.slug;
+      expiredShareSlug = response.body.share.slug;
     });
 
-    it.serial('should return 404 for expired share', async () => {
+    it.serial('should reject expired share', async () => {
       const response = await app.request.get(`/api/v1/public/resumes/${expiredShareSlug}`);
-
-      expect(response.status).toBe(404);
+      // 410 Gone is the spec-correct status for an expired resource;
+      // 404 was the legacy behaviour.
+      expect([404, 410]).toContain(response.status);
     });
 
     it.serial('should create share expiring in future', async () => {
@@ -254,7 +250,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
       expect(response.status).toBe(201);
 
-      const futureSlug = response.body.data.share.slug;
+      const futureSlug = response.body.share.slug;
 
       // Should be accessible
       const accessResponse = await app.request.get(`/api/v1/public/resumes/${futureSlug}`);
@@ -290,7 +286,6 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should require authentication to delete share', async () => {
@@ -326,7 +321,10 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
     });
 
     it.serial('should return 404 for invalid share ID in delete', async () => {
-      const fakeShareId = 'clhxxxxxxxxxxxxxxxxxx';
+      // Use a UUID-shaped ID that doesn't exist so we exercise the
+      // "not found" path. The legacy CUID fake would now trip the
+      // .uuid() validation and return 400 before reaching the handler.
+      const fakeShareId = '00000000-0000-4000-8000-000000000000';
 
       const response = await app.request
         .delete(`/api/v1/shares/${fakeShareId}`)

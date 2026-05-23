@@ -13,18 +13,22 @@
  */
 
 import type { LoggerPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { EmbeddingsPort } from './domain/ports/embeddings.port';
 import type { LlmPort } from './domain/ports/llm.port';
 import type { ScoringLlmPort } from './domain/ports/scoring-llm.port';
+import type { TranslationLlmPort } from './domain/ports/translation-llm.port';
 import { OpenAIAdapter } from './infrastructure/adapters/openai.adapter';
 import { OpenAIEmbeddingsAdapter } from './infrastructure/adapters/openai-embeddings.adapter';
 import { OpenAIScoringAdapter } from './infrastructure/adapters/openai-scoring.adapter';
+import { OpenAITranslationAdapter } from './infrastructure/adapters/openai-translation.adapter';
 
 export interface AiBundle {
   readonly llm: LlmPort;
   readonly scoringLlm: ScoringLlmPort;
   readonly embeddings: EmbeddingsPort;
+  readonly translation: TranslationLlmPort;
 }
 
 export interface AiComposition {
@@ -40,16 +44,22 @@ export interface AiComposition {
  * async `init` the caller must await. Keeps adapter lifecycle explicit
  * without requiring callers to thread `Lifecycle[]` through the bundle.
  */
-export function buildAiComposition(config: ConfigPort, logger: LoggerPort): AiComposition {
+export function buildAiComposition(
+  config: ConfigPort,
+  logger: LoggerPort,
+  cache: CachePort,
+): AiComposition {
   const llmAdapter = new OpenAIAdapter(config, logger);
   const scoringAdapter = new OpenAIScoringAdapter(config, logger);
   const embeddingsAdapter = new OpenAIEmbeddingsAdapter(config, logger);
+  const translationAdapter = new OpenAITranslationAdapter(config, logger, cache);
 
   return {
     bundle: {
       llm: llmAdapter,
       scoringLlm: scoringAdapter,
       embeddings: embeddingsAdapter,
+      translation: translationAdapter,
     },
     init: async () => {
       await llmAdapter.init();

@@ -93,6 +93,9 @@ class NoopCache extends MatchCachePort {
   async set(_key: string, _value: MatchBreakdown) {
     // intentional no-op
   }
+  async acquireLock() {
+    return { release: async () => {} };
+  }
 }
 
 const JOB_BACKEND: JobForMatch = {

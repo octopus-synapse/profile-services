@@ -20,7 +20,7 @@ describe('Architecture', () => {
         'auth',
         'users',
         'resumes',
-        'themes',
+        'resume-styles',
         'onboarding',
       ]).filter(
         (f) =>
@@ -111,9 +111,8 @@ describe('Architecture', () => {
     });
 
     it('should have isolated module boundaries', () => {
-      // Identity BCs should not import from Themes
-      // Themes should not import from Resumes
-      // etc.
+      // Identity BCs should not import from Resume Styles.
+      // Resume Styles should not import from Resumes. etc.
 
       const moduleImportRules: Record<string, string[]> = {
         'src/bounded-contexts/identity': [
@@ -224,20 +223,11 @@ describe('Architecture', () => {
         const content = fs.readFileSync(file, 'utf-8');
 
         // Check for class extending Prisma entity (e.g., `extends User`, `extends Resume`)
-        // But allow `extends createZodDto(...)` which is valid
         const extendsMatch = content.match(/class\s+\w+\s+extends\s+(\w+)/g);
         if (extendsMatch) {
           for (const match of extendsMatch) {
-            // Extract the parent class name
             const parentClass = match.match(/extends\s+(\w+)/)?.[1];
-            // Skip valid patterns (createZodDto, PickType, OmitType, etc.)
-            const validParents = [
-              'createZodDto',
-              'PickType',
-              'OmitType',
-              'PartialType',
-              'IntersectionType',
-            ];
+            const validParents: string[] = [];
             if (parentClass && !validParents.includes(parentClass)) {
               // Check if this parent is imported from @prisma/client
               const importMatch = content.match(

@@ -8,23 +8,53 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { SkillsUseCases } from './application/ports/skills.port';
 import type { CreateSkillData, UpdateSkillData } from './domain/ports/skill-management.port';
 
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const SkillRefParams = z.object({ resumeId: z.string(), skillId: z.string() });
+const ResumeIdParams = z.object({ resumeId: z.string().uuid() });
+const SkillRefParams = z.object({ resumeId: z.string().uuid(), skillId: z.string().uuid() });
 
-const CreateSkillBody = z.object({
+const CreateSkillBody = z
+  .object({
+    name: z.string(),
+    category: z.string(),
+    level: z.number().int().optional(),
+  })
+  .openapi({
+    example: {
+      name: 'TypeScript',
+      category: 'Language',
+      level: 4,
+    },
+  });
+
+const UpdateSkillBody = z
+  .object({
+    name: z.string().optional(),
+    category: z.string().optional(),
+    level: z.number().int().optional(),
+  })
+  .openapi({
+    example: {
+      level: 5,
+    },
+  });
+
+// ─── Response schemas (mirror Skill domain interface) ────────────────
+const SkillSchema = z.object({
+  id: z.string(),
+  resumeId: z.string().uuid(),
   name: z.string(),
   category: z.string(),
   level: z.number().int().optional(),
+  order: z.number().int(),
 });
 
-const UpdateSkillBody = z.object({
-  name: z.string().optional(),
-  category: z.string().optional(),
-  level: z.number().int().optional(),
+const SkillResponseSchema = z.object({ skill: SkillSchema });
+const SkillsListResponseSchema = z.object({ skills: z.array(SkillSchema) });
+const DeleteSkillResponseSchema = z.object({
+  result: z.object({ deleted: z.boolean() }),
 });
 
 export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
@@ -33,18 +63,23 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: Ownership guard rejects cross-tenant writes before the
+    // handler runs. Without this, `Permission.RESUME_UPDATE` only checks
+    // that the caller can update *some* resume, not that they own this one.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: ResumeIdParams,
     body: CreateSkillBody,
+    response: SkillResponseSchema,
     openapi: {
       summary: 'Add a skill to a resume',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill created',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const skill = await bc.addSkill.execute(resumeId, ctx.body as CreateSkillData);
-      return { success: true, data: { skill } };
+      return { skill };
     },
   },
   {
@@ -53,16 +88,17 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParams,
+    response: SkillsListResponseSchema,
     openapi: {
       summary: 'List skills for a resume',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skills returned',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const skills = await bc.listSkillsForResume.execute(resumeId);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -70,18 +106,21 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills/:skillId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: same cross-tenant guard as POST above.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: SkillRefParams,
     body: UpdateSkillBody,
+    response: SkillResponseSchema,
     openapi: {
       summary: 'Update a resume skill',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill updated',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { skillId } = ctx.params as { resumeId: string; skillId: string };
       const skill = await bc.updateSkill.execute(skillId, ctx.body as UpdateSkillData);
-      return { success: true, data: { skill } };
+      return { skill };
     },
   },
   {
@@ -89,17 +128,20 @@ export const skillsRoutes: ReadonlyArray<Route<SkillsUseCases>> = [
     path: '/v1/resumes/:resumeId/skills/:skillId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_UPDATE,
+    // P1-#A2-26: same cross-tenant guard as POST above.
+    guards: [{ id: 'ownership', metadata: { entity: 'resume', paramKey: 'resumeId' } }],
     params: SkillRefParams,
+    response: DeleteSkillResponseSchema,
     openapi: {
       summary: 'Delete a resume skill',
-      tags: ['Resume Skills'],
+      tags: ['resume-skills'],
       description: 'Skill deleted',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { skillId } = ctx.params as { resumeId: string; skillId: string };
       await bc.deleteSkill.execute(skillId);
-      return { success: true, data: { result: { deleted: true } } };
+      return { result: { deleted: true } };
     },
   },
 ];

@@ -13,7 +13,7 @@
 /// Permission defines a single atomic action on a resource.
 /// Example: "resume:create", "user:delete", "theme:approve"
 model Permission {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   /// Resource being accessed (e.g., "resume", "user", "theme")
   resource String
@@ -43,7 +43,7 @@ model Permission {
 /// `user` (job-seeker capabilities) and `admin` (auto-grant of every
 /// Permission enum value).
 model Role {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   /// Unique role name. System uses 'user' and 'admin'.
   name String @unique
@@ -77,7 +77,7 @@ model Role {
 
 /// Assigns permissions to roles
 model RolePermission {
-  id           String @id @default(cuid())
+  id           String @id @default(dbgenerated("uuidv7()"))
   roleId       String
   permissionId String
 
@@ -95,7 +95,7 @@ model RolePermission {
 
 /// Assigns roles to users
 model UserRoleAssignment {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   roleId String
 
@@ -148,7 +148,7 @@ enum ModifierType {
 /// never delete. Anyone querying audit can replay activations and
 /// revocations from the same table.
 model AccessModifier {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -165,7 +165,7 @@ model AccessModifier {
   reason String
 
   /// When the modifier becomes active.
-  startsAt DateTime @default(now())
+  startsAt DateTime  @default(now())
   /// When the modifier expires. `null` = active until revoked.
   endsAt   DateTime?
 

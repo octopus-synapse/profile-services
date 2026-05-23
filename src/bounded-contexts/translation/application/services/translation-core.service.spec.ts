@@ -1,147 +1,159 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type {
+  DetectLanguageResult,
+  TranslateTextInput,
+  TranslateTextResult,
+  TranslationLlmPort,
+} from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { TranslationBackendUnavailableException } from '../../domain/exceptions/translation.exceptions';
 import { TranslationCoreService } from './translation-core.service';
 
-const LIBRETRANSLATE_URL = 'http://localhost:5000';
-
-let fetchCalls: Array<{ url: string; init?: RequestInit }> = [];
-let fetchResult: { ok: boolean; status: number; json: () => Promise<unknown> } = {
-  ok: true,
-  status: 200,
-  json: async () => ({}),
-};
-
-const originalFetch = globalThis.fetch;
+function buildFakePort(overrides?: {
+  translate?: (input: TranslateTextInput) => Promise<TranslateTextResult>;
+  detectLanguage?: (text: string) => Promise<DetectLanguageResult>;
+  isAvailable?: () => boolean;
+}): TranslationLlmPort {
+  return {
+    translate: mock(
+      overrides?.translate ??
+        (async (input: TranslateTextInput) => ({
+          original: input.text,
+          translated: `[${input.target}] ${input.text}`,
+          source: input.source,
+          target: input.target,
+          detectedLanguage: null,
+          tokensUsed: 10,
+          cacheHit: false,
+        })),
+    ),
+    translateBatch: mock(async () => ({ translations: [], failed: [], tokensUsed: 0 })),
+    translateObject: mock(async (obj) => ({
+      translated: obj,
+      source: 'pt',
+      target: 'en',
+      tokensUsed: 0,
+      cacheHit: false,
+    })),
+    detectLanguage: mock(
+      overrides?.detectLanguage ??
+        (async () => ({ language: 'en', confidence: 0.95, tokensUsed: 5, cacheHit: false })),
+    ),
+    isAvailable: overrides?.isAvailable ?? (() => true),
+  } as unknown as TranslationLlmPort;
+}
 
 describe('TranslationCoreService', () => {
   let service: TranslationCoreService;
+  let port: TranslationLlmPort;
 
   beforeEach(() => {
-    fetchCalls = [];
-    fetchResult = { ok: true, status: 200, json: async () => ({}) };
-    globalThis.fetch = mock(async (url: string | URL | Request, init?: RequestInit) => {
-      fetchCalls.push({ url: String(url), init });
-      return fetchResult as unknown as Response;
-    }) as unknown as typeof fetch;
-    service = new TranslationCoreService(LIBRETRANSLATE_URL, stubLogger);
+    port = buildFakePort();
+    service = new TranslationCoreService(port, stubLogger);
   });
 
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
-  });
-
-  describe('Fallback Behavior', () => {
-    it('should return original text when service is unavailable', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = false;
-      const result = await service.translate('Hello world', 'en', 'pt');
-      expect(result.original).toBe('Hello world');
-      expect(result.translated).toBe('Hello world');
-    });
-
-    it('should return original text on HTTP error', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      globalThis.fetch = mock(async () => {
-        throw new Error('Connection refused');
-      }) as unknown as typeof fetch;
-      const result = await service.translate('Hello world', 'en', 'pt');
-      expect(result.original).toBe('Hello world');
-      expect(result.translated).toBe('Hello world');
-    });
-
-    it('should return original text on timeout', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      globalThis.fetch = mock(async () => {
-        throw new Error('Timeout');
-      }) as unknown as typeof fetch;
-      const result = await service.translate('Hello world', 'en', 'pt');
-      expect(result.original).toBe('Hello world');
-      expect(result.translated).toBe('Hello world');
-    });
-
-    it('should continue main flow on translation failure', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      globalThis.fetch = mock(async () => {
-        throw new Error('Service error');
-      }) as unknown as typeof fetch;
-      const result = await service.translate('Test text', 'pt', 'en');
-      expect(result).toBeDefined();
-      expect(result.translated).toBe('Test text');
-    });
-  });
-
-  describe('Successful Translation', () => {
-    it('should translate PT to EN', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchResult = {
-        ok: true,
-        status: 200,
-        json: async () => ({ translatedText: 'Hello world' }),
-      };
-      const result = await service.translate('Olá mundo', 'pt', 'en');
-      expect(result.original).toBe('Olá mundo');
-      expect(result.translated).toBe('Hello world');
-      expect(result.sourceLanguage).toBe('pt');
-      expect(result.targetLanguage).toBe('en');
-    });
-
-    it('should translate EN to PT', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchResult = { ok: true, status: 200, json: async () => ({ translatedText: 'Olá mundo' }) };
-      const result = await service.translate('Hello world', 'en', 'pt');
-      expect(result.original).toBe('Hello world');
-      expect(result.translated).toBe('Olá mundo');
-    });
-  });
-
-  describe('Supported Languages (PT-BR and EN only)', () => {
-    it('should send correct language params', async () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchResult = { ok: true, status: 200, json: async () => ({ translatedText: 'Translated' }) };
-      await service.translate('Text', 'pt', 'en');
-      const postCalls = fetchCalls.filter((c) => c.init?.method === 'POST');
-      expect(postCalls.length).toBeGreaterThan(0);
-      const body = JSON.parse(postCalls[0].init?.body as string);
-      expect(body.source).toBe('pt');
-      expect(body.target).toBe('en');
-    });
-  });
-
-  describe('Empty/Null Text Handling', () => {
-    it('should return empty string for empty input', async () => {
+  describe('Empty / whitespace input', () => {
+    it('returns original for empty string without hitting the port', async () => {
       const result = await service.translate('', 'en', 'pt');
-      expect(result.original).toBe('');
       expect(result.translated).toBe('');
-      const postCalls = fetchCalls.filter((c) => c.init?.method === 'POST');
-      expect(postCalls.length).toBe(0);
+      expect((port.translate as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(
+        0,
+      );
     });
 
-    it('should return whitespace string as-is', async () => {
+    it('returns whitespace as-is', async () => {
       const result = await service.translate('   ', 'en', 'pt');
-      expect(result.original).toBe('   ');
       expect(result.translated).toBe('   ');
     });
   });
 
-  describe('Service Availability', () => {
-    it('should check service health on init', async () => {
-      fetchResult = { ok: true, status: 200, json: async () => ({}) };
-      const healthResult = await service.checkServiceHealth();
-      expect(healthResult).toBe(true);
+  describe('Successful translation', () => {
+    it('translates PT → EN through the port', async () => {
+      const result = await service.translate('Olá mundo', 'pt', 'en');
+      expect(result.original).toBe('Olá mundo');
+      expect(result.translated).toBe('[en] Olá mundo');
+      expect(result.sourceLanguage).toBe('pt');
+      expect(result.targetLanguage).toBe('en');
     });
 
-    it('should mark service unavailable on health check failure', async () => {
-      globalThis.fetch = mock(async () => {
-        throw new Error('Connection failed');
-      }) as unknown as typeof fetch;
-      const healthResult = await service.checkServiceHealth();
-      expect(healthResult).toBe(false);
-      expect(service.isAvailable()).toBe(false);
+    it('passes language parameters to the port', async () => {
+      await service.translate('Text', 'pt', 'en');
+      const calls = (port.translate as unknown as { mock: { calls: TranslateTextInput[][] } }).mock
+        .calls;
+      expect(calls[0][0]).toMatchObject({ text: 'Text', source: 'pt', target: 'en' });
     });
 
-    it('should report availability status', () => {
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+    it('exposes detectedLanguage when port returns one', async () => {
+      port = buildFakePort({
+        translate: async (input) => ({
+          original: input.text,
+          translated: 'Hello',
+          source: input.source,
+          target: input.target,
+          detectedLanguage: 'pt',
+          tokensUsed: 12,
+          cacheHit: false,
+        }),
+      });
+      service = new TranslationCoreService(port, stubLogger);
+      const result = await service.translate('Olá', 'auto', 'en');
+      expect(result.detectedLanguage).toBe('pt');
+    });
+  });
+
+  describe('Failure handling', () => {
+    it('maps port errors to TranslationBackendUnavailableException', async () => {
+      port = buildFakePort({
+        translate: async () => {
+          throw new Error('OpenAI rate-limited');
+        },
+      });
+      service = new TranslationCoreService(port, stubLogger);
+      await expect(service.translate('Hello', 'en', 'pt')).rejects.toBeInstanceOf(
+        TranslationBackendUnavailableException,
+      );
+    });
+  });
+
+  describe('Language detection', () => {
+    it('shapes single detection into the BC DTO', async () => {
+      const detections = await service.detectLanguage('Olá mundo');
+      expect(detections).toHaveLength(1);
+      expect(detections[0]).toMatchObject({ language: 'en', confidence: 0.95 });
+    });
+
+    it('returns empty array for empty text without hitting the port', async () => {
+      const detections = await service.detectLanguage('');
+      expect(detections).toEqual([]);
+      expect(
+        (port.detectLanguage as unknown as { mock: { calls: unknown[] } }).mock.calls,
+      ).toHaveLength(0);
+    });
+
+    it('returns empty array when port has no detection', async () => {
+      port = buildFakePort({
+        detectLanguage: async () => ({
+          language: null,
+          confidence: 0,
+          tokensUsed: 5,
+          cacheHit: false,
+        }),
+      });
+      service = new TranslationCoreService(port, stubLogger);
+      expect(await service.detectLanguage('xyz')).toEqual([]);
+    });
+  });
+
+  describe('Health / availability', () => {
+    it('reports healthy when provider is configured', async () => {
+      expect(await service.checkServiceHealth()).toBe(true);
       expect(service.isAvailable()).toBe(true);
-      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = false;
+    });
+
+    it('reports unavailable when provider is unconfigured', async () => {
+      port = buildFakePort({ isAvailable: () => false });
+      service = new TranslationCoreService(port, stubLogger);
+      expect(await service.checkServiceHealth()).toBe(false);
       expect(service.isAvailable()).toBe(false);
     });
   });

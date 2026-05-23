@@ -9,7 +9,7 @@ import {
   ResumeNotFoundException,
   ResumeShareSlugInvalidException,
   ResumeShareSlugTakenException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
@@ -60,6 +60,9 @@ export class CreateShareUseCase {
       expiresAt: dto.expiresAt ?? null,
     });
 
+    // P2-#7 (intentional: telemetry): activity feed handler is the only
+    // subscriber today; a feed-bump failure must not roll back the
+    // already-created share row visible to the user.
     this.eventPublisher.publish(
       new ResumePublishedEvent(dto.resumeId, { userId: resume.userId, slug }),
     );

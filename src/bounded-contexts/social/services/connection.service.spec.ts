@@ -183,7 +183,7 @@ describe('ConnectionService', () => {
 
       const result = await service.getPendingRequests('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
     });
   });
 
@@ -197,7 +197,7 @@ describe('ConnectionService', () => {
 
       const result = await service.getConnections('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
     });
   });
 

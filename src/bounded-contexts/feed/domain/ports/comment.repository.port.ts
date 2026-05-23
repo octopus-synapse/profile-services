@@ -17,6 +17,16 @@ export abstract class CommentRepositoryPort {
   abstract markCommentDeleted(id: string): Promise<Comment>;
   abstract incrementPostCommentsCount(postId: string, by: number): Promise<void>;
 
+  /**
+   * Idempotent soft-delete: flips `isDeleted` to `true` and returns
+   * whether this call was the one that actually mutated the row. A
+   * second concurrent invocation gets `mutated: false` so the caller
+   * doesn't double-decrement `Post.commentsCount`.
+   */
+  abstract softDeleteCommentIfActive(
+    id: string,
+  ): Promise<{ mutated: boolean; postId: string | null }>;
+
   abstract listTopLevelByPost(
     postId: string,
     cursor: string | undefined,

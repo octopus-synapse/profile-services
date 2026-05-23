@@ -11,10 +11,10 @@ export abstract class MecCourseRepositoryPort {
   abstract findCoursesByInstitutionCode(codigoIes: number): Promise<Course[]>;
   abstract findCourseByCode(codigoCurso: number): Promise<Course | null>;
   abstract searchCoursesByName(query: string, limit: number): Promise<Course[]>;
-  abstract findAllDistinctKnowledgeAreas(): Promise<string[]>;
+  abstract listDistinctKnowledgeAreas(): Promise<string[]>;
   abstract countCoursesByDegree(): Promise<Array<{ grau: string | null; _count: number }>>;
   abstract countActiveCourses(): Promise<number>;
-  abstract findAllExistingCourseCodes(): Promise<Set<number>>;
+  abstract listExistingCourseCodes(): Promise<Set<number>>;
   abstract bulkCreateCourses(
     rows: NormalizedCourse[],
     validInstitutionCodes: Set<number>,

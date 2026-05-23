@@ -14,7 +14,7 @@
  */
 
 import { APP_CONFIG, LoggerPort } from '@/shared-kernel';
-import { MecSyncInProgressException } from '../../../domain/exceptions/integration.exceptions';
+import { MecSyncInProgressException } from '../../../domain/exceptions';
 import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,

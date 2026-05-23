@@ -15,7 +15,7 @@ export class PrismaAdminProgrammingLanguagesRepository extends AdminProgrammingL
     super();
   }
 
-  async findAll(query: AdminProgrammingLanguagesListQuery) {
+  async listAll(query: AdminProgrammingLanguagesListQuery) {
     const where: Prisma.ProgrammingLanguageWhereInput = {};
     if (query.search) where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     if (query.isActive !== undefined) where.isActive = query.isActive;

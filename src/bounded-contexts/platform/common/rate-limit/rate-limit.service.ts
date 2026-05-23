@@ -9,6 +9,7 @@
  */
 
 import type { CacheService } from '../cache/cache.service';
+import { RateLimitedException } from '../exceptions/platform.exceptions';
 import {
   DEFAULT_RATE_LIMITS,
   type RateLimitConfig,
@@ -180,6 +181,19 @@ export class RateLimitService {
     }
 
     return entry.count >= config.points;
+  }
+
+  /**
+   * Consumes a rate-limit point and throws `RateLimitedException` when
+   * the bucket is exhausted. Convenience wrapper for handlers that
+   * prefer typed exceptions over branching on `result.isBlocked`.
+   */
+  async consumeOrThrow(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+    const result = await this.consume(key, config);
+    if (result.isBlocked) {
+      throw new RateLimitedException(Math.ceil(result.msBeforeNext / 1000));
+    }
+    return result;
   }
 
   /**

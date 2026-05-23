@@ -11,8 +11,9 @@
  * - Geo tracking
  */
 
-import { createHash } from 'node:crypto';
 import type { AnalyticsEvent } from '@prisma/client';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import { pseudoAnonymize } from '@/shared-kernel/crypto/pseudo-anonymize';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ShareAnalyticsNotAuthorizedException } from '../../domain/exceptions/analytics.exceptions';
 import { parseUserAgent } from '../application/utils/parse-user-agent';
@@ -36,6 +37,7 @@ export class ShareAnalyticsService {
   constructor(
     private readonly repository: ShareAnalyticsRepositoryPort,
     private readonly geoLookup: GeoLookupPort,
+    private readonly config: ConfigPort,
   ) {}
 
   async trackEvent(dto: TrackEvent) {
@@ -142,7 +144,6 @@ export class ShareAnalyticsService {
   }
 
   private anonymizeIP(ip: string): string {
-    // SHA-256 hash for anonymization
-    return createHash('sha256').update(ip).digest('hex');
+    return pseudoAnonymize(ip, this.config);
   }
 }

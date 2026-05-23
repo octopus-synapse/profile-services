@@ -9,7 +9,7 @@
 
 import type { LoggerPort } from '@/shared-kernel';
 import { MeDashboardRepositoryPort } from '../../../domain/ports/me-dashboard.repository.port';
-import { buildMenu, type MenuNode } from '../../services/menu-builder';
+import { buildMenu, type MenuNode } from '../../services/menu.builder';
 
 const CTX = 'GetUserMenuUseCase';
 

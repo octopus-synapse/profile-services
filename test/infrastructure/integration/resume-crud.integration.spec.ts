@@ -10,8 +10,15 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../shared';
-import { acceptTosWithPrisma, assignUserRole, getApp, signupBody, uniqueTestId } from './setup';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
+import {
+  acceptTosWithPrisma,
+  assignUserRole,
+  clearAuthRateLimits,
+  getApp,
+  signupBody,
+  uniqueTestId,
+} from './setup';
 
 describe('Resume CRUD Integration', () => {
   let app: TestApp;
@@ -19,23 +26,32 @@ describe('Resume CRUD Integration', () => {
   let accessToken: string;
   let userId: string;
 
-  const testUser = {
-    email: `resume-test-${uniqueTestId()}@example.com`,
-    password: 'SecurePass123!',
-    name: 'Resume Test User',
-  };
+  // testUser é declarado por test (escopo beforeEach) para evitar
+  // colisão de email entre tests sequenciais — `afterEach` limpa
+  // apenas resumes, então reusar o mesmo email faria signup 409.
+  let testUser: { email: string; password: string; name: string };
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
+
+    testUser = {
+      email: `resume-test-${uniqueTestId()}@example.com`,
+      password: 'SecurePass123!',
+      name: 'Resume Test User',
+    };
 
     // Create test user
     const signupResponse = await app.request
-      .post('/api/accounts')
+      .post('/api/v1/accounts')
       .send(signupBody(testUser))
       .expect(201);
 
-    userId = signupResponse.body.data.userId;
+    userId = signupResponse.body.userId;
 
     // Verify email to allow access to protected routes
     await prisma.user.update({
@@ -50,11 +66,11 @@ describe('Resume CRUD Integration', () => {
     // routes pass the permission gate.
     await assignUserRole(userId);
 
-    const loginResponse = await app.request.post('/api/auth/login').send({
+    const loginResponse = await app.request.post('/api/v1/auth/login').send({
       email: testUser.email,
       password: testUser.password,
     });
-    accessToken = loginResponse.body.data.accessToken;
+    accessToken = tokenFromResponse(loginResponse, 'access_token')!;
   }, 20000);
 
   afterAll(async () => {
@@ -71,8 +87,13 @@ describe('Resume CRUD Integration', () => {
   }, 20000);
 
   afterEach(async () => {
-    // Clean up resumes after each test
-    await prisma.resume.deleteMany({ where: { userId } });
+    // Limpa resumes e o user criado neste test — beforeEach gera
+    // email novo, então usuários antigos só ocupam espaço se não
+    // forem removidos.
+    if (userId) {
+      await prisma.resume.deleteMany({ where: { userId } });
+      await prisma.user.deleteMany({ where: { id: userId } }).catch(() => {});
+    }
   });
 
   describe('Resume Creation', () => {
@@ -89,10 +110,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(resumeData)
         .expect(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.title).toBe(resumeData.title);
-      expect(response.body.data.title).toBe(resumeData.title);
+      expect(response.body.title).toBe(resumeData.title);
     });
 
     it('should reject resume creation without authentication', async () => {
@@ -113,7 +131,7 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(201);
 
-      resumeId = response.body.data.id;
+      resumeId = response.body.id;
     });
 
     it('should retrieve own resume by ID', async () => {
@@ -122,8 +140,8 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.id).toBe(resumeId);
-      expect(response.body.data.title).toBe('Test Resume for Retrieval');
+      expect(response.body.id).toBe(resumeId);
+      expect(response.body.title).toBe('Test Resume for Retrieval');
     });
 
     it('should list all user resumes', async () => {
@@ -139,7 +157,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.data.length).toBe(2);
+      expect(response.body.items.length).toBe(2);
     });
   });
 
@@ -156,7 +174,7 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(201);
 
-      resumeId = response.body.data.id;
+      resumeId = response.body.id;
     });
 
     it('should update resume successfully', async () => {
@@ -172,8 +190,7 @@ describe('Resume CRUD Integration', () => {
         .send(updateData)
         .expect(200);
 
-      expect(response.body.data.title).toBe(updateData.title);
-      expect(response.body.data.title).toBe(updateData.title);
+      expect(response.body.title).toBe(updateData.title);
     });
   });
 
@@ -190,7 +207,7 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(201);
 
-      resumeId = response.body.data.id;
+      resumeId = response.body.id;
     });
 
     it('should delete own resume', async () => {
@@ -226,7 +243,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.data.length).toBe(4);
+      expect(response.body.items.length).toBe(4);
     });
 
     it('should reject 5th resume creation', async () => {
@@ -270,8 +287,8 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(201);
 
-      resumeId = response.body.data.id;
-      _resumeSlug = response.body.data.slug;
+      resumeId = response.body.id;
+      _resumeSlug = response.body.slug;
     });
 
     it('should toggle resume visibility', async () => {
@@ -288,7 +305,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.isPublic).toBe(true);
+      expect(response.body.isPublic).toBe(true);
     });
   });
 });

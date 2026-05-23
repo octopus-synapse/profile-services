@@ -5,7 +5,7 @@
 // can only move forward (monotonic).
 
 model ResumeStyle {
-  id String @id @default(cuid())
+  id String @id @default(dbgenerated("uuidv7()"))
 
   name        String
   description String? @db.Text
@@ -45,7 +45,8 @@ model ResumeStyle {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resumes Resume[] @relation("ResumeActiveStyle")
+  resumes            Resume[]             @relation("ResumeActiveStyle")
+  onboardingProgress OnboardingProgress[] @relation("OnboardingProgressStyle")
 
   @@index([authorId])
   @@index([isSystem])

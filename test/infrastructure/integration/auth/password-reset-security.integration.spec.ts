@@ -12,9 +12,10 @@
  * - Old token validity after new request
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -29,6 +30,10 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin({
       email: `reset-test-${uniqueTestId()}@example.com`,
     });
@@ -68,7 +73,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       // Send 15 password reset requests rapidly
       const results: number[] = [];
       for (let i = 0; i < 15; i++) {
-        const response = await getRequest().post('/api/auth/forgot-password').send({
+        const response = await getRequest().post('/api/v1/auth/forgot-password').send({
           email: user?.email,
         });
         results.push(response.status);
@@ -111,11 +116,11 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Send TWO parallel reset requests with the same token
       const [result1, result2] = await Promise.all([
-        getRequest().post('/api/auth/reset-password').send({
+        getRequest().post('/api/v1/auth/reset-password').send({
           token,
           newPassword: 'NewPassword123!',
         }),
-        getRequest().post('/api/auth/reset-password').send({
+        getRequest().post('/api/v1/auth/reset-password').send({
           token,
           newPassword: 'DifferentPassword456!',
         }),
@@ -153,7 +158,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Request first password reset (bypass rate limit for non-rate-limit tests)
       await getRequest()
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           email: user?.email,
@@ -167,7 +172,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Request second password reset (bypass rate limit)
       await getRequest()
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           email: user?.email,
@@ -189,7 +194,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Try to use the old token (if it still exists)
       if (firstToken) {
-        const oldTokenResponse = await getRequest().post('/api/auth/reset-password').send({
+        const oldTokenResponse = await getRequest().post('/api/v1/auth/reset-password').send({
           token: firstToken.token,
           newPassword: 'TestPassword123!',
         });
@@ -217,7 +222,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const invalidTimes: number[] = [];
       for (let i = 0; i < 5; i++) {
         const start = performance.now();
-        await getRequest().post('/api/auth/reset-password').send({
+        await getRequest().post('/api/v1/auth/reset-password').send({
           token: invalidToken,
           newPassword: 'TestPassword123!',
         });
@@ -228,7 +233,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const malformedTimes: number[] = [];
       for (let i = 0; i < 5; i++) {
         const start = performance.now();
-        await getRequest().post('/api/auth/reset-password').send({
+        await getRequest().post('/api/v1/auth/reset-password').send({
           token: 'short',
           newPassword: 'TestPassword123!',
         });
@@ -277,15 +282,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       });
 
       // Try to use expired token
-      const response = await getRequest().post('/api/auth/reset-password').send({
+      const response = await getRequest().post('/api/v1/auth/reset-password').send({
         token: expiredToken,
         newPassword: 'NewPassword123!',
       });
 
       // Should be rejected
       expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-
       // Cleanup
       await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
       await prisma.user.deleteMany({ where: { id: testUser.userId } });
@@ -303,7 +306,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Request for existing user (bypass rate limit)
       const existingUserResponse = await getRequest()
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           email: user?.email,
@@ -311,7 +314,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       // Request for non-existing user (bypass rate limit)
       const nonExistingUserResponse = await getRequest()
-        .post('/api/auth/forgot-password')
+        .post('/api/v1/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           email: `nonexistent-user-${uniqueTestId()}@example.com`,
@@ -387,7 +390,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
             ? weakPwd({ email: `weak-pwd-${uniqueTestId()}@example.com` })
             : weakPwd;
 
-        const response = await getRequest().post('/api/auth/reset-password').send({
+        const response = await getRequest().post('/api/v1/auth/reset-password').send({
           token: newToken,
           newPassword: pwd,
         });
@@ -441,20 +444,25 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       // past before invalidation.
       await new Promise((r) => setTimeout(r, 1100));
 
-      const token = randomUUID();
+      // Token é armazenado como SHA-256 (token-hash.ts); o cliente
+      // recebe plaintext, o backend grava o hash. Spec precisa hashear
+      // antes de inserir.
+      const { createHash } = await import('node:crypto');
+      const plainToken = randomUUID();
+      const tokenHash = createHash('sha256').update(plainToken).digest('hex');
       await prisma.passwordResetToken.create({
         data: {
-          token,
+          token: tokenHash,
           userId: testUser.userId,
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       });
 
-      const resetResponse = await getRequest().post('/api/auth/reset-password').send({
-        token,
+      const resetResponse = await getRequest().post('/api/v1/auth/reset-password').send({
+        token: plainToken,
         newPassword: 'CompletelyNewPassword123!',
       });
-      expect(resetResponse.status).toBe(200);
+      expect(resetResponse.status).toBe(201);
 
       const afterReset = await getRequest()
         .get('/api/v1/resumes')

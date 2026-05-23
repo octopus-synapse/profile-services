@@ -33,6 +33,9 @@ export class FollowUserUseCase {
 
     const follow = await this.repository.createFollow(followerId, followingId);
 
+    // P2-#7 (intentional: telemetry/notification): activity feed + push
+    // notification handlers swallow errors per CLAUDE.md Q13-V3 — fire
+    // and forget is correct here, the follow itself succeeded.
     this.eventPublisher.publish(new UserFollowedEvent(followingId, { followerId }));
 
     return follow;

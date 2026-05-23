@@ -8,7 +8,7 @@
 
 import { API_LIMITS } from '@/shared-kernel';
 import { DomainException } from '@/shared-kernel/exceptions';
-import { GitHubSummaryFetchFailedException } from '../../../../domain/exceptions/integration.exceptions';
+import { GitHubSummaryFetchFailedException } from '../../../../domain/exceptions';
 import { GitHubApiPort } from '../../../domain/ports/github-api.port';
 
 export interface GitHubSummaryResult {

@@ -63,7 +63,7 @@ export class RoleRepository implements IRoleRepository {
     return this.toDomain(record);
   }
 
-  async findAll(): Promise<Role[]> {
+  async listAll(): Promise<Role[]> {
     const records = await this.prisma.role.findMany({
       include: {
         permissions: {

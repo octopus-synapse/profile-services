@@ -121,3 +121,19 @@ export function createPrintContext(): RenderContext {
 export function mergeContext(partial: Partial<RenderContext>): RenderContext {
   return { ...createDefaultContext(), ...partial };
 }
+
+export type MediaTypeDto = z.infer<typeof MediaTypeSchema>;
+
+export type ColorSchemeDto = z.infer<typeof ColorSchemeSchema>;
+
+export type PageContextDto = z.infer<typeof PageContextSchema>;
+
+export type SectionContextDto = z.infer<typeof SectionContextSchema>;
+
+export type ItemContextDto = z.infer<typeof ItemContextSchema>;
+
+export type UserPreferencesDto = z.infer<typeof UserPreferencesSchema>;
+
+export type RenderContextDto = z.infer<typeof RenderContextSchema>;
+
+export type MinimalContextDto = z.infer<typeof MinimalContextSchema>;

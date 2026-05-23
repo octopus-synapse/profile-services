@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { colorFunctions } from './color-functions';
+import { colorFunctions } from './color.functions';
 
 describe('colorFunctions', () => {
   describe('lighten', () => {

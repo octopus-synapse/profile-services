@@ -1,10 +1,10 @@
-import { Resume } from '@prisma/client';
+import { Prisma, Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, LoggerPort, type UpdateResumeData } from '@/shared-kernel';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../domain/exceptions/resumes.exceptions';
+import type { DomainException } from '@/shared-kernel/exceptions';
+import { enforceQuotaInTx } from '@/shared-kernel/persistence/quota-guard';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../domain/exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 const CTX = 'ResumesRepository';
@@ -32,7 +32,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
     super();
   }
 
-  async findAllUserResumes(userId: string): Promise<Resume[]> {
+  async listUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
@@ -50,6 +50,28 @@ export class ResumesRepository extends ResumesRepositoryPort {
     this.logger.log(`Creating resume for user: ${userId}`, CTX);
     const resumeData = { userId, ...resumeCreationData };
     return await this.prisma.resume.create({ data: resumeData });
+  }
+
+  async createResumeForUserWithQuota(
+    userId: string,
+    resumeCreationData: CreateResumeData,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<Resume> {
+    this.logger.log(`Creating resume (with quota guard) for user: ${userId}`, CTX);
+    return await runInTransaction(this.prisma, async (tx) => {
+      await enforceQuotaInTx(tx, {
+        // Serialise on the User row so two concurrent POST /v1/resumes from
+        // the same user observe each other's counts. Postgres rejects
+        // `FOR UPDATE` in the same query as `COUNT(*)` (error 0A000), so
+        // lock + count are split into two queries inside one tx.
+        lockSql: Prisma.sql`SELECT 1 FROM "User" WHERE "id" = ${userId} FOR UPDATE`,
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "Resume" WHERE "userId" = ${userId}`,
+        max: quota.max,
+        exception: quota.exception,
+      });
+      const resumeData = { userId, ...resumeCreationData };
+      return await tx.resume.create({ data: resumeData });
+    });
   }
 
   async updateResumeForUser(
@@ -107,7 +129,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   /**
    * BUG-015 FIX: Proper database pagination
    */
-  async findAllUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
+  async listUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },

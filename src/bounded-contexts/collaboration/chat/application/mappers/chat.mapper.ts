@@ -13,7 +13,7 @@ import type {
 import type { BlockedUserWithDetails } from '../ports/block.port';
 import type { ConversationWithParticipants, MessageWithSender } from '../ports/chat.port';
 
-export function mapMessageToResponse(message: MessageWithSender): MessageResponse {
+export function toMessageResponseDto(message: MessageWithSender): MessageResponse {
   return {
     id: message.id,
     conversationId: message.conversationId,
@@ -26,7 +26,7 @@ export function mapMessageToResponse(message: MessageWithSender): MessageRespons
   };
 }
 
-export function mapConversationToResponse(
+export function toConversationResponseDto(
   conversation: ConversationWithParticipants,
   currentUserId: string,
   unreadCount: number,
@@ -58,7 +58,7 @@ export function mapConversationToResponse(
   };
 }
 
-export function mapBlockedUserToResponse(record: BlockedUserWithDetails): BlockedUserResponse {
+export function toBlockedUserResponseDto(record: BlockedUserWithDetails): BlockedUserResponse {
   return {
     id: record.id,
     blockedAt: record.createdAt.toISOString(),

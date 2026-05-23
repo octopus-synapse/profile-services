@@ -2,9 +2,13 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/application/services/resume-tailor.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { CuratedSelectorService } from '../application/services/curated-selector.service';
-import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
+import {
+  AutoApplyAllPicksFailedException,
+  AutomationWorkerUnavailableException,
+} from '../domain/exceptions/automation.exceptions';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
 
@@ -31,7 +35,10 @@ export class AutoApplyWorker {
   ) {}
 
   async process(job: { data: AutoApplyJobData; id?: string }): Promise<void> {
-    try {
+    // Queue consumer: BullMQ owns the dedup+retry concerns. We declare
+    // RETRY so a transient failure (LLM blip, DB stutter) is replayed
+    // by the queue rather than swallowed.
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.enqueuePerUser();
         return;
@@ -39,14 +46,7 @@ export class AutoApplyWorker {
       if (job.data.kind === 'run-for-user') {
         await this.runForUser(job.data.userId);
       }
-    } catch (err) {
-      this.logger.error(
-        `Job ${job.id} failed: ${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
-      throw err;
-    }
+    });
   }
 
   private async enqueuePerUser(): Promise<void> {
@@ -68,10 +68,21 @@ export class AutoApplyWorker {
     );
     if (allowed.length === 0) return;
     for (const u of allowed) {
-      await this.queue.enqueue<AutoApplyJobData>(AUTO_APPLY_QUEUE, {
-        kind: 'run-for-user',
-        userId: u.id,
-      });
+      try {
+        await this.queue.enqueue<AutoApplyJobData>(AUTO_APPLY_QUEUE, {
+          kind: 'run-for-user',
+          userId: u.id,
+        });
+      } catch (err) {
+        // BullMQ / queue backend is down — fail fast with a domain
+        // type so the scheduler retries via its standard backoff
+        // policy instead of treating this as a per-user failure.
+        this.logger.error(
+          `Auto-apply enqueue failed for user=${u.id}: ${err instanceof Error ? err.message : String(err)}`,
+          { context: CTX, stack: err instanceof Error ? err.stack : undefined },
+        );
+        throw new AutomationWorkerUnavailableException();
+      }
     }
   }
 
@@ -144,11 +155,9 @@ export class AutoApplyWorker {
       } catch (err) {
         const reason = (err as Error).message;
         failures.push({ jobId: pick.jobId, reason });
-        this.logger.error(
-          `Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`,
-          undefined,
-          CTX,
-        );
+        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`, {
+          context: CTX,
+        });
       }
     }
     this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`, CTX);

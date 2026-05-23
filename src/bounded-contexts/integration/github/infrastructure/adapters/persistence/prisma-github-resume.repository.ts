@@ -7,7 +7,7 @@
 
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeAccessDeniedException } from '@/bounded-contexts/presentation/domain/exceptions/presentation.exceptions';
+import { ResumeAccessDeniedException } from '@/bounded-contexts/presentation/domain/exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { GitHubAchievementContent } from '../../../domain/entities/github-achievement';

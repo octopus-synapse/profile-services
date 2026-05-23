@@ -20,6 +20,7 @@ import type {
   CreatedEventRow,
 } from '../domain/entities/application-tracker';
 import {
+  type ApplicationOwnerRow,
   ApplicationTrackerRepositoryPort,
   type RecordEventInput,
 } from '../domain/ports/application-tracker.repository.port';
@@ -98,9 +99,9 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
       }));
   }
 
-  async findApplicationOwner(applicationId: string): Promise<{ userId: string } | null> {
+  async findApplicationOwner(applicationId: string): Promise<ApplicationOwnerRow | null> {
     const row = this.applications.get(applicationId);
-    return row ? { userId: row.userId } : null;
+    return row ? { userId: row.userId, createdAt: row.createdAt } : null;
   }
 
   async createEvent(input: RecordEventInput): Promise<CreatedEventRow> {
@@ -122,6 +123,15 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
     row.status = status;
   }
 
+  async recordEventWithStatusInTx(
+    input: RecordEventInput,
+    nextStatus: string | null,
+  ): Promise<CreatedEventRow> {
+    const event = await this.createEvent(input);
+    if (nextStatus) await this.updateApplicationStatus(input.applicationId, nextStatus);
+    return event;
+  }
+
   async findCompanyResponseSamples(company: string): Promise<CompanyResponseSampleRow[]> {
     const RESPONSE_TYPES: ReadonlySet<string> = new Set([
       'VIEWED',
@@ -130,8 +140,10 @@ export class InMemoryApplicationTrackerRepository extends ApplicationTrackerRepo
       'OFFER_RECEIVED',
       'REJECTED',
     ]);
+    // P2-#16: parity with Prisma's case-insensitive matching.
+    const needle = company.toLowerCase();
     return [...this.applications.values()]
-      .filter((a) => a.job.company === company)
+      .filter((a) => a.job.company.toLowerCase() === needle)
       .map((a) => {
         const firstResponse = [...a.events]
           .sort((x, y) => x.occurredAt.getTime() - y.occurredAt.getTime())

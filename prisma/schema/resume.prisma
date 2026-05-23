@@ -1,7 +1,7 @@
 // Resume Model - Core resume entity
 
 model Resume {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
 
@@ -23,14 +23,14 @@ model Resume {
 
   // Contact info — email is intentionally NOT stored here. The canonical
   // address lives on `User.email` and is read via the `user` relation.
-  fullName     String?
-  jobTitle     String?
-  phone        String?
-  location     String?
-  linkedin     String?
-  github       String?
-  website      String?
-  summary      String? @db.Text
+  fullName String?
+  jobTitle String?
+  phone    String?
+  location String?
+  linkedin String?
+  github   String?
+  website  String?
+  summary  String? @db.Text
 
   currentCompanyLogo String?
 
@@ -47,7 +47,11 @@ model Resume {
   accentColor String? @default("#3B82F6")
   customTheme Json?
 
-  // Resume Style System (formerly "active theme")
+  // Resume Style System — the single source of truth for visual style.
+  // The legacy free-string `template` column (PROFESSIONAL/CREATIVE/...)
+  // was removed: it had no writers, no readers, and only existed in the
+  // Zod request schema. ResumeStyle covers ATS-safety + render pipeline
+  // wiring via `typstTemplate`.
   styleId String?
   style   ResumeStyle? @relation("ResumeActiveStyle", fields: [styleId], references: [id], onDelete: SetNull)
 
@@ -61,19 +65,21 @@ model Resume {
   publishedAt DateTime?
 
   // Relations
-  users           User[]                   @relation("UserPrimaryResume")
-  resumeSections  ResumeSection[]
-  shares          ResumeShare[]            @relation("ResumeShares")
-  versions        ResumeVersion[]          @relation("ResumeVersions")
-  analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
+  users               User[]                      @relation("UserPrimaryResume")
+  resumeSections      ResumeSection[]
+  shares              ResumeShare[]               @relation("ResumeShares")
+  versions            ResumeVersion[]             @relation("ResumeVersions")
+  analytics           ResumeAnalytics[]           @relation("ResumeAnalytics")
   qualityScoreHistory ResumeQualityScoreHistory[]
-  viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
-  import          ResumeImport?
-  collaborators   ResumeCollaborator[]     @relation("ResumeCollaborators")
-  collabComments  CollaborationComment[]   @relation("ResumeComments")
+  viewEvents          ResumeViewEvent[]           @relation("ResumeViews")
+  import              ResumeImport?
+  collaborators       ResumeCollaborator[]        @relation("ResumeCollaborators")
+  collabComments      CollaborationComment[]      @relation("ResumeComments")
 
   @@index([userId])
-  @@index([slug])
+  // P2-#34: `slug` is already `@unique` which implicitly creates an
+  // index; the redundant `@@index([slug])` was a write-amplification cost
+  // with no read benefit.
   @@index([isPublic])
   @@index([createdAt])
   @@index([techPersona])

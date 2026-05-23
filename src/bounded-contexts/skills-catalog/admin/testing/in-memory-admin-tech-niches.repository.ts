@@ -20,14 +20,16 @@ export class InMemoryAdminTechNichesRepository extends AdminTechNichesRepository
     this.skillCounts.set(nicheId, count);
   }
 
-  async findAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>> {
+  async listAll(query: AdminTechNichesListQuery): Promise<PaginatedResult<TechNiche>> {
     const items = [...this.rows.values()];
     return {
       items,
       total: items.length,
       page: query.page ?? 1,
-      pageSize: query.pageSize ?? 20,
+      limit: query.pageSize ?? 20,
       totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
     };
   }
   async findOne(id: string) {

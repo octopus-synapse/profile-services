@@ -9,6 +9,6 @@ export interface PdfBase64Payload {
   readonly filename: string;
 }
 
-export function presentPdfAsBase64(buffer: Buffer, filename = 'resume.pdf'): PdfBase64Payload {
+export function toPdfBase64ResponseDto(buffer: Buffer, filename = 'resume.pdf'): PdfBase64Payload {
   return { pdf: buffer.toString('base64'), filename };
 }

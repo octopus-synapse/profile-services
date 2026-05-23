@@ -8,7 +8,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../../logger/logger.service';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheService } from '../cache.service';
 
 // --- Types ---
@@ -20,11 +20,19 @@ interface WarmingStats {
 }
 
 // --- Cache TTL Constants ---
+//
+// P2-092 — bumped the public-resume + user-profile windows. Warming
+// at 5 min / 2 min was barely faster than recomputing on demand:
+// the warmer ran every 10 minutes, so 50% / 80% of the time the
+// pre-warmed entries were already stale. The longer windows below
+// keep the warmer's output useful between ticks while still
+// expiring fast enough to absorb edits within a single browser
+// session.
 
 const CACHE_TTL = {
-  POPULAR_RESUME: 3600, // 1 hour
-  PUBLIC_RESUME: 300, // 5 minutes
-  USER_PROFILE: 120, // 2 minutes
+  POPULAR_RESUME: 3600, // 1 hour — heavily-cached, stable
+  PUBLIC_RESUME: 900, // 15 minutes — keeps public reads warm between warmer ticks
+  USER_PROFILE: 600, // 10 minutes — covers a typical admin session
 } as const;
 
 // --- Service ---
@@ -39,7 +47,7 @@ export class CacheWarmingService {
   constructor(
     private readonly cache: CacheService,
     private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
   ) {}
 
   /**
@@ -90,11 +98,10 @@ export class CacheWarmingService {
       this.logger.log(`Warmed ${warmed} popular resumes`, 'CacheWarmingService');
     } catch (error) {
       this.stats.errors++;
-      this.logger.error(
-        'Failed to warm popular resumes cache',
-        error instanceof Error ? error.stack : undefined,
-        'CacheWarmingService',
-      );
+      this.logger.error('Failed to warm popular resumes cache', {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -129,11 +136,10 @@ export class CacheWarmingService {
       }
     } catch (error) {
       this.stats.errors++;
-      this.logger.error(
-        `Failed to warm cache for resume: ${slug}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheWarmingService',
-      );
+      this.logger.error(`Failed to warm cache for resume: ${slug}`, {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -172,11 +178,10 @@ export class CacheWarmingService {
       }
     } catch (error) {
       this.stats.errors++;
-      this.logger.error(
-        `Failed to warm cache for user: ${userId}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheWarmingService',
-      );
+      this.logger.error(`Failed to warm cache for user: ${userId}`, {
+        context: 'CacheWarmingService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 

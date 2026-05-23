@@ -34,6 +34,15 @@ export class CacheService implements Lifecycle {
   }
 
   /**
+   * Atomic set-if-not-exists. Returns `true` when the caller created
+   * the key, `false` otherwise. See `CacheCoreService.setIfAbsent` for
+   * semantics and `Validate2faUseCase` for the canonical caller.
+   */
+  async setIfAbsent(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+    return this.coreService.setIfAbsent(key, value, ttlSeconds);
+  }
+
+  /**
    * Set value in cache with security guarantees.
    * Throws error if cache is unavailable or write fails.
    * Use for security-critical operations like session invalidation.
@@ -73,10 +82,6 @@ export class CacheService implements Lifecycle {
     return this.patternsService.getOrSet(key, computeFn, ttl);
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically
-  // post-Lifecycle migration. The Nest adapter's `nest-bootstrap.ts` should
-  // register a SIGTERM handler that walks all `Lifecycle` instances. Out of
-  // scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     await this.redisConnection.dispose?.();
   }

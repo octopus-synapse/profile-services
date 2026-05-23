@@ -16,6 +16,9 @@ class StubRepo extends QualityScoreRepositoryPort {
   async findLatest() {
     return this.latest;
   }
+  async findLatestForOwner() {
+    return { found: false, owned: false, snapshot: null };
+  }
   async findHistory() {
     return [];
   }

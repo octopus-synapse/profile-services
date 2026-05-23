@@ -1,13 +1,10 @@
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import { ActivityCreatedEvent, type SocialActivityType } from '../../../domain/events';
 import type { ActivityType, ActivityWithUser } from '../../ports/activity.port';
 import { ActivityRepositoryPort } from '../../ports/activity.port';
 import { FollowRepositoryPort } from '../../ports/follow.port';
-
-export interface FeedEmitterPort {
-  emit(channel: string, payload: unknown): void;
-}
 
 const ACTIVITY_TYPE_MAPPING: Record<ActivityType, SocialActivityType> = {
   RESUME_CREATED: 'resume_created',
@@ -27,7 +24,7 @@ export class CreateActivityUseCase {
     private readonly activityRepository: ActivityRepositoryPort,
     private readonly followRepository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    private readonly feedEmitter: FeedEmitterPort,
+    private readonly sse: SseStreamPort,
     private readonly logger: LoggerPort,
   ) {}
 
@@ -60,7 +57,7 @@ export class CreateActivityUseCase {
     // Get followers and emit to their feeds
     const followerIds = await this.followRepository.findFollowerIds(userId);
     for (const followerId of followerIds) {
-      this.feedEmitter.emit(`feed:user:${followerId}`, activityWithUser);
+      this.sse.publish(`feed:user:${followerId}`, activityWithUser);
     }
 
     return activity;

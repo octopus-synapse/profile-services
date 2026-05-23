@@ -8,7 +8,7 @@
  * we leave them null and let the scorer fall back to neutral factors.
  */
 
-import type { JobFitInputRow } from '../../domain/entities/job';
+import type { JobFitInputRow } from '../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../domain/ports/jobs.repository.port';
 import { computeFitScore, type FitScore } from './compute-fit-score.service';
 
@@ -20,17 +20,18 @@ export class FitScoreBatchService {
 
     const out = new Map<string, FitScore>();
     for (const job of jobs) {
-      out.set(
-        job.id,
-        computeFitScore({
-          resumeSkills,
-          resumeEnglish: null,
-          resumeRemotePref: null,
-          jobSkills: job.skills ?? [],
-          jobMinEnglish: job.minEnglishLevel,
-          jobRemotePolicy: job.remotePolicy,
-        }),
-      );
+      const score = computeFitScore({
+        resumeSkills,
+        resumeEnglish: null,
+        resumeRemotePref: null,
+        jobSkills: job.skills ?? [],
+        jobMinEnglish: job.minEnglishLevel,
+        jobRemotePolicy: job.remotePolicy,
+      });
+      // P1 #37 — null means "unable to compute"; skip rather than insert a
+      // misleading 100% / 0% value. Callers iterate the map and treat
+      // missing entries as neutral.
+      if (score !== null) out.set(job.id, score);
     }
     return out;
   }

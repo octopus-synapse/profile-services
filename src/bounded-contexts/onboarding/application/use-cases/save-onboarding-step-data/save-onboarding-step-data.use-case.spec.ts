@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { OnboardingSectionPersistenceFailedException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import { createOnboardingProgress, InMemoryOnboardingProgressRepository } from '../../../testing';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
@@ -38,12 +39,12 @@ describe('SaveOnboardingStepDataUseCase', () => {
     // Act
     const result = await useCase.execute(USER_ID, {
       fullName: 'Jane Doe',
-      email: 'jane@example.com',
+      phone: '+55 11 99999-0000',
     });
 
     // Assert
     expect(result.currentStep).toBe('personal-info');
-    expect(result.personalInfo).toEqual({ fullName: 'Jane Doe', email: 'jane@example.com' });
+    expect(result.personalInfo).toEqual({ fullName: 'Jane Doe', phone: '+55 11 99999-0000' });
   });
 
   it('saves username step data', async () => {
@@ -86,21 +87,22 @@ describe('SaveOnboardingStepDataUseCase', () => {
     });
   });
 
-  it('saves template step data', async () => {
+  it('saves resume-style step data', async () => {
     // Arrange
+    const styleId = '019e4a58-581a-7679-9351-df6a83687eed';
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
-        currentStep: 'template',
+        currentStep: 'resume-style',
         completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
       }),
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, { templateId: 'MINIMAL', colorScheme: 'dark' });
+    const result = await useCase.execute(USER_ID, { resumeStyleId: styleId });
 
     // Assert
-    expect(result.templateSelection).toEqual({ templateId: 'MINIMAL', colorScheme: 'dark' });
+    expect(result.resumeStyleId).toBe(styleId);
   });
 
   it('saves section step data', async () => {
@@ -141,11 +143,35 @@ describe('SaveOnboardingStepDataUseCase', () => {
     );
 
     // Act
-    const result = await useCase.execute(USER_ID, { fullName: 'John', email: 'john@test.com' });
+    const result = await useCase.execute(USER_ID, { fullName: 'John' });
 
     // Assert — step and completedSteps should not change
     expect(result.currentStep).toBe('personal-info');
     expect(result.completedSteps).toContain('welcome');
+  });
+
+  it('wraps non-domain persistence errors in OnboardingSectionPersistenceFailedException', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'personal-info',
+        completedSteps: ['welcome'],
+      }),
+    );
+
+    const failingSave: SaveProgressFn = async () => {
+      throw new Error('boom: prisma connection lost');
+    };
+
+    const useCaseWithFailingSave = new SaveOnboardingStepDataUseCase(
+      failingSave,
+      getProgressFn,
+      stubLogger,
+    );
+
+    await expect(useCaseWithFailingSave.execute(USER_ID, { fullName: 'X' })).rejects.toThrow(
+      OnboardingSectionPersistenceFailedException,
+    );
   });
 
   it('replaces section data for the same section type', async () => {

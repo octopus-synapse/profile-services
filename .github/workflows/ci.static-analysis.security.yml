@@ -5,9 +5,9 @@ on:
 
 jobs:
   test:
-    uses: octopus-synapse/octopus-workflows/.github/workflows/_static-analysis-template.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_static-analysis-template.yml@fe67c4b143601ad1420872aca57a523d9e8c8d3d # v1
     with:
-      test-command: "bun test --config=bunfig.security.toml"
+      test-command: "bun test --config=config/bunfig.security.toml"
       test-name: "Security"
       timeout: 10
     secrets: inherit

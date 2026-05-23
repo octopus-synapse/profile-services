@@ -26,7 +26,7 @@ describe('SkillManagementService', () => {
     const { repo, service } = build();
     repo.seedResume('r-1');
 
-    const created = await service.addSkillToResume('r-1', { name: 'TS', category: 'Lang' });
+    const created = await service.addSkillToResume('r-1', { name: 'TS', category: 'Language' });
     expect(created.name).toBe('TS');
 
     const listed = await service.listSkillsForResume('r-1');

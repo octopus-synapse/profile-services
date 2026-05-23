@@ -20,3 +20,13 @@ export const SectionItemOverridesSchema = z.record(SectionIdSchema, z.array(Item
 
 export type SectionConfig = z.infer<typeof SectionConfigSchema>;
 export type SectionItemOverrides = z.infer<typeof SectionItemOverridesSchema>;
+
+export type SectionIdDto = z.infer<typeof SectionIdSchema>;
+
+export type ColumnIdDto = z.infer<typeof ColumnIdSchema>;
+
+export type SectionConfigDto = z.infer<typeof SectionConfigSchema>;
+
+export type ItemOverrideDto = z.infer<typeof ItemOverrideSchema>;
+
+export type SectionItemOverridesDto = z.infer<typeof SectionItemOverridesSchema>;

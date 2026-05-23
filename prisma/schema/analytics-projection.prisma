@@ -23,7 +23,7 @@ model AnalyticsResumeProjection {
 // Pre-aggregated view counts per resume per day — refreshed by a daily cron
 // so the admin dashboard doesn't hit ResumeViewEvent with heavy GROUP BYs.
 model ResumeViewsDailyProjection {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(dbgenerated("uuidv7()"))
   resumeId           String
   userId             String
   day                DateTime // truncated to 00:00 UTC

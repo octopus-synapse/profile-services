@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
-import { OnboardingValidationException } from '../../../domain/exceptions/onboarding.exceptions';
+import {
+  OnboardingStepNotCompletedException,
+  OnboardingValidationException,
+} from '../../../domain/exceptions/onboarding.exceptions';
 import {
   createOnboardingProgress,
   InMemoryOnboardingCompletion,
@@ -46,12 +49,12 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'personal-info',
           'username',
           'professional-profile',
-          'template',
+          'resume-style',
         ],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: { colorScheme: 'ocean' },
+        resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
         sections: [
           {
             sectionTypeKey: 'work_experience_v1',
@@ -85,12 +88,12 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
           'personal-info',
           'username',
           'professional-profile',
-          'template',
+          'resume-style',
         ],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: { colorScheme: 'ocean' },
+        resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
         sections: [
           {
             sectionTypeKey: 'work_experience_v1',
@@ -111,15 +114,31 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     expect(stored?.data.sections).toHaveLength(2);
   });
 
+  it('throws OnboardingStepNotCompletedException when a required step is not in completedSteps', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'review',
+        // missing 'username' on purpose
+        completedSteps: ['welcome', 'personal-info', 'professional-profile'],
+        username: 'johndoe',
+        personalInfo: { fullName: 'John Doe' },
+        professionalProfile: { jobTitle: 'Engineer' },
+      }),
+    );
+
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingStepNotCompletedException);
+  });
+
   it('throws when username is missing', async () => {
     // Arrange
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: null,
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
       }),
     );
@@ -134,7 +153,7 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
         personalInfo: null,
         professionalProfile: { jobTitle: 'Engineer' },
@@ -151,9 +170,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: null,
       }),
     );
@@ -168,9 +187,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { email: 'john@example.com' }, // missing fullName
+        personalInfo: {}, // missing fullName
         professionalProfile: { jobTitle: 'Engineer' },
       }),
     );
@@ -179,22 +198,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
   });
 
-  it('throws when personalInfo.email is invalid', async () => {
-    // Arrange
-    progressRepo.seedProgress(
-      createOnboardingProgress({
-        userId: USER_ID,
-        currentStep: 'review',
-        completedSteps: ['welcome'],
-        username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'not-an-email' }, // invalid email
-        professionalProfile: { jobTitle: 'Engineer' },
-      }),
-    );
-
-    // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
-  });
+  // 'throws when personalInfo.email is invalid' — REMOVED. The User.email
+  // (signup) is the canonical email; there is no separate personalInfo.email
+  // field anymore. See onboarding-data.schema.ts.
 
   it('throws when professionalProfile.jobTitle is missing', async () => {
     // Arrange
@@ -202,9 +208,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { summary: 'No job title' }, // missing jobTitle
       }),
     );
@@ -213,27 +219,27 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow(OnboardingValidationException);
   });
 
-  it('defaults templateSelection to empty object when missing', async () => {
+  it('passes resumeStyleId=null through when the user skipped the picker', async () => {
     // Arrange
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
-        templateSelection: null,
+        resumeStyleId: null,
       }),
     );
 
     // Act
     const result = await useCase.execute(USER_ID);
 
-    // Assert — should succeed with default empty templateSelection
+    // Assert — completion picks the default style downstream when null
     expect(result.resumeId).toBeDefined();
     const stored = completion.getCompletion(USER_ID);
-    expect(stored?.data.templateSelection).toEqual({});
+    expect(stored?.data.resumeStyleId).toBeNull();
   });
 
   it('handles empty sections gracefully', async () => {
@@ -242,9 +248,9 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome'],
+        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Engineer' },
         sections: [],
       }),

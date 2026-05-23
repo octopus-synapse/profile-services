@@ -38,7 +38,16 @@ export function createMemoryLogger(): MemoryLogger {
     log: (message, context, meta) => push({ level: 'log', message, context, meta }),
     debug: (message, context, meta) => push({ level: 'debug', message, context, meta }),
     warn: (message, context, meta) => push({ level: 'warn', message, context, meta }),
-    error: (message, trace, context, meta) =>
-      push({ level: 'error', message, trace, context, meta }),
+    error: (message, options) => {
+      const opts = (options ?? {}) as Record<string, unknown>;
+      const { context, stack, ...rest } = opts;
+      push({
+        level: 'error',
+        message,
+        context: typeof context === 'string' ? context : undefined,
+        trace: stack,
+        meta: rest,
+      });
+    },
   };
 }

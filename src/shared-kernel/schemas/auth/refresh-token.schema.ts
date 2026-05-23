@@ -8,3 +8,5 @@ export const RefreshTokenSchema = z.object({
 });
 
 export type RefreshToken = z.infer<typeof RefreshTokenSchema>;
+
+export type RefreshTokenDto = z.infer<typeof RefreshTokenSchema>;

@@ -18,7 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -121,13 +121,12 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.users).toBeArray();
-      expect(response.body.data.users.length).toBeGreaterThanOrEqual(2);
-      expect(response.body.data.pagination).toBeDefined();
+      expect(response.body.items).toBeArray();
+      expect(response.body.items.length).toBeGreaterThanOrEqual(2);
+      expect(response.body.total).toBeGreaterThanOrEqual(2);
+      expect(response.body.page).toBe(1);
 
-      // Verify users have expected shape
-      const firstUser = response.body.data.users[0];
+      const firstUser = response.body.items[0];
       expect(firstUser).toHaveProperty('id');
       expect(firstUser).toHaveProperty('email');
       expect(firstUser).toHaveProperty('createdAt');
@@ -139,7 +138,7 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.users).toBeArray();
+      expect(response.body.items).toBeArray();
     });
   });
 
@@ -162,11 +161,10 @@ describe('E2E Journey: Admin User Management', () => {
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.message).toContain('created');
+      expect(response.body.user).toBeDefined();
+      expect(response.body.message).toContain('created');
 
-      adminCreatedUserId = response.body.data.user.id;
+      adminCreatedUserId = response.body.user.id;
       expect(adminCreatedUserId).toBeDefined();
     });
 
@@ -176,7 +174,7 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.user.id).toBe(adminCreatedUserId);
+      expect(response.body.user.id).toBe(adminCreatedUserId);
     });
   });
 
@@ -192,7 +190,6 @@ describe('E2E Journey: Admin User Management', () => {
         .send({ name: 'Updated by Admin' });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should verify the update persisted', async () => {
@@ -202,7 +199,7 @@ describe('E2E Journey: Admin User Management', () => {
 
       expect(response.status).toBe(200);
       // Verify name was updated
-      const user = response.body.data.user;
+      const user = response.body.user;
       expect(user.name).toBe('Updated by Admin');
     });
   });
@@ -219,8 +216,7 @@ describe('E2E Journey: Admin User Management', () => {
         .send({ newPassword: 'ResetByAdmin123!' });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.message).toContain('reset');
+      expect(response.body.message).toContain('reset');
     });
   });
 
@@ -236,7 +232,6 @@ describe('E2E Journey: Admin User Management', () => {
         .send({ isActive: false });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should show user as inactive in details', async () => {
@@ -246,7 +241,7 @@ describe('E2E Journey: Admin User Management', () => {
 
       expect(response.status).toBe(200);
       // Depending on response shape, isActive might be in user object
-      const user = response.body.data.user;
+      const user = response.body.user;
       expect(user.isActive).toBe(false);
     });
   });
@@ -263,7 +258,7 @@ describe('E2E Journey: Admin User Management', () => {
         data: { emailVerified: new Date() },
       });
 
-      const response = await app.request.post('/api/auth/login').send({
+      const response = await app.request.post('/api/v1/auth/login').send({
         email: adminCreatedEmail,
         password: 'ResetByAdmin123!',
       });
@@ -348,8 +343,6 @@ describe('E2E Journey: Admin User Management', () => {
         .set('Authorization', `Bearer ${adminUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-
       // Remove from cleanup list since it's already deleted
       const idx = cleanupEmails.indexOf(adminCreatedEmail);
       if (idx >= 0) cleanupEmails.splice(idx, 1);

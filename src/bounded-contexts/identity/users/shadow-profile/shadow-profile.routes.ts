@@ -1,32 +1,24 @@
-/**
- * Route descriptors for the shadow-profile BC. Replaces
- * `ShadowProfileController`.
- */
-
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { ShadowProfileService } from './shadow-profile.service';
+import type { Route } from '@/shared-kernel/http/route.types';
+import type { ShadowProfileUseCasesBundle } from './shadow-profile.composition';
+import {
+  FindCandidatesQuery,
+  FindCandidatesResponseSchema,
+  ShadowProfileIdParam,
+  ShadowProfileSnapshotSchema,
+  UpsertGithubBody,
+} from './shadow-profile.routes.schemas';
 
-const UpsertGithubBody = z.object({
-  token: z.string(),
-  username: z.string(),
-});
-
-const FindCandidatesQuery = z.object({
-  email: z.string().optional(),
-  githubLogin: z.string().optional(),
-});
-
-const ShadowProfileIdParam = z.object({ id: z.string() });
-
-export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
+export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileUseCasesBundle>> = [
   {
     method: 'POST',
     path: '/v1/shadow-profiles/github',
     auth: { kind: 'jwt' },
     permission: Permission.USER_MANAGE,
     body: UpsertGithubBody,
+    response: ShadowProfileSnapshotSchema,
+    guards: [{ id: 'external-api' }],
     openapi: {
       summary:
         'Admin: build or refresh a GitHub-based shadow profile. Call once per login; idempotent.',
@@ -34,13 +26,9 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const body = ctx.body as z.infer<typeof UpsertGithubBody>;
-      const snapshot = await service.upsertGithub({
-        token: body.token,
-        username: body.username,
-      });
-      return { success: true, data: snapshot };
+      return bundle.upsertGithub.execute({ token: body.token, username: body.username });
     },
   },
   {
@@ -49,6 +37,7 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_READ,
     query: FindCandidatesQuery,
+    response: FindCandidatesResponseSchema,
     openapi: {
       summary:
         'Find unclaimed shadow profiles matching an email and/or github login. Used by the signup flow.',
@@ -56,10 +45,13 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const q = ctx.query as z.infer<typeof FindCandidatesQuery>;
-      const rows = await service.findCandidatesFor({ email: q.email, githubLogin: q.githubLogin });
-      return { success: true, data: { candidates: rows } };
+      const rows = await bundle.findCandidates.execute({
+        email: q.email,
+        githubLogin: q.githubLogin,
+      });
+      return { candidates: rows };
     },
   },
   {
@@ -68,16 +60,16 @@ export const shadowProfileRoutes: ReadonlyArray<Route<ShadowProfileService>> = [
     auth: { kind: 'jwt' },
     permission: Permission.USER_PROFILE_UPDATE,
     params: ShadowProfileIdParam,
+    response: ShadowProfileSnapshotSchema,
     openapi: {
       summary: 'Claim a shadow profile as the authenticated user. One-shot — cannot be undone.',
       tags: ['shadow-profile'],
       description: 'Shadow Profile API',
     },
     sdk: { exported: true },
-    handler: async (ctx, service) => {
+    handler: async (ctx, bundle) => {
       const { id } = ctx.params as { id: string };
-      const claimed = await service.claimForUser(id, ctx.user!.userId);
-      return { success: true, data: claimed };
+      return bundle.claim.execute(id, ctx.user!.userId);
     },
   },
 ];

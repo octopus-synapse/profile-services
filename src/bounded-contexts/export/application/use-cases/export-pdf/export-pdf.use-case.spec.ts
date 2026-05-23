@@ -5,6 +5,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  ExportPdfGenerationFailedException,
+  ExportThemeInvalidException,
+} from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
 import { PdfGeneratorPort } from '../../../domain/ports/pdf-generator.port';
 
@@ -122,10 +126,16 @@ describe('ExportPdfUseCase', () => {
       expect(pdfGenerator.getLastOptions()).toEqual(options);
     });
 
-    it('should handle errors from generator', async () => {
-      pdfGenerator.setFailure(new Error('PDF generation failed'));
+    it('should wrap raw generator errors in ExportPdfGenerationFailedException', async () => {
+      pdfGenerator.setFailure(new Error('boom'));
 
-      await expect(async () => await useCase.execute()).toThrow('PDF generation failed');
+      await expect(async () => await useCase.execute()).toThrow(ExportPdfGenerationFailedException);
+    });
+
+    it('should reject palette values that fail the safety pattern', async () => {
+      await expect(async () => await useCase.execute({ palette: '../../etc/passwd' })).toThrow(
+        ExportThemeInvalidException,
+      );
     });
   });
 });

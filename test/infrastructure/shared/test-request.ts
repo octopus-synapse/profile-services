@@ -39,6 +39,37 @@ export interface TestResponse<T = any> {
   readonly setCookie: string[];
 }
 
+/**
+ * Extract a cookie value from a `Set-Cookie` header line.
+ * P0-006: tokens travel on `access_token` / `refresh_token` cookies after
+ * login; tests pull them out via this helper.
+ */
+export function extractCookieValue(setCookie: string | undefined): string | undefined {
+  if (!setCookie) return undefined;
+  const eq = setCookie.indexOf('=');
+  const semi = setCookie.indexOf(';');
+  if (eq === -1) return undefined;
+  const end = semi === -1 ? setCookie.length : semi;
+  if (end <= eq + 1) return undefined;
+  return setCookie.slice(eq + 1, end);
+}
+
+/** Pull a token by cookie name from a TestResponse's `setCookie` array. */
+export function tokenFromResponse(
+  res: { setCookie: string[] },
+  name: 'access_token' | 'refresh_token',
+): string | undefined {
+  return extractCookieValue(res.setCookie.find((c) => c.startsWith(`${name}=`)));
+}
+
+/** Find the raw `Set-Cookie` line for a given cookie name. */
+export function rawCookieFromResponse(
+  res: { setCookie: string[] },
+  name: string,
+): string | undefined {
+  return res.setCookie.find((c) => c.startsWith(`${name}=`));
+}
+
 interface MultipartPart {
   readonly type: 'field' | 'file';
   readonly name: string;

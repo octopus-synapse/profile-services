@@ -10,10 +10,8 @@ import type {
   BookmarkedFeedItem,
   PersistPostInput,
   Post,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../entities';
 
@@ -25,6 +23,16 @@ export abstract class FeedRepositoryPort {
   abstract markPostDeleted(id: string): Promise<Post>;
   abstract incrementRepostCount(originalPostId: string, by: number): Promise<void>;
 
+  /**
+   * Idempotent soft-delete that, when the post is a repost, decrements
+   * `originalPost.repostsCount` in the same transaction. Returns
+   * `mutated: true` iff this call was the one that flipped the row,
+   * so the caller can publish exactly one DomainEvent.
+   */
+  abstract softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }>;
+
   // -------- Timeline / listings --------
   abstract listFollowedAndConnectionIds(
     userId: string,
@@ -32,7 +40,6 @@ export abstract class FeedRepositoryPort {
   abstract listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
@@ -53,7 +60,7 @@ export abstract class FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;

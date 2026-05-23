@@ -126,7 +126,10 @@ export abstract class ResumeAnalyticsUseCases {
   abstract readonly getViewStatsUseCase: {
     execute: (resumeId: string, userId: string, options: ViewStatsOptions) => Promise<ViewStats>;
   };
-  /** @deprecated Used by BenchmarkService for GraphQL — kept for backward compat */
+  /**
+   * @deprecated Used by BenchmarkService for GraphQL — kept for backward compat
+   * @removeBy 2026-08-31
+   */
   abstract readonly getIndustryBenchmarks: (industry?: string) => Array<{
     industry: string;
     averageScore: number;

@@ -31,6 +31,25 @@ export abstract class ResumeVersionsRepositoryPort {
     tailoredJobId?: string | null;
   }): Promise<ResumeVersionRecord>;
 
+  /**
+   * Race-safe create — allocates the next `versionNumber` and inserts
+   * atomically, retrying on the
+   * `@@unique([resumeId, versionNumber])` violation that loses the race
+   * to a concurrent caller. Use this from snapshot + tailor flows
+   * where two requests can fire for the same resume; the legacy
+   * `createResumeVersion(... versionNumber)` is preserved only for
+   * tests and internal cleanup paths that already control allocation.
+   */
+  abstract createNextResumeVersion(
+    resumeId: string,
+    data: {
+      snapshot: Record<string, unknown>;
+      label?: string;
+      isTailored?: boolean;
+      tailoredJobId?: string | null;
+    },
+  ): Promise<ResumeVersionRecord>;
+
   abstract findResumeOwner(resumeId: string): Promise<{ userId: string } | null>;
 
   abstract findResumeVersions(resumeId: string): Promise<ResumeVersionListItem[]>;

@@ -2,7 +2,7 @@
  * Locale Negotiator
  *
  * Parses `Accept-Language` according to RFC 7231 (quality ordering) and
- * picks the best match from SUPPORTED_LOCALES. Unsupported → DEFAULT_LOCALE
+ * picks the best match from LOCALES. Unsupported → DEFAULT_LOCALE
  * with the understanding that the caller will emit `Content-Language: en`.
  *
  * Why not a full-blown BCP-47 matcher: we only support two locales, both
@@ -10,11 +10,7 @@
  * 'en') is enough and keeps zero dependencies.
  */
 
-import {
-  DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
-  type SupportedLocale,
-} from '../domain/translation.port';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/shared-kernel/constants/locale.constants';
 
 interface ParsedLanguage {
   readonly tag: string;
@@ -44,7 +40,7 @@ function parseAcceptLanguage(header: string | undefined): ParsedLanguage[] {
     .sort((a, b) => b.quality - a.quality);
 }
 
-function matches(candidate: string, supported: SupportedLocale): boolean {
+function matches(candidate: string, supported: Locale): boolean {
   const lowerSupported = supported.toLowerCase();
   if (candidate === lowerSupported) return true;
   const prefix = lowerSupported.split('-')[0];
@@ -52,7 +48,7 @@ function matches(candidate: string, supported: SupportedLocale): boolean {
 }
 
 export interface NegotiationResult {
-  readonly locale: SupportedLocale;
+  readonly locale: Locale;
   /** True when the caller's preferred language was honoured (exact or prefix match). */
   readonly matched: boolean;
 }
@@ -60,7 +56,7 @@ export interface NegotiationResult {
 export function negotiateLocale(acceptLanguage: string | undefined): NegotiationResult {
   const parsed = parseAcceptLanguage(acceptLanguage);
   for (const entry of parsed) {
-    for (const supported of SUPPORTED_LOCALES) {
+    for (const supported of LOCALES) {
       if (matches(entry.tag, supported)) {
         return { locale: supported, matched: true };
       }

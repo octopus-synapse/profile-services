@@ -22,7 +22,7 @@ export class InvalidVerificationTokenException extends DomainException {
  * Thrown when trying to verify an already verified email.
  */
 export class EmailAlreadyVerifiedException extends ConflictException {
-  readonly code: string = 'EMAIL_ALREADY_VERIFIED';
+  override readonly code: string = 'EMAIL_ALREADY_VERIFIED';
   constructor(email?: string) {
     super(email ? `Email ${email} is already verified` : 'Email is already verified');
   }

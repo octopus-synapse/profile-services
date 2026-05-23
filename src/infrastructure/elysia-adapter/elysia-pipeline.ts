@@ -22,21 +22,41 @@
  * they emit is the final response.
  */
 
+import type { FeatureFlagService } from '@/bounded-contexts/platform/feature-flags/application/services/feature-flag.service';
 import type { TranslationPort } from '@/bounded-contexts/platform/i18n/domain/translation.port';
+import type { OwnershipRegistry } from '@/shared-kernel/authorization';
 import type { AuthExtractorPort } from '@/shared-kernel/http/auth-extractor.port';
 import type { HttpCtx } from '@/shared-kernel/http/context';
-import { mapDomainErrorToHttp } from '@/shared-kernel/http/error-mapper';
+import { mapDomainErrorToHttp } from '@/shared-kernel/http/error.mapper';
 import type { NextFn, PipelineStage } from '@/shared-kernel/http/pipeline';
-import type { Route } from '@/shared-kernel/http/route';
-import { responseWrapperStage } from '@/shared-kernel/http/stages';
+import { mapPrismaErrorToHttp } from '@/shared-kernel/http/prisma-error.mapper';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  authLockoutStage,
+  type LoginAttemptsLookup,
+  responseWrapperStage,
+} from '@/shared-kernel/http/stages';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import { CacheRateLimiter } from './cache-rate-limit.adapter';
+import {
+  type DomainGateCheck,
+  fitProfileGuardStage,
+  minQualityGuardStage,
+} from './domain-gate-guard.stage';
+import { externalApiGuardStage } from './external-api-guard.stage';
+import { featureFlagGuardStage } from './feature-flag-guard.stage';
+import { internalAuthGuardStage } from './internal-auth-guard.stage';
+import { metricsKeyGuardStage } from './metrics-key-guard.stage';
+import { multiStepFlowGuardStage } from './multi-step-flow-guard.stage';
+import { ownershipGuardStage } from './ownership-guard.stage';
 
 export interface PipelineDeps {
   readonly logger: LoggerPort;
   readonly authExtractor?: AuthExtractorPort;
   readonly i18n?: TranslationPort;
   readonly rateLimiter?: CacheRateLimiter;
+  /** P1 #2 / #12 — auth-lockout fast-path (`authLockoutStage`). */
+  readonly loginAttempts?: LoginAttemptsLookup;
   /** When `true`, `consentGuard` short-circuits to next() — used by the
    *  dev compose where we don't want to enforce TOS on every request. */
   readonly skipTosCheck?: boolean;
@@ -49,6 +69,40 @@ export interface PipelineDeps {
    *  active modifiers per-request to apply DENY suspensions on state /
    *  role and GRANT overrides on permissions. */
   readonly accessModifierLookup?: AccessModifierLookup;
+  /** OwnershipRegistry — when provided, routes that declare
+   *  `guards: [{ id: 'ownership', metadata: { entity, paramKey } }]`
+   *  are gated by an owner-vs-requester comparison BEFORE the handler
+   *  runs. Composition root populates the registry per BC. */
+  readonly ownershipRegistry?: OwnershipRegistry;
+  /** FeatureFlagService — when provided, routes that declare
+   *  `guards: [{ id: 'feature-flag', metadata: { key } }]` are gated
+   *  by `flags.assertEnabled(key, userId)` before the handler runs. */
+  readonly featureFlags?: FeatureFlagService;
+  /** Expected `X-Internal-Token` value (read from
+   *  `INTERNAL_API_TOKEN` env var). When provided, routes that declare
+   *  `guards: [{ id: 'internal-auth' }]` require the header to match. */
+  readonly internalApiToken?: string;
+  /** Expected Prometheus scrape key (read from `PROMETHEUS_KEY`,
+   *  falls back to `INTERNAL_API_TOKEN` in dev). Routes declaring
+   *  `guards: [{ id: 'metrics-key' }]` require the bearer token. */
+  readonly metricsKey?: string;
+  /** Domain check: returns true when the user has a current
+   *  (non-expired) Fit Profile. Wired by the bootstrap from the
+   *  fit-profile BC's `requireCurrentFitProfile` helper. */
+  readonly hasValidFitProfile?: DomainGateCheck;
+  /** Domain check: returns true when the user's primary resume meets
+   *  the minimum quality score threshold for auto-apply / rage-apply. */
+  readonly meetsMinQuality?: DomainGateCheck;
+  /**
+   * P1-023 — wired by the bootstrap to the metrics BC's
+   * `observeApiLatency`. Called from `requestLoggingStage` so the
+   * histogram observation reuses the same wall-clock measurement the
+   * log line records.
+   */
+  readonly observeApiLatency?: (
+    durationSeconds: number,
+    labels: { method: string; route: string; status: string },
+  ) => void;
 }
 
 /** The slice of IAccessModifierRepository the gate actually needs. */
@@ -73,8 +127,13 @@ export interface ActiveModifier {
  *  so its `finally` runs after `errorMapper` has settled the response
  *  status — otherwise we'd log 200 for a 500. */
 export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage[] {
-  const stages: PipelineStage[] = [requestLoggingStage(deps.logger), errorMapperStage(deps)];
+  const stages: PipelineStage[] = [
+    requestLoggingStage({ logger: deps.logger, observeApiLatency: deps.observeApiLatency }),
+    errorMapperStage(deps),
+  ];
   if (deps.rateLimiter) stages.push(rateLimitStage(deps.rateLimiter));
+  // P1 #2 / #12 — auth-lockout sits after rate-limit, before authExtractor.
+  if (deps.loginAttempts) stages.push(authLockoutStage({ attempts: deps.loginAttempts }));
   if (deps.authExtractor) stages.push(authExtractorStage(deps.authExtractor));
   if (deps.permissionChecker) {
     stages.push(
@@ -84,6 +143,35 @@ export function buildDefaultPipeline(deps: PipelineDeps): readonly PipelineStage
       }),
     );
   }
+  // OwnershipGuard runs after permission gate so the route's broad
+  // permission check (e.g. RESUME_EXPORT) acts first; the ownership
+  // gate is the per-instance refinement.
+  if (deps.ownershipRegistry) {
+    stages.push(ownershipGuardStage(deps.ownershipRegistry));
+  }
+  // NEW-1: feature-flag stage — runs before handler so a disabled
+  // flag returns 404 (matching `FeatureFlagService.assertEnabled`).
+  if (deps.featureFlags) {
+    stages.push(featureFlagGuardStage(deps.featureFlags));
+  }
+  // NEW-1 follow-up: internal-auth stage. Always wired so routes
+  // that declare the guard fail-closed when INTERNAL_API_TOKEN is
+  // unset (vs. silently passing through).
+  stages.push(internalAuthGuardStage({ expectedToken: deps.internalApiToken }));
+  // NEW-1 follow-up: metrics-key stage — Prometheus scrape token.
+  stages.push(metricsKeyGuardStage({ expectedKey: deps.metricsKey }));
+  // NEW-1 follow-up: domain gates (fit-profile + min-quality) for
+  // auto-apply routes. Both fail-closed when the check function isn't
+  // wired (returns 503 instead of silently allowing the route to run).
+  stages.push(fitProfileGuardStage(deps.hasValidFitProfile));
+  stages.push(minQualityGuardStage(deps.meetsMinQuality));
+  // No-op marker stage: the `external-api` guard exists purely so the
+  // contract probes can skip routes that hit external services.
+  stages.push(externalApiGuardStage());
+  // No-op marker stage: `multi-step-flow` flags routes that are middle
+  // steps of a multi-request interaction (2FA verify, post-login
+  // challenge, password mutation) so contract probes skip them.
+  stages.push(multiStepFlowGuardStage());
   stages.push(responseWrapperStage);
   return stages;
 }
@@ -107,23 +195,38 @@ export function errorMapperStage(deps: PipelineDeps): PipelineStage {
             return;
           }
         }
+        const prismaMapped = mapPrismaErrorToHttp(err);
+        if (prismaMapped) {
+          ctx.state.responseStatus = prismaMapped.status;
+          ctx.state.responseHeaders = {
+            ...((ctx.state.responseHeaders as Record<string, string> | undefined) ?? {}),
+            ...prismaMapped.headers,
+          };
+          ctx.state.responseBody = prismaMapped.body;
+          return;
+        }
         // Unknown error: surface a 500 with a generic shape.
-        deps.logger.error(
-          err instanceof Error ? err.message : String(err),
-          err instanceof Error ? err.stack : undefined,
-          'ElysiaPipeline',
-        );
+        deps.logger.error(err instanceof Error ? err.message : String(err), {
+          context: 'ElysiaPipeline',
+          stack: err instanceof Error ? err.stack : undefined,
+        });
         ctx.state.responseStatus = 500;
         ctx.state.responseBody = {
-          success: false,
-          error: { code: 'INTERNAL', message: 'Internal Server Error' },
+          statusCode: 500,
+          code: 'INTERNAL',
+          message: 'Internal Server Error',
+          severity: 'modal',
+          params: {},
         };
       }
     },
   };
 }
 
-export function requestLoggingStage(logger: LoggerPort): PipelineStage {
+export function requestLoggingStage(deps: {
+  readonly logger: LoggerPort;
+  readonly observeApiLatency?: PipelineDeps['observeApiLatency'];
+}): PipelineStage {
   return {
     name: 'requestLogging',
     async run(ctx, next) {
@@ -133,10 +236,26 @@ export function requestLoggingStage(logger: LoggerPort): PipelineStage {
       } finally {
         const duration = Date.now() - start;
         const status = (ctx.state.responseStatus as number | undefined) ?? 200;
-        logger.log(`${ctx.method} ${ctx.path} ${status} ${duration}ms`, 'ElysiaPipeline', {
+        deps.logger.log(`${ctx.method} ${ctx.path} ${status} ${duration}ms`, 'ElysiaPipeline', {
           ip: ctx.ip,
           userAgent: ctx.userAgent,
         });
+        // P1-023 / P2-#26 — feed the same measurement into the Prometheus
+        // histogram. Use the route template (`/v1/users/:userId`) when
+        // available so we don't blow up label cardinality. If the
+        // mounter didn't tag the matched route (404, OPTIONS preflight,
+        // etc.) bucket under `<unmatched>` instead of the literal
+        // `ctx.path` — the previous fallback to `ctx.path` let cardinality
+        // explode whenever an unrouted request slipped in with a UUID in
+        // the URL.
+        if (deps.observeApiLatency) {
+          const route = (ctx.state.__route as { path?: string } | undefined)?.path ?? '<unmatched>';
+          deps.observeApiLatency(duration / 1000, {
+            method: ctx.method,
+            route,
+            status: String(status),
+          });
+        }
       }
     },
   };
@@ -157,8 +276,11 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
         if (route.auth.kind === 'jwt' && !user) {
           ctx.state.responseStatus = 401;
           ctx.state.responseBody = {
-            success: false,
-            error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+            statusCode: 401,
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required',
+            severity: 'modal',
+            params: {},
           };
           return;
         }
@@ -166,11 +288,11 @@ export function authExtractorStage(extractor: AuthExtractorPort): PipelineStage 
         if (route.auth.kind === 'optional') return next();
         ctx.state.responseStatus = 401;
         ctx.state.responseBody = {
-          success: false,
-          error: {
-            code: 'UNAUTHORIZED',
-            message: err instanceof Error ? err.message : 'Invalid credentials',
-          },
+          statusCode: 401,
+          code: 'UNAUTHORIZED',
+          message: err instanceof Error ? err.message : 'Invalid credentials',
+          severity: 'modal',
+          params: {},
         };
         return;
       }
@@ -219,8 +341,11 @@ export function rateLimitStage(limiter: CacheRateLimiter): PipelineStage {
       if (!result.allowed) {
         ctx.state.responseStatus = 429;
         ctx.state.responseBody = {
-          success: false,
-          error: { code: 'RATE_LIMITED', message: 'Too many requests' },
+          statusCode: 429,
+          code: 'RATE_LIMITED',
+          message: 'Too many requests',
+          severity: 'toast',
+          params: {},
         };
         return;
       }
@@ -367,27 +492,31 @@ export function permissionGuardStage(
 
       if (missing.length === 0) return next();
 
-      // Back-compat: surface the historical specific code when exactly
-      // one state-permission is missing. Otherwise fall back to the
-      // generic INSUFFICIENT_PERMISSION envelope; the `missing[]` field
-      // always carries the full list either way.
+      // Surface the most actionable code: state gates (email/onboarding)
+      // outrank the generic `INSUFFICIENT_PERMISSION` even when domain
+      // permissions are *also* missing, because the user has to fix the
+      // state gate first — granting them the perm wouldn't unblock them
+      // anyway. The `missing[]` field carries the full list for clients
+      // that want to render every requirement.
       let code: 'EMAIL_NOT_VERIFIED' | 'ONBOARDING_NOT_COMPLETED' | 'INSUFFICIENT_PERMISSION' =
         'INSUFFICIENT_PERMISSION';
       let message = `Missing: ${missing.join(', ')}`;
-      if (missing.length === 1) {
-        if (missing[0] === 'email-verified') {
-          code = 'EMAIL_NOT_VERIFIED';
-          message = 'Email address must be verified to access this resource';
-        } else if (missing[0] === 'onboarding-completed') {
-          code = 'ONBOARDING_NOT_COMPLETED';
-          message = 'Onboarding must be completed before accessing this resource';
-        }
+      if (missing.includes('email-verified')) {
+        code = 'EMAIL_NOT_VERIFIED';
+        message = 'Email address must be verified to access this resource';
+      } else if (missing.includes('onboarding-completed')) {
+        code = 'ONBOARDING_NOT_COMPLETED';
+        message = 'Onboarding must be completed before accessing this resource';
       }
 
       ctx.state.responseStatus = 403;
       ctx.state.responseBody = {
-        success: false,
-        error: { code, message, missing },
+        statusCode: 403,
+        code,
+        message,
+        severity: 'modal',
+        params: { missing: missing.join(', ') },
+        fields: undefined,
       };
     },
   };

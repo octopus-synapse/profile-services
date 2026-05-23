@@ -1,15 +1,16 @@
 /**
- * Like (or change reaction on) a post. Notifies the post author the
- * first time the viewer reacts.
+ * Like a post. Notifies the post author the first time the viewer likes.
  *
  * Behaviour:
- *   - If the user already reacted with the same type → idempotent no-op.
- *   - If they reacted with a different type → swap the reaction.
- *   - Otherwise → create the reaction, bump `likesCount`, fire notify.
+ *   - If the user already liked the post → idempotent no-op.
+ *   - Otherwise → create the like row, bump `likesCount`, fire notify.
+ *
+ * Single reaction model: presence of a `PostLike` row = LIKE. The legacy
+ * five-reaction picker (CELEBRATE/LOVE/INSIGHTFUL/CURIOUS) was retired
+ * along with the post-type taxonomy in the minimalist feed refactor.
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import type { ReactionType } from '../../../domain/entities';
 import { PostNotFoundException } from '../../../domain/exceptions/feed.exceptions';
 import { EngagementRepositoryPort } from '../../../domain/ports/engagement.repository.port';
 import { EngagementNotifierPort } from '../../../domain/ports/engagement-notifier.port';
@@ -17,10 +18,8 @@ import { EngagementNotifierPort } from '../../../domain/ports/engagement-notifie
 export interface LikePostResult {
   readonly postId: string;
   readonly userId: string;
-  readonly reactionType: ReactionType;
   readonly postAuthorId?: string;
   readonly alreadyLiked: boolean;
-  readonly updated?: boolean;
 }
 
 export class LikePostUseCase {
@@ -30,11 +29,7 @@ export class LikePostUseCase {
     private readonly logger: LoggerPort,
   ) {}
 
-  async execute(
-    postId: string,
-    userId: string,
-    reactionType: ReactionType = 'LIKE',
-  ): Promise<LikePostResult> {
+  async execute(postId: string, userId: string): Promise<LikePostResult> {
     const post = await this.repository.findPostById(postId);
     if (!post || post.isDeleted) {
       throw new PostNotFoundException(postId);
@@ -42,21 +37,10 @@ export class LikePostUseCase {
 
     const existing = await this.repository.findLike(postId, userId);
     if (existing) {
-      if (existing.reactionType === reactionType) {
-        return { postId, userId, reactionType, alreadyLiked: true };
-      }
-      await this.repository.updateLikeReaction(postId, userId, reactionType);
-      return {
-        postId,
-        userId,
-        reactionType,
-        postAuthorId: post.authorId,
-        alreadyLiked: false,
-        updated: true,
-      };
+      return { postId, userId, alreadyLiked: true };
     }
 
-    await this.repository.createLike(postId, userId, reactionType);
+    await this.repository.createLike(postId, userId);
     await this.repository.incrementLikesCount(postId, 1);
 
     await this.notifier.notify({
@@ -64,9 +48,9 @@ export class LikePostUseCase {
       actorId: userId,
       postId,
       type: 'POST_LIKED',
-      message: 'reacted to your post',
+      message: 'liked your post',
     });
 
-    return { postId, userId, reactionType, postAuthorId: post.authorId, alreadyLiked: false };
+    return { postId, userId, postAuthorId: post.authorId, alreadyLiked: false };
   }
 }

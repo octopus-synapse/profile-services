@@ -8,8 +8,8 @@ describe('ListUserCommentsUseCase', () => {
     repo.seedPost('p1', { type: 'TEXT', content: 'orig', authorId: 'someone' });
     repo.seedComment({ id: 'c1', postId: 'p1', authorId: 'me', content: 'reply' });
     const out = await new ListUserCommentsUseCase(repo).execute('me', undefined, 20);
-    expect(out.comments).toHaveLength(1);
-    expect(out.comments[0].post.id).toBe('p1');
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].post.id).toBe('p1');
   });
 
   it('caps limit at 50', async () => {
@@ -19,6 +19,6 @@ describe('ListUserCommentsUseCase', () => {
       repo.seedComment({ id: `c${i}`, postId: 'p1', authorId: 'me' });
     }
     const out = await new ListUserCommentsUseCase(repo).execute('me', undefined, 100);
-    expect(out.comments.length).toBe(50);
+    expect(out.items.length).toBe(50);
   });
 });

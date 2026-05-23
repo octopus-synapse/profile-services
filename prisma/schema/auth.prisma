@@ -1,7 +1,7 @@
 // NextAuth Models - Authentication
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(dbgenerated("uuidv7()"))
   userId            String
   type              String
   provider          String
@@ -21,7 +21,7 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(dbgenerated("uuidv7()"))
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -41,7 +41,7 @@ model VerificationToken {
 // Identity BC - Token Models
 
 model PasswordResetToken {
-  id        String    @id @default(cuid())
+  id        String    @id @default(dbgenerated("uuidv7()"))
   token     String    @unique
   userId    String
   expiresAt DateTime
@@ -56,7 +56,7 @@ model PasswordResetToken {
 }
 
 model EmailVerificationToken {
-  id        String    @id @default(cuid())
+  id        String    @id @default(dbgenerated("uuidv7()"))
   token     String    @unique
   userId    String
   email     String
@@ -72,7 +72,7 @@ model EmailVerificationToken {
 }
 
 model RefreshToken {
-  id         String    @id @default(cuid())
+  id         String    @id @default(dbgenerated("uuidv7()"))
   token      String    @unique
   userId     String
   expiresAt  DateTime
@@ -96,7 +96,7 @@ model RefreshToken {
 
 // Tracks per-user failed login attempts for account lockout
 model LoginAttempt {
-  id          String   @id @default(cuid())
+  id          String   @id @default(dbgenerated("uuidv7()"))
   userId      String?
   email       String
   success     Boolean

@@ -45,3 +45,26 @@ export interface HttpCtx<
  *  envelope plain values into `{ success, data }`. SSE / stream / multipart
  *  routes opt out via `Route.skip`. */
 export type HandlerResult = unknown;
+
+/**
+ * P1-052 — typed alias for handlers that run on JWT-protected routes.
+ * The auth pipeline stage guarantees `ctx.user` is non-null before the
+ * handler runs (it returns 401 otherwise), but the base `HttpCtx`
+ * keeps `user: UserPayload | null` to model public + optional auth.
+ *
+ * Routes declared with `auth: { kind: 'jwt' }` should accept
+ * `AuthenticatedContext<...>` so handler bodies can read `ctx.user`
+ * without the `ctx.user!` non-null assertion or a guard line. The
+ * mounter narrows the type when wiring the handler.
+ *
+ * Use sparingly: only switch a handler when its route is actually
+ * `kind: 'jwt'` and the body genuinely reads `ctx.user`. Public /
+ * optional-auth routes keep the wider `HttpCtx`.
+ */
+export type AuthenticatedContext<
+  TBody = unknown,
+  TQuery = Record<string, string | string[] | undefined>,
+  TParams = Record<string, string>,
+> = Omit<HttpCtx<TBody, TQuery, TParams>, 'user'> & {
+  readonly user: UserPayload;
+};

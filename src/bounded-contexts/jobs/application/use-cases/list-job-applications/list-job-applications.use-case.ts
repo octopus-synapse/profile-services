@@ -7,18 +7,12 @@
  */
 
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import { NotJobOwnerException } from '../../../domain/exceptions/jobs.exceptions';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 
-export interface ListJobApplicationsResult {
-  readonly items: Array<Record<string, unknown>>;
-  readonly pagination: {
-    readonly page: number;
-    readonly pageSize: number;
-    readonly total: number;
-    readonly totalPages: number;
-  };
-}
+export type ListJobApplicationsResult = PaginatedResponse<Record<string, unknown>>;
 
 export class ListJobApplicationsUseCase {
   constructor(private readonly repository: JobsRepositoryPort) {}
@@ -35,6 +29,7 @@ export class ListJobApplicationsUseCase {
 
     const safeLimit = Math.min(limit, 100);
     const safePage = Math.max(1, page);
+    const pagination = { page: safePage, limit: safeLimit };
 
     const { items, total } = await this.repository.listApplicationsByJob(
       jobId,
@@ -51,14 +46,6 @@ export class ListJobApplicationsUseCase {
       user: userById.get(userId) ?? null,
     }));
 
-    return {
-      items: projected,
-      pagination: {
-        page: safePage,
-        pageSize: safeLimit,
-        total,
-        totalPages: Math.ceil(total / safeLimit),
-      },
-    };
+    return buildPaginatedResponse(projected, total, pagination);
   }
 }

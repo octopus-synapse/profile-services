@@ -1,19 +1,31 @@
 /**
- * Shared auth helper for the Elysia test harness.
+ * Unified auth helper for the Elysia test harness.
  *
- * Replaces the legacy `test/infrastructure/e2e/helpers/auth.helper.ts`
- * which depended on `INestApplication` + `supertest`. The new version
- * takes a `TestApp` (boot via `startTestApp`) and uses `app.request` —
- * the supertest-shaped fetch wrapper.
+ * Single source of truth — replaces the legacy
+ * `test/infrastructure/e2e/helpers/auth.helper.ts` per Q56 in the
+ * duplication audit. Both integration and e2e suites use this.
  *
- * Surface kept stable for the migration:
- *   - createTestUser(suffix?) → TestUser
- *   - registerAndLogin(user?) → TestUser with token + cookie
+ * Surface:
+ *   - createTestUser(suffix?)        → TestUser
+ *   - registerAndLogin(user?, opts?) → TestUser with token + cookie
+ *   - login(email, password)         → access token
+ *   - refreshToken(token)            → fresh access token
+ *   - getCurrentUser(token)          → /users/profile body
+ *   - acceptToS(token)               → ToS + Privacy consent rows
+ *   - requestEmailVerification(token)
  *   - logout(user)
+ *   - bearer(user)                   → { Authorization: 'Bearer …' }
+ *
+ * `registerAndLogin` defaults to a fully-onboarded, email-verified user
+ * with the `user` role — saves every spec from rebuilding the gates by
+ * hand. Specs that exercise the gates themselves
+ * (three-stage-gating, onboarding journeys, email-verification) opt out
+ * via `{ skipEmailVerify: true, skipOnboarding: true }`.
  */
 
 import { randomUUID } from 'node:crypto';
 import type { TestApp } from './test-app';
+import { extractCookieValue } from './test-request';
 
 export interface TestUser {
   email: string;
@@ -22,6 +34,13 @@ export interface TestUser {
   token?: string;
   refreshCookie?: string;
   userId?: string;
+}
+
+export interface RegisterAndLoginOptions {
+  /** Skip the DB write that flips `emailVerified`. */
+  skipEmailVerify?: boolean;
+  /** Skip the DB write that flips `onboardingCompletedAt` + assigns `user` role. */
+  skipOnboarding?: boolean;
 }
 
 export class AuthHelper {
@@ -37,11 +56,22 @@ export class AuthHelper {
     };
   }
 
-  /** Register, verify email, accept ToS, and return ready-to-use token. */
-  async registerAndLogin(user?: TestUser): Promise<TestUser> {
+  async registerAndLogin(user?: TestUser, opts: RegisterAndLoginOptions = {}): Promise<TestUser> {
     const u = user ?? this.createTestUser();
 
-    const signup = await this.app.request.post('/api/accounts').send({
+    // `.env.test` keeps RATE_LIMIT_ENABLED=true (security specs depend on
+    // the gate being live), but the suite-level beforeEach only resets
+    // buckets between `it()` blocks. Tests using `beforeAll` to signup
+    // share the same IP bucket across the whole spec file, and parallel
+    // shards all bind localhost — without a pre-flight reset here every
+    // 11th signup in the suite would 429. The pipeline key shape is
+    // `ratelimit:<ip>:<method>:<path>` (see elysia-pipeline.ts), so only
+    // the auth-endpoint buckets are cleared — other rate-limit
+    // assertions (login throttling, password-reset, etc.) stay live.
+    await this.app.cache.deletePattern('ratelimit:*:POST:/v1/accounts');
+    await this.app.cache.deletePattern('ratelimit:*:POST:/v1/auth/login');
+
+    const signup = await this.app.request.post('/api/v1/accounts').send({
       email: u.email,
       password: u.password,
       name: u.name,
@@ -54,50 +84,112 @@ export class AuthHelper {
       );
     }
 
-    // Drive the verify-email + tos-accept flows via direct DB writes —
-    // they're test-only fixtures, not the surface under test. The
-    // legacy helper did the same.
     const userRow = await this.app.prisma.user.findUnique({ where: { email: u.email } });
     if (!userRow) throw new Error('user row missing after signup');
     u.userId = userRow.id;
-    // Mark the user verified + onboarded so the email-verified gate
-    // and the consent/onboarding gate both let the test through.
-    // ToS rows are created by /api/accounts from the `acceptedTosVersion`
-    // body field; tests that explicitly exercise the gates set up
-    // their own state.
-    await this.app.prisma.user.update({
-      where: { id: userRow.id },
-      data: {
-        emailVerified: new Date(),
-        onboardingCompletedAt: new Date(),
-      },
-    });
 
-    // Mirror what the real onboarding-completion adapter does: assign
-    // the `user` role so the new permission pipeline lets domain
-    // routes through. Without this row the user has zero domain
-    // perms and every gated route returns 403.
-    const userRole = await this.app.prisma.role.findUnique({ where: { name: 'user' } });
-    if (userRole) {
-      await this.app.prisma.userRoleAssignment.upsert({
-        where: { userId_roleId: { userId: userRow.id, roleId: userRole.id } },
-        create: { userId: userRow.id, roleId: userRole.id, assignedBy: 'integration-test-helper' },
-        update: {},
-      });
+    // Per-spec gate control. By default both gates are bypassed so the
+    // signup → access-protected-route happy path works in two requests.
+    const update: Record<string, unknown> = {};
+    if (!opts.skipEmailVerify) update.emailVerified = new Date();
+    if (!opts.skipOnboarding) update.onboardingCompletedAt = new Date();
+    if (Object.keys(update).length > 0) {
+      await this.app.prisma.user.update({ where: { id: userRow.id }, data: update });
+    }
+
+    if (!opts.skipOnboarding) {
+      // Mirror what the production onboarding-completion adapter does:
+      // assign the `user` role so the permission pipeline lets domain
+      // routes through. Without this the user has zero domain perms
+      // and every gated route returns 403.
+      const userRole = await this.app.prisma.role.findUnique({ where: { name: 'user' } });
+      if (userRole) {
+        await this.app.prisma.userRoleAssignment.upsert({
+          where: { userId_roleId: { userId: userRow.id, roleId: userRole.id } },
+          create: {
+            userId: userRow.id,
+            roleId: userRole.id,
+            assignedBy: 'integration-test-helper',
+          },
+          update: {},
+        });
+      }
     }
 
     const login = await this.app.request
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: u.email, password: u.password });
     if (login.status >= 400) {
       throw new Error(
         `login failed: ${login.status} ${typeof login.body === 'string' ? login.body : JSON.stringify(login.body)}`,
       );
     }
-    const body = login.body as { accessToken?: string; data?: { accessToken?: string } };
-    u.token = body.accessToken ?? body.data?.accessToken;
+    // P0-006: login is cookie-only by design. Tokens are set on
+    // `Set-Cookie: access_token=…; refresh_token=…` rather than the
+    // response body. Extract them so specs can both:
+    //   - call routes via `Authorization: Bearer <token>` header
+    //   - call routes that read the `access_token` HttpOnly cookie
+    const accessCookie = login.setCookie.find((c) => c.startsWith('access_token=')) ?? undefined;
+    u.token = accessCookie ? extractCookieValue(accessCookie) : undefined;
     u.refreshCookie = login.setCookie.find((c) => c.startsWith('refresh_token=')) ?? undefined;
     return u;
+  }
+
+  async login(email: string, password: string): Promise<string> {
+    const res = await this.app.request.post('/api/v1/auth/login').send({ email, password });
+    if (res.status !== 200) {
+      throw new Error(
+        `Login failed: ${res.status} - ${typeof res.body === 'string' ? res.body : JSON.stringify(res.body)}`,
+      );
+    }
+    // P0-006: tokens travel on cookies, not the response body.
+    const accessCookie = res.setCookie.find((c) => c.startsWith('access_token=')) ?? '';
+    const token = extractCookieValue(accessCookie);
+    if (!token) throw new Error('Login response missing access_token cookie');
+    return token;
+  }
+
+  async refreshToken(refreshCookie: string): Promise<string> {
+    // The server reads `refresh_token` from the cookie jar; resend the
+    // raw cookie header to mirror what the browser does.
+    const res = await this.app.request.post('/api/v1/auth/refresh').set('Cookie', refreshCookie);
+    if (res.status !== 200) throw new Error('Token refresh failed');
+    const accessCookie = res.setCookie.find((c) => c.startsWith('access_token=')) ?? '';
+    const token = extractCookieValue(accessCookie);
+    if (!token) throw new Error('Refresh response missing access_token cookie');
+    return token;
+  }
+
+  async getCurrentUser(token: string): Promise<unknown> {
+    const res = await this.app.request
+      .get('/api/v1/users/profile')
+      .set('Authorization', `Bearer ${token}`);
+    return res.body;
+  }
+
+  async acceptToS(token: string): Promise<void> {
+    const tosRes = await this.app.request
+      .post('/api/v1/users/me/accept-consent')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ documentType: 'TERMS_OF_SERVICE' });
+    if (tosRes.status !== 201) {
+      throw new Error(`ToS acceptance failed: ${tosRes.status} - ${JSON.stringify(tosRes.body)}`);
+    }
+    const ppRes = await this.app.request
+      .post('/api/v1/users/me/accept-consent')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ documentType: 'PRIVACY_POLICY' });
+    if (ppRes.status !== 201) {
+      throw new Error(
+        `Privacy policy acceptance failed: ${ppRes.status} - ${JSON.stringify(ppRes.body)}`,
+      );
+    }
+  }
+
+  async requestEmailVerification(token: string): Promise<void> {
+    await this.app.request
+      .post('/api/v1/auth/email-verification/send')
+      .set('Authorization', `Bearer ${token}`);
   }
 
   /** Returns the `Authorization: Bearer <token>` header tuple. */

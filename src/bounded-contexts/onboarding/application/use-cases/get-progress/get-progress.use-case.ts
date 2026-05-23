@@ -1,3 +1,4 @@
+import { OnboardingSessionExpiredException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import { OnboardingProgressRepositoryPort } from '../../../domain/ports/onboarding-progress.port';
 
@@ -15,13 +16,25 @@ export const INITIAL_PROGRESS: OnboardingProgressData = {
   personalInfo: null,
   professionalProfile: null,
   sections: [],
-  templateSelection: null,
+  resumeStyleId: null,
+  activatedExtras: [],
 };
+
+export interface GetProgressOptions {
+  /**
+   * When `true`, expired progress raises `OnboardingSessionExpiredException`
+   * instead of being silently reset to the INITIAL state. The completion
+   * orchestrator opts-in so the SDK can show a "your session timed out"
+   * banner instead of dropping the user back to the welcome step without
+   * explanation.
+   */
+  strict?: boolean;
+}
 
 export class GetProgressUseCase {
   constructor(private readonly repository: OnboardingProgressRepositoryPort) {}
 
-  async execute(userId: string): Promise<OnboardingProgressData> {
+  async execute(userId: string, opts: GetProgressOptions = {}): Promise<OnboardingProgressData> {
     const progress = await this.repository.findProgressByUserId(userId);
 
     if (!progress) {
@@ -30,6 +43,9 @@ export class GetProgressUseCase {
 
     // Check for expiration (36 hours)
     if (this.isProgressExpired(progress.updatedAt)) {
+      if (opts.strict) {
+        throw new OnboardingSessionExpiredException();
+      }
       await this.repository.deleteProgress(userId);
       return INITIAL_PROGRESS;
     }
@@ -41,7 +57,8 @@ export class GetProgressUseCase {
       personalInfo: progress.personalInfo,
       professionalProfile: progress.professionalProfile,
       sections: progress.sections ?? [],
-      templateSelection: progress.templateSelection,
+      resumeStyleId: progress.resumeStyleId,
+      activatedExtras: progress.activatedExtras,
     };
   }
 

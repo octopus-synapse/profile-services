@@ -43,7 +43,8 @@ export function buildPasswordManagementUseCases(
   logger: LoggerPort,
 ): PasswordManagementUseCases {
   const passwordRepository = new PrismaPasswordRepository(prisma);
-  const passwordHasher = new BcryptPasswordHasher();
+  // P1-#A1-17: cost from validated `EnvConfigSchema.BCRYPT_COST`.
+  const passwordHasher = new BcryptPasswordHasher(config.env.BCRYPT_COST);
   const tokenService = new PrismaPasswordResetTokenService(prisma);
   const emailSender = new EmailPasswordResetSender(emailService, config);
   const sessionInvalidation = new SessionInvalidationAdapter(cache, prisma);

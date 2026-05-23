@@ -8,6 +8,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // User Summary (for social context)
@@ -45,7 +46,7 @@ export const FollowUserSchema = z.object({
   username: z.string(),
   name: z.string().nullable(),
   avatar: z.string().url().nullable(),
-  followedAt: z.string().datetime(),
+  followedAt: IsoDateTimeSchema,
 });
 
 export type FollowUser = z.infer<typeof FollowUserSchema>;
@@ -101,7 +102,7 @@ export const SocialActivitySchema = z.object({
   userId: z.string().cuid(),
   type: SocialActivityTypeEnum,
   metadata: z.record(z.unknown()),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
 });
 
 export type SocialActivity = z.infer<typeof SocialActivitySchema>;
@@ -115,3 +116,21 @@ export const PaginatedActivitiesSchema = z.object({
 });
 
 export type PaginatedActivities = z.infer<typeof PaginatedActivitiesSchema>;
+
+export type SocialUserSummaryDto = z.infer<typeof SocialUserSummarySchema>;
+
+export type FollowResultDto = z.infer<typeof FollowResultSchema>;
+
+export type SocialStatsDto = z.infer<typeof SocialStatsSchema>;
+
+export type FollowUserDto = z.infer<typeof FollowUserSchema>;
+
+export type PaginatedFollowsDto = z.infer<typeof PaginatedFollowsSchema>;
+
+export type FollowersResponseDto = z.infer<typeof FollowersResponseSchema>;
+
+export type FollowingResponseDto = z.infer<typeof FollowingResponseSchema>;
+
+export type SocialActivityDto = z.infer<typeof SocialActivitySchema>;
+
+export type PaginatedActivitiesDto = z.infer<typeof PaginatedActivitiesSchema>;

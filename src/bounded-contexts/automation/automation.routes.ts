@@ -10,26 +10,25 @@
  * no metadata is set, so we can omit the `metadata` payload.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { AutomationUseCases } from './application/ports/automation.port';
-
-const ItemIdParam = z.object({ itemId: z.string() });
-
-const RageApplyBodySchema = z.object({
-  minFit: z.coerce.number().int().min(0).max(100).optional(),
-  maxApplications: z.coerce.number().int().min(1).max(100).optional(),
-  sinceDays: z.coerce.number().int().min(1).max(90).optional(),
-});
-
-type RageApplyBody = z.infer<typeof RageApplyBodySchema>;
+import {
+  ApproveCuratedItemResponseSchema,
+  CurrentBatchResponseSchema,
+  ItemIdParam,
+  RageApplyBody,
+  RageApplyBodySchema,
+  RageApplyResponseSchema,
+  RejectCuratedItemResponseSchema,
+} from './automation.routes.schemas';
 
 export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
   {
     method: 'GET',
     path: '/v1/apply-mode/weekly-curated/current',
     auth: { kind: 'jwt' },
+    response: CurrentBatchResponseSchema,
     openapi: {
       summary: "This week's curated batch for the viewer.",
       tags: ['apply-mode'],
@@ -38,7 +37,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const batch = await bc.getCurrentBatch.execute(ctx.user!.userId);
-      return { success: true, data: { batch } };
+      return { batch };
     },
   },
   {
@@ -46,6 +45,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     path: '/v1/apply-mode/weekly-curated/:itemId/reject',
     auth: { kind: 'jwt' },
     params: ItemIdParam,
+    response: RejectCuratedItemResponseSchema,
     openapi: {
       summary: 'Reject a curated item.',
       tags: ['apply-mode'],
@@ -55,7 +55,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     handler: async (ctx, bc) => {
       const { itemId } = ctx.params as { itemId: string };
       await bc.rejectCuratedItem.execute(ctx.user!.userId, itemId);
-      return { success: true, data: { itemId } };
+      return { itemId };
     },
   },
   {
@@ -64,6 +64,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     auth: { kind: 'jwt' },
     params: ItemIdParam,
     statusCode: 200,
+    response: ApproveCuratedItemResponseSchema,
     guards: [{ id: 'fit-profile' }, { id: 'min-quality' }],
     openapi: {
       summary: "Approve a curated item — submits a JobApplication using the user's primary resume.",
@@ -74,7 +75,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     handler: async (ctx, bc) => {
       const { itemId } = ctx.params as { itemId: string };
       const result = await bc.approveCuratedItem.execute(ctx.user!.userId, itemId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -84,7 +85,8 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
     permission: Permission.RAGE_APPLY,
     body: RageApplyBodySchema,
     statusCode: 200,
-    guards: [{ id: 'fit-profile' }, { id: 'min-quality' }],
+    response: RageApplyResponseSchema,
+    guards: [{ id: 'fit-profile' }, { id: 'min-quality' }, { id: 'external-api' }],
     openapi: {
       summary:
         'Submit tailored applications to every open job that matches minFit. Bounded by maxApplications (default 20, cap 100).',
@@ -104,7 +106,7 @@ export const automationRoutes: ReadonlyArray<Route<AutomationUseCases>> = [
         maxApplications: body.maxApplications,
         since,
       });
-      return { success: true, data: result };
+      return result;
     },
   },
 ];

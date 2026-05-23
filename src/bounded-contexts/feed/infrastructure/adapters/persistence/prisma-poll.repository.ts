@@ -3,8 +3,12 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type { PollResultBucket, PollVote, Post } from '../../../domain/entities';
-import { PollRepositoryPort } from '../../../domain/ports/poll.repository.port';
+import {
+  type AtomicVoteResult,
+  PollRepositoryPort,
+} from '../../../domain/ports/poll.repository.port';
 
 export class PrismaPollRepository extends PollRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
@@ -41,5 +45,25 @@ export class PrismaPollRepository extends PollRepositoryPort {
       _count: { id: true },
     });
     return votes.map((v) => ({ optionIndex: v.optionIndex, count: v._count.id }));
+  }
+
+  async voteAtomic(postId: string, userId: string, optionIndex: number): Promise<AtomicVoteResult> {
+    return runInTransaction(this.prisma, async (tx) => {
+      try {
+        const vote = (await tx.pollVote.create({
+          data: { postId, userId, optionIndex },
+        })) as PollVote;
+        await tx.post.update({
+          where: { id: postId },
+          data: { votesCount: { increment: 1 } },
+        });
+        return { outcome: 'created' as const, vote };
+      } catch (err) {
+        if ((err as { code?: string }).code === 'P2002') {
+          return { outcome: 'duplicate' as const };
+        }
+        throw err;
+      }
+    });
   }
 }

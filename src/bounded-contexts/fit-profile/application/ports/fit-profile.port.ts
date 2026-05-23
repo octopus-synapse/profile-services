@@ -11,6 +11,7 @@ import type { GetFitProfileStatusUseCase } from '../use-cases/get-fit-profile-st
 import type { GetFitQuestionUseCase } from '../use-cases/get-fit-question.use-case';
 import type { GetJobFitProfileUseCase } from '../use-cases/get-job-fit-profile.use-case';
 import type { GetOrCreateQuestionSetUseCase } from '../use-cases/get-or-create-question-set.use-case';
+import type { ListFitAnswersUseCase } from '../use-cases/list-fit-answers.use-case';
 import type { ListFitQuestionsUseCase } from '../use-cases/list-fit-questions.use-case';
 import type { SubmitFitAnswersUseCase } from '../use-cases/submit-fit-answers.use-case';
 import type { UpdateFitQuestionUseCase } from '../use-cases/update-fit-question.use-case';
@@ -20,6 +21,7 @@ export abstract class FitProfileUseCases {
   abstract readonly getFitProfileStatus: GetFitProfileStatusUseCase;
   abstract readonly getOrCreateQuestionSet: GetOrCreateQuestionSetUseCase;
   abstract readonly submitFitAnswers: SubmitFitAnswersUseCase;
+  abstract readonly listFitAnswers: ListFitAnswersUseCase;
   abstract readonly deleteFitProfile: DeleteFitProfileUseCase;
 
   abstract readonly upsertJobFitProfile: UpsertJobFitProfileUseCase;

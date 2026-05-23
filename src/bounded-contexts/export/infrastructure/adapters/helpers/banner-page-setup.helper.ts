@@ -44,8 +44,7 @@ export class BannerPageSetup {
       await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
       this.logger.error(
         `Error during page.goto: ${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
+        { context: CTX, stack: err instanceof Error ? err.stack : undefined },
       );
       throw err;
     }

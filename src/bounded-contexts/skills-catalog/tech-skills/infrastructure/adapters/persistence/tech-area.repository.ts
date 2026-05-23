@@ -1,13 +1,13 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TechAreaRepositoryPort } from '../../../application/ports/tech-skills.port';
-import type { TechArea } from '../../../dto/tech-area.dto';
+import type { TechArea } from '../../../dto/tech-area.schema';
 
 export class TechAreaRepository extends TechAreaRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
     super();
   }
 
-  async findAllActive(): Promise<TechArea[]> {
+  async listActive(): Promise<TechArea[]> {
     const areas = await this.prisma.techArea.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },

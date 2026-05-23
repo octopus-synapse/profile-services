@@ -4,7 +4,7 @@
 // compute per-company response percentiles across all users' applications.
 
 model JobApplicationEvent {
-  id            String         @id @default(cuid())
+  id            String         @id @default(dbgenerated("uuidv7()"))
   applicationId String
   application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
@@ -34,7 +34,7 @@ enum JobApplicationEventType {
 // Tracks which silence thresholds (7/14/21 days) have been reminded per
 // application so the anti-ghosting cron is idempotent across retries.
 model JobApplicationReminderLog {
-  id            String   @id @default(cuid())
+  id            String   @id @default(dbgenerated("uuidv7()"))
   applicationId String
   threshold     Int
   sentAt        DateTime @default(now())

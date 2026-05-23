@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const IndustryEnum = z.enum([
   'software_engineering',
@@ -29,15 +30,15 @@ export const PriorityEnum = z.enum(['low', 'medium', 'high']);
 export const TrendEnum = z.enum(['improving', 'stable', 'declining']);
 
 export const TrackViewSchema = z.object({
-  resumeId: z.string().min(1),
+  resumeId: z.string().uuid(),
   userAgent: z.string().optional(),
   referer: z.string().optional(),
 });
 
 export const ViewStatsQuerySchema = z.object({
   period: PeriodEnum,
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 export const KeywordOptionsSchema = z.object({
@@ -223,9 +224,9 @@ export const ResumeAnalyticsSchema = z.object({
   views: z.number().int().nonnegative(),
   downloads: z.number().int().nonnegative(),
   shares: z.number().int().nonnegative(),
-  lastViewedAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  lastViewedAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type ResumeAnalytics = z.infer<typeof ResumeAnalyticsSchema>;
@@ -240,7 +241,7 @@ export const ShareAnalyticsSchema = z.object({
   downloads: z.number().int().nonnegative(),
   topReferrers: z.array(z.object({ referer: z.string(), count: z.number().int().nonnegative() })),
   viewsByDate: z.array(z.object({ date: z.string(), count: z.number().int().nonnegative() })),
-  lastViewedAt: z.string().datetime().nullable(),
+  lastViewedAt: IsoDateTimeSchema.nullable(),
 });
 
 export type ShareAnalytics = z.infer<typeof ShareAnalyticsSchema>;
@@ -249,8 +250,8 @@ export type ShareAnalytics = z.infer<typeof ShareAnalyticsSchema>;
  * Analytics Time Range Schema (For filtering analytics by date range)
  */
 export const AnalyticsTimeRangeSchema = z.object({
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: IsoDateTimeSchema.optional(),
+  endDate: IsoDateTimeSchema.optional(),
 });
 
 export type AnalyticsTimeRange = z.infer<typeof AnalyticsTimeRangeSchema>;
@@ -268,3 +269,39 @@ export const UserAnalyticsSummarySchema = z.object({
 });
 
 export type UserAnalyticsSummary = z.infer<typeof UserAnalyticsSummarySchema>;
+
+export type TrackViewDto = z.infer<typeof TrackViewSchema>;
+
+export type ViewStatsQueryDto = z.infer<typeof ViewStatsQuerySchema>;
+
+export type KeywordOptionsDto = z.infer<typeof KeywordOptionsSchema>;
+
+export type JobMatchDto = z.infer<typeof JobMatchSchema>;
+
+export type BenchmarkOptionsDto = z.infer<typeof BenchmarkOptionsSchema>;
+
+export type HistoryQueryDto = z.infer<typeof HistoryQuerySchema>;
+
+export type ViewStatsResponseDto = z.infer<typeof ViewStatsResponseSchema>;
+
+export type ATSScoreResponseDto = z.infer<typeof ATSScoreResponseSchema>;
+
+export type KeywordSuggestionsResponseDto = z.infer<typeof KeywordSuggestionsResponseSchema>;
+
+export type JobMatchResponseDto = z.infer<typeof JobMatchResponseSchema>;
+
+export type BenchmarkResponseDto = z.infer<typeof BenchmarkResponseSchema>;
+
+export type DashboardResponseDto = z.infer<typeof DashboardResponseSchema>;
+
+export type SnapshotResponseDto = z.infer<typeof SnapshotResponseSchema>;
+
+export type ScoreProgressionResponseDto = z.infer<typeof ScoreProgressionResponseSchema>;
+
+export type ResumeAnalyticsDto = z.infer<typeof ResumeAnalyticsSchema>;
+
+export type ShareAnalyticsDto = z.infer<typeof ShareAnalyticsSchema>;
+
+export type AnalyticsTimeRangeDto = z.infer<typeof AnalyticsTimeRangeSchema>;
+
+export type UserAnalyticsSummaryDto = z.infer<typeof UserAnalyticsSummarySchema>;

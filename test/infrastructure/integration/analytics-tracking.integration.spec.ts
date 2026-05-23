@@ -89,30 +89,28 @@ describe('Analytics Tracking Integration', () => {
   describe('View Tracking', () => {
     it('should track a view on a resume', async () => {
       const response = await getRequest()
-        .post(`/api/resume-analytics/${resumeId}/track-view`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/track-view`)
         .send({})
         .set('User-Agent', 'TestBrowser/1.0');
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.message).toContain('tracked');
+      expect(response.body.message).toContain('tracked');
     });
 
     it('should get view stats after tracking', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/views?period=month`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/views?period=month`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
 
     it('should track multiple views and verify accuracy', async () => {
       // Track 3 additional views
       for (let i = 0; i < 3; i++) {
         const response = await getRequest()
-          .post(`/api/resume-analytics/${resumeId}/track-view`)
+          .post(`/api/v1/resumes/${resumeId}/analytics/track-view`)
           .send({})
           .set('User-Agent', `TestBrowser/${i}`)
           .set('X-Forwarded-For', `192.0.2.${10 + i}`);
@@ -122,13 +120,12 @@ describe('Analytics Tracking Integration', () => {
 
       // Fetch views and verify count reflects all tracked views
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/views?period=month`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/views?period=month`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
       // We tracked 1 + 3 = 4 views total
-      const data = response.body.data;
+      const data = response.body;
       expect(data).toBeDefined();
     });
   });
@@ -136,27 +133,25 @@ describe('Analytics Tracking Integration', () => {
   describe('Snapshots', () => {
     it('should take a snapshot', async () => {
       const response = await getRequest()
-        .post(`/api/resume-analytics/${resumeId}/snapshot`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.atsScore).toBeDefined();
-      expect(typeof response.body.data.atsScore).toBe('number');
+      expect(response.body).toBeDefined();
+      expect(response.body.atsScore).toBeDefined();
+      expect(typeof response.body.atsScore).toBe('number');
     });
 
     it('should verify snapshot is stored in history', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/history`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/history`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data)).toBe(true);
-      expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
 
-      const snapshot = response.body.data[0];
+      const snapshot = response.body[0];
       expect(snapshot.resumeId).toBe(resumeId);
       expect(snapshot.atsScore).toBeDefined();
     });
@@ -165,37 +160,35 @@ describe('Analytics Tracking Integration', () => {
   describe('Dashboard', () => {
     it('should get dashboard data for a resume with snapshots', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/dashboard`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/dashboard`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
   });
 
   describe('ATS Score', () => {
     it('should calculate ATS score and return valid score', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/ats-score`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.score).toBeDefined();
-      expect(typeof response.body.data.score).toBe('number');
-      expect(response.body.data.score).toBeGreaterThanOrEqual(0);
-      expect(response.body.data.score).toBeLessThanOrEqual(100);
+      expect(response.body).toBeDefined();
+      expect(response.body.score).toBeDefined();
+      expect(typeof response.body.score).toBe('number');
+      expect(response.body.score).toBeGreaterThanOrEqual(0);
+      expect(response.body.score).toBeLessThanOrEqual(100);
     });
 
     it('should include section breakdown in ATS score', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/ats-score`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      const data = response.body.data;
+      const data = response.body;
       // ATS score should include breakdown details
       expect(data.sectionBreakdown).toBeDefined();
       expect(Array.isArray(data.sectionBreakdown)).toBe(true);
@@ -205,53 +198,52 @@ describe('Analytics Tracking Integration', () => {
   describe('Score Progression', () => {
     it('should show score progression after snapshot', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/progression`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/progression`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toBeDefined();
-      expect(response.body.data.snapshots).toBeDefined();
-      expect(Array.isArray(response.body.data.snapshots)).toBe(true);
-      expect(response.body.data.trend).toBeDefined();
-      expect(['improving', 'stable', 'declining']).toContain(response.body.data.trend);
+      expect(response.body).toBeDefined();
+      expect(response.body.snapshots).toBeDefined();
+      expect(Array.isArray(response.body.snapshots)).toBe(true);
+      expect(response.body.trend).toBeDefined();
+      expect(['improving', 'stable', 'declining']).toContain(response.body.trend);
     });
 
     it('should show progression history after taking a second snapshot', async () => {
       // Take another snapshot
       const snapshotResponse = await getRequest()
-        .post(`/api/resume-analytics/${resumeId}/snapshot`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set(authHeader(accessToken));
 
       expect(snapshotResponse.status).toBe(201);
 
       // Check progression now has 2+ points
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/progression`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/progression`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.data.snapshots.length).toBeGreaterThanOrEqual(2);
-      expect(typeof response.body.data.changePercent).toBe('number');
+      expect(response.body.snapshots.length).toBeGreaterThanOrEqual(2);
+      expect(typeof response.body.changePercent).toBe('number');
     });
   });
 
   describe('Error Cases', () => {
     it('should return 404 for analytics on non-existent resume', async () => {
-      const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await getRequest()
-        .get(`/api/resume-analytics/${fakeResumeId}/ats-score`)
+        .get(`/api/v1/resumes/${fakeResumeId}/analytics/ats-score`)
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(404);
     });
 
     it('should return 404 for track-view on non-existent resume', async () => {
-      const fakeResumeId = 'clxxxxxxxxxxxxxxxxxxxxxxxxx';
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await getRequest()
-        .post(`/api/resume-analytics/${fakeResumeId}/track-view`)
+        .post(`/api/v1/resumes/${fakeResumeId}/analytics/track-view`)
         .send({});
 
       expect(response.status).toBe(404);
@@ -260,7 +252,7 @@ describe('Analytics Tracking Integration', () => {
     it('should return 404 (access denied) for resume owned by another user', async () => {
       // Other user tries to access primary user's analytics
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/ats-score`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/ats-score`)
         .set(authHeader(otherAccessToken));
 
       // Should be 404 (not revealing existence) or 403
@@ -269,7 +261,7 @@ describe('Analytics Tracking Integration', () => {
 
     it('should return 404 (access denied) for dashboard of another user resume', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/dashboard`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/dashboard`)
         .set(authHeader(otherAccessToken));
 
       expect([403, 404]).toContain(response.status);
@@ -277,7 +269,7 @@ describe('Analytics Tracking Integration', () => {
 
     it('should return 404 (access denied) for snapshot of another user resume', async () => {
       const response = await getRequest()
-        .post(`/api/resume-analytics/${resumeId}/snapshot`)
+        .post(`/api/v1/resumes/${resumeId}/analytics/snapshot`)
         .set(authHeader(otherAccessToken));
 
       expect([403, 404]).toContain(response.status);
@@ -285,14 +277,14 @@ describe('Analytics Tracking Integration', () => {
 
     it('should return 404 (access denied) for views of another user resume', async () => {
       const response = await getRequest()
-        .get(`/api/resume-analytics/${resumeId}/views?period=month`)
+        .get(`/api/v1/resumes/${resumeId}/analytics/views?period=month`)
         .set(authHeader(otherAccessToken));
 
       expect([403, 404]).toContain(response.status);
     });
 
     it('should return 401 for unauthenticated access to protected analytics', async () => {
-      const response = await getRequest().get(`/api/resume-analytics/${resumeId}/ats-score`);
+      const response = await getRequest().get(`/api/v1/resumes/${resumeId}/analytics/ats-score`);
 
       expect(response.status).toBe(401);
     });

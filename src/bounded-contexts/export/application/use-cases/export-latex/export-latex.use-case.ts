@@ -7,6 +7,7 @@
 
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { formatMonthYear } from '@/shared-kernel/i18n/format-date';
 import type {
   GenericSectionContent,
   GenericSectionWithMeta,
@@ -256,11 +257,6 @@ ${email}${phone ? ` \\textbar{  } ${phone}` : ''}
   }
 
   private formatDate(date: Date | null | undefined): string {
-    if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (Number.isNaN(d.getTime())) return '';
-    const month = d.toLocaleString('en-US', { month: 'short' });
-    const year = d.getFullYear();
-    return `${month} ${year}`;
+    return formatMonthYear(date);
   }
 }

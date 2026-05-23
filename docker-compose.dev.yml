@@ -6,6 +6,12 @@ services:
     container_name: profile-postgres-dev
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
+    # No host port. Backend reaches Postgres via the internal docker
+    # network (`postgres:5432`); developers needing psql/DBeaver from
+    # the host run `docker exec -it profile-postgres-dev psql ...`.
+    # This frees host port 5432 so a co-installed Postgres / other
+    # project never collides with the dev stack.
+    ports: !override []
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     networks:
@@ -16,6 +22,9 @@ services:
       file: infra/docker/compose/redis.yml
       service: redis
     container_name: profile-redis-dev
+    # Same rationale as Postgres above — backend reaches Redis via
+    # `redis:6379` on the docker network; host port stays unbound.
+    ports: !override []
     volumes:
       - redis_dev_data:/data
     networks:
@@ -26,13 +35,22 @@ services:
       file: infra/docker/compose/minio.yml
       service: minio
     container_name: profile-minio-dev
+    # S3 port (9000) stays on its default — presigned URLs default to
+    # `http://localhost:9000/...` when MINIO_PUBLIC_ENDPOINT is the
+    # host-facing override, and the browser fetching the resource has
+    # to reach it. Console moves to 19001 (project-unique) so it
+    # doesn't fight other locally-installed MinIO / web apps on 9001.
+    ports: !override
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-19001}:9001"
     volumes:
       - minio_dev_data:/data
     networks:
       - profile-dev-network
 
   minio-init:
-    image: minio/mc
+    # P1-#A6-7: pin tag for parity with the prod `minio` image bump.
+    image: minio/mc:${MINIO_MC_VERSION:-RELEASE.2024-10-08T09-37-26Z}
     container_name: profile-minio-init
     depends_on:
       minio:
@@ -51,23 +69,17 @@ services:
     networks:
       - profile-dev-network
 
-  libretranslate:
-    extends:
-      file: infra/docker/compose/libretranslate.yml
-      service: libretranslate
-    container_name: profile-libretranslate-dev
-    volumes:
-      - libretranslate_models:/home/libretranslate/.local
-    networks:
-      - profile-dev-network
-
   mailpit:
-    image: axllent/mailpit:latest
+    # P1-#A6-7: pin tag. Override via `MAILPIT_VERSION`.
+    image: axllent/mailpit:${MAILPIT_VERSION:-v1.20.6}
     container_name: profile-mailpit-dev
     restart: unless-stopped
+    # SMTP (1025) stays internal — the backend writes to
+    # `mailpit:1025` on the docker network. Only the web UI is
+    # published, on a project-unique 18025 so it doesn't fight other
+    # mailpit / SMTP UIs on 8025.
     ports:
-      - "${MAILPIT_SMTP_PORT:-1025}:1025"
-      - "${MAILPIT_UI_PORT:-8025}:8025"
+      - "${MAILPIT_UI_PORT:-18025}:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
@@ -94,8 +106,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      # P0-001: ConfigPort schema requires JWT_SECRET >= 32 chars at boot.
+      # The fallback below is non-secret for local dev only — production
+      # MUST set JWT_SECRET explicitly.
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-minimum-32-characters-long}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+      APP_URL: ${APP_URL:-http://localhost:13001}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:13001}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       # Hardcode the mailpit service hostname — the host's `.env` may have
       # `SMTP_HOST=localhost` for the non-docker dev run, and compose's
@@ -109,8 +126,12 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
-      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
-      LIBRETRANSLATE_URL: http://libretranslate:5000
+      # The minio SDK performs an HTTP region-discovery call against
+      # this endpoint when signing GETs, so it must resolve from inside
+      # the backend container. The bridge name `minio:9000` works inside
+      # the docker network; override via .env for a host-reachable value
+      # when serving the URL to a real browser on the host.
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://minio:9000}
       LOG_LEVEL: debug
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-mec-sync-token-123}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
@@ -121,7 +142,10 @@ services:
       # to exercise the full LGPD flow.
       SKIP_TOS_CHECK: ${SKIP_TOS_CHECK:-true}
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      # Host 13001 → container 3001 (project-unique host port). The
+      # frontend dev server's VITE_API_URL must follow:
+      # http://localhost:13001. E2E tests' API_URL constant too.
+      - "${BACKEND_PORT:-13001}:3001"
       - "9229:9229"
     depends_on:
       postgres:
@@ -129,8 +153,6 @@ services:
       redis:
         condition: service_healthy
       minio:
-        condition: service_healthy
-      libretranslate:
         condition: service_healthy
       mailpit:
         condition: service_healthy
@@ -146,6 +168,10 @@ services:
       - ./tsconfig.json:/app/tsconfig.json:delegated
       - ./scripts:/app/scripts:delegated
       - ./bunfig.toml:/app/bunfig.toml:delegated
+      # `config/` holds the bunfig.{integration,e2e,static-analysis}.toml
+      # variants. Mounted so `bun run test:e2e` (which docker-execs into
+      # this container) can pick them up without a docker cp dance.
+      - ./config:/app/config:delegated
       - ./package.json:/app/package.json:delegated
       - /app/node_modules
       - ./logs:/app/logs
@@ -164,6 +190,3 @@ volumes:
     external: true
   minio_dev_data:
     name: profile-minio-dev-data
-  libretranslate_models:
-    name: profile-libretranslate-models
-    external: true

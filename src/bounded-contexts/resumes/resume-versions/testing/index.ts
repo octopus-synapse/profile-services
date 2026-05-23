@@ -89,6 +89,30 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     };
   }
 
+  async createNextResumeVersion(
+    resumeId: string,
+    data: {
+      snapshot: Record<string, unknown>;
+      label?: string;
+      isTailored?: boolean;
+      tailoredJobId?: string | null;
+    },
+  ): Promise<ResumeVersionRecord> {
+    // Mirrors the adapter's compute-then-insert. The in-memory store is
+    // single-threaded so the retry loop never trips here; the race
+    // coverage lives in the integration spec.
+    const last = await this.findLastVersionNumber(resumeId);
+    const versionNumber = (last ?? 0) + 1;
+    return this.createResumeVersion({
+      resumeId,
+      versionNumber,
+      snapshot: data.snapshot,
+      label: data.label,
+      isTailored: data.isTailored,
+      tailoredJobId: data.tailoredJobId,
+    });
+  }
+
   async findResumeOwner(resumeId: string): Promise<{ userId: string } | null> {
     const snap = this.snapshotResumes.get(resumeId);
     if (snap) return { userId: snap.userId };
@@ -127,11 +151,16 @@ export class InMemoryResumeVersionsRepository extends ResumeVersionsRepositoryPo
     };
   }
 
+  readonly capturedRestoreSnapshots: Array<{
+    resumeId: string;
+    snapshot: Record<string, unknown>;
+  }> = [];
+
   async updateResumeFromSnapshot(
-    _resumeId: string,
-    _snapshot: Record<string, unknown>,
+    resumeId: string,
+    snapshot: Record<string, unknown>,
   ): Promise<void> {
-    // no-op for tests
+    this.capturedRestoreSnapshots.push({ resumeId, snapshot });
   }
 
   async findVersionIdsByResumeIdDesc(resumeId: string): Promise<string[]> {
@@ -276,6 +305,22 @@ export class InMemoryResumeEventPublisher implements ResumeEventPublisher {
   }
 
   publishVersionRestored(resumeId: string, payload: unknown): void {
+    this.events.push({ type: 'version_restored', resumeId, payload });
+  }
+
+  async publishResumeCreatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_created', resumeId, payload });
+  }
+
+  async publishResumeDeletedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_deleted', resumeId, payload });
+  }
+
+  async publishVersionCreatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'version_created', resumeId, payload });
+  }
+
+  async publishVersionRestoredAsync(resumeId: string, payload: unknown): Promise<void> {
     this.events.push({ type: 'version_restored', resumeId, payload });
   }
 

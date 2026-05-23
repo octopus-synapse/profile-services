@@ -8,14 +8,17 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import {
+  compositeCursorWhere as buildCompositeCursorWhere,
+  encodeCursor,
+} from '@/shared-kernel/persistence/composite-cursor';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
   BookmarkedFeedItem,
   PersistPostInput,
   Post,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../../../domain/entities';
 import { FeedRepositoryPort } from '../../../domain/ports/feed.repository.port';
@@ -25,9 +28,22 @@ const AUTHOR_SELECT = {
   name: true,
   username: true,
   photoURL: true,
+  headline: true,
   bio: true,
   location: true,
 } as const;
+
+/**
+ * P1 #35 — Build a Prisma `where` fragment for the composite
+ * `(createdAt, id)` cursor. Thin wrapper around the shared-kernel
+ * helper to keep the local `Prisma.PostWhereInput` signature inferred
+ * cleanly at every call site (the shared union type widens to "any
+ * model with createdAt+id", which Prisma's generated where types
+ * cannot narrow on their own).
+ */
+function compositeCursorWhere(cursor: string | undefined): Prisma.PostWhereInput {
+  return buildCompositeCursorWhere(cursor) as Prisma.PostWhereInput;
+}
 
 export class PrismaFeedRepository extends FeedRepositoryPort {
   constructor(
@@ -42,26 +58,20 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     return (await this.prisma.post.create({
       data: {
         authorId,
-        type: input.type,
-        subtype: input.subtype,
         content: input.content,
-        hardSkills: input.hardSkills ?? [],
-        softSkills: input.softSkills ?? [],
         hashtags: input.hashtags,
-        data: (input.data as Prisma.InputJsonValue | undefined) ?? undefined,
         imageUrl: input.imageUrl,
         linkUrl: input.linkUrl,
         linkPreview: (input.linkPreview as Prisma.InputJsonValue | undefined) ?? undefined,
+        isRepost: input.isRepost === true,
         originalPostId: input.originalPostId,
-        coAuthors: input.coAuthors ?? [],
         scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
         isPublished: input.isPublished,
         threadId: input.threadId,
-        codeSnippet: input.codeSnippet
-          ? (input.codeSnippet as unknown as Prisma.InputJsonValue)
-          : undefined,
-        isAnonymous: input.isAnonymous === true,
-        anonymousCategory: input.isAnonymous ? (input.anonymousCategory ?? null) : null,
+        pollOptions: (input.pollOptions as Prisma.InputJsonValue | undefined) ?? undefined,
+        pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : undefined,
+        codeSnippet: input.codeSnippet,
+        codeLanguage: input.codeLanguage,
       },
       include: { author: { select: AUTHOR_SELECT } },
     })) as unknown as PostWithAuthor;
@@ -95,6 +105,38 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     });
   }
 
+  async softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }> {
+    // P1 #31 — atomic soft-delete + repost-count decrement. Reading
+    // originalPostId before the flip and decrementing inside the
+    // same tx prevents a window where the post is tombstoned but
+    // the original still advertises an inflated repostsCount.
+    return runInTransaction(this.prisma, async (tx) => {
+      const row = await tx.post.findUnique({
+        where: { id },
+        select: { originalPostId: true, isDeleted: true },
+      });
+      if (!row || row.isDeleted) {
+        return { mutated: false, originalPostId: row?.originalPostId ?? null };
+      }
+      const result = await tx.post.updateMany({
+        where: { id, isDeleted: false },
+        data: { isDeleted: true, deletedAt: new Date() },
+      });
+      if (result.count === 0) {
+        return { mutated: false, originalPostId: row.originalPostId };
+      }
+      if (row.originalPostId) {
+        await tx.post.update({
+          where: { id: row.originalPostId },
+          data: { repostsCount: { decrement: 1 } }, // lint-allow-magic-number: one repost removed = -1
+        });
+      }
+      return { mutated: true, originalPostId: row.originalPostId };
+    });
+  }
+
   // ---------- Timeline / listings ----------
   async listFollowedAndConnectionIds(
     userId: string,
@@ -124,17 +166,15 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
   async listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
   }): Promise<PostWithRelations[]> {
-    const { cursor, take, type, followingOnly, followingIds, userId } = params;
+    const { cursor, take, followingOnly, followingIds, userId } = params;
     return (await this.prisma.post.findMany({
       where: {
         isDeleted: false,
-        ...(type ? { type } : {}),
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
         ...(followingOnly
           ? { authorId: { in: followingIds }, isPublished: true }
           : { OR: [{ isPublished: true }, { authorId: userId, isPublished: false }] }),
@@ -143,7 +183,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
         author: { select: AUTHOR_SELECT },
         originalPost: { include: { author: { select: AUTHOR_SELECT } } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take,
     })) as unknown as PostWithRelations[];
   }
@@ -157,19 +197,20 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       where: {
         authorId: userId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
         originalPost: { include: { author: { select: AUTHOR_SELECT } } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as PostWithRelations[];
 
+    const last = posts[posts.length - 1];
     const nextCursor =
-      posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
-    return { posts, nextCursor };
+      posts.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
+    return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 
   async listBookmarks(
@@ -177,10 +218,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<{ posts: BookmarkedFeedItem[]; nextCursor: string | null }> {
+    // P1 #35 — composite (createdAt, id) cursor over the
+    // `PostBookmark` row's own timestamp so two users bookmarking the
+    // same post inside the same millisecond don't drop either bookmark
+    // from the page boundary.
     const bookmarks = await this.prisma.postBookmark.findMany({
       where: {
         userId,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...buildCompositeCursorWhere(cursor),
       },
       include: {
         post: {
@@ -190,7 +235,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
 
@@ -201,8 +246,9 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       isLiked: false,
       isBookmarked: true,
     }));
+    const last = bookmarks[bookmarks.length - 1];
     const nextCursor =
-      bookmarks.length === limit ? bookmarks[bookmarks.length - 1].createdAt.toISOString() : null;
+      bookmarks.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
     return { posts, nextCursor };
   }
 
@@ -211,14 +257,14 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;
   }> {
     if (postIds.length === 0) {
       return {
-        likedPostMap: new Map(),
+        likedPostIds: new Set(),
         bookmarkedPostIds: new Set(),
         repostedPostIds: new Set(),
         voteByPostId: new Map(),
@@ -228,7 +274,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     const [likes, bookmarks, myReposts, myVotes] = await Promise.all([
       this.prisma.postLike.findMany({
         where: { postId: { in: postIds }, userId },
-        select: { postId: true, reactionType: true },
+        select: { postId: true },
       }),
       this.prisma.postBookmark.findMany({
         where: { postId: { in: postIds }, userId },
@@ -237,7 +283,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
       this.prisma.post.findMany({
         where: {
           authorId: userId,
-          type: 'REPOST',
+          isRepost: true,
           originalPostId: { in: postIds },
           isDeleted: false,
         },
@@ -250,7 +296,7 @@ export class PrismaFeedRepository extends FeedRepositoryPort {
     ]);
 
     return {
-      likedPostMap: new Map(likes.map((l) => [l.postId, l.reactionType])),
+      likedPostIds: new Set(likes.map((l) => l.postId)),
       bookmarkedPostIds: new Set(bookmarks.map((b) => b.postId)),
       repostedPostIds: new Set(
         myReposts.map((r) => r.originalPostId).filter((id): id is string => Boolean(id)),

@@ -9,10 +9,10 @@
 import type { NotificationsUseCases } from '@/bounded-contexts/notifications/application/ports/notifications.port';
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { LoggerPort, SafeFetchPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import { FeedUseCases } from './application/ports/feed.port';
-import { AnonymousMaskService } from './application/services/anonymous-mask.service';
 import { FeedTimelineService } from './application/services/feed-timeline.service';
 import { HashtagParserService } from './application/services/hashtag-parser.service';
 import { BookmarkPostUseCase } from './application/use-cases/bookmark-post/bookmark-post.use-case';
@@ -29,7 +29,7 @@ import { ListFeedTimelineUseCase } from './application/use-cases/list-feed-timel
 import { ListPostCommentsUseCase } from './application/use-cases/list-post-comments/list-post-comments.use-case';
 import { ListUserCommentsUseCase } from './application/use-cases/list-user-comments/list-user-comments.use-case';
 import { ListUserPostsUseCase } from './application/use-cases/list-user-posts/list-user-posts.use-case';
-import { ListUserReactionsUseCase } from './application/use-cases/list-user-reactions/list-user-reactions.use-case';
+import { ListUserLikesUseCase } from './application/use-cases/list-user-reactions/list-user-reactions.use-case';
 import { ReportPostUseCase } from './application/use-cases/report-post/report-post.use-case';
 import { RepostPostUseCase } from './application/use-cases/repost-post/repost-post.use-case';
 import { UnbookmarkPostUseCase } from './application/use-cases/unbookmark-post/unbookmark-post.use-case';
@@ -53,6 +53,8 @@ export function buildFeedUseCases(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
+  cache?: CachePort,
 ): FeedUseCases {
   // Repos
   const feedRepo = new PrismaFeedRepository(prisma, logger);
@@ -62,18 +64,22 @@ export function buildFeedUseCases(
   const reportRepo = new PrismaReportRepository(prisma);
 
   // External adapters
-  const linkPreview = new FetchLinkPreviewAdapter(logger);
+  const linkPreview = new FetchLinkPreviewAdapter(logger, safeFetch);
   const imageStorage = new S3PostImageStorageAdapter(s3);
   const notifier = new NotificationsEngagementNotifierAdapter(notifications.createNotification);
 
   // App services
-  const mask = new AnonymousMaskService();
+  // Blind Mode was dropped in the feed minimalist refactor —
+  // AnonymousMaskService and its wiring are gone with it.
   const hashtags = new HashtagParserService();
-  const timeline = new FeedTimelineService(feedRepo, mask);
+  // P1-028 — pass the cache port so `getTimeline` short-circuits
+  // repeat reads inside a 15s window. Optional so unit tests don't
+  // need to wire a fake cache.
+  const timeline = new FeedTimelineService(feedRepo, cache);
 
   return {
     createPost: new CreatePostUseCase(feedRepo, linkPreview, hashtags, logger),
-    getPost: new GetPostUseCase(feedRepo, mask, logger),
+    getPost: new GetPostUseCase(feedRepo, logger),
     deletePost: new DeletePostUseCase(feedRepo),
     uploadPostImage: new UploadPostImageUseCase(imageStorage),
 
@@ -92,7 +98,7 @@ export function buildFeedUseCases(
     bookmarkPost: new BookmarkPostUseCase(engagementRepo),
     unbookmarkPost: new UnbookmarkPostUseCase(engagementRepo),
     repostPost: new RepostPostUseCase(engagementRepo, notifier, hashtags, logger),
-    listUserReactions: new ListUserReactionsUseCase(engagementRepo),
+    listUserLikes: new ListUserLikesUseCase(engagementRepo),
 
     voteOnPoll: new VoteOnPollUseCase(pollRepo),
     getPollResults: new GetPollResultsUseCase(pollRepo),
@@ -105,8 +111,10 @@ export function buildFeedComposition(
   logger: LoggerPort,
   s3: S3UploadService,
   notifications: Pick<NotificationsUseCases, 'createNotification'>,
+  safeFetch: SafeFetchPort,
+  cache?: CachePort,
 ): BoundedContextComposition<FeedUseCases> {
-  const useCases = buildFeedUseCases(prisma, logger, s3, notifications);
+  const useCases = buildFeedUseCases(prisma, logger, s3, notifications, safeFetch, cache);
 
   return {
     useCases,

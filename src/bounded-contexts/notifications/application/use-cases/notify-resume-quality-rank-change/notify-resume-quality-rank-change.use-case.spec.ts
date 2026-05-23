@@ -68,4 +68,53 @@ describe('NotifyResumeQualityRankChangeUseCase', () => {
     expect(repo.notifications).toHaveLength(1);
     expect(repo.notifications[0]?.type).toBe('RESUME_QUALITY_REGRESSED');
   });
+
+  // P1 #22 — D band was 20pts (40-59) instead of 10 like the others.
+  // After the fix every band spans exactly 10 points (50-59 = D).
+  it('rank boundary table: each band spans 10 points (D = 50-59)', async () => {
+    snapshots.setOwner('r-band', 'u-1');
+    const cases: ReadonlyArray<{ score: number; expectImproved: boolean; prev: number }> = [
+      { score: 50, prev: 40, expectImproved: true }, // F (40) → D (50): up
+      { score: 49, prev: 50, expectImproved: false }, // D (50) → F (49): down
+      { score: 60, prev: 59, expectImproved: true }, // D (59) → C (60): up
+      { score: 59, prev: 60, expectImproved: false }, // C (60) → D (59): down
+    ];
+    for (const c of cases) {
+      const repoFresh = new InMemoryNotificationsRepository();
+      const snapsFresh = new InMemoryResumeQualitySnapshot();
+      const useCaseFresh = new NotifyResumeQualityRankChangeUseCase(
+        snapsFresh,
+        new CreateNotificationUseCase(
+          repoFresh,
+          new InMemoryNotificationStream(),
+          new InMemoryNotificationEmail(),
+          stubLogger,
+        ),
+        stubLogger,
+      );
+      snapsFresh.setSnapshots('r-band', [
+        { overallScore: c.score, computedAt: new Date() },
+        { overallScore: c.prev, computedAt: new Date() },
+      ]);
+      snapsFresh.setOwner('r-band', 'u-1');
+
+      await useCaseFresh.execute({ resumeId: 'r-band', overallScore: c.score });
+      expect(repoFresh.notifications).toHaveLength(1);
+      expect(repoFresh.notifications[0]?.type).toBe(
+        c.expectImproved ? 'RESUME_QUALITY_IMPROVED' : 'RESUME_QUALITY_REGRESSED',
+      );
+    }
+  });
+
+  it('rank boundary: 40-49 = F (NOT D)', async () => {
+    snapshots.setSnapshots('r-1', [
+      { overallScore: 45, computedAt: new Date() },
+      { overallScore: 55, computedAt: new Date() },
+    ]);
+    snapshots.setOwner('r-1', 'u-1');
+
+    await useCase.execute({ resumeId: 'r-1', overallScore: 45 });
+    expect(repo.notifications).toHaveLength(1);
+    expect(repo.notifications[0]?.type).toBe('RESUME_QUALITY_REGRESSED');
+  });
 });

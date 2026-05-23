@@ -7,45 +7,14 @@ import {
   UsernameReservedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
-import type { UpdatedUsername } from '../../ports/username.port';
+import { RESERVED_USERNAMES_SET } from '../../../domain/value-objects/reserved-usernames.const';
+import {
+  type UpdatedUsername,
+  UpdateUsernameUseCasePort,
+} from '../../ports/update-username.use-case.port';
 import { UsernameRepositoryPort } from '../../ports/username.port';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
-
-/**
- * Reserved usernames that cannot be used by regular users.
- */
-const RESERVED_USERNAMES = new Set([
-  'admin',
-  'api',
-  'www',
-  'support',
-  'help',
-  'root',
-  'system',
-  'null',
-  'undefined',
-  'me',
-  'profile',
-  'settings',
-  'login',
-  'logout',
-  'register',
-  'signup',
-  'signin',
-  'auth',
-  'oauth',
-  'callback',
-  'webhook',
-  'webhooks',
-  'status',
-  'health',
-  'ping',
-  'static',
-  'assets',
-  'public',
-  'private',
-]);
 
 /**
  * Regex for valid username format:
@@ -60,9 +29,16 @@ const USERNAME_REGEX = /^[a-z][a-z0-9_]{2,29}$/;
  *
  * Single Responsibility: Handle username update with validation and cooldown.
  * Returns domain entity (UpdatedUsername), not envelope.
+ *
+ * Distinct from `ValidateUsernameUseCase` (multi-error UX) — this UC is
+ * the *write* path, throws on the first failure with a typed exception
+ * the error mapper localizes via the same dictionary the validate UC
+ * uses for `DomainCode[]`.
  */
-export class UpdateUsernameUseCase {
-  constructor(private readonly repository: UsernameRepositoryPort) {}
+export class UpdateUsernameUseCase extends UpdateUsernameUseCasePort {
+  constructor(private readonly repository: UsernameRepositoryPort) {
+    super();
+  }
 
   async execute(userId: string, newUsername: string): Promise<UpdatedUsername> {
     const existingUser = await this.repository.findUserById(userId);
@@ -115,7 +91,7 @@ export class UpdateUsernameUseCase {
       throw new UsernameMustBeLowercaseException();
     }
 
-    if (RESERVED_USERNAMES.has(username.toLowerCase())) {
+    if (RESERVED_USERNAMES_SET.has(username.toLowerCase())) {
       throw new UsernameReservedException();
     }
 

@@ -1,35 +1,27 @@
 import { ConfigPort } from '@/shared-kernel/config';
 import { PasswordResetEmailPort } from '../../../domain/ports';
 
-/** Abstract port for the platform email service (so adapters bind to it via DI). */
+/**
+ * Abstract port for the platform email facade. Mirrors the
+ * `EmailService` template method directly so callers can't reach
+ * the generic `sendEmail` path that drops template/context.
+ * The URL inside the email is built by `EmailTemplateService`
+ * using `FRONTEND_URL` (with prod fail-fast), so APP_URL plumbing
+ * stays out of the adapter.
+ */
 export abstract class EmailServicePort {
-  abstract sendEmail(options: {
-    to: string;
-    subject: string;
-    template: string;
-    context: Record<string, unknown>;
-  }): Promise<void>;
+  abstract sendPasswordResetEmail(email: string, name: string, token: string): Promise<void>;
 }
 
 export class EmailPasswordResetSender extends PasswordResetEmailPort {
-  private readonly appUrl: string;
-
   constructor(
     private readonly emailService: EmailServicePort,
-    private readonly configService: ConfigPort,
+    _configService: ConfigPort,
   ) {
     super();
-    this.appUrl = this.configService.getOrDefault<string>('APP_URL', 'http://localhost:3000');
   }
 
   async sendResetEmail(email: string, userName: string | null, resetToken: string): Promise<void> {
-    const resetUrl = `${this.appUrl}/auth/reset-password?token=${resetToken}`;
-
-    await this.emailService.sendEmail({
-      to: email,
-      subject: 'Reset Your Password',
-      template: 'password-reset',
-      context: { userName: userName || 'User', resetUrl, expirationHours: 24 },
-    });
+    await this.emailService.sendPasswordResetEmail(email, userName ?? 'User', resetToken);
   }
 }

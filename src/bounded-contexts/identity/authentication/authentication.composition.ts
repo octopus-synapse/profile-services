@@ -40,7 +40,7 @@ import {
   PrismaAuthenticationRepository,
 } from './infrastructure/adapters';
 import { PrismaLoginAttemptsAdapter } from './infrastructure/adapters/prisma-login-attempts.adapter';
-import { SessionDeviceService } from './infrastructure/adapters/session-device.service';
+import { SessionDeviceService } from './infrastructure/adapters/session-device.adapter';
 
 export { AuthenticationHttpBundle };
 
@@ -56,6 +56,9 @@ export interface AuthenticationUseCases {
   readonly authRepository: PrismaAuthenticationRepository;
   readonly sessionStorage: CookieSessionStorage;
   readonly sessionDevices: SessionDeviceService;
+  /** P1 #2 / #12 — exposed so the bootstrap can hand the lockout
+   *  status reader to the HTTP pipeline (auth-lockout stage). */
+  readonly loginAttempts: PrismaLoginAttemptsAdapter;
 }
 
 export function buildAuthenticationUseCases(
@@ -70,7 +73,8 @@ export function buildAuthenticationUseCases(
 ): AuthenticationUseCases {
   // Outbound adapters
   const authRepository = new PrismaAuthenticationRepository(prisma, cache);
-  const passwordHasher = new BcryptPasswordHasher();
+  // P1-#A1-17: cost from validated `EnvConfigSchema.BCRYPT_COST`.
+  const passwordHasher = new BcryptPasswordHasher(config.env.BCRYPT_COST);
   const tokenGenerator = new JwtTokenGenerator(jwt, config);
   const sessionStorage = new CookieSessionStorage(config);
   const loginAttempts = new PrismaLoginAttemptsAdapter(prisma, config);
@@ -101,6 +105,7 @@ export function buildAuthenticationUseCases(
     tokenGenerator,
     sessionStorage,
     logger,
+    config,
   );
   const terminateSession = new TerminateSessionUseCase(
     tokenGenerator,
@@ -139,6 +144,7 @@ export function buildAuthenticationUseCases(
     authRepository,
     sessionStorage,
     sessionDevices,
+    loginAttempts,
   };
 }
 

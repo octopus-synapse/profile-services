@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import type { VariantOverrides } from './variant.types';
-import type { GenericResumeSection } from './variant-overlay';
-import { applyVariantOverlay } from './variant-overlay';
+import type { GenericResumeSection } from './variant-overlay.types';
+import { applyVariantOverlay } from './variant-overlay.types';
 
 function makeSection(overrides: Partial<GenericResumeSection> = {}): GenericResumeSection {
   return {

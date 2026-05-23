@@ -48,6 +48,20 @@ export class PrismaQualityScoreRepository extends QualityScoreRepositoryPort {
     return row ? this.toDomain(row) : null;
   }
 
+  async findLatestForOwner(
+    userId: string,
+    resumeId: string,
+  ): Promise<{ found: boolean; owned: boolean; snapshot: SavedQualityScore | null }> {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { userId: true },
+    });
+    if (!resume) return { found: false, owned: false, snapshot: null };
+    if (resume.userId !== userId) return { found: true, owned: false, snapshot: null };
+    const snap = await this.findLatest(resumeId);
+    return { found: true, owned: true, snapshot: snap };
+  }
+
   async findHistory(resumeId: string, limit: number): Promise<readonly SavedQualityScore[]> {
     const rows = await this.prisma.resumeQualityScoreHistory.findMany({
       where: { resumeId },

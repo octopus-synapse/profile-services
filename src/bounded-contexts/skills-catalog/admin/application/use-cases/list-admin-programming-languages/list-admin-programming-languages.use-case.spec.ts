@@ -25,7 +25,11 @@ describe('Admin programming-languages use cases', () => {
   it('create + update + delete by slug', async () => {
     const repo = new InMemoryAdminProgrammingLanguagesRepository();
     repo.seed({ slug: 'rust' } as unknown as ProgrammingLanguage);
-    await new CreateAdminProgrammingLanguageUseCase(repo).execute({ slug: 'go' });
+    await new CreateAdminProgrammingLanguageUseCase(repo).execute({
+      slug: 'go',
+      nameEn: 'Go',
+      namePtBr: 'Go',
+    });
     await new UpdateAdminProgrammingLanguageUseCase(repo).execute('rust', { isActive: false });
     await new DeleteAdminProgrammingLanguageUseCase(repo).execute('rust');
     expect(repo.created).toHaveLength(1);

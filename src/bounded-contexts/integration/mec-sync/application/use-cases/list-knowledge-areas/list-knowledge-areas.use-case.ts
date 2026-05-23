@@ -8,6 +8,6 @@ export class ListKnowledgeAreasUseCase {
   constructor(private readonly courseQuery: CourseQueryService) {}
 
   execute(): Promise<string[]> {
-    return this.courseQuery.findAllKnowledgeAreas();
+    return this.courseQuery.listKnowledgeAreas();
   }
 }

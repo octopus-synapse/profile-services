@@ -11,7 +11,7 @@ import {
 } from '@/shared-kernel/websocket/websocket.port';
 import { ChatUseCases } from '../application/ports/chat.port';
 import { InMemoryChatCacheService, InMemoryConversationRepository } from '../testing';
-import { type ChatRealtimePort, registerChatWebSocketHandlers } from './chat-handlers';
+import { type ChatRealtimePort, registerChatWebSocketHandlers } from './chat.handler';
 
 // ----------------------------------------------------------------------------
 // Fakes
@@ -178,9 +178,10 @@ describe('registerChatWebSocketHandlers', () => {
       expect(verifyAsync).toHaveBeenCalledWith('jwt-auth');
     });
 
-    it('returns userId from query string', async () => {
+    it('P1 #7 — rejects JWT supplied via query string', async () => {
       const userId = await wsCtl.authenticate(makeHandshake({ query: { token: 'jwt-query' } }));
-      expect(userId).toBe('user-1');
+      expect(userId).toBeNull();
+      expect(verifyAsync).not.toHaveBeenCalled();
     });
 
     it('returns userId from Authorization Bearer header', async () => {
@@ -189,6 +190,14 @@ describe('registerChatWebSocketHandlers', () => {
       );
       expect(userId).toBe('user-1');
       expect(verifyAsync).toHaveBeenCalledWith('jwt-header');
+    });
+
+    it('returns userId from Sec-WebSocket-Protocol bearer.<token>', async () => {
+      const userId = await wsCtl.authenticate(
+        makeHandshake({ headers: { 'sec-websocket-protocol': 'bearer.jwt-subproto' } }),
+      );
+      expect(userId).toBe('user-1');
+      expect(verifyAsync).toHaveBeenCalledWith('jwt-subproto');
     });
 
     it('prioritises cookie over other token sources', async () => {
@@ -235,12 +244,13 @@ describe('registerChatWebSocketHandlers', () => {
       expect(realtime.isUserOnline('user-1')).toBe(true);
     });
 
-    it('broadcasts online status to conversation rooms', async () => {
+    it('broadcasts online status to conversation rooms (after debounce)', async () => {
       await wsCtl.state.connectHandlers[0]({ userId: 'user-1', socketId: 'sock-1' });
 
-      // Wait for the void-chained broadcastUserStatus().
-      await Promise.resolve();
-      await Promise.resolve();
+      // P1-042 — `broadcastUserStatus` is now debounced (300ms);
+      // wait the window plus the conversationRepo.findByUserId
+      // microtask before asserting.
+      await new Promise((r) => setTimeout(r, 350));
 
       const statusEmits = wsCtl.state.emits.filter((e) => e.event === 'user:status');
       expect(statusEmits.length).toBeGreaterThan(0);
@@ -349,9 +359,12 @@ describe('registerChatWebSocketHandlers', () => {
   // -------------------------- typing:stop ----------------------------------
 
   describe('typing:stop', () => {
-    it('broadcasts typing stop excluding sender', () => {
+    it('broadcasts typing stop excluding sender for participants', async () => {
+      // P1-043 — `typing:stop` now consults `isParticipant` like
+      // `typing:start`. The seeded conversation has user-1 + user-2
+      // so the call passes through and emits.
       const handler = wsCtl.state.messageHandlers.get('typing:stop');
-      handler?.({
+      await handler?.({
         userId: 'user-1',
         socketId: 'sock-1',
         payload: { conversationId: 'conv-1' },
@@ -362,6 +375,22 @@ describe('registerChatWebSocketHandlers', () => {
       );
       expect(emit?.kind).toBe('roomExcept');
       expect(emit?.target).toBe('conversation:conv-1');
+    });
+
+    it('blocks non-participants from broadcasting typing:stop', async () => {
+      const handler = wsCtl.state.messageHandlers.get('typing:stop');
+      // user-3 is not seeded into conv-1 — repo says false, handler
+      // refuses to emit.
+      await handler?.({
+        userId: 'user-3',
+        socketId: 'sock-3',
+        payload: { conversationId: 'conv-1' },
+      });
+
+      const stopEmit = wsCtl.state.emits.find(
+        (e) => e.event === 'typing' && (e.payload as { isTyping: boolean }).isTyping === false,
+      );
+      expect(stopEmit).toBeUndefined();
     });
   });
 

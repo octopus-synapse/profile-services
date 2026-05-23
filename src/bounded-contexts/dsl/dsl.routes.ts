@@ -6,31 +6,25 @@
  * controller class at module load time.
  */
 
-import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { DslUseCases } from './application/ports/dsl.port';
-
-const RenderTargetSchema = z.enum(['html', 'pdf']);
-
-const PreviewQuerySchema = z.object({
-  target: RenderTargetSchema.optional(),
-});
-
-const RenderQuerySchema = z.object({
-  target: RenderTargetSchema.optional(),
-  locale: z.string().optional(),
-});
-
-const ResumeIdParams = z.object({ resumeId: z.string() });
-const SlugParams = z.object({ slug: z.string() });
+import {
+  AstResponseSchema,
+  PreviewQuerySchema,
+  RenderQuerySchema,
+  ResumeIdParams,
+  SlugParams,
+  ValidateDslResponseSchema,
+} from './dsl.routes.schemas';
 
 export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
   {
     method: 'POST',
     path: '/v1/dsl/validate',
     auth: { kind: 'public' },
+    response: ValidateDslResponseSchema,
     openapi: {
       summary: 'Validate DSL schema',
       tags: ['dsl'],
@@ -39,7 +33,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = bc.validateDsl.execute(ctx.body as Record<string, unknown>);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -47,6 +41,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     path: '/v1/dsl/preview',
     auth: { kind: 'public' },
     query: PreviewQuerySchema,
+    response: AstResponseSchema,
     openapi: {
       summary: 'Compile DSL to AST (preview, no persistence)',
       tags: ['dsl'],
@@ -56,7 +51,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     handler: async (ctx, bc) => {
       const { target } = ctx.query as { target?: 'html' | 'pdf' };
       const ast = bc.previewDsl.execute(ctx.body as Record<string, unknown>, target ?? 'html');
-      return { success: true, data: { ast } };
+      return { ast };
     },
   },
   {
@@ -66,6 +61,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     permission: Permission.RESUME_READ,
     params: ResumeIdParams,
     query: RenderQuerySchema,
+    response: AstResponseSchema,
     openapi: {
       summary: 'Get compiled AST for a resume',
       tags: ['dsl'],
@@ -81,7 +77,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
         target: target ?? 'html',
         locale: parseLocale(locale),
       });
-      return { success: true, data: { ast: result.ast } };
+      return { ast: result.ast };
     },
   },
   {
@@ -90,6 +86,8 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
     auth: { kind: 'public' },
     params: SlugParams,
     query: RenderQuerySchema,
+    response: AstResponseSchema,
+    headers: { 'Cache-Control': 'public, max-age=60' },
     openapi: {
       summary: 'Get compiled AST for a public resume',
       tags: ['dsl'],
@@ -104,7 +102,7 @@ export const dslRoutes: ReadonlyArray<Route<DslUseCases>> = [
         target: target ?? 'html',
         locale: parseLocale(locale),
       });
-      return { success: true, data: { ast: result.ast } };
+      return { ast: result.ast };
     },
   },
 ];

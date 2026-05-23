@@ -1,4 +1,6 @@
 import { LoggerPort } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type { ActivityWithUser } from '../../ports/activity.port';
 import { ActivityRepositoryPort } from '../../ports/activity.port';
 import type { PaginatedResult, PaginationParams } from '../../ports/follow.port';
@@ -15,19 +17,20 @@ export class GetFeedUseCase {
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
-    const { page, limit } = pagination;
+    const userExists = await this.followRepository.userExists(userId);
+    if (!userExists) throw new EntityNotFoundException('User', userId);
 
     const followingIds = await this.followRepository.findFollowingIds(userId);
 
     if (followingIds.length === 0) {
-      return { data: [], total: 0, page, limit, totalPages: 0 };
+      return buildPaginatedResponse([], 0, pagination);
     }
 
-    const { data, total } = await this.activityRepository.findActivitiesByUserIds(
+    const { items, total } = await this.activityRepository.findActivitiesByUserIds(
       followingIds,
       pagination,
     );
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

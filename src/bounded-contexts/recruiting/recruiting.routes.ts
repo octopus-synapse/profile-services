@@ -6,27 +6,38 @@
  * module wires `RateLimitGuard` into the synthesizer's guard registry.
  */
 
-import { z } from 'zod';
-import { RATE_LIMIT_KEY } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.metadata';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { MatchCandidatesForJobOutput } from './application';
 import { MatchCandidatesForJobPort } from './application/ports/match-candidates.inbound-port';
-
-export { RATE_LIMIT_KEY };
-
-const MatchCandidatesRequestSchema = z.object({
-  jobTitle: z.string().max(200).optional(),
-  jobDescription: z.string().max(20_000).optional(),
-  skills: z.array(z.string().min(1).max(60)).max(40).optional(),
-  minEnglishLevel: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED', 'FLUENT']).optional(),
-  remotePolicy: z.enum(['REMOTE', 'HYBRID', 'ONSITE']).optional(),
-  limit: z.number().int().min(1).max(25).default(10),
-});
-
-type MatchCandidatesRequest = z.infer<typeof MatchCandidatesRequestSchema>;
+import {
+  JOB_FORM_CONFIG,
+  JobFormConfigResponseSchema,
+  MatchCandidatesRequest,
+  MatchCandidatesRequestSchema,
+  MatchCandidatesResponseSchema,
+} from './recruiting.routes.schemas';
 
 export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> = [
+  {
+    method: 'GET',
+    path: '/v1/recruiting/jobs/form-config',
+    auth: { kind: 'jwt' },
+    permission: Permission.JOB_CREATE,
+    response: JobFormConfigResponseSchema,
+    openapi: {
+      summary: 'Server-driven config for the create/edit-job wizard',
+      tags: ['recruiting'],
+      description:
+        'Returns `{steps:[{id,label,fields:[...]}], options:{...}}`. The frontend iterates `steps[]` and renders inputs from each `field`. Adding a step or field is a backend-only change.',
+    },
+    sdk: { exported: true },
+    // No use-case dependency — config is static today.
+    handler: async () => ({
+      steps: JOB_FORM_CONFIG.steps,
+      options: JOB_FORM_CONFIG.options,
+    }),
+  },
   {
     method: 'POST',
     path: '/v1/recruiting/match-candidates',
@@ -34,6 +45,7 @@ export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> =
     permission: Permission.JOB_CREATE,
     body: MatchCandidatesRequestSchema,
     statusCode: 200,
+    response: MatchCandidatesResponseSchema,
     guards: [
       {
         id: 'rate-limit',
@@ -47,19 +59,15 @@ export const recruitingRoutes: ReadonlyArray<Route<MatchCandidatesForJobPort>> =
       description: 'Reverse candidate match API',
     },
     sdk: { exported: true },
-    handler: async (
-      ctx,
-      useCase,
-    ): Promise<{ success: true; data: MatchCandidatesForJobOutput }> => {
+    handler: async (ctx, useCase): Promise<MatchCandidatesForJobOutput> => {
       const body = ctx.body as MatchCandidatesRequest;
-      const data = await useCase.execute({
+      return useCase.execute({
         requesterId: ctx.user!.userId,
         jobSkills: body.skills ?? [],
         jobMinEnglish: body.minEnglishLevel ?? null,
         jobRemotePolicy: body.remotePolicy ?? null,
         limit: body.limit,
       });
-      return { success: true, data };
     },
   },
 ];

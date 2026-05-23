@@ -1,0 +1,157 @@
+# Spectral ruleset for profile-services OpenAPI specs.
+#
+# Runs over `client-swagger.json` (and `swagger.json`) on every commit
+# and in CI. Ruleset extends the built-in `spectral:oas` (OpenAPI 3
+# core lints) with four house rules.
+#
+# Severity:
+#   - `error`: blocks both local commit and CI merge.
+#   - `warn`:  shows up but does not fail.
+#   - `off`:   silenced.
+#
+# To run locally:
+#   bun run lint:spec
+
+extends:
+  - spectral:oas
+
+rules:
+  # Built-in opinions we explicitly turn off because the generator
+  # produces tags-only-on-operations (no top-level `tags[]` definitions
+  # before regen) and shorter `info.contact` / `info.license` are not
+  # part of our policy.
+  contact-properties: off
+  info-contact: off
+  info-license: off
+  license-url: off
+  oas3-unused-component: off
+  # zod-to-openapi emits `nullable: true` on `z.array().default([])` schemas
+  # without an adjacent `type` keyword. The runtime is correct; the spec
+  # quirk is harmless. Off until we either patch the generator or migrate
+  # to OpenAPI 3.1 (where nullable is replaced by `type: [..., 'null']`).
+  oas3-valid-schema-example: off
+  # Operation `description` is optional in our policy — `summary` is the
+  # required field (enforced by `summary-min-length`).
+  operation-description: off
+
+  # ─── House rule 1: paths must start with /api/v1/ ────────────────
+  # The generator emits `/api/<route.path>` so allowed prefixes are
+  # `/api/v1/`, `/api/health` (probes), and `/api/metrics` (Prometheus).
+  v1-prefix-required:
+    description: All API paths must live under /api/v1/, /api/health, or /api/metrics.
+    message: '"{{path}}" does not start with /api/v1/, /api/health, or /api/metrics.'
+    severity: error
+    given: $.paths.*~
+    then:
+      function: pattern
+      functionOptions:
+        match: '^/api/(v\d+/|health|metrics).*'
+
+  # ─── House rule 2: operation summary >= 10 chars ─────────────────
+  summary-min-length:
+    description: Operation.summary must be at least 10 characters.
+    message: '"{{path}}" {{property}} is too short (min 10 chars).'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head]
+    then:
+      field: summary
+      function: length
+      functionOptions:
+        min: 10
+
+  # ─── House rule 3: every operation has at least one tag ─────────
+  # (kebab-case enforcement comes from `operation-tag-kebab-case`.)
+  operation-must-have-tag:
+    description: Every operation must declare at least one tag.
+    message: '"{{path}}" is missing tags[].'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head]
+    then:
+      field: tags
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          minItems: 1
+
+  # ─── House rule 4: tags follow kebab-case ────────────────────────
+  operation-tag-kebab-case:
+    description: Tags must be lowercase kebab-case (a-z, 0-9, hyphen).
+    message: 'Tag "{{value}}" is not kebab-case.'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head].tags[*]
+    then:
+      function: pattern
+      functionOptions:
+        match: '^[a-z0-9]+(-[a-z0-9]+)*$'
+
+  # ─── House rule 5: at least one 4xx response ─────────────────────
+  # Every operation that declares a 200 response must also declare a
+  # 4xx (so OpenAPI consumers know how errors are shaped). SSE/redirect
+  # routes don't emit a 200, so they're naturally exempt.
+  has-4xx-response:
+    description: Operations with a 200 response must document at least one 4xx.
+    message: '"{{path}}" declares 200 but no 4xx.'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head].responses
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          if:
+            required: ['200']
+          then:
+            anyOf:
+              - required: ['400']
+              - required: ['401']
+              - required: ['403']
+              - required: ['404']
+              - required: ['409']
+              - required: ['410']
+              - required: ['422']
+              - required: ['429']
+
+  # ─── House rule 6: every component property has a description ───
+  # F5-10 / PD-011. Backfills landed via `.openapi({ description })` on
+  # each Zod schema field (or via $ref to a primitive that already
+  # carries one). The generator script post-processes `allOf` shapes to
+  # lift the description from $ref targets up to the property top level
+  # so this rule can see it without needing to merge `allOf`.
+  schema-properties-description:
+    description: Every property in components.schemas must have a description.
+    message: 'Schema "{{property}}" is missing description.'
+    severity: error
+    given: $.components.schemas.*.properties.*
+    then:
+      field: description
+      function: truthy
+
+  # ─── House rule 7: path params that look like IDs declare format ──
+  # F3-PD-011a. Catches inline `z.object({ xxxId: z.string() })` and any
+  # other path parameter whose name ends in 'Id' but lacks a format.
+  # Exemptions: slug-style params (no `Id` suffix), `code` / `key` /
+  # opaque tokens that are not UUIDs.
+  path-id-must-be-uuid:
+    description: Path params ending in 'Id' must declare format=uuid.
+    message: 'Path param "{{value}}.name" looks like an ID but does not declare format=uuid.'
+    severity: error
+    given: $.paths.*[get,post,put,patch,delete,options,head].parameters[?(@property === 'in' && @ === 'path')]^
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          if:
+            properties:
+              name:
+                pattern: 'Id$|^id$'
+            required: ['name']
+          then:
+            properties:
+              schema:
+                type: object
+                properties:
+                  format:
+                    const: 'uuid'
+                required: ['format']

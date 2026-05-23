@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 // ============================================================================
 // Enums
@@ -47,7 +48,7 @@ export const ConsentRecordSchema = z.object({
   userId: z.string().uuid(),
   documentType: ConsentDocumentTypeSchema,
   version: z.string(),
-  acceptedAt: z.string().datetime(),
+  acceptedAt: IsoDateTimeSchema,
   ipAddress: z.string(),
   userAgent: z.string(),
 });

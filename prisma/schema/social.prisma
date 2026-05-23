@@ -1,7 +1,7 @@
 // Social Features Schema - Follow and Activity models
 
 model Follow {
-  id          String   @id @default(cuid())
+  id          String   @id @default(dbgenerated("uuidv7()"))
   followerId  String
   follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
@@ -15,7 +15,7 @@ model Follow {
 }
 
 model Activity {
-  id         String       @id @default(cuid())
+  id         String       @id @default(dbgenerated("uuidv7()"))
   userId     String
   user       User         @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
   type       ActivityType
@@ -30,7 +30,7 @@ model Activity {
 }
 
 model Connection {
-  id          String           @id @default(cuid())
+  id          String           @id @default(dbgenerated("uuidv7()"))
   requesterId String
   requester   User             @relation("SentConnections", fields: [requesterId], references: [id], onDelete: Cascade)
   targetId    String
@@ -51,7 +51,7 @@ enum ConnectionStatus {
 }
 
 model SkillEndorsement {
-  id             String @id @default(cuid())
+  id             String @id @default(dbgenerated("uuidv7()"))
   endorsedUserId String
   skillName      String
   endorserUserId String
@@ -73,7 +73,7 @@ enum SkillProficiency {
 // Self-declared proficiency per skill. Orthogonal to endorsements — the
 // former is "how I see myself", the latter is "what peers vouched for".
 model UserSkillProficiency {
-  id                String           @id @default(cuid())
+  id                String           @id @default(dbgenerated("uuidv7()"))
   userId            String
   user              User             @relation("UserSkillProficiencies", fields: [userId], references: [id], onDelete: Cascade)
   skillName         String
@@ -92,7 +92,7 @@ model UserSkillProficiency {
 // Keeps the cron from re-notifying the same skill every week and lets
 // analytics see which skills decay most often.
 model SkillDecayLog {
-  id               String   @id @default(cuid())
+  id               String   @id @default(dbgenerated("uuidv7()"))
   userId           String
   skillName        String
   quarterKey       String // YYYY-Qn

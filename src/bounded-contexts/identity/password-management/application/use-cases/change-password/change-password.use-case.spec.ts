@@ -30,7 +30,7 @@ describe('ChangePasswordUseCase', () => {
   let eventBus: InMemoryEventBus;
 
   const currentPassword = 'password123';
-  const validNewPassword = 'NewSecure1';
+  const validNewPassword = 'NewSecure1!';
 
   beforeEach(async () => {
     passwordRepository = new InMemoryPasswordRepository();
@@ -132,7 +132,7 @@ describe('ChangePasswordUseCase', () => {
 
     it('should throw SamePasswordException when new password equals current password', async () => {
       // Arrange - use a password that passes validation (has uppercase, lowercase, number)
-      const strongPassword = 'StrongPass1';
+      const strongPassword = 'StrongPass1!';
       const hashedStrong = await passwordHasher.hash(strongPassword);
       passwordRepository.clear();
       passwordRepository.seedUser({ ...DEFAULT_USER, passwordHash: hashedStrong });

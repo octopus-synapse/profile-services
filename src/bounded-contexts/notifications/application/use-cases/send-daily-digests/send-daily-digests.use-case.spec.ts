@@ -20,7 +20,12 @@ describe('SendDailyDigestsUseCase', () => {
   });
 
   it('emails one user with their pending notifications and marks them sent', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
+    repo.setRecipient('u-1', {
+      id: 'u-1',
+      name: 'Enzo',
+      email: 'enzo@example.com',
+      language: 'en',
+    });
     repo.setPreferenceRow('u-1', 'POST_LIKED', {
       enabled: true,
       emailEnabled: true,
@@ -38,7 +43,12 @@ describe('SendDailyDigestsUseCase', () => {
   });
 
   it('does not double-send the same rows on the next run', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
+    repo.setRecipient('u-1', {
+      id: 'u-1',
+      name: 'Enzo',
+      email: 'enzo@example.com',
+      language: 'en',
+    });
     repo.setPreferenceRow('u-1', 'POST_LIKED', {
       enabled: true,
       emailEnabled: true,

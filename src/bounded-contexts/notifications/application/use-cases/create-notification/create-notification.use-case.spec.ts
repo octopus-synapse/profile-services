@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { UnknownNotificationTypeException } from '../../../domain/exceptions/notifications.exceptions';
 import {
   InMemoryNotificationEmail,
   InMemoryNotificationStream,
@@ -18,6 +19,18 @@ describe('CreateNotificationUseCase', () => {
     stream = new InMemoryNotificationStream();
     email = new InMemoryNotificationEmail();
     useCase = new CreateNotificationUseCase(repo, stream, email, stubLogger);
+  });
+
+  it('rejects with UnknownNotificationTypeException for an unregistered type', async () => {
+    await expect(
+      useCase.execute({
+        userId: 'u-1',
+        actorId: 'u-2',
+        // biome-ignore lint/suspicious/noExplicitAny: testing runtime guard
+        type: 'TOTALLY_FAKE_TYPE' as any,
+        message: 'oops',
+      }),
+    ).rejects.toBeInstanceOf(UnknownNotificationTypeException);
   });
 
   it('returns null when actor and recipient are the same user', async () => {
@@ -51,7 +64,12 @@ describe('CreateNotificationUseCase', () => {
   });
 
   it('creates the row, emits to the SSE bus, and returns the view', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: 'Enzo', email: 'enzo@example.com' });
+    repo.setRecipient('u-1', {
+      id: 'u-1',
+      name: 'Enzo',
+      email: 'enzo@example.com',
+      language: 'en',
+    });
 
     const result = await useCase.execute({
       userId: 'u-1',
@@ -67,7 +85,7 @@ describe('CreateNotificationUseCase', () => {
   });
 
   it('does not send instant email when emailDelivery is DAILY', async () => {
-    repo.setRecipient('u-1', { id: 'u-1', name: null, email: 'a@b.com' });
+    repo.setRecipient('u-1', { id: 'u-1', name: null, email: 'a@b.com', language: 'en' });
     repo.setPreferenceRow('u-1', 'POST_LIKED', {
       enabled: true,
       emailEnabled: true,

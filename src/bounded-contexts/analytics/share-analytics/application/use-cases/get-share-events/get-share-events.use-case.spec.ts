@@ -5,11 +5,17 @@
  * Verifies authorization, filtering, and field mapping.
  */
 
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   EntityNotFoundException,
   ForbiddenException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  AggregationBackendUnavailableException,
+  DateRangeTooLargeException,
+  InvalidDateRangeException,
+} from '../../../../domain/exceptions/analytics.exceptions';
+import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { GetShareEventsUseCase } from './get-share-events.use-case';
 
@@ -80,5 +86,45 @@ describe('GetShareEventsUseCase', () => {
     const events = await useCase.execute(shareId, userId);
 
     expect(events).toEqual([]);
+  });
+
+  describe('date-range + aggregator guards', () => {
+    it('throws InvalidDateRangeException when startDate >= endDate', async () => {
+      await expect(
+        useCase.execute(shareId, userId, {
+          startDate: new Date('2024-06-01'),
+          endDate: new Date('2024-05-01'),
+        }),
+      ).rejects.toThrow(InvalidDateRangeException);
+    });
+
+    it('throws DateRangeTooLargeException when range exceeds 365 days', async () => {
+      await expect(
+        useCase.execute(shareId, userId, {
+          startDate: new Date('2022-01-01'),
+          endDate: new Date('2024-06-01'),
+        }),
+      ).rejects.toThrow(DateRangeTooLargeException);
+    });
+
+    it('throws AggregationBackendUnavailableException when repo rejects', async () => {
+      const failingRepo = {
+        findShareWithOwner: mock(() =>
+          Promise.resolve({ id: shareId, resumeId, resume: { userId } }),
+        ),
+        getDetailedEvents: mock(() => Promise.reject(new Error('CLICKHOUSE TIMEOUT'))),
+        create: mock(),
+        groupByEvent: mock(),
+        groupByIpHash: mock(),
+        groupByCountry: mock(),
+        groupByDeviceType: mock(),
+        getRecentEvents: mock(),
+      } as unknown as ShareAnalyticsRepositoryPort;
+      const useCaseFailing = new GetShareEventsUseCase(failingRepo);
+
+      await expect(useCaseFailing.execute(shareId, userId)).rejects.toThrow(
+        AggregationBackendUnavailableException,
+      );
+    });
   });
 });

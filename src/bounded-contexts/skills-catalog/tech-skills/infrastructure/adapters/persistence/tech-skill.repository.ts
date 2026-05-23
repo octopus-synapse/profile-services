@@ -1,6 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TechSkillRepositoryPort } from '../../../application/ports/tech-skills.port';
-import type { TechSkill, TechSkillRawQueryResult } from '../../../dto/tech-skill.dto';
+import type { TechSkill, TechSkillRawQueryResult } from '../../../dto/tech-skill.schema';
 import type { SkillType } from '../../../interfaces';
 import { mapRawSkillsTo, mapSkillsTo } from '../../../utils';
 
@@ -11,7 +11,7 @@ export class TechSkillRepository extends TechSkillRepositoryPort {
     super();
   }
 
-  async findAllActive(): Promise<TechSkill[]> {
+  async listActive(): Promise<TechSkill[]> {
     const skills = await this.prisma.techSkill.findMany({
       where: { isActive: true },
       orderBy: { popularity: 'desc' },

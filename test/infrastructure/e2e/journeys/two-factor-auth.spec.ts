@@ -19,8 +19,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import speakeasy from 'speakeasy';
-import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -61,16 +61,15 @@ describe('E2E Journey: Two-Factor Authentication', () => {
   describe('Step 1: Check initial 2FA status (disabled)', () => {
     it.serial('should report 2FA as disabled for new user', async () => {
       const response = await app.request
-        .get('/api/auth/2fa/status')
+        .get('/api/v1/auth/2fa/status')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.enabled).toBe(false);
+      expect(response.body.enabled).toBe(false);
     });
 
     it.serial('should reject 2FA status check without authentication', async () => {
-      const response = await app.request.get('/api/auth/2fa/status');
+      const response = await app.request.get('/api/v1/auth/2fa/status');
 
       expect(response.status).toBe(401);
     });
@@ -79,24 +78,23 @@ describe('E2E Journey: Two-Factor Authentication', () => {
   describe('Step 2: Setup 2FA', () => {
     it.serial('should generate secret and QR code', async () => {
       const response = await app.request
-        .post('/api/auth/2fa/setup')
+        .post('/api/v1/auth/2fa/setup')
         .set('Authorization', `Bearer ${testUser.token}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.secret).toBeDefined();
-      expect(response.body.data.qrCode).toBeDefined();
-      expect(response.body.data.manualEntryKey).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.secret).toBeDefined();
+      expect(response.body.qrCode).toBeDefined();
+      expect(response.body.manualEntryKey).toBeDefined();
 
       // QR code should be a data URL
-      expect(response.body.data.qrCode).toContain('data:image/png;base64,');
+      expect(response.body.qrCode).toContain('data:image/png;base64,');
 
       // Save secret for later use
-      twoFactorSecret = response.body.data.secret;
+      twoFactorSecret = response.body.secret;
     });
 
     it.serial('should reject setup without authentication', async () => {
-      const response = await app.request.post('/api/auth/2fa/setup');
+      const response = await app.request.post('/api/v1/auth/2fa/setup');
 
       expect(response.status).toBe(401);
     });
@@ -105,7 +103,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
   describe('Step 3: Verify with invalid code (should fail)', () => {
     it.serial('should reject invalid TOTP code', async () => {
       const response = await app.request
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send({ code: '000000' });
 
@@ -114,7 +112,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
     it.serial('should reject empty code', async () => {
       const response = await app.request
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send({ code: '' });
 
@@ -123,7 +121,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
     it.serial('should reject code with wrong length', async () => {
       const response = await app.request
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send({ code: '12345' });
 
@@ -140,63 +138,60 @@ describe('E2E Journey: Two-Factor Authentication', () => {
       });
 
       const response = await app.request
-        .post('/api/auth/2fa/verify')
+        .post('/api/v1/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send({ code: validCode });
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.backupCodes).toBeDefined();
-      expect(Array.isArray(response.body.data.backupCodes)).toBe(true);
-      expect(response.body.data.backupCodes.length).toBeGreaterThan(0);
+      expect(response.status).toBe(201);
+      expect(response.body.backupCodes).toBeDefined();
+      expect(Array.isArray(response.body.backupCodes)).toBe(true);
+      expect(response.body.backupCodes.length).toBeGreaterThan(0);
 
       // Backup codes should be in XXXX-XXXX format
-      for (const code of response.body.data.backupCodes) {
+      for (const code of response.body.backupCodes) {
         expect(code).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/);
       }
 
-      backupCodes = response.body.data.backupCodes;
+      backupCodes = response.body.backupCodes;
     });
   });
 
   describe('Step 5: Check 2FA status (should be enabled)', () => {
     it.serial('should report 2FA as enabled', async () => {
       const response = await app.request
-        .get('/api/auth/2fa/status')
+        .get('/api/v1/auth/2fa/status')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.enabled).toBe(true);
+      expect(response.body.enabled).toBe(true);
     });
   });
 
   describe('Step 6: Login requires 2FA when enabled', () => {
     it.serial('should return twoFactorRequired on login', async () => {
-      const response = await app.request.post('/api/auth/login').send({
+      const response = await app.request.post('/api/v1/auth/login').send({
         email: testUser.email,
         password: testUser.password,
       });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.twoFactorRequired).toBe(true);
-      expect(response.body.data.userId).toBeDefined();
+      expect(response.body.twoFactorRequired).toBe(true);
+      expect(response.body.userId).toBeDefined();
 
       // Should NOT return access token yet
-      expect(response.body.data.accessToken).toBeUndefined();
+      expect(tokenFromResponse(response, 'access_token')).toBeUndefined();
     });
 
     it.serial('should reject 2FA verification with invalid code', async () => {
       // First login to get userId
-      const loginResponse = await app.request.post('/api/auth/login').send({
+      const loginResponse = await app.request.post('/api/v1/auth/login').send({
         email: testUser.email,
         password: testUser.password,
       });
 
-      const userId = loginResponse.body.data.userId;
+      const userId = loginResponse.body.userId;
 
-      const response = await app.request.post('/api/auth/login/verify-2fa').send({
+      const response = await app.request.post('/api/v1/auth/login/verify-2fa').send({
         userId,
         code: '000000',
       });
@@ -205,7 +200,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
     });
 
     it.serial('should reject 2FA verification with missing userId', async () => {
-      const response = await app.request.post('/api/auth/login/verify-2fa').send({
+      const response = await app.request.post('/api/v1/auth/login/verify-2fa').send({
         code: '123456',
       });
 
@@ -223,30 +218,28 @@ describe('E2E Journey: Two-Factor Authentication', () => {
           await new Promise((resolve) => setTimeout(resolve, (31 - secondsIntoWindow) * 1000));
         }
 
-        const loginResponse = await app.request.post('/api/auth/login').send({
+        const loginResponse = await app.request.post('/api/v1/auth/login').send({
           email: testUser.email,
           password: testUser.password,
         });
 
-        const userId = loginResponse.body.data.userId;
+        const userId = loginResponse.body.userId;
 
         const validCode = speakeasy.totp({
           secret: twoFactorSecret,
           encoding: 'base32',
         });
 
-        const response = await app.request.post('/api/auth/login/verify-2fa').send({
+        const response = await app.request.post('/api/v1/auth/login/verify-2fa').send({
           userId,
           code: validCode,
         });
 
         expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.accessToken).toBeDefined();
-        expect(response.body.data.refreshToken).toBeDefined();
-        expect(response.body.data.userId).toBeDefined();
+        expect(tokenFromResponse(response, 'access_token')).toBeDefined();
+        expect(response.body.userId).toBeDefined();
 
-        testUser.token = response.body.data.accessToken;
+        testUser.token = tokenFromResponse(response, 'access_token')!;
       },
       15000,
     );
@@ -255,17 +248,16 @@ describe('E2E Journey: Two-Factor Authentication', () => {
   describe('Step 8: Regenerate backup codes', () => {
     it.serial('should regenerate backup codes', async () => {
       const response = await app.request
-        .post('/api/auth/2fa/backup-codes/regenerate')
+        .post('/api/v1/auth/2fa/backup-codes/regenerate')
         .set('Authorization', `Bearer ${testUser.token}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.backupCodes).toBeDefined();
-      expect(Array.isArray(response.body.data.backupCodes)).toBe(true);
-      expect(response.body.data.backupCodes.length).toBeGreaterThan(0);
+      expect(response.status).toBe(201);
+      expect(response.body.backupCodes).toBeDefined();
+      expect(Array.isArray(response.body.backupCodes)).toBe(true);
+      expect(response.body.backupCodes.length).toBeGreaterThan(0);
 
       // New codes should differ from old codes
-      const newCodes = response.body.data.backupCodes;
+      const newCodes = response.body.backupCodes;
       const allSame = newCodes.every((code: string, i: number) => code === backupCodes[i]);
       expect(allSame).toBe(false);
 
@@ -273,7 +265,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
     });
 
     it.serial('should reject regeneration without authentication', async () => {
-      const response = await app.request.post('/api/auth/2fa/backup-codes/regenerate');
+      const response = await app.request.post('/api/v1/auth/2fa/backup-codes/regenerate');
 
       expect(response.status).toBe(401);
     });
@@ -282,7 +274,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
   describe('Step 9: Disable 2FA', () => {
     it.serial('should disable 2FA', async () => {
       const response = await app.request
-        .delete('/api/auth/2fa')
+        .delete('/api/v1/auth/2fa')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(204);
@@ -290,15 +282,15 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
     it.serial('should report 2FA as disabled after removal', async () => {
       const response = await app.request
-        .get('/api/auth/2fa/status')
+        .get('/api/v1/auth/2fa/status')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.enabled).toBe(false);
+      expect(response.body.enabled).toBe(false);
     });
 
     it.serial('should reject disable without authentication', async () => {
-      const response = await app.request.delete('/api/auth/2fa');
+      const response = await app.request.delete('/api/v1/auth/2fa');
 
       expect(response.status).toBe(401);
     });
@@ -306,18 +298,16 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
   describe('Step 10: Login works without 2FA after disabling', () => {
     it.serial('should login directly without 2FA challenge', async () => {
-      const response = await app.request.post('/api/auth/login').send({
+      const response = await app.request.post('/api/v1/auth/login').send({
         email: testUser.email,
         password: testUser.password,
       });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.accessToken).toBeDefined();
-      expect(response.body.data.refreshToken).toBeDefined();
+      expect(tokenFromResponse(response, 'access_token')).toBeDefined();
 
       // Should NOT require 2FA anymore
-      expect(response.body.data.twoFactorRequired).toBeUndefined();
+      expect(response.body.twoFactorRequired).toBeUndefined();
     });
   });
 
@@ -328,11 +318,11 @@ describe('E2E Journey: Two-Factor Authentication', () => {
         // The old secret should no longer be valid after re-setup
         // Setup fresh 2FA
         const setupResponse = await app.request
-          .post('/api/auth/2fa/setup')
+          .post('/api/v1/auth/2fa/setup')
           .set('Authorization', `Bearer ${testUser.token}`);
 
-        expect(setupResponse.status).toBe(200);
-        const newSecret = setupResponse.body.data.secret;
+        expect(setupResponse.status).toBe(201);
+        const newSecret = setupResponse.body.secret;
 
         // Try verifying with the OLD secret's code
         const oldCode = speakeasy.totp({
@@ -343,7 +333,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
         // If old and new secrets differ, the old code should fail
         if (newSecret !== twoFactorSecret) {
           const response = await app.request
-            .post('/api/auth/2fa/verify')
+            .post('/api/v1/auth/2fa/verify')
             .set('Authorization', `Bearer ${testUser.token}`)
             .send({ code: oldCode });
 
@@ -352,13 +342,15 @@ describe('E2E Journey: Two-Factor Authentication', () => {
         }
 
         // Clean up: disable 2FA if it was enabled
-        await app.request.delete('/api/auth/2fa').set('Authorization', `Bearer ${testUser.token}`);
+        await app.request
+          .delete('/api/v1/auth/2fa')
+          .set('Authorization', `Bearer ${testUser.token}`);
       },
     );
 
     it.serial('should not expose sensitive info in 2FA status response', async () => {
       const response = await app.request
-        .get('/api/auth/2fa/status')
+        .get('/api/v1/auth/2fa/status')
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);

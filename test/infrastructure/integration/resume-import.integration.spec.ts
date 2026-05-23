@@ -102,31 +102,30 @@ describeIntegration('Resume Import Integration Tests', () => {
       const jsonResume = createValidJsonResume();
 
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: jsonResume });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.importId).toBeDefined();
-      expect(response.body.data.status).toBeDefined();
+      expect(response.body.importId).toBeDefined();
+      expect(response.body.status).toBeDefined();
 
       // Status should be COMPLETED or PROCESSING
       expect(['COMPLETED', 'PROCESSING', 'MAPPING', 'VALIDATING', 'IMPORTING']).toContain(
-        response.body.data.status,
+        response.body.status,
       );
 
-      createdImportId = response.body.data.importId;
+      createdImportId = response.body.importId;
 
       // If completed, a resumeId should be returned
-      if (response.body.data.status === 'COMPLETED') {
-        expect(response.body.data.resumeId).toBeDefined();
+      if (response.body.status === 'COMPLETED') {
+        expect(response.body.resumeId).toBeDefined();
       }
     });
 
     it('should reject import without authentication', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .send({ data: createValidJsonResume() });
 
       expect(response.status).toBe(401);
@@ -134,7 +133,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should reject import with invalid token', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', 'Bearer invalid-token')
         .send({ data: createValidJsonResume() });
 
@@ -145,36 +144,35 @@ describeIntegration('Resume Import Integration Tests', () => {
   describe('List import history', () => {
     it('should list imports for the authenticated user', async () => {
       const response = await getRequest()
-        .get('/api/resume-import')
+        .get('/api/v1/resumes/imports')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(Array.isArray(response.body)).toBe(true);
 
       // Should contain the import we just created
       if (createdImportId) {
-        const found = response.body.data.some((job: { id: string }) => job.id === createdImportId);
+        const found = response.body.some((job: { id: string }) => job.id === createdImportId);
         expect(found).toBe(true);
       }
     });
 
     it('should not show other users imports', async () => {
       const response = await getRequest()
-        .get('/api/resume-import')
+        .get('/api/v1/resumes/imports')
         .set('Authorization', `Bearer ${otherAccessToken}`);
 
       expect(response.status).toBe(200);
 
       // Other user should not see our import
       if (createdImportId) {
-        const found = response.body.data.some((job: { id: string }) => job.id === createdImportId);
+        const found = response.body.some((job: { id: string }) => job.id === createdImportId);
         expect(found).toBe(false);
       }
     });
 
     it('should reject listing without authentication', async () => {
-      const response = await getRequest().get('/api/resume-import');
+      const response = await getRequest().get('/api/v1/resumes/imports');
 
       expect(response.status).toBe(401);
     });
@@ -188,19 +186,18 @@ describeIntegration('Resume Import Integration Tests', () => {
       }
 
       const response = await getRequest()
-        .get(`/api/resume-import/${createdImportId}`)
+        .get(`/api/v1/resumes/imports/${createdImportId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBe(createdImportId);
-      expect(response.body.data.source).toBe('JSON');
-      expect(response.body.data.status).toBeDefined();
+      expect(response.body.id).toBe(createdImportId);
+      expect(response.body.source).toBe('JSON');
+      expect(response.body.status).toBeDefined();
     });
 
     it('should return 404 for non-existent import ID', async () => {
       const response = await getRequest()
-        .get('/api/resume-import/00000000-0000-0000-0000-000000000000')
+        .get('/api/v1/resumes/imports/00000000-0000-0000-0000-000000000000')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect([404, 400]).toContain(response.status);
@@ -212,21 +209,20 @@ describeIntegration('Resume Import Integration Tests', () => {
       const jsonResume = createValidJsonResume();
 
       const response = await getRequest()
-        .post('/api/resume-import/parse')
+        .post('/api/v1/resumes/imports/parse')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: jsonResume });
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.personalInfo).toBeDefined();
-      expect(response.body.data.personalInfo.name).toBe(jsonResume.basics.name);
-      expect(response.body.data.sections).toBeDefined();
-      expect(Array.isArray(response.body.data.sections)).toBe(true);
+      expect(response.status).toBe(201);
+      expect(response.body.personalInfo).toBeDefined();
+      expect(response.body.personalInfo.name).toBe(jsonResume.basics.name);
+      expect(response.body.sections).toBeDefined();
+      expect(Array.isArray(response.body.sections)).toBe(true);
     });
 
     it('should reject parse without authentication', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/parse')
+        .post('/api/v1/resumes/imports/parse')
         .send({ data: createValidJsonResume() });
 
       expect(response.status).toBe(401);
@@ -236,7 +232,7 @@ describeIntegration('Resume Import Integration Tests', () => {
   describe('Error handling for invalid data', () => {
     it('should reject import with missing basics section', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: { work: [] } });
 
@@ -245,7 +241,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should reject import with missing name in basics', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
@@ -258,7 +254,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should reject import with empty data object', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: {} });
 
@@ -267,7 +263,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should reject import with no body', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({});
 
@@ -276,7 +272,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should handle import with minimal valid data', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
@@ -286,14 +282,13 @@ describeIntegration('Resume Import Integration Tests', () => {
 
       // Should succeed with minimal data
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
     });
   });
 
   describe('Security edge cases', () => {
     it('should sanitize XSS payloads in resume name', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
@@ -307,7 +302,6 @@ describeIntegration('Resume Import Integration Tests', () => {
       // Should either reject or sanitize
       if (response.status === 201) {
         // If accepted, verify data was stored (sanitization may happen at read time)
-        expect(response.body.success).toBe(true);
       }
     });
 
@@ -324,7 +318,7 @@ describeIntegration('Resume Import Integration Tests', () => {
       }));
 
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ data: largeResume });
 
@@ -334,7 +328,7 @@ describeIntegration('Resume Import Integration Tests', () => {
 
     it('should not allow SQL injection via resume fields', async () => {
       const response = await getRequest()
-        .post('/api/resume-import/json')
+        .post('/api/v1/resumes/imports/json')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           data: {
@@ -344,7 +338,6 @@ describeIntegration('Resume Import Integration Tests', () => {
 
       // Should process normally (Prisma parameterizes queries)
       if (response.status === 201) {
-        expect(response.body.success).toBe(true);
       }
     });
   });

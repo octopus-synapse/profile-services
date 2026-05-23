@@ -85,9 +85,10 @@ describe('FollowService', () => {
       expect(followRepo.getAll()).toHaveLength(0);
     });
 
-    it('should not throw when not following', async () => {
-      const result = await service.unfollow('user-1', 'user-2');
-      expect(result).toBeUndefined();
+    it('throws EntityNotFoundException when follow relationship does not exist', async () => {
+      await expect(service.unfollow('user-1', 'user-2')).rejects.toBeInstanceOf(
+        EntityNotFoundException,
+      );
     });
   });
 
@@ -110,7 +111,7 @@ describe('FollowService', () => {
 
       const result = await service.getFollowers('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
       expect(result.total).toBe(2);
     });
   });
@@ -121,7 +122,7 @@ describe('FollowService', () => {
 
       const result = await service.getFollowing('user-1', { page: 1, limit: 10 });
 
-      expect(result.data).toHaveLength(1);
+      expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
     });
   });

@@ -14,7 +14,7 @@
 
 import type { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { LoggerPort } from '@/shared-kernel';
+import type { DistributedLockPort, LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import type { Lifecycle } from '@/shared-kernel/lifecycle/lifecycle.port';
@@ -49,9 +49,10 @@ export function buildTimeCapsuleComposition(
   email: EmailService,
   logger: LoggerPort,
   cron: CronPort,
+  lock: DistributedLockPort,
 ): BoundedContextComposition<TimeCapsuleUseCases> {
   const useCases = buildTimeCapsuleUseCases(prisma, email, logger);
-  const worker = new TimeCapsuleWorker(useCases.timeCapsule, logger);
+  const worker = new TimeCapsuleWorker(useCases.timeCapsule, logger, lock);
 
   const lifecycles: ReadonlyArray<Lifecycle> = [
     {

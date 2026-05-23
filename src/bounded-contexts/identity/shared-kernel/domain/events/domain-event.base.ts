@@ -16,6 +16,13 @@ export abstract class DomainEvent<TPayload = unknown> {
   readonly occurredAt: Date;
 
   /**
+   * P2-098 — payload schema version. Default `1`; subclasses bump
+   * when the payload contract changes in a non-additive way so
+   * consumers can branch instead of silently corrupting old rows.
+   */
+  readonly schemaVersion: number = 1;
+
+  /**
    * Event type name (for serialization/routing)
    */
   abstract readonly eventType: string;
@@ -42,6 +49,7 @@ export abstract class DomainEvent<TPayload = unknown> {
     return {
       eventId: this.eventId,
       eventType: this.eventType,
+      schemaVersion: this.schemaVersion,
       aggregateId: this.aggregateId,
       occurredAt: this.occurredAt.toISOString(),
       payload: this.getPayload(),

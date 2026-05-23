@@ -1,4 +1,5 @@
 import type { JwtPort } from '@/shared-kernel/auth';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type {
@@ -28,6 +29,8 @@ export interface ChatHandlersDeps {
   conversationRepo: ConversationRepository;
   chatCache: ChatCacheService;
   logger: LoggerPort;
+  /** P1 #7 — see chat.handler.ts:ChatHandlersDeps for the rationale. */
+  cache?: CachePort;
 }
 
 /**
@@ -44,29 +47,35 @@ export interface ChatRealtimePort {
 }
 
 function extractToken(handshake: WsHandshake): string | null {
-  // 1. httpOnly session cookie (browser clients)
+  // P1 #7 — see chat.handler.ts:extractToken for the rationale. Query
+  // strings are intentionally NOT accepted: URLs land in proxy/CDN
+  // logs, browser history, referer headers and crash reports.
   const cookieToken = handshake.cookies[AUTH_CONFIG.SESSION_COOKIE_NAME];
   if (typeof cookieToken === 'string' && cookieToken.length > 0) return cookieToken;
 
-  // 2. Socket.IO auth object (programmatic clients)
-  const authToken = handshake.auth.token;
-  if (typeof authToken === 'string' && authToken.length > 0) return authToken;
-
-  // 3. Query string (fallback for environments without cookie/auth support)
-  const queryToken = handshake.query.token;
-  if (typeof queryToken === 'string' && queryToken.length > 0) return queryToken;
-
-  // 4. Authorization header
   const authHeader = handshake.headers.authorization;
   if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
 
+  const subprotocol = handshake.headers['sec-websocket-protocol'];
+  if (typeof subprotocol === 'string') {
+    for (const part of subprotocol.split(',')) {
+      const trimmed = part.trim();
+      if (trimmed.startsWith('bearer.')) return trimmed.slice('bearer.'.length);
+    }
+  }
+
+  const authToken = handshake.auth.token;
+  if (typeof authToken === 'string' && authToken.length > 0) return authToken;
+
   return null;
 }
 
+const TOKEN_VALID_AFTER_KEY_PREFIX = 'auth:token_valid_after:';
+
 export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealtimePort {
-  const { ws, jwt, chat, conversationRepo, chatCache, logger } = deps;
+  const { ws, jwt, chat, conversationRepo, chatCache, logger, cache } = deps;
 
   // Local presence map (userId → set of socketIds). The adapter also
   // keeps one for `toUser`, but we expose `isUserOnline` synchronously
@@ -98,7 +107,15 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
     }
     try {
       const payload = await jwt.verifyAsync<JwtPayload>(token);
-      return payload.sub;
+      const userId = payload.sub;
+      if (cache?.isEnabled && typeof payload.iat === 'number') {
+        const validAfter = await cache.get<number>(`${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`);
+        if (typeof validAfter === 'number' && payload.iat <= validAfter) {
+          logger.warn('Connection rejected: token rejected by session invalidation gate', CTX);
+          return null;
+        }
+      }
+      return userId;
     } catch {
       logger.warn('Connection rejected: invalid token', CTX);
       return null;
@@ -159,11 +176,10 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
       return { success: true, message };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error(
-        `Failed to send message in ${payload.conversationId}: ${errorMessage}`,
-        error instanceof Error ? error.stack : undefined,
-        CTX,
-      );
+      logger.error(`Failed to send message in ${payload.conversationId}: ${errorMessage}`, {
+        context: CTX,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return { success: false, error: errorMessage };
     }
   });
@@ -210,8 +226,10 @@ export function registerChatWebSocketHandlers(deps: ChatHandlersDeps): ChatRealt
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         logger.error(
           `Failed to mark conversation ${payload.conversationId} read: ${errorMessage}`,
-          error instanceof Error ? error.stack : undefined,
-          CTX,
+          {
+            context: CTX,
+            stack: error instanceof Error ? error.stack : undefined,
+          },
         );
         return { success: false, error: errorMessage };
       }

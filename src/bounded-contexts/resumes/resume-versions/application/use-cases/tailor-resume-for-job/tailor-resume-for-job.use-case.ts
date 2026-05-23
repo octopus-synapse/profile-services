@@ -10,7 +10,8 @@ import {
   ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+  TailorEngineUnavailableException,
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
@@ -33,22 +34,32 @@ export class TailorResumeForJobUseCase {
     const resume = await this.loadOwnedResume(input.resumeId, input.userId);
     const job = await this.resolveJob(input);
 
-    const tailored = await this.llm.tailorResume({
-      resume: {
-        summary: resume.summary,
-        jobTitle: resume.jobTitle,
-        primaryStack: resume.primaryStack,
-        sections: resume.resumeSections.map((section) => ({
-          key: section.sectionType.key,
-          semanticKind: section.sectionType.semanticKind,
-          items: section.items.map((item) => ({ id: item.id, content: item.content })),
-        })),
-      },
-      job,
-    });
-
-    const lastVersionNumber = await this.repository.findLastVersionNumber(resume.id);
-    const nextNumber = (lastVersionNumber ?? 0) + 1;
+    let tailored: Awaited<ReturnType<typeof this.llm.tailorResume>>;
+    try {
+      tailored = await this.llm.tailorResume({
+        resume: {
+          summary: resume.summary,
+          jobTitle: resume.jobTitle,
+          primaryStack: resume.primaryStack,
+          sections: resume.resumeSections.map((section) => ({
+            key: section.sectionType.key,
+            semanticKind: section.sectionType.semanticKind,
+            items: section.items.map((item) => ({ id: item.id, content: item.content })),
+          })),
+        },
+        job,
+      });
+    } catch (err) {
+      // The LLM port can fail in many ways (rate limit, network, provider
+      // outage). Wrap in a typed domain exception so the global filter
+      // emits a translated 503 instead of a raw 500 — and so retry logic
+      // upstream can branch on `err instanceof TailorEngineUnavailableException`.
+      this.logger.warn(
+        `Tailor LLM failed for resume ${resume.id}: ${err instanceof Error ? err.message : 'unknown'}`,
+        'TailorResumeForJobUseCase',
+      );
+      throw new TailorEngineUnavailableException();
+    }
 
     const label = this.labelFor(job);
 
@@ -65,9 +76,10 @@ export class TailorResumeForJobUseCase {
       },
     };
 
-    const created = await this.repository.createResumeVersion({
-      resumeId: resume.id,
-      versionNumber: nextNumber,
+    // P1 #16 — adapter allocates versionNumber under the unique
+    // constraint with retry, so two concurrent tailor calls for the
+    // same resume both succeed with distinct sequential numbers.
+    const created = await this.repository.createNextResumeVersion(resume.id, {
       snapshot,
       label,
       isTailored: true,

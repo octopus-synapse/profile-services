@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 
 export class AdminOnboardingService {
   constructor(private readonly prisma: PrismaService) {}
@@ -15,8 +16,8 @@ export class AdminOnboardingService {
     return this.prisma.onboardingStep.create({
       data: {
         key: body.key as string,
-        order: body.order as number,
-        component: body.component as string,
+        order: (body.order as number) ?? 0,
+        component: (body.component as string) ?? 'default',
         icon: (body.icon as string) ?? '📄',
         required: (body.required as boolean) ?? false,
         sectionTypeKey: (body.sectionTypeKey as string) ?? null,
@@ -30,6 +31,9 @@ export class AdminOnboardingService {
   }
 
   async updateStep(key: string, body: Record<string, unknown>) {
+    const existing = await this.prisma.onboardingStep.findUnique({ where: { key } });
+    if (!existing) throw new EntityNotFoundException('OnboardingStep', key);
+
     const data: Record<string, unknown> = {};
     if (body.order !== undefined) data.order = body.order;
     if (body.component !== undefined) data.component = body.component;
@@ -46,6 +50,8 @@ export class AdminOnboardingService {
   }
 
   async deleteStep(key: string) {
+    const existing = await this.prisma.onboardingStep.findUnique({ where: { key } });
+    if (!existing) throw new EntityNotFoundException('OnboardingStep', key);
     await this.prisma.onboardingStep.delete({ where: { key } });
   }
 

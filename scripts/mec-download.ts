@@ -126,10 +126,15 @@ async function downloadMecCsv(): Promise<void> {
         if (href.includes(CSV_URL_PATTERN)) {
           console.log(`📥 Found CSV link: ${href}`);
 
-          // Remove old file if exists
-          if (fs.existsSync(OUTPUT_PATH)) {
-            fs.unlinkSync(OUTPUT_PATH);
-          }
+          // P1-069 — DON'T delete the existing CSV before the new one
+          // arrives. The old script unlinked OUTPUT_PATH at this point;
+          // a download failure between unlink and rename used to leave
+          // the operator with no CSV at all (we'd already shipped the
+          // mistake to staging once). We now keep the old file in
+          // place; the rename below atomically swaps it for the new
+          // download. If the new download fails, the previous CSV
+          // stays usable and the next run retries from the same
+          // baseline.
 
           // Click the link
           console.log('🖱️ Clicking download link...');

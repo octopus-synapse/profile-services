@@ -1,5 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import { validateRegistry } from '../../domain/feature-flag-graph';
+import { validateRegistry } from '../../domain/feature-flag-graph.service';
 import { FeatureFlagRepositoryPort } from '../../domain/ports/feature-flag.repository.port';
 import { FEATURE_FLAGS_REGISTRY } from '../../registry/feature-flags.registry';
 
@@ -36,8 +36,8 @@ export class BootstrapFlagsUseCase {
       })),
     );
 
-    const allInDb = await this.repo.findAll();
-    const registryKeys = new Set(FEATURE_FLAGS_REGISTRY.map((f) => f.key));
+    const allInDb = await this.repo.listAll();
+    const registryKeys = new Set<string>(FEATURE_FLAGS_REGISTRY.map((f) => f.key));
     const deprecatedCandidates = allInDb
       .filter((f) => !registryKeys.has(f.key) && !f.deprecated)
       .map((f) => f.key);

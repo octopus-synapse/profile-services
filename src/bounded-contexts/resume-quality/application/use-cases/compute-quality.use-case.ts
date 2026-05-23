@@ -82,7 +82,8 @@ export class ComputeQualityUseCase {
 
     const saved = await this.repository.save(resumeId, breakdown);
 
-    this.events.publish(
+    // P2-#7: await so a failed projection / notification handler surfaces.
+    await this.events.publishAsync(
       new ResumeQualityComputedEvent(resumeId, {
         resumeId,
         snapshotId: saved.id,

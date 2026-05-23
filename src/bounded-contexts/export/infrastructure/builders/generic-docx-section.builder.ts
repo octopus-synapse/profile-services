@@ -8,6 +8,7 @@
  */
 
 import { Paragraph, TextRun } from 'docx';
+import { formatMonthYear } from '@/shared-kernel/i18n/format-date';
 import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 
 /**
@@ -127,18 +128,8 @@ export class GenericDocxSectionBuilder {
     }
 
     if (typeof value === 'string') {
-      try {
-        const date = new Date(value);
-        if (!Number.isNaN(date.getTime())) {
-          return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-          });
-        }
-      } catch {
-        // Not a valid date, return as-is
-      }
-      return value;
+      const formatted = formatMonthYear(value);
+      return formatted || value;
     }
 
     return String(value);

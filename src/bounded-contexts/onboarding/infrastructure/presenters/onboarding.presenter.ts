@@ -1,24 +1,33 @@
 import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
+import {
+  EXTRA_SECTION_KEYS,
+  extraStepKey,
+} from '../../domain/config/onboarding-section-defaults.config';
 import type {
-  OnboardingThemeOption,
+  OnboardingResumeStyleOption,
   SectionTypeData,
 } from '../../domain/config/onboarding-steps.config';
 import { calculateStrength } from '../../domain/config/onboarding-strength';
 import {
   canCompleteOnboarding,
   canProceedFromStep,
-} from '../../domain/config/onboarding-validation';
+} from '../../domain/config/onboarding-validation.rules';
 import type {
   OnboardingStepConfig,
   StrengthConfig,
 } from '../../domain/ports/onboarding-config.port';
 import type { OnboardingProgressData } from '../../domain/ports/onboarding-progress.port';
+
+/** Set of OnboardingStep.key values that are gated behind `activatedExtras`. */
+const EXTRA_STEP_KEYS: ReadonlySet<string> = new Set(
+  EXTRA_SECTION_KEYS.map((k) => extraStepKey(k)),
+);
+
 import type {
   OnboardingSessionDto,
   PersonalInfoDto,
-  ProfessionalProfileDto,
+  ProfessionalProfileViewDto,
   SectionItemDto,
-  TemplateSelectionDto,
 } from '../dto';
 
 /**
@@ -33,30 +42,20 @@ export function toPersonalInfo(value: unknown): PersonalInfoDto | undefined {
   if (typeof obj.fullName !== 'string') return undefined;
   return {
     fullName: obj.fullName,
-    email: typeof obj.email === 'string' ? obj.email : undefined,
     phone: typeof obj.phone === 'string' ? obj.phone : undefined,
     location: typeof obj.location === 'string' ? obj.location : undefined,
   };
 }
 
-export function toProfessionalProfile(value: unknown): ProfessionalProfileDto | undefined {
+export function toProfessionalProfile(value: unknown): ProfessionalProfileViewDto | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const obj = value as Record<string, unknown>;
   return {
-    jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : '',
+    jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : undefined,
     summary: typeof obj.summary === 'string' ? obj.summary : undefined,
     linkedin: typeof obj.linkedin === 'string' ? obj.linkedin : undefined,
     github: typeof obj.github === 'string' ? obj.github : undefined,
     website: typeof obj.website === 'string' ? obj.website : undefined,
-  };
-}
-
-export function toTemplateSelection(value: unknown): TemplateSelectionDto | undefined {
-  if (!value || typeof value !== 'object') return undefined;
-  const obj = value as Record<string, unknown>;
-  return {
-    templateId: typeof obj.templateId === 'string' ? obj.templateId : undefined,
-    colorScheme: typeof obj.colorScheme === 'string' ? obj.colorScheme : undefined,
   };
 }
 
@@ -146,20 +145,20 @@ function buildFieldsFromStep(
   return out;
 }
 
-function buildThemeOptions(systemThemes: OnboardingThemeOption[]) {
-  return systemThemes.map((th) => ({
-    id: th.id,
-    name: th.name,
-    description: th.description,
-    styleScore: th.styleScore,
-    thumbnailUrl: th.thumbnailUrl,
+function buildResumeStyleOptions(styles: OnboardingResumeStyleOption[]) {
+  return styles.map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    styleScore: s.styleScore,
+    thumbnailUrl: s.thumbnailUrl,
   }));
 }
 
 export function resolveSteps(
   stepConfigs: OnboardingStepConfig[],
   locale: string,
-  systemThemes?: OnboardingThemeOption[],
+  resumeStyles?: OnboardingResumeStyleOption[],
   sectionTypes?: SectionTypeData[],
 ): ResolvedStep[] {
   const sectionMap = new Map<string, SectionTypeData>();
@@ -190,8 +189,8 @@ export function resolveSteps(
       ...(step.sectionTypeKey ? { multipleItems: true, sectionTypeKey: step.sectionTypeKey } : {}),
     };
 
-    if (step.component === 'template' && systemThemes?.length) {
-      result.data = buildThemeOptions(systemThemes);
+    if (step.component === 'resume-style' && resumeStyles?.length) {
+      result.data = buildResumeStyleOptions(resumeStyles);
     }
 
     out.push(result);
@@ -217,22 +216,28 @@ export function buildSession(
   stepConfigs: OnboardingStepConfig[],
   strengthConfig?: StrengthConfig,
   locale = 'en',
-  systemThemes?: OnboardingThemeOption[],
-  userDefaults?: { name?: string; email?: string },
+  resumeStyles?: OnboardingResumeStyleOption[],
+  userDefaults?: { name?: string },
   sectionTypes?: SectionTypeData[],
 ): OnboardingSessionDto {
-  const steps = resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
+  const allResolved = resolveSteps(stepConfigs, locale, resumeStyles, sectionTypes);
+  // Split the resolved set into core steps (always shown) and extras
+  // (only shown after the user opts into them). The catalog of every
+  // extra still ships back as `availableExtras` so the gate UI can
+  // render the checkbox list.
+  const activatedExtras = new Set(data.activatedExtras ?? []);
+  const availableExtras = allResolved.filter((s) => EXTRA_STEP_KEYS.has(String(s.id)));
+  const steps = allResolved.filter(
+    (s) => !EXTRA_STEP_KEYS.has(String(s.id)) || activatedExtras.has(String(s.id)),
+  );
   const currentStepIndex = steps.findIndex((s) => s.id === data.currentStep);
   const totalSteps = steps.length;
 
   const rawPersonalInfo = toPersonalInfo(data.personalInfo);
   const personalInfo =
-    rawPersonalInfo ??
-    (userDefaults
-      ? { fullName: userDefaults.name ?? '', email: userDefaults.email ?? '' }
-      : undefined);
+    rawPersonalInfo ?? (userDefaults ? { fullName: userDefaults.name ?? '' } : undefined);
   const professionalProfile = toProfessionalProfile(data.professionalProfile);
-  const templateSelection = toTemplateSelection(data.templateSelection);
+  const resumeStyleId = data.resumeStyleId ?? undefined;
 
   const currentStepConfig = stepConfigs.find((s) => s.key === data.currentStep);
   const canProceed = currentStepConfig
@@ -240,7 +245,7 @@ export function buildSession(
         username: data.username,
         personalInfo,
         professionalProfile,
-        templateSelection,
+        resumeStyleId,
       })
     : true;
 
@@ -253,7 +258,7 @@ export function buildSession(
         username: data.username ?? undefined,
         professionalProfile,
         sections: data.sections,
-        templateSelection,
+        resumeStyleId,
       })
     : undefined;
 
@@ -262,7 +267,7 @@ export function buildSession(
   const { missingSteps: missingRequired } = canCompleteOnboarding(
     stepConfigs,
     data.completedSteps,
-    { username: data.username, personalInfo, professionalProfile, templateSelection },
+    { username: data.username, personalInfo, professionalProfile, resumeStyleId },
   );
 
   return {
@@ -277,10 +282,12 @@ export function buildSession(
     nextStep: nextStep ?? null,
     previousStep: previousStep ?? null,
     steps: steps as OnboardingSessionDto['steps'],
+    availableExtras: availableExtras as OnboardingSessionDto['availableExtras'],
+    activatedExtras: data.activatedExtras ?? [],
     username: data.username ?? undefined,
     personalInfo,
     professionalProfile,
     sections: buildSectionsView(data.sections),
-    templateSelection,
+    resumeStyleId,
   } as OnboardingSessionDto;
 }

@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 import { TechPersonaSchema } from '@/bounded-contexts/platform/domain/enums';
+import { HexColorSchema } from '@/shared-kernel/schemas/primitives';
 
 // ============================================================================
 // Persona Configuration
@@ -26,13 +27,13 @@ export const PersonaConfigSchema = z.object({
   icon: z.string(),
 
   /** Primary theme color (hex) */
-  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  primaryColor: HexColorSchema,
 
   /** Accent/secondary color (hex) */
-  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  accentColor: HexColorSchema,
 
   /** Gradient colors for visual effects [start, end] */
-  gradient: z.tuple([z.string().regex(/^#[0-9A-Fa-f]{6}$/), z.string().regex(/^#[0-9A-Fa-f]{6}$/)]),
+  gradient: z.tuple([HexColorSchema, HexColorSchema]),
 
   /** Relevant skill categories for this persona */
   skillCategories: z.array(z.string()),
@@ -77,3 +78,9 @@ export const PersonaDetectionResultSchema = z.object({
 });
 
 export type PersonaDetectionResult = z.infer<typeof PersonaDetectionResultSchema>;
+
+export type PersonaConfigDto = z.infer<typeof PersonaConfigSchema>;
+
+export type PersonaSuggestionDto = z.infer<typeof PersonaSuggestionSchema>;
+
+export type PersonaDetectionResultDto = z.infer<typeof PersonaDetectionResultSchema>;

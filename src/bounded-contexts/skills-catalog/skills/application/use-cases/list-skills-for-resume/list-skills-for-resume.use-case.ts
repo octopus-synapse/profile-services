@@ -7,6 +7,7 @@ export class ListSkillsForResumeUseCase {
   async execute(resumeId: string): Promise<Skill[]> {
     const section: SkillSection | null = await this.repository.findSkillSectionWithItems(resumeId);
 
+    // A resume without a skills section is a valid state — it just has no skills.
     if (!section?.items) {
       return [];
     }

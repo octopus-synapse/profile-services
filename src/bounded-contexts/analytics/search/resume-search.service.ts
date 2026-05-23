@@ -11,48 +11,16 @@
 
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { GlobalSearchGroup, GlobalSearchItem, GlobalSearchResult } from './ports/search.port';
+import {
+  buildOrderClauseSql,
+  extractSkillNames,
+  filterResultsBySkills,
+  normalizeSearchTerms,
+} from './resume-search.helpers';
+import type { SearchParams, SearchResult, SearchResultItem } from './resume-search.types';
 
-/**
- * Search query parameters
- */
-export interface SearchParams {
-  query: string;
-  skills?: string[];
-  location?: string;
-  minExperienceYears?: number;
-  maxExperienceYears?: number;
-  page?: number;
-  limit?: number;
-  sortBy?: 'relevance' | 'date' | 'views';
-}
-
-/**
- * Search result item
- */
-export interface SearchResultItem {
-  id: string;
-  userId: string;
-  fullName: string | null;
-  jobTitle: string | null;
-  summary: string | null;
-  slug: string | null;
-  location: string | null;
-  profileViews: number;
-  createdAt: Date;
-  skills?: string[];
-  rank?: number;
-}
-
-/**
- * Paginated search result
- */
-export interface SearchResult {
-  data: SearchResultItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+export type { SearchParams, SearchResult, SearchResultItem };
 
 export class ResumeSearchService {
   constructor(private readonly prisma: PrismaService) {}
@@ -72,10 +40,13 @@ export class ResumeSearchService {
       sortBy = 'relevance',
     } = params;
 
-    const safeLimit = Number(limit) || 20;
-    const safePage = Number(page) || 1;
+    const DEFAULT_PAGE_SIZE = 20;
+    const MAX_PAGE_SIZE = 100;
+    const rawLimit = Number(limit) || DEFAULT_PAGE_SIZE;
+    const safeLimit = Math.max(1, Math.min(rawLimit, MAX_PAGE_SIZE));
+    const safePage = Math.max(1, Number(page) || 1);
     const offset = (safePage - 1) * safeLimit;
-    const searchTerms = this.normalizeSearchTerms(query);
+    const searchTerms = normalizeSearchTerms(query);
 
     // Build dynamic WHERE conditions as Prisma.Sql fragments so values are
     // bound through Prisma's parameterizer (avoids `$N` collisions when the
@@ -105,7 +76,7 @@ export class ResumeSearchService {
     }
 
     const whereClause = Prisma.join(conditions, ' AND ');
-    const orderClause = this.buildOrderClauseSql(sortBy);
+    const orderClause = buildOrderClauseSql(sortBy);
 
     const searchQuery = Prisma.sql`
       SELECT
@@ -139,19 +110,32 @@ export class ResumeSearchService {
     // Filter by skills if provided (post-query filter for simplicity)
     let filteredResults = results;
     if (skills && skills.length > 0) {
-      filteredResults = await this.filterBySkills(results, skills);
+      filteredResults = await filterResultsBySkills(this.prisma, results, skills);
     }
 
     const total = countResult[0].count;
 
-    return { data: filteredResults, total, page, limit, totalPages: Math.ceil(total / limit) };
+    // P1 #39 — totalPages must use the sanitized page size so a
+    // request with `?limit=10000` (clamped to 100 server-side) reports
+    // pages bucketed by 100, not 10000. Otherwise the UI thinks there
+    // is one page when there really are N.
+    const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+    return {
+      items: filteredResults,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages,
+      hasNext: safePage < totalPages,
+      hasPrev: safePage > 1,
+    };
   }
 
   /**
    * Get search suggestions (autocomplete)
    */
   async suggest(prefix: string, limit = 10): Promise<string[]> {
-    const normalizedPrefix = this.normalizeSearchTerms(prefix);
+    const normalizedPrefix = normalizeSearchTerms(prefix);
 
     const suggestions = await this.prisma.$queryRaw<{ suggestion: string }[]>`
       SELECT DISTINCT "jobTitle" as suggestion
@@ -196,7 +180,7 @@ export class ResumeSearchService {
       return [];
     }
 
-    const skillNames = this.extractSkillNames(sourceResume.resumeSections);
+    const skillNames = extractSkillNames(sourceResume.resumeSections);
 
     if (skillNames.length === 0) {
       return [];
@@ -234,7 +218,7 @@ export class ResumeSearchService {
 
     const ranked = candidates
       .map((resume) => {
-        const candidateSkills = this.extractSkillNames(resume.resumeSections);
+        const candidateSkills = extractSkillNames(resume.resumeSections);
         const sharedSkills = candidateSkills.filter((skill) => skillNames.includes(skill));
 
         return {
@@ -265,93 +249,88 @@ export class ResumeSearchService {
   }
 
   /**
+   * Multi-type search across resumes, users, jobs, posts. Each group is
+   * capped at `limit`; results are returned in the canonical group order
+   * the frontend expects.
+   */
+  async globalSearch(query: string, limit = 5): Promise<GlobalSearchResult> {
+    const trimmed = query.trim();
+    if (trimmed.length === 0) {
+      return { groups: [] };
+    }
+    const safeLimit = Math.max(1, Math.min(20, Number(limit) || 5));
+    const insensitive = { mode: 'insensitive' as const };
+
+    const [resumeResult, userRows, jobRows, postRows] = await Promise.all([
+      this.search({ query: trimmed, page: 1, limit: safeLimit }),
+      this.prisma.user.findMany({
+        where: {
+          isActive: true,
+          OR: [
+            { name: { contains: trimmed, ...insensitive } },
+            { username: { contains: trimmed, ...insensitive } },
+            { bio: { contains: trimmed, ...insensitive } },
+          ],
+        },
+        select: { id: true, name: true, username: true, bio: true, photoURL: true },
+        take: safeLimit,
+      }),
+      this.prisma.job.findMany({
+        where: {
+          OR: [
+            { title: { contains: trimmed, ...insensitive } },
+            { description: { contains: trimmed, ...insensitive } },
+            { company: { contains: trimmed, ...insensitive } },
+          ],
+        },
+        select: { id: true, title: true, company: true, description: true, location: true },
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.post.findMany({
+        where: { content: { contains: trimmed, ...insensitive } },
+        select: { id: true, content: true, authorId: true },
+        take: safeLimit,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const resumeItems: GlobalSearchItem[] = resumeResult.items.map((row) => ({
+      id: row.id,
+      title: row.fullName ?? row.jobTitle ?? 'Untitled',
+      snippet: row.summary ? row.summary.slice(0, 160) : undefined,
+      href: `/resumes/${row.slug ?? row.id}`,
+    }));
+    const userItems: GlobalSearchItem[] = userRows.map((u) => ({
+      id: u.id,
+      title: u.name ?? u.username ?? 'User',
+      snippet: u.bio ? u.bio.slice(0, 160) : undefined,
+      href: u.username ? `/u/${u.username}` : `/users/${u.id}`,
+    }));
+    const jobItems: GlobalSearchItem[] = jobRows.map((j) => ({
+      id: j.id,
+      title: j.title,
+      snippet: j.description.slice(0, 160),
+      href: `/jobs/${j.id}`,
+      badge: j.company,
+    }));
+    const postItems: GlobalSearchItem[] = postRows.map((p) => ({
+      id: p.id,
+      title: (p.content ?? '').slice(0, 80) || 'Post',
+      snippet: p.content ? p.content.slice(0, 160) : undefined,
+      href: `/feed/${p.id}`,
+    }));
+
+    const groups: GlobalSearchGroup[] = [
+      { type: 'resumes', label: 'Currículos', items: resumeItems },
+      { type: 'users', label: 'Pessoas', items: userItems },
+      { type: 'jobs', label: 'Vagas', items: jobItems },
+      { type: 'posts', label: 'Publicações', items: postItems },
+    ];
+    return { groups };
+  }
+
+  /**
    * Normalize search terms for consistent matching
    */
-  private normalizeSearchTerms(query: string): string {
-    return query
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, ' ')
-      .replace(/\s+/g, ' ');
-  }
-
-  /**
-   * Build ORDER BY clause as a Prisma.Sql fragment so it can be safely
-   * interpolated inside a Prisma.sql template.
-   */
-  private buildOrderClauseSql(sortBy: string): Prisma.Sql {
-    switch (sortBy) {
-      case 'date':
-        return Prisma.sql`"createdAt" DESC`;
-      case 'views':
-        return Prisma.sql`"profileViews" DESC`;
-      default:
-        return Prisma.sql`"profileViews" DESC, "createdAt" DESC`;
-    }
-  }
-
-  /**
-   * Filter results by skills (post-query)
-   */
-  private async filterBySkills(
-    results: SearchResultItem[],
-    skills: string[],
-  ): Promise<SearchResultItem[]> {
-    if (results.length === 0) return results;
-
-    const resumeIds = results.map((r) => r.id);
-    const normalizedSkills = skills.map((s) => s.toLowerCase());
-
-    const items = await this.prisma.sectionItem.findMany({
-      where: {
-        resumeSection: {
-          resumeId: { in: resumeIds },
-          sectionType: {
-            semanticKind: { contains: 'SKILL', mode: 'insensitive' },
-          },
-        },
-      },
-      select: {
-        resumeSection: {
-          select: { resumeId: true },
-        },
-        content: true,
-      },
-    });
-
-    const matchingIds = new Set<string>();
-    for (const item of items) {
-      const content = this.asRecord(item.content);
-      const name = typeof content.name === 'string' ? content.name.toLowerCase() : '';
-
-      if (normalizedSkills.includes(name)) {
-        matchingIds.add(item.resumeSection.resumeId);
-      }
-    }
-
-    return results.filter((r) => matchingIds.has(r.id));
-  }
-
-  private extractSkillNames(sections: Array<{ items: Array<{ content: unknown }> }>): string[] {
-    const skills: string[] = [];
-
-    for (const section of sections) {
-      for (const item of section.items) {
-        const content = this.asRecord(item.content);
-        if (typeof content.name === 'string') {
-          skills.push(content.name.toLowerCase());
-        }
-      }
-    }
-
-    return skills;
-  }
-
-  private asRecord(value: unknown): Record<string, unknown> {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      return {};
-    }
-
-    return value as Record<string, unknown>;
-  }
 }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import {
   UsernameCooldownActiveException,
@@ -6,71 +6,80 @@ import {
   UsernameReservedException,
   UsernameTakenException,
 } from '../../../domain/exceptions/users.exceptions';
-import { UsernameRepositoryPort } from '../../ports/username.port';
+import { InMemoryUsernameRepository } from '../../../testing/in-memory-username.repository';
 import { UpdateUsernameUseCase } from './update-username.use-case';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 describe('UpdateUsernameUseCase', () => {
+  let repository: InMemoryUsernameRepository;
   let useCase: UpdateUsernameUseCase;
-  let repository: UsernameRepositoryPort;
 
   beforeEach(() => {
-    repository = {
-      findUserById: mock(async () => ({ id: 'user-1', username: 'olduser' })),
-      updateUsername: mock(async () => ({ username: 'newuser' })),
-      findLastUsernameUpdateByUserId: mock(async () => null),
-      isUsernameTaken: mock(async () => false),
-    } as UsernameRepositoryPort;
-
+    repository = new InMemoryUsernameRepository();
+    repository.seedUser({ id: 'user-1', username: 'olduser' });
     useCase = new UpdateUsernameUseCase(repository);
   });
 
-  it('updates username and returns domain entity (not envelope)', async () => {
+  it('persists the new username and returns the updated domain entity', async () => {
     const result = await useCase.execute('user-1', 'newuser');
 
-    expect(repository.findUserById).toHaveBeenCalledWith('user-1');
-    expect(repository.updateUsername).toHaveBeenCalledWith('user-1', 'newuser');
-
-    // CRITICAL: Returns domain entity, not envelope
     expect(result).toEqual({ username: 'newuser' });
-    expect(result).not.toHaveProperty('success');
-    expect(result).not.toHaveProperty('message');
+    expect(repository.usernames.has('newuser')).toBe(true);
+    expect(repository.usernames.has('olduser')).toBe(false);
   });
 
-  it('returns current username when unchanged', async () => {
+  it('returns the current username (no-op) when the new value is unchanged', async () => {
+    const before = repository.usernames;
+
     const result = await useCase.execute('user-1', 'olduser');
 
     expect(result).toEqual({ username: 'olduser' });
-    expect(repository.updateUsername).not.toHaveBeenCalled();
+    expect(repository.usernames).toEqual(before);
   });
 
-  it('throws EntityNotFoundException when user does not exist', async () => {
-    repository.findUserById = mock(async () => null);
-
+  it('throws EntityNotFoundException when the user does not exist', async () => {
     await expect(useCase.execute('non-existent', 'newuser')).rejects.toThrow(
       EntityNotFoundException,
     );
   });
 
-  it('throws UsernameMustBeLowercaseException for uppercase username', async () => {
+  it('throws UsernameMustBeLowercaseException when any character is uppercase', async () => {
     await expect(useCase.execute('user-1', 'NewUser')).rejects.toThrow(
       UsernameMustBeLowercaseException,
     );
   });
 
-  it('throws UsernameReservedException for reserved username', async () => {
+  it('throws UsernameReservedException for protected names', async () => {
     await expect(useCase.execute('user-1', 'admin')).rejects.toThrow(UsernameReservedException);
   });
 
-  it('throws UsernameCooldownActiveException during cooldown period', async () => {
-    repository.findLastUsernameUpdateByUserId = mock(async () => new Date());
+  it('throws UsernameCooldownActiveException when the user updated their name within the last 30 days', async () => {
+    repository.seedUser({
+      id: 'user-1',
+      username: 'olduser',
+      lastUsernameUpdate: new Date(),
+    });
 
     await expect(useCase.execute('user-1', 'newuser')).rejects.toThrow(
       UsernameCooldownActiveException,
     );
   });
 
-  it('throws UsernameTakenException when username is taken', async () => {
-    repository.isUsernameTaken = mock(async () => true);
+  it('allows the update once the cooldown has elapsed', async () => {
+    repository.seedUser({
+      id: 'user-1',
+      username: 'olduser',
+      lastUsernameUpdate: new Date(Date.now() - 31 * DAY_MS),
+    });
+
+    const result = await useCase.execute('user-1', 'newuser');
+
+    expect(result.username).toBe('newuser');
+  });
+
+  it('throws UsernameTakenException when another user owns the requested name', async () => {
+    repository.seedUser({ id: 'someone-else', username: 'takenuser' });
 
     await expect(useCase.execute('user-1', 'takenuser')).rejects.toThrow(UsernameTakenException);
   });

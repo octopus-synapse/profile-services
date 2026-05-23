@@ -16,6 +16,7 @@ export const PAGINATION = {
  * Time-to-live values for cached data in seconds.
  */
 export const CACHE_TTL = {
+  // lint-allow-bc-cache-ttl: legacy constant kept for callers not yet migrated to CACHE_PRESETS.
   SHORT: 60, // 1 minute
   MEDIUM: 300, // 5 minutes
   LONG: 3600, // 1 hour

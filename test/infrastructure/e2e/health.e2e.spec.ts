@@ -1,9 +1,6 @@
 /**
  * Health BC end-to-end smoke. Boots the full Elysia bootstrap and
- * hits the three health endpoints. Other journey suites under
- * `test/infrastructure/_legacy/e2e/` are still on the supertest +
- * AppModule pattern and need to be migrated one-by-one to the new
- * `TestApp` harness.
+ * hits the three health endpoints.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';

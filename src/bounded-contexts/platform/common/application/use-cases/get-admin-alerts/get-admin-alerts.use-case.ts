@@ -12,7 +12,7 @@ import type { AdminAlerts } from '../../../domain/entities/admin-alerts';
 import { AdminAlertsRepositoryPort } from '../../../domain/ports/admin-alerts.repository.port';
 
 const CTX = 'GetAdminAlertsUseCase';
-const CACHE_TTL_MS = 30_000;
+const CACHE_TTL_MS = 30_000; // lint-allow-bc-cache-ttl: in-memory dashboard cache, not cross-BC; CACHE_PRESETS is for Redis TTLs.
 
 interface CacheEntry {
   readonly at: number;

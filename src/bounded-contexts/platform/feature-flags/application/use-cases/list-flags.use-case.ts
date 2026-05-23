@@ -1,4 +1,4 @@
-import { evaluateFlags } from '../../domain/feature-flag-graph';
+import { evaluateFlags } from '../../domain/feature-flag-graph.service';
 import type { FlagRecord } from '../../domain/types';
 import { FlagStateService } from '../services/flag-state.service';
 

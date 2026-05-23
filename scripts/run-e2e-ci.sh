@@ -51,7 +51,7 @@ export E2E_SKIP_SEED=1
 
 if [[ $SHARDS -eq 1 ]]; then
     echo "[e2e:ci] Running ${TOTAL_FILES} spec file(s) in a single process..."
-    bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 "${ALL_FILES[@]}"
+    bun test --config=config/bunfig.e2e.toml --concurrent --max-concurrency=8 "${ALL_FILES[@]}"
     EXIT_CODE=$?
 else
     echo "[e2e:ci] Sharding ${TOTAL_FILES} spec file(s) across ${SHARDS} process(es)..."
@@ -67,7 +67,7 @@ else
         log_file=$(mktemp)
         SHARD_LOGS+=("$log_file")
 
-        (bun test --config=bunfig.e2e.toml --concurrent --max-concurrency=8 \
+        (bun test --config=config/bunfig.e2e.toml --concurrent --max-concurrency=8 \
             "${SHARD_FILES[@]}" >"$log_file" 2>&1) &
         SHARD_PIDS+=("$!")
     done

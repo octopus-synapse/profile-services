@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { EmailSchema } from '@/shared-kernel/schemas/primitives';
+import { PhoneSchema, UserLocationSchema } from '@/shared-kernel/schemas/primitives';
 import { normalizeSectionTypeKey } from '@/shared-kernel/utils/section-type-key.util';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
@@ -33,39 +33,13 @@ export const LanguageProficiencyEnum = z.enum([
 export const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 
 // PersonalInfoSchema (exported for onboarding-progress.dto.ts)
+// Single source of truth for the user's email is `User.email` (signup) — no
+// separate contact email is collected during onboarding.
 export const PersonalInfoSchema = z.object({
   fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
-  email: EmailSchema,
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
+  phone: PhoneSchema,
+  location: UserLocationSchema,
 });
-
-/**
- * Template Selection Schema
- * Accepts both SDK format (templateId/colorScheme) and legacy format (template/palette)
- */
-export const TemplateSelectionSchema = z.object({
-  // SDK format (primary)
-  templateId: z.string().optional(),
-  colorScheme: z.string().optional(), // Legacy format (backward compat)
-  template: z.string().optional(),
-  palette: z.string().optional(),
-});
-
-export type TemplateSelection = z.infer<typeof TemplateSelectionSchema>;
-
-/**
- * Validates and normalizes template selection data.
- * Ensures at least template+palette or templateId+colorScheme is present.
- */
-export function normalizeTemplateSelection(data: TemplateSelection): {
-  templateId: string;
-  colorScheme: string;
-} {
-  const templateId = data.templateId || data.template || 'professional';
-  const colorScheme = data.colorScheme || data.palette || 'ocean';
-  return { templateId, colorScheme };
-}
 
 /**
  * Generic Section Item Schema
@@ -106,12 +80,42 @@ export type OnboardingSection = z.infer<typeof OnboardingSectionSchema>;
  * - No code changes needed for new sections
  * - Validation rules come from SectionType.definition
  */
-export const OnboardingDataSchema = z.object({
-  username: UsernameSchema,
-  personalInfo: PersonalInfoSchema,
-  professionalProfile: ProfessionalProfileSchema,
-  templateSelection: TemplateSelectionSchema,
-  sections: z.array(OnboardingSectionSchema).default([]),
-});
+export const OnboardingDataSchema = z
+  .object({
+    username: UsernameSchema,
+    personalInfo: PersonalInfoSchema,
+    professionalProfile: ProfessionalProfileSchema,
+    /**
+     * FK to `ResumeStyle.id` chosen on the resume-style step. `null` is
+     * valid (the step is optional at completion time — the resume gets
+     * the seeded default style if missing).
+     */
+    resumeStyleId: z.string().uuid().nullable().optional(),
+    sections: z.array(OnboardingSectionSchema).default([]),
+  })
+  .openapi({
+    example: {
+      username: 'janedoe',
+      personalInfo: {
+        fullName: 'Jane Doe',
+        phone: '+1 415 555 1234',
+        location: 'San Francisco, CA',
+      },
+      professionalProfile: {
+        jobTitle: 'Senior Backend Engineer',
+        summary: 'Backend engineer with 8+ years building distributed systems.',
+      },
+      resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',
+      sections: [],
+    },
+  });
 
 export type OnboardingData = z.infer<typeof OnboardingDataSchema>;
+
+export type PersonalInfoDto = z.infer<typeof PersonalInfoSchema>;
+
+export type OnboardingSectionItemDto = z.infer<typeof OnboardingSectionItemSchema>;
+
+export type OnboardingSectionDto = z.infer<typeof OnboardingSectionSchema>;
+
+export type OnboardingDataDto = z.infer<typeof OnboardingDataSchema>;

@@ -15,7 +15,44 @@ const mockFoundUser = {
   github: 'johndoe',
 };
 
-const mockResume = { sections: ['education', 'experience'] };
+const mockResume = {
+  id: 'resume-1',
+  title: 'My Resume',
+  language: 'en',
+  isPublic: true,
+  slug: 'my-resume',
+  fullName: 'John Doe',
+  jobTitle: 'Engineer',
+  phone: null,
+  location: 'NYC',
+  linkedin: 'johndoe',
+  github: 'johndoe',
+  website: 'https://johndoe.com',
+  summary: 'Cool dev',
+  accentColor: '#3B82F6',
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-02T00:00:00Z'),
+  sections: ['education', 'experience'],
+};
+
+const mockResumeProjection = {
+  id: 'resume-1',
+  title: 'My Resume',
+  language: 'en',
+  isPublic: true,
+  slug: 'my-resume',
+  fullName: 'John Doe',
+  jobTitle: 'Engineer',
+  phone: null,
+  location: 'NYC',
+  linkedin: 'johndoe',
+  github: 'johndoe',
+  website: 'https://johndoe.com',
+  summary: 'Cool dev',
+  accentColor: '#3B82F6',
+  createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-02T00:00:00Z'),
+};
 
 describe('GetPublicProfileUseCase', () => {
   let useCase: GetPublicProfileUseCase;
@@ -33,6 +70,7 @@ describe('GetPublicProfileUseCase', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       })),
+      listPublicUsers: mock(async () => ({ items: [], total: 0 })),
     } as UserProfileRepositoryPort;
 
     useCase = new GetPublicProfileUseCase(repository);
@@ -52,7 +90,7 @@ describe('GetPublicProfileUseCase', () => {
       linkedin: 'johndoe',
       github: 'johndoe',
     });
-    expect(result.resume).toEqual(mockResume);
+    expect(result.resume).toEqual(mockResumeProjection);
     expect(repository.findUserByUsername).toHaveBeenCalledWith('johndoe');
     expect(repository.findResumeByUserId).toHaveBeenCalledWith('user-1');
   });

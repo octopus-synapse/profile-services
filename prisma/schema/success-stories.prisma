@@ -3,7 +3,7 @@
 // (opt-in) but creation happens via admin curation so we keep quality tight.
 
 model SuccessStory {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   userId String
   user   User   @relation("UserSuccessStories", fields: [userId], references: [id], onDelete: Cascade)
 

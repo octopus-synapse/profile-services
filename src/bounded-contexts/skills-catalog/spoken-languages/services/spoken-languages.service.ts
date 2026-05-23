@@ -22,11 +22,11 @@ export class SpokenLanguagesService {
     private readonly cache: CacheService,
   ) {}
 
-  async findAllActiveLanguages(): Promise<SpokenLanguage[]> {
+  async listActiveLanguages(): Promise<SpokenLanguage[]> {
     const cached = await this.cache.get<SpokenLanguage[]>(SPOKEN_LANGUAGES_ALL_KEY);
     if (cached) return cached;
 
-    const languages = await this.repository.findAllActive();
+    const languages = await this.repository.listActive();
     await this.cache.set(SPOKEN_LANGUAGES_ALL_KEY, languages, SPOKEN_LANGUAGES_TTL);
     return languages;
   }

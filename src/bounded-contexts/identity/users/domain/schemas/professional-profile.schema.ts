@@ -52,9 +52,9 @@ export const ProfessionalProfileSchema = z.object({
   title: JobTitleSchema.optional(),
   jobTitle: JobTitleSchema.optional(),
   summary: SummarySchema,
-  linkedin: LinkedInUrlSchema,
-  github: GitHubUrlSchema,
-  website: SocialUrlSchema,
+  linkedin: LinkedInUrlSchema.optional(),
+  github: GitHubUrlSchema.optional(),
+  website: SocialUrlSchema.optional(),
 });
 
 export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
@@ -65,3 +65,9 @@ export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
 export function getJobTitle(profile: ProfessionalProfile): string | undefined {
   return profile.title || profile.jobTitle;
 }
+
+export type JobTitleDto = z.infer<typeof JobTitleSchema>;
+
+export type SummaryDto = z.infer<typeof SummarySchema>;
+
+export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;

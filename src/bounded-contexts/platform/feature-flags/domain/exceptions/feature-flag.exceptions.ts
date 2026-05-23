@@ -10,21 +10,21 @@ import {
 } from '@/shared-kernel/exceptions';
 
 export class FeatureFlagNotFoundException extends EntityNotFoundException {
-  readonly code: string = 'FEATURE_FLAG_NOT_FOUND';
+  override readonly code: string = 'FEATURE_FLAG_NOT_FOUND';
   constructor(public readonly key: string) {
     super('FeatureFlag', key);
   }
 }
 
 export class FeatureFlagInvalidInputException extends ValidationException {
-  readonly code: string = 'FEATURE_FLAG_INVALID_INPUT';
+  override readonly code: string = 'FEATURE_FLAG_INVALID_INPUT';
   constructor(reason: string) {
     super(`Invalid feature-flag input: ${reason}`);
   }
 }
 
 export class FeatureFlagDeprecatedException extends ValidationException {
-  readonly code: string = 'FEATURE_FLAG_DEPRECATED';
+  override readonly code: string = 'FEATURE_FLAG_DEPRECATED';
   constructor(public readonly key: string) {
     super(
       `Flag "${key}" is deprecated and cannot be toggled. Remove it from the registry or re-add and redeploy.`,
@@ -33,7 +33,7 @@ export class FeatureFlagDeprecatedException extends ValidationException {
 }
 
 export class FeatureFlagParentDisabledException extends ConflictException {
-  readonly code: string = 'FEATURE_FLAG_PARENT_DISABLED';
+  override readonly code: string = 'FEATURE_FLAG_PARENT_DISABLED';
   constructor(
     public readonly child: string,
     public readonly parent: string,

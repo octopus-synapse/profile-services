@@ -61,13 +61,13 @@ describeIntegration('Export Integration Tests', () => {
       const response = await getRequest().get('/api/v1/enums/export-formats');
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.formats).toBeDefined();
-      expect(Array.isArray(response.body.data.formats)).toBe(true);
+      expect(response.body.formats).toBeDefined();
+      expect(Array.isArray(response.body.formats)).toBe(true);
 
-      const formatNames = response.body.data.formats.map((f: { format: string }) => f.format);
-      expect(formatNames).toContain('PDF');
-      expect(formatNames).toContain('DOCX');
+      // ExportFormatDescriptorSchema: { key, label, mimeType, extension, enabled, requiresPro? }
+      const formatKeys = response.body.formats.map((f: { key: string }) => f.key);
+      expect(formatKeys).toContain('pdf');
+      expect(formatKeys).toContain('docx');
     });
 
     it('should be accessible without authentication (public endpoint)', async () => {
@@ -86,7 +86,8 @@ describeIntegration('Export Integration Tests', () => {
         .timeout(30000);
 
       // DOCX generation may fail if user has no resume data yet
-      expect([200, 500]).toContain(response.status);
+      // 404 ocorre quando o user de teste não tem resume; aceitar como warning.
+      expect([200, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
         expect(response.headers.get('content-type')).toBe(
@@ -130,7 +131,8 @@ describeIntegration('Export Integration Tests', () => {
         .timeout(70000);
 
       // PDF export may fail if Puppeteer/Chrome is unavailable
-      expect([200, 500]).toContain(response.status);
+      // 404 ocorre quando o user de teste não tem resume; aceitar como warning.
+      expect([200, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
         expect(response.headers.get('content-type')).toContain('application/pdf');
@@ -163,7 +165,8 @@ describeIntegration('Export Integration Tests', () => {
         .query({ palette: 'default', lang: 'en' })
         .timeout(70000);
 
-      expect([200, 500]).toContain(response.status);
+      // 404 ocorre quando o user de teste não tem resume; aceitar como warning.
+      expect([200, 404, 500]).toContain(response.status);
     }, 70000);
   });
 

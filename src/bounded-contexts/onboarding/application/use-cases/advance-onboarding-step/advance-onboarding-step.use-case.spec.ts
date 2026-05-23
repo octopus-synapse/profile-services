@@ -57,7 +57,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         userId: USER_ID,
         currentStep: 'personal-info',
         completedSteps: ['welcome'],
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
       }),
     );
 
@@ -77,7 +77,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         currentStep: 'username',
         completedSteps: ['welcome', 'personal-info'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
       }),
     );
 
@@ -189,7 +189,7 @@ describe('AdvanceOnboardingStepUseCase', () => {
         currentStep: 'professional-profile',
         completedSteps: ['welcome', 'personal-info', 'username'],
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: { jobTitle: 'Software Engineer' },
       }),
     );
@@ -200,5 +200,19 @@ describe('AdvanceOnboardingStepUseCase', () => {
     // Assert — should advance to first section step
     expect(result.currentStep).toBe('section:work_experience_v1');
     expect(result.completedSteps).toContain('professional-profile');
+  });
+
+  // P1 #27
+  it('throws OnboardingUnknownStepException when currentStep is not in the configured steps', async () => {
+    progressRepo.seedProgress(
+      createOnboardingProgress({
+        userId: USER_ID,
+        currentStep: 'ghost-step-from-old-schema',
+        completedSteps: [],
+      }),
+    );
+
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(ValidationException);
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(/Unknown step/);
   });
 });

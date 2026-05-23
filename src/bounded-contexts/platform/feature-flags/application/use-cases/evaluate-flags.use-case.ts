@@ -1,5 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
-import { evaluateFlags } from '../../domain/feature-flag-graph';
+import { evaluateFlags } from '../../domain/feature-flag-graph.service';
 import type { FlagEvaluationSnapshot } from '../../domain/types';
 import type { FlagCachePort } from '../ports/flag-cache.port';
 import { FlagStateService } from '../services/flag-state.service';

@@ -29,7 +29,10 @@ export class OpenAIEmbeddingsAdapter extends EmbeddingsPort {
   ) {
     super();
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
-    this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
+    // P1-076 — same 60s ceiling as the chat adapter; embeddings are
+    // typically faster (200-500ms) but the timeout is the right
+    // guardrail for an unresponsive endpoint.
+    this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_EMBEDDING_MODEL') ?? EMBEDDING_MODEL;
   }
 

@@ -1,9 +1,12 @@
 // Jobs: Job listings posted by users
 
 model Job {
-  id       String @id @default(cuid())
-  authorId String
-  author   User   @relation("UserJobs", fields: [authorId], references: [id])
+  id       String  @id @default(dbgenerated("uuidv7()"))
+  // P0-#26: `authorId` becomes nullable so the FK can `SetNull` on user
+  // delete. The Job itself survives erasure (analytics + outside candidate
+  // visibility) but the authorship attribution is anonymised.
+  authorId String?
+  author   User?   @relation("UserJobs", fields: [authorId], references: [id], onDelete: SetNull)
 
   title        String
   company      String
@@ -62,15 +65,25 @@ model Job {
   @@index([authorId])
   @@index([jobType, createdAt])
   @@index([isActive, createdAt])
+  // P2-#35 (audit deferred): the three composite indexes below look
+  // like over-indexing at first glance, but each one services a
+  // distinct filter combination used by the jobs board (currency
+  // filter, remote-policy filter, active-only feed). Consolidating
+  // would need an `EXPLAIN ANALYZE` pass against prod-shaped data —
+  // see the BUG_REPORT P2-#35 follow-up. The implicit `isActive`
+  // membership means dropping `[isActive, createdAt]` would also
+  // require a partial index on the others; not a free swap.
   @@index([paymentCurrency, isActive, createdAt])
   @@index([remotePolicy, isActive, createdAt])
 }
 
 model JobBookmark {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String
+  // P0-#25: real FK so the row cascades when the user is erased (LGPD).
+  user   User   @relation("UserBookmarks", fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -79,10 +92,12 @@ model JobBookmark {
 }
 
 model JobApplication {
-  id     String @id @default(cuid())
+  id     String @id @default(dbgenerated("uuidv7()"))
   jobId  String
   job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId String
+  // P0-#25: real FK so the row cascades when the user is erased (LGPD).
+  user   User   @relation("UserApplications", fields: [userId], references: [id], onDelete: Cascade)
 
   coverLetter String? @db.Text
   resumeId    String?

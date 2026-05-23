@@ -3,7 +3,7 @@
  * bodies. No infra here — kept as POJO functions.
  */
 
-import type { NotificationType } from '../../domain/entities/notification';
+import type { NotificationType } from '../../domain/entities/notification.entity';
 
 export function humanizeType(type: NotificationType): string {
   return type

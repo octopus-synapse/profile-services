@@ -10,6 +10,7 @@
 
 import type { ExtractedJob } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
+import { SafeFetchBlockedError, SafeFetchPort } from '@/shared-kernel/http/safe-fetch.port';
 import {
   JobImportFetchFailedException,
   JobImportInvalidUrlException,
@@ -17,7 +18,9 @@ import {
 } from '../../domain/exceptions/jobs.exceptions';
 
 const IMPORT_FETCH_TIMEOUT_MS = 20_000;
-const IMPORT_MAX_HTML_BYTES = 800_000;
+// Caps the LLM payload + bounds memory for the strip-HTML pass. ~800KB of
+// text is the equivalent of the previous byte cap.
+const IMPORT_MAX_HTML_CHARS = 800_000;
 
 export interface JobImportResult {
   readonly source: string;
@@ -25,7 +28,16 @@ export interface JobImportResult {
 }
 
 export class JobImportService {
-  constructor(private readonly llm: LlmPort) {}
+  constructor(
+    private readonly llm: LlmPort,
+    /**
+     * SSRF-defended fetch port (P0-#9). The raw `fetch` global was previously
+     * used here and accepted any URL — CLAUDE.md mandates `SafeFetchPort` for
+     * user-supplied URLs because the underlying call hits an LLM that can
+     * surface response content in a preview.
+     */
+    private readonly safeFetch: SafeFetchPort,
+  ) {}
 
   async importFromUrl(url: string): Promise<JobImportResult> {
     let parsedUrl: URL;
@@ -38,27 +50,25 @@ export class JobImportService {
       throw new JobImportInvalidUrlException();
     }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), IMPORT_FETCH_TIMEOUT_MS);
     let html: string;
     try {
-      const res = await fetch(parsedUrl.toString(), {
-        signal: controller.signal,
+      const res = await this.safeFetch.fetch(parsedUrl.toString(), {
+        method: 'GET',
         headers: { 'User-Agent': 'PatchCareersBot/1.0 (+https://patch.careers)' },
-        redirect: 'follow',
+        timeoutMs: IMPORT_FETCH_TIMEOUT_MS,
       });
       if (!res.ok) {
         throw new JobImportFetchFailedException();
       }
-      const buf = new Uint8Array(await res.arrayBuffer());
-      const slice =
-        buf.byteLength > IMPORT_MAX_HTML_BYTES ? buf.slice(0, IMPORT_MAX_HTML_BYTES) : buf;
-      html = new TextDecoder('utf-8', { fatal: false }).decode(slice);
+      const body = await res.text();
+      html = body.length > IMPORT_MAX_HTML_CHARS ? body.slice(0, IMPORT_MAX_HTML_CHARS) : body;
     } catch (err) {
       if (err instanceof JobImportFetchFailedException) throw err;
+      // SafeFetch rejected the URL up front (protocol, private IP, DNS
+      // rebinding, etc.) — surface as the existing "invalid URL" so the
+      // controller maps to the same UX as a malformed link.
+      if (err instanceof SafeFetchBlockedError) throw new JobImportInvalidUrlException();
       throw new JobImportFetchFailedException();
-    } finally {
-      clearTimeout(timer);
     }
 
     const text = stripHtml(html);

@@ -5,8 +5,16 @@
  */
 
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { PlatformUseCases } from './application/ports/platform.port';
+import {
+  AdminAlertsResponseSchema,
+  AdminDashboardMetricsResponseSchema,
+  ExportFormatsResponseSchema,
+  PlatformStatsResponseSchema,
+  SectionTypesResponseSchema,
+  UserRolesResponseSchema,
+} from './platform.routes.schemas';
 
 export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
   // ─── Admin Alerts ─────────────────────────────────────────────────
@@ -15,6 +23,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     path: '/v1/admin/alerts',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_STATS_READ,
+    response: AdminAlertsResponseSchema,
     openapi: {
       summary: 'Counts of admin-actionable queues: reports, verifications, stale shadow profiles',
       tags: ['admin-alerts'],
@@ -30,6 +39,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     path: '/v1/admin/dashboard/metrics',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_STATS_READ,
+    response: AdminDashboardMetricsResponseSchema,
     openapi: {
       summary: 'Get platform metrics for admin dashboard',
       tags: ['admin-dashboard'],
@@ -44,6 +54,8 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     method: 'GET',
     path: '/v1/enums/export-formats',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
+    response: ExportFormatsResponseSchema,
     openapi: {
       summary: 'Get available export formats',
       tags: ['enums'],
@@ -51,14 +63,16 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     },
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
-      const formats = (await bc.listExportFormats.execute()).map((format) => ({ format }));
-      return { success: true, data: { formats } };
+      const formats = await bc.listExportFormats.execute();
+      return { formats };
     },
   },
   {
     method: 'GET',
     path: '/v1/enums/user-roles',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
+    response: UserRolesResponseSchema,
     openapi: {
       summary: 'Get available user roles',
       tags: ['enums'],
@@ -67,13 +81,15 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const roles = (await bc.listUserRoles.execute()).map((role) => ({ role }));
-      return { success: true, data: { roles } };
+      return { roles };
     },
   },
   {
     method: 'GET',
     path: '/v1/enums/section-types',
     auth: { kind: 'public' },
+    headers: { 'Cache-Control': 'public, max-age=300' },
+    response: SectionTypesResponseSchema,
     openapi: {
       summary: 'Get available section types',
       tags: ['enums'],
@@ -82,7 +98,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     sdk: { exported: true },
     handler: async (_ctx, bc) => {
       const types = await bc.listSectionTypes.execute();
-      return { success: true, data: { types } };
+      return { types };
     },
   },
 
@@ -92,6 +108,7 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     path: '/v1/platform/stats',
     auth: { kind: 'jwt' },
     permission: Permission.PLATFORM_STATS_READ,
+    response: PlatformStatsResponseSchema,
     openapi: {
       summary: 'Get platform statistics',
       tags: ['platform'],
@@ -101,15 +118,12 @@ export const platformRoutes: ReadonlyArray<Route<PlatformUseCases>> = [
     handler: async (_ctx, bc) => {
       const stats = await bc.getPlatformStats.execute();
       return {
-        success: true,
-        data: {
-          totalUsers: stats.users.total,
-          totalResumes: stats.resumes.total,
-          totalViews: 0,
-          activeUsersToday: stats.users.recentSignups,
-          activeUsersWeek: stats.users.recentSignups,
-          updatedAt: new Date().toISOString(),
-        },
+        totalUsers: stats.users.total,
+        totalResumes: stats.resumes.total,
+        totalViews: 0,
+        activeUsersToday: stats.users.recentSignups,
+        activeUsersWeek: stats.users.recentSignups,
+        updatedAt: new Date().toISOString(),
       };
     },
   },

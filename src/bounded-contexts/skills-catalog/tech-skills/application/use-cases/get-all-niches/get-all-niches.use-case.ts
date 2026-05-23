@@ -1,5 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
-import type { TechNiche } from '../../../dto/tech-niche.dto';
+import type { TechNiche } from '../../../dto/tech-niche.schema';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../../../interfaces';
 import { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
 
@@ -16,7 +16,7 @@ export class GetAllNichesUseCase {
     const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
-    const result = await this.repository.findAllActive();
+    const result = await this.repository.listActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.NICHES_LIST);
     return result;
   }

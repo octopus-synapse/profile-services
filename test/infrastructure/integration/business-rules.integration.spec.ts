@@ -7,9 +7,10 @@
  * These tests verify that business rules are enforced correctly.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import type { TestResponse as Response } from '../shared';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -26,6 +27,10 @@ describe('Business Rules Integration', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin();
     accessToken = auth.accessToken;
     userId = auth.userId;
@@ -74,7 +79,7 @@ describe('Business Rules Integration', () => {
       const unverifiedEmail = `unverified-${uniqueTestId()}@example.com`;
 
       const signupRes = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: unverifiedEmail,
@@ -83,7 +88,7 @@ describe('Business Rules Integration', () => {
           }),
         );
 
-      const unverifiedToken = signupRes.body.data?.accessToken;
+      const unverifiedToken = signupRes.body?.accessToken;
 
       if (!unverifiedToken) return;
 
@@ -110,7 +115,7 @@ describe('Business Rules Integration', () => {
       const noTosEmail = `no-tos-${uniqueTestId()}@example.com`;
 
       const signupRes = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send(
           signupBody({
             email: noTosEmail,
@@ -119,8 +124,8 @@ describe('Business Rules Integration', () => {
           }),
         );
 
-      const noTosToken = signupRes.body.data?.accessToken;
-      const noTosUserId = signupRes.body.data?.user?.id;
+      const noTosToken = signupRes.body?.accessToken;
+      const noTosUserId = signupRes.body?.user?.id;
 
       if (!noTosToken || !noTosUserId) return;
 
@@ -154,7 +159,7 @@ describe('Business Rules Integration', () => {
 
       if (createRes.status !== 201) return;
 
-      const resumeId = createRes.body.data.id;
+      const resumeId = createRes.body.id;
 
       // Create share with past expiration
       const shareRes = await getRequest()
@@ -166,7 +171,7 @@ describe('Business Rules Integration', () => {
 
       // Should either reject expired date or create but be inaccessible
       if (shareRes.status === 201) {
-        const shareToken = shareRes.body.data?.shareToken;
+        const shareToken = shareRes.body?.shareToken;
         if (shareToken) {
           // Try to access expired share
           const accessRes = await getRequest().get(`/api/v1/public/resumes/${shareToken}`);
@@ -186,7 +191,7 @@ describe('Business Rules Integration', () => {
 
       if (createRes.status !== 201) return;
 
-      const resumeId = createRes.body.data.id;
+      const resumeId = createRes.body.id;
 
       // Create password-protected share
       const shareRes = await getRequest()
@@ -198,7 +203,7 @@ describe('Business Rules Integration', () => {
 
       if (shareRes.status !== 201) return;
 
-      const shareToken = shareRes.body.data?.shareToken;
+      const shareToken = shareRes.body?.shareToken;
 
       if (shareToken) {
         // Try to access without password
@@ -258,7 +263,7 @@ describe('Business Rules Integration', () => {
 
       if (createRes.status !== 201) return;
 
-      const resumeId = createRes.body.data.id;
+      const resumeId = createRes.body.id;
 
       // Try various state transitions
       const response = await getRequest()

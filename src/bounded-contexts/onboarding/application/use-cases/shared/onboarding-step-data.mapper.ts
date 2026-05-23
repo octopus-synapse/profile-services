@@ -13,19 +13,14 @@ import type {
  * Pure data transformation — no side effects, no I/O.
  */
 export class OnboardingStepDataMapper {
-  private readonly personalInfoKeys = ['fullName', 'email', 'phone', 'location'] as const;
+  private readonly personalInfoKeys = ['fullName', 'phone', 'location'] as const;
   private readonly professionalProfileKeys = [
     'jobTitle',
+    'headline',
     'summary',
     'linkedin',
     'github',
     'website',
-  ] as const;
-  private readonly templateSelectionKeys = [
-    'templateId',
-    'colorScheme',
-    'template',
-    'palette',
   ] as const;
 
   mergeStepData(
@@ -86,13 +81,15 @@ export class OnboardingStepDataMapper {
         if (value !== undefined) update.professionalProfile = value;
         break;
       }
-      case 'template': {
-        const value = this.extractObjectOrRoot(
-          stepData,
-          'templateSelection',
-          this.templateSelectionKeys,
-        );
-        if (value !== undefined) update.templateSelection = value;
+      case 'resume-style': {
+        // The step has a single field (`resumeStyleId`) carrying the
+        // chosen `ResumeStyle.id`. We tolerate two payload shapes:
+        // {resumeStyleId: "..."} (typical) and a UUID at the root for
+        // forward-compat with thin clients.
+        const direct = this.extractString(stepData, 'resumeStyleId');
+        if (direct !== undefined) {
+          update.resumeStyleId = direct;
+        }
         break;
       }
     }

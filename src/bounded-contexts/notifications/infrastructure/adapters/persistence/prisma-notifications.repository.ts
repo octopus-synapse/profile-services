@@ -15,7 +15,7 @@ import type {
   NotificationType,
   NotificationView,
   PendingDigestNotification,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import {
   type MarkReadResult,
   NotificationsRepositoryPort,
@@ -37,6 +37,8 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
         message: data.message,
         entityType: data.entityType,
         entityId: data.entityId,
+        messageKey: data.messageKey,
+        messageParams: data.messageParams as never,
       },
     });
     return {
@@ -63,10 +65,20 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
   async findRecipient(userId: string): Promise<NotificationRecipient | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        preferences: { select: { language: true } },
+      },
     });
     if (!user?.email) return null;
-    return { id: user.id, name: user.name, email: user.email };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      language: user.preferences?.language ?? 'en',
+    };
   }
 
   async listForUser(
@@ -107,7 +119,7 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
     }));
 
     const nextCursor = data.length === limit ? (data[data.length - 1]?.id ?? null) : null;
-    return { data, nextCursor };
+    return { items: data, nextCursor, hasNext: nextCursor !== null };
   }
 
   async countUnread(userId: string): Promise<number> {
@@ -127,6 +139,14 @@ export class PrismaNotificationsRepository extends NotificationsRepositoryPort {
       data: { read: true },
     });
     return { count: r.count };
+  }
+
+  async findOwnerById(notificationId: string): Promise<string | null> {
+    const row = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: { userId: true },
+    });
+    return row?.userId ?? null;
   }
 
   async deleteOlderThan(cutoff: Date): Promise<{ count: number }> {

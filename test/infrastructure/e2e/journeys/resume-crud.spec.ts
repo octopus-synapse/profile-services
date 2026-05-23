@@ -24,12 +24,12 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import {
   createFullOnboardingData,
   createResumeWithSections,
   createSectionItemContent,
 } from '../fixtures/resumes.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -76,11 +76,10 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(onboardingResponse.status).toBe(200);
-      expect(onboardingResponse.body.success).toBe(true);
-      expect(onboardingResponse.body.data.resumeId).toBeDefined();
+      expect(onboardingResponse.status).toBe(201);
+      expect(onboardingResponse.body.resumeId).toBeDefined();
 
-      defaultResumeId = onboardingResponse.body.data.resumeId;
+      defaultResumeId = onboardingResponse.body.resumeId;
     });
   });
 
@@ -91,10 +90,9 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.used).toBe(1);
-      expect(response.body.data.remaining).toBe(3);
-      expect(response.body.data.limit).toBe(4);
+      expect(response.body.used).toBe(1);
+      expect(response.body.remaining).toBe(3);
+      expect(response.body.limit).toBe(4);
     });
   });
 
@@ -105,9 +103,8 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBe(defaultResumeId);
-      expect(response.body.data.title).toBeDefined();
+      expect(response.body.id).toBe(defaultResumeId);
+      expect(response.body.title).toBeDefined();
     });
 
     it.serial('should retrieve full resume with /full endpoint', async () => {
@@ -116,10 +113,9 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBe(defaultResumeId);
+      expect(response.body.id).toBe(defaultResumeId);
       // Full endpoint includes resume sections array
-      expect(response.body.data.resumeSections).toBeDefined();
+      expect(response.body.resumeSections).toBeDefined();
     });
   });
 
@@ -133,11 +129,10 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .send(resumeData);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBeDefined();
-      expect(response.body.data.title).toContain('Professional Resume');
+      expect(response.body.id).toBeDefined();
+      expect(response.body.title).toContain('Professional Resume');
 
-      secondResumeId = response.body.data.id;
+      secondResumeId = response.body.id;
     });
 
     it.serial('should reject resume creation without authentication', async () => {
@@ -160,8 +155,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.title).toBe('Updated Professional Resume');
+      expect(response.body.title).toBe('Updated Professional Resume');
     });
 
     it.serial('should reject update without authentication', async () => {
@@ -181,11 +175,9 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .query({ page: 1, limit: 50 });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.data).toBeDefined();
-      expect(response.body.data.data.length).toBe(2);
-      expect(response.body.data.meta).toBeDefined();
-      expect(response.body.data.meta.total).toBe(2);
+      expect(response.body).toBeDefined();
+      expect(response.body.items.length).toBe(2);
+      expect(response.body.total).toBe(2);
     });
 
     it.serial('should respect pagination limit', async () => {
@@ -195,7 +187,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .query({ page: 1, limit: 1 });
 
       expect(response.status).toBe(200);
-      expect(response.body.data.data.length).toBe(1);
+      expect(response.body.items.length).toBe(1);
     });
   });
 
@@ -206,23 +198,22 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.sectionTypes).toBeDefined();
-      expect(Array.isArray(response.body.data.sectionTypes)).toBe(true);
+      expect(response.body.sectionTypes).toBeDefined();
+      expect(Array.isArray(response.body.sectionTypes)).toBe(true);
 
       const workExpType =
-        response.body.data.sectionTypes.find(
+        response.body.sectionTypes.find(
           (t: { key?: string; semanticKind?: string }) =>
             t.key === 'work_experience_v1' || t.semanticKind === 'WORK_EXPERIENCE',
         ) ??
-        response.body.data.sectionTypes.find(
+        response.body.sectionTypes.find(
           (t: { key?: string; semanticKind?: string }) =>
             t.semanticKind === 'WORK_EXPERIENCE' ||
             t.semanticKind === 'EXPERIENCE' ||
             t.key?.includes('work') ||
             t.key?.includes('experience'),
         ) ??
-        response.body.data.sectionTypes[0];
+        response.body.sectionTypes[0];
 
       expect(workExpType).toBeDefined();
       expect(workExpType.key).toBeDefined();
@@ -239,9 +230,8 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.sections).toBeDefined();
-      expect(Array.isArray(response.body.data.sections)).toBe(true);
+      expect(response.body.sections).toBeDefined();
+      expect(Array.isArray(response.body.sections)).toBe(true);
     });
   });
 
@@ -257,11 +247,10 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect([201, 400]).toContain(response.status);
 
       if (response.status === 201) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.item).toBeDefined();
-        expect(response.body.data.item.id).toBeDefined();
-        expect(response.body.data.item.content).toBeDefined();
-        sectionItemId = response.body.data.item.id;
+        expect(response.body.item).toBeDefined();
+        expect(response.body.item.id).toBeDefined();
+        expect(response.body.item.content).toBeDefined();
+        sectionItemId = response.body.item.id;
       }
     });
 
@@ -287,9 +276,8 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.item.content.company).toBe('Updated Tech Corp');
-      expect(response.body.data.item.content.role).toBe('Lead Engineer');
+      expect(response.body.item.content.company).toBe('Updated Tech Corp');
+      expect(response.body.item.content.role).toBe('Lead Engineer');
     });
 
     if (!sectionItemId) {
@@ -305,7 +293,6 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should return 404 for non-existent section type', async () => {
@@ -331,9 +318,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .send(resumeData);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-
-      _thirdResumeId = response.body.data.id;
+      _thirdResumeId = response.body.id;
     });
 
     it.serial('should create 4th resume successfully (at limit)', async () => {
@@ -345,9 +330,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .send(resumeData);
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-
-      fourthResumeId = response.body.data.id;
+      fourthResumeId = response.body.id;
     });
 
     it.serial('should show 4 resumes used, 0 remaining', async () => {
@@ -356,8 +339,8 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.used).toBe(4);
-      expect(response.body.data.remaining).toBe(0);
+      expect(response.body.used).toBe(4);
+      expect(response.body.remaining).toBe(0);
     });
 
     it.serial('should reject 5th resume with 422 error', async () => {
@@ -372,9 +355,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       // is a state conflict, not an unprocessable entity per RFC 9110.
       // The error envelope's i18n code is RESUME_SLOT_LIMIT_REACHED.
       expect(response.status).toBe(409);
-      expect(response.body.success).toBe(false);
-      const errCodeOrMessage =
-        response.body.error?.code ?? response.body.error?.message ?? response.body.error ?? '';
+      const errCodeOrMessage = response.body.code ?? response.body.message ?? '';
       expect(String(errCodeOrMessage)).toMatch(/RESUME_SLOT_LIMIT_REACHED|Resume limit reached/);
     });
 
@@ -391,8 +372,8 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .get('/api/v1/resumes/slots')
         .set('Authorization', `Bearer ${testUser.token}`);
 
-      expect(slotsResponse.body.data.used).toBe(3);
-      expect(slotsResponse.body.data.remaining).toBe(1);
+      expect(slotsResponse.body.used).toBe(3);
+      expect(slotsResponse.body.remaining).toBe(1);
 
       // Now can create 4th resume again
       const resumeData = createResumeWithSections('fourth-retry');
@@ -412,7 +393,6 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should return 404 when accessing deleted resume', async () => {

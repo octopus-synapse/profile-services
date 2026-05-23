@@ -9,12 +9,14 @@
  * the path/body/query/headers shape itself.
  */
 
+import type { ErrorSeverity } from '@/bounded-contexts/platform/i18n/domain/error-envelope';
 import { DomainException, ValidationException } from './domain.exceptions';
 
 /** 404 fallback when the router can't resolve the requested path. */
 export class RouteNotFoundException extends DomainException {
   readonly code: string = 'ROUTE_NOT_FOUND';
   readonly statusHint = 404;
+  override readonly severity: ErrorSeverity = 'inline';
   constructor(public readonly path: string) {
     super(`Route ${path} not found`);
   }
@@ -22,7 +24,7 @@ export class RouteNotFoundException extends DomainException {
 
 /** Body parser couldn't parse the request as JSON. */
 export class InvalidJsonBodyException extends ValidationException {
-  readonly code: string = 'INVALID_JSON_BODY';
+  override readonly code: string = 'INVALID_JSON_BODY';
   constructor(detail?: string) {
     super(detail ? `Invalid JSON body: ${detail}` : 'Invalid JSON body');
   }
@@ -30,7 +32,7 @@ export class InvalidJsonBodyException extends ValidationException {
 
 /** Identifier param required by the route was missing/empty. */
 export class IdRequiredException extends ValidationException {
-  readonly code: string = 'ID_REQUIRED';
+  override readonly code: string = 'ID_REQUIRED';
   constructor(public readonly paramName: string = 'id') {
     super(`${paramName} is required`);
   }
@@ -38,7 +40,7 @@ export class IdRequiredException extends ValidationException {
 
 /** Identifier param had the wrong shape (e.g. cuid expected, got plain string). */
 export class InvalidIdFormatException extends ValidationException {
-  readonly code: string = 'INVALID_ID_FORMAT';
+  override readonly code: string = 'INVALID_ID_FORMAT';
   constructor(
     public readonly paramName: string,
     public readonly expected: string,
@@ -49,7 +51,7 @@ export class InvalidIdFormatException extends ValidationException {
 
 /** i18n enum lookup miss — the catalog has no translation for the key. */
 export class UnknownEnumException extends ValidationException {
-  readonly code: string = 'UNKNOWN_ENUM';
+  override readonly code: string = 'UNKNOWN_ENUM';
   constructor(
     public readonly enumName: string,
     public readonly key: string,

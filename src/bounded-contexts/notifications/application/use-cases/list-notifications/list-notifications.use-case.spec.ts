@@ -16,7 +16,7 @@ describe('ListNotificationsUseCase', () => {
     await repo.create({ userId: 'u-1', type: 'POST_LIKED', actorId: 'u-2', message: 'b' });
 
     const page = await useCase.execute('u-1');
-    expect(page.data).toHaveLength(2);
+    expect(page.items).toHaveLength(2);
   });
 
   it('clamps the requested limit to 100', async () => {
@@ -25,6 +25,6 @@ describe('ListNotificationsUseCase', () => {
     }
     const page = await useCase.execute('u-1', undefined, 9999);
     // 5 rows persisted, limit clamped — all 5 returned.
-    expect(page.data).toHaveLength(5);
+    expect(page.items).toHaveLength(5);
   });
 });

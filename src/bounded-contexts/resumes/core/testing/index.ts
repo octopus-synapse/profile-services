@@ -6,6 +6,7 @@
  */
 
 import type { CreateResumeData, UpdateResumeData } from '@/shared-kernel';
+import type { DomainException } from '@/shared-kernel/exceptions';
 import type { ResumeEventPublisher } from '../../domain/ports';
 import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
 import { type ResumeEntity, ResumesRepositoryPort } from '../ports/resumes-repository.port';
@@ -33,16 +34,16 @@ type SeedResumeInput = {
 export class InMemoryResumesRepository extends ResumesRepositoryPort {
   private resumes = new Map<string, ResumeEntity>();
 
-  async findAllUserResumes(userId: string): Promise<ResumeEntity[]> {
+  async listUserResumes(userId: string): Promise<ResumeEntity[]> {
     return Array.from(this.resumes.values()).filter((r) => r.userId === userId);
   }
 
-  async findAllUserResumesPaginated(
+  async listUserResumesPaginated(
     userId: string,
     skip: number,
     take: number,
   ): Promise<ResumeEntity[]> {
-    const all = await this.findAllUserResumes(userId);
+    const all = await this.listUserResumes(userId);
     return all.slice(skip, skip + take);
   }
 
@@ -55,12 +56,12 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
   }
 
   async findResumeByUserId(userId: string): Promise<ResumeEntity | null> {
-    const userResumes = await this.findAllUserResumes(userId);
+    const userResumes = await this.listUserResumes(userId);
     return userResumes[0] ?? null;
   }
 
   async countUserResumes(userId: string): Promise<number> {
-    const resumes = await this.findAllUserResumes(userId);
+    const resumes = await this.listUserResumes(userId);
     return resumes.length;
   }
 
@@ -76,6 +77,18 @@ export class InMemoryResumesRepository extends ResumesRepositoryPort {
     };
     this.resumes.set(id, resume);
     return resume;
+  }
+
+  async createResumeForUserWithQuota(
+    userId: string,
+    data: CreateResumeData,
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<ResumeEntity> {
+    const existing = await this.listUserResumes(userId);
+    if (existing.length >= quota.max) {
+      throw quota.exception;
+    }
+    return this.createResumeForUser(userId, data);
   }
 
   async updateResumeForUser(
@@ -212,6 +225,22 @@ export class InMemoryResumesEventPublisher implements ResumeEventPublisher {
   }
 
   publishVersionRestored(resumeId: string, payload: unknown): void {
+    this.events.push({ type: 'version_restored', resumeId, payload });
+  }
+
+  async publishResumeCreatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_created', resumeId, payload });
+  }
+
+  async publishResumeDeletedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'resume_deleted', resumeId, payload });
+  }
+
+  async publishVersionCreatedAsync(resumeId: string, payload: unknown): Promise<void> {
+    this.events.push({ type: 'version_created', resumeId, payload });
+  }
+
+  async publishVersionRestoredAsync(resumeId: string, payload: unknown): Promise<void> {
     this.events.push({ type: 'version_restored', resumeId, payload });
   }
 

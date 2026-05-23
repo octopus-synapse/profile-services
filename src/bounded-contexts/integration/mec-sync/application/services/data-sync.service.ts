@@ -27,7 +27,7 @@ export class DataSyncService {
     const institutions = Array.from(parseResult.institutions.values());
     this.logger.log(`Syncing ${institutions.length} institutions...`, this.context);
 
-    const existing = await this.institutionRepo.findAllExistingInstitutionCodes();
+    const existing = await this.institutionRepo.listExistingInstitutionCodes();
     const newOnes = institutions.filter((i) => !existing.has(i.codigoIes));
 
     if (newOnes.length === 0) {
@@ -44,8 +44,8 @@ export class DataSyncService {
   async syncCourses(parseResult: ParseResult): Promise<{ inserted: number; updated: number }> {
     this.logger.log(`Syncing ${parseResult.courses.length} courses...`, this.context);
 
-    const existing = await this.courseRepo.findAllExistingCourseCodes();
-    const validInstitutionCodes = await this.institutionRepo.findAllExistingInstitutionCodes();
+    const existing = await this.courseRepo.listExistingCourseCodes();
+    const validInstitutionCodes = await this.institutionRepo.listExistingInstitutionCodes();
 
     const newOnes = parseResult.courses.filter((c) => !existing.has(c.codigoCurso));
 

@@ -1,0 +1,173 @@
+/**
+ * Authorization Seed Runner
+ *
+ * Seeds the database with default permissions, roles, and groups.
+ * Safe to run multiple times (upsert logic).
+ */
+
+import { PrismaClient } from '@prisma/client';
+import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
+import { Permission } from '@/shared-kernel/authorization/permission.enum';
+import { ConsoleLoggerAdapter } from '@/shared-kernel/logger/console-adapter';
+import type { CreatePermissionInput } from '../domain/entities/permission.entity';
+import { SYSTEM_PERMISSIONS as LEGACY_PERMISSIONS } from './permissions';
+import { SYSTEM_ROLES } from './system-roles';
+
+// lint-allow-mutable-module-state: CLI seed runner lazy-init — process is one-shot, no DI graph available here
+let cliPrisma: PrismaClient | null = null;
+
+// P3-#32: replace direct console.* with the project's seed-tier logger.
+// `ConsoleLoggerAdapter` writes to stdout/stderr but goes through the
+// `LoggerPort` shape so prod log aggregators don't see ad-hoc lines
+// from this CLI when it runs inside a deployed image. Convention
+// established in profile-services/CLAUDE.md (Q22).
+const seedLogger = new ConsoleLoggerAdapter('authz-seed');
+
+// Source of truth: the Permission enum. Every value `resource:action` is
+// mirrored as a Permission row. Legacy SYSTEM_PERMISSIONS adds a few
+// extra metadata-rich entries (descriptions) for the same keys.
+function buildPermissionList(): CreatePermissionInput[] {
+  const seen = new Set<string>();
+  const result: CreatePermissionInput[] = [];
+
+  // Legacy descriptive entries first (preserve description + isSystem)
+  for (const p of LEGACY_PERMISSIONS) {
+    const key = `${p.resource}:${p.action}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(p);
+    }
+  }
+
+  // Fill any enum entry the legacy list missed
+  for (const value of Object.values(Permission)) {
+    const [resource, action] = String(value).split(':') as [string, string];
+    if (!resource || !action) continue;
+    const key = `${resource}:${action}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ resource, action, description: `${resource} ${action}`, isSystem: true });
+  }
+
+  return result;
+}
+
+async function seedPermissions(prisma: PrismaClient): Promise<Map<string, string>> {
+  seedLogger.log('🔐 Seeding permissions...');
+  const permissionMap = new Map<string, string>();
+  const allPermissions = buildPermissionList();
+
+  for (const permission of allPermissions) {
+    const key = `${permission.resource}:${permission.action}`;
+
+    const result = await prisma.permission.upsert({
+      where: {
+        resource_action: { resource: permission.resource, action: permission.action },
+      },
+      create: {
+        resource: permission.resource,
+        action: permission.action,
+        description: permission.description,
+        isSystem: permission.isSystem ?? false,
+      },
+      update: { description: permission.description, isSystem: permission.isSystem ?? false },
+    });
+
+    permissionMap.set(key, result.id);
+  }
+
+  seedLogger.log(`  Created/updated ${permissionMap.size} permissions`);
+  return permissionMap;
+}
+
+async function seedRoles(
+  prisma: PrismaClient,
+  permissionMap: Map<string, string>,
+): Promise<Map<string, string>> {
+  seedLogger.log('👤 Seeding roles...');
+  const roleMap = new Map<string, string>();
+
+  for (const roleDef of SYSTEM_ROLES) {
+    const role = await prisma.role.upsert({
+      where: { name: roleDef.name },
+      create: {
+        name: roleDef.name,
+        displayName: roleDef.displayName,
+        description: roleDef.description,
+        isSystem: roleDef.isSystem ?? false,
+        priority: roleDef.priority ?? 0,
+      },
+      update: {
+        displayName: roleDef.displayName,
+        description: roleDef.description,
+        isSystem: roleDef.isSystem ?? false,
+        priority: roleDef.priority ?? 0,
+      },
+    });
+
+    roleMap.set(roleDef.name, role.id);
+
+    // Per product decision: the `admin` role receives every permission
+    // declared in the Permission enum (auto-grant). Other roles use their
+    // explicit list.
+    const grants =
+      roleDef.name === 'admin' ? Array.from(permissionMap.keys()) : roleDef.permissions;
+
+    for (const permKey of grants) {
+      const permissionId = permissionMap.get(permKey);
+      if (permissionId) {
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: { roleId: role.id, permissionId },
+          },
+          create: { roleId: role.id, permissionId },
+          update: {},
+        });
+      } else {
+        seedLogger.warn(`  ⚠ Permission "${permKey}" not found for role "${roleDef.name}"`);
+      }
+    }
+
+    seedLogger.log(`  ✓ ${roleDef.name} (${grants.length} permissions)`);
+  }
+
+  seedLogger.log(`  Created/updated ${roleMap.size} roles`);
+  return roleMap;
+}
+
+export async function seedAuthorization(prismaArg?: PrismaClient): Promise<void> {
+  if (!prismaArg && !cliPrisma) {
+    cliPrisma = new PrismaClient(createPrismaClientOptions());
+  }
+  const prisma = prismaArg ?? (cliPrisma as PrismaClient);
+  seedLogger.log('🚀 Starting authorization seed...');
+
+  try {
+    const permissionMap = await seedPermissions(prisma);
+    await seedRoles(prisma, permissionMap);
+    // P0-009: Group hierarchy was dropped by 20260430040810_authz_refactor;
+    // the seed step that bootstrapped SYSTEM_GROUPS was removed alongside.
+
+    seedLogger.log('✅ Authorization seed completed successfully!');
+  } catch (error) {
+    seedLogger.error('❌ Authorization seed failed', {
+      context: 'seedAuthorization',
+      stack: error instanceof Error ? error.stack : String(error),
+    });
+    throw error;
+  }
+}
+
+// Run directly if called as script
+if (require.main === module) {
+  void seedAuthorization()
+    .then(() => cliPrisma?.$disconnect())
+    .catch((error) => {
+      seedLogger.error('Authorization seed runner crashed', {
+        context: 'seedAuthorization.cli',
+        stack: error instanceof Error ? error.stack : String(error),
+      });
+      void cliPrisma?.$disconnect();
+      process.exit(1);
+    });
+}

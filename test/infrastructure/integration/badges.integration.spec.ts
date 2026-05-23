@@ -1,9 +1,6 @@
 /**
  * Badges integration sample — boots the full Elysia stack and hits
  * the public badges endpoint plus the JWT-gated viewer endpoint.
- *
- * Other integration suites under `test/infrastructure/_legacy/` are
- * still on supertest + AppModule and need to be migrated one-by-one.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
@@ -22,10 +19,9 @@ describe('Badges (integration)', () => {
   });
 
   it('GET /api/v1/badges/user/:userId is public', async () => {
-    const res = await app.request.get('/api/v1/badges/user/non-existent');
-    // Empty list for an unknown user is a valid 200; if no Prisma
-    // tables seeded the route may surface a domain 404 — both shapes
-    // count as "the route is reachable + auth is not required".
+    // userId UUID inexistente: rota é pública mas valida UUID v7 (Q11);
+    // resposta esperada é 200 com lista vazia, 404 sem seed.
+    const res = await app.request.get('/api/v1/badges/user/019eee00-0000-0000-0000-000000000000');
     expect([200, 404]).toContain(res.status);
   });
 
@@ -38,6 +34,7 @@ describe('Badges (integration)', () => {
     const user = await auth.registerAndLogin();
     const res = await app.request.get('/api/v1/badges/me').set(auth.bearer(user));
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ success: true });
+    // Shape canonical: ListBadgesResponseSchema = { badges: AwardedBadgeView[] }
+    expect(Array.isArray(res.body.badges)).toBe(true);
   });
 });

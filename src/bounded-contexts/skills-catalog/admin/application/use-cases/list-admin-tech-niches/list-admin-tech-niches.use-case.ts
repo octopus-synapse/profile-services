@@ -7,6 +7,6 @@ export class ListAdminTechNichesUseCase {
   constructor(private readonly repository: AdminTechNichesRepositoryPort) {}
 
   execute(query: AdminTechNichesListQuery) {
-    return this.repository.findAll(query);
+    return this.repository.listAll(query);
   }
 }

@@ -1,9 +1,0 @@
-[test]
-# E2E configuration. Only the migrated suites under
-# `test/infrastructure/e2e/` run here — `_legacy/` stays excluded
-# until each suite is converted to the new `TestApp` harness.
-root = "./test/infrastructure/e2e"
-timeout = 60000
-
-[install.scopes]
-"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }

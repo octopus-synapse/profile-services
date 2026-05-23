@@ -24,7 +24,7 @@ describe('SpokenLanguagesService', () => {
 
   describe('getAll', () => {
     it('should return all active languages ordered by order field', async () => {
-      const result = await service.findAllActiveLanguages();
+      const result = await service.listActiveLanguages();
 
       expect(result).toHaveLength(4);
       expect(result[0].code).toBe('en');
@@ -43,7 +43,7 @@ describe('SpokenLanguagesService', () => {
       languageRepo.add(createSpokenLanguage({ code: 'de', nameEn: 'German', isActive: false }));
       languageRepo.add(createSpokenLanguage({ code: 'fr', nameEn: 'French', isActive: true }));
 
-      const result = await service.findAllActiveLanguages();
+      const result = await service.listActiveLanguages();
 
       expect(result).toHaveLength(2);
       expect(result.some((l) => l.code === 'en')).toBe(true);
@@ -54,7 +54,7 @@ describe('SpokenLanguagesService', () => {
     it('should return empty array when no languages found', async () => {
       languageRepo.clear();
 
-      const result = await service.findAllActiveLanguages();
+      const result = await service.listActiveLanguages();
 
       expect(result).toEqual([]);
     });
@@ -71,7 +71,7 @@ describe('SpokenLanguagesService', () => {
         }),
       );
 
-      const result = await service.findAllActiveLanguages();
+      const result = await service.listActiveLanguages();
 
       expect(result[0].nativeName).toBeNull();
     });

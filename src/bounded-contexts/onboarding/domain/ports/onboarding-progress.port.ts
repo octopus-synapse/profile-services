@@ -26,7 +26,11 @@ export type OnboardingProgressData = {
   personalInfo?: unknown;
   professionalProfile?: unknown;
   sections?: SectionProgressData[];
-  templateSelection?: unknown;
+  /** FK to `ResumeStyle.id` chosen on the resume-style step. */
+  resumeStyleId?: string | null;
+  // Section-step keys the user opted into via the "what else?" gate.
+  // The presenter filters optional extras off this list.
+  activatedExtras?: string[];
 };
 
 export type SaveProgressResult = { currentStep: string; completedSteps: string[] };
@@ -39,7 +43,8 @@ export type ProgressRecord = {
   personalInfo: unknown;
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
-  templateSelection: unknown;
+  resumeStyleId: string | null;
+  activatedExtras: string[];
   updatedAt: Date;
 };
 
@@ -54,6 +59,21 @@ export abstract class OnboardingProgressRepositoryPort {
     userId: string,
     data: OnboardingProgressData,
   ): Promise<{ currentStep: string; completedSteps: string[] }>;
+
+  /**
+   * Tx-aware upsert — same shape as `upsertProgress` but writes through
+   * a caller-supplied transaction client so the operation joins the
+   * outer atomic boundary (e.g. restart-onboarding bundles delete +
+   * upsert + user.update under one transaction so a crash never leaves
+   * the user with `onboardingCompletedAt = null` and no progress row).
+   */
+  abstract upsertProgressWithTx(
+    tx: TransactionClient,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }>;
+
+  abstract setActivatedExtras(userId: string, extras: string[]): Promise<void>;
 
   abstract deleteProgress(userId: string): Promise<void>;
 

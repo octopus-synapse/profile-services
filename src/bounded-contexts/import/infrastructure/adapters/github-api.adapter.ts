@@ -1,4 +1,4 @@
-import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
+import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions';
 import { LoggerPort } from '@/shared-kernel';
 import type {
   GithubRepoSummary,

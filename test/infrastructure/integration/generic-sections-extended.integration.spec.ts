@@ -151,9 +151,8 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sectionTypes');
-      const types = res.body.data.sectionTypes as Array<{ key: string; isActive: boolean }>;
+      expect(res.body).toHaveProperty('sectionTypes');
+      const types = res.body.sectionTypes as Array<{ key: string; isActive: boolean }>;
 
       const customType = types.find((t) => t.key === sectionTypeKey);
       expect(customType).toBeDefined();
@@ -166,8 +165,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      const types = res.body.data.sectionTypes as Array<{
+      const types = res.body.sectionTypes as Array<{
         key: string;
         definition?: { schemaVersion?: number; fields?: Array<unknown> };
       }>;
@@ -195,8 +193,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      const types = res.body.data.sectionTypes as Array<{ key: string }>;
+      const types = res.body.sectionTypes as Array<{ key: string }>;
 
       const inactiveType = types.find((t) => t.key === sectionTypeKey);
       expect(inactiveType).toBeUndefined();
@@ -250,8 +247,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect([200, 201]).toContain(res.status);
 
-      const created = unwrapApiData<{ content?: { priority?: number } }>(res.body);
-      expect(created.content?.priority).toBe(10);
+      expect(res.body.item.content?.priority).toBe(10);
     });
 
     it('should reject empty content object', async () => {
@@ -283,7 +279,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken))
         .send({ content: { title: 'User A Protected Item' } });
 
-      userAItemId = unwrapApiData<{ id: string }>(createRes.body).id;
+      userAItemId = createRes.body.item.id as string;
     });
 
     it('should prevent user B from reading user A sections', async () => {
@@ -328,7 +324,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect([200, 201]).toContain(createRes.status);
 
-      const itemId = unwrapApiData<{ id: string }>(createRes.body).id;
+      const itemId = createRes.body.item.id as string;
 
       const updateRes = await getRequest()
         .patch(`/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
@@ -434,7 +430,7 @@ describe('Generic Resume Sections Extended Integration', () => {
           content: { title: 'Original Title', description: 'Original Desc' },
         });
 
-      itemToUpdate = unwrapApiData<{ id: string }>(createRes.body).id;
+      itemToUpdate = createRes.body.item.id as string;
     });
 
     it('should update single field retaining others', async () => {
@@ -447,10 +443,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
 
-      const updated = unwrapApiData<{
-        content?: { title?: string; description?: string };
-      }>(res.body);
-      expect(updated.content?.title).toBe('Updated Title');
+      expect(res.body.item.content?.title).toBe('Updated Title');
     });
 
     it('should allow adding new optional field on update', async () => {
@@ -461,8 +454,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       expect(res.status).toBe(200);
 
-      const updated = unwrapApiData<{ content?: { priority?: number } }>(res.body);
-      expect(updated.content?.priority).toBe(5);
+      expect(res.body.item.content?.priority).toBe(5);
     });
 
     it('should reject update that removes required field', async () => {
@@ -484,7 +476,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .send({ content: { title: 'To Be Deleted' } });
 
       expect([200, 201]).toContain(createRes.status);
-      const itemId = unwrapApiData<{ id: string }>(createRes.body).id;
+      const itemId = createRes.body.item.id as string;
 
       // Delete it
       const deleteRes = await getRequest()
@@ -501,8 +493,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken))
         .send({ content: { title: 'Verify Deletion' } });
 
-      const created = unwrapApiData<{ id: string }>(createRes.body);
-      const itemId = created.id;
+      const itemId = createRes.body.item.id as string;
 
       // Delete it
       await getRequest()
@@ -514,12 +505,10 @@ describe('Generic Resume Sections Extended Integration', () => {
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set(authHeader(userAToken));
 
-      const sections = unwrapApiData<
-        Array<{
-          sectionType: { key: string };
-          items: Array<{ id: string }>;
-        }>
-      >(listRes.body);
+      const sections = listRes.body.sections as Array<{
+        sectionType: { key: string };
+        items: Array<{ id: string }>;
+      }>;
 
       const targetSection = sections.find((s) => s.sectionType.key === sectionTypeKey);
       if (targetSection) {
@@ -535,8 +524,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken))
         .send({ content: { title: 'Double Delete Test' } });
 
-      const created = unwrapApiData<{ id: string }>(createRes.body);
-      const itemId = created.id;
+      const itemId = createRes.body.item.id as string;
 
       // Delete once
       await getRequest()
@@ -572,10 +560,9 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sections');
+      expect(res.body).toHaveProperty('sections');
 
-      const sections = res.body.data.sections as Array<{
+      const sections = res.body.sections as Array<{
         sectionType: { key: string };
         items: Array<unknown>;
       }>;
@@ -595,8 +582,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set(authHeader(userAToken));
 
-      expect(res.body).toHaveProperty('data');
-      const sections = res.body.data.sections as Array<{
+      const sections = res.body.sections as Array<{
         sectionType: { key: string };
         items: Array<{ content: { title: string } }>;
       }>;
@@ -617,9 +603,8 @@ describe('Generic Resume Sections Extended Integration', () => {
         .send({ content: { bio: 'First and only bio entry' } });
 
       expect([200, 201]).toContain(res.status);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('item');
-      singletonItemId = res.body.data.item.id;
+      expect(res.body).toHaveProperty('item');
+      singletonItemId = res.body.item.id;
     });
 
     it('should update singleton item', async () => {

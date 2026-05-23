@@ -1,1 +1,1 @@
-export * from './controller-response.dto';
+export * from './controller-response.schema';

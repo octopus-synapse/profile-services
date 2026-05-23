@@ -6,12 +6,12 @@
  *
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
 import { ConsentDocumentType } from '@prisma/client';
-import { stopTestApp, type TestApp } from '../shared';
-import { assignUserRole, getApp, signupBody } from './setup';
+import { stopTestApp, type TestApp, tokenFromResponse } from '../shared';
+import { assignUserRole, clearAuthRateLimits, getApp, signupBody } from './setup';
 
 function uniqueTestId(): string {
   return randomUUID().slice(0, 8);
@@ -42,24 +42,24 @@ describe('ToS Acceptance Flow Integration', () => {
     name: string,
   ): Promise<{ userId: string; accessToken: string }> {
     const signupResponse = await app.request
-      .post('/api/accounts')
+      .post('/api/v1/accounts')
       .send(signupBody({ email, password, name }))
       .expect(201);
 
     await verifyUserEmailInDb(email);
 
-    const userId = signupResponse.body.data.userId;
+    const userId = signupResponse.body.userId;
     await prisma.user.update({
       where: { id: userId },
       data: { onboardingCompletedAt: new Date() },
     });
     await assignUserRole(userId);
 
-    const loginResponse = await app.request.post('/api/auth/login').send({ email, password });
+    const loginResponse = await app.request.post('/api/v1/auth/login').send({ email, password });
 
     return {
       userId,
-      accessToken: loginResponse.body.data.accessToken,
+      accessToken: tokenFromResponse(loginResponse, 'access_token')!,
     };
   }
 
@@ -73,6 +73,10 @@ describe('ToS Acceptance Flow Integration', () => {
 
   beforeAll(async () => {
     app = await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     prisma = app.prisma;
 
     // Set initial ToS version
@@ -115,7 +119,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
         .expect(201);
 
-      expect(tosResponse.body.data.consent).toBeDefined();
+      expect(tosResponse.body.consent).toBeDefined();
 
       // Accept Privacy Policy
       const privacyResponse = await app.request
@@ -124,7 +128,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .send({ documentType: ConsentDocumentType.PRIVACY_POLICY })
         .expect(201);
 
-      expect(privacyResponse.body.data.consent).toBeDefined();
+      expect(privacyResponse.body.consent).toBeDefined();
 
       // Verify consent status shows both accepted
       const statusResponse = await app.request
@@ -132,8 +136,8 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(statusResponse.body.data.tosAccepted).toBe(true);
-      expect(statusResponse.body.data.privacyPolicyAccepted).toBe(true);
+      expect(statusResponse.body.tosAccepted).toBe(true);
+      expect(statusResponse.body.privacyPolicyAccepted).toBe(true);
     });
 
     it('should allow access to consent endpoints without prior ToS acceptance', async () => {
@@ -190,8 +194,8 @@ describe('ToS Acceptance Flow Integration', () => {
         .send({ documentType: ConsentDocumentType.TERMS_OF_SERVICE })
         .expect(201);
 
-      expect(acceptResponse.body.data.consent.ipAddress).toBeDefined();
-      expect(acceptResponse.body.data.consent.userAgent).toBe(testUserAgent);
+      expect(acceptResponse.body.consent.ipAddress).toBeDefined();
+      expect(acceptResponse.body.consent.userAgent).toBe(testUserAgent);
     });
   });
 
@@ -228,8 +232,8 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(statusResponse.body.data.tosAccepted).toBe(false);
-      expect(statusResponse.body.data.latestTosVersion).toBe('2.0.0');
+      expect(statusResponse.body.tosAccepted).toBe(false);
+      expect(statusResponse.body.latestTosVersion).toBe('2.0.0');
 
       // Accept new ToS version
       await app.request
@@ -244,7 +248,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      const tosConsents = historyResponse.body.data.filter(
+      const tosConsents = historyResponse.body.filter(
         (c: { documentType: string }) => c.documentType === 'TERMS_OF_SERVICE',
       );
 
@@ -293,16 +297,16 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(historyResponse.body.data).toHaveLength(3);
+      expect(historyResponse.body).toHaveLength(3);
 
-      const documentTypes = historyResponse.body.data.map(
+      const documentTypes = historyResponse.body.map(
         (c: { documentType: string }) => c.documentType,
       );
       expect(documentTypes).toContain('TERMS_OF_SERVICE');
       expect(documentTypes).toContain('PRIVACY_POLICY');
 
       // Verify all have required audit fields
-      historyResponse.body.data.forEach(
+      historyResponse.body.forEach(
         (consent: {
           id: string;
           version: string;

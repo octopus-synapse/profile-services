@@ -7,6 +7,6 @@ export class ListAdminProgrammingLanguagesUseCase {
   constructor(private readonly repository: AdminProgrammingLanguagesRepositoryPort) {}
 
   execute(query: AdminProgrammingLanguagesListQuery) {
-    return this.repository.findAll(query);
+    return this.repository.listAll(query);
   }
 }

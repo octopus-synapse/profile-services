@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 import { RegisterCredentialsSchema } from './register.schema';
 
 /**
@@ -35,10 +36,14 @@ export const TemporaryUserResponseSchema = z.object({
     email: z.string(),
     name: z.string().nullable(),
     isTemporary: z.literal(true),
-    expiresAt: z.string().datetime(),
+    expiresAt: IsoDateTimeSchema,
   }),
   accessToken: z.string(),
   refreshToken: z.string(),
 });
 
 export type TemporaryUserResponse = z.infer<typeof TemporaryUserResponseSchema>;
+
+export type CreateTemporaryUserDto = z.infer<typeof CreateTemporaryUserSchema>;
+
+export type TemporaryUserResponseDto = z.infer<typeof TemporaryUserResponseSchema>;

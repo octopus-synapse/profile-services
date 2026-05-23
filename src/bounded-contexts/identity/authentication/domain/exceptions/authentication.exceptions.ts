@@ -9,7 +9,7 @@ import { DomainException, UnauthorizedException } from '@/shared-kernel/exceptio
  * Thrown when login credentials are invalid.
  */
 export class InvalidCredentialsException extends UnauthorizedException {
-  readonly code = 'INVALID_CREDENTIALS';
+  override readonly code = 'INVALID_CREDENTIALS';
   constructor() {
     super('Invalid email or password');
   }
@@ -21,7 +21,7 @@ export class InvalidCredentialsException extends UnauthorizedException {
  * Thrown when a 2FA code is invalid during login verification.
  */
 export class Invalid2faCodeException extends UnauthorizedException {
-  readonly code = 'INVALID_2FA_CODE';
+  override readonly code = 'INVALID_2FA_CODE';
   constructor() {
     super('Invalid two-factor authentication code');
   }
@@ -33,7 +33,7 @@ export class Invalid2faCodeException extends UnauthorizedException {
  * Thrown when the user's session has expired.
  */
 export class SessionExpiredException extends UnauthorizedException {
-  readonly code = 'SESSION_EXPIRED';
+  override readonly code = 'SESSION_EXPIRED';
   constructor() {
     super('Session has expired. Please login again.');
   }
@@ -45,7 +45,7 @@ export class SessionExpiredException extends UnauthorizedException {
  * Thrown when refresh token is invalid or expired.
  */
 export class InvalidRefreshTokenException extends UnauthorizedException {
-  readonly code = 'INVALID_REFRESH_TOKEN';
+  override readonly code = 'INVALID_REFRESH_TOKEN';
   constructor() {
     super('Invalid or expired refresh token');
   }
@@ -99,7 +99,7 @@ export class SessionUserNotFoundException extends DomainException {
  * the token was forcibly invalidated (password change, logout-all).
  */
 export class TokenInvalidException extends UnauthorizedException {
-  readonly code = 'TOKEN_INVALID';
+  override readonly code = 'TOKEN_INVALID';
   constructor(reason: string) {
     super(reason);
   }
@@ -114,7 +114,7 @@ export class TokenInvalidException extends UnauthorizedException {
  * as authenticated.
  */
 export class TokenVerificationFailedException extends UnauthorizedException {
-  readonly code = 'TOKEN_VERIFICATION_FAILED';
+  override readonly code = 'TOKEN_VERIFICATION_FAILED';
   constructor() {
     super('Unable to verify token validity - please try again');
   }
@@ -127,7 +127,7 @@ export class TokenVerificationFailedException extends UnauthorizedException {
  * catalog can phrase the two differently.
  */
 export class InvalidTokenException extends UnauthorizedException {
-  readonly code: string = 'INVALID_TOKEN';
+  override readonly code: string = 'INVALID_TOKEN';
   constructor(reason?: string) {
     super(reason ? `Invalid token: ${reason}` : 'Invalid token');
   }
@@ -139,7 +139,7 @@ export class InvalidTokenException extends UnauthorizedException {
  * (record present but malformed / user mismatch).
  */
 export class SessionNotFoundException extends UnauthorizedException {
-  readonly code: string = 'SESSION_NOT_FOUND';
+  override readonly code: string = 'SESSION_NOT_FOUND';
   constructor() {
     super('Session not found');
   }

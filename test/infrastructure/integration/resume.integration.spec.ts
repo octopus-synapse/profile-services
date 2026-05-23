@@ -6,7 +6,6 @@ import {
   getApp,
   getRequest,
   testContext,
-  unwrapApiData,
 } from './setup';
 
 describe('Resume Smoke Tests', () => {
@@ -22,7 +21,7 @@ describe('Resume Smoke Tests', () => {
     await closeApp();
   });
 
-  describe('POST /api/resumes', () => {
+  describe('POST /api/v1/resumes', () => {
     it('should create a new resume', async () => {
       const res = await getRequest().post('/api/v1/resumes').set(authHeader()).send({
         title: 'Smoke Test Resume',
@@ -31,11 +30,10 @@ describe('Resume Smoke Tests', () => {
       });
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('id');
-      expect(res.body.data.title).toBe('Smoke Test Resume');
+      expect(res.body).toHaveProperty('id');
+      expect(res.body.title).toBe('Smoke Test Resume');
 
-      resumeId = res.body.data.id;
+      resumeId = res.body.id;
       testContext.resumeId = resumeId;
     });
 
@@ -52,19 +50,17 @@ describe('Resume Smoke Tests', () => {
         .send({ title: 'Smoke Test Resume' });
 
       expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('id');
+      expect(res.body).toHaveProperty('id');
     });
   });
 
-  describe('GET /api/resumes', () => {
+  describe('GET /api/v1/resumes', () => {
     it('should list user resumes', async () => {
       const res = await getRequest().get('/api/v1/resumes').set(authHeader());
 
       expect(res.status).toBe(200);
-      const list = unwrapApiData<{ data: unknown[]; meta: Record<string, unknown> }>(res.body);
-      expect(Array.isArray(list.data)).toBe(true);
-      expect(list.data.length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should support pagination', async () => {
@@ -74,9 +70,8 @@ describe('Resume Smoke Tests', () => {
         .set(authHeader());
 
       expect(res.status).toBe(200);
-      const list = unwrapApiData<{ data: unknown[]; meta: Record<string, unknown> }>(res.body);
-      expect(Array.isArray(list.data)).toBe(true);
-      expect(list.meta).toBeDefined();
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.totalPages).toBeDefined();
     });
 
     it('should reject without authentication', async () => {
@@ -86,14 +81,13 @@ describe('Resume Smoke Tests', () => {
     });
   });
 
-  describe('GET /api/resumes/:id', () => {
+  describe('GET /api/v1/resumes/:id', () => {
     it('should return specific resume', async () => {
       const res = await getRequest().get(`/api/v1/resumes/${resumeId}`).set(authHeader());
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data.id).toBe(resumeId);
-      expect(res.body.data.title).toBe('Smoke Test Resume');
+      expect(res.body.id).toBe(resumeId);
+      expect(res.body.title).toBe('Smoke Test Resume');
     });
 
     it('should return 404 for non-existent resume', async () => {
@@ -111,7 +105,7 @@ describe('Resume Smoke Tests', () => {
     });
   });
 
-  describe('PATCH /api/resumes/:id', () => {
+  describe('PATCH /api/v1/resumes/:id', () => {
     it('should update resume', async () => {
       const res = await getRequest()
         .patch(`/api/v1/resumes/${resumeId}`)
@@ -119,9 +113,7 @@ describe('Resume Smoke Tests', () => {
         .send({ title: 'Updated Smoke Test Resume', jobTitle: 'Senior Software Engineer' });
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data.title).toBe('Updated Smoke Test Resume');
-      expect(res.body.data.title).toBe('Updated Smoke Test Resume');
+      expect(res.body.title).toBe('Updated Smoke Test Resume');
     });
 
     it('should reject update for non-existent resume', async () => {
@@ -136,18 +128,17 @@ describe('Resume Smoke Tests', () => {
     });
   });
 
-  describe('GET /api/resumes/:id/full', () => {
+  describe('GET /api/v1/resumes/:id/full', () => {
     it('should return resume with all sections', async () => {
       const res = await getRequest().get(`/api/v1/resumes/${resumeId}/full`).set(authHeader());
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('id');
-      expect(res.body.data).toHaveProperty('resumeSections');
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toHaveProperty('resumeSections');
     });
   });
 
-  describe('DELETE /api/resumes/:id', () => {
+  describe('DELETE /api/v1/resumes/:id', () => {
     let tempResumeId: string;
 
     beforeAll(async () => {
@@ -157,14 +148,13 @@ describe('Resume Smoke Tests', () => {
         .set(authHeader())
         .send({ title: 'Temp Resume for Deletion' });
 
-      tempResumeId = res.body.data.id;
+      tempResumeId = res.body.id;
     });
 
     it('should delete resume', async () => {
       const res = await getRequest().delete(`/api/v1/resumes/${tempResumeId}`).set(authHeader());
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
     });
 
     it('should return 404 after deletion', async () => {

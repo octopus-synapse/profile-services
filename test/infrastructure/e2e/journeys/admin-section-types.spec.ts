@@ -18,7 +18,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -87,12 +87,12 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(res.body.data.items).toBeDefined();
-      expect(res.body.data.items.length).toBeGreaterThan(0);
-      expect(res.body.data.total).toBeGreaterThan(0);
+      expect(res.body.items).toBeDefined();
+      expect(res.body.items.length).toBeGreaterThan(0);
+      expect(res.body.total).toBeGreaterThan(0);
 
       // Verify expected seeded types exist
-      const keys = res.body.data.items.map((item: { key: string }) => item.key);
+      const keys = res.body.items.map((item: { key: string }) => item.key);
 
       // These should be seeded by section-type.seed.ts
       const expectedKeys = ['work_experience_v1', 'education_v1', 'skill_set_v1', 'language_v1'];
@@ -106,7 +106,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
             .set('Authorization', `Bearer ${adminToken}`);
 
           expect(singleRes.status).toBe(200);
-          expect(singleRes.body.data.key).toBe(expectedKey);
+          expect(singleRes.body.key).toBe(expectedKey);
         }
       }
     });
@@ -117,11 +117,11 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(res.body.data.key).toBe('work_experience_v1');
-      expect(res.body.data.semanticKind).toBe('WORK_EXPERIENCE');
-      expect(res.body.data.isSystem).toBe(true);
-      expect(res.body.data.isActive).toBe(true);
-      expect(res.body.data.definition).toBeDefined();
+      expect(res.body.key).toBe('work_experience_v1');
+      expect(res.body.semanticKind).toBe('WORK_EXPERIENCE');
+      expect(res.body.isSystem).toBe(true);
+      expect(res.body.isActive).toBe(true);
+      expect(res.body.definition).toBeDefined();
     });
   });
 
@@ -134,11 +134,11 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThan(0);
 
       // Should include at least these fundamental kinds
-      expect(res.body.data).toContain('WORK_EXPERIENCE');
+      expect(res.body).toContain('WORK_EXPERIENCE');
     });
   });
 
@@ -159,7 +159,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
 
     it.serial('should reject regular user create (403)', async () => {
       // Send a payload that satisfies the create schema (all 3
-      // SUPPORTED_LOCALES required) so Zod validation doesn't 400
+      // LOCALES required) so Zod validation doesn't 400
       // before the auth/permission stage runs.
       const translation = {
         title: 'Hacker',
@@ -181,7 +181,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
             kind: 'CUSTOM',
             fields: [{ key: 'name', type: 'string', required: true }],
           },
-          translations: { en: translation, 'pt-BR': translation, es: translation },
+          translations: { en: translation, 'pt-BR': translation },
         });
 
       expect(res.status).toBe(403);
@@ -246,24 +246,17 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
               placeholder: 'Adicionar item...',
               addLabel: 'Adicionar Item',
             },
-            es: {
-              title: 'Seccion de Prueba de Viaje',
-              label: 'viaje',
-              noDataLabel: 'Sin datos de viaje',
-              placeholder: 'Agregar item...',
-              addLabel: 'Agregar Item',
-            },
           },
         })
         .expect(201);
 
-      expect(res.body.data.key).toBe(testKey);
-      expect(res.body.data.isSystem).toBe(false);
-      expect(res.body.data.isActive).toBe(true);
-      expect(res.body.data.iconType).toBe('emoji');
-      expect(res.body.data.icon).toBe('📋');
-      expect(res.body.data.translations.en.title).toBe('Journey Test Section');
-      expect(res.body.data.translations['pt-BR'].title).toBe('Secao de Teste de Jornada');
+      expect(res.body.key).toBe(testKey);
+      expect(res.body.isSystem).toBe(false);
+      expect(res.body.isActive).toBe(true);
+      expect(res.body.iconType).toBe('emoji');
+      expect(res.body.icon).toBe('📋');
+      expect(res.body.translations.en.title).toBe('Journey Test Section');
+      expect(res.body.translations['pt-BR'].title).toBe('Secao de Teste de Jornada');
     });
 
     it.serial('should reject duplicate key', async () => {
@@ -279,7 +272,6 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
           translations: {
             en: { title: 'Dup', label: 'dup' },
             'pt-BR': { title: 'Dup', label: 'dup' },
-            es: { title: 'Dup', label: 'dup' },
           },
         });
 
@@ -307,8 +299,8 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(res.body.data.key).toBe(testKey);
-      expect(res.body.data.title).toBe('E2E Journey Section');
+      expect(res.body.key).toBe(testKey);
+      expect(res.body.title).toBe('E2E Journey Section');
     });
   });
 
@@ -334,9 +326,9 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         })
         .expect(200);
 
-      expect(res.body.data.title).toBe('Updated Journey Section');
-      expect(res.body.data.icon).toBe('✏️');
-      expect(res.body.data.translations.en.title).toBe('Updated Test');
+      expect(res.body.title).toBe('Updated Journey Section');
+      expect(res.body.icon).toBe('✏️');
+      expect(res.body.translations.en.title).toBe('Updated Test');
     });
 
     it.serial('should reject definition changes on system types', async () => {
@@ -355,7 +347,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .send({ icon: '💼' });
 
       expect(res.status).toBe(200);
-      expect(res.body.data.icon).toBe('💼');
+      expect(res.body.icon).toBe('💼');
     });
 
     it.serial('should return 404 for nonexistent key', async () => {
@@ -376,8 +368,8 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      if (res.body.data.items.length > 0) {
-        const found = res.body.data.items.some(
+      if (res.body.items.length > 0) {
+        const found = res.body.items.some(
           (item: { key: string; title: string }) =>
             item.key.includes('journey') || item.title.toLowerCase().includes('journey'),
         );
@@ -391,21 +383,21 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      for (const item of res.body.data.items) {
+      for (const item of res.body.items) {
         expect(item.isActive).toBe(true);
       }
     });
 
     it.serial('should paginate results', async () => {
       const res = await app.request
-        .get('/api/v1/admin/section-types?page=1&pageSize=2')
+        .get('/api/v1/admin/section-types?page=1&limit=2')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      expect(res.body.data.items.length).toBeLessThanOrEqual(2);
-      expect(res.body.data.pageSize).toBe(2);
-      expect(res.body.data.page).toBe(1);
-      expect(typeof res.body.data.total).toBe('number');
+      expect(res.body.items.length).toBeLessThanOrEqual(2);
+      expect(res.body.limit).toBe(2);
+      expect(res.body.page).toBe(1);
+      expect(typeof res.body.total).toBe('number');
     });
   });
 
@@ -425,7 +417,6 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
           translations: {
             en: { title: 'Delete Me', label: 'delete' },
             'pt-BR': { title: 'Delete Me', label: 'delete' },
-            es: { title: 'Delete Me', label: 'delete' },
           },
         });
 
@@ -485,7 +476,7 @@ describe('E2E Journey: Admin Section Types Lifecycle', () => {
         .expect(200);
 
       // Empty search should return all items (like no filter)
-      expect(res.body.data.items.length).toBeGreaterThan(0);
+      expect(res.body.items.length).toBeGreaterThan(0);
     });
 
     it.serial('should handle missing required fields on create', async () => {

@@ -5,6 +5,7 @@
  */
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { compositeCursorWhere, encodeCursor } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   Comment,
   CommentWithAuthor,
@@ -49,10 +50,32 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
   }
 
   async markCommentDeleted(id: string): Promise<Comment> {
+    // P1-067 — record the soft-delete timestamp alongside the flag.
     return (await this.prisma.postComment.update({
       where: { id },
-      data: { isDeleted: true },
+      data: { isDeleted: true, deletedAt: new Date() },
     })) as Comment;
+  }
+
+  async softDeleteCommentIfActive(
+    id: string,
+  ): Promise<{ mutated: boolean; postId: string | null }> {
+    // P1 #30 — idempotent flip using updateMany rowcount. The
+    // `isDeleted: false` filter races safely: only one concurrent
+    // caller observes a count of 1; the rest get 0 and skip the
+    // counter decrement so commentsCount stays correct.
+    const result = await this.prisma.postComment.updateMany({
+      where: { id, isDeleted: false },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+    if (result.count === 0) {
+      return { mutated: false, postId: null };
+    }
+    const row = await this.prisma.postComment.findUnique({
+      where: { id },
+      select: { postId: true },
+    });
+    return { mutated: true, postId: row?.postId ?? null };
   }
 
   async incrementPostCommentsCount(postId: string, by: number): Promise<void> {
@@ -67,12 +90,16 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithReplies[]> {
+    // P1 #35 — composite (createdAt, id) cursor with `id`-tiebreaker
+    // for the top-level listing. The replies sub-select stays on
+    // single-column orderBy because we cap it at 3 and ties at that
+    // scale don't visibly skip / duplicate.
     return (await this.prisma.postComment.findMany({
       where: {
         postId,
         parentId: null,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -83,7 +110,7 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
           take: 3,
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as CommentWithReplies[];
   }
@@ -93,14 +120,19 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithAuthor[]> {
+    // P1 #35 — ASC ordering means the cursor must filter `> cursor`,
+    // not `< cursor`. The shared helper builds the descending shape,
+    // so for ascending lists we keep the single-column predicate
+    // (replies pages are small + chronological, so the boundary-skew
+    // is bounded by `take: limit`).
     return (await this.prisma.postComment.findMany({
       where: {
         parentId: commentId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...(cursor ? { createdAt: { gt: new Date(cursor) } } : {}),
       },
       include: { author: { select: AUTHOR_SELECT } },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: limit,
     })) as unknown as CommentWithAuthor[];
   }
@@ -110,26 +142,30 @@ export class PrismaCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithPost[]> {
+    // P1 #35 — composite (createdAt, id) cursor.
     return (await this.prisma.postComment.findMany({
       where: {
         authorId: userId,
         isDeleted: false,
-        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        ...compositeCursorWhere(cursor),
       },
       include: {
         author: { select: AUTHOR_SELECT },
         post: {
           select: {
             id: true,
-            type: true,
             content: true,
             authorId: true,
             author: { select: AUTHOR_SELECT },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     })) as unknown as CommentWithPost[];
   }
 }
+
+// Re-export to keep callers' single import path stable; the UCs build
+// the next cursor from the trailing row's (createdAt, id).
+export { encodeCursor };

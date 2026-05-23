@@ -14,50 +14,16 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import { DomainException } from '@/shared-kernel/exceptions';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
+import {
+  AccessModifierShape,
+  ApplyModifierBody,
+  ListAccessModifiersResponseSchema,
+  ModifierIdParam,
+  SelfDemoteForbiddenException,
+  UserIdParam,
+} from './access-modifier.routes.schemas';
 import type { AccessModifierUseCases } from './authorization.composition';
-import type { ModifierEffect, ModifierType } from './domain/entities/access-modifier.entity';
-
-const MODIFIER_TYPES: readonly ModifierType[] = [
-  'SUSPEND_EMAIL_VERIFIED',
-  'SUSPEND_ONBOARDING',
-  'SUSPEND_ROLE_USER',
-  'SUSPEND_ROLE_ADMIN',
-  'GRANT_PERMISSION',
-] as const;
-
-const MODIFIER_EFFECTS: readonly ModifierEffect[] = ['DENY', 'GRANT'] as const;
-
-const UserIdParam = z.object({ userId: z.string().min(1) });
-const ModifierIdParam = z.object({ userId: z.string().min(1), modifierId: z.string().min(1) });
-
-const ApplyModifierBody = z
-  .object({
-    modifierType: z.enum(MODIFIER_TYPES as readonly [ModifierType, ...ModifierType[]]),
-    effect: z.enum(MODIFIER_EFFECTS as readonly [ModifierEffect, ...ModifierEffect[]]),
-    reason: z.string().min(1).max(500),
-    permissionId: z.string().min(1).optional(),
-    startsAt: z.string().datetime().optional(),
-    endsAt: z.string().datetime().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.modifierType === 'GRANT_PERMISSION' && !data.permissionId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['permissionId'],
-        message: 'permissionId is required when modifierType is GRANT_PERMISSION',
-      });
-    }
-  });
-
-export class SelfDemoteForbiddenException extends DomainException {
-  readonly code = 'SELF_DEMOTE_FORBIDDEN';
-  readonly statusHint = 403;
-  constructor() {
-    super('An admin cannot apply SUSPEND_ROLE_ADMIN to their own account.');
-  }
-}
 
 export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> = [
   // POST /api/v1/admin/users/:userId/access-modifiers
@@ -69,9 +35,10 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     permission: Permission.USER_MANAGE,
     params: UserIdParam,
     body: ApplyModifierBody,
+    response: AccessModifierShape,
     openapi: {
       summary: 'Apply an access modifier (suspension or grant) to a user',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },
@@ -100,7 +67,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
         createdBy: adminId,
       });
 
-      return { success: true, data: modifier.toJSON() };
+      return modifier.toJSON();
     },
   },
   // DELETE /api/v1/admin/users/:userId/access-modifiers/:modifierId
@@ -113,7 +80,7 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     params: ModifierIdParam,
     openapi: {
       summary: 'Revoke an active access modifier',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },
@@ -129,19 +96,17 @@ export const accessModifierRoutes: ReadonlyArray<Route<AccessModifierUseCases>> 
     auth: { kind: 'jwt' },
     permission: Permission.USER_MANAGE,
     params: UserIdParam,
+    response: ListAccessModifiersResponseSchema,
     openapi: {
       summary: 'List currently active access modifiers for a user',
-      tags: ['Admin - Access Modifiers'],
+      tags: ['admin-access-modifiers'],
       description: 'Authorization Admin API',
     },
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const modifiers = await bc.listActive.execute(userId);
-      return {
-        success: true,
-        data: { modifiers: modifiers.map((m) => m.toJSON()) },
-      };
+      return { modifiers: modifiers.map((m) => m.toJSON()) };
     },
   },
 ];

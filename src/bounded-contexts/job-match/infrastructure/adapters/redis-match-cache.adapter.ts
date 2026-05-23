@@ -1,6 +1,6 @@
 import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { LoggerPort } from '@/shared-kernel';
-import { MatchCachePort } from '../../domain/ports/match-cache.port';
+import { type MatchCacheLock, MatchCachePort } from '../../domain/ports/match-cache.port';
 import type { MatchBreakdown } from '../../domain/types';
 
 /** Wall-clock TTL for a cached Match Breakdown. 24 h lines up with the
@@ -45,6 +45,34 @@ export class RedisMatchCacheAdapter extends MatchCachePort {
         `Match cache set failed for ${cacheKey}: ${(err as Error).message}`,
         'RedisMatchCacheAdapter',
       );
+    }
+  }
+
+  async acquireLock(cacheKey: string, ttlSeconds: number): Promise<MatchCacheLock | null> {
+    const prefixed = this.prefix(`${cacheKey}:lock`);
+    try {
+      const acquired = await this.cache.acquireLock(prefixed, ttlSeconds);
+      if (!acquired) return null;
+      return {
+        release: async () => {
+          try {
+            await this.cache.releaseLock(prefixed);
+          } catch (err) {
+            this.logger.warn(
+              `Match cache release lock failed for ${cacheKey}: ${(err as Error).message}`,
+              'RedisMatchCacheAdapter',
+            );
+          }
+        },
+      };
+    } catch (err) {
+      // If Redis can't grant the lock, fall through to compute — slower
+      // but correct. Log so we notice if this becomes a hot path.
+      this.logger.warn(
+        `Match cache acquireLock failed for ${cacheKey}: ${(err as Error).message}`,
+        'RedisMatchCacheAdapter',
+      );
+      return null;
     }
   }
 

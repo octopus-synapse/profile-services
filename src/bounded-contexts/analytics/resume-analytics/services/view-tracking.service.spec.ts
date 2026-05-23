@@ -6,7 +6,15 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryViewTrackingRepository } from '@/bounded-contexts/analytics/testing';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import type { EnvConfig } from '@/shared-kernel/config/config.schema';
 import { ViewTrackingService } from './view-tracking.service';
+
+const stubConfig: ConfigPort = {
+  env: { IP_HASH_SALT: 'x'.repeat(64) } as EnvConfig,
+  get: () => undefined,
+  getOrDefault: <T>(_k: string, d: T) => d,
+} as ConfigPort;
 
 describe('ViewTrackingService', () => {
   let service: ViewTrackingService;
@@ -18,7 +26,7 @@ describe('ViewTrackingService', () => {
   beforeEach(() => {
     viewTrackingRepo = new InMemoryViewTrackingRepository();
     mockEventEmitter = { emit: mock(() => {}) };
-    service = new ViewTrackingService(viewTrackingRepo, mockEventEmitter);
+    service = new ViewTrackingService(viewTrackingRepo, mockEventEmitter, stubConfig);
   });
 
   describe('trackView', () => {

@@ -9,11 +9,28 @@ import { z } from 'zod';
 
 /**
  * Date Format
- * Backend accepts both YYYY-MM-DD (from date inputs) and YYYY-MM (display)
+ * Backend accepts both YYYY-MM-DD (from date inputs) and YYYY-MM (display).
+ *
+ * P2-#25: the previous shape-only regex accepted `"9999-99-99"` and
+ * `"0000-00-00"`, which then `new Date(...)`'d to `Invalid Date` and
+ * landed in the DB. The refine below parses the value (substituting a
+ * `01` day for `YYYY-MM`) and confirms it's a real calendar date.
  */
 const DateString = z
   .string()
-  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)')
+  .refine(
+    (s) => {
+      const full = s.length === 7 ? `${s}-01` : s;
+      const parsed = new Date(full);
+      if (Number.isNaN(parsed.getTime())) return false;
+      // `new Date("2026-02-30")` silently rolls over to 2026-03-02 in
+      // some engines. Round-trip the formatted value to reject overflow.
+      const iso = parsed.toISOString().slice(0, 10);
+      return iso === full;
+    },
+    { message: 'Invalid calendar date' },
+  );
 
 /**
  * Publication Schema
@@ -85,8 +102,17 @@ export const CreateBugBountySchema = z.object({
   severity: BugBountySeverityEnum,
   vulnerabilityType: z.string().min(1, 'Vulnerability type is required').max(100, 'Type too long'),
   cveId: z.string().max(50, 'CVE ID too long').optional(),
+  // P2-#A2-35 (deferred): `reward` + `currency` are independent here so a
+  // payload like `{ reward: 1000, currency: 'BRL' }` parses, but presenters
+  // and FE assume USD. Follow-up plan introduces a `MoneyVO` value object
+  // (`{ amount: number; currency: ISO4217 }`) reused across Job.salaryRange.
+  // Until that lands, accept ISO-4217 codes only so the field is at least
+  // structured. Tracked in BUG_REPORT.md PD-A2-35.
   reward: z.number().min(0).optional(),
-  currency: z.string().max(10).default('USD'),
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/, 'currency must be an ISO-4217 3-letter code')
+    .default('USD'),
   description: z.string().max(5000, 'Description too long').optional(),
   reportedAt: DateString,
   fixedAt: DateString.optional(),
@@ -235,3 +261,39 @@ export type UpdateInterest = z.infer<typeof UpdateInterestSchema>;
 
 export const UpdateAchievementSchema = CreateAchievementSchema.partial();
 export type UpdateAchievement = z.infer<typeof UpdateAchievementSchema>;
+
+export type CreatePublicationDto = z.infer<typeof CreatePublicationSchema>;
+
+export type CreateRecommendationDto = z.infer<typeof CreateRecommendationSchema>;
+
+export type CreateHackathonDto = z.infer<typeof CreateHackathonSchema>;
+
+export type CreateBugBountyDto = z.infer<typeof CreateBugBountySchema>;
+
+export type CreateOpenSourceDto = z.infer<typeof CreateOpenSourceSchema>;
+
+export type CreateTalkDto = z.infer<typeof CreateTalkSchema>;
+
+export type CreateAwardDto = z.infer<typeof CreateAwardSchema>;
+
+export type CreateInterestDto = z.infer<typeof CreateInterestSchema>;
+
+export type CreateAchievementDto = z.infer<typeof CreateAchievementSchema>;
+
+export type UpdatePublicationDto = z.infer<typeof UpdatePublicationSchema>;
+
+export type UpdateRecommendationDto = z.infer<typeof UpdateRecommendationSchema>;
+
+export type UpdateHackathonDto = z.infer<typeof UpdateHackathonSchema>;
+
+export type UpdateBugBountyDto = z.infer<typeof UpdateBugBountySchema>;
+
+export type UpdateOpenSourceDto = z.infer<typeof UpdateOpenSourceSchema>;
+
+export type UpdateTalkDto = z.infer<typeof UpdateTalkSchema>;
+
+export type UpdateAwardDto = z.infer<typeof UpdateAwardSchema>;
+
+export type UpdateInterestDto = z.infer<typeof UpdateInterestSchema>;
+
+export type UpdateAchievementDto = z.infer<typeof UpdateAchievementSchema>;

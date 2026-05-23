@@ -21,10 +21,10 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { stopTestApp, type TestApp } from '../../shared';
+import type { AuthHelper } from '../../shared/auth.helper';
 import { createInvalidDsl, createValidDsl } from '../fixtures/dsl.fixture';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import { createShareData } from '../fixtures/shares.fixture';
-import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -63,10 +63,10 @@ describe('E2E Journey 6: DSL Integration', () => {
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(onboardingResponse.status).toBe(200);
-      expect(onboardingResponse.body.data.resumeId).toBeDefined();
+      expect(onboardingResponse.status).toBe(201);
+      expect(onboardingResponse.body.resumeId).toBeDefined();
 
-      resumeId = onboardingResponse.body.data.resumeId;
+      resumeId = onboardingResponse.body.resumeId;
     });
   });
 
@@ -76,10 +76,9 @@ describe('E2E Journey 6: DSL Integration', () => {
 
       const response = await app.request.post('/api/v1/dsl/validate').send(validDsl);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.valid).toBe(true);
-      expect(response.body.data.errors).toBeNull();
+      expect(response.status).toBe(201);
+      expect(response.body.valid).toBe(true);
+      expect(response.body.errors).toBeNull();
     });
   });
 
@@ -89,15 +88,14 @@ describe('E2E Journey 6: DSL Integration', () => {
 
       const response = await app.request.post('/api/v1/dsl/validate').send(invalidDsl);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.valid).toBe(false);
-      expect(response.body.data.errors).toBeDefined();
-      expect(Array.isArray(response.body.data.errors)).toBe(true);
-      expect(response.body.data.errors.length).toBeGreaterThan(0);
+      expect(response.status).toBe(201);
+      expect(response.body.valid).toBe(false);
+      expect(response.body.errors).toBeDefined();
+      expect(Array.isArray(response.body.errors)).toBe(true);
+      expect(response.body.errors.length).toBeGreaterThan(0);
 
       // Errors are string messages in current contract
-      const firstError = response.body.data.errors[0];
+      const firstError = response.body.errors[0];
       expect(typeof firstError).toBe('string');
       expect(firstError.length).toBeGreaterThan(0);
     });
@@ -105,9 +103,9 @@ describe('E2E Journey 6: DSL Integration', () => {
     it.serial('should handle empty payload gracefully', async () => {
       const response = await app.request.post('/api/v1/dsl/validate').send({});
 
-      expect(response.status).toBe(200);
-      expect(response.body.data.valid).toBe(false);
-      expect(response.body.data.errors).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.valid).toBe(false);
+      expect(response.body.errors).toBeDefined();
     });
   });
 
@@ -120,12 +118,11 @@ describe('E2E Journey 6: DSL Integration', () => {
         .query({ target: 'html' })
         .send(validDsl);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.ast).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.ast).toBeDefined();
 
       // AST structure validation
-      const ast = response.body.data.ast;
+      const ast = response.body.ast;
       expect(ast.meta).toBeDefined();
       expect(ast.meta.version).toBeDefined();
       expect(ast.meta.generatedAt).toBeDefined();
@@ -139,8 +136,8 @@ describe('E2E Journey 6: DSL Integration', () => {
 
       const response = await app.request.post('/api/v1/dsl/preview').send(validDsl);
 
-      expect(response.status).toBe(200);
-      expect(response.body.data.ast).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.ast).toBeDefined();
     });
   });
 
@@ -153,12 +150,11 @@ describe('E2E Journey 6: DSL Integration', () => {
         .query({ target: 'pdf' })
         .send(validDsl);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.ast).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.ast).toBeDefined();
 
       // AST should be valid for both HTML and PDF
-      const ast = response.body.data.ast;
+      const ast = response.body.ast;
       expect(ast.meta).toBeDefined();
       expect(ast.page).toBeDefined();
       expect(ast.sections).toBeDefined();
@@ -176,11 +172,10 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect([200, 400]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.ast).toBeDefined();
+        expect(response.body.ast).toBeDefined();
 
         // AST should be populated with resume data
-        const ast = response.body.data.ast;
+        const ast = response.body.ast;
         expect(ast.meta).toBeDefined();
         expect(ast.page).toBeDefined();
         expect(ast.sections).toBeDefined();
@@ -203,7 +198,7 @@ describe('E2E Journey 6: DSL Integration', () => {
 
       expect([200, 400]).toContain(response.status);
       if (response.status === 200) {
-        expect(response.body.data.ast).toBeDefined();
+        expect(response.body.ast).toBeDefined();
       }
     });
   });
@@ -218,9 +213,9 @@ describe('E2E Journey 6: DSL Integration', () => {
         .send(shareData);
 
       expect(response.status).toBe(201);
-      expect(response.body.data.share.slug).toBeDefined();
+      expect(response.body.share.slug).toBeDefined();
 
-      shareSlug = response.body.data.share.slug;
+      shareSlug = response.body.share.slug;
     });
   });
 
@@ -233,10 +228,9 @@ describe('E2E Journey 6: DSL Integration', () => {
       expect([200, 400]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.ast).toBeDefined();
+        expect(response.body.ast).toBeDefined();
 
-        const ast = response.body.data.ast;
+        const ast = response.body.ast;
         expect(ast.meta).toBeDefined();
         expect(ast.page).toBeDefined();
         expect(ast.sections).toBeDefined();
@@ -250,7 +244,7 @@ describe('E2E Journey 6: DSL Integration', () => {
 
       expect([200, 400]).toContain(response.status);
       if (response.status === 200) {
-        expect(response.body.data.ast).toBeDefined();
+        expect(response.body.ast).toBeDefined();
       }
     });
   });
@@ -313,7 +307,7 @@ describe('E2E Journey 6: DSL Integration', () => {
       // Preview AST
       const previewResponse = await app.request.post('/api/v1/dsl/preview').send(validDsl);
 
-      const previewAst = previewResponse.body.data.ast;
+      const previewAst = previewResponse.body.ast;
 
       // Render AST
       const renderResponse = await app.request
@@ -325,7 +319,7 @@ describe('E2E Journey 6: DSL Integration', () => {
         return;
       }
 
-      const renderAst = renderResponse.body.data.ast;
+      const renderAst = renderResponse.body.ast;
 
       // Both should have same structure
       expect(previewAst).toHaveProperty('meta');

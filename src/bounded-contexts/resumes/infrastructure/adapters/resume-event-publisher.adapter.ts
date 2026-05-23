@@ -60,4 +60,20 @@ export class ResumeEventPublisherAdapter implements ResumeEventPublisher {
   publishVersionRestored(resumeId: string, payload: VersionRestoredPayload): void {
     this.eventPublisher.publish(new VersionRestoredEvent(resumeId, payload));
   }
+
+  publishResumeCreatedAsync(resumeId: string, payload: ResumeCreatedPayload): Promise<void> {
+    return this.eventPublisher.publishAsync(new ResumeCreatedEvent(resumeId, payload));
+  }
+
+  publishResumeDeletedAsync(resumeId: string, payload: ResumeDeletedPayload): Promise<void> {
+    return this.eventPublisher.publishAsync(new ResumeDeletedEvent(resumeId, payload));
+  }
+
+  publishVersionCreatedAsync(resumeId: string, payload: VersionCreatedPayload): Promise<void> {
+    return this.eventPublisher.publishAsync(new VersionCreatedEvent(resumeId, payload));
+  }
+
+  publishVersionRestoredAsync(resumeId: string, payload: VersionRestoredPayload): Promise<void> {
+    return this.eventPublisher.publishAsync(new VersionRestoredEvent(resumeId, payload));
+  }
 }

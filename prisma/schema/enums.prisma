@@ -69,6 +69,22 @@ enum AuditAction {
   // Admin applied or revoked an AccessModifier (suspension/grant).
   ACCESS_MODIFIER_APPLIED
   ACCESS_MODIFIER_REVOKED
+  // P1-035 — auth/session lifecycle audit events.
+  LOGIN_FAILED
+  USER_LOGGED_IN
+  USER_LOGGED_OUT
+  SESSION_CREATED
+  SESSION_TERMINATED
+  TOKEN_REFRESHED
+  // P1-035 — export, social, and resume-version audit events.
+  EXPORT_REQUESTED
+  EXPORT_COMPLETED
+  EXPORT_FAILED
+  USER_FOLLOWED
+  CONNECTION_REQUESTED
+  SHARE_DOWNLOADED
+  RESUME_VERSION_CREATED
+  RESUME_VERSION_RESTORED
 }
 
 enum ConsentDocumentType {
@@ -97,35 +113,10 @@ enum AttestationWitnessStatus {
   FAILED
 }
 
-// Feed
-enum PostType {
-  ACHIEVEMENT
-  OPPORTUNITY
-  LEARNING
-  BUILD
-  QUESTION
-  REPOST
-  CHALLENGE
-}
-
-// Blind Mode — categories where anonymous posting is allowed. Restricts the
-// `isAnonymous` toggle to topics where identity hiding is legitimate, so the
-// feature doesn't become a spam vector for generic content.
-enum AnonymousCategory {
-  SALARY
-  INTERVIEW
-  LAYOFF
-  TOXIC_CULTURE
-  HARASSMENT
-}
-
-enum ReactionType {
-  LIKE
-  CELEBRATE
-  LOVE
-  INSIGHTFUL
-  CURIOUS
-}
+// Feed — types/reactions/anonymous mode removed. Post is now a generic
+// social entity (text + optional image / poll / code snippet). Repost
+// lives on Post via `isRepost + originalPostId` columns; like is
+// presence of a `PostLike` row.
 
 enum ReportStatus {
   PENDING
@@ -143,15 +134,15 @@ enum NotificationType {
   CONNECTION_REQUEST
   CONNECTION_ACCEPTED
   FOLLOW_NEW
-  SKILL_DECAY            // A tracked skill has been idle for 120+ days.
-  APPLICATION_STALE      // Application tracker: no update for 7/14/21 days.
+  SKILL_DECAY // A tracked skill has been idle for 120+ days.
+  APPLICATION_STALE // Application tracker: no update for 7/14/21 days.
   CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
   // Scoring subsystem
-  FIT_PROFILE_EXPIRED               // UserFitProfile.expiresAt has passed; questionnaire required.
-  FIT_PROFILE_EXPIRY_REMINDER       // 7/3/1-day anticipatory reminder before expiry.
-  MATCH_RECOMMENDATIONS_READY       // Daily-recommendations cron produced top-N matches.
-  RESUME_QUALITY_IMPROVED           // Latest snapshot crossed a rank boundary upward.
-  RESUME_QUALITY_REGRESSED          // Latest snapshot crossed a rank boundary downward.
+  FIT_PROFILE_EXPIRED // UserFitProfile.expiresAt has passed; questionnaire required.
+  FIT_PROFILE_EXPIRY_REMINDER // 7/3/1-day anticipatory reminder before expiry.
+  MATCH_RECOMMENDATIONS_READY // Daily-recommendations cron produced top-N matches.
+  RESUME_QUALITY_IMPROVED // Latest snapshot crossed a rank boundary upward.
+  RESUME_QUALITY_REGRESSED // Latest snapshot crossed a rank boundary downward.
 }
 
 // Jobs

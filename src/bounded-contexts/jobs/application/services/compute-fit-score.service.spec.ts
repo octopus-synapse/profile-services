@@ -3,7 +3,7 @@ import { computeFitScore } from './compute-fit-score.service';
 
 describe('computeFitScore', () => {
   it('scores 100 when every factor matches perfectly', () => {
-    const { score, breakdown } = computeFitScore({
+    const result = computeFitScore({
       resumeSkills: ['TypeScript', 'Postgres', 'Docker'],
       resumeEnglish: 'ADVANCED',
       resumeRemotePref: 'REMOTE',
@@ -11,17 +11,19 @@ describe('computeFitScore', () => {
       jobMinEnglish: 'INTERMEDIATE',
       jobRemotePolicy: 'REMOTE',
     });
+    expect(result).not.toBeNull();
+    if (!result) return;
 
-    expect(score).toBe(100);
-    expect(breakdown.missingSkills).toEqual([]);
+    expect(result.score).toBe(100);
+    expect(result.breakdown.missingSkills).toEqual([]);
   });
 
   it('ignores case and whitespace when matching skills', () => {
-    const { breakdown } = computeFitScore({
+    const result = computeFitScore({
       resumeSkills: ['  TypeScript ', 'Postgres'],
       jobSkills: ['typescript'],
     });
-    expect(breakdown.matchedSkills).toEqual(['typescript']);
+    expect(result?.breakdown.matchedSkills).toEqual(['typescript']);
   });
 
   it('penalises partial skill overlap proportionally', () => {
@@ -29,6 +31,8 @@ describe('computeFitScore', () => {
       resumeSkills: ['typescript'],
       jobSkills: ['typescript', 'rust', 'go', 'kubernetes'],
     });
+    expect(result).not.toBeNull();
+    if (!result) return;
 
     // 1/4 skill overlap → 17.5 from skills, +20 english default (no requirement) + 5 remote default
     expect(result.score).toBeLessThan(50);
@@ -36,43 +40,64 @@ describe('computeFitScore', () => {
   });
 
   it('zeros english factor when resume is below the required level', () => {
-    const { breakdown } = computeFitScore({
+    const result = computeFitScore({
       resumeSkills: ['typescript'],
       resumeEnglish: 'BASIC',
       jobSkills: ['typescript'],
       jobMinEnglish: 'ADVANCED',
     });
-    expect(breakdown.englishMatch).toBe(0);
+    expect(result?.breakdown.englishMatch).toBe(0);
   });
 
-  it('treats missing english requirement as neutral (1)', () => {
-    const { breakdown } = computeFitScore({
+  it('treats missing english requirement as neutral (0.5)', () => {
+    // P1-#A2-28: when the job declares no English requirement, the
+    // dimension neutralises to 0.5 (matching remoteMatch semantics)
+    // rather than inflating to 1. Otherwise every job that omits the
+    // field appears to perfectly match any candidate's English level.
+    const result = computeFitScore({
       resumeSkills: ['typescript'],
       jobSkills: ['typescript'],
     });
-    expect(breakdown.englishMatch).toBe(1);
+    expect(result?.breakdown.englishMatch).toBe(0.5);
   });
 
   it('rewards aligned remote preferences fully', () => {
-    const { breakdown } = computeFitScore({
-      resumeSkills: [],
+    const result = computeFitScore({
+      resumeSkills: ['typescript'],
       resumeRemotePref: 'REMOTE',
-      jobSkills: [],
+      jobSkills: ['typescript'],
       jobRemotePolicy: 'REMOTE',
     });
-    expect(breakdown.remoteMatch).toBe(1);
+    expect(result?.breakdown.remoteMatch).toBe(1);
   });
 
   it('clamps output to 0..100', () => {
-    const { score } = computeFitScore({
-      resumeSkills: [],
+    const result = computeFitScore({
+      resumeSkills: ['x'],
       resumeEnglish: 'BASIC',
       resumeRemotePref: 'ONSITE',
       jobSkills: ['unicorn'],
       jobMinEnglish: 'FLUENT',
       jobRemotePolicy: 'REMOTE',
     });
-    expect(score).toBeGreaterThanOrEqual(0);
-    expect(score).toBeLessThanOrEqual(100);
+    expect(result?.score).toBeGreaterThanOrEqual(0);
+    expect(result?.score).toBeLessThanOrEqual(100);
+  });
+
+  // P1 #37
+  it('returns null when jobSkills is empty (no signal to score)', () => {
+    const result = computeFitScore({
+      resumeSkills: ['typescript', 'rust'],
+      jobSkills: [],
+    });
+    expect(result).toBeNull();
+  });
+
+  it('returns null when resumeSkills is empty (no signal to score)', () => {
+    const result = computeFitScore({
+      resumeSkills: [],
+      jobSkills: ['typescript'],
+    });
+    expect(result).toBeNull();
   });
 });

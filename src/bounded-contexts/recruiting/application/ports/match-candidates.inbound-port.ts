@@ -9,7 +9,7 @@
 import type {
   MatchCandidatesForJobInput,
   MatchCandidatesForJobOutput,
-} from '../use-cases/match-candidates-for-job/match-candidates-for-job.dto';
+} from '../use-cases/match-candidates-for-job/match-candidates-for-job.schema';
 
 export abstract class MatchCandidatesForJobPort {
   abstract execute(input: MatchCandidatesForJobInput): Promise<MatchCandidatesForJobOutput>;

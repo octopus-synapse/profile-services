@@ -8,47 +8,63 @@
  * `FileInterceptor` and `@UploadedFile()` plumbing automatically.
  */
 
-import { PostType, type ReactionType } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { FeedUseCases } from './application/ports/feed.port';
-import { CreatePostSchema } from './dto/create-post-request.dto';
-
-const IdParam = z.object({ id: z.string() });
-const UserIdParam = z.object({ userId: z.string() });
-
-const PaginationQuery = z.object({
-  cursor: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const TimelineQuery = PaginationQuery.extend({
-  type: z.nativeEnum(PostType).optional(),
-  followingOnly: z.string().optional(),
-});
-
-const LikeBodySchema = z.object({
-  reactionType: z.enum(['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] as const).optional(),
-});
-
-const RepostBodySchema = z.object({ commentary: z.string().optional() });
-
-const ReportBodySchema = z.object({ reason: z.string() });
-
-const VoteBodySchema = z.object({ optionIndex: z.number().int().nonnegative() });
-
-const CreateCommentBodySchema = z.object({
-  content: z.string(),
-  parentId: z.string().optional(),
-});
-
-function clampLimit(limit?: string): number {
-  if (!limit) return 20;
-  return Math.min(Number(limit), 50);
-}
+import { CreatePostSchema } from './dto/create-post-request.schema';
+import {
+  BookmarkPostResponseSchema,
+  COMPOSER_CONFIG,
+  CommentsListResponseSchema,
+  CommentWithAuthorSchema,
+  ComposerConfigResponseSchema,
+  CreateCommentBodySchema,
+  DeletedResponseSchema,
+  FEED_MAX_PAGE_SIZE,
+  FeedBookmarksResponseSchema,
+  FeedTimelineResponseSchema,
+  IdParam,
+  LikeBodySchema,
+  LikePostResponseSchema,
+  PaginationQuery,
+  PollVoteResponseSchema,
+  PostImageUploadResponseSchema,
+  PostWithAuthorSchema,
+  PostWithRelationsSchema,
+  ReportBodySchema,
+  ReportPostResponseSchema,
+  RepostBodySchema,
+  RepostPostResponseSchema,
+  TimelineQuery,
+  UnbookmarkPostResponseSchema,
+  UnlikePostResponseSchema,
+  UserCommentsResponseSchema,
+  UserIdParam,
+  UserLikesResponseSchema,
+  UserPostsResponseSchema,
+  VoteBodySchema,
+} from './feed.routes.schemas';
 
 export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
+  // ─── Composer config ──────────────────────────────────────────────
+  {
+    method: 'GET',
+    path: '/v1/posts/composer-config',
+    auth: { kind: 'jwt' },
+    permission: Permission.FEED_USE,
+    response: ComposerConfigResponseSchema,
+    openapi: {
+      summary: 'Composer configuration (server-driven UI)',
+      tags: ['posts'],
+      description:
+        'Returns the server-driven composer config the frontend uses to render the post-creation UI: limits, allowed media types, poll/repost availability, mention cap, post types.',
+    },
+    sdk: { exported: true },
+    handler: async () => ({ ...COMPOSER_CONFIG }),
+  },
+
   // ─── Posts ────────────────────────────────────────────────────────
   {
     method: 'POST',
@@ -56,6 +72,13 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     body: CreatePostSchema,
+    response: PostWithAuthorSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/posts/01900000-0000-7000-a000-000000000040' }),
+    }),
     openapi: {
       summary: 'Create a new post',
       tags: ['posts'],
@@ -75,6 +98,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: PostWithRelationsSchema,
     openapi: {
       summary: 'Get a post by ID',
       tags: ['posts'],
@@ -92,6 +116,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: DeletedResponseSchema,
     openapi: {
       summary: 'Delete a post',
       tags: ['posts'],
@@ -112,6 +137,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     query: TimelineQuery,
+    response: FeedTimelineResponseSchema,
     openapi: {
       summary: 'Get feed timeline',
       tags: ['feed'],
@@ -123,8 +149,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
       return bc.listFeedTimeline.execute({
         userId: ctx.user!.userId,
         cursor: q.cursor,
-        limit: clampLimit(q.limit),
-        type: q.type,
+        limit: parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
         followingOnly: q.followingOnly === 'true' || q.followingOnly === '1',
       });
     },
@@ -135,6 +160,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     query: PaginationQuery,
+    response: FeedBookmarksResponseSchema,
     openapi: {
       summary: 'Get bookmarked posts',
       tags: ['feed'],
@@ -143,7 +169,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listFeedBookmarks.execute(ctx.user!.userId, q.cursor, clampLimit(q.limit));
+      return bc.listFeedBookmarks.execute(
+        ctx.user!.userId,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
   {
@@ -153,6 +183,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserPostsResponseSchema,
     openapi: {
       summary: 'Get posts by user',
       tags: ['feed'],
@@ -162,7 +193,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listUserPosts.execute(userId, q.cursor, clampLimit(q.limit));
+      return bc.listUserPosts.execute(
+        userId,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
 
@@ -174,6 +209,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     query: PaginationQuery,
+    response: CommentsListResponseSchema,
     openapi: {
       summary: 'Get comments for a post',
       tags: ['comments'],
@@ -183,7 +219,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listPostComments.execute(id, q.cursor, clampLimit(q.limit));
+      return bc.listPostComments.execute(
+        id,
+        q.cursor,
+        parsePositiveIntParam(q.limit, 20, FEED_MAX_PAGE_SIZE),
+      );
     },
   },
   {
@@ -193,6 +233,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: CreateCommentBodySchema,
+    response: CommentWithAuthorSchema,
     openapi: {
       summary: 'Create a comment',
       tags: ['comments'],
@@ -211,6 +252,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: DeletedResponseSchema,
     openapi: {
       summary: 'Delete a comment',
       tags: ['comments'],
@@ -232,6 +274,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: LikeBodySchema,
+    response: LikePostResponseSchema,
     openapi: {
       summary: 'Like a post',
       tags: ['engagement'],
@@ -240,8 +283,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const body = ctx.body as { reactionType?: ReactionType };
-      return bc.likePost.execute(id, ctx.user!.userId, body.reactionType);
+      return bc.likePost.execute(id, ctx.user!.userId);
     },
   },
   {
@@ -250,6 +292,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: UnlikePostResponseSchema,
     openapi: {
       summary: 'Unlike a post',
       tags: ['engagement'],
@@ -267,6 +310,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: BookmarkPostResponseSchema,
     openapi: {
       summary: 'Bookmark a post',
       tags: ['engagement'],
@@ -284,6 +328,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: IdParam,
+    response: UnbookmarkPostResponseSchema,
     openapi: {
       summary: 'Remove bookmark from a post',
       tags: ['engagement'],
@@ -302,6 +347,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: RepostBodySchema,
+    response: RepostPostResponseSchema,
     openapi: {
       summary: 'Repost a post',
       tags: ['engagement'],
@@ -311,7 +357,11 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const body = ctx.body as z.infer<typeof RepostBodySchema>;
-      return bc.repostPost.execute(id, ctx.user!.userId, body.commentary);
+      const result = await bc.repostPost.execute(id, ctx.user!.userId, body.commentary);
+      if ('reposted' in result) {
+        return { kind: 'reposted' as const, ...result };
+      }
+      return { kind: 'post' as const, ...result };
     },
   },
   {
@@ -321,6 +371,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: ReportBodySchema,
+    response: ReportPostResponseSchema,
     openapi: {
       summary: 'Report a post',
       tags: ['engagement'],
@@ -340,6 +391,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: IdParam,
     body: VoteBodySchema,
+    response: PollVoteResponseSchema,
     openapi: {
       summary: 'Vote on a poll',
       tags: ['engagement'],
@@ -361,6 +413,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserCommentsResponseSchema,
     openapi: {
       summary: 'List comments authored by a user',
       tags: ['user-engagement'],
@@ -375,13 +428,14 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
   },
   {
     method: 'GET',
-    path: '/v1/users/:userId/reactions',
+    path: '/v1/users/:userId/likes',
     auth: { kind: 'jwt' },
     permission: Permission.FEED_USE,
     params: UserIdParam,
     query: PaginationQuery,
+    response: UserLikesResponseSchema,
     openapi: {
-      summary: 'List reactions given by a user',
+      summary: 'List likes given by a user',
       tags: ['user-engagement'],
       description: 'User-scoped feed engagement',
     },
@@ -389,7 +443,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
       const q = ctx.query as z.infer<typeof PaginationQuery>;
-      return bc.listUserReactions.execute(userId, q.cursor, q.limit ? Number(q.limit) : undefined);
+      return bc.listUserLikes.execute(userId, q.cursor, q.limit ? Number(q.limit) : undefined);
     },
   },
 
@@ -401,6 +455,7 @@ export const feedRoutes: ReadonlyArray<Route<FeedUseCases>> = [
     permission: Permission.FEED_USE,
     kind: 'multipart',
     statusCode: 200,
+    response: PostImageUploadResponseSchema,
     openapi: {
       summary: 'Upload post image',
       tags: ['posts'],

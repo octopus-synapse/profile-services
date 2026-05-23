@@ -1,4 +1,5 @@
 import { EventPublisher, LoggerPort } from '@/shared-kernel';
+import { DomainException, type DomainExceptionOptions } from '@/shared-kernel/exceptions';
 import { UserFitProfileUpdatedEvent } from '../../domain/events';
 import { FitAnswerRepositoryPort } from '../../domain/ports/fit-answer.repository.port';
 import type { FitQuestionRecord } from '../../domain/ports/fit-question.repository.port';
@@ -13,38 +14,56 @@ import { type SampleableQuestion, sampleQuestions } from '../../domain/rules/fit
 import { type ScoredAnswer, vectoriseAnswers } from '../../domain/rules/fit-vectoriser.rules';
 import { FIT_VECTOR_TTL_DAYS, QUESTION_SET_SIZE } from '../../domain/types';
 
-export class FitAnswerCountMismatchError extends Error {
-  constructor(expected: number, received: number) {
-    super(`Expected ${expected} answers, received ${received}.`);
-    this.name = 'FitAnswerCountMismatchError';
+/**
+ * Promoted to `DomainException` so the route layer translates these
+ * to stable HTTP codes (400 / 404 / 403) and downstream wrappers can
+ * preserve the cause chain when re-throwing.
+ */
+export class FitAnswerCountMismatchError extends DomainException {
+  readonly code = 'FIT_ANSWER_COUNT_MISMATCH';
+  readonly statusHint = 400;
+
+  constructor(expected: number, received: number, options: DomainExceptionOptions = {}) {
+    super(`Expected ${expected} answers, received ${received}.`, options);
   }
 }
 
-export class FitQuestionSetNotFoundError extends Error {
-  constructor(public readonly questionSetId: string) {
-    super(`Fit question set not found: ${questionSetId}`);
-    this.name = 'FitQuestionSetNotFoundError';
+export class FitQuestionSetNotFoundError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_NOT_FOUND';
+  readonly statusHint = 404;
+
+  constructor(
+    public readonly questionSetId: string,
+    options: DomainExceptionOptions = {},
+  ) {
+    super(`Fit question set not found: ${questionSetId}`, options);
   }
 }
 
-export class FitQuestionSetOwnershipError extends Error {
-  constructor() {
-    super('Fit question set does not belong to the submitting user.');
-    this.name = 'FitQuestionSetOwnershipError';
+export class FitQuestionSetOwnershipError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_OWNERSHIP';
+  readonly statusHint = 403;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Fit question set does not belong to the submitting user.', options);
   }
 }
 
-export class FitQuestionSetAlreadyCompletedError extends Error {
-  constructor() {
-    super('Fit question set has already been submitted.');
-    this.name = 'FitQuestionSetAlreadyCompletedError';
+export class FitQuestionSetAlreadyCompletedError extends DomainException {
+  readonly code = 'FIT_QUESTION_SET_ALREADY_COMPLETED';
+  readonly statusHint = 409;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Fit question set has already been submitted.', options);
   }
 }
 
-export class FitAnswerMismatchError extends Error {
-  constructor() {
-    super('Submitted answers do not align with the sampled question set.');
-    this.name = 'FitAnswerMismatchError';
+export class FitAnswerMismatchError extends DomainException {
+  readonly code = 'FIT_ANSWER_MISMATCH';
+  readonly statusHint = 400;
+
+  constructor(options: DomainExceptionOptions = {}) {
+    super('Submitted answers do not align with the sampled question set.', options);
   }
 }
 
@@ -140,14 +159,16 @@ export class SubmitFitAnswersUseCase {
       })),
     );
 
-    const previous = await this.profiles.findByUserId(input.userId);
-    const nextVersion = (previous?.version ?? 0) + 1;
+    // P1 #15 — version is allocated atomically inside `upsert` via a
+    // single SQL `version: { increment: 1 }` so two concurrent
+    // submissions for the same user land on distinct, monotonic
+    // numbers. The use case no longer reads previous.version (the
+    // read-then-write was the lost-update vector).
     const expiresAt = new Date(now.getTime() + FIT_VECTOR_TTL_DAYS * 24 * 60 * 60 * 1000);
 
     const saved = await this.profiles.upsert({
       userId: input.userId,
       vector,
-      version: nextVersion,
       expiresAt,
     });
 
@@ -171,8 +192,10 @@ export class SubmitFitAnswersUseCase {
     // this event; we keep emission at the very end so a crash earlier
     // in the sequence leaves no phantom recomputes chasing the old
     // vector.
-    this.events.publish(
-      new UserFitProfileUpdatedEvent(input.userId, { version: nextVersion, cause: 'remap' }),
+    // P2-#7: await so the cache-invalidation handler reports failures
+    // back here instead of vanishing into an unhandled rejection.
+    await this.events.publishAsync(
+      new UserFitProfileUpdatedEvent(input.userId, { version: saved.version, cause: 'remap' }),
     );
 
     return saved;

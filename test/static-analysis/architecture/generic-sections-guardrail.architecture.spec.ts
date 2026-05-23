@@ -58,7 +58,7 @@ const ALLOWED_SEMANTIC_KIND_PATHS = [
   '/shared-kernel/types/generic-section.types.ts', // Example docs
   '/shared-kernel/ast/generic-section-data.schema.ts', // Example docs
   '/test/architecture/', // This test
-  '/bounded-contexts/resume-styles/validators/', // Theme config seeds
+  '/bounded-contexts/resume-styles/validators/', // Resume style config seeds
   '/shared-kernel/dtos/sdk-response.dto.ts', // @ApiProperty examples for Swagger
   '/bounded-contexts/integration/', // Integration semantic mappings (GitHub → OPEN_SOURCE, etc.)
   '/testing/', // Test fixture seeding (in-memory repositories)

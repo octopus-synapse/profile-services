@@ -27,7 +27,7 @@ describe('ResetPasswordUseCase', () => {
   let eventBus: InMemoryEventBus;
 
   const validToken = 'valid-reset-token';
-  const validNewPassword = 'NewSecure1';
+  const validNewPassword = 'NewSecure1!';
 
   beforeEach(() => {
     passwordRepository = new InMemoryPasswordRepository();

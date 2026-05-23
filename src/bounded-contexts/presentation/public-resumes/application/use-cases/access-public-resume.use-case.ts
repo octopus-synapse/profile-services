@@ -16,11 +16,11 @@
 import type { LoggerPort } from '@/shared-kernel';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
-  ShareExpiredException,
-  ShareNotFoundException,
+  PublicResumeNotFoundException,
+  ShareLinkExpiredException,
   SharePasswordInvalidException,
   SharePasswordRequiredException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import { ShareDownloadedEvent, ShareViewedEvent } from '../../../shared-kernel/domain/events';
 
 export type AccessMode = 'view' | 'download';
@@ -63,8 +63,10 @@ export class AccessPublicResumeUseCase {
 
   async execute(input: AccessPublicResumeInput): Promise<AccessPublicResumeOutput> {
     const share = await this.shares.getBySlug(input.slug);
-    if (!share?.isActive) throw new ShareNotFoundException();
-    if (share.expiresAt && new Date() > share.expiresAt) throw new ShareExpiredException();
+    if (!share?.isActive) throw new PublicResumeNotFoundException(input.slug);
+    if (share.expiresAt && new Date() > share.expiresAt) {
+      throw new ShareLinkExpiredException(input.slug);
+    }
 
     if (share.password) {
       if (!input.password) throw new SharePasswordRequiredException();
@@ -72,9 +74,14 @@ export class AccessPublicResumeUseCase {
       if (!isValid) throw new SharePasswordInvalidException();
     }
 
+    // P2-#18: load the resume FIRST and only publish a view event after
+    // we successfully resolved it. Publishing before the read meant a
+    // load failure (cache miss, repo timeout) still counted as a view
+    // in analytics — phantom traffic.
+    const resume = await this.shares.getResumeWithCache(share.resumeId);
+
     this.publishAccessEvent(share, input);
 
-    const resume = await this.shares.getResumeWithCache(share.resumeId);
     return {
       resume,
       share: { slug: share.slug, expiresAt: share.expiresAt },

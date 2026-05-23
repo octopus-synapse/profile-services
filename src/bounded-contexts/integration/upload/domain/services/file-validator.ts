@@ -16,7 +16,7 @@ import {
   UploadFilenameUnsafeException,
   UploadFileTooLargeException,
   UploadInvalidFileTypeException,
-} from '../../../domain/exceptions/integration.exceptions';
+} from '../../../domain/exceptions';
 
 export interface FileUpload {
   readonly buffer: Buffer;
@@ -90,5 +90,11 @@ function validateMagicBytes(file: FileUpload): void {
     if (webpType !== '57454250') {
       throw new UploadContentInvalidException('bad_magic_webp');
     }
+  }
+  // GIF87a (474946383761) and GIF89a (474946383961) — P2 hardening so a
+  // mis-typed `.gif` upload can't smuggle a different payload past the
+  // mime/extension allowlist.
+  if (file.mimetype === 'image/gif' && !header.startsWith('474946383')) {
+    throw new UploadContentInvalidException('bad_magic_gif');
   }
 }

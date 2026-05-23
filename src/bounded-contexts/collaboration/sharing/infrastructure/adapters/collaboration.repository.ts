@@ -1,10 +1,20 @@
+import { Prisma } from '@prisma/client';
 import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { DomainException } from '@/shared-kernel/exceptions';
+import type { LoggerPort } from '@/shared-kernel/logger';
+import { enforceQuotaInTx } from '@/shared-kernel/persistence/quota-guard';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser, SharedResume } from '../../domain/types/collaboration.types';
 
+const CTX = 'CollaborationRepository';
+
 export class PrismaCollaborationRepository extends CollaborationRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: LoggerPort,
+  ) {
     super();
   }
 
@@ -57,6 +67,43 @@ export class PrismaCollaborationRepository extends CollaborationRepositoryPort {
     });
 
     return record as CollaboratorWithUser;
+  }
+
+  async createCollaboratorWithQuota(
+    data: {
+      resumeId: string;
+      userId: string;
+      role: CollaboratorRole;
+      invitedBy: string;
+    },
+    quota: { readonly max: number; readonly exception: DomainException },
+  ): Promise<CollaboratorWithUser> {
+    this.logger.log(`Inviting collaborator ${data.userId} to resume ${data.resumeId}`, CTX);
+    return runInTransaction(this.prisma, async (tx) => {
+      await enforceQuotaInTx(tx, {
+        // Serialise on the Resume row so two concurrent POST /v1/resumes/
+        // :resumeId/collaborators observe each other. `FOR UPDATE` can't
+        // share a query with `COUNT(*)` (Postgres error 0A000), so lock
+        // + count are two queries inside one tx.
+        lockSql: Prisma.sql`SELECT 1 FROM "Resume" WHERE "id" = ${data.resumeId} FOR UPDATE`,
+        countSql: Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "ResumeCollaborator" WHERE "resumeId" = ${data.resumeId}`,
+        max: quota.max,
+        exception: quota.exception,
+      });
+      const record = await tx.resumeCollaborator.create({
+        data: {
+          resumeId: data.resumeId,
+          userId: data.userId,
+          role: data.role,
+          invitedBy: data.invitedBy,
+          joinedAt: new Date(),
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      });
+      return record as CollaboratorWithUser;
+    });
   }
 
   async updateRole(

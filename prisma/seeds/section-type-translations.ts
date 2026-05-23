@@ -1,9 +1,4 @@
-/**
- * Section Type Translations
- *
- * Translations for section types in all supported locales.
- * Structure: { [sectionTypeKey]: { [locale]: TranslationData } }
- */
+import { LOCALES } from '@packages/i18n';
 
 export interface SectionTypeTranslation {
   title: string;
@@ -46,14 +41,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
         achievements: 'Conquistas',
       },
     },
-    es: {
-      title: 'Experiencia Laboral',
-      description: 'Historial de trabajo y empleo',
-      label: 'Trabajo',
-      noDataLabel: 'No tengo experiencia laboral para agregar ahora',
-      placeholder: 'Agrega tu experiencia profesional...',
-      addLabel: 'Agregar Experiencia',
-    },
   },
 
   education_v1: {
@@ -80,14 +67,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
         endDate: 'Data de Término',
       },
     },
-    es: {
-      title: 'Educación',
-      description: 'Historial académico y calificaciones',
-      label: 'Educación',
-      noDataLabel: 'No tengo educación para agregar ahora',
-      placeholder: 'Agrega tu educación...',
-      addLabel: 'Agregar Educación',
-    },
   },
 
   skill_set_v1: {
@@ -110,14 +89,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
         name: 'Nome da Habilidade',
         category: 'Categoria',
       },
-    },
-    es: {
-      title: 'Habilidades',
-      description: 'Habilidades técnicas y profesionales',
-      label: 'Habilidades',
-      noDataLabel: 'Todavía estoy desarrollando mis habilidades',
-      placeholder: 'Agrega tus habilidades...',
-      addLabel: 'Agregar Habilidad',
     },
   },
 
@@ -142,14 +113,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
         level: 'Nível',
       },
     },
-    es: {
-      title: 'Idiomas',
-      description: 'Idiomas hablados y niveles de competencia',
-      label: 'Idiomas',
-      noDataLabel: 'No tengo idiomas adicionales para agregar',
-      placeholder: 'Agrega los idiomas que hablas...',
-      addLabel: 'Agregar Idioma',
-    },
   },
 
   certification_v1: {
@@ -168,14 +131,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho certificações para adicionar',
       placeholder: 'Adicione suas certificações...',
       addLabel: 'Adicionar Certificação',
-    },
-    es: {
-      title: 'Certificaciones',
-      description: 'Certificaciones y credenciales profesionales',
-      label: 'certificaciones',
-      noDataLabel: 'No tengo certificaciones para agregar',
-      placeholder: 'Agrega tus certificaciones...',
-      addLabel: 'Agregar Certificación',
     },
   },
 
@@ -196,14 +151,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione seus projetos...',
       addLabel: 'Adicionar Projeto',
     },
-    es: {
-      title: 'Proyectos',
-      description: 'Proyectos personales y profesionales',
-      label: 'proyectos',
-      noDataLabel: 'No tengo proyectos para agregar ahora',
-      placeholder: 'Agrega tus proyectos...',
-      addLabel: 'Agregar Proyecto',
-    },
   },
 
   publication_v1: {
@@ -222,14 +169,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho publicações para adicionar',
       placeholder: 'Adicione suas publicações...',
       addLabel: 'Adicionar Publicação',
-    },
-    es: {
-      title: 'Publicaciones',
-      description: 'Publicaciones académicas y profesionales',
-      label: 'publicaciones',
-      noDataLabel: 'No tengo publicaciones para agregar',
-      placeholder: 'Agrega tus publicaciones...',
-      addLabel: 'Agregar Publicación',
     },
   },
 
@@ -250,14 +189,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione seus prêmios...',
       addLabel: 'Adicionar Prêmio',
     },
-    es: {
-      title: 'Premios',
-      description: 'Premios y reconocimientos recibidos',
-      label: 'premios',
-      noDataLabel: 'No tengo premios para agregar',
-      placeholder: 'Agrega tus premios...',
-      addLabel: 'Agregar Premio',
-    },
   },
 
   volunteer_v1: {
@@ -276,14 +207,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho experiência voluntária para adicionar',
       placeholder: 'Adicione seu trabalho voluntário...',
       addLabel: 'Adicionar Voluntariado',
-    },
-    es: {
-      title: 'Experiencia Voluntaria',
-      description: 'Trabajo voluntario y servicio comunitario',
-      label: 'voluntariado',
-      noDataLabel: 'No tengo experiencia voluntaria para agregar',
-      placeholder: 'Agrega tu experiencia voluntaria...',
-      addLabel: 'Agregar Voluntariado',
     },
   },
 
@@ -304,14 +227,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione suas contribuições open source...',
       addLabel: 'Adicionar Contribuição',
     },
-    es: {
-      title: 'Contribuciones Open Source',
-      description: 'Contribuciones a proyectos de código abierto',
-      label: 'open source',
-      noDataLabel: 'No tengo contribuciones open source para agregar',
-      placeholder: 'Agrega tus contribuciones open source...',
-      addLabel: 'Agregar Contribución',
-    },
   },
 
   bug_bounty_v1: {
@@ -330,14 +245,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho bug bounties para adicionar',
       placeholder: 'Adicione seus bug bounties...',
       addLabel: 'Adicionar Bug Bounty',
-    },
-    es: {
-      title: 'Bug Bounties',
-      description: 'Vulnerabilidades de seguridad descubiertas',
-      label: 'bug bounty',
-      noDataLabel: 'No tengo bug bounties para agregar',
-      placeholder: 'Agrega tus bug bounties...',
-      addLabel: 'Agregar Bug Bounty',
     },
   },
 
@@ -358,14 +265,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione sua experiência em hackathons...',
       addLabel: 'Adicionar Hackathon',
     },
-    es: {
-      title: 'Hackathons',
-      description: 'Participaciones y victorias en hackathons',
-      label: 'hackathons',
-      noDataLabel: 'No tengo experiencia en hackathons para agregar',
-      placeholder: 'Agrega tu experiencia en hackathons...',
-      addLabel: 'Agregar Hackathon',
-    },
   },
 
   talk_v1: {
@@ -384,14 +283,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho palestras para adicionar',
       placeholder: 'Adicione suas palestras e apresentações...',
       addLabel: 'Adicionar Palestra',
-    },
-    es: {
-      title: 'Charlas y Presentaciones',
-      description: 'Charlas y presentaciones en conferencias',
-      label: 'charlas',
-      noDataLabel: 'No tengo charlas para agregar',
-      placeholder: 'Agrega tus charlas y presentaciones...',
-      addLabel: 'Agregar Charla',
     },
   },
 
@@ -412,14 +303,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione suas conquistas...',
       addLabel: 'Adicionar Conquista',
     },
-    es: {
-      title: 'Logros',
-      description: 'Logros y realizaciones notables',
-      label: 'logros',
-      noDataLabel: 'No tengo logros para agregar',
-      placeholder: 'Agrega tus logros...',
-      addLabel: 'Agregar Logro',
-    },
   },
 
   summary_v1: {
@@ -438,14 +321,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho resumo para adicionar',
       placeholder: 'Escreva um breve resumo do seu perfil...',
       addLabel: 'Adicionar Resumo',
-    },
-    es: {
-      title: 'Resumen Profesional',
-      description: 'Visión general de tu perfil profesional',
-      label: 'resumen',
-      noDataLabel: 'No tengo resumen para agregar',
-      placeholder: 'Escribe un breve resumen de tu perfil...',
-      addLabel: 'Agregar Resumen',
     },
   },
 
@@ -466,14 +341,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione seus interesses...',
       addLabel: 'Adicionar Interesse',
     },
-    es: {
-      title: 'Intereses',
-      description: 'Intereses personales y pasatiempos',
-      label: 'intereses',
-      noDataLabel: 'No tengo intereses para agregar',
-      placeholder: 'Agrega tus intereses...',
-      addLabel: 'Agregar Interés',
-    },
   },
 
   recommendation_v1: {
@@ -493,14 +360,6 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       placeholder: 'Adicione suas recomendações...',
       addLabel: 'Adicionar Recomendação',
     },
-    es: {
-      title: 'Recomendaciones',
-      description: 'Recomendaciones y avales profesionales',
-      label: 'recomendaciones',
-      noDataLabel: 'No tengo recomendaciones para agregar',
-      placeholder: 'Agrega tus recomendaciones...',
-      addLabel: 'Agregar Recomendación',
-    },
   },
 };
 
@@ -509,6 +368,21 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
  * Uses Lucide icon names (kebab-case format)
  * @see https://lucide.dev/icons
  */
+for (const [key, entry] of Object.entries(sectionTypeTranslations)) {
+  for (const locale of LOCALES) {
+    if (!(locale in entry)) {
+      console.error(`[section-type-translations] '${key}' missing locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+  for (const locale of Object.keys(entry)) {
+    if (!(LOCALES as readonly string[]).includes(locale)) {
+      console.error(`[section-type-translations] '${key}' has rogue locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+}
+
 export const sectionTypeIcons: Record<string, { iconType: 'emoji' | 'lucide'; icon: string }> = {
   work_experience_v1: { iconType: 'lucide', icon: 'briefcase' },
   education_v1: { iconType: 'lucide', icon: 'graduation-cap' },

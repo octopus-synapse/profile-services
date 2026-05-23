@@ -26,7 +26,7 @@ function rankOf(score: number): Rank {
   if (score >= 80) return 'A';
   if (score >= 70) return 'B';
   if (score >= 60) return 'C';
-  if (score >= 40) return 'D';
+  if (score >= 50) return 'D';
   return 'F';
 }
 
@@ -57,13 +57,17 @@ export class NotifyResumeQualityRankChangeUseCase {
       const userId = await this.snapshots.findResumeOwnerId(input.resumeId);
       if (!userId) return;
 
+      const messageKey = movedUp ? 'RESUME_QUALITY_IMPROVED' : 'RESUME_QUALITY_REGRESSED';
       await this.createNotification.execute({
         userId,
-        type: movedUp ? 'RESUME_QUALITY_IMPROVED' : 'RESUME_QUALITY_REGRESSED',
+        type: messageKey,
         actorId: SYSTEM_ACTOR,
-        message: movedUp
-          ? `Seu currículo subiu para a faixa ${newRank} (de ${oldRank}).`
-          : `Seu currículo caiu para a faixa ${newRank} (de ${oldRank}). Confira as recomendações.`,
+        messageKey,
+        messageParams: {
+          newScore: input.overallScore,
+          previousRank: oldRank,
+          newRank,
+        },
         entityType: 'Resume',
         entityId: input.resumeId,
       });

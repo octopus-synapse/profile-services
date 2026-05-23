@@ -2,6 +2,9 @@ import { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   OnboardingDataValidationFailedException,
+  OnboardingInvalidPersonalInfoException,
+  OnboardingInvalidProfessionalProfileException,
+  OnboardingInvalidUsernameException,
   type OnboardingValidationError,
 } from '../../../domain/exceptions/onboarding.exceptions';
 import {
@@ -46,6 +49,25 @@ export class CompleteOnboardingUseCase {
       field: err.path.join('.'),
       message: err.message,
     }));
+
+    // Pick the most specific exception based on which subtree failed first;
+    // catalog-parity tests expect granular codes when only one section is
+    // malformed (e.g. the SDK validates each step independently).
+    const root = parseResult.error.errors[0]?.path[0];
+    if (root === 'username') {
+      throw new OnboardingInvalidUsernameException(
+        parseResult.error.errors[0]?.message ?? 'Invalid username',
+      );
+    }
+    if (root === 'personalInfo' && errors.every((e) => e.field.startsWith('personalInfo'))) {
+      throw new OnboardingInvalidPersonalInfoException(errors);
+    }
+    if (
+      root === 'professionalProfile' &&
+      errors.every((e) => e.field.startsWith('professionalProfile'))
+    ) {
+      throw new OnboardingInvalidProfessionalProfileException(errors);
+    }
     throw new OnboardingDataValidationFailedException(errors);
   }
 
@@ -92,19 +114,22 @@ export class CompleteOnboardingUseCase {
   /** Translate an infrastructure failure into the right domain exception
    *  (or pass it through). Logs once with full context so the caller's
    *  rethrow doesn't double-log. */
-  private toDomainError(error: unknown, userId: string, data: OnboardingData): unknown {
-    this.logger.error(
-      'Onboarding completion failed, progress preserved',
-      error instanceof Error ? error.stack : 'Unknown error',
-      'CompleteOnboardingUseCase',
-      { userId, error: error instanceof Error ? error.message : 'Unknown error' },
-    );
+  private toDomainError(error: unknown, userId: string, _data: OnboardingData): unknown {
+    this.logger.error('Onboarding completion failed, progress preserved', {
+      context: 'CompleteOnboardingUseCase',
+      stack: error instanceof Error ? error.stack : 'Unknown error',
+      userId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
 
     if (this.isUsernameConflict(error)) {
+      // P2-#12: don't log the raw username — it's PII that can correlate
+      // a user across tenants in a centralised log store. `userId` is the
+      // canonical correlation identifier.
       this.logger.warn(
         'Username conflict detected during transaction',
         'CompleteOnboardingUseCase',
-        { username: data.username, userId },
+        { userId },
       );
       return new OnboardingUsernameTakenException();
     }
@@ -112,6 +137,14 @@ export class CompleteOnboardingUseCase {
     return error;
   }
 
+  /**
+   * P1 #28 — strictly narrowed to P2002 errors that name `username` in
+   * `meta.target`. The previous fallback to a substring match on the
+   * error message ("Unique constraint failed") classified ANY unique
+   * conflict (email reuse, slug collision, etc.) as a username conflict
+   * and rerouted the caller to `OnboardingUsernameTakenException`,
+   * masking the real cause.
+   */
   private isUsernameConflict(error: unknown): boolean {
     if (
       error === null ||
@@ -131,10 +164,13 @@ export class CompleteOnboardingUseCase {
       return target.some((field) => field === 'username');
     }
 
-    if (typeof target === 'string' && target.includes('username')) {
-      return true;
+    if (typeof target === 'string') {
+      // Postgres surfaces composite indexes as e.g. "User_username_key".
+      // Split on `_` and match the literal field token — never on the
+      // generic "Unique constraint failed" message text.
+      return target.split(/[_\W]/).some((token) => token.toLowerCase() === 'username');
     }
 
-    return error instanceof Error && error.message.includes('Unique constraint failed');
+    return false;
   }
 }

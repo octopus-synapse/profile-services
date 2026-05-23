@@ -3,10 +3,7 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import {
-  ResumeAccessDeniedException,
-  ResumeNotFoundException,
-} from '../../../domain/exceptions/presentation.exceptions';
+import { ResumeAccessDeniedException, ResumeNotFoundException } from '../../../domain/exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 

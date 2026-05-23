@@ -13,6 +13,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import type { BcEventBinding, BoundedContextComposition } from '@/shared-kernel/composition';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
 import { ShareAnalyticsReaderPort } from './application/ports/share-analytics-reader.port';
 import { ShareEventHandler } from './handlers/share-event.handler';
 import { NullGeoLookupAdapter } from './infrastructure/adapters/null-geo-lookup.adapter';
@@ -33,10 +34,11 @@ export interface ShareAnalyticsBundle {
 
 export function buildShareAnalyticsBundle(
   prisma: PrismaService,
+  config: ConfigPort,
   geoLookup: GeoLookupPort = new NullGeoLookupAdapter(),
 ): ShareAnalyticsBundle {
   const repository = new PrismaShareAnalyticsRepository(prisma);
-  const service = new ShareAnalyticsService(repository, geoLookup);
+  const service = new ShareAnalyticsService(repository, geoLookup, config);
   return { reader: service, service, repository, geoLookup };
 }
 
@@ -49,11 +51,12 @@ export function buildShareAnalyticsBundle(
 export function buildShareAnalyticsComposition(
   prisma: PrismaService,
   logger: LoggerPort,
+  config: ConfigPort,
   geoLookup: GeoLookupPort = new NullGeoLookupAdapter(),
 ): BoundedContextComposition<ShareAnalyticsReaderPort> & {
   readonly service: ShareAnalyticsService;
 } {
-  const bundle = buildShareAnalyticsBundle(prisma, geoLookup);
+  const bundle = buildShareAnalyticsBundle(prisma, config, geoLookup);
   const handler = new ShareEventHandler(bundle.service, logger);
 
   // Cross-context string event types (originating from presentation BC).

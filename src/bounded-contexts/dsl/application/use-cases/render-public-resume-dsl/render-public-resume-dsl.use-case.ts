@@ -9,7 +9,7 @@
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
-import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import type { Locale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumeNoActiveStyleException } from '../../../domain/exceptions/dsl.exceptions';
 import { ResumeDslRepositoryPort } from '../../../domain/ports/resume-dsl.repository.port';
 import type { ResumeAst } from '../../../domain/schemas/ast/resume-ast.schema';
@@ -23,7 +23,7 @@ export type RenderTarget = 'html' | 'pdf';
 export interface RenderPublicResumeDslInput {
   readonly slug: string;
   readonly target: RenderTarget;
-  readonly locale: SupportedLocale;
+  readonly locale: Locale;
 }
 
 export class RenderPublicResumeDslUseCase {

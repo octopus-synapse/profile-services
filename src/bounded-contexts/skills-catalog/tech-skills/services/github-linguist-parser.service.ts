@@ -33,7 +33,7 @@ export class GithubLinguistParserService {
       return this.parseLanguages(languages);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error('Failed to fetch GitHub Linguist', err.message);
+      this.logger.error('Failed to fetch GitHub Linguist', { stack: err.message });
       throw err;
     }
   }

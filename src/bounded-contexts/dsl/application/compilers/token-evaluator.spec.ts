@@ -5,8 +5,12 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { type Expression, ExpressionType } from '../parsers/expression-parser';
-import { TokenEvaluator } from './token-evaluator';
+import {
+  DslEvaluationLimitExceededException,
+  DslTypeMismatchException,
+} from '../../domain/exceptions/dsl.exceptions';
+import { type Expression, ExpressionType } from '../parsers/expression.parser';
+import { TokenEvaluator } from './token.evaluator';
 
 describe('TokenEvaluator', () => {
   const baseContext = {
@@ -351,6 +355,37 @@ describe('TokenEvaluator', () => {
       const result = evaluator.evaluateString('#ffffff');
 
       expect(result).toBe('#ffffff');
+    });
+  });
+
+  describe('type-mismatch detection', () => {
+    it('throws DslTypeMismatchException when subtracting an undefined reference from a number', () => {
+      const evaluator = new TokenEvaluator(baseContext);
+      // `colors.text.muted` is undefined → 4 - undefined would coerce to NaN
+      expect(() => evaluator.evaluateString('${spacing.unit - colors.text.muted}')).toThrow(
+        DslTypeMismatchException,
+      );
+    });
+
+    it('throws DslTypeMismatchException when multiplying two strings', () => {
+      const evaluator = new TokenEvaluator({
+        ...baseContext,
+        a: 'hello',
+        b: 'world',
+      });
+      expect(() => evaluator.evaluateString('${a * b}')).toThrow(DslTypeMismatchException);
+    });
+  });
+
+  describe('evaluation-limit guard', () => {
+    it('throws DslEvaluationLimitExceededException when expression exceeds the instruction cap', () => {
+      // Build a deeply nested template (string-concat chain) that
+      // expands past the 5_000-instruction budget on `evaluate()`.
+      // Each `+` adds two evaluate() calls (one binary node + one
+      // operand), so 3000 additions safely overshoots the 5k cap.
+      const huge = `\${${'spacing.unit + '.repeat(3000)}1}`;
+      const evaluator = new TokenEvaluator(baseContext);
+      expect(() => evaluator.evaluateString(huge)).toThrow(DslEvaluationLimitExceededException);
     });
   });
 });

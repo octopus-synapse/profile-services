@@ -29,4 +29,28 @@ describe('NotifyFitProfileExpiredUseCase', () => {
     expect(repo.notifications[0]?.type).toBe('FIT_PROFILE_EXPIRED');
     expect(repo.notifications[0]?.actorId).toBe('system');
   });
+
+  // P1 #23
+  it('renders the body via NOTIFICATION_DICTIONARY in the recipient locale', async () => {
+    repo.setRecipient('u-en', {
+      id: 'u-en',
+      name: 'Enzo',
+      email: 'en@example.com',
+      language: 'en',
+    });
+    repo.setRecipient('u-pt', {
+      id: 'u-pt',
+      name: 'Enzo',
+      email: 'pt@example.com',
+      language: 'pt-BR',
+    });
+
+    await useCase.execute({ userId: 'u-en' });
+    await useCase.execute({ userId: 'u-pt' });
+
+    const enRow = repo.notifications.find((n) => n.userId === 'u-en');
+    const ptRow = repo.notifications.find((n) => n.userId === 'u-pt');
+    expect(enRow?.message).toContain('quiz');
+    expect(ptRow?.message).toContain('questionário');
+  });
 });

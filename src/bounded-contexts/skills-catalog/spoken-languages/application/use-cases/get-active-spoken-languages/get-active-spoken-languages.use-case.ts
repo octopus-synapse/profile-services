@@ -5,6 +5,6 @@ export class GetActiveSpokenLanguagesUseCase {
   constructor(private readonly repository: SpokenLanguagesRepositoryPort) {}
 
   async execute(): Promise<SpokenLanguage[]> {
-    return this.repository.findAllActive();
+    return this.repository.listActive();
   }
 }

@@ -1,0 +1,359 @@
+[
+  {
+    "specFile": "test/infrastructure/integration/analytics-tracking.integration.spec.ts",
+    "specLine": 105,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes/${resumeId}/analytics/views?period=month",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes/:resumeId/analytics/views",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/analytics-tracking.integration.spec.ts",
+    "specLine": 139,
+    "varName": "response",
+    "callMethod": "POST",
+    "callPath": "/api/v1/resumes/${resumeId}/analytics/snapshot",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/resumes/:resumeId/analytics/snapshot",
+      "expectedStatus": 201,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/analytics/resume-analytics/resume-analytics.routes.ts"
+    },
+    "currentAssert": 200,
+    "expected": 201,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume-import.integration.spec.ts",
+    "specLine": 150,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes/imports",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes/:resumeId",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume-import.integration.spec.ts",
+    "specLine": 165,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes/imports",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes/:resumeId",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume-import.integration.spec.ts",
+    "specLine": 192,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes/imports/${createdImportId}",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes/imports/:importId",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/import/import.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume-import.integration.spec.ts",
+    "specLine": 216,
+    "varName": "response",
+    "callMethod": "POST",
+    "callPath": "/api/v1/resumes/imports/parse",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/resumes/imports/parse",
+      "expectedStatus": 201,
+      "statusSource": "auto-201-post",
+      "file": "src/bounded-contexts/import/import.routes.ts"
+    },
+    "currentAssert": 200,
+    "expected": 201,
+    "note": "auto-201-post"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume-import.integration.spec.ts",
+    "specLine": 284,
+    "varName": "response",
+    "callMethod": "POST",
+    "callPath": "/api/v1/resumes/imports/json",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/resumes/imports/json",
+      "expectedStatus": 201,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/import/import.routes.ts"
+    },
+    "currentAssert": 200,
+    "expected": 201,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/social-features.integration.spec.ts",
+    "specLine": 99,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/users/${userBId}/is-following",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/users/:userId/is-following",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/social/follow.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume.integration.spec.ts",
+    "specLine": 62,
+    "varName": "res",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/resume.integration.spec.ts",
+    "specLine": 74,
+    "varName": "res",
+    "callMethod": "GET",
+    "callPath": "/api/v1/resumes",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/resumes",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/admin-rbac.integration.spec.ts",
+    "specLine": 178,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/users/manage",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/users/manage",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/identity/users/users.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/public-resumes.integration.spec.ts",
+    "specLine": 90,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/shares/resume/${resumeId}",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/shares/resume/:resumeId",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/public-resumes.integration.spec.ts",
+    "specLine": 100,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/public/resumes/${shareSlug}",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/public/resumes/:slug",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/public-resumes.integration.spec.ts",
+    "specLine": 151,
+    "varName": "response",
+    "callMethod": "DELETE",
+    "callPath": "/api/v1/shares/${share.id}",
+    "matchedRoute": {
+      "method": "DELETE",
+      "path": "/v1/shares/:shareId",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/public-resumes.integration.spec.ts",
+    "specLine": 191,
+    "varName": "response",
+    "callMethod": "GET",
+    "callPath": "/api/v1/public/resumes/${aliasSlug}",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/public/resumes/:slug",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/presentation/public-resumes/public-resumes.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/auth.integration.spec.ts",
+    "specLine": 121,
+    "varName": "res",
+    "callMethod": "POST",
+    "callPath": "/api/v1/auth/login",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/auth/login",
+      "expectedStatus": 200,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/auth.integration.spec.ts",
+    "specLine": 165,
+    "varName": "loginRes",
+    "callMethod": "POST",
+    "callPath": "/api/v1/auth/login",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/auth/login",
+      "expectedStatus": 200,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/auth.integration.spec.ts",
+    "specLine": 175,
+    "varName": "res",
+    "callMethod": "GET",
+    "callPath": "/api/v1/users/profile",
+    "matchedRoute": {
+      "method": "GET",
+      "path": "/v1/users/profile",
+      "expectedStatus": 200,
+      "statusSource": "default-200",
+      "file": "src/bounded-contexts/identity/users/users.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "default-200"
+  },
+  {
+    "specFile": "test/infrastructure/integration/generic-sections-extended.integration.spec.ts",
+    "specLine": 627,
+    "varName": "res",
+    "callMethod": "POST",
+    "callPath": "/api/v1/resumes/${userAResumeId}/sections/${nonRepeatableSectionTypeKey}/items",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/resumes/:resumeId/sections/:sectionTypeKey/items",
+      "expectedStatus": 201,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/resumes/core/resumes.routes.ts"
+    },
+    "currentAssert": 200,
+    "expected": 201,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/auth/2fa-security.integration.spec.ts",
+    "specLine": 132,
+    "varName": "firstUse",
+    "callMethod": "POST",
+    "callPath": "/api/v1/auth/login/verify-2fa",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/auth/login/verify-2fa",
+      "expectedStatus": 200,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "explicit"
+  },
+  {
+    "specFile": "test/infrastructure/integration/auth/2fa-security.integration.spec.ts",
+    "specLine": 269,
+    "varName": "firstUse",
+    "callMethod": "POST",
+    "callPath": "/api/v1/auth/login/verify-2fa",
+    "matchedRoute": {
+      "method": "POST",
+      "path": "/v1/auth/login/verify-2fa",
+      "expectedStatus": 200,
+      "statusSource": "explicit",
+      "file": "src/bounded-contexts/identity/authentication/authentication.routes.ts"
+    },
+    "currentAssert": 201,
+    "expected": 200,
+    "note": "explicit"
+  }
+]

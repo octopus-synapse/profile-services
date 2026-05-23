@@ -14,7 +14,7 @@ import {
  * Thrown when trying to create an account with existing email.
  */
 export class AccountAlreadyExistsException extends ConflictException {
-  readonly code: string = 'ACCOUNT_ALREADY_EXISTS';
+  override readonly code: string = 'ACCOUNT_ALREADY_EXISTS';
   constructor(email: string) {
     super(`An account with email ${email} already exists`);
   }
@@ -67,7 +67,7 @@ export class AccountDeletionRequiresConfirmationException extends DomainExceptio
  * request pipeline until consent is recorded.
  */
 export class ConsentRequiredException extends ForbiddenException {
-  readonly code: string = 'CONSENT_REQUIRED';
+  override readonly code: string = 'CONSENT_REQUIRED';
   constructor() {
     super('consent_required');
   }
@@ -82,7 +82,7 @@ export class ConsentRequiredException extends ForbiddenException {
  * force right now.
  */
 export class ConsentVersionMismatchException extends ValidationException {
-  readonly code: string = 'CONSENT_VERSION_MISMATCH';
+  override readonly code: string = 'CONSENT_VERSION_MISMATCH';
   constructor(
     public readonly expectedTos: string,
     public readonly expectedPrivacy: string,

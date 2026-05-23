@@ -1,3 +1,4 @@
+import { FeatureFlagDisabledException } from '../../domain/exceptions/feature-flag.exceptions';
 import type { FlagEvaluationSnapshot } from '../../domain/types';
 import type { RoleLookupPort } from '../ports/role-lookup.port';
 import { EvaluateFlagsUseCase } from '../use-cases/evaluate-flags.use-case';
@@ -24,5 +25,18 @@ export class FeatureFlagService {
   async snapshotFor(userId: string | null): Promise<FlagEvaluationSnapshot> {
     const roles = userId ? await this.roles.rolesFor(userId) : [];
     return this.evaluator.execute(roles);
+  }
+
+  /**
+   * Endpoint-level guard: throws `FeatureFlagDisabledException` (404)
+   * when the flag is off for the caller. The 404 is intentional —
+   * routes hidden behind an unreleased flag should be invisible to
+   * clients without the flag enabled.
+   */
+  async assertEnabled(key: string, userId: string | null): Promise<void> {
+    const enabled = await this.isEnabled(key, userId);
+    if (!enabled) {
+      throw new FeatureFlagDisabledException();
+    }
   }
 }

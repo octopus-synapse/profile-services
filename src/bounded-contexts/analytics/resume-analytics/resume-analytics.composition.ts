@@ -20,8 +20,14 @@
 import { map, merge } from 'rxjs';
 import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventBusPort, EventPublisher, LoggerPort } from '@/shared-kernel';
+import type {
+  DistributedLockPort,
+  EventBusPort,
+  EventPublisher,
+  LoggerPort,
+} from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
 import type { SseStreamPort } from '@/shared-kernel/http/sse-stream.port';
 import type { CronPort } from '@/shared-kernel/jobs/cron.port';
 import {
@@ -69,7 +75,7 @@ export interface ResumeAnalyticsComposition
    * handlers. Bootstrap calls this once after construction. */
   readonly registerHandlers: (collaborators: ResumeAnalyticsHandlerCollaborators) => void;
   /** Schedules the daily views-projection cron (`30 0 * * *`). */
-  readonly registerCron: (cron: CronPort) => void;
+  readonly registerCron: (cron: CronPort, lock: DistributedLockPort) => void;
 }
 
 /**
@@ -123,6 +129,7 @@ export function buildResumeAnalyticsFacade(
   prisma: PrismaService,
   sseStream: SseStreamPort,
   eventPublisher: EventPublisher,
+  config: ConfigPort,
 ): ResumeAnalyticsFacade {
   const analyticsEventBus = new EventEmitterAnalyticsEventBusAdapter(sseStream);
   const catalogRepo = new PrismaAtsScoreCatalogRepository(prisma);
@@ -130,7 +137,7 @@ export function buildResumeAnalyticsFacade(
   const snapshotRepo = new PrismaSnapshotRepository(prisma);
   const viewTrackingRepo = new PrismaViewTrackingRepository(prisma);
 
-  const viewTracking = new ViewTrackingService(viewTrackingRepo, analyticsEventBus);
+  const viewTracking = new ViewTrackingService(viewTrackingRepo, analyticsEventBus, config);
   const atsScore = new ATSScoreService(catalogRepo, analyticsEventBus);
   const keywordAnalysis = new KeywordAnalysisService();
   const benchmark = new BenchmarkService(benchmarkRepo);
@@ -164,8 +171,9 @@ export function buildResumeAnalyticsComposition(
   eventPublisher: EventPublisher,
   eventBus: EventBusPort,
   logger: LoggerPort,
+  config: ConfigPort,
 ): ResumeAnalyticsComposition {
-  const facade = buildResumeAnalyticsFacade(prisma, sseStream, eventPublisher);
+  const facade = buildResumeAnalyticsFacade(prisma, sseStream, eventPublisher, config);
   const sseBundle = buildAnalyticsSseBundle(sseStream);
 
   return {
@@ -183,8 +191,8 @@ export function buildResumeAnalyticsComposition(
       };
       registerResumeAnalyticsHandlers(deps);
     },
-    registerCron: (cron) => {
-      const worker = new ViewsProjectionWorker(prisma, logger);
+    registerCron: (cron, lock) => {
+      const worker = new ViewsProjectionWorker(prisma, logger, lock);
       // Daily 00:30 UTC — rolls up yesterday's view events.
       cron.register({ pattern: '30 0 * * *' }, worker.run.bind(worker));
     },

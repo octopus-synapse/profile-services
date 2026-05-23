@@ -25,13 +25,16 @@ class StubActivityRepository implements ActivityRepositoryPort {
     return null;
   }
   async findActivitiesByUserIds() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivities() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
   }
   async findUserActivitiesByType() {
-    return { data: [], total: 0 };
+    return { items: [], total: 0 };
+  }
+  async userExists() {
+    return true;
   }
 }
 

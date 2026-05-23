@@ -1,3 +1,8 @@
+export {
+  type AuthenticatedUserLike,
+  requireAuthenticatedUserId,
+  requireCurrentFitProfile,
+} from './application/guards/fit-profile.guards';
 export { DeleteFitProfileUseCase } from './application/use-cases/delete-fit-profile.use-case';
 export { ExpireFitProfileUseCase } from './application/use-cases/expire-fit-profile.use-case';
 export { GetFitProfileStatusUseCase } from './application/use-cases/get-fit-profile-status.use-case';

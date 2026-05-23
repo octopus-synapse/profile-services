@@ -27,12 +27,15 @@ export { BadgesUseCases };
 
 export function buildBadgesUseCases(prisma: PrismaService, logger: LoggerPort): BadgesUseCases {
   const repository = new PrismaBadgesRepository(prisma, logger);
+  const awardBadge = new AwardBadgeUseCase(repository, logger);
 
   return {
     listUserBadges: new ListUserBadgesUseCase(repository),
     listManyUsersBadges: new ListManyUsersBadgesUseCase(repository),
-    awardBadge: new AwardBadgeUseCase(repository, logger),
-    handlePostCreated: new HandlePostCreatedUseCase(repository, logger),
+    awardBadge,
+    // P2-#22: HandlePostCreated takes `awardBadge` via constructor instead
+    // of building it internally — wiring lives here, not in the use case.
+    handlePostCreated: new HandlePostCreatedUseCase(awardBadge),
     handleAtsScoreCalculated: new HandleAtsScoreCalculatedUseCase(repository, logger),
     handleInterviewScheduled: new HandleInterviewScheduledUseCase(repository, logger),
   };

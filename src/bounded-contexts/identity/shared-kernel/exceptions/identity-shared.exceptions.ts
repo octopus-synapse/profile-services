@@ -11,7 +11,7 @@ import { ConflictException, ValidationException } from '@/shared-kernel/exceptio
 
 /** Specific conflict for duplicate email addresses. */
 export class EmailAlreadyExistsException extends ConflictException {
-  readonly code: string = 'EMAIL_IN_USE';
+  override readonly code: string = 'EMAIL_IN_USE';
   constructor(email?: string) {
     super(email ? `Email "${email}" already exists` : 'Email already exists');
   }
@@ -19,7 +19,7 @@ export class EmailAlreadyExistsException extends ConflictException {
 
 /** Specific validation failure for malformed email addresses. */
 export class InvalidEmailFormatException extends ValidationException {
-  readonly code: string = 'EMAIL_INVALID_FORMAT';
+  override readonly code: string = 'EMAIL_INVALID_FORMAT';
   constructor() {
     super('Invalid email format', { email: ['Email must be a valid email address'] });
   }

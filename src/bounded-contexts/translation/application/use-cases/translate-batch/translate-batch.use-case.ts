@@ -3,13 +3,13 @@
  * Handles batch translation operations
  */
 
-import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
 import type {
   BatchTranslationResult,
   SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../../domain/types/translation.types';
+import type { TranslationCoreService } from '../../services/translation-core.service';
 
 const BATCH_SIZE = 5;
 

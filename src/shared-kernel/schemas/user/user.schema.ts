@@ -1,16 +1,15 @@
 import { z } from 'zod';
+import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 import {
+  FullNameSchema,
   GitHubUrlSchema,
   LinkedInUrlSchema,
+  PhoneSchema,
+  ShortDescriptionSchema,
   SocialUrlSchema,
-} from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
-import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
-
-// Local primitives — kept inline because they're only used by user DTOs.
-// Promote to schemas/primitives if a second consumer appears.
-const FullNameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(100);
-const PhoneSchema = z.string().max(20).optional();
-const UserLocationSchema = z.string().max(100).optional();
+  UserLocationSchema,
+} from '@/shared-kernel/schemas/primitives';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * User DTOs
@@ -21,20 +20,27 @@ const UserLocationSchema = z.string().max(100).optional();
 /**
  * Update User Profile Schema
  */
-export const UpdateUserSchema = z.object({
-  name: FullNameSchema.optional(),
-  username: UsernameSchema.optional(),
-  bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
-  location: UserLocationSchema.optional(),
-  website: SocialUrlSchema.optional(),
-  company: z.string().max(100, 'Company must be 100 characters or less').optional(),
-  title: z.string().max(100, 'Title must be 100 characters or less').optional(),
-  phone: PhoneSchema.optional(),
-  linkedin: LinkedInUrlSchema.optional(),
-  github: GitHubUrlSchema.optional(),
-  twitter: SocialUrlSchema.optional(),
-  image: z.string().url().optional(),
-});
+export const UpdateUserSchema = z
+  .object({
+    name: FullNameSchema.optional(),
+    username: UsernameSchema.optional(),
+    bio: ShortDescriptionSchema.optional(),
+    headline: z.string().max(120, 'Headline must be 120 characters or less').optional(),
+    location: UserLocationSchema,
+    website: SocialUrlSchema.optional(),
+    company: z.string().max(100, 'Company must be 100 characters or less').optional(),
+    title: z.string().max(100, 'Title must be 100 characters or less').optional(),
+    phone: PhoneSchema,
+    linkedin: LinkedInUrlSchema.optional(),
+    github: GitHubUrlSchema.optional(),
+    twitter: SocialUrlSchema.optional(),
+    image: SocialUrlSchema.optional(),
+  })
+  .openapi({
+    example: {
+      name: 'Dredd Fixture User',
+    },
+  });
 
 export type UpdateUser = z.infer<typeof UpdateUserSchema>;
 
@@ -58,7 +64,7 @@ export type AdminUserFilters = z.infer<typeof AdminUserFiltersSchema>;
 export const UserStatsSchema = z.object({
   totalResumes: z.number().int().nonnegative(),
   publicProfiles: z.number().int().nonnegative(),
-  lastActive: z.string().datetime().nullable(),
+  lastActive: IsoDateTimeSchema.nullable(),
 });
 
 export type UserStats = z.infer<typeof UserStatsSchema>;
@@ -99,20 +105,30 @@ export const ValidateUsernameRequestSchema = z.object({ username: z.string().tri
 export type ValidateUsernameRequest = z.infer<typeof ValidateUsernameRequestSchema>;
 
 /**
- * Username Validation Error
+ * Username Validation Error.
+ *
+ * Codes match catalog keys in `@packages/i18n/ERROR_DICTIONARY` 1:1 so
+ * the route handler can resolve `message` via `i18n.translate(code, ...)`
+ * using the request's `Accept-Language` (Q8b in CLAUDE.md). The use case
+ * returns these codes via `DomainCode[]`; the route handler enriches
+ * them with the localized `message` before returning.
+ *
+ * `params` carries the template arguments (e.g. `{ min: 3 }` for
+ * `USERNAME_TOO_SHORT`).
  */
 export const UsernameValidationErrorSchema = z.object({
   code: z.enum([
-    'TOO_SHORT',
-    'TOO_LONG',
-    'INVALID_FORMAT',
-    'INVALID_START',
-    'INVALID_END',
-    'CONSECUTIVE_UNDERSCORES',
-    'RESERVED',
-    'UPPERCASE',
-    'ALREADY_TAKEN',
+    'USERNAME_TOO_SHORT',
+    'USERNAME_TOO_LONG',
+    'USERNAME_INVALID_FORMAT',
+    'USERNAME_INVALID_START',
+    'USERNAME_INVALID_END',
+    'USERNAME_CONSECUTIVE_UNDERSCORES',
+    'USERNAME_RESERVED',
+    'USERNAME_MUST_BE_LOWERCASE',
+    'USERNAME_TAKEN',
   ]),
+  params: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
   message: z.string(),
 });
 
@@ -144,3 +160,25 @@ export type UploadImageResponse = z.infer<typeof UploadImageResponseSchema>;
 export const UploadImageResponseWrapperSchema = z.object({ data: UploadImageResponseSchema });
 
 export type UploadImageResponseEnvelope = z.infer<typeof UploadImageResponseWrapperSchema>;
+
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+
+export type AdminUserFiltersDto = z.infer<typeof AdminUserFiltersSchema>;
+
+export type UserStatsDto = z.infer<typeof UserStatsSchema>;
+
+export type CheckUsernameResponseDto = z.infer<typeof CheckUsernameResponseSchema>;
+
+export type UpdateUsernameRequestDto = z.infer<typeof UpdateUsernameRequestSchema>;
+
+export type UpdateUsernameResponseDto = z.infer<typeof UpdateUsernameResponseSchema>;
+
+export type ValidateUsernameRequestDto = z.infer<typeof ValidateUsernameRequestSchema>;
+
+export type UsernameValidationErrorDto = z.infer<typeof UsernameValidationErrorSchema>;
+
+export type ValidateUsernameResponseDto = z.infer<typeof ValidateUsernameResponseSchema>;
+
+export type UploadImageResponseDto = z.infer<typeof UploadImageResponseSchema>;
+
+export type UploadImageResponseWrapperDto = z.infer<typeof UploadImageResponseWrapperSchema>;

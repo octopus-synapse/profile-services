@@ -1,6 +1,9 @@
 import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
-import { OnboardingUnknownStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
+import {
+  OnboardingAlreadyAtLastStepException,
+  OnboardingUnknownStepException,
+} from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
@@ -22,6 +25,22 @@ export class GotoOnboardingStepUseCase {
       throw new OnboardingUnknownStepException(stepId);
     }
 
+    // P1 #26 — state-machine guard: forward jumps are restricted to
+    // `currentIndex + 1` (one step at a time), so a user can't skip past
+    // unvisited steps. Backward navigation to any earlier step stays
+    // free, and re-selecting the current step is a no-op.
+    const currentIndex = getStepIndex(progress.currentStep, steps);
+    if (currentIndex < 0) {
+      // Progress refers to a step that was removed from the config — refuse
+      // the jump rather than allow arbitrary forward movement, otherwise
+      // the guard below silently disengages and the user lands anywhere.
+      // Caller must normalise via restart first.
+      throw new OnboardingUnknownStepException(progress.currentStep);
+    }
+    if (targetIndex > currentIndex + 1) {
+      throw new OnboardingAlreadyAtLastStepException();
+    }
+
     await this.saveProgress(userId, {
       currentStep: stepId,
       completedSteps: progress.completedSteps,
@@ -30,7 +49,7 @@ export class GotoOnboardingStepUseCase {
   }
 
   private async buildSteps() {
-    const sectionTypes = await this.sectionTypeDefinition.findAll();
+    const sectionTypes = await this.sectionTypeDefinition.listAll();
     return buildOnboardingSteps(sectionTypes);
   }
 }

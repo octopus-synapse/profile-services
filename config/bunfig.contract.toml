@@ -1,0 +1,6 @@
+[test]
+root = "./test/infrastructure/contract"
+timeout = 60000
+
+[install.scopes]
+"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }

@@ -3,11 +3,10 @@
  * context. Used by the timeline endpoint.
  */
 
-import type { PostWithRelations, ReactionType } from './post';
+import type { PostWithRelations } from './post.entity';
 
 export interface FeedItem extends PostWithRelations {
   readonly isLiked: boolean;
-  readonly reactionType: ReactionType | null;
   readonly isBookmarked: boolean;
   readonly isReposted: boolean;
   readonly hasVoted: boolean;
@@ -16,8 +15,9 @@ export interface FeedItem extends PostWithRelations {
 }
 
 export interface FeedTimelineResult {
-  readonly posts: FeedItem[];
+  readonly items: FeedItem[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }
 
 export interface BookmarkedFeedItem extends PostWithRelations {
@@ -27,26 +27,31 @@ export interface BookmarkedFeedItem extends PostWithRelations {
 }
 
 export interface BookmarksResult {
-  readonly posts: BookmarkedFeedItem[];
+  readonly items: BookmarkedFeedItem[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }
 
 export interface UserPostsResult {
-  readonly posts: PostWithRelations[];
+  readonly items: PostWithRelations[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }
 
 export interface CommentsResult<T> {
-  readonly comments: T[];
+  readonly items: T[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }
 
 export interface RepliesResult<T> {
-  readonly replies: T[];
+  readonly items: T[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }
 
 export interface ReactionsResult<T> {
-  readonly reactions: T[];
+  readonly items: T[];
   readonly nextCursor: string | null;
+  readonly hasNext: boolean;
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 /**
  * Resume Types
@@ -64,8 +65,8 @@ export const ResumeSchema = z.object({
   summary: z.string().nullable(),
   isPublic: z.boolean(),
   slug: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(), // Personal info
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema, // Personal info
   fullName: z.string().nullable(),
   jobTitle: z.string().nullable(),
   phone: z.string().nullable(),

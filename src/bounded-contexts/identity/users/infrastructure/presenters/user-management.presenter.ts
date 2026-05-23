@@ -1,3 +1,4 @@
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type {
   CreatedUser,
   UpdatedUser,
@@ -9,7 +10,7 @@ import type {
   UserDetailsDataDto,
   UserListItemDto,
   UserManagementListDataDto,
-} from '../../dto/controller-response.dto';
+} from '../../dto/controller-response.schema';
 
 type UserListItemPayload = UserListItemDto;
 
@@ -29,9 +30,12 @@ export function toUserListItem(user: UserListItem): UserListItemPayload {
 }
 
 export function toUserManagementListData(result: UserListResult): UserManagementListDataDto {
-  const users: UserListItemPayload[] = [];
-  for (const u of result.users) users.push(toUserListItem(u));
-  return { users, pagination: result.pagination };
+  const items: UserListItemPayload[] = [];
+  for (const u of result.items) items.push(toUserListItem(u));
+  return buildPaginatedResponse(items, result.total, {
+    page: result.page,
+    limit: result.limit,
+  });
 }
 
 export function toUserDetailsData(user: UserDetails): UserDetailsDataDto {

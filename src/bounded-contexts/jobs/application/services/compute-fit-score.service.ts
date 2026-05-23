@@ -48,7 +48,11 @@ function englishAtLeast(
   resume: EnglishLevel | null | undefined,
   job: EnglishLevel | null | undefined,
 ): number {
-  if (!job) return 1;
+  // P1-#A2-28: when the job declares no English requirement, neutralise
+  // (0.5) rather than inflate to 1. Same `unknown ⇒ neutral` semantics
+  // as `remoteMatch` — otherwise every job that omits the field appears
+  // to "fully match" any candidate, even those without English at all.
+  if (!job) return 0.5;
   if (!resume) return 0.5;
   return ENGLISH_ORDER.indexOf(resume) >= ENGLISH_ORDER.indexOf(job) ? 1 : 0;
 }
@@ -65,9 +69,23 @@ function remoteMatch(
   return 0;
 }
 
-export function computeFitScore(input: FitScoreInput): FitScore {
+/**
+ * P1 #37 — returns `null` when there is no skill data on either side
+ * (job listing without skills, OR user's resume without skills). The
+ * previous implementation treated an empty `jobSkills` array as a 100%
+ * overlap, inflating false positives — every skill-less job appeared
+ * as a perfect match and dominated recommendations.
+ *
+ * Callers that need a numeric fallback should map `null → 0.5` (neutral)
+ * explicitly so the choice is visible in code review.
+ */
+export function computeFitScore(input: FitScoreInput): FitScore | null {
   const resumeSet = new Set(normalize(input.resumeSkills));
   const jobSkills = normalize(input.jobSkills);
+
+  // P1 #37 — without either side's skills there's no signal worth scoring.
+  if (jobSkills.length === 0 || resumeSet.size === 0) return null;
+
   const matched: string[] = [];
   const missing: string[] = [];
 
@@ -76,7 +94,7 @@ export function computeFitScore(input: FitScoreInput): FitScore {
     else missing.push(skill);
   }
 
-  const skillOverlap = jobSkills.length === 0 ? 1 : matched.length / jobSkills.length;
+  const skillOverlap = matched.length / jobSkills.length;
   const english = englishAtLeast(input.resumeEnglish, input.jobMinEnglish);
   const remote = remoteMatch(input.resumeRemotePref, input.jobRemotePolicy);
 

@@ -43,11 +43,22 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       personalInfo: data.personalInfo ?? existing?.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
       sections: data.sections ?? existing?.sections ?? null,
-      templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? existing?.resumeStyleId ?? null,
+      activatedExtras:
+        data.activatedExtras !== undefined
+          ? data.activatedExtras
+          : (existing?.activatedExtras ?? []),
       updatedAt: new Date(),
     };
     this.progressMap.set(userId, record);
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    const existing = this.progressMap.get(userId);
+    if (existing) {
+      this.progressMap.set(userId, { ...existing, activatedExtras: extras, updatedAt: new Date() });
+    }
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -56,6 +67,14 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
 
   async deleteProgressWithTx(_tx: unknown, userId: string): Promise<void> {
     this.progressMap.delete(userId);
+  }
+
+  async upsertProgressWithTx(
+    _tx: unknown,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<SaveProgressResult> {
+    return this.upsertProgress(userId, data);
   }
 
   async findUserByUsername(username: string): Promise<{ id: string } | null> {
@@ -123,6 +142,86 @@ describe('SaveProgressUseCase', () => {
     const result = await useCase.execute('user-1', data);
 
     expect(result.currentStep).toBe('personal-info');
+  });
+
+  describe('Username normalization (B2 fix)', () => {
+    it('rejects username with spaces / uppercase rather than persisting raw', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'Enzo Patti',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects username with hyphens (regex)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'enzo-patti',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects username shorter than min length', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'ab',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('rejects reserved username (admin)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: 'admin',
+      };
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
+
+    it('accepts and normalizes uppercase + trim before persisting', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'username',
+        completedSteps: ['welcome'],
+        username: '  EnzoDev  ',
+      };
+      await useCase.execute('user-1', data);
+      const persisted = await repository.findProgressByUserId('user-1');
+      expect(persisted?.username).toBe('enzodev');
+    });
+
+    it('treats undefined/null/empty username as skip (no validation)', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'welcome',
+        completedSteps: [],
+        username: '',
+      };
+      const result = await useCase.execute('user-1', data);
+      expect(result.currentStep).toBe('welcome');
+    });
+  });
+});
+
+describe('SaveProgressUseCase — case-insensitive uniqueness (B1 fix)', () => {
+  let useCase: SaveProgressUseCase;
+  let repository: InMemoryOnboardingProgressRepository;
+
+  beforeEach(() => {
+    repository = new InMemoryOnboardingProgressRepository();
+    useCase = new SaveProgressUseCase(repository);
+  });
+
+  it('rejects a normalized username already owned by another user (case clash)', async () => {
+    // Existing user owns "enzodev" (committed). New user submits "ENZODEV".
+    repository.addUser('enzodev', 'other-user');
+    const data: OnboardingProgress = {
+      currentStep: 'username',
+      completedSteps: ['welcome'],
+      username: 'ENZODEV',
+    };
+    await expect(useCase.execute('user-new', data)).rejects.toThrow(ConflictException);
   });
 
   describe('Section validation', () => {

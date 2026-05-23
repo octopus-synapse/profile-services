@@ -66,7 +66,7 @@ export class TechSkillsSyncService {
       this.logger.log('Tech skills sync completed successfully');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error('Tech skills sync failed', errorMessage);
+      this.logger.error('Tech skills sync failed', { stack: errorMessage });
       result.errors.push(errorMessage);
     }
 

@@ -9,7 +9,7 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import {
   InvalidLimitParameterException,
   SpokenLanguageNotFoundException,
@@ -18,10 +18,26 @@ import { SpokenLanguagesService } from './services/spoken-languages.service';
 
 const SearchQuery = z.object({
   q: z.string().optional(),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 const CodeParams = z.object({ code: z.string() });
+
+const SpokenLanguageSchema = z.object({
+  code: z.string(),
+  nameEn: z.string(),
+  namePtBr: z.string(),
+  nameEs: z.string(),
+  nativeName: z.string().nullable(),
+});
+
+const LanguagesListResponseSchema = z.object({
+  languages: z.array(SpokenLanguageSchema),
+});
+
+const LanguageResponseSchema = z.object({
+  language: SpokenLanguageSchema,
+});
 
 function parseLimit(raw: string | undefined, fallback: number): number {
   if (raw === undefined || raw === null || raw === '') return fallback;
@@ -38,6 +54,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     path: '/v1/spoken-languages',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: LanguagesListResponseSchema,
     openapi: {
       summary: 'Get all active spoken languages',
       tags: ['spoken-languages'],
@@ -45,8 +62,8 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     },
     sdk: { exported: true },
     handler: async (_ctx, service) => {
-      const languages = await service.findAllActiveLanguages();
-      return { success: true, data: { languages } };
+      const languages = await service.listActiveLanguages();
+      return { languages };
     },
   },
   {
@@ -55,6 +72,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     query: SearchQuery,
+    response: LanguagesListResponseSchema,
     openapi: {
       summary: 'Search spoken languages by name',
       tags: ['spoken-languages'],
@@ -65,7 +83,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
       const { q, limit } = ctx.query as { q?: string; limit?: string };
       const parsedLimit = parseLimit(limit, 10);
       const languages = await service.searchLanguagesByName(q ?? '', parsedLimit);
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -74,6 +92,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: CodeParams,
+    response: LanguageResponseSchema,
     openapi: {
       summary: 'Get spoken language by code',
       tags: ['spoken-languages'],
@@ -84,7 +103,7 @@ export const spokenLanguagesRoutes: ReadonlyArray<Route<SpokenLanguagesService>>
       const { code } = ctx.params as { code: string };
       const language = await service.findLanguageByCode(code);
       if (!language) throw new SpokenLanguageNotFoundException(code);
-      return { success: true, data: { language } };
+      return { language };
     },
   },
 ];

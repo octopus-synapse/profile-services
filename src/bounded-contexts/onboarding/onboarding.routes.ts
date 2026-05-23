@@ -4,11 +4,11 @@
  * `OnboardingPreviewController` SSE stream.
  */
 
-import { debounceTime, filter, from, map, switchMap } from 'rxjs';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { OnboardingCompletionInProgressException } from './domain/exceptions/onboarding-extra.exceptions';
 import { type OnboardingData, OnboardingDataSchema } from './domain/schemas/onboarding-data.schema';
@@ -16,22 +16,29 @@ import {
   type OnboardingProgress,
   OnboardingProgressSchema,
 } from './domain/schemas/onboarding-progress.schema';
+import { OnboardingSessionSchema } from './infrastructure/dto/onboarding-session-response.schema';
 import { buildSession } from './infrastructure/presenters/onboarding.presenter';
-
-// ─── Schemas ─────────────────────────────────────────────────────────
-const LocaleQuery = z.object({ locale: z.string().optional() });
-const StepKeyParam = z.object({ key: z.string() });
-const StepDataBody = z.record(z.unknown());
-const GotoStepBody = z.object({ stepId: z.string() });
-
-type LocaleQuery = z.infer<typeof LocaleQuery>;
-
-// Helper to fetch system themes through the bundle.
-async function getSystemThemes(bundle: OnboardingHttpBundle) {
-  return bundle.systemThemes.getSystemThemes();
-}
-
-type AuthUser = { userId: string; email: string; name?: string };
+import {
+  AdminConfigBody,
+  AdminStepBody,
+  AuthUser,
+  CompleteOnboardingResponseSchema,
+  EmptyResponseSchema,
+  GotoStepBody,
+  getSystemResumeStyles,
+  LocaleQuery,
+  OnboardingConfigResponseSchema,
+  OnboardingConfigUpdatedResponseSchema,
+  OnboardingStatsResponseSchema,
+  OnboardingStatusResponseSchema,
+  OnboardingStepCreatedResponseSchema,
+  OnboardingStepResponseSchema,
+  OnboardingStepsResponseSchema,
+  RestartQuery,
+  SaveProgressResponseSchema,
+  StepDataBody,
+  StepKeyParam,
+} from './onboarding.routes.schemas';
 
 export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
   // ===== Session / Commands API =====
@@ -40,6 +47,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session',
     auth: { kind: 'jwt' },
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Get onboarding session with field definitions and navigation',
       tags: ['onboarding'],
@@ -50,25 +58,22 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
-      const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+      const [data, stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
-        bundle.sectionTypes.findAll(locale),
+        getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return {
-        success: true,
-        data: buildSession(
-          data,
-          stepConfigs,
-          strengthConfig,
-          locale,
-          systemThemes,
-          { name: user.name, email: user.email },
-          sectionTypes,
-        ),
-      };
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {
@@ -77,6 +82,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: StepDataBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Save current step data and advance to next step',
       tags: ['onboarding'],
@@ -92,15 +98,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -108,6 +111,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/session/previous',
     auth: { kind: 'jwt' },
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Go back to previous step',
       tags: ['onboarding'],
@@ -119,15 +123,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
       const rawData = await bundle.useCases.goBackOnboardingStepUseCase.execute(user.userId);
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -136,6 +137,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: GotoStepBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Jump to an accessible step',
       tags: ['onboarding'],
@@ -151,15 +153,12 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         body.stepId,
       );
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
@@ -168,6 +167,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     body: StepDataBody,
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
       summary: 'Save current step data without advancing',
       tags: ['onboarding'],
@@ -183,22 +183,19 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      bundle.sseStream.publish('onboarding.data.changed', { userId: user.userId });
-      const [stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
+        getSystemResumeStyles(bundle),
       ]);
-      return {
-        success: true,
-        data: buildSession(rawData, stepConfigs, strengthConfig, locale, systemThemes),
-      };
+      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
     },
   },
   {
     method: 'POST',
     path: '/v1/onboarding/session/complete',
     auth: { kind: 'jwt' },
+    response: CompleteOnboardingResponseSchema,
     openapi: {
       summary: 'Complete onboarding — backend builds payload from saved progress',
       tags: ['onboarding'],
@@ -217,11 +214,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
           user.userId,
         );
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
-        return {
-          success: true,
-          data: result,
-          resumeId: result.resumeId,
-        };
+        return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
       }
@@ -229,11 +222,20 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
   },
   {
     method: 'POST',
-    path: '/v1/onboarding/session/restart',
+    path: '/v1/onboarding/session/extras',
     auth: { kind: 'jwt' },
+    body: z
+      .object({ extras: z.array(z.string()).default([]) })
+      // Use canonical extra step keys (`section:<sectionTypeKey>`) so
+      // contract probes hit a valid path, not the OnboardingUnknownStep
+      // 400 branch. Allowed set lives in
+      // bounded-contexts/onboarding/domain/config/onboarding-section-defaults.config
+      // (EXTRA_SECTION_KEYS + extraStepKey()).
+      .openapi({ example: { extras: ['section:project_v1', 'section:certification_v1'] } }),
     query: LocaleQuery,
+    response: OnboardingSessionSchema,
     openapi: {
-      summary: 'Restart onboarding with existing profile data',
+      summary: 'Activate optional extra steps (projects, certifications, awards, publications)',
       tags: ['onboarding'],
       description: 'Onboarding API',
     },
@@ -242,29 +244,69 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
+      const body = ctx.body as { extras: string[] };
+      await bundle.activateExtras.execute(user.userId, body.extras);
+      // Return the updated session so the frontend can re-render the
+      // sidebar with the newly-visible extras in one round-trip.
+      const [data, stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
+        bundle.progress.getProgressUseCase.execute(user.userId),
+        bundle.config.getActiveSteps(),
+        bundle.config.getStrengthConfig(),
+        getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
+      ]);
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
+    },
+  },
+  {
+    method: 'POST',
+    path: '/v1/onboarding/session/restart',
+    auth: { kind: 'jwt' },
+    query: RestartQuery,
+    response: OnboardingSessionSchema,
+    openapi: {
+      summary: 'Restart onboarding (default: carry forward profile data; mode=clean: blank slate)',
+      tags: ['onboarding'],
+      description: 'Onboarding API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const user = ctx.user! as AuthUser;
+      const q = ctx.query as RestartQuery;
+      const locale = parseLocale(q.locale);
+      const clean = q.mode === 'clean';
       const stepConfigs = await bundle.config.getActiveSteps();
-      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs);
-      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false
-      bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      await bundle.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs, { clean });
+      // Invalidate session cache so frontend picks up hasCompletedOnboarding = false.
+      // Skipped on clean mode (tests) — the consumer reloads the page anyway and
+      // the SSE blast can race with `networkidle` waits, closing the test page.
+      if (!clean) {
+        bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
+      }
       // Reuse the GET /session payload shape for the response.
-      const [data, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
+      const [data, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.progress.getProgressUseCase.execute(user.userId),
         bundle.config.getStrengthConfig(),
-        getSystemThemes(bundle),
-        bundle.sectionTypes.findAll(locale),
+        getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return {
-        success: true,
-        data: buildSession(
-          data,
-          stepConfigs,
-          strengthConfig,
-          locale,
-          systemThemes,
-          { name: user.name, email: user.email },
-          sectionTypes,
-        ),
-      };
+      return buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
 
@@ -273,6 +315,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     method: 'GET',
     path: '/v1/onboarding/progress',
     auth: { kind: 'jwt' },
+    response: OnboardingSessionSchema,
     openapi: {
       summary: '[Legacy] Get onboarding progress',
       tags: ['onboarding'],
@@ -286,13 +329,14 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
       ]);
-      return { success: true, data: buildSession(data, stepConfigs, strengthConfig) };
+      return buildSession(data, stepConfigs, strengthConfig);
     },
   },
   {
     method: 'GET',
     path: '/v1/onboarding/status',
     auth: { kind: 'jwt' },
+    response: OnboardingStatusResponseSchema,
     openapi: {
       summary: '[Legacy] Get onboarding completion status',
       tags: ['onboarding'],
@@ -302,7 +346,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     handler: async (ctx, bundle) => {
       const user = ctx.user! as AuthUser;
       const status = await bundle.useCases.getOnboardingStatusUseCase.execute(user.userId);
-      return { success: true, data: status, ...status };
+      return status;
     },
   },
   {
@@ -310,6 +354,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding/progress',
     auth: { kind: 'jwt' },
     body: OnboardingProgressSchema,
+    response: SaveProgressResponseSchema,
     openapi: {
       summary: '[Legacy] Save onboarding progress',
       tags: ['onboarding'],
@@ -320,7 +365,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const user = ctx.user! as AuthUser;
       const body = ctx.body as OnboardingProgress;
       const result = await bundle.progress.saveProgressUseCase.execute(user.userId, body);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -328,6 +373,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/onboarding',
     auth: { kind: 'jwt' },
     body: OnboardingDataSchema,
+    response: CompleteOnboardingResponseSchema,
     openapi: {
       summary: '[Legacy] Complete onboarding with explicit payload',
       tags: ['onboarding'],
@@ -345,11 +391,7 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       try {
         const result = await bundle.useCases.completeOnboardingUseCase.execute(user.userId, data);
         bundle.sseStream.publish('auth.session.invalidate', { userId: user.userId });
-        return {
-          success: true,
-          data: result,
-          resumeId: result.resumeId,
-        };
+        return result;
       } finally {
         await bundle.cacheLock.releaseLock(lockKey);
       }
@@ -362,9 +404,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/steps',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingStepsResponseSchema,
     openapi: {
       summary: 'List all onboarding steps',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -377,9 +420,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/stats',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingStatsResponseSchema,
     openapi: {
       summary: 'Get onboarding funnel statistics',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -393,15 +437,16 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
+    response: OnboardingStepResponseSchema,
     openapi: {
       summary: 'Get onboarding step by key',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       const step = await bundle.admin.getStep(key);
-      if (!step) return { success: false, message: 'Step not found' };
+      if (!step) throw new EntityNotFoundException('OnboardingStep', key);
       return { step };
     },
   },
@@ -410,10 +455,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/steps',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    body: z.record(z.unknown()),
+    body: AdminStepBody,
+    response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Create onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -428,10 +474,11 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
-    body: z.record(z.unknown()),
+    body: AdminStepBody,
+    response: OnboardingStepCreatedResponseSchema,
     openapi: {
       summary: 'Update onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
@@ -447,15 +494,16 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
     params: StepKeyParam,
+    response: EmptyResponseSchema,
     openapi: {
       summary: 'Delete onboarding step',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
       const { key } = ctx.params as { key: string };
       await bundle.admin.deleteStep(key);
-      return undefined;
+      return null;
     },
   },
   {
@@ -463,9 +511,10 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/config',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
+    response: OnboardingConfigResponseSchema,
     openapi: {
       summary: 'Get onboarding config (strength levels)',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (_ctx, bundle) => {
@@ -478,53 +527,17 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
     path: '/v1/admin/onboarding/config',
     auth: { kind: 'jwt' },
     permission: Permission.SECTION_TYPE_MANAGE,
-    body: z.record(z.unknown()),
+    body: AdminConfigBody,
+    response: OnboardingConfigUpdatedResponseSchema,
     openapi: {
       summary: 'Update onboarding config',
-      tags: ['Admin - Onboarding'],
+      tags: ['admin-onboarding'],
       description: 'Admin onboarding management',
     },
     handler: async (ctx, bundle) => {
       const body = ctx.body as Record<string, unknown>;
       const config = await bundle.admin.updateConfig(body);
       return { config };
-    },
-  },
-
-  // ===== Live preview SSE stream =====
-  {
-    method: 'GET',
-    path: '/v1/onboarding/preview/stream',
-    auth: { kind: 'jwt' },
-    kind: 'sse',
-    openapi: {
-      summary: 'Subscribe to live resume preview updates',
-      tags: ['Onboarding Preview'],
-      description: 'Streams PNG preview as base64 when onboarding data changes.',
-    },
-    handler: async (ctx, bundle) => {
-      const userId = ctx.user!.userId;
-      let version = 0;
-
-      return bundle.sseStream.subscribe<{ userId: string }>('onboarding.data.changed').pipe(
-        // Each consumer filters its own user — the channel is shared.
-        filter((event) => event.data.userId === userId),
-        // Coalesce bursts (e.g. autosave keystrokes) into a single render.
-        debounceTime(500),
-        switchMap(() => {
-          version++;
-          const currentVersion = version;
-          return from(bundle.previewRenderer.renderPreview(userId)).pipe(
-            filter((buffer): buffer is Buffer => buffer !== null),
-            map((buffer) => ({
-              data: { type: 'preview', version: currentVersion, image: buffer.toString('base64') },
-              id: `preview-${currentVersion}`,
-              type: 'preview',
-              retry: 15000,
-            })),
-          );
-        }),
-      );
     },
   },
 ];

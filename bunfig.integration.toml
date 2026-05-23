@@ -1,9 +1,0 @@
-[test]
-# Integration configuration. Only the migrated suites under
-# `test/infrastructure/integration/` run here — `_legacy/` stays
-# excluded until each suite is converted to the new `TestApp` harness.
-root = "./test/infrastructure/integration"
-timeout = 60000
-
-[install.scopes]
-"@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }

@@ -11,7 +11,7 @@
  */
 
 import type { PipelineStage } from './pipeline';
-import type { Route } from './route';
+import type { Route } from './route.types';
 
 export interface BootstrapOptions {
   readonly routes: readonly Route[];

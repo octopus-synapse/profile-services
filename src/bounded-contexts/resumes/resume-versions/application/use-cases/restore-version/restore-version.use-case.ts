@@ -7,7 +7,7 @@ import {
   ResumeAccessDeniedException,
   ResumeNotFoundException,
   ResumeVersionNotFoundException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { LoggerPort } from '@/shared-kernel';
 import type { VersionRestoreResult } from '../../../domain/entities/resume-version';
@@ -46,10 +46,16 @@ const RESUME_MUTABLE_FIELDS = [
   'accentColor',
   'customTheme',
   'styleId',
-  'profileViews',
-  'totalStars',
+  // P1 #33 — `profileViews`, `totalStars`, `publishedAt` are
+  // monotonic / lifecycle-bound counters whose values must NOT be
+  // restored from an older snapshot. Restoring `profileViews` would
+  // shave off legitimate views that accrued since the snapshot;
+  // restoring `publishedAt` would resurface a previous publication
+  // date (or null-out a still-published resume). `totalCommits` is
+  // similarly accumulator-shaped but is kept here pending a follow-up
+  // audit of its semantics — for now only the three confirmed offenders
+  // are dropped from the allowlist.
   'totalCommits',
-  'publishedAt',
 ] as const;
 
 export class RestoreVersionUseCase {
@@ -88,7 +94,8 @@ export class RestoreVersionUseCase {
 
     await this.repository.updateResumeFromSnapshot(resumeId, resumeData);
 
-    this.eventPublisher.publishVersionRestored(resumeId, {
+    // P2-#7: await so projection-sync handlers can surface failures.
+    await this.eventPublisher.publishVersionRestoredAsync(resumeId, {
       userId,
       restoredFromVersion: version.versionNumber,
     });

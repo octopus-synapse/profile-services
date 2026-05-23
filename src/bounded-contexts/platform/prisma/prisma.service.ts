@@ -47,10 +47,19 @@ export class PrismaService extends PrismaClient {
   }
 
   async cleanDatabase(): Promise<void> {
-    if (process.env.NODE_ENV === 'production') {
-      // Test-only safety guard. Not user-facing — prevents catastrophic misuse
-      // by failing loud if invoked outside dev/test environments.
-      throw new Error('Cannot clean database in production!');
+    // P0-#17: previously gated on `NODE_ENV === 'production'` (an exact
+    // match). `'Production'`, `'PRODUCTION'`, `'prod'`, or any unset env
+    // sailed through and could wipe live data on accidental invocation.
+    // Now fail-closed: only `'test'` is allowed, AND the caller must opt
+    // in explicitly via `ALLOW_DESTRUCTIVE_DB_OPS=true`. Test harnesses set
+    // both vars; everything else throws loud.
+    if (process.env.NODE_ENV !== 'test') {
+      throw new Error(
+        `cleanDatabase requires NODE_ENV='test' (got '${process.env.NODE_ENV ?? '<unset>'}')`,
+      );
+    }
+    if (process.env.ALLOW_DESTRUCTIVE_DB_OPS !== 'true') {
+      throw new Error('cleanDatabase requires ALLOW_DESTRUCTIVE_DB_OPS=true to be set explicitly');
     }
 
     // Delete in reverse order of dependencies to avoid FK constraint errors

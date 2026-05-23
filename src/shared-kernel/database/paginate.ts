@@ -1,32 +1,32 @@
 /**
- * Generic pagination helper.
+ * Generic Prisma-backed pagination helper.
  *
- * Replaces the copy-pasted pagination pattern found in 10+ services:
- *   const page = query.page ?? 1;
- *   const pageSize = query.pageSize ?? 20;
- *   const skip = (page - 1) * pageSize;
- *   const [items, total] = await Promise.all([...findMany, ...count]);
- *   return { items, total, page, pageSize, totalPages };
+ * Returns the canonical `PaginatedResponse<T>` shape from
+ * `shared-kernel/schemas/common/api.types.ts` so use-cases pass it
+ * through without remapping.
  *
  * Usage:
- *   return paginate(this.prisma.techArea, { page, pageSize, where, orderBy });
+ *   return paginate(this.prisma.techArea, { page, limit, where, orderBy });
  */
+
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
 
 interface PaginateOptions<TWhere, TOrderBy> {
   page?: number;
+  /** Page size. `pageSize` accepted as alias for backwards compatibility. */
+  limit?: number;
+  /**
+   * @deprecated use `limit`.
+   * @removeBy 2026-08-31
+   * P2-143 — alias retained because section-types + jobs admin DTOs
+   * still ship `pageSize` to clients. Removal blocked on a coordinated
+   * frontend update; tracked under the duplication-audit follow-up.
+   */
   pageSize?: number;
   where?: TWhere;
   orderBy?: TOrderBy;
   include?: Record<string, unknown>;
   select?: Record<string, unknown>;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
 }
 
 interface PrismaDelegate {
@@ -37,12 +37,12 @@ interface PrismaDelegate {
 export async function paginate<T, TWhere = unknown, TOrderBy = unknown>(
   delegate: PrismaDelegate,
   options: PaginateOptions<TWhere, TOrderBy>,
-): Promise<PaginatedResult<T>> {
-  const page = options.page ?? 1;
-  const pageSize = options.pageSize ?? 20;
-  const skip = (page - 1) * pageSize;
+): Promise<PaginatedResponse<T>> {
+  const page = Math.max(1, Math.floor(options.page ?? 1));
+  const limit = Math.max(1, Math.floor(options.limit ?? options.pageSize ?? 20));
+  const skip = (page - 1) * limit;
 
-  const findArgs: Record<string, unknown> = { where: options.where, skip, take: pageSize };
+  const findArgs: Record<string, unknown> = { where: options.where, skip, take: limit };
 
   if (options.orderBy) findArgs.orderBy = options.orderBy;
   if (options.include) findArgs.include = options.include;
@@ -53,5 +53,14 @@ export async function paginate<T, TWhere = unknown, TOrderBy = unknown>(
     delegate.count({ where: options.where }),
   ]);
 
-  return { items: items as T[], total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  const totalPages = Math.ceil(total / limit);
+  return {
+    items: items as T[],
+    total,
+    page,
+    limit,
+    totalPages,
+    hasNext: page * limit < total,
+    hasPrev: page > 1,
+  };
 }

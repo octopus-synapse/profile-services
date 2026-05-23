@@ -18,7 +18,7 @@ permissions:
 jobs:
   create-release-pr:
     if: github.ref == 'refs/heads/homolog'
-    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-create-pr.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-create-pr.yml@9807eeb5350f8d8bcccc5acd898162f8b67d3581 # v1
     with:
       sha: ${{ github.sha }}
       forced_type: ${{ github.event.inputs.force_release_type || '' }}
@@ -37,7 +37,7 @@ jobs:
     # `head_commit.message` is null on workflow_dispatch — `|| ''` keeps
     # `contains()` from blowing up with a null reference in that branch.
     if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message || '', 'chore(release):'))
-    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@9807eeb5350f8d8bcccc5acd898162f8b67d3581 # v1
     with:
       commit_sha: ${{ github.sha }}
     secrets: inherit
@@ -52,7 +52,7 @@ jobs:
     #    (the original failure mode that bit v0.2.2: GITHUB_TOKEN wasn't
     #    being passed to the build secret in the shared workflow).
     if: needs.finalize-release.outputs.tag != '' && (needs.finalize-release.outputs.released == 'true' || github.event_name == 'workflow_dispatch')
-    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@v1
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@9807eeb5350f8d8bcccc5acd898162f8b67d3581 # v1
     with:
       tag: ${{ needs.finalize-release.outputs.tag }}
     secrets: inherit

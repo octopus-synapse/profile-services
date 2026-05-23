@@ -68,8 +68,8 @@ describe('LinkedInUrlSchema', () => {
     });
   });
 
-  it('should accept undefined (optional)', () => {
-    expect(() => LinkedInUrlSchema.parse(undefined)).not.toThrow();
+  it('should accept undefined when chained with .optional()', () => {
+    expect(() => LinkedInUrlSchema.optional().parse(undefined)).not.toThrow();
   });
 
   const invalidUrls = ['linkedin.com/in/user', 'https://twitter.com/user', 'not-a-url'];
@@ -95,8 +95,8 @@ describe('GitHubUrlSchema', () => {
     });
   });
 
-  it('should accept undefined (optional)', () => {
-    expect(() => GitHubUrlSchema.parse(undefined)).not.toThrow();
+  it('should accept undefined when chained with .optional()', () => {
+    expect(() => GitHubUrlSchema.optional().parse(undefined)).not.toThrow();
   });
 
   const invalidUrls = ['github.com/user', 'https://gitlab.com/user', 'not-a-url'];
@@ -118,8 +118,8 @@ describe('SocialUrlSchema', () => {
     });
   });
 
-  it('should accept undefined (optional)', () => {
-    expect(() => SocialUrlSchema.parse(undefined)).not.toThrow();
+  it('should accept undefined when chained with .optional()', () => {
+    expect(() => SocialUrlSchema.optional().parse(undefined)).not.toThrow();
   });
 
   it('should reject non-HTTP(S) URLs', () => {

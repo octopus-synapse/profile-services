@@ -12,17 +12,17 @@ describe('ListFeedBookmarksUseCase', () => {
     const { repo, useCase } = make();
     repo.seedPost({ id: 'p1', authorId: 'a' });
     repo.seedBookmark('p1', 'viewer');
-    repo.seedLike('p1', 'viewer', 'LIKE');
+    repo.seedLike('p1', 'viewer');
 
     const out = await useCase.execute('viewer', undefined, 20);
-    expect(out.posts).toHaveLength(1);
-    expect(out.posts[0].isLiked).toBe(true);
-    expect(out.posts[0].isBookmarked).toBe(true);
+    expect(out.items).toHaveLength(1);
+    expect(out.items[0].isLiked).toBe(true);
+    expect(out.items[0].isBookmarked).toBe(true);
   });
 
   it('returns empty when no bookmarks', async () => {
     const { useCase } = make();
     const out = await useCase.execute('viewer', undefined, 20);
-    expect(out.posts).toEqual([]);
+    expect(out.items).toEqual([]);
   });
 });

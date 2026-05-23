@@ -53,6 +53,7 @@ export class OnboardingRepository extends OnboardingRepositoryPort {
         phone: data.personalInfo.phone ?? null,
         location: data.personalInfo.location ?? null,
         bio: data.professionalProfile.summary,
+        headline: data.professionalProfile.headline ?? null,
         linkedin: data.professionalProfile.linkedin ?? null,
         github: data.professionalProfile.github ?? null,
         website: data.professionalProfile.website ?? null,

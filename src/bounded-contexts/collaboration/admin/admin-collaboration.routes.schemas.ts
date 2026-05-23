@@ -1,0 +1,106 @@
+/**
+ * Route descriptors for the admin-collaboration BC. Replaces
+ * `AdminChatController` and `AdminCollaborationController`.
+ */
+
+import { z } from 'zod';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
+import { PaginatedResponseSchema } from '@/shared-kernel/schemas/common/api.types';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
+
+/**
+ * Admin pagination uses `pageSize` instead of `limit` (legacy alias).
+ * Kept as an extension of the canonical schema rather than reverting
+ * to bespoke field names.
+ */
+export const PageQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  pageSize: z.coerce.number().int().min(1).optional(),
+});
+
+export function parsePage(q: z.infer<typeof PageQuerySchema>): {
+  page?: number;
+  pageSize?: number;
+} {
+  return {
+    page: q.page ? parsePositiveIntParam(q.page, 1) : undefined,
+    pageSize: q.pageSize ? parsePositiveIntParam(q.pageSize, 20, 100) : undefined,
+  };
+}
+
+// ─── Response schemas ─────────────────────────────────────────────────
+export const ChatStatsResponseSchema = z.object({
+  totalConversations: z.number().int().min(0),
+  totalMessages: z.number().int().min(0),
+  activeConversations: z.number().int().min(0),
+  activeChatUsers: z.number().int().min(0),
+});
+
+export const ChatParticipantSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+});
+
+export const ChatConversationViewSchema = z.object({
+  id: z.string(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
+  participant1Id: z.string(),
+  participant2Id: z.string(),
+  participant1: ChatParticipantSchema,
+  participant2: ChatParticipantSchema,
+  lastMessageContent: z.string().nullable(),
+  lastMessageAt: IsoDateTimeSchema.nullable(),
+  lastMessageSenderId: z.string().uuid().nullable(),
+});
+
+export const PaginatedChatConversationsResponseSchema = PaginatedResponseSchema(
+  ChatConversationViewSchema,
+);
+
+export const CollaborationStatsResponseSchema = z.object({
+  totalCollaborations: z.number().int().min(0),
+  byRole: z.array(
+    z.object({
+      role: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
+});
+
+export const CollaboratorUserViewSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+});
+
+export const CollaboratorResumeViewSchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+});
+
+export const AdminCollaborationViewSchema = z.object({
+  id: z.string(),
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
+  role: z.string(),
+  invitedBy: z.string(),
+  invitedAt: IsoDateTimeSchema,
+  joinedAt: IsoDateTimeSchema.nullable(),
+  user: CollaboratorUserViewSchema,
+  resume: CollaboratorResumeViewSchema,
+});
+
+export const PaginatedCollaborationsResponseSchema = PaginatedResponseSchema(
+  AdminCollaborationViewSchema,
+);
+
+export const ResumeAndUserIdParams = z.object({
+  resumeId: z.string().uuid(),
+  userId: z.string().uuid(),
+});
+
+export const RemoveCollaborationResponseSchema = z.object({
+  message: z.string(),
+});

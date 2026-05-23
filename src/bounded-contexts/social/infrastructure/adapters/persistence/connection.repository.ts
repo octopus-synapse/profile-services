@@ -1,4 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ConnectionRepositoryPort,
   type ConnectionUser,
@@ -31,6 +32,12 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
         target: { select: USER_SELECT },
       },
     });
+  }
+
+  async getConnectionById(id: string): Promise<ConnectionWithUser> {
+    const row = await this.findConnectionById(id);
+    if (!row) throw new EntityNotFoundException('Connection', id);
+    return row;
   }
 
   async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {
@@ -83,7 +90,7 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
   async findPendingRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -103,13 +110,13 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
       }),
     ]);
 
-    return { data, total };
+    return { items: data, total };
   }
 
   async findSentRequests(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -129,13 +136,13 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
       }),
     ]);
 
-    return { data, total };
+    return { items: data, total };
   }
 
   async findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,
-  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+  ): Promise<{ items: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
@@ -161,7 +168,7 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
       }),
     ]);
 
-    return { data, total };
+    return { items: data, total };
   }
 
   async countAcceptedConnections(userId: string): Promise<number> {
@@ -202,7 +209,7 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<
+    items: Array<
       ConnectionUser & {
         reason: string;
         score: number;
@@ -297,7 +304,7 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     const commonSkillsById = await this.fetchCommonSkills(userId, suggestedIds);
 
     return {
-      data: rows.map(({ total_count: _total, mutualCount, ...row }) => ({
+      items: rows.map(({ total_count: _total, mutualCount, ...row }) => ({
         ...row,
         score: Number(row.score),
         mutualCount: Number(mutualCount ?? 0),

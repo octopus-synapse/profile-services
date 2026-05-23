@@ -4,7 +4,7 @@ import {
   mergeDslWithOverrides,
   type ResumeDslV2,
   ResumeDslV2Schema,
-} from './resume-dsl';
+} from './resume-dsl.vo';
 
 describe('ResumeDslV2Schema', () => {
   it('should accept a valid DSL', () => {

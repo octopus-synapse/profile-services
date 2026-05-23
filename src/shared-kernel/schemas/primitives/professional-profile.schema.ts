@@ -1,5 +1,9 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { STRING_LIMITS } from '../../constants';
+import { EXAMPLE_DESCRIPTION, EXAMPLE_TITLE, EXAMPLE_URL } from '../params/example-values.const';
+
+extendZodWithOpenApi(z);
 
 /**
  * Professional Profile Schema
@@ -15,7 +19,11 @@ export const JobTitleSchema = z
   .string()
   .min(2, 'Job title must be at least 2 characters')
   .max(STRING_LIMITS.TITLE.MAX, `Job title must be less than ${STRING_LIMITS.TITLE.MAX} characters`)
-  .trim();
+  .trim()
+  .openapi('JobTitle', {
+    example: EXAMPLE_TITLE,
+    description: `Professional job title (2-${STRING_LIMITS.TITLE.MAX} characters).`,
+  });
 
 /**
  * Professional summary validation
@@ -28,7 +36,11 @@ export const ProfessionalSummarySchema = z
     STRING_LIMITS.SUMMARY.MAX,
     `Summary must be less than ${STRING_LIMITS.SUMMARY.MAX} characters`,
   )
-  .trim();
+  .trim()
+  .openapi('ProfessionalSummary', {
+    example: EXAMPLE_DESCRIPTION,
+    description: `Professional summary / bio (50-${STRING_LIMITS.SUMMARY.MAX} characters). Minimum length enforces meaningful content.`,
+  });
 
 /**
  * Optional URL validation
@@ -39,7 +51,8 @@ const OptionalUrlSchema = z
   .trim()
   .pipe(z.union([z.literal(''), z.string().url('Invalid URL format')]))
   .transform((val) => (val === '' ? undefined : val))
-  .optional();
+  .optional()
+  .openapi({ example: EXAMPLE_URL });
 
 /**
  * Professional Profile Schema
@@ -60,3 +73,13 @@ export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
 export const UpdateProfessionalProfileSchema = ProfessionalProfileSchema.partial();
 
 export type UpdateProfessionalProfile = z.infer<typeof UpdateProfessionalProfileSchema>;
+
+export type JobTitleDto = z.infer<typeof JobTitleSchema>;
+
+export type ProfessionalSummaryDto = z.infer<typeof ProfessionalSummarySchema>;
+
+export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;
+
+export type UpdateProfessionalProfileDto = z.infer<typeof UpdateProfessionalProfileSchema>;
+
+export type OptionalUrlDto = z.infer<typeof OptionalUrlSchema>;

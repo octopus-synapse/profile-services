@@ -5,8 +5,9 @@
  * Enriches records with UA-derived deviceType/browser/os and optional geo lookup.
  */
 
-import { createHash } from 'node:crypto';
 import { LoggerPort } from '@/shared-kernel';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import { pseudoAnonymize } from '@/shared-kernel/crypto/pseudo-anonymize';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 import { GeoLookupPort } from '../../../ports/geo-lookup.port';
 import type { AnalyticsEvent } from '../../ports/share-analytics.port';
@@ -30,6 +31,7 @@ export class TrackShareEventUseCase {
     private readonly repository: ShareAnalyticsRepositoryPort,
     private readonly geoLookup: GeoLookupPort,
     private readonly logger: LoggerPort,
+    private readonly config: ConfigPort,
   ) {}
 
   async execute(dto: TrackEvent) {
@@ -62,6 +64,6 @@ export class TrackShareEventUseCase {
   }
 
   private anonymizeIP(ip: string): string {
-    return createHash('sha256').update(ip).digest('hex');
+    return pseudoAnonymize(ip, this.config);
   }
 }

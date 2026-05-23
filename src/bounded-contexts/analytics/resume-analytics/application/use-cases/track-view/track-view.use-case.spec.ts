@@ -4,7 +4,10 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryViewTrackingRepository } from '@/bounded-contexts/analytics/testing';
+import type { ConfigPort } from '@/shared-kernel/config/config.port';
+import type { EnvConfig } from '@/shared-kernel/config/config.schema';
 import { stubLogger } from '@/shared-kernel/logger/testing';
+import { AnalyticsConsentRequiredException } from '../../../../domain/exceptions/analytics.exceptions';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
 import { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';
@@ -13,6 +16,12 @@ import { TrackViewUseCase } from './track-view.use-case';
 class StubEventBus extends AnalyticsEventBusPort {
   emit = mock((_event: string, _payload: unknown) => {});
 }
+
+const stubConfig: ConfigPort = {
+  env: { IP_HASH_SALT: 'x'.repeat(64) } as EnvConfig,
+  get: () => undefined,
+  getOrDefault: <T>(_k: string, d: T) => d,
+} as ConfigPort;
 
 describe('TrackViewUseCase & GetViewStatsUseCase', () => {
   let trackViewUseCase: TrackViewUseCase;
@@ -32,7 +41,13 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
       },
     };
 
-    trackViewUseCase = new TrackViewUseCase(ownership, viewTrackingRepo, eventBus, stubLogger);
+    trackViewUseCase = new TrackViewUseCase(
+      ownership,
+      viewTrackingRepo,
+      eventBus,
+      stubLogger,
+      stubConfig,
+    );
     getViewStatsUseCase = new GetViewStatsUseCase(ownership, viewTrackingRepo, stubLogger);
   });
 
@@ -96,6 +111,12 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
       expect(events[0].userAgent).toBe('Mozilla/5.0');
       expect(events[0].country).toBe('US');
       expect(events[0].city).toBe('New York');
+    });
+
+    it('throws AnalyticsConsentRequiredException when consent is explicitly false', async () => {
+      await expect(trackViewUseCase.execute({ ...viewInput, consent: false })).rejects.toThrow(
+        AnalyticsConsentRequiredException,
+      );
     });
   });
 

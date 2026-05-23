@@ -1,19 +1,30 @@
-import type { UsernameAvailability } from '../../ports/username.port';
+import { RESERVED_USERNAMES_SET } from '../../../domain/value-objects/reserved-usernames.const';
+import { isValidUsernameFormat } from '../../../domain/value-objects/username-rules.const';
+import {
+  CheckUsernameAvailabilityUseCasePort,
+  type UsernameAvailability,
+} from '../../ports/check-username-availability.use-case.port';
 import { UsernameRepositoryPort } from '../../ports/username.port';
 
-/**
- * Check Username Availability Use Case
- *
- * Single Responsibility: Check if a username is available.
- * Returns domain entity (UsernameAvailability), not envelope.
- */
-export class CheckUsernameAvailabilityUseCase {
-  constructor(private readonly repository: UsernameRepositoryPort) {}
+export class CheckUsernameAvailabilityUseCase extends CheckUsernameAvailabilityUseCasePort {
+  constructor(private readonly repository: UsernameRepositoryPort) {
+    super();
+  }
 
-  async execute(username: string, userId?: string): Promise<UsernameAvailability> {
-    const normalizedUsername = username.toLowerCase();
-    const isTaken = await this.repository.isUsernameTaken(normalizedUsername, userId);
+  async execute(username: string, requesterUserId?: string): Promise<UsernameAvailability> {
+    const normalized = username.trim().toLowerCase();
 
-    return { username: normalizedUsername, available: !isTaken };
+    if (!isValidUsernameFormat(normalized)) {
+      return { username: normalized, available: false, reason: 'invalid_format' };
+    }
+
+    if (RESERVED_USERNAMES_SET.has(normalized)) {
+      return { username: normalized, available: false, reason: 'reserved' };
+    }
+
+    const taken = await this.repository.isUsernameTaken(normalized, requesterUserId);
+    if (taken) return { username: normalized, available: false, reason: 'taken' };
+
+    return { username: normalized, available: true };
   }
 }

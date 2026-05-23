@@ -75,6 +75,13 @@ export class Password {
       violations.push({ rule: 'number', message: 'Password must contain at least one number' });
     }
 
+    if (!/[@$!%*?&]/.test(password)) {
+      violations.push({
+        rule: 'specialChar',
+        message: 'Password must contain at least one special character (@$!%*?&)',
+      });
+    }
+
     return violations;
   }
 

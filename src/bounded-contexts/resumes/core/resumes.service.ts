@@ -1,6 +1,7 @@
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ResumeSlotLimitReachedException } from '../domain/exceptions/resumes.exceptions';
+import { sanitizeHtmlContent } from '@/shared-kernel/validation';
+import { ResumeSlotLimitReachedException } from '../domain/exceptions';
 import { ResumeEventPublisher } from '../domain/ports';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
@@ -8,15 +9,10 @@ import { ResumesServicePort, type UserResumesPaginatedResult } from './ports/res
 
 const MAX_RESUMES_PER_USER = 4;
 
-/**
- * Sanitize HTML content to prevent XSS attacks
- * Strips all HTML tags and scripts
- * Returns undefined if input is not a string
- */
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return text.replace(/<[^>]*>/g, '');
+  return sanitizeHtmlContent(text, { allowedTags: [] });
 }
 
 export class ResumesService extends ResumesServicePort {
@@ -28,7 +24,7 @@ export class ResumesService extends ResumesServicePort {
     super();
   }
 
-  async findAllUserResumes(userId: string, page?: number, limit?: number) {
+  async listUserResumes(userId: string, page?: number, limit?: number) {
     if (page !== undefined && limit !== undefined) {
       // Validate pagination parameters
       if (page < 1) page = 1; // Minimum page is 1
@@ -37,7 +33,7 @@ export class ResumesService extends ResumesServicePort {
 
       return this.findPaginated(userId, page, limit);
     }
-    const resumes = await this.repository.findAllUserResumes(userId);
+    const resumes = await this.repository.listUserResumes(userId);
     return resumes;
   }
 
@@ -106,7 +102,7 @@ export class ResumesService extends ResumesServicePort {
   }
 
   async getRemainingSlots(userId: string) {
-    const existing = await this.repository.findAllUserResumes(userId);
+    const existing = await this.repository.listUserResumes(userId);
     return {
       used: existing.length,
       limit: MAX_RESUMES_PER_USER,
@@ -121,7 +117,7 @@ export class ResumesService extends ResumesServicePort {
   ): Promise<UserResumesPaginatedResult> {
     const skip = (page - 1) * limit;
     const [resumes, total] = await Promise.all([
-      this.repository.findAllUserResumesPaginated(userId, skip, limit),
+      this.repository.listUserResumesPaginated(userId, skip, limit),
       this.repository.countUserResumes(userId),
     ]);
     const totalPages = Math.ceil(total / limit);
@@ -140,7 +136,7 @@ export class ResumesService extends ResumesServicePort {
   }
 
   private async ensureUserHasSlots(userId: string): Promise<void> {
-    const existing = await this.repository.findAllUserResumes(userId);
+    const existing = await this.repository.listUserResumes(userId);
     if (existing.length >= MAX_RESUMES_PER_USER) {
       throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
     }

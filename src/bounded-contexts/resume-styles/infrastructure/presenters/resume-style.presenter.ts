@@ -1,12 +1,13 @@
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
 import type { PaginatedStyles } from '../../domain/ports/resume-style.repository.port';
 import type { StyleDetail, StyleSummary } from '../../domain/types';
 import type {
   StyleDetailDto,
   StyleListResponseDto,
   StyleSummaryDto,
-} from '../dto/resume-style.dto';
+} from '../dto/resume-style.schema';
 
-export function presentSummary(s: StyleSummary): StyleSummaryDto {
+export function toSummaryResponseDto(s: StyleSummary): StyleSummaryDto {
   return {
     id: s.id,
     name: s.name,
@@ -21,18 +22,32 @@ export function presentSummary(s: StyleSummary): StyleSummaryDto {
   };
 }
 
-export function presentDetail(s: StyleDetail): StyleDetailDto {
+/**
+ * P2-095 — narrow JsonValue → typed object via a single helper so
+ * the presenter doesn't litter `as unknown as X` casts. The runtime
+ * trusts the seeded shape (validated at write time by Zod schemas
+ * in the admin routes); the helper just makes the assumption
+ * explicit and gives tests one knob to flip.
+ */
+function asJsonObject<T extends Record<string, unknown>>(value: unknown): T {
+  return (value ?? {}) as T;
+}
+
+export function toDetailResponseDto(s: StyleDetail): StyleDetailDto {
   return {
-    ...presentSummary(s),
+    ...toSummaryResponseDto(s),
     version: s.version,
-    styleConfig: s.styleConfig as Record<string, unknown>,
-    sectionStyles: s.sectionStyles as Record<string, unknown>,
-    atsSafetyBreakdown: s.atsSafetyBreakdown as unknown as Record<string, number>,
+    styleConfig: asJsonObject(s.styleConfig),
+    sectionStyles: asJsonObject(s.sectionStyles),
+    atsSafetyBreakdown: asJsonObject<Record<string, number>>(s.atsSafetyBreakdown),
     previewImages: [...s.previewImages],
     authorId: s.authorId,
   };
 }
 
-export function presentList(p: PaginatedStyles): StyleListResponseDto {
-  return { items: p.items.map(presentSummary), total: p.total, page: p.page, limit: p.limit };
+export function toListResponseDto(p: PaginatedStyles): StyleListResponseDto {
+  return buildPaginatedResponse(p.items.map(toSummaryResponseDto), p.total, {
+    page: p.page,
+    limit: p.limit,
+  });
 }

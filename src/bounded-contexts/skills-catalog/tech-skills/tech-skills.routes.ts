@@ -11,26 +11,24 @@
 
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel';
-import type { Route } from '@/shared-kernel/http/route';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { SkillType, TechAreaType } from './interfaces';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
+import {
+  AreaParams,
+  AreasResponseSchema,
+  CombinedSearchResponseSchema,
+  LanguagesResponseSchema,
+  NicheParams,
+  NichesResponseSchema,
+  SearchQuery,
+  SkillsResponseSchema,
+  SyncResponseSchema,
+  TypeParams,
+} from './tech-skills.routes.schemas';
 
-const SearchQuery = z.object({
-  q: z.string(),
-  limit: z.string().optional(),
-});
-
-const TypeParams = z.object({ type: z.string() });
-const AreaParams = z.object({ areaType: z.string() });
-const NicheParams = z.object({ nicheSlug: z.string() });
-
-function parseLimit(raw: string | undefined, fallback: number): number {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return parseInt(raw, 10);
-}
-
-// ──────────────────────────── Tech Skills Query routes
 export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>> = [
   // tech-areas
   {
@@ -38,6 +36,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-areas',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: AreasResponseSchema,
     openapi: {
       summary: 'Get all tech areas',
       tags: ['tech-areas'],
@@ -46,7 +45,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const areas = await q.getAllAreas();
-      return { success: true, data: { areas } };
+      return { areas };
     },
   },
   {
@@ -55,6 +54,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: AreaParams,
+    response: NichesResponseSchema,
     openapi: {
       summary: 'Get niches by area type',
       tags: ['tech-areas'],
@@ -64,7 +64,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { areaType } = ctx.params as { areaType: string };
       const niches = await q.getNichesByArea(areaType as TechAreaType);
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
 
@@ -74,6 +74,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-niches',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: NichesResponseSchema,
     openapi: {
       summary: 'Get all tech niches',
       tags: ['tech-niches'],
@@ -82,7 +83,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const niches = await q.getAllNiches();
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -91,6 +92,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: NicheParams,
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by niche slug',
       tags: ['tech-niches'],
@@ -100,7 +102,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { nicheSlug } = ctx.params as { nicheSlug: string };
       const skills = await q.getSkillsByNiche(nicheSlug);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
 
@@ -110,6 +112,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-skills',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get all tech skills',
       tags: ['tech-skills'],
@@ -118,7 +121,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     sdk: { exported: true },
     handler: async (_ctx, q) => {
       const skills = await q.getAllSkills();
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -127,7 +130,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: TypeParams,
-    query: z.object({ limit: z.string().optional() }),
+    query: z.object({ limit: z.coerce.number().int().min(1).optional() }),
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by type',
       tags: ['tech-skills'],
@@ -137,8 +141,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
-      const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
-      return { success: true, data: { skills } };
+      const skills = await q.getSkillsByType(type as SkillType, parsePositiveIntParam(limit, 50));
+      return { skills };
     },
   },
 
@@ -148,6 +152,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-skills/areas',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: AreasResponseSchema,
     openapi: {
       summary: 'Get all tech areas',
       tags: ['tech-skills-query'],
@@ -155,7 +160,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const areas = await q.getAllAreas();
-      return { success: true, data: { areas } };
+      return { areas };
     },
   },
   {
@@ -163,6 +168,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-skills/niches',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: NichesResponseSchema,
     openapi: {
       summary: 'Get all tech niches',
       tags: ['tech-skills-query'],
@@ -170,7 +176,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const niches = await q.getAllNiches();
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -179,6 +185,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: AreaParams,
+    response: NichesResponseSchema,
     openapi: {
       summary: 'Get niches by tech area type',
       tags: ['tech-skills-query'],
@@ -187,7 +194,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { areaType } = ctx.params as { areaType: string };
       const niches = await q.getNichesByArea(areaType as TechAreaType);
-      return { success: true, data: { niches } };
+      return { niches };
     },
   },
   {
@@ -195,6 +202,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-skills/languages',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: LanguagesResponseSchema,
     openapi: {
       summary: 'Get all programming languages',
       tags: ['tech-skills-query'],
@@ -202,7 +210,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const languages = await q.getAllLanguages();
-      return { success: true, data: { languages } };
+      return { languages };
     },
   },
   {
@@ -211,6 +219,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     query: SearchQuery,
+    response: LanguagesResponseSchema,
     openapi: {
       summary: 'Search programming languages',
       tags: ['tech-skills-query'],
@@ -218,8 +227,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const languages = await q.searchLanguages(query, parseLimit(limit, 20));
-      return { success: true, data: { languages } };
+      const languages = await q.searchLanguages(query, parsePositiveIntParam(limit, 20));
+      return { languages };
     },
   },
   {
@@ -227,6 +236,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     path: '/v1/tech-skills/skills',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get all tech skills',
       tags: ['tech-skills-query'],
@@ -234,7 +244,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (_ctx, q) => {
       const skills = await q.getAllSkills();
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -243,6 +253,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     query: SearchQuery,
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Search tech skills',
       tags: ['tech-skills-query'],
@@ -250,8 +261,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const skills = await q.searchSkills(query, parseLimit(limit, 20));
-      return { success: true, data: { skills } };
+      const skills = await q.searchSkills(query, parsePositiveIntParam(limit, 20));
+      return { skills };
     },
   },
   {
@@ -260,6 +271,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: NicheParams,
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by niche',
       tags: ['tech-skills-query'],
@@ -268,7 +280,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { nicheSlug } = ctx.params as { nicheSlug: string };
       const skills = await q.getSkillsByNiche(nicheSlug);
-      return { success: true, data: { skills } };
+      return { skills };
     },
   },
   {
@@ -277,7 +289,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     params: TypeParams,
-    query: z.object({ limit: z.string().optional() }),
+    query: z.object({ limit: z.coerce.number().int().min(1).optional() }),
+    response: SkillsResponseSchema,
     openapi: {
       summary: 'Get skills by type',
       tags: ['tech-skills-query'],
@@ -286,8 +299,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     handler: async (ctx, q) => {
       const { type } = ctx.params as { type: string };
       const { limit } = ctx.query as { limit?: string };
-      const skills = await q.getSkillsByType(type as SkillType, parseLimit(limit, 50));
-      return { success: true, data: { skills } };
+      const skills = await q.getSkillsByType(type as SkillType, parsePositiveIntParam(limit, 50));
+      return { skills };
     },
   },
   {
@@ -296,6 +309,7 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_READ,
     query: SearchQuery,
+    response: CombinedSearchResponseSchema,
     openapi: {
       summary: 'Search languages and skills',
       tags: ['tech-skills-query'],
@@ -303,8 +317,8 @@ export const techSkillsQueryRoutes: ReadonlyArray<Route<TechSkillsQueryService>>
     },
     handler: async (ctx, q) => {
       const { q: query, limit } = ctx.query as { q: string; limit?: string };
-      const results = await q.searchAll(query, parseLimit(limit, 20));
-      return { success: true, data: { results } };
+      const results = await q.searchAll(query, parsePositiveIntParam(limit, 20));
+      return { results };
     },
   },
 ];
@@ -316,6 +330,7 @@ export const techSkillsSyncRoutes: ReadonlyArray<Route<TechSkillsSyncService>> =
     path: '/v1/tech-skills/sync',
     auth: { kind: 'jwt' },
     permission: Permission.SKILL_MANAGE,
+    response: SyncResponseSchema,
     openapi: {
       summary: 'Trigger tech skills synchronization',
       tags: ['tech-skills-sync'],
@@ -323,10 +338,7 @@ export const techSkillsSyncRoutes: ReadonlyArray<Route<TechSkillsSyncService>> =
     },
     handler: async (_ctx, sync) => {
       const result = await sync.runSync();
-      return {
-        success: true,
-        data: { message: 'Tech skills sync completed', result },
-      };
+      return { message: 'Tech skills sync completed', result };
     },
   },
 ];

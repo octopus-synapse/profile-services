@@ -7,45 +7,27 @@
  * `Res({ passthrough: true })` wiring.
  */
 
-import { LayoutKind } from '@prisma/client';
 import { z } from 'zod';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { StreamableFile } from '@/shared-kernel/http/streamable-file';
 import { ResumeStylesUseCases } from './application/ports/resume-styles.port';
-import { presentDetail, presentList } from './infrastructure/presenters/resume-style.presenter';
-
-const IdParams = z.object({ id: z.string() });
-const ResumeIdParams = z.object({ resumeId: z.string() });
-
-const ListQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const ApplyStyleBodySchema = z.object({ styleId: z.string() });
-
-const SectionStylesSchema = z.record(z.string(), z.unknown());
-
-const LayoutKindSchema = z.nativeEnum(LayoutKind);
-
-const CreateStyleBodySchema = z.object({
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string(),
-  layoutKind: LayoutKindSchema,
-  styleConfig: z.record(z.string(), z.unknown()),
-  sectionStyles: SectionStylesSchema,
-});
-
-const UpdateStyleBodySchema = z.object({
-  name: z.string().optional(),
-  description: z.string().nullable().optional(),
-  typstTemplate: z.string().optional(),
-  layoutKind: LayoutKindSchema.optional(),
-  styleConfig: z.record(z.string(), z.unknown()).optional(),
-  sectionStyles: SectionStylesSchema.optional(),
-});
+import {
+  toDetailResponseDto,
+  toListResponseDto,
+} from './infrastructure/presenters/resume-style.presenter';
+import {
+  ApplyStyleBodySchema,
+  ApplyStyleResponseSchema,
+  CreateStyleBodySchema,
+  DeleteStyleResponseSchema,
+  IdParams,
+  ListQuerySchema,
+  ResumeIdParams,
+  StyleDetailResponseSchema,
+  StyleListResponseSchema,
+  UpdateStyleBodySchema,
+} from './resume-styles.routes.schemas';
 
 export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
   // ─── Public catalog ────────────────────────────────────────────────
@@ -54,6 +36,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles',
     auth: { kind: 'jwt' },
     query: ListQuerySchema,
+    response: StyleListResponseSchema,
     openapi: {
       summary: 'List published resume styles',
       tags: ['resume-styles'],
@@ -66,7 +49,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });
-      return { success: true, data: presentList(result) };
+      return toListResponseDto(result);
     },
   },
   {
@@ -74,6 +57,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles/:id',
     auth: { kind: 'jwt' },
     params: IdParams,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Get one ResumeStyle by id',
       tags: ['resume-styles'],
@@ -83,7 +67,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       const style = await bc.getStyle.execute(id);
-      return { success: true, data: presentDetail(style) };
+      return toDetailResponseDto(style);
     },
   },
   {
@@ -92,6 +76,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     params: ResumeIdParams,
     body: ApplyStyleBodySchema,
+    response: ApplyStyleResponseSchema,
     openapi: {
       summary: 'Apply a ResumeStyle to a resume',
       tags: ['resume-styles'],
@@ -106,7 +91,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         resumeId,
         styleId: body.styleId,
       });
-      return { success: true, data: null };
+      return null;
     },
   },
   // ─── Admin CRUD (admin permission gates each route) ───────────────
@@ -116,6 +101,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     body: CreateStyleBodySchema,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Create a new ResumeStyle (validates ATS threshold)',
       tags: ['admin-resume-styles'],
@@ -133,7 +119,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         sectionStyles: body.sectionStyles,
         authorId: ctx.user!.userId,
       });
-      return { success: true, data: presentDetail(created) };
+      return toDetailResponseDto(created);
     },
   },
   {
@@ -143,6 +129,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParams,
     body: UpdateStyleBodySchema,
+    response: StyleDetailResponseSchema,
     openapi: {
       summary: 'Update a non-system ResumeStyle',
       tags: ['admin-resume-styles'],
@@ -160,7 +147,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
         styleConfig: body.styleConfig,
         sectionStyles: body.sectionStyles,
       });
-      return { success: true, data: presentDetail(updated) };
+      return toDetailResponseDto(updated);
     },
   },
   {
@@ -169,6 +156,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.ADMIN_FULL_ACCESS,
     params: IdParams,
+    response: DeleteStyleResponseSchema,
     openapi: {
       summary: 'Delete a non-system ResumeStyle',
       tags: ['admin-resume-styles'],
@@ -178,7 +166,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
       await bc.deleteStyle.execute(id);
-      return { success: true, data: null };
+      return null;
     },
   },
 
@@ -188,6 +176,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     path: '/v1/resume-styles/:id/preview.pdf',
     auth: { kind: 'jwt' },
     params: IdParams,
+    binary: { mediaType: 'application/pdf', filename: 'style-preview.pdf' },
     openapi: {
       summary: 'Render a generic preview PDF for the style',
       tags: ['resume-styles'],

@@ -76,7 +76,7 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
     }));
   }
 
-  async findAllDistinctKnowledgeAreas(): Promise<string[]> {
+  async listDistinctKnowledgeAreas(): Promise<string[]> {
     const areas = await this.prisma.mecCourse.findMany({
       where: { isActive: true, areaConhecimento: { not: null } },
       select: { areaConhecimento: true },
@@ -100,7 +100,7 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
     return this.prisma.mecCourse.count({ where: { isActive: true } });
   }
 
-  async findAllExistingCourseCodes(): Promise<Set<number>> {
+  async listExistingCourseCodes(): Promise<Set<number>> {
     const existing = await this.prisma.mecCourse.findMany({ select: { codigoCurso: true } });
     return new Set(existing.map((c) => c.codigoCurso));
   }

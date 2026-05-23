@@ -12,7 +12,7 @@ import {
   CachePort,
   TechSkillRepositoryPort,
 } from '../tech-skills/application/ports/tech-skills.port';
-import type { TechSkill } from '../tech-skills/dto/tech-skill.dto';
+import type { TechSkill } from '../tech-skills/dto/tech-skill.schema';
 import type { SkillType } from '../tech-skills/interfaces';
 
 // ═══════════════════════════════════════════════════════════════
@@ -35,7 +35,7 @@ export interface SpokenLanguageData extends SpokenLanguage {
 export class InMemoryTechSkillRepository extends TechSkillRepositoryPort {
   private skills: TechSkillData[] = [];
 
-  async findAllActive(): Promise<TechSkill[]> {
+  async listActive(): Promise<TechSkill[]> {
     return this.skills
       .filter((s) => s.isActive)
       .sort((a, b) => b.popularity - a.popularity)
@@ -114,7 +114,7 @@ export class InMemoryTechSkillRepository extends TechSkillRepositoryPort {
 export class InMemorySpokenLanguageRepository extends SpokenLanguagesRepositoryPort {
   private languages: SpokenLanguageData[] = [];
 
-  async findAllActive(): Promise<SpokenLanguage[]> {
+  async listActive(): Promise<SpokenLanguage[]> {
     return this.languages
       .filter((l) => l.isActive)
       .sort((a, b) => a.order - b.order)

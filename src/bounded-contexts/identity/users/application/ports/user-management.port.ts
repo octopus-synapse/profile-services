@@ -65,8 +65,13 @@ export type UpdatedUser = {
 };
 
 export type UserListResult = {
-  users: UserListItem[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
+  items: UserListItem[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 };
 
 export type CreateUserData = { email: string; password: string; name?: string };
@@ -102,6 +107,8 @@ export abstract class UserManagementRepositoryPort {
   abstract deleteUser(userId: string): Promise<void>;
 
   abstract resetUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
+  abstract setUserRoles(userId: string, roles: readonly string[]): Promise<void>;
 }
 
 // ============================================================================

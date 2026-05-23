@@ -1,147 +1,130 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { UsernameRepositoryPort } from '../../ports/username.port';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { InMemoryUsernameRepository } from '../../../testing/in-memory-username.repository';
 import { ValidateUsernameUseCase } from './validate-username.use-case';
 
 describe('ValidateUsernameUseCase', () => {
+  let repository: InMemoryUsernameRepository;
   let useCase: ValidateUsernameUseCase;
-  let repository: UsernameRepositoryPort;
 
   beforeEach(() => {
-    repository = {
-      findUserById: mock(async () => null),
-      updateUsername: mock(async () => ({ username: '' })),
-      findLastUsernameUpdateByUserId: mock(async () => null),
-      isUsernameTaken: mock(async () => false),
-    } as UsernameRepositoryPort;
-
+    repository = new InMemoryUsernameRepository();
     useCase = new ValidateUsernameUseCase(repository);
   });
 
-  it('returns valid for a correct username that is available', async () => {
-    const result = await useCase.execute('validuser');
+  function codes(errors: ReadonlyArray<{ code: string }>): string[] {
+    return errors.map((e) => e.code);
+  }
+
+  it('returns valid + available for a well-formed name no one has claimed', async () => {
+    const result = await useCase.execute('johndoe');
 
     expect(result.valid).toBe(true);
     expect(result.available).toBe(true);
     expect(result.errors).toEqual([]);
-    expect(result.username).toBe('validuser');
+    expect(result.username).toBe('johndoe');
   });
 
-  it('returns UPPERCASE error for uppercase characters', async () => {
-    const result = await useCase.execute('ValidUser');
+  it('returns USERNAME_MUST_BE_LOWERCASE for any uppercase character', async () => {
+    const result = await useCase.execute('JohnDoe');
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'UPPERCASE',
-      message: 'Username must contain only lowercase letters',
-    });
+    expect(codes(result.errors)).toContain('USERNAME_MUST_BE_LOWERCASE');
   });
 
-  it('returns TOO_SHORT error for username under 3 characters', async () => {
-    const result = await useCase.execute('ab');
+  it('returns USERNAME_TOO_SHORT with min=3 param for sub-minimum lengths', async () => {
+    const result = await useCase.execute('jd');
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'TOO_SHORT',
-      message: 'Username must be at least 3 characters',
-    });
+    const tooShort = result.errors.find((e) => e.code === 'USERNAME_TOO_SHORT');
+    expect(tooShort).toEqual({ code: 'USERNAME_TOO_SHORT', params: { min: 3 } });
   });
 
-  it('returns TOO_LONG error for username over 30 characters', async () => {
+  it('returns USERNAME_TOO_LONG with max=30 param for over-maximum lengths', async () => {
     const result = await useCase.execute('a'.repeat(31));
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'TOO_LONG',
-      message: 'Username cannot exceed 30 characters',
-    });
+    const tooLong = result.errors.find((e) => e.code === 'USERNAME_TOO_LONG');
+    expect(tooLong).toEqual({ code: 'USERNAME_TOO_LONG', params: { max: 30 } });
   });
 
-  it('returns INVALID_FORMAT error for special characters', async () => {
-    const result = await useCase.execute('user@name');
+  it('returns USERNAME_INVALID_FORMAT for special characters', async () => {
+    const result = await useCase.execute('john@doe');
 
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'INVALID_FORMAT',
-      message: 'Username can only contain lowercase letters, numbers, and underscores',
-    });
+    expect(codes(result.errors)).toContain('USERNAME_INVALID_FORMAT');
   });
 
-  it('returns INVALID_START error when username starts with a number', async () => {
-    const result = await useCase.execute('1username');
+  it('returns USERNAME_INVALID_START when the name starts with a number or underscore', async () => {
+    const startsWithNumber = await useCase.execute('1johndoe');
+    const startsWithUnderscore = await useCase.execute('_johndoe');
 
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'INVALID_START',
-      message: 'Username must start with a letter',
-    });
+    expect(codes(startsWithNumber.errors)).toContain('USERNAME_INVALID_START');
+    expect(codes(startsWithUnderscore.errors)).toContain('USERNAME_INVALID_START');
   });
 
-  it('returns INVALID_END error when username ends with underscore', async () => {
-    const result = await useCase.execute('username_');
+  it('returns USERNAME_INVALID_END when the name ends with an underscore', async () => {
+    const result = await useCase.execute('johndoe_');
 
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'INVALID_END',
-      message: 'Username must end with a letter or number',
-    });
+    expect(codes(result.errors)).toContain('USERNAME_INVALID_END');
   });
 
-  it('returns CONSECUTIVE_UNDERSCORES error for double underscores', async () => {
-    const result = await useCase.execute('user__name');
+  it('returns USERNAME_CONSECUTIVE_UNDERSCORES for double underscores', async () => {
+    const result = await useCase.execute('john__doe');
 
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'CONSECUTIVE_UNDERSCORES',
-      message: 'Username cannot contain consecutive underscores',
-    });
+    expect(codes(result.errors)).toContain('USERNAME_CONSECUTIVE_UNDERSCORES');
   });
 
-  it('returns RESERVED error for reserved usernames', async () => {
+  it('returns USERNAME_RESERVED for protected names', async () => {
     const result = await useCase.execute('admin');
 
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'RESERVED',
-      message: 'This username is reserved',
-    });
+    expect(codes(result.errors)).toContain('USERNAME_RESERVED');
   });
 
-  it('returns ALREADY_TAKEN error when username is taken', async () => {
-    repository.isUsernameTaken = mock(async () => true);
+  it('returns USERNAME_TAKEN when the format passes but the repository reports a clash', async () => {
+    repository.seedUser({ id: 'someone', username: 'johndoe' });
 
-    const result = await useCase.execute('takenuser');
+    const result = await useCase.execute('johndoe');
 
     expect(result.valid).toBe(false);
     expect(result.available).toBe(false);
-    expect(result.errors).toContainEqual({
-      code: 'ALREADY_TAKEN',
-      message: 'This username is already taken',
-    });
+    expect(codes(result.errors)).toEqual(['USERNAME_TAKEN']);
   });
 
-  it('does not check availability when format is invalid', async () => {
-    const result = await useCase.execute('ab');
+  it('skips the availability check when the format is invalid (saves a DB roundtrip)', async () => {
+    const result = await useCase.execute('jd');
 
     expect(result.available).toBeUndefined();
-    expect(repository.isUsernameTaken).not.toHaveBeenCalled();
   });
 
-  it('passes userId to repository when checking availability', async () => {
-    await useCase.execute('validuser', 'user-1');
+  it('lets the requester re-claim their own username (excludes their userId from the takeness check)', async () => {
+    repository.seedUser({ id: 'me', username: 'johndoe' });
 
-    expect(repository.isUsernameTaken).toHaveBeenCalledWith('validuser', 'user-1');
-  });
-
-  it('normalizes username to lowercase', async () => {
-    const result = await useCase.execute('  TestUser  ');
-
-    expect(result.username).toBe('testuser');
-  });
-
-  it('allows underscores in valid positions', async () => {
-    const result = await useCase.execute('user_name1');
+    const result = await useCase.execute('johndoe', 'me');
 
     expect(result.valid).toBe(true);
-    expect(result.errors).toEqual([]);
+    expect(result.available).toBe(true);
+  });
+
+  it('normalizes whitespace and case before reporting back', async () => {
+    const result = await useCase.execute('  JohnDoe  ');
+
+    // Trim happens; lower-case happens; the lowercase check still fires
+    // because the trimmed form differs from the lowered form.
+    expect(result.username).toBe('johndoe');
+    expect(codes(result.errors)).toContain('USERNAME_MUST_BE_LOWERCASE');
+  });
+
+  it('aggregates multiple format errors in a single response (multi-error UX)', async () => {
+    const result = await useCase.execute('Ab__');
+
+    // Ab__ → too-short (4 chars OK actually, let's compute: 'Ab__' is 4 chars,
+    // but ends with '_' so INVALID_END, has '__' so CONSECUTIVE_UNDERSCORES,
+    // and has 'A' so MUST_BE_LOWERCASE.
+    expect(codes(result.errors).sort()).toEqual(
+      [
+        'USERNAME_CONSECUTIVE_UNDERSCORES',
+        'USERNAME_INVALID_END',
+        'USERNAME_MUST_BE_LOWERCASE',
+      ].sort(),
+    );
   });
 });

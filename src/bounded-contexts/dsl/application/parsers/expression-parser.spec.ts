@@ -8,7 +8,8 @@
  */
 
 import { describe, expect, it } from 'bun:test';
-import { type Expression, ExpressionParser, ExpressionType } from './expression-parser';
+import { DslParseErrorException } from '../../domain/exceptions/dsl.exceptions';
+import { type Expression, ExpressionParser, ExpressionType } from './expression.parser';
 
 describe('ExpressionParser', () => {
   describe('literal expressions', () => {
@@ -288,6 +289,14 @@ describe('ExpressionParser', () => {
       const result = parser.parse();
 
       expect(result.type).toBe(ExpressionType.ERROR);
+    });
+
+    it('throws DslParseErrorException when the lexer emits an unrecognized token', () => {
+      // `@` is not in the lexer's token alphabet inside an expression
+      // context, so it surfaces as TokenType.ERROR. The parser must
+      // bail out fast with the domain exception.
+      const parser = new ExpressionParser('${@invalid}');
+      expect(() => parser.parse()).toThrow(DslParseErrorException);
     });
   });
 });

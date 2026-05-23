@@ -12,5 +12,7 @@
  * const result = validate(LoginSchema, data);
  */
 
+export type { SanitizeHtmlOptions } from './sanitize-html';
+export { sanitizeHtmlContent } from './sanitize-html';
 export type { ValidationError, ValidationResult } from './validate';
 export { validate } from './validate';

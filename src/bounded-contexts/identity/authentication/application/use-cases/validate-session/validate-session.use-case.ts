@@ -23,12 +23,20 @@ import type {
   ValidateSessionResult,
 } from '../../ports';
 
+/** Slice of `ConfigPort` this UC reads — duck-typed to keep the port
+ *  out of the application layer's import surface (the BC owns its
+ *  own config-shape tests). */
+export interface ValidateSessionConfigPort {
+  get<T>(key: string): T | undefined;
+}
+
 export class ValidateSessionUseCase implements ValidateSessionPort {
   constructor(
     private readonly repository: AuthenticationRepositoryPort,
     private readonly tokenGenerator: TokenGeneratorPort,
     private readonly sessionStorage: SessionStoragePort,
     private readonly logger: LoggerPort,
+    private readonly config?: ValidateSessionConfigPort,
   ) {}
 
   async execute(command: ValidateSessionCommand): Promise<ValidateSessionResult> {
@@ -85,8 +93,9 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
     // E2E/dev hatch: when SKIP_EMAIL_VERIFICATION is enabled, the HTTP guard
     // bypasses enforcement — keep the session payload consistent so the
     // frontend's OnboardingGuard doesn't redirect to /identity/verify-email
-    // based on a flag the backend is ignoring.
-    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // based on a flag the backend is ignoring. P2-122: read via the
+    // injected ConfigPort only; the legacy `process.env` fallback is gone.
+    const skipEmailVerification = this.config?.get<string>('SKIP_EMAIL_VERIFICATION') === 'true';
     // Onboarding is a job-seeker invariant — admins always bypass it.
     // For everyone else the truth is `User.onboardingCompletedAt`
     // (mirrored on `hasCompletedOnboarding` while the legacy column

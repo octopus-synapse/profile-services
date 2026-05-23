@@ -26,3 +26,7 @@ export type SectionUpdate = z.infer<typeof SectionUpdateSchema>;
 export const BulkUpdateSectionsSchema = z.object({ updates: z.array(SectionUpdateSchema).min(1) });
 
 export type BulkUpdateSections = z.infer<typeof BulkUpdateSectionsSchema>;
+
+export type SectionUpdateDto = z.infer<typeof SectionUpdateSchema>;
+
+export type BulkUpdateSectionsDto = z.infer<typeof BulkUpdateSectionsSchema>;

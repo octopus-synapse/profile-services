@@ -1,14 +1,5 @@
-import { DomainEvent } from '@/shared-kernel';
-
-export interface AtsScoreCalculatedPayload {
-  readonly score: number;
-  readonly issues: readonly string[];
-}
-
-export class AtsScoreCalculatedEvent extends DomainEvent<AtsScoreCalculatedPayload> {
-  static readonly TYPE = 'analytics.ats.score.calculated';
-
-  constructor(resumeId: string, payload: AtsScoreCalculatedPayload) {
-    super(AtsScoreCalculatedEvent.TYPE, resumeId, payload);
-  }
-}
+// P2-105 — single canonical event under `analytics/domain/events`.
+// This file re-exports from the BC-root location so existing
+// imports keep working without two diverging classes (which would
+// be `instanceof`-incompatible and break event-bus dispatch).
+export * from '../../../domain/events/ats-score-calculated.event';

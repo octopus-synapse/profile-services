@@ -11,9 +11,14 @@
  * `*Async` variants — every existing call site already does.
  */
 
-import { type JWTPayload, jwtVerify, SignJWT } from 'jose';
+import { type JWTPayload, errors as joseErrors, jwtVerify, SignJWT } from 'jose';
 import { JwtPort, type JwtSignOptions, type JwtVerifyOptions } from '@/shared-kernel/auth/jwt.port';
 
+/**
+ * `expiresIn`: relative duration ("15m") or relative seconds-from-now
+ * (number). Always returns an absolute epoch-seconds value computed
+ * against `Date.now()` — i.e. "this many seconds **from now**".
+ */
 function parseExpiresIn(expiresIn: string | number): number {
   if (typeof expiresIn === 'number') return Math.floor(Date.now() / 1000) + expiresIn;
   // jose understands strings like '15m', '7d' via `setExpirationTime` directly.
@@ -30,9 +35,38 @@ function parseExpiresIn(expiresIn: string | number): number {
   return Math.floor(Date.now() / 1000) + seconds;
 }
 
+/**
+ * P1 #47 — `notBefore` has different semantics than `expiresIn`:
+ *
+ *   - `"1h"` / `"30s"` (string) → "valid from one hour from now",
+ *     i.e. duration relative to `Date.now()`. Reuse `parseExpiresIn`.
+ *   - `1700000000` (number)   → **absolute** epoch seconds. The old
+ *     code routed numbers through `parseExpiresIn` too, which added
+ *     `Date.now()` and produced a `nbf` ~54 years in the future.
+ *     Callers issuing pre-dated tokens (cron-scheduled actions, deferred
+ *     consent flows) saw the resulting JWT silently rejected as "not
+ *     yet valid" forever.
+ *
+ * Numbers therefore pass through unchanged; strings keep duration
+ * semantics for backwards compatibility with the few call sites that
+ * mirrored `expiresIn`.
+ */
+function parseNotBefore(notBefore: string | number): number {
+  if (typeof notBefore === 'number') return Math.floor(notBefore);
+  return parseExpiresIn(notBefore);
+}
+
 export interface JoseJwtConfig {
   /** Default secret used when a per-call options.secret is not provided. */
   readonly secret: string;
+  /**
+   * Optional previous secret accepted by the verifier during a rotation
+   * window. The signer always uses `secret`. When configured, verification
+   * tries `secret` first and falls back to `previousSecret` only on
+   * signature mismatch — every other failure (expired, audience, issuer,
+   * shape) surfaces unchanged.
+   */
+  readonly previousSecret?: string;
   readonly issuer?: string;
   readonly audience?: string;
 }
@@ -63,7 +97,7 @@ export class JoseJwtAdapter extends JwtPort {
     const audience = options.audience ?? this.config.audience;
     if (audience) builder.setAudience(audience);
     if (options.subject) builder.setSubject(options.subject);
-    if (options.notBefore !== undefined) builder.setNotBefore(parseExpiresIn(options.notBefore));
+    if (options.notBefore !== undefined) builder.setNotBefore(parseNotBefore(options.notBefore));
     builder.setIssuedAt();
     return builder.sign(this.secretKey(options.secret));
   }
@@ -73,11 +107,28 @@ export class JoseJwtAdapter extends JwtPort {
   }
 
   async verifyAsync<T = unknown>(token: string, options: JwtVerifyOptions = {}): Promise<T> {
-    const { payload } = await jwtVerify(token, this.secretKey(options.secret), {
+    const verifyOptions = {
       issuer: options.issuer ?? this.config.issuer,
       audience: options.audience ?? this.config.audience,
-    });
-    return payload as T;
+    };
+    try {
+      const { payload } = await jwtVerify(token, this.secretKey(options.secret), verifyOptions);
+      return payload as T;
+    } catch (err) {
+      // A per-call secret bypasses the rotation window. So does an unset
+      // `previousSecret`. Any other failure (expired, audience, issuer)
+      // is genuine — surface it.
+      const isSignatureFailure = err instanceof joseErrors.JWSSignatureVerificationFailed;
+      if (!isSignatureFailure || options.secret || !this.config.previousSecret) {
+        throw err;
+      }
+      const { payload } = await jwtVerify(
+        token,
+        new TextEncoder().encode(this.config.previousSecret),
+        verifyOptions,
+      );
+      return payload as T;
+    }
   }
 
   decode<T = unknown>(token: string): T | null {

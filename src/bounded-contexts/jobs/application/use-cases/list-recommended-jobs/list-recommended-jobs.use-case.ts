@@ -5,17 +5,19 @@
  */
 
 import { LoggerPort } from '@/shared-kernel';
-import type { Job } from '../../../domain/entities/job';
+import type { PaginatedResponse } from '@/shared-kernel/schemas/common/api.types';
+import { buildPaginatedResponse } from '@/shared-kernel/schemas/common/build-paginated-response';
+import type { Job } from '../../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 import type { JobEnrichmentService } from '../../services/job-enrichment.service';
 
-export interface ListRecommendedJobsResult {
-  readonly data: Array<Job & { matchScore: number; isBookmarked: boolean; hasApplied: boolean }>;
-  readonly total: number;
-  readonly page: number;
-  readonly limit: number;
-  readonly totalPages: number;
-}
+export type RecommendedJobItem = Job & {
+  matchScore: number;
+  isBookmarked: boolean;
+  hasApplied: boolean;
+};
+
+export type ListRecommendedJobsResult = PaginatedResponse<RecommendedJobItem>;
 
 export class ListRecommendedJobsUseCase {
   constructor(
@@ -25,12 +27,16 @@ export class ListRecommendedJobsUseCase {
   ) {}
 
   async execute(userId: string, page = 1, limit = 20): Promise<ListRecommendedJobsResult> {
-    const safeLimit = Math.min(limit, 50);
+    // P1 #36 — clamp limit to [1, 50] so a hostile / accidental
+    // `limit=0` returns the first page (not an empty page) and a huge
+    // `limit=999` doesn't blow up the response size.
+    const safeLimit = Math.max(1, Math.min(limit, 50));
     const safePage = Math.max(1, page);
+    const pagination = { page: safePage, limit: safeLimit };
 
     const userSkills = await this.repository.collectUserSkills(userId);
     if (userSkills.length === 0) {
-      return { data: [], total: 0, page: safePage, limit: safeLimit, totalPages: 0 };
+      return buildPaginatedResponse<RecommendedJobItem>([], 0, pagination);
     }
 
     const candidates = await this.repository.findRecommendableCandidates({
@@ -42,17 +48,32 @@ export class ListRecommendedJobsUseCase {
     const userSet = new Set(userSkills.map((s) => s.toLowerCase()));
     const scored = candidates
       .map((job) => {
-        const jobSkills = (job.skills ?? []).map((s) => s.toLowerCase());
-        const intersect = jobSkills.filter((s) => userSet.has(s));
-        const denominator = Math.max(jobSkills.length, 1);
-        const matchScore = Math.round((intersect.length / denominator) * 100);
-        return { job, matchScore, intersectCount: intersect.length };
+        const jobSkillsLower = (job.skills ?? []).map((s) => s.toLowerCase());
+        const jobSet = new Set(jobSkillsLower);
+        // P1 #36 — symmetric Jaccard match score (|A ∩ B| / |A ∪ B|)
+        // instead of |intersect| / |jobSkills|. Previous formula
+        // overweighted narrow job postings (one skill match against a
+        // 50-skill resume scored 100%) and produced asymmetric ranking
+        // between two otherwise-comparable candidates.
+        let intersectCount = 0;
+        for (const s of jobSet) if (userSet.has(s)) intersectCount++;
+        const unionCount = userSet.size + jobSet.size - intersectCount;
+        const matchScore = unionCount === 0 ? 0 : Math.round((intersectCount / unionCount) * 100);
+        return { job, matchScore, intersectCount };
       })
       .filter((entry) => entry.intersectCount > 0)
-      .sort((a, b) => b.matchScore - a.matchScore);
+      // P1 #36 — deterministic tiebreaker. Equal matchScore rows fall
+      // back to newest first (createdAt desc), then stable id desc so
+      // pagination doesn't shuffle on every request.
+      .sort((a, b) => {
+        if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+        const ta = a.job.createdAt?.getTime() ?? 0;
+        const tb = b.job.createdAt?.getTime() ?? 0;
+        if (tb !== ta) return tb - ta;
+        return b.job.id < a.job.id ? -1 : b.job.id > a.job.id ? 1 : 0;
+      });
 
     const total = scored.length;
-    const totalPages = Math.ceil(total / safeLimit);
     const slice = scored.slice((safePage - 1) * safeLimit, safePage * safeLimit);
 
     const enriched = await this.enrichment.withBookmarkedAndApplied(
@@ -60,12 +81,11 @@ export class ListRecommendedJobsUseCase {
       userId,
     );
 
-    return {
-      data: enriched.map((job, i) => ({ ...job, matchScore: slice[i].matchScore })),
-      total,
-      page: safePage,
-      limit: safeLimit,
-      totalPages,
-    };
+    const items: RecommendedJobItem[] = enriched.map((job, i) => ({
+      ...job,
+      matchScore: slice[i].matchScore,
+    }));
+
+    return buildPaginatedResponse(items, total, pagination);
   }
 }

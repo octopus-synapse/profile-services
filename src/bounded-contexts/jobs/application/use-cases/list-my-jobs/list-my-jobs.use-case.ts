@@ -3,7 +3,7 @@
  */
 
 import type { PaginatedResult } from '@/shared-kernel/database';
-import type { Job } from '../../../domain/entities/job';
+import type { Job } from '../../../domain/entities/job.entity';
 import { JobsRepositoryPort } from '../../../domain/ports/jobs.repository.port';
 
 export class ListMyJobsUseCase {

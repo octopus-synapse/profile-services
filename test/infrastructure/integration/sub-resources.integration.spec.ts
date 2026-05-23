@@ -136,9 +136,9 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'languages',
     sectionTypeKey: 'language_v1',
-    // Required: name, level (enum: BASIC, INTERMEDIATE, FLUENT, NATIVE)
+    // Required: name, level (CEFR enum: A1, A2, B1, B2, C1, C2, NATIVE)
     createPayload: { name: 'English', level: 'NATIVE' },
-    updatePayload: { name: 'English', level: 'FLUENT' },
+    updatePayload: { name: 'English', level: 'C2' },
   },
   {
     name: 'interests',
@@ -217,7 +217,7 @@ describe('Generic Sections Smoke Tests', () => {
       throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
     }
 
-    resumeId = res.body.data.id;
+    resumeId = res.body.id;
     testContext.resumeId = resumeId;
   });
 
@@ -232,10 +232,9 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sectionTypes');
-      expect(Array.isArray(res.body.data.sectionTypes)).toBe(true);
-      expect(res.body.data.sectionTypes.length).toBeGreaterThan(0);
+      expect(res.body).toHaveProperty('sectionTypes');
+      expect(Array.isArray(res.body.sectionTypes)).toBe(true);
+      expect(res.body.sectionTypes.length).toBeGreaterThan(0);
     });
 
     it('GET /api/v1/resumes/:id/sections - should list resume sections', async () => {
@@ -244,9 +243,8 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sections');
-      expect(Array.isArray(res.body.data.sections)).toBe(true);
+      expect(res.body).toHaveProperty('sections');
+      expect(Array.isArray(res.body.sections)).toBe(true);
     });
   });
 
@@ -271,11 +269,10 @@ describe('Generic Sections Smoke Tests', () => {
 
       // Accept both 200 and 201 as success
       expect([200, 201].includes(res.status)).toBe(true);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('item');
-      expect(res.body.data.item).toHaveProperty('id');
+      expect(res.body).toHaveProperty('item');
+      expect(res.body.item).toHaveProperty('id');
 
-      itemId = res.body.data.item.id;
+      itemId = res.body.item.id;
     });
 
     it(`GET /sections - should include ${name} in list`, async () => {
@@ -284,11 +281,10 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('sections');
+      expect(res.body).toHaveProperty('sections');
 
       // Find the section for this type (structure is sectionType.key)
-      const section = res.body.data.sections.find(
+      const section = res.body.sections.find(
         (s: { sectionType: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
 
@@ -296,7 +292,7 @@ describe('Generic Sections Smoke Tests', () => {
       if (!section) {
         console.error(
           `Section ${sectionTypeKey} not found. Available sections:`,
-          res.body.data.sections.map((s: { sectionType: { key: string } }) => s.sectionType?.key),
+          res.body.sections.map((s: { sectionType: { key: string } }) => s.sectionType?.key),
         );
       }
 
@@ -321,8 +317,7 @@ describe('Generic Sections Smoke Tests', () => {
       }
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('item');
+      expect(res.body).toHaveProperty('item');
     });
 
     it(`DELETE /sections/${sectionTypeKey}/items/:itemId - should delete ${name}`, async () => {
@@ -336,8 +331,7 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('deleted', true);
+      expect(res.body).toHaveProperty('deleted', true);
     });
   });
 

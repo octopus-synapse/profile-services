@@ -5,18 +5,41 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import {
+  type CompositeCursor,
+  encodeCursor,
+  tryDecodeCursor,
+} from '@/shared-kernel/persistence/composite-cursor';
 import type {
   BookmarkedFeedItem,
   PersistPostInput,
   Post,
   PostAuthor,
-  PostType,
   PostWithAuthor,
   PostWithRelations,
-  ReactionType,
   UserPostsResult,
 } from '../domain/entities';
 import { FeedRepositoryPort } from '../domain/ports/feed.repository.port';
+
+function decodeMixedCursor(cursor: string | undefined): CompositeCursor | null {
+  if (!cursor) return null;
+  const decoded = tryDecodeCursor(cursor);
+  if (decoded) return decoded;
+  const legacy = new Date(cursor);
+  return Number.isNaN(legacy.getTime()) ? null : { createdAt: legacy, id: '￿' };
+}
+
+function beforeCursor(p: Post, c: CompositeCursor): boolean {
+  if (p.createdAt.getTime() < c.createdAt.getTime()) return true;
+  if (p.createdAt.getTime() === c.createdAt.getTime()) return p.id < c.id;
+  return false;
+}
+
+function byCreatedAtIdDesc(a: Post, b: Post): number {
+  const dt = b.createdAt.getTime() - a.createdAt.getTime();
+  if (dt !== 0) return dt;
+  return b.id.localeCompare(a.id);
+}
 
 interface BookmarkRow {
   id: string;
@@ -28,7 +51,6 @@ interface BookmarkRow {
 interface LikeRow {
   postId: string;
   userId: string;
-  reactionType: ReactionType;
 }
 
 interface VoteRow {
@@ -42,6 +64,7 @@ const DEFAULT_AUTHOR: PostAuthor = {
   name: null,
   username: null,
   photoURL: null,
+  headline: null,
   bio: null,
   location: null,
 };
@@ -51,32 +74,27 @@ function makePost(partial: Partial<Post> & { id?: string; authorId: string }): P
   return {
     id: partial.id ?? randomUUID(),
     authorId: partial.authorId,
-    type: (partial.type ?? 'TEXT') as PostType,
-    subtype: partial.subtype ?? null,
     content: partial.content ?? null,
-    hardSkills: partial.hardSkills ?? [],
-    softSkills: partial.softSkills ?? [],
     hashtags: partial.hashtags ?? [],
-    data: partial.data ?? null,
     imageUrl: partial.imageUrl ?? null,
     linkUrl: partial.linkUrl ?? null,
     linkPreview: partial.linkPreview ?? null,
+    isRepost: partial.isRepost ?? false,
     originalPostId: partial.originalPostId ?? null,
-    coAuthors: partial.coAuthors ?? [],
     scheduledAt: partial.scheduledAt ?? null,
     isPublished: partial.isPublished ?? true,
     threadId: partial.threadId ?? null,
+    pollOptions: partial.pollOptions ?? null,
     pollDeadline: partial.pollDeadline ?? null,
     votesCount: partial.votesCount ?? 0,
     codeSnippet: partial.codeSnippet ?? null,
+    codeLanguage: partial.codeLanguage ?? null,
     likesCount: partial.likesCount ?? 0,
     commentsCount: partial.commentsCount ?? 0,
     repostsCount: partial.repostsCount ?? 0,
     bookmarksCount: partial.bookmarksCount ?? 0,
     isDeleted: partial.isDeleted ?? false,
     deletedAt: partial.deletedAt ?? null,
-    isAnonymous: partial.isAnonymous ?? false,
-    anonymousCategory: partial.anonymousCategory ?? null,
     createdAt: partial.createdAt ?? now,
     updatedAt: partial.updatedAt ?? now,
   };
@@ -115,8 +133,8 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     this.connections.push({ requesterId, targetId, status });
   }
 
-  seedLike(postId: string, userId: string, reactionType: ReactionType): void {
-    this.likes.push({ postId, userId, reactionType });
+  seedLike(postId: string, userId: string): void {
+    this.likes.push({ postId, userId });
   }
 
   seedBookmark(postId: string, userId: string, createdAt = new Date()): void {
@@ -147,24 +165,20 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
   async createPost(authorId: string, input: PersistPostInput): Promise<PostWithAuthor> {
     const post = makePost({
       authorId,
-      type: input.type,
-      subtype: input.subtype ?? null,
       content: input.content ?? null,
-      hardSkills: input.hardSkills ?? [],
-      softSkills: input.softSkills ?? [],
       hashtags: input.hashtags,
-      data: input.data ?? null,
       imageUrl: input.imageUrl ?? null,
       linkUrl: input.linkUrl ?? null,
       linkPreview: input.linkPreview ?? null,
+      isRepost: input.isRepost === true,
       originalPostId: input.originalPostId ?? null,
-      coAuthors: input.coAuthors ?? [],
       scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : null,
       isPublished: input.isPublished,
       threadId: input.threadId ?? null,
+      pollOptions: input.pollOptions ?? null,
+      pollDeadline: input.pollDeadline ? new Date(input.pollDeadline) : null,
       codeSnippet: input.codeSnippet ?? null,
-      isAnonymous: input.isAnonymous === true,
-      anonymousCategory: input.isAnonymous ? (input.anonymousCategory ?? null) : null,
+      codeLanguage: input.codeLanguage ?? null,
     });
     this.posts.set(post.id, post);
     if (!this.authors.has(authorId)) {
@@ -196,6 +210,26 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     this.posts.set(originalPostId, { ...current, repostsCount: current.repostsCount + by });
   }
 
+  async softDeletePostInTx(
+    id: string,
+  ): Promise<{ mutated: boolean; originalPostId: string | null }> {
+    const current = this.posts.get(id);
+    if (!current || current.isDeleted) {
+      return { mutated: false, originalPostId: current?.originalPostId ?? null };
+    }
+    this.posts.set(id, { ...current, isDeleted: true, deletedAt: new Date() });
+    if (current.originalPostId) {
+      const original = this.posts.get(current.originalPostId);
+      if (original) {
+        this.posts.set(current.originalPostId, {
+          ...original,
+          repostsCount: original.repostsCount - 1,
+        });
+      }
+    }
+    return { mutated: true, originalPostId: current.originalPostId };
+  }
+
   async listFollowedAndConnectionIds(
     userId: string,
   ): Promise<{ followingIds: string[]; connectionIds: string[] }> {
@@ -211,25 +245,23 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
   async listFeedPosts(params: {
     cursor?: string;
     take: number;
-    type?: PostType;
     followingOnly: boolean;
     followingIds: string[];
     userId: string;
   }): Promise<PostWithRelations[]> {
-    const { cursor, take, type, followingOnly, followingIds, userId } = params;
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const { cursor, take, followingOnly, followingIds, userId } = params;
+    const decoded = decodeMixedCursor(cursor);
 
     const rows = [...this.posts.values()].filter((p) => {
       if (p.isDeleted) return false;
-      if (type && p.type !== type) return false;
-      if (cursorDate && p.createdAt >= cursorDate) return false;
+      if (decoded && !beforeCursor(p, decoded)) return false;
       if (followingOnly) {
         return followingIds.includes(p.authorId) && p.isPublished;
       }
       return p.isPublished || (p.authorId === userId && !p.isPublished);
     });
 
-    rows.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    rows.sort(byCreatedAtIdDesc);
     return rows.slice(0, take).map((p) => this.withRelations(p));
   }
 
@@ -238,18 +270,17 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<UserPostsResult> {
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const decoded = decodeMixedCursor(cursor);
     const rows = [...this.posts.values()]
       .filter(
-        (p) =>
-          p.authorId === userId && !p.isDeleted && (cursorDate ? p.createdAt < cursorDate : true),
+        (p) => p.authorId === userId && !p.isDeleted && (decoded ? beforeCursor(p, decoded) : true),
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort(byCreatedAtIdDesc)
       .slice(0, limit);
     const posts = rows.map((p) => this.withRelations(p));
-    const nextCursor =
-      posts.length === limit ? posts[posts.length - 1].createdAt.toISOString() : null;
-    return { posts, nextCursor };
+    const last = rows[rows.length - 1];
+    const nextCursor = rows.length === limit && last ? encodeCursor(last.createdAt, last.id) : null;
+    return { items: posts, nextCursor, hasNext: nextCursor !== null };
   }
 
   async listBookmarks(
@@ -283,16 +314,15 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     postIds: string[],
     userId: string,
   ): Promise<{
-    likedPostMap: Map<string, ReactionType>;
+    likedPostIds: Set<string>;
     bookmarkedPostIds: Set<string>;
     repostedPostIds: Set<string>;
     voteByPostId: Map<string, number>;
   }> {
     const ids = new Set(postIds);
-    const likedPostMap = new Map<string, ReactionType>();
-    for (const l of this.likes) {
-      if (l.userId === userId && ids.has(l.postId)) likedPostMap.set(l.postId, l.reactionType);
-    }
+    const likedPostIds = new Set(
+      this.likes.filter((l) => l.userId === userId && ids.has(l.postId)).map((l) => l.postId),
+    );
     const bookmarkedPostIds = new Set(
       this.bookmarks.filter((b) => b.userId === userId && ids.has(b.postId)).map((b) => b.postId),
     );
@@ -300,7 +330,7 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     for (const p of this.posts.values()) {
       if (
         p.authorId === userId &&
-        p.type === 'REPOST' &&
+        p.isRepost &&
         p.originalPostId &&
         ids.has(p.originalPostId) &&
         !p.isDeleted
@@ -312,7 +342,7 @@ export class InMemoryFeedRepository extends FeedRepositoryPort {
     for (const v of this.votes) {
       if (v.userId === userId && ids.has(v.postId)) voteByPostId.set(v.postId, v.optionIndex);
     }
-    return { likedPostMap, bookmarkedPostIds, repostedPostIds, voteByPostId };
+    return { likedPostIds, bookmarkedPostIds, repostedPostIds, voteByPostId };
   }
 
   async findThreadPosts(threadIds: string[]): Promise<Map<string, PostWithRelations[]>> {

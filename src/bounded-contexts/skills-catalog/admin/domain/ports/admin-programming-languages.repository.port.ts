@@ -13,7 +13,7 @@ export interface AdminProgrammingLanguagesListQuery {
 }
 
 export abstract class AdminProgrammingLanguagesRepositoryPort {
-  abstract findAll(
+  abstract listAll(
     query: AdminProgrammingLanguagesListQuery,
   ): Promise<PaginatedResult<ProgrammingLanguage>>;
   abstract findOne(slug: string): Promise<ProgrammingLanguage | null>;

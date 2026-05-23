@@ -39,9 +39,6 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'resume:export',
       'resume:import',
       'resume:share',
-      'theme:read',
-      'theme:list',
-      'theme:create',
       'skill:read',
       'skill:list',
       'collaboration:create',
@@ -59,6 +56,14 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'user:profile_read',
       'user:profile_update',
     ],
+  },
+  {
+    name: 'recruiter',
+    displayName: 'Recruiter',
+    description: 'Can publish job postings via /v1/jobs.',
+    isSystem: true,
+    priority: 20,
+    permissions: ['job:create'],
   },
   // Marker role: only regular end-users get this. Admins/super_admins do not.
   // Used by the scoring + onboarding gates to know "this account is a

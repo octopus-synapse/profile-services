@@ -1,13 +1,21 @@
 /**
  * Core Translation Service
- * Handles basic translation operations using LibreTranslate.
  *
- * Framework-free: takes the LibreTranslate URL as a constructor argument.
- * The composition root reads `LIBRETRANSLATE_URL` from config and calls
- * `checkServiceHealth()` once during bootstrap.
+ * Thin adapter over `TranslationLlmPort` (provided by the BC AI). Owns
+ * the BC's surface: shapes the LLM result into the BC's
+ * `TranslationResult` / `LanguageDetectionResult` DTOs, applies
+ * BC-level guards (empty text fast-path), and lets the port layer take
+ * care of caching, retry, and config-based availability.
  */
 
+import type {
+  DetectLanguageResult,
+  TranslateTextInput,
+  TranslateTextResult,
+  TranslationLlmPort,
+} from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import { LoggerPort } from '@/shared-kernel';
+import { TranslationBackendUnavailableException } from '../../domain/exceptions/translation.exceptions';
 import type {
   LanguageDetectionResult,
   SourceLanguage,
@@ -18,34 +26,21 @@ import type {
 const CTX = 'TranslationCoreService';
 
 export class TranslationCoreService {
-  private isServiceAvailable = false;
-
   constructor(
-    private readonly libreTranslateUrl: string,
+    private readonly translationLlm: TranslationLlmPort,
     private readonly logger: LoggerPort,
-  ) {
-    new URL(libreTranslateUrl);
-  }
+  ) {}
 
+  /** Returns provider availability synchronously (config check — no
+   * round-trip to OpenAI). Async signature kept for compatibility with
+   * the bootstrap which used to await a network ping. */
   async checkServiceHealth(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.libreTranslateUrl}/languages`, {
-        signal: AbortSignal.timeout(5000),
-      });
-      this.isServiceAvailable = response.ok;
-      this.logger.log(
-        `LibreTranslate service is ${this.isServiceAvailable ? 'available' : 'unavailable'}`,
-        CTX,
-      );
-      return this.isServiceAvailable;
-    } catch {
-      this.isServiceAvailable = false;
-      this.logger.warn(
-        'LibreTranslate service is not available. Translation features will be disabled.',
-        CTX,
-      );
-      return false;
-    }
+    const available = this.translationLlm.isAvailable();
+    this.logger.log(
+      `Translation provider is ${available ? 'configured' : 'unavailable (OPENAI_API_KEY missing)'}`,
+      CTX,
+    );
+    return available;
   }
 
   async translate(
@@ -57,70 +52,37 @@ export class TranslationCoreService {
       return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
-    if (!this.isServiceAvailable) {
-      this.logger.warn('Translation service unavailable, returning original text', CTX);
-      return { original: text, translated: text, sourceLanguage, targetLanguage };
-    }
-
     try {
-      const response = await fetch(`${this.libreTranslateUrl}/translate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: sourceLanguage,
-          target: targetLanguage,
-          format: 'text',
-        }),
-        signal: AbortSignal.timeout(15000),
-      });
-
-      const data = (await response.json()) as {
-        translatedText?: string;
-        detectedLanguage?: { language?: string };
-      };
-      const detected = data.detectedLanguage?.language;
-      const detectedLanguage =
-        detected === 'pt' || detected === 'en' ? (detected as TranslationLanguage) : undefined;
+      const input: TranslateTextInput = { text, source: sourceLanguage, target: targetLanguage };
+      const result: TranslateTextResult = await this.translationLlm.translate(input);
       return {
-        original: text,
-        translated: data.translatedText ?? text,
+        original: result.original,
+        translated: result.translated,
         sourceLanguage,
         targetLanguage,
-        detectedLanguage,
+        detectedLanguage: result.detectedLanguage ?? undefined,
       };
     } catch (error) {
-      this.logger.error(
-        `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
-      );
-      return { original: text, translated: text, sourceLanguage, targetLanguage };
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Translation failed: ${message}`, { context: CTX });
+      throw new TranslationBackendUnavailableException(message, error);
     }
   }
 
   async detectLanguage(text: string): Promise<LanguageDetectionResult[]> {
-    if (!text || text.trim().length === 0 || !this.isServiceAvailable) return [];
+    if (!text || text.trim().length === 0) return [];
     try {
-      const response = await fetch(`${this.libreTranslateUrl}/detect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: text }),
-        signal: AbortSignal.timeout(5000),
-      });
-      const data = (await response.json()) as LanguageDetectionResult[] | undefined;
-      return Array.isArray(data) ? data : [];
+      const result: DetectLanguageResult = await this.translationLlm.detectLanguage(text);
+      if (!result.language) return [];
+      return [{ language: result.language, confidence: result.confidence }];
     } catch (error) {
-      this.logger.error(
-        `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        undefined,
-        CTX,
-      );
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Language detection failed: ${message}`, { context: CTX });
       return [];
     }
   }
 
   isAvailable(): boolean {
-    return this.isServiceAvailable;
+    return this.translationLlm.isAvailable();
   }
 }

@@ -74,7 +74,7 @@ export class ComputeMatchUseCase {
     const cacheKey = `match:${resumeId}:${jobId}:${userId}:${MATCH_RULES_VERSION}`;
     const cached = await this.cache.get(cacheKey);
     if (cached) {
-      this.publishComputed({
+      await this.publishComputed({
         userId,
         resumeId,
         jobId,
@@ -85,55 +85,99 @@ export class ComputeMatchUseCase {
       return cached;
     }
 
-    // ── Fan out to the four providers concurrently ──────────────────
-    const [keywords, requirements, semantic, fitSub] = await Promise.all([
-      this.runKeyword(resumeId, job.keywords),
-      this.runRequirements(resumeId, jobId, job),
-      this.runSemantic(resumeId, jobId),
-      this.runFit(userId, jobId, job),
-    ]);
-
-    const subScores = { keyword: keywords, requirements, semantic, fit: fitSub } satisfies Record<
-      string,
-      SubScoreResult
-    >;
-
-    const { overallScore, effectiveWeights } = blendMatch(subScores);
-    const breakdown: MatchBreakdown = {
-      overallScore,
-      subScores,
-      effectiveWeights,
-      rulesVersion: MATCH_RULES_VERSION,
-      computedAt: new Date(),
-    };
-
-    // Cache best-effort — a cache failure must not fail the read.
-    try {
-      await this.cache.set(cacheKey, breakdown);
-    } catch (err) {
-      this.logger.warn(`Match cache set failed: ${(err as Error).message}`, 'ComputeMatchUseCase');
+    // ── P1-027 Single-flight: take a brief lock so concurrent
+    // requests for the same (resume, job, user) don't all spend 4 AI
+    // calls each. Lock TTL = 30s — long enough for the four providers
+    // to complete, short enough that a crash doesn't pin the cache.
+    const lockKey = `${cacheKey}:lock`;
+    const lock = await this.cache.acquireLock(lockKey, 30);
+    if (!lock) {
+      // Another request is computing. Re-read the cache after a brief
+      // pause so we get the value the leader is about to write. If the
+      // leader fails, we fall through and compute ourselves rather
+      // than throwing — single-flight is an optimisation, not a hard
+      // gate.
+      await new Promise((r) => setTimeout(r, 250));
+      const followerHit = await this.cache.get(cacheKey);
+      if (followerHit) {
+        await this.publishComputed({
+          userId,
+          resumeId,
+          jobId,
+          breakdown: followerHit,
+          fromCache: true,
+          startedAt,
+        });
+        return followerHit;
+      }
     }
 
-    this.publishComputed({ userId, resumeId, jobId, breakdown, fromCache: false, startedAt });
+    try {
+      // ── Fan out to the four providers concurrently ────────────────
+      const [keywords, requirements, semantic, fitSub] = await Promise.all([
+        this.runKeyword(resumeId, job.keywords),
+        this.runRequirements(resumeId, jobId, job),
+        this.runSemantic(resumeId, jobId),
+        this.runFit(userId, jobId, job),
+      ]);
 
-    return breakdown;
+      const subScores = { keyword: keywords, requirements, semantic, fit: fitSub } satisfies Record<
+        string,
+        SubScoreResult
+      >;
+
+      const { overallScore, effectiveWeights } = blendMatch(subScores);
+      const breakdown: MatchBreakdown = {
+        overallScore,
+        subScores,
+        effectiveWeights,
+        rulesVersion: MATCH_RULES_VERSION,
+        computedAt: new Date(),
+      };
+
+      // Cache best-effort — a cache failure must not fail the read.
+      try {
+        await this.cache.set(cacheKey, breakdown);
+      } catch (err) {
+        this.logger.warn(
+          `Match cache set failed: ${(err as Error).message}`,
+          'ComputeMatchUseCase',
+        );
+      }
+
+      await this.publishComputed({
+        userId,
+        resumeId,
+        jobId,
+        breakdown,
+        fromCache: false,
+        startedAt,
+      });
+
+      return breakdown;
+    } finally {
+      await lock?.release();
+    }
   }
 
-  private publishComputed(args: {
+  // P2-#7 (event-publishing async leak): state-mutating event — match
+  // score persistence + downstream cache invalidations subscribe. Await
+  // so a failed handler surfaces here instead of being dropped.
+  private async publishComputed(args: {
     userId: string;
     resumeId: string;
     jobId: string;
     breakdown: MatchBreakdown;
     fromCache: boolean;
     startedAt: number;
-  }): void {
+  }): Promise<void> {
     const subScores: Record<string, number | null> = {
       keyword: args.breakdown.subScores.keyword.score,
       requirements: args.breakdown.subScores.requirements.score,
       semantic: args.breakdown.subScores.semantic.score,
       fit: args.breakdown.subScores.fit.score,
     };
-    this.events.publish(
+    await this.events.publishAsync(
       new MatchComputedEvent(args.jobId, {
         userId: args.userId,
         resumeId: args.resumeId,

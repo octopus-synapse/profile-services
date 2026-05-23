@@ -2,13 +2,12 @@
  * Domain shapes for post engagement (likes, bookmarks, reports, votes).
  */
 
-import type { PostAuthor, ReactionType } from './post';
+import type { PostAuthor } from './post.entity';
 
 export interface PostLike {
   readonly id: string;
   readonly postId: string;
   readonly userId: string;
-  readonly reactionType: ReactionType;
   readonly createdAt: Date;
 }
 
@@ -36,15 +35,13 @@ export interface PollVote {
   readonly createdAt: Date;
 }
 
-/** Reaction + denormalised post snippet for activity feeds. */
-export interface ReactionWithPost {
+/** Like + denormalised post snippet for activity feeds. */
+export interface LikeWithPost {
   readonly postId: string;
   readonly userId: string;
-  readonly reactionType: ReactionType;
   readonly createdAt: Date;
   readonly post: {
     readonly id: string;
-    readonly type: string;
     readonly content: string | null;
     readonly authorId: string;
     readonly author: PostAuthor;

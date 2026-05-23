@@ -4,7 +4,7 @@ interface RepoRow {
   url: string;
 }
 
-export function toPinnedRepos(
+export function toPinnedReposResponseDto(
   repos: RepoRow[],
 ): Array<{ name: string; description?: string; url: string }> {
   const out: Array<{ name: string; description?: string; url: string }> = [];

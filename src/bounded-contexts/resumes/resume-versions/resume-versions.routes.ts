@@ -10,24 +10,22 @@
  */
 
 import { z } from 'zod';
-import type { Route } from '@/shared-kernel/http/route';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { Route } from '@/shared-kernel/http/route.types';
 import { ResumeVersionsUseCases } from './application/ports/resume-versions.port';
 import { toVersionIsoList } from './infrastructure/presenters/resume-version.presenter';
-
-const ResumeIdParam = z.object({ resumeId: z.string() });
-const ResumeIdAndVersionIdParam = z.object({
-  resumeId: z.string(),
-  versionId: z.string(),
-});
-
-const VersionIdQuery = z.object({ versionId: z.string() });
-
-const TailorResumeBody = z.object({
-  jobId: z.string().min(1).optional(),
-  jobDescription: z.string().min(10).optional(),
-  jobTitle: z.string().max(200).optional(),
-  jobCompany: z.string().max(200).optional(),
-});
+import {
+  ResumeIdAndVersionIdParam,
+  ResumeIdParam,
+  ResumeVersionResponseSchema,
+  ResumeVersionRestoreResponseSchema,
+  ResumeVersionsResponseSchema,
+  TailoredVersionDiffResponseSchema,
+  TailoredVersionsResponseSchema,
+  TailorResumeBody,
+  TailorResumeResponseSchema,
+  VersionIdQuery,
+} from './resume-versions.routes.schemas';
 
 export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> = [
   // ─── Resume versions (nested + flat routes) ───────────────────────
@@ -36,6 +34,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/versions',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeVersionsResponseSchema,
     openapi: {
       summary: 'List resume versions (nested route)',
       tags: ['resume-versions'],
@@ -44,7 +43,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -52,6 +51,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/versions/:versionId/restore',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionRestoreResponseSchema,
     openapi: {
       summary: 'Restore resume version (nested route)',
       tags: ['resume-versions'],
@@ -60,10 +60,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId, versionId } = ctx.params as { resumeId: string; versionId: string };
       const restored = await bc.restoreVersion.execute(resumeId, versionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
-      };
+      return { restoredFrom: restored.restoredFrom.toISOString() };
     },
   },
   {
@@ -71,6 +68,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeVersionsResponseSchema,
     openapi: {
       summary: 'List resume versions',
       tags: ['resume-versions'],
@@ -79,7 +77,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -87,6 +85,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId/:versionId',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionResponseSchema,
     openapi: {
       summary: 'Get a specific resume version',
       tags: ['resume-versions'],
@@ -97,14 +96,10 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       const versions = await bc.getVersions.execute(resumeId, ctx.user!.userId);
       const version = versions.find((v) => v.id === versionId);
       if (!version) {
-        const { NotFoundException } = await import('@nestjs/common');
-        throw new NotFoundException('Version not found');
+        throw new EntityNotFoundException('ResumeVersion', versionId);
       }
       return {
-        success: true,
-        data: {
-          version: { ...version, createdAt: version.createdAt.toISOString() },
-        },
+        version: { ...version, createdAt: version.createdAt.toISOString() },
       };
     },
   },
@@ -113,6 +108,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/versions/:resumeId/restore/:versionId',
     auth: { kind: 'jwt' },
     params: ResumeIdAndVersionIdParam,
+    response: ResumeVersionRestoreResponseSchema,
     openapi: {
       summary: 'Restore resume version',
       tags: ['resume-versions'],
@@ -121,10 +117,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId, versionId } = ctx.params as { resumeId: string; versionId: string };
       const restored = await bc.restoreVersion.execute(resumeId, versionId, ctx.user!.userId);
-      return {
-        success: true,
-        data: { success: true, restoredFrom: restored.restoredFrom.toISOString() },
-      };
+      return { restoredFrom: restored.restoredFrom.toISOString() };
     },
   },
 
@@ -136,6 +129,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     path: '/v1/resumes/:resumeId/tailored-versions',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: TailoredVersionsResponseSchema,
     openapi: {
       summary: 'List tailored resume variants produced by the AI.',
       tags: ['resume-tailor'],
@@ -145,7 +139,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const versions = await bc.getTailoredVersions.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { versions: toVersionIsoList(versions) } };
+      return { versions: toVersionIsoList(versions) };
     },
   },
   {
@@ -154,6 +148,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
     query: VersionIdQuery,
+    response: TailoredVersionDiffResponseSchema,
     openapi: {
       summary: 'Structured diff between the master resume and a tailored version.',
       tags: ['resume-tailor'],
@@ -164,7 +159,7 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
       const { resumeId } = ctx.params as { resumeId: string };
       const { versionId } = ctx.query as { versionId: string };
       const diff = await bc.getTailoredVersionDiff.execute(resumeId, versionId, ctx.user!.userId);
-      return { success: true, data: diff };
+      return diff;
     },
   },
   {
@@ -177,7 +172,9 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     guards: [
       { id: 'fit-profile' },
       { id: 'min-quality', metadata: { min: 50, resumeParam: 'resumeId' } },
+      { id: 'external-api' },
     ],
+    response: TailorResumeResponseSchema,
     openapi: {
       summary: 'Rewrite this resume for a specific job using the AI pipeline.',
       tags: ['resume-tailor'],
@@ -187,15 +184,52 @@ export const resumeVersionsRoutes: ReadonlyArray<Route<ResumeVersionsUseCases>> 
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const body = ctx.body as z.infer<typeof TailorResumeBody>;
-      const data = await bc.tailorResumeForJob.execute({
+      const data = (await bc.tailorResumeForJob.execute({
         resumeId,
         userId: ctx.user!.userId,
         jobId: body?.jobId,
         jobDescription: body?.jobDescription,
         jobTitle: body?.jobTitle,
         jobCompany: body?.jobCompany,
+      })) as Record<string, unknown>;
+
+      // Convert the legacy `{bullets:[{id,original,tailored,highlights}], summary, jobTitle}`
+      // into a JSON-Patch-like `changes[]` so the frontend renders a generic
+      // diff UI without per-field mapping.
+      const bullets =
+        (data.bullets as Array<{
+          id: string;
+          original: string;
+          tailored: string;
+          highlights?: string[];
+        }>) ?? [];
+      const changes: Array<{
+        path: ReadonlyArray<string | number>;
+        op: 'add' | 'remove' | 'replace';
+        before?: unknown;
+        after?: unknown;
+        highlights?: readonly string[];
+      }> = [];
+      if (typeof data.summary === 'string') {
+        changes.push({ path: ['summary'], op: 'replace', after: data.summary });
+      }
+      if (typeof data.jobTitle === 'string') {
+        changes.push({ path: ['jobTitle'], op: 'replace', after: data.jobTitle });
+      }
+      bullets.forEach((b, i) => {
+        changes.push({
+          path: ['bullets', i],
+          op: b.original ? 'replace' : 'add',
+          before: b.original || undefined,
+          after: b.tailored,
+          highlights: b.highlights ?? [],
+        });
       });
-      return { success: true, data };
+
+      return {
+        ...data,
+        changes,
+      };
     },
   },
 ];

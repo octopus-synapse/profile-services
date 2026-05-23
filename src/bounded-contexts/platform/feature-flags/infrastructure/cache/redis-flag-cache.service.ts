@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import Redis from 'ioredis';
 import { RedisConnectionService } from '@/bounded-contexts/platform/common/cache/redis-connection.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { ConfigPort } from '@/shared-kernel/config';
 import type { Lifecycle } from '@/shared-kernel/lifecycle';
+import { LoggerPort } from '@/shared-kernel/logger/logger.port';
 import type { FlagCachePort } from '../../application/ports/flag-cache.port';
 import type { FeatureFlagKey, FlagEvaluationSnapshot } from '../../domain/types';
 
@@ -12,6 +13,12 @@ const TTL_SECONDS = 60;
 const REDIS_DEFAULT_PORT = 6379;
 const RETRY_DELAY_MAX = 2000;
 const RETRY_DELAY_MULTIPLIER = 50;
+// P1 #40 — SCAN page size + UNLINK batch concurrency.
+// SCAN_COUNT=200 keeps every Redis "tick" short; UNLINK_BATCH=10 caps
+// the in-flight pipeline so a huge keyspace doesn't queue thousands of
+// unanswered commands at once.
+const SCAN_COUNT = 200;
+const UNLINK_BATCH_CONCURRENCY = 10;
 
 /**
  * Caches per-roles-fingerprint evaluation snapshots in Redis with a dedicated
@@ -23,22 +30,32 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
   private subscriber: Redis | null = null;
   private readonly localListeners = new Set<() => void>();
 
+  // P1-031 — `config` is optional so legacy callers keep working;
+  // the bootstrap supplies the canonical port so we stop reading
+  // `process.env.REDIS_*` directly.
   constructor(
     private readonly connection: RedisConnectionService,
-    private readonly logger: AppLoggerService,
+    private readonly logger: LoggerPort,
+    private readonly config?: ConfigPort,
   ) {}
 
   async init(): Promise<void> {
     if (!this.connection.isEnabled) return;
 
-    const host = process.env.REDIS_HOST;
+    const host = this.config?.get<string>('REDIS_HOST') ?? process.env.REDIS_HOST;
     if (!host) return;
+
+    const portRaw =
+      this.config?.get<string>('REDIS_PORT') ??
+      process.env.REDIS_PORT ??
+      String(REDIS_DEFAULT_PORT);
+    const password = this.config?.get<string>('REDIS_PASSWORD') ?? process.env.REDIS_PASSWORD;
 
     try {
       this.subscriber = new Redis({
         host,
-        port: parseInt(process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT), 10),
-        password: process.env.REDIS_PASSWORD,
+        port: parseInt(portRaw, 10),
+        password,
         // Match RedisConnectionService: cap retry delay so a misconfigured
         // host doesn't produce unbounded error spam or crash loops.
         retryStrategy: (times) => Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
@@ -87,9 +104,6 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
     }
   }
 
-  // TODO: Nest's `enableShutdownHooks` won't call `dispose()` automatically.
-  // The Nest adapter's `nest-bootstrap.ts` should register a SIGTERM handler
-  // that walks all `Lifecycle` instances. Out of scope for the lifecycle sweep.
   async dispose(): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
     if (this.subscriber) {
@@ -149,8 +163,26 @@ export class RedisFlagCache implements Lifecycle, FlagCachePort {
       return;
     }
     try {
-      const keys = await client.keys(`${SNAPSHOT_PREFIX}*`);
-      if (keys.length > 0) await client.del(...keys);
+      // P1 #40 / P0-#13: use `SCAN + UNLINK` instead of `KEYS pattern`.
+      // KEYS is O(keyspace) and blocks the single Redis thread for the
+      // full sweep, which freezes every other client mid-rollout. SCAN
+      // walks the keyspace in small COUNT-sized pages and UNLINK frees
+      // the slot asynchronously on the Redis side so we never stall the
+      // command loop here either.
+      const stream = client.scanStream({
+        match: `${SNAPSHOT_PREFIX}*`,
+        count: SCAN_COUNT,
+      });
+      let pending: Promise<unknown>[] = [];
+      for await (const keys of stream as AsyncIterable<string[]>) {
+        if (keys.length === 0) continue;
+        pending.push(client.unlink(...keys));
+        if (pending.length >= UNLINK_BATCH_CONCURRENCY) {
+          await Promise.all(pending);
+          pending = [];
+        }
+      }
+      if (pending.length > 0) await Promise.all(pending);
       await client.publish(INVALIDATE_CHANNEL, changedKey ?? '*');
     } catch (err) {
       this.logger.warn('Flag cache invalidation failed', 'RedisFlagCache', {

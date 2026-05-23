@@ -149,6 +149,7 @@ export function buildExportComposition(
     pipeline: internals.pipeline,
     bannerCapture: internals.bannerCapture,
     pdfCache: internals.pdfCache,
+    s3: deps.s3,
   };
   return {
     useCases: bundle,

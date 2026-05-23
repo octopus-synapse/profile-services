@@ -17,7 +17,7 @@ import type {
   JobApplication,
   JobFilters,
   UpdateJobInput,
-} from '../../../domain/entities/job';
+} from '../../../domain/entities/job.entity';
 import {
   type ApplicationListItem,
   type ApplicationWithJob,
@@ -74,10 +74,15 @@ export class PrismaJobsRepository extends JobsRepositoryPort {
   }
 
   async findJobOwnerSummary(id: string): Promise<{ id: string; authorId: string } | null> {
-    return this.prisma.job.findUnique({
+    const row = await this.prisma.job.findUnique({
       where: { id },
       select: { id: true, authorId: true },
     });
+    // P0 FK sweep made `Job.authorId` nullable so jobs survive author
+    // erasure (SET NULL). Owner-summary callers (e.g. application list
+    // ownership guard) treat an orphan job as "no owner found".
+    if (!row || row.authorId === null) return null;
+    return { id: row.id, authorId: row.authorId };
   }
 
   async updateJob(id: string, data: UpdateJobInput): Promise<Job> {

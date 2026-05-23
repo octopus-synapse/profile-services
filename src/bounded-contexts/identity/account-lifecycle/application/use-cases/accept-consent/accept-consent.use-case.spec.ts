@@ -88,7 +88,7 @@ describe('AcceptConsentUseCase', () => {
       expect(result.version).toBe('1.0.0');
 
       // Verify consent was stored
-      const stored = await consentRepository.findAllByUser('user-123');
+      const stored = await consentRepository.listByUser('user-123');
       expect(stored).toHaveLength(1);
     });
 
@@ -103,7 +103,7 @@ describe('AcceptConsentUseCase', () => {
         documentType: 'PRIVACY_POLICY' as ConsentDocumentType,
       });
 
-      const allConsents = await consentRepository.findAllByUser('user-123');
+      const allConsents = await consentRepository.listByUser('user-123');
       expect(allConsents).toHaveLength(2);
 
       const auditEntries = auditLogger.getEntriesForUser('user-123');

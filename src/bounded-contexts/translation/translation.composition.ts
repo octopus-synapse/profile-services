@@ -1,13 +1,17 @@
 /**
- * Pure-TS wiring for the translation BC. Zero `@nestjs/*` imports — the
- * Nest module is a thin shell that exposes the result of this function
- * through `useFactory` providers.
+ * Pure-TS wiring for the translation BC. Zero `@nestjs/*` imports.
  *
  * The BC's HTTP boundary fronts a single `TranslationService` aggregate
  * (no separate Use-Cases port today), so the composition uses
  * `TranslationService` itself as the bundle type.
+ *
+ * Provider: a `TranslationLlmPort` supplied by the BC AI composition
+ * (OpenAI today). The translation BC owns domain rules (locale pairs,
+ * payload limits, batch chunking, resume traversal) and consumes the
+ * port as a pure capability.
  */
 
+import type { TranslationLlmPort } from '@/bounded-contexts/ai/domain/ports/translation-llm.port';
 import type { LoggerPort } from '@/shared-kernel';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import {
@@ -31,21 +35,13 @@ export interface TranslationCompositionExtras {
   readonly resume: ResumeTranslationService;
 }
 
-/**
- * Build the framework-free composition for the translation BC.
- *
- * The composition root is responsible for:
- *  - reading `LIBRETRANSLATE_URL` from config (caller passes it in),
- *  - invoking `core.checkServiceHealth()` once after construction (the
- *    Nest shell awaits it before exposing the bundle).
- */
 export function buildTranslationComposition(
-  libreTranslateUrl: string,
+  translationLlm: TranslationLlmPort,
   logger: LoggerPort,
 ): BoundedContextComposition<TranslationService> & TranslationCompositionExtras {
-  const core = new TranslationCoreService(libreTranslateUrl, logger);
-  const batch = new TranslationBatchService(core);
-  const resume = new ResumeTranslationService(core);
+  const core = new TranslationCoreService(translationLlm, logger);
+  const batch = new TranslationBatchService(translationLlm);
+  const resume = new ResumeTranslationService(translationLlm);
   const useCases = new TranslationService(core, batch, resume);
 
   return {

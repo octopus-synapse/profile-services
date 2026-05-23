@@ -119,6 +119,11 @@ class InMemoryMatchCache extends MatchCachePort {
     this.writes++;
     this.store.set(key, value);
   }
+  async acquireLock() {
+    // Tests don't exercise the single-flight path; granting unilaterally
+    // keeps existing scenarios deterministic.
+    return { release: async () => {} };
+  }
 }
 
 function defaultJob(overrides: Partial<JobForMatch> = {}): JobForMatch {

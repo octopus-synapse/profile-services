@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -20,7 +20,7 @@ describe('DocxBuilderService', () => {
   const mockUser = { id: 'user-1', name: 'John Doe', email: 'john@example.com' };
 
   const mockResume = {
-    ...createMockResume({
+    ...buildResume({
       id: 'resume-1',
       userId: 'user-1',
       fullName: 'John Doe',

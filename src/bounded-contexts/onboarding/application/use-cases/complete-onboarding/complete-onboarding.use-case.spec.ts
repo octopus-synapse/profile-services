@@ -4,6 +4,11 @@ import {
   ConflictException,
   EntityNotFoundException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  OnboardingInvalidPersonalInfoException,
+  OnboardingInvalidProfessionalProfileException,
+  OnboardingInvalidUsernameException,
+} from '../../../domain/exceptions/onboarding.exceptions';
 import { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   createOnboardingData,
@@ -50,7 +55,6 @@ describe('CompleteOnboardingUseCase', () => {
         username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
-          email: 'john@example.com',
           phone: '1234567890',
           location: 'New York, NY',
         },
@@ -61,7 +65,7 @@ describe('CompleteOnboardingUseCase', () => {
           github: 'https://github.com/johndoe',
           website: 'https://johndoe.com',
         },
-        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
+        resumeStyleId: null,
         sections: [
           {
             sectionTypeKey: 'skills_v1',
@@ -102,12 +106,12 @@ describe('CompleteOnboardingUseCase', () => {
       const userId = 'invalid-user';
       const onboardingData = createOnboardingData({
         username: 'johndoe',
-        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        personalInfo: { fullName: 'John Doe' },
         professionalProfile: {
           jobTitle: 'Developer',
           summary: 'A passionate developer looking to make a difference in tech',
         },
-        templateSelection: { template: 'PROFESSIONAL', palette: 'blue' },
+        resumeStyleId: null,
         sections: [],
       });
 
@@ -134,6 +138,36 @@ describe('CompleteOnboardingUseCase', () => {
       await expect(useCase.execute(userId, invalidData)).rejects.toThrow();
     });
 
+    it('throws OnboardingInvalidUsernameException when only username is bad', async () => {
+      const userId = 'user-123';
+      const data = createOnboardingData({ username: 'a' });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidUsernameException,
+      );
+    });
+
+    it('throws OnboardingInvalidPersonalInfoException when only personalInfo is bad', async () => {
+      const userId = 'user-123';
+      // `fullName: 'A'` fails the min-length(2) check; this is the canonical
+      // invalid case now that `personalInfo.email` is gone from the schema.
+      const data = createOnboardingData({
+        personalInfo: { fullName: 'A' },
+      });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidPersonalInfoException,
+      );
+    });
+
+    it('throws OnboardingInvalidProfessionalProfileException when only professionalProfile is bad', async () => {
+      const userId = 'user-123';
+      const data = createOnboardingData({
+        professionalProfile: { jobTitle: '', summary: 'short' },
+      });
+      await expect(useCase.execute(userId, data)).rejects.toThrow(
+        OnboardingInvalidProfessionalProfileException,
+      );
+    });
+
     it('should handle username conflict (P2002) during transaction', async () => {
       const userId = 'user-123';
       const mockUser = createOnboardingUser({ id: userId });
@@ -153,6 +187,58 @@ describe('CompleteOnboardingUseCase', () => {
       await expect(useCase.execute(userId, onboardingData)).rejects.toThrow(ConflictException);
       await expect(useCase.execute(userId, onboardingData)).rejects.toThrow(
         ERROR_MESSAGES.USERNAME_ALREADY_IN_USE,
+      );
+    });
+
+    // P1 #28 — non-username unique conflicts must propagate verbatim
+    it('does NOT classify a P2002 on email as a username conflict', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: { target: ['email'] },
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        /Unique constraint failed/,
+      );
+    });
+
+    it('does NOT classify a P2002 with no target meta as a username conflict', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: {},
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        /Unique constraint failed/,
+      );
+    });
+
+    it('detects username conflict surfaced as a composite index name string', async () => {
+      const userId = 'user-123';
+      onboardingRepository.seedUser(createOnboardingUser({ id: userId }));
+
+      const prismaError = Object.assign(new Error('Unique constraint failed'), {
+        code: 'P2002',
+        meta: { target: 'User_username_key' },
+      });
+      mockCompletionAdapter.executeCompletion = mock(async () => {
+        throw prismaError;
+      });
+
+      await expect(useCase.execute(userId, createOnboardingData())).rejects.toThrow(
+        ConflictException,
       );
     });
   });

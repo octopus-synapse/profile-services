@@ -24,11 +24,24 @@ const SummarySchema = z
   .max(500, 'Summary cannot exceed 500 characters')
   .trim();
 
+const HeadlineSchema = z
+  .string()
+  .trim()
+  .min(1, 'Headline cannot be empty')
+  .max(120, 'Headline cannot exceed 120 characters');
+
 export const ProfessionalProfileSchema = z.object({
   title: JobTitleSchema.optional(),
   jobTitle: JobTitleSchema.optional(),
+  headline: HeadlineSchema.optional(),
   summary: SummarySchema,
-  linkedin: LinkedInUrlSchema,
-  github: GitHubUrlSchema,
-  website: SocialUrlSchema,
+  linkedin: LinkedInUrlSchema.optional(),
+  github: GitHubUrlSchema.optional(),
+  website: SocialUrlSchema.optional(),
 });
+
+export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;
+
+export type JobTitleDto = z.infer<typeof JobTitleSchema>;
+
+export type SummaryDto = z.infer<typeof SummarySchema>;

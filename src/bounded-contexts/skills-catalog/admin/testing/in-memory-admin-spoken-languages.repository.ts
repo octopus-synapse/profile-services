@@ -15,14 +15,16 @@ export class InMemoryAdminSpokenLanguagesRepository extends AdminSpokenLanguages
     this.rows.set(row.code, row);
   }
 
-  async findAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>> {
+  async listAll(query: AdminSpokenLanguagesListQuery): Promise<PaginatedResult<SpokenLanguage>> {
     const items = [...this.rows.values()];
     return {
       items,
       total: items.length,
       page: query.page ?? 1,
-      pageSize: query.pageSize ?? 20,
+      limit: query.pageSize ?? 20,
       totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
     };
   }
   async findOne(code: string) {

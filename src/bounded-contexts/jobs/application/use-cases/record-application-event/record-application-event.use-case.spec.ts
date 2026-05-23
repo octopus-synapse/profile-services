@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { ApplicationNotOwnedException } from '../../../domain/exceptions/jobs.exceptions';
+import {
+  ApplicationNotOwnedException,
+  InvalidOccurredAtException,
+} from '../../../domain/exceptions/jobs.exceptions';
 import { InMemoryApplicationTrackerRepository } from '../../../testing';
 import { RecordApplicationEventUseCase } from './record-application-event.use-case';
+
+const ONE_MINUTE_MS = 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * ONE_MINUTE_MS;
 
 describe('RecordApplicationEventUseCase', () => {
   it('throws EntityNotFoundException when the application does not exist', async () => {
@@ -60,5 +66,34 @@ describe('RecordApplicationEventUseCase', () => {
       type: 'INTERVIEW_SCHEDULED',
     });
     expect(repo.applications.get('app-1')?.status).toBe('SUBMITTED');
+  });
+
+  it('rejects occurredAt in the future', async () => {
+    const repo = new InMemoryApplicationTrackerRepository();
+    repo.seedApplication({ id: 'app-1', userId: 'u-1' });
+
+    await expect(
+      new RecordApplicationEventUseCase(repo).execute({
+        applicationId: 'app-1',
+        userId: 'u-1',
+        type: 'VIEWED',
+        occurredAt: new Date(Date.now() + ONE_DAY_MS),
+      }),
+    ).rejects.toBeInstanceOf(InvalidOccurredAtException);
+  });
+
+  it('rejects occurredAt that precedes the application creation date', async () => {
+    const repo = new InMemoryApplicationTrackerRepository();
+    const createdAt = new Date(Date.now() - ONE_MINUTE_MS);
+    repo.seedApplication({ id: 'app-1', userId: 'u-1', createdAt });
+
+    await expect(
+      new RecordApplicationEventUseCase(repo).execute({
+        applicationId: 'app-1',
+        userId: 'u-1',
+        type: 'VIEWED',
+        occurredAt: new Date(createdAt.getTime() - ONE_DAY_MS),
+      }),
+    ).rejects.toBeInstanceOf(InvalidOccurredAtException);
   });
 });

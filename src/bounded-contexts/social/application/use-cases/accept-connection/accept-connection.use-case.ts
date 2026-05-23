@@ -1,6 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionAcceptedEvent } from '../../../domain/events';
 import {
   ConnectionNotPendingException,
@@ -17,10 +16,7 @@ export class AcceptConnectionUseCase {
   ) {}
 
   async execute(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
-    const connection = await this.repository.findConnectionById(connectionId);
-    if (!connection) {
-      throw new EntityNotFoundException('Connection', connectionId);
-    }
+    const connection = await this.repository.getConnectionById(connectionId);
 
     if (connection.status !== 'PENDING') {
       throw new ConnectionNotPendingException();
@@ -32,6 +28,10 @@ export class AcceptConnectionUseCase {
 
     const updated = await this.repository.updateConnectionStatus(connectionId, 'ACCEPTED');
 
+    // P2-#7 (intentional: telemetry/notification): downstream handlers
+    // (push notification to requester, activity feed bump) are
+    // telemetry-only — failure here must not roll back the accepted
+    // connection that the user already sees in their UI.
     this.eventPublisher.publish(
       new ConnectionAcceptedEvent(connection.requesterId, {
         requesterId: connection.requesterId,

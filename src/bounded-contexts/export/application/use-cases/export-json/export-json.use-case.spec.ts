@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   ResumeDataRepositoryPort,
@@ -76,7 +76,7 @@ describe('ExportJsonUseCase', () => {
   let useCase: ExportJsonUseCase;
   let repository: InMemoryResumeDataRepository;
 
-  const baseResume = createMockResume({
+  const baseResume = buildResume({
     id: 'resume-123',
     userId: 'user-456',
     title: 'My Resume',

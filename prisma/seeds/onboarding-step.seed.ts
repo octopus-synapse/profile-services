@@ -1,3 +1,4 @@
+import { LOCALES } from '@packages/i18n';
 import type { Prisma, PrismaClient } from '@prisma/client';
 
 interface OnboardingStepSeed {
@@ -13,7 +14,7 @@ interface OnboardingStepSeed {
   strengthWeight: number;
 }
 
-const steps: OnboardingStepSeed[] = [
+export const steps: OnboardingStepSeed[] = [
   {
     key: 'welcome',
     order: 0,
@@ -23,9 +24,8 @@ const steps: OnboardingStepSeed[] = [
     sectionTypeKey: null,
     fields: [],
     translations: {
-      en: { label: 'Welcome', description: 'Welcome to ProFile' },
-      'pt-BR': { label: 'Início', description: 'Bem-vindo ao ProFile' },
-      es: { label: 'Inicio', description: 'Bienvenido a ProFile' },
+      en: { label: 'Welcome', description: "Let's get to know you" },
+      'pt-BR': { label: 'Início', description: 'Vamos conhecer você melhor' },
     },
     validation: {},
     strengthWeight: 0,
@@ -59,8 +59,8 @@ const steps: OnboardingStepSeed[] = [
     ],
     translations: {
       en: {
-        label: 'Personal Info',
-        description: 'Personal Information',
+        label: 'About you',
+        description: 'Tell us about you',
         fieldLabels: {
           fullName: 'Full Name',
           phone: 'Phone',
@@ -68,21 +68,12 @@ const steps: OnboardingStepSeed[] = [
         },
       },
       'pt-BR': {
-        label: 'Dados Pessoais',
-        description: 'Informações Pessoais',
+        label: 'Sobre você',
+        description: 'Conta um pouco sobre você',
         fieldLabels: {
           fullName: 'Nome Completo',
           phone: 'Telefone',
           location: 'Localização',
-        },
-      },
-      es: {
-        label: 'Datos Personales',
-        description: 'Información Personal',
-        fieldLabels: {
-          fullName: 'Nombre Completo',
-          phone: 'Teléfono',
-          location: 'Ubicación',
         },
       },
     },
@@ -106,19 +97,14 @@ const steps: OnboardingStepSeed[] = [
     ],
     translations: {
       en: {
-        label: 'Username',
-        description: 'Choose Your Username',
+        label: 'Your handle',
+        description: 'Pick a unique username',
         fieldLabels: { username: 'Username' },
       },
       'pt-BR': {
-        label: 'Usuário',
-        description: 'Escolha seu Usuário',
+        label: 'Seu usuário',
+        description: 'Escolha um nome único pro seu perfil',
         fieldLabels: { username: 'Nome de Usuário' },
-      },
-      es: {
-        label: 'Usuario',
-        description: 'Elige tu Usuario',
-        fieldLabels: { username: 'Nombre de Usuario' },
       },
     },
     validation: {
@@ -157,36 +143,25 @@ const steps: OnboardingStepSeed[] = [
     ],
     translations: {
       en: {
-        label: 'Profile',
-        description: 'Professional Profile',
+        label: 'Your career',
+        description: 'Tell us about your career',
         fieldLabels: {
           jobTitle: 'Job Title',
-          summary: 'Summary',
+          summary: 'Headline',
           linkedin: 'LinkedIn',
           github: 'GitHub',
           website: 'Website',
         },
       },
       'pt-BR': {
-        label: 'Perfil',
-        description: 'Perfil Profissional',
+        label: 'Sua carreira',
+        description: 'Conta um pouco da sua carreira',
         fieldLabels: {
           jobTitle: 'Cargo',
-          summary: 'Resumo',
+          summary: 'Headline',
           linkedin: 'LinkedIn',
           github: 'GitHub',
           website: 'Website',
-        },
-      },
-      es: {
-        label: 'Perfil',
-        description: 'Perfil Profesional',
-        fieldLabels: {
-          jobTitle: 'Puesto',
-          summary: 'Resumen',
-          linkedin: 'LinkedIn',
-          github: 'GitHub',
-          website: 'Sitio Web',
         },
       },
     },
@@ -203,25 +178,18 @@ const steps: OnboardingStepSeed[] = [
     fields: [],
     translations: {
       en: {
-        label: 'Work Experience',
-        description: 'Work Experience',
-        noDataLabel: "I don't have work experience to add",
-        placeholder: 'Add your work experience...',
+        label: 'Where you worked',
+        description: 'Your professional history',
+        noDataLabel: "I don't have work experience yet",
+        placeholder: 'Add your work experience…',
         addLabel: 'Add Experience',
       },
       'pt-BR': {
-        label: 'Experiência',
-        description: 'Experiência Profissional',
-        noDataLabel: 'Não tenho experiência profissional',
-        placeholder: 'Adicione sua experiência...',
+        label: 'Onde você trabalhou',
+        description: 'Sua trajetória profissional',
+        noDataLabel: 'Ainda não tenho experiência profissional',
+        placeholder: 'Adicione sua experiência…',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Experiencia',
-        description: 'Experiencia Laboral',
-        noDataLabel: 'No tengo experiencia laboral',
-        placeholder: 'Agrega tu experiencia...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
@@ -237,25 +205,18 @@ const steps: OnboardingStepSeed[] = [
     fields: [],
     translations: {
       en: {
-        label: 'Education',
-        description: 'Education',
-        noDataLabel: "I don't have education to add",
-        placeholder: 'Add your education...',
+        label: 'Where you studied',
+        description: 'Your academic background',
+        noDataLabel: "I don't have formal education to add",
+        placeholder: 'Add your education…',
         addLabel: 'Add Education',
       },
       'pt-BR': {
-        label: 'Educação',
-        description: 'Formação Acadêmica',
-        noDataLabel: 'Não tenho formação acadêmica',
-        placeholder: 'Adicione sua formação...',
+        label: 'Onde você estudou',
+        description: 'Sua formação acadêmica',
+        noDataLabel: 'Não tenho formação acadêmica pra adicionar',
+        placeholder: 'Adicione sua formação…',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Educación',
-        description: 'Formación Académica',
-        noDataLabel: 'No tengo formación académica',
-        placeholder: 'Agrega tu formación...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
@@ -271,33 +232,53 @@ const steps: OnboardingStepSeed[] = [
     fields: [],
     translations: {
       en: {
-        label: 'Skills',
-        description: 'Skills',
-        noDataLabel: "I'm still developing my skills",
-        placeholder: 'Add your skills...',
+        label: 'Hard Skills',
+        description: 'Technical skills',
+        noDataLabel: "I'm still developing my technical skills",
+        placeholder: 'Add your technical skills…',
         addLabel: 'Add Skill',
       },
       'pt-BR': {
-        label: 'Habilidades',
-        description: 'Habilidades',
-        noDataLabel: 'Ainda estou desenvolvendo minhas habilidades',
-        placeholder: 'Adicione suas habilidades...',
+        label: 'Habilidades técnicas',
+        description: 'Suas habilidades técnicas',
+        noDataLabel: 'Ainda estou desenvolvendo minhas habilidades técnicas',
+        placeholder: 'Adicione suas habilidades técnicas…',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Habilidades',
-        description: 'Habilidades',
-        noDataLabel: 'Todavía estoy desarrollando mis habilidades',
-        placeholder: 'Agrega tus habilidades...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
     strengthWeight: 15,
   },
   {
-    key: 'section:language_v1',
+    key: 'section:soft_skill_set_v1',
     order: 7,
+    component: 'generic-section',
+    icon: '🤝',
+    required: false,
+    sectionTypeKey: 'soft_skill_set_v1',
+    fields: [],
+    translations: {
+      en: {
+        label: 'Soft Skills',
+        description: 'Behavioral skills',
+        noDataLabel: "I don't have soft skills to highlight",
+        placeholder: 'Add your soft skills…',
+        addLabel: 'Add Skill',
+      },
+      'pt-BR': {
+        label: 'Habilidades comportamentais',
+        description: 'Suas competências comportamentais',
+        noDataLabel: 'Não tenho competências comportamentais pra destacar',
+        placeholder: 'Adicione suas competências comportamentais…',
+        addLabel: 'Adicionar',
+      },
+    },
+    validation: {},
+    strengthWeight: 10,
+  },
+  {
+    key: 'section:language_v1',
+    order: 8,
     component: 'generic-section',
     icon: '🌍',
     required: false,
@@ -306,63 +287,177 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: {
         label: 'Languages',
-        description: 'Languages',
+        description: 'Languages you speak',
         noDataLabel: "I don't have languages to add",
-        placeholder: 'Add languages you speak...',
+        placeholder: 'Add languages you speak…',
         addLabel: 'Add Language',
       },
       'pt-BR': {
         label: 'Idiomas',
-        description: 'Idiomas',
-        noDataLabel: 'Não tenho idiomas para adicionar',
-        placeholder: 'Adicione idiomas que fala...',
+        description: 'Idiomas que você fala',
+        noDataLabel: 'Não tenho idiomas pra adicionar',
+        placeholder: 'Adicione idiomas que fala…',
         addLabel: 'Adicionar',
-      },
-      es: {
-        label: 'Idiomas',
-        description: 'Idiomas',
-        noDataLabel: 'No tengo idiomas para agregar',
-        placeholder: 'Agrega idiomas que hablas...',
-        addLabel: 'Agregar',
       },
     },
     validation: {},
     strengthWeight: 5,
   },
   {
-    key: 'template',
-    order: 8,
-    component: 'template',
+    key: 'extras-gate',
+    order: 9,
+    component: 'extras-gate',
+    icon: '➕',
+    required: false,
+    sectionTypeKey: null,
+    fields: [],
+    translations: {
+      en: { label: 'Anything else?', description: 'Pick what else you want to add' },
+      'pt-BR': {
+        label: 'Algo a mais?',
+        description: 'Marca o que mais você quer adicionar ao currículo',
+      },
+    },
+    validation: {},
+    strengthWeight: 0,
+  },
+  {
+    key: 'section:project_v1',
+    order: 10,
+    component: 'generic-section',
+    icon: '🚀',
+    required: false,
+    sectionTypeKey: 'project_v1',
+    fields: [],
+    translations: {
+      en: {
+        label: 'Projects',
+        description: 'Projects you built',
+        noDataLabel: "I don't have projects to showcase",
+        placeholder: 'Add a project…',
+        addLabel: 'Add Project',
+      },
+      'pt-BR': {
+        label: 'Projetos',
+        description: 'Projetos que você construiu',
+        noDataLabel: 'Não tenho projetos pra mostrar',
+        placeholder: 'Adicione um projeto…',
+        addLabel: 'Adicionar',
+      },
+    },
+    validation: {},
+    strengthWeight: 5,
+  },
+  {
+    key: 'section:certification_v1',
+    order: 11,
+    component: 'generic-section',
+    icon: '📜',
+    required: false,
+    sectionTypeKey: 'certification_v1',
+    fields: [],
+    translations: {
+      en: {
+        label: 'Certifications',
+        description: 'Certifications you earned',
+        noDataLabel: "I don't have certifications",
+        placeholder: 'Add a certification…',
+        addLabel: 'Add Certification',
+      },
+      'pt-BR': {
+        label: 'Certificações',
+        description: 'Certificações que você conquistou',
+        noDataLabel: 'Não tenho certificações',
+        placeholder: 'Adicione uma certificação…',
+        addLabel: 'Adicionar',
+      },
+    },
+    validation: {},
+    strengthWeight: 5,
+  },
+  {
+    key: 'section:award_v1',
+    order: 12,
+    component: 'generic-section',
+    icon: '🏆',
+    required: false,
+    sectionTypeKey: 'award_v1',
+    fields: [],
+    translations: {
+      en: {
+        label: 'Awards',
+        description: 'Awards and recognitions',
+        noDataLabel: "I don't have awards to mention",
+        placeholder: 'Add an award…',
+        addLabel: 'Add Award',
+      },
+      'pt-BR': {
+        label: 'Premiações',
+        description: 'Prêmios e reconhecimentos',
+        noDataLabel: 'Não tenho premiações pra mencionar',
+        placeholder: 'Adicione uma premiação…',
+        addLabel: 'Adicionar',
+      },
+    },
+    validation: {},
+    strengthWeight: 5,
+  },
+  {
+    key: 'section:publication_v1',
+    order: 13,
+    component: 'generic-section',
+    icon: '📝',
+    required: false,
+    sectionTypeKey: 'publication_v1',
+    fields: [],
+    translations: {
+      en: {
+        label: 'Publications',
+        description: 'Articles, papers, talks',
+        noDataLabel: "I don't have publications",
+        placeholder: 'Add a publication…',
+        addLabel: 'Add Publication',
+      },
+      'pt-BR': {
+        label: 'Publicações',
+        description: 'Artigos, papers, palestras',
+        noDataLabel: 'Não tenho publicações',
+        placeholder: 'Adicione uma publicação…',
+        addLabel: 'Adicionar',
+      },
+    },
+    validation: {},
+    strengthWeight: 5,
+  },
+  {
+    key: 'resume-style',
+    order: 14,
+    component: 'resume-style',
     icon: '🎨',
     required: true,
     sectionTypeKey: null,
-    fields: [
-      { key: 'templateId', type: 'text', required: false },
-      { key: 'colorScheme', type: 'text', required: true },
-    ],
+    fields: [{ key: 'resumeStyleId', type: 'text', required: true }],
     translations: {
       en: {
-        label: 'Theme',
-        description: 'Choose Your Theme',
-        fieldLabels: { templateId: 'Template', colorScheme: 'Color Scheme' },
+        label: 'Resume style',
+        description: 'Pick a resume style',
+        fieldLabels: { resumeStyleId: 'Resume style' },
       },
       'pt-BR': {
-        label: 'Tema',
-        description: 'Escolha seu Tema',
-        fieldLabels: { templateId: 'Modelo', colorScheme: 'Esquema de Cores' },
-      },
-      es: {
-        label: 'Tema',
-        description: 'Elige tu Tema',
-        fieldLabels: { templateId: 'Plantilla', colorScheme: 'Esquema de Colores' },
+        label: 'Estilo do currículo',
+        description: 'Escolha um estilo de currículo',
+        fieldLabels: { resumeStyleId: 'Estilo do currículo' },
       },
     },
-    validation: { requiredFields: ['colorScheme'] },
+    // `resumeStyleId` is intentionally not required at completion time —
+    // the resume-onboarding adapter falls back to the seeded default
+    // style when the user skipped the picker.
+    validation: {},
     strengthWeight: 10,
   },
   {
     key: 'review',
-    order: 9,
+    order: 15,
     component: 'review',
     icon: '✓',
     required: true,
@@ -371,14 +466,13 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: { label: 'Review', description: 'Review & Submit' },
       'pt-BR': { label: 'Revisão', description: 'Revisar e Enviar' },
-      es: { label: 'Revisión', description: 'Revisar y Enviar' },
     },
     validation: {},
     strengthWeight: 0,
   },
   {
     key: 'complete',
-    order: 10,
+    order: 16,
     component: 'complete',
     icon: '🎉',
     required: true,
@@ -387,7 +481,6 @@ const steps: OnboardingStepSeed[] = [
     translations: {
       en: { label: 'Done', description: 'Setup Complete' },
       'pt-BR': { label: 'Pronto', description: 'Configuração Completa' },
-      es: { label: 'Listo', description: 'Configuración Completa' },
     },
     validation: {},
     strengthWeight: 0,
@@ -414,13 +507,50 @@ const sectionExamples: Record<string, Record<string, string[]>> = {
   skill_set_v1: {
     name: ['TypeScript', 'React', 'Node.js', 'Python', 'PostgreSQL'],
   },
+  soft_skill_set_v1: {
+    name: ['Leadership', 'Communication', 'Teamwork', 'Problem solving'],
+  },
   language_v1: {
     name: ['English', 'Spanish', 'Portuguese', 'French'],
   },
+  project_v1: {
+    title: ['Personal portfolio', 'Side project', 'Open source contribution'],
+  },
+  certification_v1: {
+    title: ['AWS Certified Developer', 'Google Cloud Associate', 'Scrum Master'],
+    issuer: ['AWS', 'Google Cloud', 'Scrum Alliance'],
+  },
+  award_v1: {
+    title: ['Hackathon winner', 'Employee of the year', 'Best paper award'],
+  },
+  publication_v1: {
+    title: ['Article on Medium', 'Conference talk', 'Research paper'],
+  },
 };
+
+for (const step of steps) {
+  const t = step.translations as Record<string, unknown>;
+  for (const locale of LOCALES) {
+    if (!(locale in t)) {
+      console.error(`[onboarding-step.seed] step '${step.key}' missing locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+  for (const locale of Object.keys(t)) {
+    if (!(LOCALES as readonly string[]).includes(locale)) {
+      console.error(`[onboarding-step.seed] step '${step.key}' has rogue locale '${locale}'`);
+      process.exit(1);
+    }
+  }
+}
 
 export async function seedOnboardingSteps(prisma: PrismaClient) {
   console.log('🚀 Seeding onboarding steps...');
+
+  // Drop the legacy 'template' step that the resume-style refactor
+  // replaced. Without this cleanup, a re-seed leaves both rows in
+  // the DB and the presenter picks the wrong one by order index.
+  await prisma.onboardingStep.deleteMany({ where: { key: 'template' } });
 
   for (const step of steps) {
     await prisma.onboardingStep.upsert({

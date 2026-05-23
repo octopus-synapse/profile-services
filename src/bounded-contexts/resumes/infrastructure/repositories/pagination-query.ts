@@ -4,7 +4,7 @@ import type { FindAllFilters, OrderByConfig } from './order-by-config';
 import { buildOrderByClause } from './order-by-config';
 import type { PrismaDelegate } from './prisma-delegate.type';
 
-export async function findAllWithPagination<T>(
+export async function listWithPagination<T>(
   delegate: PrismaDelegate<T>,
   resumeId: string,
   orderConfig: OrderByConfig,
@@ -16,7 +16,7 @@ export async function findAllWithPagination<T>(
   const orderBy = buildOrderByClause(orderConfig);
   const where = { resumeId, ...filters };
 
-  const [data, total] = await Promise.all([
+  const [items, total] = await Promise.all([
     delegate.findMany({ where, orderBy, skip, take: limit }),
     delegate.count({ where }),
   ]);
@@ -24,7 +24,12 @@ export async function findAllWithPagination<T>(
   const totalPages = Math.ceil(total / limit);
 
   return {
-    data,
-    meta: { total, page, limit, totalPages, hasNextPage: page < totalPages, hasPrevPage: page > 1 },
+    items,
+    total,
+    page,
+    limit,
+    totalPages,
+    hasNext: page * limit < total,
+    hasPrev: page > 1,
   };
 }

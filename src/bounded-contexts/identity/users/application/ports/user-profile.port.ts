@@ -22,6 +22,18 @@ export type PublicProfileUser = {
 
 export type PublicProfileData = { user: PublicProfileUser; resume: Record<string, unknown> | null };
 
+export type PublicUserListItem = { username: string; updatedAt: Date };
+
+export type PublicUsersList = {
+  items: PublicUserListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};
+
 export type UserProfile = {
   id: string;
   email: string | null;
@@ -29,6 +41,7 @@ export type UserProfile = {
   name?: string | null;
   photoURL?: string | null;
   bio?: string | null;
+  headline?: string | null;
   location?: string | null;
   phone?: string | null;
   website?: string | null;
@@ -43,6 +56,7 @@ export type UpdateProfileData = {
   name?: string;
   username?: string;
   bio?: string;
+  headline?: string;
   location?: string;
   website?: string;
   company?: string;
@@ -79,6 +93,11 @@ export abstract class UserProfileRepositoryPort {
   abstract findUserById(userId: string): Promise<{ id: string } | null>;
 
   abstract updateUserProfile(userId: string, data: UpdateProfileData): Promise<UserProfile>;
+
+  abstract listPublicUsers(
+    page: number,
+    limit: number,
+  ): Promise<{ items: PublicUserListItem[]; total: number }>;
 }
 
 // ============================================================================
@@ -92,5 +111,8 @@ export abstract class UserProfileUseCases {
   abstract readonly getProfileUseCase: { execute: (userId: string) => Promise<UserProfile> };
   abstract readonly updateProfileUseCase: {
     execute: (userId: string, data: UpdateProfileData) => Promise<UserProfile>;
+  };
+  abstract readonly listPublicUsersUseCase: {
+    execute: (page: number, limit: number) => Promise<PublicUsersList>;
   };
 }

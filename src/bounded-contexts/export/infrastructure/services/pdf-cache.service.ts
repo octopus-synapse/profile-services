@@ -70,7 +70,10 @@ export class PdfCacheService {
 
     if (this.s3.isEnabled) {
       try {
-        await this.s3.uploadFile(buffer, key, 'application/pdf');
+        // P2-097 / S3 ACL policy — resume exports are user-scoped
+        // artefacts and MUST be private; presigned-GET access is
+        // handled by the export route, not by direct CDN URLs.
+        await this.s3.uploadFile(buffer, key, 'application/pdf', { acl: 'private' });
       } catch (err) {
         this.logger.warn(
           `pdf cache upload failed key=${key}: ${err instanceof Error ? err.message : 'unknown'}`,

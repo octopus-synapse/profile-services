@@ -3,6 +3,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { tryDecodeCursor } from '@/shared-kernel/persistence/composite-cursor';
 import type {
   Comment,
   CommentWithAuthor,
@@ -11,6 +12,30 @@ import type {
   PostAuthor,
 } from '../domain/entities';
 import { CommentRepositoryPort } from '../domain/ports/comment.repository.port';
+
+/**
+ * Decode a cursor that may be either a legacy ISO timestamp or a
+ * composite `(createdAt, id)` payload encoded via `encodeCursor`.
+ * Returns the lower boundary the in-memory filter should use; mirrors
+ * the SQL predicate `createdAt < c.createdAt OR (createdAt = c.createdAt AND id < c.id)`.
+ */
+function decodeLowerBound(cursor: string | undefined): { at: Date; id: string | null } | null {
+  if (!cursor) return null;
+  const decoded = tryDecodeCursor(cursor);
+  if (decoded) return { at: decoded.createdAt, id: decoded.id };
+  const legacy = new Date(cursor);
+  if (Number.isNaN(legacy.getTime())) return null;
+  return { at: legacy, id: null };
+}
+
+function strictlyBelow(
+  row: { createdAt: Date; id: string },
+  b: { at: Date; id: string | null },
+): boolean {
+  if (row.createdAt < b.at) return true;
+  if (row.createdAt > b.at) return false;
+  return b.id === null ? false : row.id < b.id;
+}
 
 interface PostRow {
   id: string;
@@ -65,6 +90,7 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
       content: partial.content ?? '',
       parentId: partial.parentId ?? null,
       isDeleted: partial.isDeleted ?? false,
+      deletedAt: partial.deletedAt ?? null,
       createdAt: now,
       updatedAt: now,
     };
@@ -116,9 +142,23 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
   async markCommentDeleted(id: string): Promise<Comment> {
     const idx = this.comments.findIndex((c) => c.id === id);
     if (idx < 0) throw new Error(`Comment ${id} not found`);
-    const next = { ...this.comments[idx], isDeleted: true };
+    // P1-067 — mirror the prisma adapter: write `deletedAt` alongside
+    // the boolean so specs that exercise the audit-trail behaviour
+    // see the same shape.
+    const next = { ...this.comments[idx], isDeleted: true, deletedAt: new Date() };
     this.comments[idx] = next;
     return next;
+  }
+
+  async softDeleteCommentIfActive(
+    id: string,
+  ): Promise<{ mutated: boolean; postId: string | null }> {
+    const idx = this.comments.findIndex((c) => c.id === id);
+    if (idx < 0) return { mutated: false, postId: null };
+    const current = this.comments[idx];
+    if (current.isDeleted) return { mutated: false, postId: current.postId };
+    this.comments[idx] = { ...current, isDeleted: true, deletedAt: new Date() };
+    return { mutated: true, postId: current.postId };
   }
 
   async incrementPostCommentsCount(postId: string, by: number): Promise<void> {
@@ -130,16 +170,19 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithReplies[]> {
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const bound = decodeLowerBound(cursor);
     const top = this.comments
       .filter(
         (c) =>
           c.postId === postId &&
           !c.parentId &&
           !c.isDeleted &&
-          (cursorDate ? c.createdAt < cursorDate : true),
+          (bound ? strictlyBelow({ createdAt: c.createdAt, id: c.id }, bound) : true),
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort((a, b) => {
+        const t = b.createdAt.getTime() - a.createdAt.getTime();
+        return t !== 0 ? t : b.id.localeCompare(a.id);
+      })
       .slice(0, limit);
 
     return top.map((c) => ({
@@ -176,13 +219,18 @@ export class InMemoryCommentRepository extends CommentRepositoryPort {
     cursor: string | undefined,
     limit: number,
   ): Promise<CommentWithPost[]> {
-    const cursorDate = cursor ? new Date(cursor) : null;
+    const bound = decodeLowerBound(cursor);
     return this.comments
       .filter(
         (c) =>
-          c.authorId === userId && !c.isDeleted && (cursorDate ? c.createdAt < cursorDate : true),
+          c.authorId === userId &&
+          !c.isDeleted &&
+          (bound ? strictlyBelow({ createdAt: c.createdAt, id: c.id }, bound) : true),
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort((a, b) => {
+        const t = b.createdAt.getTime() - a.createdAt.getTime();
+        return t !== 0 ? t : b.id.localeCompare(a.id);
+      })
       .slice(0, limit)
       .map((c) => {
         const post = this.posts.get(c.postId);

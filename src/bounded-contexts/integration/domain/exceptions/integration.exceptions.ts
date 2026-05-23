@@ -53,14 +53,14 @@ export class IntegrationNotConfiguredException extends DomainException {
 }
 
 export class ExternalHandleInvalidException extends ValidationException {
-  readonly code: string = 'EXTERNAL_HANDLE_INVALID';
+  override readonly code: string = 'EXTERNAL_HANDLE_INVALID';
   constructor(provider: string) {
     super(`The ${provider} handle provided is not valid`);
   }
 }
 
 export class SyncCooldownActiveException extends ValidationException {
-  readonly code: string = 'SYNC_COOLDOWN_ACTIVE';
+  override readonly code: string = 'SYNC_COOLDOWN_ACTIVE';
   constructor(retryAfterMinutes: number) {
     super(`Sync cooldown is active. Try again in ${retryAfterMinutes} minutes`);
   }
@@ -75,21 +75,21 @@ export class UploadStorageUnavailableException extends DomainException {
 }
 
 export class UploadFileTooLargeException extends ValidationException {
-  readonly code: string = 'UPLOAD_FILE_TOO_LARGE';
+  override readonly code: string = 'UPLOAD_FILE_TOO_LARGE';
   constructor(maxBytes: number) {
     super(`File size exceeds maximum allowed size of ${maxBytes} bytes`);
   }
 }
 
 export class UploadInvalidFileTypeException extends ValidationException {
-  readonly code: string = 'UPLOAD_INVALID_FILE_TYPE';
+  override readonly code: string = 'UPLOAD_INVALID_FILE_TYPE';
   constructor(allowed: string[]) {
     super(`Invalid file type. Allowed types: ${allowed.join(', ')}`);
   }
 }
 
 export class UploadFilenameUnsafeException extends ValidationException {
-  readonly code: string = 'UPLOAD_FILENAME_UNSAFE';
+  override readonly code: string = 'UPLOAD_FILENAME_UNSAFE';
   constructor(reason: 'null_bytes' | 'directory_traversal') {
     super(
       reason === 'null_bytes'
@@ -100,24 +100,28 @@ export class UploadFilenameUnsafeException extends ValidationException {
 }
 
 export class UploadExtensionMismatchException extends ValidationException {
-  readonly code: string = 'UPLOAD_EXTENSION_MISMATCH';
+  override readonly code: string = 'UPLOAD_EXTENSION_MISMATCH';
   constructor(ext: string, mime: string) {
     super(`File extension .${ext} does not match file type ${mime}`);
   }
 }
 
 export class UploadContentInvalidException extends ValidationException {
-  readonly code: string = 'UPLOAD_CONTENT_INVALID';
-  constructor(reason: 'too_small' | 'bad_magic_jpeg' | 'bad_magic_png' | 'bad_magic_webp') {
-    super(
+  override readonly code: string = 'UPLOAD_CONTENT_INVALID';
+  constructor(
+    reason: 'too_small' | 'bad_magic_jpeg' | 'bad_magic_png' | 'bad_magic_webp' | 'bad_magic_gif',
+  ) {
+    const message =
       reason === 'too_small'
         ? 'Invalid file content'
         : reason === 'bad_magic_jpeg'
           ? 'Invalid JPEG file content'
           : reason === 'bad_magic_png'
             ? 'Invalid PNG file content'
-            : 'Invalid WEBP file content',
-    );
+            : reason === 'bad_magic_webp'
+              ? 'Invalid WEBP file content'
+              : 'Invalid GIF file content';
+    super(message);
   }
 }
 
@@ -130,7 +134,7 @@ export class GitHubSyncFailedException extends DomainException {
 }
 
 export class GitHubUsernameMissingException extends ValidationException {
-  readonly code: string = 'GITHUB_USERNAME_MISSING';
+  override readonly code: string = 'GITHUB_USERNAME_MISSING';
   constructor() {
     super('No GitHub username found in resume');
   }
@@ -200,7 +204,7 @@ export class MecSyncInProgressException extends DomainException {
  * everyone through.
  */
 export class InternalAuthNotConfiguredException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_AUTH_NOT_CONFIGURED';
+  override readonly code: string = 'INTERNAL_AUTH_NOT_CONFIGURED';
   constructor() {
     super('Internal API token not configured. Set INTERNAL_API_TOKEN environment variable.');
   }
@@ -213,7 +217,7 @@ export class InternalAuthNotConfiguredException extends UnauthorizedException {
  * an internal endpoint.
  */
 export class InternalTokenMissingException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_TOKEN_MISSING';
+  override readonly code: string = 'INTERNAL_TOKEN_MISSING';
   constructor(headerName: string) {
     super(`Missing ${headerName} header`);
   }
@@ -226,7 +230,7 @@ export class InternalTokenMissingException extends UnauthorizedException {
  * configured secret (timing-safe comparison).
  */
 export class InternalTokenInvalidException extends UnauthorizedException {
-  readonly code: string = 'INTERNAL_TOKEN_INVALID';
+  override readonly code: string = 'INTERNAL_TOKEN_INVALID';
   constructor() {
     super('Invalid internal token');
   }

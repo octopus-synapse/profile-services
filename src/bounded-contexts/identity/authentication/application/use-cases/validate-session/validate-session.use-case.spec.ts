@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {
@@ -23,20 +23,26 @@ describe('ValidateSessionUseCase', () => {
   let tokenGenerator: InMemoryTokenGenerator;
   let sessionStorage: InMemorySessionStorage;
 
-  // SKIP_EMAIL_VERIFICATION=true in the dev .env flips needsEmailVerification
-  // to false regardless of the user. Force it off so tests are deterministic.
-  let previousSkipEnv: string | undefined;
+  // P2-122 — UC reads SKIP_EMAIL_VERIFICATION via the injected ConfigPort
+  // only (no process.env fallback). Inject a stub that pins the flag OFF so
+  // tests stay deterministic regardless of the developer's local .env.
+  const stubConfig = {
+    get<T>(key: string): T | undefined {
+      if (key === 'SKIP_EMAIL_VERIFICATION') return 'false' as unknown as T;
+      return undefined;
+    },
+  };
   beforeEach(() => {
-    previousSkipEnv = process.env.SKIP_EMAIL_VERIFICATION;
-    process.env.SKIP_EMAIL_VERIFICATION = 'false';
     repository = new InMemoryAuthenticationRepository();
     tokenGenerator = new InMemoryTokenGenerator();
     sessionStorage = new InMemorySessionStorage();
-    useCase = new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage, stubLogger);
-  });
-  afterEach(() => {
-    if (previousSkipEnv === undefined) delete process.env.SKIP_EMAIL_VERIFICATION;
-    else process.env.SKIP_EMAIL_VERIFICATION = previousSkipEnv;
+    useCase = new ValidateSessionUseCase(
+      repository,
+      tokenGenerator,
+      sessionStorage,
+      stubLogger,
+      stubConfig,
+    );
   });
 
   it('returns success with user data for a valid session', async () => {

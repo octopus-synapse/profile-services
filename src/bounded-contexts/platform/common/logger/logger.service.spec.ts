@@ -36,13 +36,13 @@ describe('AppLoggerService', () => {
 
     it('should log error with stack trace', () => {
       expect(() =>
-        service.error('Error message', 'Stack trace here', 'ErrorContext'),
+        service.error('Error message', { stack: 'Stack trace here', context: 'ErrorContext' }),
       ).not.toThrow();
     });
 
     it('should log error with metadata', () => {
       expect(() =>
-        service.error('Error message', 'Stack', 'Context', { code: 'E001' }),
+        service.error('Error message', { stack: 'Stack', context: 'Context', code: 'E001' }),
       ).not.toThrow();
     });
   });

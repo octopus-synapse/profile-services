@@ -17,3 +17,7 @@ export type EmailVerification = z.infer<typeof EmailVerificationSchema>;
 export const RequestVerificationSchema = z.object({ email: EmailSchema.optional() });
 
 export type RequestVerification = z.infer<typeof RequestVerificationSchema>;
+
+export type EmailVerificationDto = z.infer<typeof EmailVerificationSchema>;
+
+export type RequestVerificationDto = z.infer<typeof RequestVerificationSchema>;

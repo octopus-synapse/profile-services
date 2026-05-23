@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { IsoDateTimeSchema } from '@/shared-kernel/schemas/primitives/datetime.schema';
 
 export const SendMessageSchema = z.object({
   recipientId: z.string().min(1, 'Recipient ID is required'),
@@ -42,10 +42,17 @@ export const GetConversationsQuerySchema = z.object({
 
 export type GetConversationsQuery = z.infer<typeof GetConversationsQuerySchema>;
 
-export const BlockUserSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-  reason: z.string().max(500, 'Reason too long').optional(),
-});
+export const BlockUserSchema = z
+  .object({
+    userId: z.string().min(1, 'User ID is required'),
+    reason: z.string().max(500, 'Reason too long').optional(),
+  })
+  .openapi({
+    example: {
+      userId: '01900000-0000-7000-a000-000000000001',
+      reason: 'Repeated unsolicited messages.',
+    },
+  });
 
 export type BlockUser = z.infer<typeof BlockUserSchema>;
 
@@ -58,7 +65,7 @@ export const WsMessageEventSchema = z.object({
   conversationId: z.string(),
   senderId: z.string(),
   content: z.string(),
-  createdAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
   isRead: z.boolean(),
 });
 
@@ -76,7 +83,7 @@ export const WsReadReceiptEventSchema = z.object({
   conversationId: z.string(),
   messageId: z.string(),
   readBy: z.string(),
-  readAt: z.string().datetime(),
+  readAt: IsoDateTimeSchema,
 });
 
 export type WsReadReceiptEvent = z.infer<typeof WsReadReceiptEventSchema>;
@@ -84,7 +91,7 @@ export type WsReadReceiptEvent = z.infer<typeof WsReadReceiptEventSchema>;
 export const WsUserStatusEventSchema = z.object({
   userId: z.string(),
   isOnline: z.boolean(),
-  lastSeen: z.string().datetime().optional(),
+  lastSeen: IsoDateTimeSchema.optional(),
 });
 
 export type WsUserStatusEvent = z.infer<typeof WsUserStatusEventSchema>;
@@ -95,8 +102,8 @@ export const MessageResponseSchema = z.object({
   senderId: z.string(),
   content: z.string(),
   isRead: z.boolean(),
-  readAt: z.string().datetime().nullable(),
-  createdAt: z.string().datetime(),
+  readAt: IsoDateTimeSchema.nullable(),
+  createdAt: IsoDateTimeSchema,
   sender: z.object({
     id: z.string(),
     name: z.string().nullable(),
@@ -121,13 +128,13 @@ export const ConversationResponseSchema = z.object({
     .object({
       content: z.string(),
       senderId: z.string(),
-      createdAt: z.string().datetime(),
+      createdAt: IsoDateTimeSchema,
       isRead: z.boolean(),
     })
     .nullable(),
   unreadCount: z.number().int().min(0),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: IsoDateTimeSchema,
+  updatedAt: IsoDateTimeSchema,
 });
 
 export type ConversationResponse = z.infer<typeof ConversationResponseSchema>;
@@ -136,9 +143,9 @@ export type ConversationResponse = z.infer<typeof ConversationResponseSchema>;
  * Paginated Messages Response Schema
  */
 export const PaginatedMessagesResponseSchema = z.object({
-  messages: z.array(MessageResponseSchema),
+  items: z.array(MessageResponseSchema),
   nextCursor: z.string().nullable(),
-  hasMore: z.boolean(),
+  hasNext: z.boolean(),
 });
 
 export type PaginatedMessagesResponse = z.infer<typeof PaginatedMessagesResponseSchema>;
@@ -147,9 +154,9 @@ export type PaginatedMessagesResponse = z.infer<typeof PaginatedMessagesResponse
  * Paginated Conversations Response Schema
  */
 export const PaginatedConversationsResponseSchema = z.object({
-  conversations: z.array(ConversationResponseSchema),
+  items: z.array(ConversationResponseSchema),
   nextCursor: z.string().nullable(),
-  hasMore: z.boolean(),
+  hasNext: z.boolean(),
 });
 
 export type PaginatedConversationsResponse = z.infer<typeof PaginatedConversationsResponseSchema>;
@@ -159,7 +166,7 @@ export type PaginatedConversationsResponse = z.infer<typeof PaginatedConversatio
  */
 export const BlockedUserResponseSchema = z.object({
   id: z.string(),
-  blockedAt: z.string().datetime(),
+  blockedAt: IsoDateTimeSchema,
   reason: z.string().nullable(),
   user: z.object({
     id: z.string(),
@@ -180,8 +187,40 @@ export const UnreadCountResponseSchema = z.object({
 });
 
 export type UnreadCountResponse = z.infer<typeof UnreadCountResponseSchema>;
+export type SendMessageDto = z.infer<typeof SendMessageSchema>;
 
-/**
- * DTOs for Swagger documentation
- */
-export class BlockUserRequestDto extends createZodDto(BlockUserSchema) {}
+export type SendMessageToConversationDto = z.infer<typeof SendMessageToConversationSchema>;
+
+export type MarkMessageReadDto = z.infer<typeof MarkMessageReadSchema>;
+
+export type MarkConversationReadDto = z.infer<typeof MarkConversationReadSchema>;
+
+export type GetMessagesQueryDto = z.infer<typeof GetMessagesQuerySchema>;
+
+export type GetConversationsQueryDto = z.infer<typeof GetConversationsQuerySchema>;
+
+export type BlockUserDto = z.infer<typeof BlockUserSchema>;
+
+export type UnblockUserDto = z.infer<typeof UnblockUserSchema>;
+
+export type WsMessageEventDto = z.infer<typeof WsMessageEventSchema>;
+
+export type WsTypingEventDto = z.infer<typeof WsTypingEventSchema>;
+
+export type WsReadReceiptEventDto = z.infer<typeof WsReadReceiptEventSchema>;
+
+export type WsUserStatusEventDto = z.infer<typeof WsUserStatusEventSchema>;
+
+export type MessageResponseDto = z.infer<typeof MessageResponseSchema>;
+
+export type ConversationResponseDto = z.infer<typeof ConversationResponseSchema>;
+
+export type PaginatedMessagesResponseDto = z.infer<typeof PaginatedMessagesResponseSchema>;
+
+export type PaginatedConversationsResponseDto = z.infer<
+  typeof PaginatedConversationsResponseSchema
+>;
+
+export type BlockedUserResponseDto = z.infer<typeof BlockedUserResponseSchema>;
+
+export type UnreadCountResponseDto = z.infer<typeof UnreadCountResponseSchema>;

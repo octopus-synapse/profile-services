@@ -11,10 +11,7 @@
 
 import type { Browser, Page } from 'puppeteer';
 import { API_LIMITS, CRYPTO_CONSTANTS, LoggerPort } from '@/shared-kernel';
-import {
-  MecCsvBlockedException,
-  MecCsvNoResponseException,
-} from '../../../../domain/exceptions/integration.exceptions';
+import { MecCsvBlockedException, MecCsvNoResponseException } from '../../../../domain/exceptions';
 import { PUPPETEER_ARGS, PUPPETEER_CONFIG } from '../../../constants';
 import { MecCsvDownloaderPort } from '../../../domain/ports/mec-csv-downloader.port';
 import { CloudflareBypassAdapter } from './cloudflare-bypass.adapter';

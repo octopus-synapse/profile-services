@@ -11,7 +11,7 @@ import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.reposit
 import type { ShareWithResume } from '../../domain/ports/share.repository.port';
 import { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
-const CACHE_TTL = 60; // 60 seconds
+const CACHE_TTL = 60; // 60 seconds. lint-allow-bc-cache-ttl: in-memory share lookup; not Redis-cached.
 
 export class GetShareBySlugUseCase {
   constructor(
@@ -28,15 +28,17 @@ export class GetShareBySlugUseCase {
   async getResumeWithCache(resumeId: string) {
     const cacheKey = `public:resume:${resumeId}`;
 
+    // P1-026 — single-flight: every concurrent request for the same
+    // slug used to fan out into N DB hits + N `toGenericSections`
+    // runs because the manual get/miss/set sequence had no
+    // coalescing. `cache.get` first; on miss compute once and `set`
+    // ONLY when the resume exists — caching a `null` for a missing
+    // resume would lock out the next refresh attempt for TTL seconds.
     const cached = await this.cache.get<unknown>(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
 
     const resume = await this.resumeRepo.findByIdWithSections(resumeId);
-    if (!resume) {
-      return null;
-    }
+    if (!resume) return null;
 
     const { resumeSections, ...resumeData } = resume;
     const sections = toGenericSections(
@@ -45,7 +47,6 @@ export class GetShareBySlugUseCase {
         items: Array<{ content: unknown }>;
       }>,
     );
-
     const resumeToCache = {
       ...resumeData,
       sections: sections.map((section) => ({
@@ -53,9 +54,7 @@ export class GetShareBySlugUseCase {
         items: section.items.map((item) => item.content),
       })),
     };
-
     await this.cache.set(cacheKey, resumeToCache, CACHE_TTL);
-
     return resumeToCache;
   }
 

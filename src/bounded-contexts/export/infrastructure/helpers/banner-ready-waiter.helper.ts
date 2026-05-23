@@ -37,20 +37,17 @@ export class BannerReadyWaiter {
 
     const bannerMatch = html.match(/<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i);
     if (bannerMatch) {
-      this.logger.error(
-        '[BannerCapture] #banner HTML snippet found',
-        undefined,
-        'BannerReadyWaiter',
-      );
+      this.logger.error('[BannerCapture] #banner HTML snippet found', {
+        context: 'BannerReadyWaiter',
+      });
     } else {
       const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      this.logger.error(
-        '[BannerCapture] <body> HTML snippet:',
-        bodyMatch
+      this.logger.error('[BannerCapture] <body> HTML snippet:', {
+        context: 'BannerReadyWaiter',
+        stack: bodyMatch
           ? bodyMatch[1].slice(0, API_LIMITS.MAX_DEBUG_CHARS)
           : html.slice(0, API_LIMITS.MAX_DEBUG_CHARS),
-        'BannerReadyWaiter',
-      );
+      });
     }
   }
 

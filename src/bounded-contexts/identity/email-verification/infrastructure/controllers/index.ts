@@ -6,5 +6,5 @@
  * by `synthesizeRouteControllers`.
  */
 
-export * from './send-verification.dto';
-export * from './verify-email.dto';
+export * from './send-verification.schema';
+export * from './verify-email.schema';

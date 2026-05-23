@@ -1,9 +1,9 @@
 /**
  * Route-descriptor contracts.
  *
- * Phase-2 cutover replaced the Nest `*.controller.ts` + `@ApiTags` /
- * `createZodDto` audit suite with this single spec, scoped to the
- * post-cutover invariants:
+ * Phase-2 cutover replaced the Nest `*.controller.ts` + `@ApiTags`
+ * audit suite with this single spec, scoped to the post-cutover
+ * invariants:
  *
  *  1. Every `*.routes.ts` exports at least one route array.
  *  2. Every Route with `sdk.exported: true` has a stable `sdk.name`
@@ -134,7 +134,7 @@ describe('Route descriptors', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('routes declaring a response schema have a 200 application/json block', () => {
+  test('routes declaring a response schema produce an application/json success block', () => {
     const offenders: string[] = [];
     for (const { route } of collected) {
       if (!route?.response) continue;
@@ -142,8 +142,9 @@ describe('Route descriptors', () => {
       const op = swagger.paths?.[path]?.[route.method.toLowerCase()] as
         | { responses?: Record<string, { content?: Record<string, unknown> }> }
         | undefined;
-      const has200Json = Boolean(op?.responses?.['200']?.content?.['application/json']);
-      if (!has200Json) offenders.push(`${route.method} ${route.path}`);
+      const expected = String(route.statusCode ?? (route.method === 'POST' ? 201 : 200));
+      const hasJson = Boolean(op?.responses?.[expected]?.content?.['application/json']);
+      if (!hasJson) offenders.push(`${route.method} ${route.path} (expected ${expected})`);
     }
     expect(offenders).toEqual([]);
   });

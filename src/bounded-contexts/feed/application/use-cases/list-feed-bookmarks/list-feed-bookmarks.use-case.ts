@@ -19,7 +19,7 @@ export class ListFeedBookmarksUseCase {
     const { posts, nextCursor } = await this.repository.listBookmarks(userId, cursor, limit);
 
     if (posts.length === 0) {
-      return { posts: [], nextCursor };
+      return { items: [], nextCursor, hasNext: nextCursor !== null };
     }
 
     const postIds = posts.map((p) => p.id);
@@ -30,6 +30,6 @@ export class ListFeedBookmarksUseCase {
       isLiked: likedPostIds.has(p.id),
     }));
 
-    return { posts: decorated, nextCursor };
+    return { items: decorated, nextCursor, hasNext: nextCursor !== null };
   }
 }

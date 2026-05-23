@@ -17,7 +17,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 
 import type { PrismaClient } from '@prisma/client';
 import { stopTestApp, type TestApp } from '../../shared';
-import type { AuthHelper } from '../helpers/auth.helper';
+import type { AuthHelper } from '../../shared/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
 import { createE2ETestApp } from '../setup';
 
@@ -111,8 +111,8 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBe(0);
-      expect(response.body.data.following).toBe(0);
+      expect(response.body.followers).toBe(0);
+      expect(response.body.following).toBe(0);
     });
 
     it.serial('should show User A is NOT following User B', async () => {
@@ -121,7 +121,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(false);
+      expect(response.body.isFollowing).toBe(false);
     });
   });
 
@@ -135,9 +135,8 @@ describe('E2E Journey: Social Features', () => {
         .post(`/api/v1/users/${userB.userId}/follow`)
         .set('Authorization', `Bearer ${userA.token}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.id).toBeDefined();
+      expect(response.status).toBe(201);
+      expect(response.body.id).toBeDefined();
     });
 
     it.serial('should confirm the follow relationship', async () => {
@@ -146,7 +145,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(true);
+      expect(response.body.isFollowing).toBe(true);
     });
 
     it.serial('should prevent self-follow', async () => {
@@ -170,10 +169,8 @@ describe('E2E Journey: Social Features', () => {
 
       expect(response.status).toBe(200);
 
-      const followersData = response.body.data.followers;
-      const followersList = Array.isArray(followersData) ? followersData : followersData.data;
-
-      expect(followersList.length).toBeGreaterThanOrEqual(1);
+      // Q1 PaginatedResponseSchema: top-level `body.items`.
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it.serial('should show User B in User A following list', async () => {
@@ -182,11 +179,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-
-      const followingData = response.body.data.following;
-      const followingList = Array.isArray(followingData) ? followingData : followingData.data;
-
-      expect(followingList.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -201,7 +194,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBe(1);
+      expect(response.body.followers).toBe(1);
     });
 
     it.serial('should show 1 following for User A', async () => {
@@ -210,7 +203,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.following).toBe(1);
+      expect(response.body.following).toBe(1);
     });
   });
 
@@ -224,8 +217,7 @@ describe('E2E Journey: Social Features', () => {
         .post(`/api/v1/users/${userB.userId}/follow`)
         .set('Authorization', `Bearer ${userC.token}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
+      expect(response.status).toBe(201);
     });
 
     it.serial('should show 2 followers for User B now', async () => {
@@ -234,7 +226,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBe(2);
+      expect(response.body.followers).toBe(2);
     });
 
     it.serial('should handle duplicate follow gracefully', async () => {
@@ -250,7 +242,7 @@ describe('E2E Journey: Social Features', () => {
         .get(`/api/v1/users/${userB.userId}/social-stats`)
         .set('Authorization', `Bearer ${userB.token}`);
 
-      expect(statsResp.body.data.followers).toBe(2);
+      expect(statsResp.body.followers).toBe(2);
     });
   });
 
@@ -265,7 +257,6 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it.serial('should confirm User A no longer follows User B', async () => {
@@ -274,7 +265,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.isFollowing).toBe(false);
+      expect(response.body.isFollowing).toBe(false);
     });
 
     it.serial('should show decremented follower count for User B', async () => {
@@ -283,7 +274,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBe(1);
+      expect(response.body.followers).toBe(1);
     });
 
     it.serial('should show decremented following count for User A', async () => {
@@ -292,7 +283,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.following).toBe(0);
+      expect(response.body.following).toBe(0);
     });
   });
 
@@ -307,7 +298,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.activities).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should show activity history for User C', async () => {
@@ -316,7 +307,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userC.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.activities).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should show feed for User B (shows activities from followed users)', async () => {
@@ -330,7 +321,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.feed).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
 
     it.serial('should support pagination on feed', async () => {
@@ -339,7 +330,7 @@ describe('E2E Journey: Social Features', () => {
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.feed).toBeDefined();
+      expect(Array.isArray(response.body.items)).toBe(true);
     });
   });
 
@@ -373,17 +364,17 @@ describe('E2E Journey: Social Features', () => {
     });
 
     it.serial('should handle social stats for user with no activity', async () => {
-      const freshUser = authHelper.createTestUser('fresh-social');
-      const result = await authHelper.registerAndLogin(freshUser);
-      cleanupEmails.push(freshUser.email);
+      const freshInDbUser = authHelper.createTestUser('fresh-social');
+      const result = await authHelper.registerAndLogin(freshInDbUser);
+      cleanupEmails.push(freshInDbUser.email);
 
       const response = await app.request
         .get(`/api/v1/users/${result.userId}/social-stats`)
         .set('Authorization', `Bearer ${result.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.followers).toBe(0);
-      expect(response.body.data.following).toBe(0);
+      expect(response.body.followers).toBe(0);
+      expect(response.body.following).toBe(0);
     });
 
     it.serial('should handle re-following after unfollow', async () => {
@@ -392,14 +383,14 @@ describe('E2E Journey: Social Features', () => {
         .post(`/api/v1/users/${userB.userId}/follow`)
         .set('Authorization', `Bearer ${userA.token}`);
 
-      expect(followResp.status).toBe(200);
+      expect(followResp.status).toBe(201);
 
       // Verify stats updated
       const statsResp = await app.request
         .get(`/api/v1/users/${userB.userId}/social-stats`)
         .set('Authorization', `Bearer ${userB.token}`);
 
-      expect(statsResp.body.data.followers).toBe(2); // C + A again
+      expect(statsResp.body.followers).toBe(2); // C + A again
 
       // Clean up: unfollow
       await app.request

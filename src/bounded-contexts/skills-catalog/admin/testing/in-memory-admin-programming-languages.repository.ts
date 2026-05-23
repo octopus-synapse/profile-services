@@ -15,7 +15,7 @@ export class InMemoryAdminProgrammingLanguagesRepository extends AdminProgrammin
     this.rows.set(row.slug, row);
   }
 
-  async findAll(
+  async listAll(
     query: AdminProgrammingLanguagesListQuery,
   ): Promise<PaginatedResult<ProgrammingLanguage>> {
     const items = [...this.rows.values()];
@@ -23,8 +23,10 @@ export class InMemoryAdminProgrammingLanguagesRepository extends AdminProgrammin
       items,
       total: items.length,
       page: query.page ?? 1,
-      pageSize: query.pageSize ?? 20,
+      limit: query.pageSize ?? 20,
       totalPages: 0,
+      hasNext: false,
+      hasPrev: false,
     };
   }
   async findOne(slug: string) {

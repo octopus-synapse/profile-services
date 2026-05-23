@@ -17,7 +17,7 @@ import type { ListFeedTimelineUseCase } from '../use-cases/list-feed-timeline/li
 import type { ListPostCommentsUseCase } from '../use-cases/list-post-comments/list-post-comments.use-case';
 import type { ListUserCommentsUseCase } from '../use-cases/list-user-comments/list-user-comments.use-case';
 import type { ListUserPostsUseCase } from '../use-cases/list-user-posts/list-user-posts.use-case';
-import type { ListUserReactionsUseCase } from '../use-cases/list-user-reactions/list-user-reactions.use-case';
+import type { ListUserLikesUseCase } from '../use-cases/list-user-reactions/list-user-reactions.use-case';
 import type { ReportPostUseCase } from '../use-cases/report-post/report-post.use-case';
 import type { RepostPostUseCase } from '../use-cases/repost-post/repost-post.use-case';
 import type { UnbookmarkPostUseCase } from '../use-cases/unbookmark-post/unbookmark-post.use-case';
@@ -43,7 +43,7 @@ export abstract class FeedUseCases {
   abstract readonly bookmarkPost: BookmarkPostUseCase;
   abstract readonly unbookmarkPost: UnbookmarkPostUseCase;
   abstract readonly repostPost: RepostPostUseCase;
-  abstract readonly listUserReactions: ListUserReactionsUseCase;
+  abstract readonly listUserLikes: ListUserLikesUseCase;
   abstract readonly voteOnPoll: VoteOnPollUseCase;
   abstract readonly getPollResults: GetPollResultsUseCase;
   abstract readonly reportPost: ReportPostUseCase;

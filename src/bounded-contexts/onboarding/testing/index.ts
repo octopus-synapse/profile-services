@@ -45,7 +45,8 @@ export interface OnboardingProgressRecord {
   personalInfo: unknown;
   professionalProfile: unknown;
   sections: SectionProgressData[] | null;
-  templateSelection: unknown;
+  resumeStyleId: string | null;
+  activatedExtras: string[];
   updatedAt: Date;
 }
 
@@ -155,7 +156,8 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       personalInfo: record.personalInfo,
       professionalProfile: record.professionalProfile,
       sections: record.sections,
-      templateSelection: record.templateSelection,
+      resumeStyleId: record.resumeStyleId,
+      activatedExtras: record.activatedExtras ?? [],
       updatedAt: record.updatedAt,
     };
   }
@@ -164,6 +166,7 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
     userId: string,
     data: OnboardingProgressData,
   ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    const existing = this.progressRecords.get(userId);
     const record: OnboardingProgressRecord = {
       userId,
       currentStep: data.currentStep,
@@ -172,13 +175,53 @@ export class InMemoryOnboardingProgressRepository extends OnboardingProgressRepo
       personalInfo: data.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? null,
       sections: data.sections ?? null,
-      templateSelection: data.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? null,
+      // Mirror the production repo: only the dedicated extras mutation
+      // writes `activatedExtras` once a row exists. New records pick
+      // up whatever the caller passes (or default to empty).
+      activatedExtras:
+        data.activatedExtras !== undefined
+          ? data.activatedExtras
+          : (existing?.activatedExtras ?? []),
       updatedAt: new Date(),
     };
 
     this.progressRecords.set(userId, record);
 
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
+  }
+
+  async upsertProgressWithTx(
+    _tx: TransactionClient,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }> {
+    return this.upsertProgress(userId, data);
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    const normalised = Array.from(new Set(extras.map((e) => e.trim()).filter(Boolean)));
+    const existing = this.progressRecords.get(userId);
+    if (existing) {
+      this.progressRecords.set(userId, {
+        ...existing,
+        activatedExtras: normalised,
+        updatedAt: new Date(),
+      });
+      return;
+    }
+    this.progressRecords.set(userId, {
+      userId,
+      currentStep: 'welcome',
+      completedSteps: [],
+      username: null,
+      personalInfo: null,
+      professionalProfile: null,
+      sections: null,
+      resumeStyleId: null,
+      activatedExtras: normalised,
+      updatedAt: new Date(),
+    });
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -259,7 +302,8 @@ export function createOnboardingProgress(
     personalInfo: null,
     professionalProfile: null,
     sections: null,
-    templateSelection: null,
+    resumeStyleId: null,
+    activatedExtras: [],
     updatedAt: new Date(),
     ...overrides,
   };
@@ -270,7 +314,6 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
     username: 'johndoe',
     personalInfo: {
       fullName: 'John Doe',
-      email: 'john@example.com',
       phone: '+1234567890',
       location: 'New York, USA',
     },
@@ -281,7 +324,7 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
       github: 'https://github.com/johndoe',
       website: 'https://johndoe.dev',
     },
-    templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'ocean' },
+    resumeStyleId: null,
     sections: [],
     ...overrides,
   };
@@ -310,7 +353,7 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
   currentStep: 'personal-info',
   completedSteps: ['welcome'],
   username: 'johndoe',
-  personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+  personalInfo: { fullName: 'John Doe' },
 });
 
 // ============================================================================

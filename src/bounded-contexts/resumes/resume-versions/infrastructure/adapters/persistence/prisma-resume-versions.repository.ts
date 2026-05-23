@@ -3,16 +3,14 @@
  * versioning surface (snapshot CRUD, restore) and the tailor surface
  * (resume + job reads, tailored version listing).
  *
- * Keeps the BC's domain free of Prisma types — we translate
- * `Prisma.JsonValue` ↔ our pure `JsonValue` here so callers above never
- * see the database type.
+ * JSON marshalling and snapshot → ResumeUpdateInput mapping live in
+ * `prisma-resume-versions.mappers.ts`.
  */
 
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
 import type {
-  JsonValue,
   ResumeForSnapshot,
   ResumeVersionListItem,
   ResumeVersionRecord,
@@ -23,8 +21,19 @@ import type {
   TailoredVersionSummary,
 } from '../../../domain/entities/tailor';
 import { ResumeVersionsRepositoryPort } from '../../../domain/ports/resume-versions.repository.port';
+import {
+  fromPrismaJson,
+  toPrismaInputJsonObject,
+  toResumeUpdateData,
+} from './prisma-resume-versions.mappers';
 
 const CTX = 'PrismaResumeVersionsRepository';
+
+// Retry budget for the `@@unique([resumeId, versionNumber])` race.
+// Real-world contention is two concurrent tailor calls; ten retries
+// covers far worse pathology while still failing fast on a genuine bug.
+const CREATE_VERSION_MAX_RETRIES = 10;
+const UNIQUE_VIOLATION_CODE = 'P2002';
 
 export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort {
   constructor(
@@ -48,15 +57,13 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       },
     });
 
-    if (!resume) {
-      return null;
-    }
+    if (!resume) return null;
 
     return {
       userId: resume.userId,
       resumeSections: resume.resumeSections.map((section) => ({
         sectionType: { semanticKind: section.sectionType.semanticKind },
-        items: section.items.map((item) => ({ content: this.fromPrismaJson(item.content) })),
+        items: section.items.map((item) => ({ content: fromPrismaJson(item.content) })),
       })),
     };
   }
@@ -67,7 +74,6 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       orderBy: { versionNumber: 'desc' },
       select: { versionNumber: true },
     });
-
     return lastVersion?.versionNumber ?? null;
   }
 
@@ -83,7 +89,7 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       data: {
         resumeId: data.resumeId,
         versionNumber: data.versionNumber,
-        snapshot: this.toPrismaInputJsonObject(data.snapshot),
+        snapshot: toPrismaInputJsonObject(data.snapshot),
         label: data.label ?? null,
         isTailored: data.isTailored ?? false,
         tailoredJobId: data.tailoredJobId ?? null,
@@ -97,8 +103,68 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         createdAt: true,
       },
     });
+    return { ...created, snapshot: fromPrismaJson(created.snapshot) };
+  }
 
-    return { ...created, snapshot: this.fromPrismaJson(created.snapshot) };
+  async createNextResumeVersion(
+    resumeId: string,
+    data: {
+      snapshot: Record<string, unknown>;
+      label?: string;
+      isTailored?: boolean;
+      tailoredJobId?: string | null;
+    },
+  ): Promise<ResumeVersionRecord> {
+    // P1 #16 — two concurrent snapshot/tailor calls used to race on
+    // `lastVersion + 1`, both insert rows with the same versionNumber,
+    // and one always failed (or worse — a missing unique would let
+    // duplicates land). With the `@@unique([resumeId, versionNumber])`
+    // constraint Postgres rejects the loser; we catch the violation
+    // and retry with the next sequence value.
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < CREATE_VERSION_MAX_RETRIES; attempt++) {
+      const lastVersion = await this.prisma.resumeVersion.findFirst({
+        where: { resumeId },
+        orderBy: { versionNumber: 'desc' },
+        select: { versionNumber: true },
+      });
+      const versionNumber = (lastVersion?.versionNumber ?? 0) + 1;
+      try {
+        const created = await this.prisma.resumeVersion.create({
+          data: {
+            resumeId,
+            versionNumber,
+            snapshot: toPrismaInputJsonObject(data.snapshot),
+            label: data.label ?? null,
+            isTailored: data.isTailored ?? false,
+            tailoredJobId: data.tailoredJobId ?? null,
+          },
+          select: {
+            id: true,
+            resumeId: true,
+            versionNumber: true,
+            snapshot: true,
+            label: true,
+            createdAt: true,
+          },
+        });
+        return { ...created, snapshot: fromPrismaJson(created.snapshot) };
+      } catch (err) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === UNIQUE_VIOLATION_CODE
+        ) {
+          lastError = err;
+          continue;
+        }
+        throw err;
+      }
+    }
+    this.logger.error?.('ResumeVersion next-version retry budget exhausted', {
+      context: CTX,
+      resumeId,
+    });
+    throw lastError ?? new Error('createNextResumeVersion: retry budget exhausted');
   }
 
   findResumeOwner(resumeId: string): Promise<{ userId: string } | null> {
@@ -128,12 +194,8 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         createdAt: true,
       },
     });
-
-    if (!version) {
-      return null;
-    }
-
-    return { ...version, snapshot: this.fromPrismaJson(version.snapshot) };
+    if (!version) return null;
+    return { ...version, snapshot: fromPrismaJson(version.snapshot) };
   }
 
   async updateResumeFromSnapshot(
@@ -142,7 +204,7 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
   ): Promise<void> {
     await this.prisma.resume.update({
       where: { id: resumeId },
-      data: this.toResumeUpdateData(snapshot),
+      data: toResumeUpdateData(snapshot),
     });
   }
 
@@ -152,7 +214,6 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       orderBy: { versionNumber: 'desc' },
       select: { id: true },
     });
-
     return versions.map((version) => version.id);
   }
 
@@ -161,10 +222,7 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
       this.logger.debug?.('Skipping empty deleteVersionsByIds', CTX);
       return;
     }
-
-    await this.prisma.resumeVersion.deleteMany({
-      where: { id: { in: ids } },
-    });
+    await this.prisma.resumeVersion.deleteMany({ where: { id: { in: ids } } });
   }
 
   // -------- Tailor --------
@@ -186,9 +244,7 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         },
       },
     });
-
     if (!resume) return null;
-
     return {
       id: resume.id,
       userId: resume.userId,
@@ -232,244 +288,5 @@ export class PrismaResumeVersionsRepository extends ResumeVersionsRepositoryPort
         tailoredJobId: true,
       },
     });
-  }
-
-  // ---------- JSON marshalling ----------
-
-  private fromPrismaJson(value: Prisma.JsonValue): JsonValue {
-    if (
-      value === null ||
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean'
-    ) {
-      return value;
-    }
-
-    if (Array.isArray(value)) {
-      return value.map((item) => this.fromPrismaJson(item));
-    }
-
-    const result: { [key: string]: JsonValue | undefined } = {};
-
-    for (const [key, item] of Object.entries(value)) {
-      if (item !== undefined) {
-        result[key] = this.fromPrismaJson(item);
-      }
-    }
-
-    return result;
-  }
-
-  private toPrismaInputJsonValue(value: unknown): Prisma.InputJsonValue | null {
-    if (value === null) {
-      return null;
-    }
-
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-      return value;
-    }
-
-    if (Array.isArray(value)) {
-      const parsedArray = value
-        .map((item) => this.toPrismaInputJsonValue(item))
-        .filter((item): item is Prisma.InputJsonValue => item !== null);
-      return parsedArray;
-    }
-
-    if (value && typeof value === 'object') {
-      const parsedObject: Record<string, Prisma.InputJsonValue> = {};
-
-      for (const [key, item] of Object.entries(value)) {
-        const parsedValue = this.toPrismaInputJsonValue(item);
-        if (parsedValue !== null) {
-          parsedObject[key] = parsedValue;
-        }
-      }
-
-      return parsedObject;
-    }
-
-    return null;
-  }
-
-  private toPrismaInputJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
-    const parsedObject: Record<string, Prisma.InputJsonValue> = {};
-
-    for (const [key, item] of Object.entries(value)) {
-      const parsedValue = this.toPrismaInputJsonValue(item);
-      if (parsedValue !== null) {
-        parsedObject[key] = parsedValue;
-      }
-    }
-
-    return parsedObject;
-  }
-
-  private toResumeUpdateData(snapshot: Record<string, unknown>): Prisma.ResumeUncheckedUpdateInput {
-    const data: Prisma.ResumeUncheckedUpdateInput = {};
-
-    this.setStringOrNull(data, 'title', snapshot.title);
-    this.setString(data, 'language', snapshot.language);
-    this.setBoolean(data, 'isPublic', snapshot.isPublic);
-    this.setStringOrNull(data, 'slug', snapshot.slug);
-    this.setJson(data, 'contentPtBr', snapshot.contentPtBr);
-    this.setJson(data, 'contentEn', snapshot.contentEn);
-    this.setString(data, 'primaryLanguage', snapshot.primaryLanguage);
-    this.setStringOrNull(data, 'techPersona', snapshot.techPersona);
-    this.setStringOrNull(data, 'techArea', snapshot.techArea);
-    this.setStringArray(data, 'primaryStack', snapshot.primaryStack);
-    this.setNumberOrNull(data, 'experienceYears', snapshot.experienceYears);
-    this.setStringOrNull(data, 'fullName', snapshot.fullName);
-    this.setStringOrNull(data, 'jobTitle', snapshot.jobTitle);
-    this.setStringOrNull(data, 'phone', snapshot.phone);
-    this.setStringOrNull(data, 'location', snapshot.location);
-    this.setStringOrNull(data, 'linkedin', snapshot.linkedin);
-    this.setStringOrNull(data, 'github', snapshot.github);
-    this.setStringOrNull(data, 'website', snapshot.website);
-    this.setSummary(data, snapshot.summary);
-    this.setStringOrNull(data, 'currentCompanyLogo', snapshot.currentCompanyLogo);
-    this.setStringOrNull(data, 'twitter', snapshot.twitter);
-    this.setStringOrNull(data, 'medium', snapshot.medium);
-    this.setStringOrNull(data, 'devto', snapshot.devto);
-    this.setStringOrNull(data, 'stackoverflow', snapshot.stackoverflow);
-    this.setStringOrNull(data, 'kaggle', snapshot.kaggle);
-    this.setStringOrNull(data, 'hackerrank', snapshot.hackerrank);
-    this.setStringOrNull(data, 'leetcode', snapshot.leetcode);
-    this.setStringOrNull(data, 'accentColor', snapshot.accentColor);
-    this.setJson(data, 'customTheme', snapshot.customTheme);
-    this.setStringOrNull(data, 'styleId', snapshot.styleId);
-    this.setNumber(data, 'profileViews', snapshot.profileViews);
-    this.setNumber(data, 'totalStars', snapshot.totalStars);
-    this.setNumber(data, 'totalCommits', snapshot.totalCommits);
-    this.setDateOrNull(data, 'publishedAt', snapshot.publishedAt);
-
-    return data;
-  }
-
-  private setStringOrNull(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key:
-      | 'title'
-      | 'slug'
-      | 'techPersona'
-      | 'techArea'
-      | 'fullName'
-      | 'jobTitle'
-      | 'phone'
-      | 'location'
-      | 'linkedin'
-      | 'github'
-      | 'website'
-      | 'currentCompanyLogo'
-      | 'twitter'
-      | 'medium'
-      | 'devto'
-      | 'stackoverflow'
-      | 'kaggle'
-      | 'hackerrank'
-      | 'leetcode'
-      | 'accentColor'
-      | 'styleId',
-    value: unknown,
-  ): void {
-    if (typeof value === 'string' || value === null) {
-      data[key] = value;
-    }
-  }
-
-  private setSummary(data: Prisma.ResumeUncheckedUpdateInput, value: unknown): void {
-    if (typeof value === 'string' || value === null) {
-      data.summary = value;
-    }
-  }
-
-  private setString(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'language' | 'primaryLanguage',
-    value: unknown,
-  ): void {
-    if (typeof value === 'string') {
-      data[key] = value;
-    }
-  }
-
-  private setBoolean(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'isPublic',
-    value: unknown,
-  ): void {
-    if (typeof value === 'boolean') {
-      data[key] = value;
-    }
-  }
-
-  private setNumber(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'profileViews' | 'totalStars' | 'totalCommits',
-    value: unknown,
-  ): void {
-    if (typeof value === 'number') {
-      data[key] = value;
-    }
-  }
-
-  private setNumberOrNull(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'experienceYears',
-    value: unknown,
-  ): void {
-    if (typeof value === 'number' || value === null) {
-      data[key] = value;
-    }
-  }
-
-  private setDateOrNull(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'publishedAt',
-    value: unknown,
-  ): void {
-    if (value === null) {
-      data[key] = null;
-      return;
-    }
-
-    if (value instanceof Date) {
-      data[key] = value;
-      return;
-    }
-
-    if (typeof value === 'string') {
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) {
-        data[key] = date;
-      }
-    }
-  }
-
-  private setStringArray(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'primaryStack',
-    value: unknown,
-  ): void {
-    if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
-      data[key] = value;
-    }
-  }
-
-  private setJson(
-    data: Prisma.ResumeUncheckedUpdateInput,
-    key: 'contentPtBr' | 'contentEn' | 'customTheme',
-    value: unknown,
-  ): void {
-    if (value === null) {
-      data[key] = Prisma.DbNull;
-      return;
-    }
-
-    const parsed = this.toPrismaInputJsonValue(value);
-    if (parsed !== null) {
-      data[key] = parsed;
-    }
   }
 }

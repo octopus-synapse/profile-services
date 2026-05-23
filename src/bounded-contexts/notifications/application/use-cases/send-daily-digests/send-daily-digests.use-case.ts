@@ -12,7 +12,7 @@ import type { LoggerPort } from '@/shared-kernel';
 import type {
   NotificationType,
   PendingDigestNotification,
-} from '../../../domain/entities/notification';
+} from '../../../domain/entities/notification.entity';
 import { NotificationEmailPort } from '../../../domain/ports/notification-email.port';
 import { NotificationsRepositoryPort } from '../../../domain/ports/notifications.repository.port';
 import { escapeHtml, humanizeType } from '../../shared/format';
@@ -90,7 +90,10 @@ export class SendDailyDigestsUseCase {
     return {
       to: email,
       subject: `[ProFile] Your daily digest — ${pending.length} new notifications`,
-      html: `<p>Hi ${name ?? 'there'},</p><p>Here's what you missed in the last 24h:</p><ul>${items}</ul>`,
+      // P0-#10: escape the user-controlled `name` — attacker who sets their
+      // display name to `<img src=x onerror=…>` previously injected into
+      // every digest email sent for any recipient who happened to be them.
+      html: `<p>Hi ${escapeHtml(name ?? 'there')},</p><p>Here's what you missed in the last 24h:</p><ul>${items}</ul>`,
       text: pending.map((n) => `${humanizeType(n.type)}: ${n.message}`).join('\n'),
     };
   }

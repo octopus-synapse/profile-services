@@ -15,71 +15,43 @@
 import { z } from 'zod';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission } from '@/shared-kernel/authorization';
-import type { Route } from '@/shared-kernel/http/route';
-import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import { PAGINATION } from '@/shared-kernel/constants/pagination.constants';
+import { parsePositiveIntParam } from '@/shared-kernel/http/query-parsers';
+import type { Route } from '@/shared-kernel/http/route.types';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver.util';
 import { ResumesUseCases } from './application/ports/resumes-use-cases.port';
 import { toResumeSectionTypesData } from './presenters/generic-resume-sections.presenter';
 import {
+  toMgmtResumeListResponseDto,
   toPaginatedResumesData,
   toResumeFullResponseDto,
   toResumeResponseDto,
 } from './presenters/resumes.presenter';
+import {
+  CreateResumeBody,
+  DeleteResumeResponseSchema,
+  LocaleQuery,
+  MgmtResumeDetailsResponseSchema,
+  MgmtResumeListResponseSchema,
+  MgmtResumeMessageResponseSchema,
+  PageLimitQuery,
+  PaginatedResumesResponseSchema,
+  ResumeBaseSchema,
+  ResumeFullResponseSchema,
+  ResumeIdAndTypeKeyAndItemIdParam,
+  ResumeIdAndTypeKeyParam,
+  ResumeIdParam,
+  ResumeSectionItemDataResponseSchema,
+  ResumeSectionItemDeletedResponseSchema,
+  ResumeSectionsListResponseSchema,
+  ResumeSectionTypesDataSchema,
+  ResumeSlotsResponseSchema,
+  SectionItemBody,
+  UpdateResumeBody,
+  UserIdParam,
+} from './resumes.routes.schemas';
 import { GenericResumeSectionsUseCases } from './services/generic-resume-sections/ports/generic-resume-sections-repository.port';
 import { ResumeManagementUseCases } from './services/resume-management/ports/resume-management.port';
-
-// ─────────────────────────────────────────────────────────────────────
-// Common schemas
-// ─────────────────────────────────────────────────────────────────────
-
-const PageLimitQuery = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-});
-
-const _IdParam = z.object({ id: z.string() });
-const UserIdParam = z.object({ userId: z.string() });
-const ResumeIdParam = z.object({ resumeId: z.string() });
-const ResumeIdAndTypeKeyParam = z.object({
-  resumeId: z.string(),
-  sectionTypeKey: z.string(),
-});
-const ResumeIdAndTypeKeyAndItemIdParam = z.object({
-  resumeId: z.string(),
-  sectionTypeKey: z.string(),
-  itemId: z.string(),
-});
-
-const LocaleQuery = z.object({ locale: z.string().optional() });
-
-const CreateResumeBody = z.object({
-  title: z.string().min(1).max(100),
-  summary: z.string().max(2000).optional(),
-  isPublic: z.boolean().optional(),
-  fullName: z.string().max(100).optional(),
-  jobTitle: z.string().max(100).optional(),
-  phone: z.string().max(20).optional(),
-  location: z.string().max(100).optional(),
-  linkedin: z.string().url().optional(),
-  github: z.string().url().optional(),
-  website: z.string().url().optional(),
-  sections: z.array(z.record(z.unknown())).optional(),
-});
-
-const UpdateResumeBody = CreateResumeBody.partial();
-
-const SectionItemBody = z.object({
-  content: z.record(z.unknown()).optional(),
-});
-
-function parsePositiveInt(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const n = parseInt(value, 10);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
-}
-
-// ─────────────────────────────────────────────────────────────────────
-// Resumes (CRUD)
-// ─────────────────────────────────────────────────────────────────────
 
 export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
   {
@@ -88,6 +60,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     query: PageLimitQuery,
+    response: PaginatedResumesResponseSchema,
     openapi: {
       summary: 'Get all resumes for current user',
       tags: ['resumes'],
@@ -96,11 +69,14 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const q = ctx.query as z.infer<typeof PageLimitQuery>;
-      const page = parsePositiveInt(q.page, 1);
-      const limit = parsePositiveInt(q.limit, 50);
-      const result = await bc.findAllUserResumesUseCase.execute(ctx.user!.userId, page, limit);
-      const data = toPaginatedResumesData(result, { page, limit });
-      return { success: true, data };
+      const page = parsePositiveIntParam(q.page, PAGINATION.DEFAULT_PAGE);
+      const limit = parsePositiveIntParam(
+        q.limit,
+        PAGINATION.DEFAULT_PAGE_SIZE,
+        PAGINATION.MAX_PAGE_SIZE,
+      );
+      const result = await bc.listUserResumesUseCase.execute(ctx.user!.userId, page, limit);
+      return toPaginatedResumesData(result);
     },
   },
   {
@@ -108,6 +84,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     path: '/v1/resumes/slots',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
+    response: ResumeSlotsResponseSchema,
     openapi: {
       summary: 'Get remaining resume slots for current user',
       tags: ['resumes'],
@@ -116,7 +93,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const result = await bc.getRemainingSlotsUseCase.execute(ctx.user!.userId);
-      return { success: true, data: result };
+      return result;
     },
   },
   {
@@ -125,6 +102,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: ResumeFullResponseSchema,
     openapi: {
       summary: 'Get a resume with all sections',
       tags: ['resumes'],
@@ -134,7 +112,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: toResumeFullResponseDto(result) };
+      return toResumeFullResponseDto(result);
     },
   },
   {
@@ -143,6 +121,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: ResumeFullResponseSchema,
     openapi: {
       summary: 'Get a specific resume',
       tags: ['resumes'],
@@ -152,7 +131,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const result = await bc.findResumeByIdForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: toResumeFullResponseDto(result) };
+      return toResumeFullResponseDto(result);
     },
   },
   {
@@ -162,6 +141,13 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_CREATE,
     body: CreateResumeBody,
+    response: ResumeBaseSchema,
+    responseHeaders: z.object({
+      Location: z
+        .string()
+        .optional()
+        .openapi({ example: '/api/v1/resumes/01900000-0000-7000-a000-000000000010' }),
+    }),
     openapi: {
       summary: 'Create a new resume',
       tags: ['resumes'],
@@ -171,7 +157,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const body = ctx.body as unknown as CreateResume;
       const result = await bc.createResumeForUserUseCase.execute(ctx.user!.userId, body);
-      return { success: true, data: toResumeResponseDto(result) };
+      return toResumeResponseDto(result);
     },
   },
   {
@@ -181,6 +167,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     permission: Permission.RESUME_UPDATE,
     params: ResumeIdParam,
     body: UpdateResumeBody,
+    response: ResumeBaseSchema,
     openapi: {
       summary: 'Update a resume',
       tags: ['resumes'],
@@ -191,7 +178,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
       const { resumeId: id } = ctx.params as { resumeId: string };
       const body = ctx.body as unknown as UpdateResume;
       const result = await bc.updateResumeForUserUseCase.execute(id, ctx.user!.userId, body);
-      return { success: true, data: toResumeResponseDto(result) };
+      return toResumeResponseDto(result);
     },
   },
   {
@@ -200,6 +187,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
     params: ResumeIdParam,
+    response: DeleteResumeResponseSchema,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -209,7 +197,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeForUserUseCase.execute(id, ctx.user!.userId);
-      return { success: true, data: { deleted: true, id } };
+      return { deleted: true, id };
     },
   },
   {
@@ -218,6 +206,7 @@ export const resumesRoutes: ReadonlyArray<Route<ResumesUseCases>> = [
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    binary: { mediaType: 'image/svg+xml', filename: 'thumbnail.svg' },
     headers: {
       'Content-Type': 'image/svg+xml; charset=utf-8',
       'Cache-Control': 'private, max-age=300',
@@ -291,6 +280,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: UserIdParam,
+    response: MgmtResumeListResponseSchema,
     openapi: {
       summary: 'List all resumes for a specific user',
       tags: ['resumes'],
@@ -299,16 +289,17 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     sdk: { exported: true },
     handler: async (ctx, bc) => {
       const { userId } = ctx.params as { userId: string };
-      const resumes = await bc.listResumesForUserUseCase.execute(userId);
-      return { success: true, data: { resumes: resumes.resumes } };
+      const result = await bc.listResumesForUserUseCase.execute(userId);
+      return toMgmtResumeListResponseDto(result.resumes);
     },
   },
   {
     method: 'GET',
-    path: '/v1/resumes/manage/:id',
+    path: '/v1/resumes/manage/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_READ,
     params: ResumeIdParam,
+    response: MgmtResumeDetailsResponseSchema,
     openapi: {
       summary: 'Get full resume details',
       tags: ['resumes'],
@@ -318,15 +309,16 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       const resume = await bc.getResumeDetailsUseCase.execute(id);
-      return { success: true, data: { resume } };
+      return { resume };
     },
   },
   {
     method: 'DELETE',
-    path: '/v1/resumes/manage/:id',
+    path: '/v1/resumes/manage/:resumeId',
     auth: { kind: 'jwt' },
     permission: Permission.RESUME_DELETE,
     params: ResumeIdParam,
+    response: MgmtResumeMessageResponseSchema,
     openapi: {
       summary: 'Delete a resume',
       tags: ['resumes'],
@@ -336,7 +328,7 @@ export const resumeManagementRoutes: ReadonlyArray<Route<ResumeManagementUseCase
     handler: async (ctx, bc) => {
       const { resumeId: id } = ctx.params as { resumeId: string };
       await bc.deleteResumeUseCase.execute(id);
-      return { success: true, data: { message: 'Resume deleted successfully' } };
+      return { code: 'RESUME_DELETED' as const };
     },
   },
 ];
@@ -353,6 +345,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     permission: Permission.SECTION_TYPE_READ,
     params: ResumeIdParam,
     query: LocaleQuery,
+    response: ResumeSectionTypesDataSchema,
     openapi: {
       summary: 'List active dynamic section types with resolved translations',
       tags: ['resumes'],
@@ -363,13 +356,10 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
       const { locale: localeParam } = ctx.query as z.infer<typeof LocaleQuery>;
       const locale = parseLocale(localeParam);
       const rawSectionTypes = await bc.listSectionTypesUseCase.execute();
-      return {
-        success: true,
-        data: toResumeSectionTypesData(
-          rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
-          locale,
-        ),
-      };
+      return toResumeSectionTypesData(
+        rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
+        locale,
+      );
     },
   },
   {
@@ -377,6 +367,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     path: '/v1/resumes/:resumeId/sections',
     auth: { kind: 'jwt' },
     params: ResumeIdParam,
+    response: ResumeSectionsListResponseSchema,
     openapi: {
       summary: 'List sections and items for a resume',
       tags: ['resumes'],
@@ -386,7 +377,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     handler: async (ctx, bc) => {
       const { resumeId } = ctx.params as { resumeId: string };
       const sections = await bc.listResumeSectionsUseCase.execute(resumeId, ctx.user!.userId);
-      return { success: true, data: { sections } };
+      return { sections };
     },
   },
   {
@@ -396,6 +387,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
     auth: { kind: 'jwt' },
     params: ResumeIdAndTypeKeyParam,
     body: SectionItemBody,
+    response: ResumeSectionItemDataResponseSchema,
     openapi: {
       summary: 'Create section item in a dynamic section type',
       tags: ['resumes'],
@@ -414,15 +406,22 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         ctx.user!.userId,
         body.content ?? {},
       );
-      return { success: true, data: { item } };
+      return { item };
     },
   },
   {
     method: 'PATCH',
     path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId',
     auth: { kind: 'jwt' },
-    params: ResumeIdAndTypeKeyAndItemIdParam,
+    params: ResumeIdAndTypeKeyAndItemIdParam.openapi({
+      example: {
+        resumeId: '01900000-0000-7000-a000-000000000010',
+        sectionTypeKey: 'fixture-slug',
+        itemId: '01900000-0000-7000-a000-000000000087',
+      },
+    }),
     body: SectionItemBody,
+    response: ResumeSectionItemDataResponseSchema,
     openapi: {
       summary: 'Update section item in a dynamic section type',
       tags: ['resumes'],
@@ -443,14 +442,21 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         ctx.user!.userId,
         body.content ?? {},
       );
-      return { success: true, data: { item } };
+      return { item };
     },
   },
   {
     method: 'DELETE',
     path: '/v1/resumes/:resumeId/sections/:sectionTypeKey/items/:itemId',
     auth: { kind: 'jwt' },
-    params: ResumeIdAndTypeKeyAndItemIdParam,
+    params: ResumeIdAndTypeKeyAndItemIdParam.openapi({
+      example: {
+        resumeId: '01900000-0000-7000-a000-000000000010',
+        sectionTypeKey: 'fixture-slug',
+        itemId: '01900000-0000-7000-a000-000000000087',
+      },
+    }),
+    response: ResumeSectionItemDeletedResponseSchema,
     openapi: {
       summary: 'Delete section item from a dynamic section type',
       tags: ['resumes'],
@@ -464,7 +470,7 @@ export const genericResumeSectionsRoutes: ReadonlyArray<Route<GenericResumeSecti
         itemId: string;
       };
       await bc.deleteSectionItemUseCase.execute(resumeId, sectionTypeKey, itemId, ctx.user!.userId);
-      return { success: true, data: { deleted: true }, message: 'Section item deleted' };
+      return { deleted: true };
     },
   },
 ];

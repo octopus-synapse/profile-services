@@ -19,8 +19,10 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { tokenFromResponse } from '../shared';
 import {
   acceptTosForUser,
+  clearAuthRateLimits,
   closeApp,
   getApp,
   getPrisma,
@@ -29,6 +31,7 @@ import {
   uniqueTestUsername,
   unwrapApiData,
   verifyUserEmail,
+  waitForPendingHandlers,
 } from './setup';
 
 /** Generate unique email for each test to avoid conflicts */
@@ -67,8 +70,12 @@ async function createTestAccount(
   password = 'SecurePass123!',
 ): Promise<TestAccount> {
   const email = uniqueEmail(prefix);
+  // Defensive: the top-level `beforeEach` already calls
+  // `clearAuthRateLimits`, but specs that signup multiple users in a
+  // single `it()` would still hit the cap on the second one. Cheap.
+  await clearAuthRateLimits();
   const response = await getRequest()
-    .post('/api/accounts')
+    .post('/api/v1/accounts')
     .send({
       email,
       password,
@@ -77,21 +84,21 @@ async function createTestAccount(
       acceptedPrivacyVersion: process.env.PRIVACY_POLICY_VERSION || '1.0.0',
     });
 
-  if (response.status !== 201 || !response.body.data?.userId) {
+  if (response.status !== 201 || !response.body?.userId) {
     throw new Error(`Signup failed: ${JSON.stringify(response.body)}`);
   }
 
-  return { email, password, userId: response.body.data.userId };
+  return { email, password, userId: response.body.userId };
 }
 
 async function loginTestAccount(email: string, password: string): Promise<string> {
-  const response = await getRequest().post('/api/auth/login').send({ email, password });
+  const response = await getRequest().post('/api/v1/auth/login').send({ email, password });
 
-  if (response.status !== 200 || !response.body.data?.accessToken) {
+  const accessToken = tokenFromResponse(response, 'access_token');
+  if (response.status !== 200 || !accessToken) {
     throw new Error(`Login failed: ${JSON.stringify(response.body)}`);
   }
-
-  return response.body.data.accessToken;
+  return accessToken;
 }
 
 /**
@@ -101,7 +108,6 @@ async function loginTestAccount(email: string, password: string): Promise<string
  * Required fields by schema:
  * - username: 3-30 chars, alphanumeric + underscore
  * - personalInfo.fullName: 2-100 chars
- * - personalInfo.email: valid email
  * - professionalProfile.jobTitle: 2-100 chars
  * - professionalProfile.summary: 10-500 chars (REQUIRED!)
  * - skills: array (can be empty)
@@ -111,7 +117,7 @@ async function loginTestAccount(email: string, password: string): Promise<string
  * - education: array (can be empty)
  * - noEducation: boolean
  * - languages: array with at least name + level
- * - templateSelection: template + palette
+ * - resumeStyleId: FK to ResumeStyle (uuid | null, optional)
  */
 function createOnboardingPayload(
   overrides: {
@@ -128,7 +134,6 @@ function createOnboardingPayload(
   const {
     username = uniqueTestUsername('user'),
     fullName = 'Test User',
-    email = 'test@example.com',
     jobTitle = 'Software Developer',
     summary = 'Experienced software developer with expertise in modern web technologies.',
     hasExperience = false,
@@ -138,7 +143,7 @@ function createOnboardingPayload(
 
   return {
     username,
-    personalInfo: { fullName, email },
+    personalInfo: { fullName },
     professionalProfile: { jobTitle, summary },
     skills: hasSkills ? [{ name: 'TypeScript', category: 'Programming' }] : [],
     noSkills: !hasSkills,
@@ -167,7 +172,7 @@ function createOnboardingPayload(
       : [],
     noEducation: !hasEducation,
     languages: [{ name: 'English', level: 'NATIVE' }],
-    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+    resumeStyleId: null,
   };
 }
 
@@ -178,6 +183,24 @@ describe('Complete Onboarding Flow', () => {
 
   afterAll(async () => {
     await closeApp();
+  });
+
+  // `.env.test` keeps RATE_LIMIT_ENABLED=true so the security specs
+  // remain meaningful. This suite signs up dozens of users in a single
+  // run, so without a per-test reset the 10/600s POST /v1/accounts cap
+  // turns every later test into a 429 cascade. `clearAuthRateLimits`
+  // is surgical — leaves password-reset / userId-keyed buckets live
+  // for specs that exercise those throttles.
+  beforeEach(async () => {
+    await clearAuthRateLimits();
+  });
+
+  // Drain async audit handlers from the previous test before deleting
+  // users in this one — otherwise the FK race surfaces as
+  // `# Unhandled error between tests`. See
+  // docs/audits/integration-test-triage-2026-05-21.md bug #4.
+  afterEach(async () => {
+    await waitForPendingHandlers();
   });
 
   describe('Step 1: Account Creation (Signup)', () => {
@@ -193,7 +216,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should create account with valid credentials', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
@@ -203,11 +226,11 @@ describe('Complete Onboarding Flow', () => {
         });
 
       expect(response.status).toBe(201);
-      expect(response.body.data).toHaveProperty('userId');
-      expect(response.body.data.email).toBe(testEmail);
-      expect(response.body.data.message).toBeDefined();
+      expect(response.body).toHaveProperty('userId');
+      expect(response.body.email).toBe(testEmail);
+      expect(response.body.message).toBeDefined();
 
-      userId = response.body.data.userId;
+      userId = response.body.userId;
     });
 
     it('should reject signup with existing email', async () => {
@@ -218,7 +241,7 @@ describe('Complete Onboarding Flow', () => {
 
       // First signup
       const first = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
@@ -226,11 +249,11 @@ describe('Complete Onboarding Flow', () => {
           ...consents,
         });
 
-      userId = first.body.data?.userId;
+      userId = first.body?.userId;
 
       // Second signup with same email
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({
           email: testEmail,
           password: 'DifferentPass123!',
@@ -243,7 +266,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with weak password', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({ email: uniqueEmail('weak-pass'), password: '123', name: 'Weak Pass User' });
 
       // 400 or 422 for validation error
@@ -252,7 +275,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with invalid email format', async () => {
       const response = await getRequest()
-        .post('/api/accounts')
+        .post('/api/v1/accounts')
         .send({ email: 'not-an-email', password: 'SecurePass123!', name: 'Invalid Email User' });
 
       // 400 or 422 for validation error
@@ -260,7 +283,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup without required fields', async () => {
-      const response = await getRequest().post('/api/accounts').send({});
+      const response = await getRequest().post('/api/v1/accounts').send({});
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
@@ -289,7 +312,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should request email verification', async () => {
       const response = await getRequest()
-        .post('/api/email-verification/send')
+        .post('/api/v1/auth/email-verification/send')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({}); // Send empty body - email should be taken from token
 
@@ -342,7 +365,8 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(createOnboardingPayload({ username: uniqueTestUsername('tospre') }));
 
-      expect([200, 403]).toContain(response.status);
+      // POST /v1/onboarding sem statusCode → auto-201; 403 vem do ToS guard.
+      expect([200, 201, 403]).toContain(response.status);
     });
 
     it('should allow onboarding after ToS acceptance', async () => {
@@ -386,7 +410,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(false);
+      expect(response.body.hasCompletedOnboarding).toBe(false);
     });
 
     it('should reject unauthenticated request', async () => {
@@ -435,11 +459,10 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'personal-info',
           completedSteps: ['welcome'],
-          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
+          personalInfo: { fullName: 'Test User' },
         });
 
       expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
     });
 
     it('should save progress for professional-profile step', async () => {
@@ -449,7 +472,7 @@ describe('Complete Onboarding Flow', () => {
         .send({
           currentStep: 'professional-profile',
           completedSteps: ['welcome', 'personal-info'],
-          personalInfo: { fullName: 'Test User', email: 'test@example.com' },
+          personalInfo: { fullName: 'Test User' },
           professionalProfile: { jobTitle: 'Software Engineer', summary: 'Experienced developer' },
         });
 
@@ -610,8 +633,7 @@ describe('Complete Onboarding Flow', () => {
 
       expect([200, 201]).toContain(response.status);
       if (response.status === 200 || response.status === 201) {
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.resumeId).toBeDefined();
+        expect(response.body.resumeId).toBeDefined();
       }
     });
 
@@ -691,7 +713,7 @@ describe('Complete Onboarding Flow', () => {
         .post('/api/v1/onboarding')
         .send({
           username: 'noauth',
-          personalInfo: { fullName: 'No Auth', email: 'noauth@test.com' },
+          personalInfo: { fullName: 'No Auth' },
         });
 
       // Body validation runs in buildHttpCtx before the auth pipeline,
@@ -729,7 +751,7 @@ describe('Complete Onboarding Flow', () => {
           }),
         );
 
-      resumeId = onboardingRes.body.data?.resumeId;
+      resumeId = onboardingRes.body?.resumeId;
     });
 
     afterAll(async () => {
@@ -755,7 +777,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data.hasCompletedOnboarding).toBe(true);
+      expect(response.body.hasCompletedOnboarding).toBe(true);
     });
 
     it('should have created resume', async () => {
@@ -766,7 +788,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toBeDefined();
+      expect(response.body).toBeDefined();
     });
 
     it('should list user resumes', async () => {
@@ -775,9 +797,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(unwrapApiData<{ data: unknown[] }>(response.body).data.length).toBeGreaterThanOrEqual(
-        1,
-      );
+      expect(response.body.items.length).toBeGreaterThanOrEqual(1);
     });
 
     it('should have cleared onboarding progress', async () => {

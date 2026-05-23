@@ -15,8 +15,9 @@ export class ConsoleLoggerAdapter extends LoggerPort {
   warn(message: string, context?: string): void {
     process.stdout.write(`[${context ?? 'app'}] WARN ${message}\n`);
   }
-  error(message: string, trace?: string, context?: string): void {
-    process.stderr.write(`[${context ?? 'app'}] ERROR ${message}\n`);
-    if (trace) process.stderr.write(`${trace}\n`);
+  error(message: string, options: Record<string, unknown> = {}): void {
+    const { context, stack } = options;
+    process.stderr.write(`[${typeof context === 'string' ? context : 'app'}] ERROR ${message}\n`);
+    if (typeof stack === 'string') process.stderr.write(`${stack}\n`);
   }
 }

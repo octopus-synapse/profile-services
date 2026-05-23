@@ -1,4 +1,5 @@
 import type { LoggerPort } from '@/shared-kernel';
+import { runWithFailureMode } from '@/shared-kernel/jobs';
 import type { JobQueuePort } from '@/shared-kernel/jobs/job-queue.port';
 import type { NotificationsUseCases } from '../../application/ports/notifications.port';
 import type { ExpiryReminderJob } from '../../application/use-cases/enqueue-expiry-reminders/enqueue-expiry-reminders.use-case';
@@ -37,7 +38,8 @@ export class FitProfileExpiryReminderWorker {
   ) {}
 
   async process(job: { data: FitProfileExpiryReminderJobData; id?: string }): Promise<void> {
-    try {
+    this.logger.debug(`Processing kind=${job.data.kind}`, CTX);
+    await runWithFailureMode({ worker: CTX, logger: this.logger }, 'RETRY', async () => {
       if (job.data.kind === 'schedule') {
         await this.fanOut();
         return;
@@ -49,15 +51,7 @@ export class FitProfileExpiryReminderWorker {
           expiresAt: job.data.expiresAt,
         });
       }
-    } catch (err) {
-      const kind = job?.data?.kind;
-      this.logger.error(
-        `expiry-reminder failed kind=${kind} err=${err instanceof Error ? err.message : String(err)}`,
-        err instanceof Error ? err.stack : undefined,
-        CTX,
-      );
-      throw err;
-    }
+    });
   }
 
   private async fanOut(): Promise<void> {

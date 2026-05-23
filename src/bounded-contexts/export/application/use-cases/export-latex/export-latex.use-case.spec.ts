@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { createMockResume } from '@test/shared/factories/resume.factory';
+import { buildResume } from '@test/shared/factories/resume.factory';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { stubLogger } from '@/shared-kernel/logger/testing';
 import {
@@ -31,10 +31,8 @@ class InMemoryResumeDataRepository implements ResumeDataRepositoryPort {
   }
 }
 
-function buildLatexResume(
-  overrides: Parameters<typeof createMockResume>[0] = {},
-): ResumeForLatexExport {
-  const base = createMockResume({
+function buildLatexResume(overrides: Parameters<typeof buildResume>[0] = {}): ResumeForLatexExport {
+  const base = buildResume({
     id: 'resume-123',
     userId: 'user-456',
     title: 'My Resume',

@@ -6,7 +6,6 @@ import {
   getApp,
   getPrisma,
   getRequest,
-  unwrapApiData,
 } from './setup';
 
 describe('Resume Versions Integration', () => {
@@ -54,9 +53,10 @@ describe('Resume Versions Integration', () => {
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
-      const versions = unwrapApiData<Array<{ versionNumber: number; label: string }>>(
-        response.body,
-      );
+      const versions = response.body.versions as Array<{
+        versionNumber: number;
+        label: string;
+      }>;
       expect(versions.length).toBeGreaterThanOrEqual(1);
       expect(versions[0]?.versionNumber).toBe(1);
       expect(versions[0]?.label).toBe('Initial version');
@@ -83,7 +83,7 @@ describe('Resume Versions Integration', () => {
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
-      const versions = unwrapApiData<Array<{ versionNumber: number }>>(response.body);
+      const versions = response.body.versions as Array<{ versionNumber: number }>;
       expect(versions.length).toBe(2);
       expect(versions[0]?.versionNumber).toBe(2);
       expect(versions[1]?.versionNumber).toBe(1);
@@ -103,7 +103,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(unwrapApiData(response.body)).toMatchObject({ id: versions[0].id, versionNumber: 2 });
+      expect(response.body.version).toMatchObject({ id: versions[0].id, versionNumber: 2 });
     });
   });
 
@@ -122,7 +122,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       // Restore is idempotent overwrite — 200 OK, not 201 Created.
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
 
       const updatedResume = await prisma.resume.findUnique({
         where: { id: resumeId },
@@ -155,7 +155,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       // Restore is idempotent overwrite — 200 OK, not 201 Created.
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
 
       const versionsAfter = await prisma.resumeVersion.count({
         where: { resumeId },

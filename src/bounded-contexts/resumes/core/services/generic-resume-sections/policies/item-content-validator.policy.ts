@@ -1,4 +1,4 @@
-import { SectionItemInvalidException } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+import { SectionItemInvalidException } from '@/bounded-contexts/resumes/domain/exceptions';
 import { SectionDefinitionZodFactory } from '../../section-definition-zod.factory';
 
 export class ItemContentValidatorPolicy {

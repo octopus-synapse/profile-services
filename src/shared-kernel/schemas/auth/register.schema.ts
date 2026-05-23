@@ -14,3 +14,5 @@ export const RegisterCredentialsSchema = z.object({
 });
 
 export type RegisterCredentials = z.infer<typeof RegisterCredentialsSchema>;
+
+export type RegisterCredentialsDto = z.infer<typeof RegisterCredentialsSchema>;

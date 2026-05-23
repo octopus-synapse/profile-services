@@ -1,15 +1,22 @@
 /**
  * ErrorEnvelope — the exact shape every non-2xx HTTP response carries.
  *
- * Kept intentionally small: a stable code, the translated message in the
- * negotiated locale, the params used for translation (so the client can
- * re-translate or inspect), and optional field-level detail.
- *
- * `statusCode` mirrors the HTTP status for convenience when a logged
- * payload is inspected in isolation.
+ * `code` is the stable SCREAMING_SNAKE_CASE identifier (was `error` before).
+ * `message` is already translated in the negotiated locale.
+ * `severity` is a UX hint so the frontend can route to toast/modal/banner/inline
+ * without per-code mapping. `suggestedAction` lets the backend nudge the user
+ * to a follow-up (e.g. "Atualizar plano", "Refazer onboarding").
  */
 
 import type { TranslationParams } from './translation.port';
+
+export type ErrorSeverity = 'toast' | 'modal' | 'banner' | 'inline' | 'silent';
+
+export interface SuggestedAction {
+  readonly label: string;
+  readonly href?: string;
+  readonly eventName?: string;
+}
 
 export interface FieldError {
   readonly path: ReadonlyArray<string | number>;
@@ -20,8 +27,10 @@ export interface FieldError {
 
 export interface ErrorEnvelope {
   readonly statusCode: number;
-  readonly error: string; // stable CODE
-  readonly message: string; // already translated in negotiated locale
+  readonly code: string;
+  readonly message: string;
+  readonly severity: ErrorSeverity;
+  readonly suggestedAction?: SuggestedAction;
   readonly params: TranslationParams;
   readonly fields?: ReadonlyArray<FieldError>;
 }

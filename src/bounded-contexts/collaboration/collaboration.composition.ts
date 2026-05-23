@@ -24,7 +24,7 @@ import type { JwtPort, LoggerPort } from '@/shared-kernel';
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import type { BoundedContextComposition } from '@/shared-kernel/composition';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import type { Route } from '@/shared-kernel/http/route';
+import type { Route } from '@/shared-kernel/http/route.types';
 import type { WebSocketPort } from '@/shared-kernel/websocket/websocket.port';
 
 // admin slice
@@ -141,7 +141,7 @@ export function buildCollaborationComposition(
   };
 
   // ─── sharing slice ──────────────────────────────────────────────────
-  const sharingRepo = new PrismaCollaborationRepository(prisma);
+  const sharingRepo = new PrismaCollaborationRepository(prisma, logger);
   const sharingUseCases = buildCollaborationUseCases(sharingRepo, eventPublisher, logger);
   const collabComments = new CollabCommentService(prisma);
   const sharingBundle: CollaborationHttpBundle = {
@@ -188,6 +188,10 @@ export function buildCollaborationComposition(
         conversationRepo,
         chatCache,
         logger,
+        // P1 #7 — thread the shared CachePort through so the WS
+        // handshake honours the same `token_valid_after` invalidation
+        // gate the HTTP pipeline uses (JoseAuthExtractorAdapter).
+        cache,
       }),
   };
 }

@@ -6,6 +6,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { OnboardingSessionExpiredException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type {
   OnboardingProgressData,
   ProgressRecord,
@@ -41,11 +42,22 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
       personalInfo: data.personalInfo ?? existing?.personalInfo ?? null,
       professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
       sections: data.sections ?? existing?.sections ?? null,
-      templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      resumeStyleId: data.resumeStyleId ?? existing?.resumeStyleId ?? null,
+      activatedExtras:
+        data.activatedExtras !== undefined
+          ? data.activatedExtras
+          : (existing?.activatedExtras ?? []),
       updatedAt: new Date(),
     };
     this.progressMap.set(userId, record);
     return { currentStep: record.currentStep, completedSteps: record.completedSteps };
+  }
+
+  async setActivatedExtras(userId: string, extras: string[]): Promise<void> {
+    const existing = this.progressMap.get(userId);
+    if (existing) {
+      this.progressMap.set(userId, { ...existing, activatedExtras: extras, updatedAt: new Date() });
+    }
   }
 
   async deleteProgress(userId: string): Promise<void> {
@@ -55,6 +67,14 @@ class InMemoryOnboardingProgressRepository implements OnboardingProgressReposito
 
   async deleteProgressWithTx(_tx: unknown, userId: string): Promise<void> {
     await this.deleteProgress(userId);
+  }
+
+  async upsertProgressWithTx(
+    _tx: unknown,
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<SaveProgressResult> {
+    return this.upsertProgress(userId, data);
   }
 
   async findUserByUsername(_username: string): Promise<{ id: string } | null> {
@@ -73,7 +93,8 @@ describe('GetProgressUseCase', () => {
     personalInfo: { fullName: 'John Doe' },
     professionalProfile: null,
     sections: null,
-    templateSelection: null,
+    resumeStyleId: null,
+    activatedExtras: [],
     updatedAt: new Date(),
   };
 
@@ -106,5 +127,14 @@ describe('GetProgressUseCase', () => {
 
     expect(repository.deleteProgressCalledWith).toBe('user-1');
     expect(result).toEqual(INITIAL_PROGRESS);
+  });
+
+  it('throws OnboardingSessionExpiredException in strict mode when progress is expired', async () => {
+    const expiredDate = new Date(Date.now() - 37 * 60 * 60 * 1000);
+    repository.setProgress('user-1', { ...mockProgress, updatedAt: expiredDate });
+
+    await expect(useCase.execute('user-1', { strict: true })).rejects.toThrow(
+      OnboardingSessionExpiredException,
+    );
   });
 });

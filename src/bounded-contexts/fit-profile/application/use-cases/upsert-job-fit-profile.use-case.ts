@@ -52,6 +52,10 @@ export class UpsertJobFitProfileUseCase {
     });
     // Match Score cache is keyed by jobId — the recompute worker
     // listens for this event and wipes `match:*:{ jobId }:*` entries.
+    // P2-#7 (intentional: telemetry/cache wipe is best-effort): a
+    // recompute failure self-heals on the next read since the cache
+    // entry would have just refreshed with the now-stale weights, and
+    // the periodic recompute cron resyncs eventually.
     this.events.publish(
       new JobFitProfileUpdatedEvent(input.jobId, { editedByUserId: input.editedByUserId }),
     );

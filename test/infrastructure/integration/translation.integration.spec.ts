@@ -1,12 +1,15 @@
 /**
  * Translation Integration Tests
  *
- * Tests translation endpoints against a real NestJS application.
- * Translation depends on LibreTranslate service being available.
- * Tests are skipped when DATABASE_URL is missing or SKIP_INTEGRATION is set.
+ * Tests translation endpoints against the live app. Translation now uses
+ * the BC AI's TranslationLlmPort (OpenAI). When OPENAI_API_KEY is unset
+ * the health endpoint reports `unavailable` and the body-mutating tests
+ * skip themselves automatically — CI without a key still exercises auth
+ * and routing.
  *
- * Note: Translation endpoints (except health) require authentication
- * with RESUME_READ permission (standard user role).
+ * Tests are also skipped when DATABASE_URL is missing or SKIP_INTEGRATION
+ * is set. Translation endpoints (except health) require authentication
+ * with RESUME_READ permission.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
@@ -48,11 +51,10 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest().get('/api/v1/translation/health');
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
-      expect(res.body.data.status).toBeDefined();
-      expect(['healthy', 'unavailable']).toContain(res.body.data.status);
-      expect(res.body.data.timestamp).toBeDefined();
+      expect(res.body).toBeDefined();
+      expect(res.body.status).toBeDefined();
+      expect(['healthy', 'unavailable']).toContain(res.body.status);
+      expect(res.body.timestamp).toBeDefined();
     });
 
     it('should return a valid ISO timestamp', async () => {
@@ -61,7 +63,7 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest().get('/api/v1/translation/health');
 
       expect(res.status).toBe(200);
-      const timestamp = new Date(res.body.data.timestamp);
+      const timestamp = new Date(res.body.timestamp);
       expect(timestamp.getTime()).not.toBeNaN();
     });
   });
@@ -79,10 +81,9 @@ describeIntegration('Translation Integration', () => {
         .send({ text: 'Hello world', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
-      expect(typeof res.body.data.translated).toBe('string');
-      expect(res.body.data.translated.length).toBeGreaterThan(0);
+      expect(res.body).toBeDefined();
+      expect(typeof res.body.translated).toBe('string');
+      expect(res.body.translated.length).toBeGreaterThan(0);
     });
 
     it('should translate text pt->en', async () => {
@@ -94,9 +95,8 @@ describeIntegration('Translation Integration', () => {
         .send({ text: 'Olá mundo', sourceLanguage: 'pt', targetLanguage: 'en' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
-      expect(typeof res.body.data.translated).toBe('string');
+      expect(res.body).toBeDefined();
+      expect(typeof res.body.translated).toBe('string');
     });
 
     it('should require authentication', async () => {
@@ -141,7 +141,8 @@ describeIntegration('Translation Integration', () => {
 
       // sourceLanguage defaults to 'auto' in the schema, so missing
       // it is valid input; 201 means the request was accepted.
-      expect([201, 400]).toContain(res.status);
+      // 503 ocorre quando OPENAI_API_KEY não está configurada (test env).
+      expect([201, 400, 503]).toContain(res.status);
     });
 
     it('should validate missing targetLanguage', async () => {
@@ -168,7 +169,6 @@ describeIntegration('Translation Integration', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
     });
 
     it('should handle text with emojis', async () => {
@@ -180,7 +180,6 @@ describeIntegration('Translation Integration', () => {
         .send({ text: 'Hello world! Great job!', sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
     });
 
     it('should handle long text', async () => {
@@ -211,10 +210,9 @@ describeIntegration('Translation Integration', () => {
         .send({ text: 'Software Engineer' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
-      expect(typeof res.body.data.translated).toBe('string');
-      expect(res.body.data.translated.length).toBeGreaterThan(0);
+      expect(res.body).toBeDefined();
+      expect(typeof res.body.translated).toBe('string');
+      expect(res.body.translated.length).toBeGreaterThan(0);
     });
 
     it('should validate empty text', async () => {
@@ -250,10 +248,9 @@ describeIntegration('Translation Integration', () => {
         .send({ text: 'Engenheiro de Software' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
-      expect(typeof res.body.data.translated).toBe('string');
-      expect(res.body.data.translated.length).toBeGreaterThan(0);
+      expect(res.body).toBeDefined();
+      expect(typeof res.body.translated).toBe('string');
+      expect(res.body.translated.length).toBeGreaterThan(0);
     });
 
     it('should validate empty text', async () => {
@@ -285,8 +282,7 @@ describeIntegration('Translation Integration', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data).toBeDefined();
+      expect(res.body).toBeDefined();
     });
 
     it('should translate a single text in batch', async () => {
@@ -298,7 +294,6 @@ describeIntegration('Translation Integration', () => {
         .send({ texts: ['Software Development'], sourceLanguage: 'en', targetLanguage: 'pt' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
     });
 
     it('should validate empty texts array', async () => {
@@ -333,7 +328,8 @@ describeIntegration('Translation Integration', () => {
 
       // sourceLanguage defaults to 'auto' in the schema, so missing
       // it is valid input; 201 means the batch was accepted.
-      expect([201, 400]).toContain(res.status);
+      // 503 ocorre quando OPENAI_API_KEY não está configurada (test env).
+      expect([201, 400, 503]).toContain(res.status);
     });
 
     it('should require authentication', async () => {
@@ -358,14 +354,16 @@ describeIntegration('Translation Integration', () => {
       const res = await getRequest().get('/api/v1/translation/health');
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(['healthy', 'unavailable']).toContain(res.body.data.status);
+      expect(['healthy', 'unavailable']).toContain(res.body.status);
     });
 
     it('should handle translation request when service is unavailable gracefully', async () => {
       if (setupFailed || translationAvailable) return;
 
-      // When LibreTranslate is down, translation should fail gracefully
+      // When the translation provider is unavailable (no OPENAI_API_KEY),
+      // translation should fail gracefully — 503 surfaces the configured-but-
+      // unavailable state; 201/400 are acceptable when the provider partially
+      // responds.
       const res = await getRequest()
         .post('/api/v1/translation/text')
         .set('Authorization', `Bearer ${accessToken}`)

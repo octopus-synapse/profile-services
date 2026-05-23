@@ -12,8 +12,10 @@
  * - Race conditions on concurrent operations
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { waitFor } from '../../shared';
 import {
+  clearAuthRateLimits,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -29,6 +31,10 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
   beforeAll(async () => {
     await getApp();
+  });
+
+  beforeEach(async () => {
+    await clearAuthRateLimits();
     const auth = await createTestUserAndLogin({
       email: `cascade-test-${uniqueTestId()}@example.com`,
     });
@@ -101,18 +107,25 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         .delete(`/api/v1/resumes/${resume.id}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Wait for async event handlers to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Check for orphaned sections
-      const orphanedSections = await prisma.resumeSection.count({
-        where: { resumeId: resume.id },
-      });
-
-      // Check for orphaned items
-      const orphanedItems = await prisma.sectionItem.count({
-        where: { resumeSectionId: section.id },
-      });
+      // Poll until async cleanup handlers finish; previous fixed
+      // 500ms sleep silently passed when the cascade didn't run.
+      // waitFor surfaces the assertion error on timeout so a broken
+      // cascade actually fails the test instead of silently green.
+      const { orphanedSections, orphanedItems } = await waitFor(
+        async () => {
+          const sections = await prisma.resumeSection.count({
+            where: { resumeId: resume.id },
+          });
+          const items = await prisma.sectionItem.count({
+            where: { resumeSectionId: section.id },
+          });
+          if (sections > 0 || items > 0) {
+            throw new Error(`cascade pending: ${sections} sections, ${items} items still attached`);
+          }
+          return { orphanedSections: sections, orphanedItems: items };
+        },
+        { label: 'resume cascade delete' },
+      );
 
       console.log('Orphaned sections after delete:', orphanedSections);
       console.log('Orphaned items after delete:', orphanedItems);
@@ -217,8 +230,8 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Test error handling for invalid resume ID
      */
     it('should return 404 for non-existent resume', async () => {
-      // Use a valid CUID format that doesn't exist in the database
-      const fakeResumeId = 'cmzzzzzzz0000zzzzzzzzzzzz';
+      // IDs são UUID v7 (Q11). UUID válido mas inexistente.
+      const fakeResumeId = '019eee00-0000-0000-0000-000000000000';
 
       const response = await getRequest()
         .delete(`/api/v1/resumes/${fakeResumeId}`)
@@ -322,7 +335,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         .send({ title: 'User Cache Test' });
 
       expect(createResponse.status).toBe(201);
-      const resumeId = createResponse.body.data?.id;
+      const resumeId = createResponse.body?.id;
       expect(resumeId).toBeDefined();
 
       // Fetch user's resumes to populate cache
@@ -331,7 +344,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Handle paginated response: data.data contains the array
-      const resumesBefore = listBefore.body.data?.data || listBefore.body.data || [];
+      const resumesBefore = listBefore.body?.items || [];
       const countBefore = resumesBefore.length;
       expect(countBefore).toBeGreaterThan(0);
 
@@ -346,7 +359,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Handle paginated response
-      const resumesAfter = listAfter.body.data?.data || listAfter.body.data || [];
+      const resumesAfter = listAfter.body?.items || [];
       const countAfter = resumesAfter.length;
 
       console.log('Resumes before delete:', countBefore);

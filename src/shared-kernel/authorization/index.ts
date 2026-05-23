@@ -17,15 +17,17 @@ export {
   OwnershipAccessDeniedException,
   OwnershipMissingParamException,
   OwnershipResourceMissingException,
+  OwnershipUnknownModelException,
   UserRolesNotAvailableException,
 } from './authorization.exceptions';
 export { AuthorizationCheckPort } from './authorization-check.port';
+export { type OwnershipLookupFn, OwnershipRegistry } from './ownership-registry';
 export { Permission } from './permission.enum';
 export {
   PERMISSION_GROUPS,
   type PermissionGroup,
   type PermissionGroupId,
-} from './permission-groups';
+} from './permission-groups.config';
 export {
   getPermissionsArray,
   getRolesWithPermission,
@@ -35,5 +37,5 @@ export {
   hasRole,
   isAdmin,
   resolvePermissions,
-} from './permission-resolver';
+} from './permission-resolver.service';
 export { getAllRoleIds, getRoleById, isValidRoleId, ROLES, type Role, type RoleId } from './roles';

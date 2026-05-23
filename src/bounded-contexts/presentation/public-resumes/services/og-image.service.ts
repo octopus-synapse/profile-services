@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { UrlRequiredException } from '../../domain/exceptions';
 
 const MAX_NAME_CHARS = 60;
 const MAX_TITLE_CHARS = 80;
@@ -54,5 +55,18 @@ export class OgImageService {
 
   generateSvg(input: OgImageInput): string {
     return buildShareOgSvg(input);
+  }
+
+  /**
+   * Generate an OG-style PNG that wraps a target URL (e.g. for share
+   * cards rendered by a third-party). Wraps the basic name/title
+   * preview but enforces a non-empty URL up-front so the route layer
+   * doesn't render a misleading "Profile / Resume" placeholder.
+   */
+  async generatePngForUrl(url: string, input: OgImageInput): Promise<Buffer> {
+    if (!url || url.trim().length === 0) {
+      throw new UrlRequiredException();
+    }
+    return this.generatePng(input);
   }
 }

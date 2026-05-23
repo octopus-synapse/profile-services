@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ExportDocxGenerationFailedException } from '../../../domain/exceptions/export.exceptions';
 import { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
 import { ExportDocxUseCase } from './export-docx.use-case';
 
@@ -52,12 +53,12 @@ describe('ExportDocxUseCase', () => {
       );
     });
 
-    it('should handle errors from builder service', async () => {
+    it('wraps raw builder errors in ExportDocxGenerationFailedException', async () => {
       const error = new Error('Builder service error');
       (mockDocxBuilder.generate as ReturnType<typeof mock>).mockRejectedValue(error);
 
       await expect(async () => await useCase.execute({ userId: 'user-123' })).toThrow(
-        'Builder service error',
+        ExportDocxGenerationFailedException,
       );
     });
   });

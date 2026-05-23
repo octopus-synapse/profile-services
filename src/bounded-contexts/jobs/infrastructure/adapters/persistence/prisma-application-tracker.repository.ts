@@ -13,12 +13,14 @@
 import type { JobApplicationStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { runInTransaction } from '@/shared-kernel/persistence/transaction';
 import type {
   ApplicationWithEventsRow,
   CompanyResponseSampleRow,
   CreatedEventRow,
 } from '../../../domain/entities/application-tracker';
 import {
+  type ApplicationOwnerRow,
   ApplicationTrackerRepositoryPort,
   type RecordEventInput,
 } from '../../../domain/ports/application-tracker.repository.port';
@@ -64,12 +66,12 @@ export class PrismaApplicationTrackerRepository extends ApplicationTrackerReposi
     }));
   }
 
-  async findApplicationOwner(applicationId: string): Promise<{ userId: string } | null> {
+  async findApplicationOwner(applicationId: string): Promise<ApplicationOwnerRow | null> {
     const row = await this.prisma.jobApplication.findUnique({
       where: { id: applicationId },
-      select: { userId: true },
+      select: { userId: true, createdAt: true },
     });
-    return row ? { userId: row.userId } : null;
+    return row ? { userId: row.userId, createdAt: row.createdAt } : null;
   }
 
   async createEvent(input: RecordEventInput): Promise<CreatedEventRow> {
@@ -96,9 +98,40 @@ export class PrismaApplicationTrackerRepository extends ApplicationTrackerReposi
     });
   }
 
+  async recordEventWithStatusInTx(
+    input: RecordEventInput,
+    nextStatus: string | null,
+  ): Promise<CreatedEventRow> {
+    return runInTransaction(this.prisma, async (tx) => {
+      const event = await tx.jobApplicationEvent.create({
+        data: {
+          applicationId: input.applicationId,
+          type: input.type,
+          note: input.note,
+          occurredAt: input.occurredAt,
+        },
+      });
+      if (nextStatus) {
+        await tx.jobApplication.update({
+          where: { id: input.applicationId },
+          data: { status: nextStatus as JobApplicationStatus },
+        });
+      }
+      return {
+        id: event.id,
+        type: event.type,
+        note: event.note,
+        occurredAt: event.occurredAt,
+      };
+    });
+  }
+
   async findCompanyResponseSamples(company: string): Promise<CompanyResponseSampleRow[]> {
+    // P2-#16: case-insensitive match so "Google"/"GOOGLE"/"google"
+    // bucket together. Avoids three artificial datasets for the same
+    // employer.
     const rows = await this.prisma.jobApplication.findMany({
-      where: { job: { company } },
+      where: { job: { company: { equals: company, mode: 'insensitive' } } },
       select: {
         createdAt: true,
         events: {

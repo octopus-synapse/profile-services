@@ -3,7 +3,7 @@ import {
   DuplicatedSectionFieldKeyException,
   InvalidSectionTypeDefinitionException,
   SectionFieldKeyRequiredException,
-} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
+} from '@/bounded-contexts/resumes/domain/exceptions';
 import {
   type SectionDefinition,
   SectionDefinitionSchema,

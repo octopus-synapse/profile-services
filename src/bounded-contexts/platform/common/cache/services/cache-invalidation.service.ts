@@ -8,29 +8,35 @@
  */
 
 import type { CachePort } from '@/shared-kernel/cache/cache.port';
+import {
+  CacheInvalidationPort,
+  type InvalidateResumeInput,
+} from '@/shared-kernel/cache/cache-invalidation.port';
 import type { LoggerPort } from '@/shared-kernel/logger/logger.port';
 
 // --- Types ---
 
-export interface InvalidateResumeParams {
-  resumeId: string;
-  slug?: string;
-  userId: string;
-}
+/**
+ * @deprecated Use `InvalidateResumeInput` from shared-kernel/cache.
+ * @removeBy 2026-08-31
+ */
+export type InvalidateResumeParams = InvalidateResumeInput;
 
 // --- Service ---
 
-export class CacheInvalidationService {
+export class CacheInvalidationService extends CacheInvalidationPort {
   constructor(
     private readonly cache: CachePort,
     private readonly logger: LoggerPort,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Invalidate all cache entries related to a resume.
    * Call this after any resume mutation (create, update, delete).
    */
-  async invalidateResume(params: InvalidateResumeParams): Promise<void> {
+  async invalidateResume(params: InvalidateResumeInput): Promise<void> {
     const { resumeId, slug, userId } = params;
 
     const operations: Promise<void>[] = [
@@ -63,6 +69,12 @@ export class CacheInvalidationService {
     ]);
 
     this.logger.debug(`Cache invalidated for user: ${userId}`, 'CacheInvalidationService');
+  }
+
+  /** Drop every cache entry under a key prefix. */
+  async invalidatePrefix(prefix: string): Promise<void> {
+    await this.safeDeletePattern(`${prefix}*`);
+    this.logger.debug(`Cache invalidated for prefix: ${prefix}`, 'CacheInvalidationService');
   }
 
   /**
@@ -127,11 +139,10 @@ export class CacheInvalidationService {
     try {
       await this.cache.delete(key);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache key: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheInvalidationService',
-      );
+      this.logger.error(`Failed to delete cache key: ${key}`, {
+        context: 'CacheInvalidationService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
@@ -139,11 +150,10 @@ export class CacheInvalidationService {
     try {
       await this.cache.deletePattern(pattern);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete cache pattern: ${pattern}`,
-        error instanceof Error ? error.stack : undefined,
-        'CacheInvalidationService',
-      );
+      this.logger.error(`Failed to delete cache pattern: ${pattern}`, {
+        context: 'CacheInvalidationService',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 }

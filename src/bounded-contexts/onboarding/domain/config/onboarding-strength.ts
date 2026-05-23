@@ -18,11 +18,11 @@ export interface ResumeStrength {
 }
 
 interface StrengthInput {
-  personalInfo?: { fullName?: string; email?: string };
+  personalInfo?: { fullName?: string };
   username?: string;
   professionalProfile?: { jobTitle?: string; summary?: string };
   sections?: Array<{ sectionTypeKey: string; items?: unknown[]; noData?: boolean }>;
-  templateSelection?: { templateId?: string; colorScheme?: string };
+  resumeStyleId?: string | null;
 }
 
 function hasItems(sections: StrengthInput['sections'], key: string): boolean {
@@ -35,13 +35,13 @@ function hasItems(sections: StrengthInput['sections'], key: string): boolean {
 function isStepFilled(step: OnboardingStepConfig, data: StrengthInput): boolean {
   switch (step.component) {
     case 'personal-info':
-      return Boolean(data.personalInfo?.fullName && data.personalInfo?.email);
+      return Boolean(data.personalInfo?.fullName);
     case 'username':
       return Boolean(data.username);
     case 'professional-profile':
       return Boolean(data.professionalProfile?.jobTitle);
-    case 'template':
-      return Boolean(data.templateSelection?.templateId || data.templateSelection?.colorScheme);
+    case 'resume-style':
+      return Boolean(data.resumeStyleId);
     case 'generic-section':
       return step.sectionTypeKey ? hasItems(data.sections, step.sectionTypeKey) : false;
     default:

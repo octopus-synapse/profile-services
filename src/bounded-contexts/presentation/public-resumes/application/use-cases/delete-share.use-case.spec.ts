@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   ResumeShareAccessDeniedException,
   ShareNotFoundException,
-} from '../../../domain/exceptions/presentation.exceptions';
+} from '../../../domain/exceptions';
 import {
   type ShareEntity,
   ShareRepositoryPort,

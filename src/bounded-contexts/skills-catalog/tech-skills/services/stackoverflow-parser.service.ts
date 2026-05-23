@@ -56,7 +56,7 @@ export class StackOverflowParserService {
       return this.parseTags(allTags);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      this.logger.error('Failed to fetch Stack Overflow tags', err.message);
+      this.logger.error('Failed to fetch Stack Overflow tags', { stack: err.message });
       throw err;
     }
   }

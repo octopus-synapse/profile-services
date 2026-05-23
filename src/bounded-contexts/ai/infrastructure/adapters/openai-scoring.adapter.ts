@@ -78,7 +78,9 @@ export class OpenAIScoringAdapter extends ScoringLlmPort {
   ) {
     super();
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
-    this.client = new OpenAI({ apiKey: apiKey ?? 'unset' });
+    // P1-076 — bounded request budget so a hung scoring call doesn't
+    // pin a worker thread (resume-quality / job-match cron paths).
+    this.client = new OpenAI({ apiKey: apiKey ?? 'unset', timeout: 60_000, maxRetries: 0 });
     this.model = this.config.get<string>('OPENAI_SCORING_MODEL') ?? 'gpt-4o-mini';
     this.maxTokens = Number(this.config.get<string>('OPENAI_SCORING_MAX_TOKENS') ?? '1200');
   }

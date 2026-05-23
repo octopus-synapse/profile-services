@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { AuditLogPort } from '@/shared-kernel/audit';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { stubLogger } from '@/shared-kernel/logger/testing';
 import { UserPreferencesRepositoryPort } from '../../ports/user-preferences.port';
 import { UpdateFullPreferencesUseCase } from './update-full-preferences.use-case';
+
+const stubAuditLog = (): AuditLogPort => ({ log: mock(async () => undefined) }) as AuditLogPort;
 
 describe('UpdateFullPreferencesUseCase', () => {
   let useCase: UpdateFullPreferencesUseCase;
@@ -40,11 +44,13 @@ describe('UpdateFullPreferencesUseCase', () => {
       userExists: mock(async () => true),
       findPreferences: mock(async () => null),
       updatePreferences: mock(async () => undefined),
+      findOneClickApplyConfig: mock(async () => null),
+      upsertOneClickApplyConfig: mock(async (_u: string, c: unknown) => c),
       findFullPreferences: mock(async () => null),
       upsertFullPreferences: mock(async () => mockFullPreferences),
     } as UserPreferencesRepositoryPort;
 
-    useCase = new UpdateFullPreferencesUseCase(repository);
+    useCase = new UpdateFullPreferencesUseCase(repository, stubAuditLog(), stubLogger);
   });
 
   it('updates full preferences and returns domain entity (not envelope)', async () => {

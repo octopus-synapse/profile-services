@@ -9,14 +9,31 @@
 
 import JSZip from 'jszip';
 import type { LoggerPort } from '@/shared-kernel';
+import {
+  BundleAssemblyPartialException,
+  ExportPayloadTooLargeException,
+} from '../../../domain/exceptions/export.exceptions';
 
 export type BundleFormat = 'pdf' | 'docx' | 'json';
+
+/** Hard cap for the assembled zip. Anything larger than 50 MB is almost
+ * certainly a misconfiguration upstream; refuse rather than ship a payload
+ * the client will choke on. */
+const MAX_BUNDLE_BYTES = 50 * 1024 * 1024;
 
 export interface ExportBundleInput {
   userId: string;
   resumeId: string;
   formats?: BundleFormat[];
   language?: 'en' | 'pt';
+  /**
+   * When true, the use case throws BundleAssemblyPartialException if any
+   * individual format failed instead of returning a partial zip with an
+   * `_errors.txt` companion. The HTTP layer keeps the legacy soft-fail
+   * default; programmatic callers (CLI, automation) opt in to the strict
+   * variant.
+   */
+  strict?: boolean;
 }
 
 interface PdfUseCase {
@@ -96,9 +113,24 @@ export class ExportBundleUseCase {
     await Promise.all(tasks);
 
     if (errors.length > 0) {
+      if (input.strict) {
+        // Strict callers want the exception so retries / alerts trigger off
+        // a typed failure instead of a 200-with-errors-file.
+        const missing = errors.map((line) => line.split(':', 1)[0]);
+        throw new BundleAssemblyPartialException(missing);
+      }
       zip.file('_errors.txt', errors.join('\n'));
     }
 
-    return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+    const buffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+    });
+
+    if (buffer.byteLength > MAX_BUNDLE_BYTES) {
+      throw new ExportPayloadTooLargeException(MAX_BUNDLE_BYTES);
+    }
+
+    return buffer;
   }
 }

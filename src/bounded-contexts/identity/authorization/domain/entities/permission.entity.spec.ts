@@ -345,7 +345,6 @@ describe('Permission Entity', () => {
     it('should export all standard resources', () => {
       expect(StandardResources.USER).toBe('user');
       expect(StandardResources.RESUME).toBe('resume');
-      expect(StandardResources.THEME).toBe('theme');
       expect(StandardResources.SKILL).toBe('skill');
       expect(StandardResources.ROLE).toBe('role');
       expect(StandardResources.GROUP).toBe('group');

@@ -456,14 +456,14 @@ describe('UserAuthContext Entity', () => {
         permissions: [
           createResolvedPermission('resume', 'create', true),
           createResolvedPermission('resume', 'delete', false),
-          createResolvedPermission('theme', 'read', true),
+          createResolvedPermission('analytics', 'read_own', true),
         ],
       });
 
       const keys = context.grantedPermissionKeys;
 
       expect(keys).toContain('resume:create');
-      expect(keys).toContain('theme:read');
+      expect(keys).toContain('analytics:read_own');
       expect(keys).not.toContain('resume:delete');
     });
   });

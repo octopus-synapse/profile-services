@@ -28,18 +28,24 @@ export class PrismaUserFitProfileRepository extends UserFitProfileRepositoryPort
   }
 
   async upsert(input: UserFitProfileWrite): Promise<SavedUserFitProfile> {
+    // P1 #15 — concurrent submissions used to read `previous.version`
+    // and write `previous.version + 1`, so two parallel writes both
+    // produced the same value (lost update). Switching to Prisma's
+    // `{ increment: 1 }` makes the version bump a single SQL UPDATE
+    // statement that the database serialises per-row; concurrent
+    // upserts now land on distinct, monotonic version numbers.
     const vectorJson = input.vector as unknown as Prisma.InputJsonValue;
     const row = await this.prisma.userFitProfile.upsert({
       where: { userId: input.userId },
       create: {
         userId: input.userId,
         vectorJson,
-        version: input.version,
+        version: 1,
         expiresAt: input.expiresAt,
       },
       update: {
         vectorJson,
-        version: input.version,
+        version: { increment: 1 },
         expiresAt: input.expiresAt,
         computedAt: new Date(),
       },

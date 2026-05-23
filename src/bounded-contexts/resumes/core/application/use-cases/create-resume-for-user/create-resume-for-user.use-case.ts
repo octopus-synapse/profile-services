@@ -1,5 +1,6 @@
 import type { CreateResume, LoggerPort } from '@/shared-kernel';
-import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions/resumes.exceptions';
+import { sanitizeHtmlContent } from '@/shared-kernel/validation';
+import { ResumeSlotLimitReachedException } from '../../../../domain/exceptions';
 import { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';
@@ -9,7 +10,7 @@ const MAX_RESUMES_PER_USER = 4;
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return text.replace(/<[^>]*>/g, '');
+  return sanitizeHtmlContent(text, { allowedTags: [] });
 }
 
 export class CreateResumeForUserUseCase {
@@ -20,24 +21,22 @@ export class CreateResumeForUserUseCase {
   ) {}
 
   async execute(userId: string, data: CreateResume): Promise<ResumeResult> {
-    await this.ensureUserHasSlots(userId);
-
     const sanitizedTitle = sanitizeContent(data.title);
     const sanitizedSummary = sanitizeContent(data.summary);
 
     const sanitizedData = { ...data, title: sanitizedTitle ?? '', summary: sanitizedSummary };
 
-    const resume = await this.repository.createResumeForUser(userId, sanitizedData);
+    const resume = await this.repository.createResumeForUserWithQuota(userId, sanitizedData, {
+      max: MAX_RESUMES_PER_USER,
+      exception: new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER),
+    });
 
-    this.eventPublisher.publishResumeCreated(resume.id, { userId, title: resume.title ?? '' });
+    // P2-#7: await so a failed audit/projection handler surfaces to the caller.
+    await this.eventPublisher.publishResumeCreatedAsync(resume.id, {
+      userId,
+      title: resume.title ?? '',
+    });
 
     return resume;
-  }
-
-  private async ensureUserHasSlots(userId: string): Promise<void> {
-    const existing = await this.repository.findAllUserResumes(userId);
-    if (existing.length >= MAX_RESUMES_PER_USER) {
-      throw new ResumeSlotLimitReachedException(MAX_RESUMES_PER_USER);
-    }
   }
 }

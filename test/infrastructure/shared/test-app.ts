@@ -26,8 +26,10 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed-runner';
+import { seedAuthorization } from '@/bounded-contexts/identity/authorization/seeds/seed.runner';
 import { type BootstrapHandle, bootstrap } from '@/infrastructure/elysia-adapter/elysia-bootstrap';
+import type { CachePort } from '@/shared-kernel/cache';
+import { seedDreddFixtures } from '../../../prisma/seeds/dredd-fixtures.seed';
 import { seedOnboardingSteps } from '../../../prisma/seeds/onboarding-step.seed';
 import { seedResumeStyles } from '../../../prisma/seeds/resume-styles.seed';
 import { seedSectionTypes } from '../../../prisma/seeds/section-type.seed';
@@ -42,6 +44,10 @@ export interface TestApp {
   readonly request: TestRequest;
   /** Prisma client connected to the test DB. */
   readonly prisma: PrismaClient;
+  /** Cache adapter — exposed so the suite-level `clearRateLimitState`
+   * helper can reset rate-limit buckets between specs (`.env.test`
+   * keeps `RATE_LIMIT_ENABLED=true` so security specs remain meaningful). */
+  readonly cache: CachePort;
   /** Wipe every domain table; safe to call between tests. */
   cleanDatabase(): Promise<void>;
 }
@@ -110,6 +116,7 @@ export async function startTestApp(): Promise<TestApp> {
     baseUrl,
     request,
     prisma: handle.prisma,
+    cache: handle.cache,
     async cleanDatabase(): Promise<void> {
       for (const t of TABLES) {
         try {
@@ -157,6 +164,7 @@ export async function seedTestCatalogs(prisma: PrismaClient): Promise<void> {
     seedResumeStyles(prisma, adminId),
   ];
   await Promise.all(tasks);
+  await seedDreddFixtures(prisma, adminId);
 }
 
 async function ensureAdminUser(prisma: PrismaClient): Promise<string> {

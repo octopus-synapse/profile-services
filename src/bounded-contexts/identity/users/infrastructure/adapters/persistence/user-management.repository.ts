@@ -160,6 +160,13 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
     });
   }
 
+  async setUserRoles(userId: string, roles: readonly string[]): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { roles: [...roles] },
+    });
+  }
+
   private buildWhereClause(search?: string): Prisma.UserWhereInput {
     if (!search) return {};
 

@@ -82,3 +82,17 @@ export type PageLayout = z.infer<typeof PageLayoutSchema>;
 export type ColumnDefinition = z.infer<typeof ColumnDefinitionSchema>;
 export type ResolvedTypography = z.infer<typeof ResolvedTypographySchema>;
 export type ResolvedBoxStyle = z.infer<typeof ResolvedBoxStyleSchema>;
+
+export type ResolvedTypographyDto = z.infer<typeof ResolvedTypographySchema>;
+
+export type ResolvedBoxStyleDto = z.infer<typeof ResolvedBoxStyleSchema>;
+
+export type ColumnDefinitionDto = z.infer<typeof ColumnDefinitionSchema>;
+
+export type PageLayoutDto = z.infer<typeof PageLayoutSchema>;
+
+export type PlacedSectionDto = z.infer<typeof PlacedSectionSchema>;
+
+export type ResumeHeaderDto = z.infer<typeof ResumeHeaderSchema>;
+
+export type ResumeAstDto = z.infer<typeof ResumeAstSchema>;

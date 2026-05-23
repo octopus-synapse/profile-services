@@ -5,9 +5,16 @@
  * HMAC-SHA256 signing of that body, the 15s abort timeout, and the
  * 3-attempt exponential-backoff retry loop. Returns a structured
  * `DeliveryOutcome` for every attempt — never throws.
+ *
+ * P0-014: routes the delivery through `SafeFetchPort` (strict variant)
+ * so user-registered webhook URLs cannot be used to scan internal
+ * services or leak metadata via cloud-provider IPs (169.254.169.254 etc).
+ * Strict variant pins the TCP connection to the resolved IP literal,
+ * which closes the DNS-rebinding window where a hostname could resolve
+ * to a public IP at validation time and a private IP at connect time.
  */
 
-import { LoggerPort } from '@/shared-kernel';
+import { LoggerPort, SafeFetchBlockedError, type SafeFetchPort } from '@/shared-kernel';
 import type { DeliveryOutcome } from '../../../domain/entities/webhook';
 import {
   type DeliveryRequest,
@@ -18,7 +25,10 @@ const MAX_RETRIES = 3;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 export class HttpWebhookDeliveryAdapter extends WebhookDeliveryPort {
-  constructor(private readonly logger: LoggerPort) {
+  constructor(
+    private readonly logger: LoggerPort,
+    private readonly safeFetch: SafeFetchPort,
+  ) {
     super();
   }
 
@@ -41,6 +51,9 @@ export class HttpWebhookDeliveryAdapter extends WebhookDeliveryPort {
       const outcome = await this.attempt(request, body, signature, attempt);
       lastOutcome = outcome;
       if (outcome.success) return outcome;
+      // Don't retry SSRF blocks — the URL itself is the problem and the
+      // attacker controls it. Looping just bills CPU and DNS.
+      if (outcome.errorMessage?.startsWith('safe-fetch:')) return outcome;
       if (attempt < MAX_RETRIES) {
         // 2s, 4s, 8s exponential backoff.
         await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 1000));
@@ -56,7 +69,7 @@ export class HttpWebhookDeliveryAdapter extends WebhookDeliveryPort {
     attempt: number,
   ): Promise<DeliveryOutcome> {
     try {
-      const response = await fetch(request.url, {
+      const response = await this.safeFetch.fetch(request.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +77,7 @@ export class HttpWebhookDeliveryAdapter extends WebhookDeliveryPort {
           'X-Webhook-Event': request.eventType,
         },
         body,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        timeoutMs: REQUEST_TIMEOUT_MS,
       });
       if (!response.ok) {
         this.logger.warn(
@@ -80,6 +93,18 @@ export class HttpWebhookDeliveryAdapter extends WebhookDeliveryPort {
       }
       return { attempt, success: true, statusCode: response.status, errorMessage: null };
     } catch (err) {
+      if (err instanceof SafeFetchBlockedError) {
+        this.logger.warn(
+          `Webhook delivery blocked by safe-fetch attempt=${attempt} reason=${err.reason}: ${err.message}`,
+          'HttpWebhookDeliveryAdapter',
+        );
+        return {
+          attempt,
+          success: false,
+          statusCode: null,
+          errorMessage: `safe-fetch: ${err.reason}`,
+        };
+      }
       const message = err instanceof Error ? err.message : 'unknown';
       this.logger.warn(
         `Webhook delivery error attempt=${attempt}: ${message}`,
