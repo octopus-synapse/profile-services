@@ -24,11 +24,7 @@
 
 import { readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  ENUM_DICTIONARY,
-  ERROR_DICTIONARY,
-  NOTIFICATION_DICTIONARY,
-} from '../packages/i18n/src';
+import { ENUM_DICTIONARY, ERROR_DICTIONARY, NOTIFICATION_DICTIONARY } from '../packages/i18n/src';
 import { SUCCESS_MESSAGES } from '../src/shared-kernel/constants/success-messages.const';
 
 const REPO_ROOT = resolve(__dirname, '..');
@@ -58,15 +54,11 @@ function extractPrismaEnums(): Record<string, readonly string[]> {
       enums[name] = values.sort();
     }
   }
-  return Object.fromEntries(
-    Object.entries(enums).sort(([a], [b]) => a.localeCompare(b)),
-  );
+  return Object.fromEntries(Object.entries(enums).sort(([a], [b]) => a.localeCompare(b)));
 }
 
 function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
-  return Object.fromEntries(
-    Object.entries(obj).sort(([a], [b]) => a.localeCompare(b)),
-  ) as T;
+  return Object.fromEntries(Object.entries(obj).sort(([a], [b]) => a.localeCompare(b))) as T;
 }
 
 function writeJsonAtomic(path: string, value: unknown): void {
@@ -89,9 +81,7 @@ function buildSuccessDictionary(): Record<string, { en: string; 'pt-BR': string 
 
 function main(): void {
   const errors = sortObjectKeys(ERROR_DICTIONARY as unknown as Record<string, unknown>);
-  const enumsI18n = sortObjectKeys(
-    ENUM_DICTIONARY as unknown as Record<string, unknown>,
-  );
+  const enumsI18n = sortObjectKeys(ENUM_DICTIONARY as unknown as Record<string, unknown>);
   const notifications = sortObjectKeys(
     NOTIFICATION_DICTIONARY as unknown as Record<string, unknown>,
   );

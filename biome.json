@@ -5,6 +5,10 @@
     "includes": [
       "!**/swagger.json",
       "!**/swagger-generation-report.json",
+      "!**/client-swagger.json",
+      "!dictionaries.json",
+      "!enums.json",
+      "!error-codes.json",
       "!docs",
       "!test/infrastructure/_legacy"
     ]
