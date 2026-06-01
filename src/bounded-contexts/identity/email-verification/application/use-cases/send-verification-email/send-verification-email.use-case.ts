@@ -1,4 +1,5 @@
 import { LoggerPort } from '@/shared-kernel';
+import type { EnvConfig } from '@/shared-kernel/config';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { EventBusPort } from '../../../../shared-kernel/ports/event-bus.port';
 import { VerificationEmailSentEvent } from '../../../domain/events';
@@ -27,6 +28,7 @@ export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
     private readonly emailSender: VerificationEmailSenderPort,
     private readonly eventBus: EventBusPort,
     private readonly logger: LoggerPort,
+    private readonly env: Pick<EnvConfig, 'NODE_ENV' | 'BYPASS_2FA'>,
   ) {}
 
   async execute(command: SendVerificationEmailCommand): Promise<ResendCooldown> {
@@ -65,9 +67,12 @@ export class SendVerificationEmailUseCase implements SendVerificationEmailPort {
     const event = new VerificationEmailSentEvent(userId, user.email);
     this.eventBus.publish(event);
 
+    const showTestCode = this.env.NODE_ENV !== 'production' && this.env.BYPASS_2FA === true;
+
     return {
       secondsUntilResendAllowed: RESEND_COOLDOWN_SECONDS,
       cooldownSeconds: RESEND_COOLDOWN_SECONDS,
+      ...(showTestCode ? { testCode: token.getValue() } : {}),
     };
   }
 }

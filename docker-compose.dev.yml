@@ -1,52 +1,80 @@
 services:
   postgres:
-    extends:
-      file: infra/docker/compose/postgres.yml
-      service: postgres
+    # Local image bundling pgvector + pg_uuidv7. Kept inline in this dev
+    # compose so we can omit host ports without relying on YAML custom tags.
+    build:
+      context: .
+      dockerfile: infra/docker/postgres/Dockerfile
     container_name: profile-postgres-dev
+    restart: unless-stopped
     environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
+      PGDATA: /var/lib/postgresql/data/pgdata
     # No host port. Backend reaches Postgres via the internal docker
     # network (`postgres:5432`); developers needing psql/DBeaver from
     # the host run `docker exec -it profile-postgres-dev psql ...`.
     # This frees host port 5432 so a co-installed Postgres / other
     # project never collides with the dev stack.
-    ports: !override []
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     networks:
       - profile-dev-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-profile_dev}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    extends:
-      file: infra/docker/compose/redis.yml
-      service: redis
+    image: redis:7-alpine
     container_name: profile-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
     # Same rationale as Postgres above — backend reaches Redis via
     # `redis:6379` on the docker network; host port stays unbound.
-    ports: !override []
     volumes:
       - redis_dev_data:/data
     networks:
       - profile-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   minio:
-    extends:
-      file: infra/docker/compose/minio.yml
-      service: minio
+    # P1-#A6-7: pin tag — MinIO has had breaking changes between
+    # `RELEASE.*` tags. Override via `MINIO_VERSION` for upgrades.
+    image: minio/minio:${MINIO_VERSION:-RELEASE.2024-10-13T13-34-11Z}
     container_name: profile-minio-dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
     # S3 port (9000) stays on its default — presigned URLs default to
     # `http://localhost:9000/...` when MINIO_PUBLIC_ENDPOINT is the
     # host-facing override, and the browser fetching the resource has
     # to reach it. Console moves to 19001 (project-unique) so it
     # doesn't fight other locally-installed MinIO / web apps on 9001.
-    ports: !override
+    ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-19001}:9001"
     volumes:
       - minio_dev_data:/data
     networks:
       - profile-dev-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio-init:
     # P1-#A6-7: pin tag for parity with the prod `minio` image bump.
@@ -86,7 +114,15 @@ services:
     networks:
       - profile-dev-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8025",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -96,6 +132,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: deps
+      secrets:
+        - GITHUB_TOKEN
     container_name: profile-backend-dev
     restart: unless-stopped
     command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run prisma/seed.ts && bun run start:dev"
@@ -137,6 +175,7 @@ services:
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
       RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-5}
       SKIP_EMAIL_VERIFICATION: ${SKIP_EMAIL_VERIFICATION:-false}
+      BYPASS_2FA: ${BYPASS_2FA:-false}
       # Default ON in dev: lets users created before the consent gate landed
       # keep working without a manual UserConsent backfill. Override to false
       # to exercise the full LGPD flow.
@@ -190,3 +229,7 @@ volumes:
     external: true
   minio_dev_data:
     name: profile-minio-dev-data
+
+secrets:
+  GITHUB_TOKEN:
+    environment: GITHUB_TOKEN

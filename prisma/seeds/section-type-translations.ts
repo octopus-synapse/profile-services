@@ -71,23 +71,52 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
 
   skill_set_v1: {
     en: {
-      title: 'Skills',
-      description: 'Technical and professional skills',
-      label: 'Skills',
-      noDataLabel: "I'm still developing my skills",
-      placeholder: 'Add your skills...',
+      title: 'Hard Skills',
+      description: 'Technical and hard skills',
+      label: 'Hard Skills',
+      noDataLabel: "I'm still developing my technical skills",
+      placeholder: 'Add your technical skills...',
       addLabel: 'Add Skill',
+      fieldLabels: {
+        name: 'Skill Name',
+        category: 'Category',
+      },
     },
     'pt-BR': {
-      title: 'Habilidades',
-      description: 'Habilidades técnicas e profissionais',
-      label: 'Habilidades',
-      noDataLabel: 'Ainda estou desenvolvendo minhas habilidades',
-      placeholder: 'Adicione suas habilidades...',
+      title: 'Habilidades Técnicas',
+      description: 'Habilidades técnicas e hard skills',
+      label: 'Habilidades Técnicas',
+      noDataLabel: 'Ainda estou desenvolvendo minhas habilidades técnicas',
+      placeholder: 'Adicione suas habilidades técnicas...',
       addLabel: 'Adicionar Habilidade',
       fieldLabels: {
         name: 'Nome da Habilidade',
         category: 'Categoria',
+      },
+    },
+  },
+
+  soft_skill_set_v1: {
+    en: {
+      title: 'Soft Skills',
+      description: 'Behavioural and interpersonal skills',
+      label: 'Soft Skills',
+      noDataLabel: "I don't have soft skills to highlight",
+      placeholder: 'Add your soft skills...',
+      addLabel: 'Add Skill',
+      fieldLabels: {
+        name: 'Skill Name',
+      },
+    },
+    'pt-BR': {
+      title: 'Habilidades Comportamentais',
+      description: 'Habilidades comportamentais e interpessoais',
+      label: 'Habilidades Comportamentais',
+      noDataLabel: 'Não tenho habilidades comportamentais para destacar',
+      placeholder: 'Adicione suas habilidades comportamentais...',
+      addLabel: 'Adicionar Habilidade',
+      fieldLabels: {
+        name: 'Nome da Habilidade',
       },
     },
   },
@@ -387,6 +416,7 @@ export const sectionTypeIcons: Record<string, { iconType: 'emoji' | 'lucide'; ic
   work_experience_v1: { iconType: 'lucide', icon: 'briefcase' },
   education_v1: { iconType: 'lucide', icon: 'graduation-cap' },
   skill_set_v1: { iconType: 'lucide', icon: 'zap' },
+  soft_skill_set_v1: { iconType: 'lucide', icon: 'handshake' },
   language_v1: { iconType: 'lucide', icon: 'globe' },
   certification_v1: { iconType: 'lucide', icon: 'badge-check' },
   project_v1: { iconType: 'lucide', icon: 'rocket' },

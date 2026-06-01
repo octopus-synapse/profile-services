@@ -119,6 +119,7 @@ const PublicProfileUserSchema = z.object({
   bio: z.string().nullable(),
   location: z.string().nullable(),
   website: z.string().nullable(),
+  portfolio: z.string().nullable(),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
 });

@@ -1,9 +1,6 @@
 import type { LoggerPort } from '@/shared-kernel';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
-import {
-  OnboardingAlreadyAtLastStepException,
-  OnboardingUnknownStepException,
-} from '../../../domain/exceptions/onboarding-extra.exceptions';
+import { OnboardingUnknownStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
@@ -25,20 +22,15 @@ export class GotoOnboardingStepUseCase {
       throw new OnboardingUnknownStepException(stepId);
     }
 
-    // P1 #26 — state-machine guard: forward jumps are restricted to
-    // `currentIndex + 1` (one step at a time), so a user can't skip past
-    // unvisited steps. Backward navigation to any earlier step stays
-    // free, and re-selecting the current step is a no-op.
+    // The frontend now owns step ordering (app-driven flow + review-hub),
+    // so `goto` must reach any known step in either direction — the user
+    // edits an earlier section from the review hub or resumes forward into
+    // where they left off. The only jump we still refuse is one made from a
+    // stale `currentStep` that no longer exists in the config, so the user
+    // lands somewhere deterministic via restart rather than anywhere.
     const currentIndex = getStepIndex(progress.currentStep, steps);
     if (currentIndex < 0) {
-      // Progress refers to a step that was removed from the config — refuse
-      // the jump rather than allow arbitrary forward movement, otherwise
-      // the guard below silently disengages and the user lands anywhere.
-      // Caller must normalise via restart first.
       throw new OnboardingUnknownStepException(progress.currentStep);
-    }
-    if (targetIndex > currentIndex + 1) {
-      throw new OnboardingAlreadyAtLastStepException();
     }
 
     await this.saveProgress(userId, {

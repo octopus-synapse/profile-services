@@ -56,6 +56,7 @@ export function toProfessionalProfile(value: unknown): ProfessionalProfileViewDt
     linkedin: typeof obj.linkedin === 'string' ? obj.linkedin : undefined,
     github: typeof obj.github === 'string' ? obj.github : undefined,
     website: typeof obj.website === 'string' ? obj.website : undefined,
+    portfolio: typeof obj.portfolio === 'string' ? obj.portfolio : undefined,
   };
 }
 

@@ -80,6 +80,7 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
         linkedin: data.professionalProfile.linkedin ?? null,
         github: data.professionalProfile.github ?? null,
         website: data.professionalProfile.website ?? null,
+        portfolio: data.professionalProfile.portfolio ?? null,
       },
     });
 

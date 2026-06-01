@@ -33,6 +33,9 @@ model User {
   website           String?
   linkedin          String?
   github            String?
+  /// Personal portfolio link, collected in the onboarding "Links" step.
+  /// Distinct from `website` (general site) — a curated work showcase.
+  portfolio         String?
 
   // Primary resume for settings/profile
   primaryResumeId String?

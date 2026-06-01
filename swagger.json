@@ -20425,6 +20425,9 @@
                         "secondsUntilResendAllowed",
                         "cooldownSeconds"
                       ]
+                    },
+                    "testCode": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -35257,6 +35260,197 @@
                     "seed",
                     "createdAt",
                     "questions"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
+    "/api/v1/geo/locations": {
+      "get": {
+        "summary": "Search country/state/city suggestions for a single-input location autocomplete",
+        "description": "Geo lookup",
+        "tags": [
+          "geo"
+        ],
+        "operationId": "get_v1_geo_locations",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "example": "fixture"
+            },
+            "required": true,
+            "name": "q",
+            "in": "query",
+            "example": "fixture"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "country",
+                "state",
+                "city",
+                "all"
+              ]
+            },
+            "required": false,
+            "name": "level",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 3
+            },
+            "required": false,
+            "name": "country",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 3
+            },
+            "required": false,
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "city": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          },
+                          "stateCode": {
+                            "type": "string"
+                          },
+                          "country": {
+                            "type": "string"
+                          },
+                          "countryCode": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "country",
+                          "countryCode"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -50338,6 +50532,9 @@
                       },
                       "website": {
                         "$ref": "#/components/schemas/SocialUrl"
+                      },
+                      "portfolio": {
+                        "$ref": "#/components/schemas/SocialUrl"
                       }
                     },
                     "required": [
@@ -50848,6 +51045,9 @@
                         },
                         "website": {
                           "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
                     },
@@ -51085,6 +51285,9 @@
                         "$ref": "#/components/schemas/GitHubUrl"
                       },
                       "website": {
+                        "$ref": "#/components/schemas/SocialUrl"
+                      },
+                      "portfolio": {
                         "$ref": "#/components/schemas/SocialUrl"
                       }
                     }
@@ -51595,6 +51798,9 @@
                           "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
+                          "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
                           "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
@@ -52208,6 +52414,9 @@
                         },
                         "website": {
                           "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
                     },
@@ -52711,6 +52920,9 @@
                         },
                         "website": {
                           "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
                     },
@@ -53209,6 +53421,9 @@
                         },
                         "website": {
                           "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
+                          "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
                     },
@@ -53690,6 +53905,9 @@
                           "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
+                          "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
                           "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
@@ -54183,6 +54401,9 @@
                           "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
+                          "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
                           "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
@@ -54681,6 +54902,9 @@
                           "$ref": "#/components/schemas/GitHubUrl"
                         },
                         "website": {
+                          "$ref": "#/components/schemas/SocialUrl"
+                        },
+                        "portfolio": {
                           "$ref": "#/components/schemas/SocialUrl"
                         }
                       }
@@ -60060,6 +60284,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "portfolio": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "linkedin": {
                           "type": "string",
                           "nullable": true
@@ -60077,6 +60305,7 @@
                         "bio",
                         "location",
                         "website",
+                        "portfolio",
                         "linkedin",
                         "github"
                       ]
@@ -95819,6 +96048,9 @@
                   "website": {
                     "$ref": "#/components/schemas/SocialUrl"
                   },
+                  "portfolio": {
+                    "$ref": "#/components/schemas/SocialUrl"
+                  },
                   "company": {
                     "type": "string",
                     "maxLength": 100
@@ -102939,6 +103171,9 @@
     },
     {
       "name": "gdpr"
+    },
+    {
+      "name": "geo"
     },
     {
       "name": "github"

@@ -13,6 +13,11 @@ export interface ResendCooldown {
   secondsUntilResendAllowed: number;
   /** Total cooldown window the backend enforces between sends. */
   cooldownSeconds: number;
+  /**
+   * Test-only helper for local/dev flows. Present only when the backend
+   * explicitly enables exposure in non-production environments.
+   */
+  testCode?: string;
 }
 
 export abstract class SendVerificationEmailPort {

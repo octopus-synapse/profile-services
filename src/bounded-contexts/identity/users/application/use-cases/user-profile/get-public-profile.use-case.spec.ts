@@ -11,6 +11,7 @@ const mockFoundUser = {
   bio: 'A developer',
   location: 'NYC',
   website: 'https://johndoe.com',
+  portfolio: 'https://johndoe.dev',
   linkedin: 'johndoe',
   github: 'johndoe',
 };
@@ -87,6 +88,7 @@ describe('GetPublicProfileUseCase', () => {
       bio: 'A developer',
       location: 'NYC',
       website: 'https://johndoe.com',
+      portfolio: 'https://johndoe.dev',
       linkedin: 'johndoe',
       github: 'johndoe',
     });

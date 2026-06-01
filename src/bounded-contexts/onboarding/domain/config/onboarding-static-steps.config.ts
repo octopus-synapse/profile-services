@@ -47,6 +47,7 @@ export const STATIC_STEPS_BEFORE: StaticStepBase[] = [
       { key: 'linkedin', type: 'url', required: false },
       { key: 'github', type: 'url', required: false },
       { key: 'website', type: 'url', required: false },
+      { key: 'portfolio', type: 'url', required: false },
     ],
   },
 ];

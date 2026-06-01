@@ -133,6 +133,7 @@ export const EnvConfigSchema = z
     SENDGRID_API_KEY: z.string().optional(),
     SENDGRID_EMAIL_FROM: z.string().optional(),
     SKIP_EMAIL_VERIFICATION: BooleanString.optional(),
+    BYPASS_2FA: BooleanString.optional(),
 
     // --- Storage (MinIO / S3) ---
     MINIO_ENDPOINT: OptionalUrl,

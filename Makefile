@@ -42,9 +42,13 @@ help:
 # Development Environment
 # ==========================================
 dev:
+	@export GITHUB_TOKEN="$${GITHUB_TOKEN:-$${GH_PAT:-$$(gh auth token 2>/dev/null)}}"; \
+	export BUN_AUTH_TOKEN="$$GITHUB_TOKEN"; \
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --remove-orphans
 
 dev-build:
+	@export GITHUB_TOKEN="$${GITHUB_TOKEN:-$${GH_PAT:-$$(gh auth token 2>/dev/null)}}"; \
+	export BUN_AUTH_TOKEN="$$GITHUB_TOKEN"; \
 	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build --remove-orphans
 
 dev-down:

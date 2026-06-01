@@ -45,6 +45,7 @@ export function buildEmailVerificationUseCases(
       emailSender,
       eventBus,
       logger,
+      config.env,
     ),
     getResendCooldown: new GetResendCooldownUseCase(repository),
     verifyEmail: new VerifyEmailUseCase(repository, eventBus, logger),

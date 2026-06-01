@@ -16,6 +16,7 @@ export type PublicProfileUser = {
   bio: string | null;
   location: string | null;
   website: string | null;
+  portfolio: string | null;
   linkedin: string | null;
   github: string | null;
 };
@@ -45,6 +46,7 @@ export type UserProfile = {
   location?: string | null;
   phone?: string | null;
   website?: string | null;
+  portfolio?: string | null;
   linkedin?: string | null;
   github?: string | null;
   twitter?: string | null;
@@ -59,6 +61,7 @@ export type UpdateProfileData = {
   headline?: string;
   location?: string;
   website?: string;
+  portfolio?: string;
   company?: string;
   title?: string;
   phone?: string;
@@ -82,6 +85,7 @@ export abstract class UserProfileRepositoryPort {
     bio: string | null;
     location: string | null;
     website: string | null;
+    portfolio?: string | null;
     linkedin: string | null;
     github: string | null;
   } | null>;

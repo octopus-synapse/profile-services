@@ -83,6 +83,7 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
         linkedin: 'LinkedIn',
         github: 'GitHub',
         website: 'Website',
+        portfolio: 'Portfolio',
       },
     },
     'pt-BR': {
@@ -95,6 +96,7 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
         linkedin: 'LinkedIn',
         github: 'GitHub',
         website: 'Website',
+        portfolio: 'Portfólio',
       },
     },
   },

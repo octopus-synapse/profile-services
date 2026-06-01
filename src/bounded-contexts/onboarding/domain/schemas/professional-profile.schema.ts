@@ -38,6 +38,7 @@ export const ProfessionalProfileSchema = z.object({
   linkedin: LinkedInUrlSchema.optional(),
   github: GitHubUrlSchema.optional(),
   website: SocialUrlSchema.optional(),
+  portfolio: SocialUrlSchema.optional(),
 });
 
 export type ProfessionalProfileDto = z.infer<typeof ProfessionalProfileSchema>;

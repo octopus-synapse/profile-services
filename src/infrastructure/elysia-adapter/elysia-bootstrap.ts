@@ -87,6 +87,7 @@ import { buildUploadComposition } from '@/bounded-contexts/integration/upload/up
 import { InvalidateMatchCacheOnJobUpdatedHandler } from '@/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
 import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
+import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
 import { buildOnboardingComposition } from '@/bounded-contexts/onboarding/onboarding.composition';
@@ -698,6 +699,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
+  // Geo lookup BC — no infra deps; dataset is bundled in the adapter.
+  const geo = buildGeoComposition();
 
   // Analytics sub-BCs.
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
@@ -1154,6 +1157,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
       routes: shadowProfileRoutes,
     },
     { bundle: uiState, routes: uiStateRoutes },
+    { bundle: geo.useCases, routes: geo.routes },
     {
       bundle: (translation as { useCases: unknown }).useCases ?? translation,
       routes: translationRoutes,

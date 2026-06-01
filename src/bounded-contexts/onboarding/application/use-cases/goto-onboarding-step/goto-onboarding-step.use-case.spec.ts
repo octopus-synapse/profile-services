@@ -104,16 +104,17 @@ describe('GotoOnboardingStepUseCase', () => {
     );
   });
 
-  // P1 #26 — was previously "allows jumping to any step (non-linear flow)";
-  // the bug fix tightens goto to only allow forward jumps of exactly +1.
-  it('rejects skipping multiple steps forward (state-machine guard)', async () => {
+  // The app now owns step ordering (app-driven flow + review-hub), so goto
+  // allows forward jumps of any distance to a known step. This reverts the
+  // earlier P1 #26 +1-only guard, which conflicts with editing/resuming
+  // across the redesigned flow.
+  it('allows skipping multiple steps forward (app-driven flow)', async () => {
     progressRepo.seedProgress(
       createOnboardingProgress({ userId: USER_ID, currentStep: 'welcome', completedSteps: [] }),
     );
 
-    await expect(useCase.execute(USER_ID, 'professional-profile')).rejects.toThrow(
-      ValidationException,
-    );
+    const result = await useCase.execute(USER_ID, 'professional-profile');
+    expect(result.currentStep).toBe('professional-profile');
   });
 
   it('allows advancing exactly one step forward', async () => {

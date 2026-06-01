@@ -32,6 +32,7 @@ export class GetPublicProfileUseCase {
         bio: foundUser.bio,
         location: foundUser.location,
         website: foundUser.website,
+        portfolio: foundUser.portfolio ?? null,
         linkedin: foundUser.linkedin,
         github: foundUser.github,
       },
