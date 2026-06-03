@@ -53,11 +53,7 @@ export class CompleteOnboardingFromProgressUseCase {
     const personalInfo = progress.personalInfo as Record<string, unknown> | undefined;
     const professionalProfile = progress.professionalProfile as Record<string, unknown> | undefined;
 
-    this.validateProgressCompleteness(
-      progress.username ?? undefined,
-      personalInfo,
-      professionalProfile,
-    );
+    this.validateProgressCompleteness(progress.username ?? undefined, personalInfo);
 
     return {
       username: progress.username,
@@ -71,7 +67,6 @@ export class CompleteOnboardingFromProgressUseCase {
   private validateProgressCompleteness(
     username: string | undefined,
     personalInfo: Record<string, unknown> | undefined,
-    professionalProfile: Record<string, unknown> | undefined,
   ): void {
     const errors: OnboardingValidationError[] = [];
 
@@ -89,15 +84,9 @@ export class CompleteOnboardingFromProgressUseCase {
       this.validatePersonalInfo(personalInfo, errors);
     }
 
-    if (!professionalProfile) {
-      errors.push({
-        code: 'REQUIRED',
-        field: 'professionalProfile',
-        message: 'Professional profile is required',
-      });
-    } else {
-      this.validateProfessionalProfile(professionalProfile, errors);
-    }
+    // The professional-profile step is reached linearly (so it appears in
+    // completedSteps), but its fields (headline, summary, links) are all
+    // optional — nothing here gates completion.
 
     if (errors.length > 0) {
       const missingFields = errors.filter((e) => e.code === 'REQUIRED').map((e) => e.field);
@@ -117,19 +106,6 @@ export class CompleteOnboardingFromProgressUseCase {
         code: 'REQUIRED',
         field: 'personalInfo.fullName',
         message: 'Full name is required',
-      });
-    }
-  }
-
-  private validateProfessionalProfile(
-    data: Record<string, unknown>,
-    errors: OnboardingValidationError[],
-  ) {
-    if (!data.jobTitle || typeof data.jobTitle !== 'string' || data.jobTitle.trim().length === 0) {
-      errors.push({
-        code: 'REQUIRED',
-        field: 'professionalProfile.jobTitle',
-        message: 'Job title is required',
       });
     }
   }

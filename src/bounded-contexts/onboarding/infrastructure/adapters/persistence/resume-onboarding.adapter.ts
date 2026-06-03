@@ -14,6 +14,27 @@ import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 const CTX = 'ResumeOnboardingAdapter';
 const DEFAULT_STYLE_NAME = 'default';
 
+const WORK_EXPERIENCE_SECTION = 'work_experience_v1';
+const ROLE_KEYS = ['role', 'jobTitle', 'title', 'position'] as const;
+
+/** Pick the resume job title from the current work experience: the entry with
+ *  no end date (the `allowPresentFlag` convention), else the first one. */
+function deriveJobTitle(data: OnboardingData): string | undefined {
+  const section = data.sections?.find((s) => s.sectionTypeKey === WORK_EXPERIENCE_SECTION);
+  const items = section?.items ?? [];
+  const contents = items.map((item) => {
+    const obj = item as Record<string, unknown>;
+    return (obj.content as Record<string, unknown> | undefined) ?? obj;
+  });
+  const current = contents.find((c) => !c.endDate) ?? contents[0];
+  if (!current) return undefined;
+  for (const key of ROLE_KEYS) {
+    const value = current[key];
+    if (typeof value === 'string' && value.trim().length > 0) return value.trim();
+  }
+  return undefined;
+}
+
 export class ResumeOnboardingAdapter {
   constructor(
     private readonly prisma: PrismaService,
@@ -33,13 +54,13 @@ export class ResumeOnboardingAdapter {
 
     const isFirstResume = !existingResume;
 
-    // The `template` column was replaced by `styleId` on the resume row —
-    // layout variance is now a property of the ResumeStyle, not the Resume.
+    // Onboarding no longer asks for a job title directly — it derives from the
+    // current work experience (falling back to the headline).
     const resumeData = {
       fullName: personalInfo.fullName,
       phone: personalInfo.phone,
       location: personalInfo.location,
-      jobTitle: professionalProfile.jobTitle,
+      jobTitle: deriveJobTitle(data) ?? professionalProfile.headline,
       summary: professionalProfile.summary,
       linkedin: professionalProfile.linkedin,
       github: professionalProfile.github,

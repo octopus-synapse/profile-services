@@ -4,7 +4,7 @@ export interface OnboardingDataForValidation {
     | { fullName?: string; email?: string; phone?: string; location?: string }
     | Record<string, string | undefined>;
   professionalProfile?:
-    | { jobTitle?: string; summary?: string }
+    | { headline?: string; summary?: string }
     | Record<string, string | undefined>;
   /** FK to `ResumeStyle.id` chosen on the resume-style step. */
   resumeStyleId?: string | null;

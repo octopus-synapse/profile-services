@@ -32,7 +32,6 @@ const HeadlineSchema = z
 
 export const ProfessionalProfileSchema = z.object({
   title: JobTitleSchema.optional(),
-  jobTitle: JobTitleSchema.optional(),
   headline: HeadlineSchema.optional(),
   summary: SummarySchema,
   linkedin: LinkedInUrlSchema.optional(),

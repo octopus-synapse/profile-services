@@ -51,7 +51,7 @@ export function toProfessionalProfile(value: unknown): ProfessionalProfileViewDt
   if (!value || typeof value !== 'object') return undefined;
   const obj = value as Record<string, unknown>;
   return {
-    jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : undefined,
+    headline: typeof obj.headline === 'string' ? obj.headline : undefined,
     summary: typeof obj.summary === 'string' ? obj.summary : undefined,
     linkedin: typeof obj.linkedin === 'string' ? obj.linkedin : undefined,
     github: typeof obj.github === 'string' ? obj.github : undefined,

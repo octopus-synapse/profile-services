@@ -50509,11 +50509,6 @@
                         "minLength": 2,
                         "maxLength": 100
                       },
-                      "jobTitle": {
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 100
-                      },
                       "headline": {
                         "type": "string",
                         "minLength": 1,
@@ -50598,7 +50593,7 @@
                     "location": "San Francisco, CA"
                   },
                   "professionalProfile": {
-                    "jobTitle": "Senior Backend Engineer",
+                    "headline": "Senior Backend Engineer",
                     "summary": "Backend engineer with 8+ years building distributed systems."
                   },
                   "resumeStyleId": "019e4a58-581a-7679-9351-df6a83687eed",
@@ -51022,11 +51017,6 @@
                           "minLength": 2,
                           "maxLength": 100
                         },
-                        "jobTitle": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
                         "headline": {
                           "type": "string",
                           "minLength": 1,
@@ -51259,11 +51249,6 @@
                     "type": "object",
                     "properties": {
                       "title": {
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 100
-                      },
-                      "jobTitle": {
                         "type": "string",
                         "minLength": 2,
                         "maxLength": 100
@@ -51772,11 +51757,6 @@
                       "type": "object",
                       "properties": {
                         "title": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
-                        "jobTitle": {
                           "type": "string",
                           "minLength": 2,
                           "maxLength": 100
@@ -52391,11 +52371,6 @@
                           "minLength": 2,
                           "maxLength": 100
                         },
-                        "jobTitle": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
                         "headline": {
                           "type": "string",
                           "minLength": 1,
@@ -52897,11 +52872,6 @@
                           "minLength": 2,
                           "maxLength": 100
                         },
-                        "jobTitle": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
                         "headline": {
                           "type": "string",
                           "minLength": 1,
@@ -53084,7 +53054,7 @@
                 },
                 "example": {
                   "fullName": "Fixture User",
-                  "jobTitle": "Senior Software Engineer"
+                  "headline": "Senior Software Engineer"
                 }
               }
             }
@@ -53394,11 +53364,6 @@
                       "type": "object",
                       "properties": {
                         "title": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
-                        "jobTitle": {
                           "type": "string",
                           "minLength": 2,
                           "maxLength": 100
@@ -53879,11 +53844,6 @@
                       "type": "object",
                       "properties": {
                         "title": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
-                        "jobTitle": {
                           "type": "string",
                           "minLength": 2,
                           "maxLength": 100
@@ -54379,11 +54339,6 @@
                           "minLength": 2,
                           "maxLength": 100
                         },
-                        "jobTitle": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
                         "headline": {
                           "type": "string",
                           "minLength": 1,
@@ -54566,7 +54521,7 @@
                 },
                 "example": {
                   "fullName": "Fixture User",
-                  "jobTitle": "Senior Software Engineer"
+                  "headline": "Senior Software Engineer"
                 }
               }
             }
@@ -54876,11 +54831,6 @@
                       "type": "object",
                       "properties": {
                         "title": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 100
-                        },
-                        "jobTitle": {
                           "type": "string",
                           "minLength": 2,
                           "maxLength": 100

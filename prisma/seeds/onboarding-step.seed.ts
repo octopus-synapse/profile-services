@@ -123,10 +123,10 @@ export const steps: OnboardingStepSeed[] = [
     sectionTypeKey: null,
     fields: [
       {
-        key: 'jobTitle',
+        key: 'headline',
         type: 'text',
-        required: true,
-        examples: ['Software Engineer', 'Product Designer', 'Data Analyst', 'Tech Lead'],
+        required: false,
+        examples: ['Software Engineer @ Acme', 'Product Designer', 'Data Analyst'],
       },
       {
         key: 'summary',
@@ -140,32 +140,35 @@ export const steps: OnboardingStepSeed[] = [
       { key: 'linkedin', type: 'url', required: false, examples: ['linkedin.com/in/your-profile'] },
       { key: 'github', type: 'url', required: false, examples: ['github.com/your-username'] },
       { key: 'website', type: 'url', required: false, examples: ['your-portfolio.com'] },
+      { key: 'portfolio', type: 'url', required: false, examples: ['your-portfolio.com'] },
     ],
     translations: {
       en: {
         label: 'Your career',
         description: 'Tell us about your career',
         fieldLabels: {
-          jobTitle: 'Job Title',
-          summary: 'Headline',
+          headline: 'Headline',
+          summary: 'Summary',
           linkedin: 'LinkedIn',
           github: 'GitHub',
           website: 'Website',
+          portfolio: 'Portfolio',
         },
       },
       'pt-BR': {
         label: 'Sua carreira',
         description: 'Conta um pouco da sua carreira',
         fieldLabels: {
-          jobTitle: 'Cargo',
-          summary: 'Headline',
+          headline: 'Headline',
+          summary: 'Resumo',
           linkedin: 'LinkedIn',
           github: 'GitHub',
           website: 'Website',
+          portfolio: 'Portfólio',
         },
       },
     },
-    validation: { requiredFields: ['jobTitle'] },
+    validation: { requiredFields: [] },
     strengthWeight: 10,
   },
   {

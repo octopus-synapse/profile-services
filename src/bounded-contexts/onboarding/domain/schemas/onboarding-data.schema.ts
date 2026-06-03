@@ -102,7 +102,7 @@ export const OnboardingDataSchema = z
         location: 'San Francisco, CA',
       },
       professionalProfile: {
-        jobTitle: 'Senior Backend Engineer',
+        headline: 'Senior Backend Engineer',
         summary: 'Backend engineer with 8+ years building distributed systems.',
       },
       resumeStyleId: '019e4a58-581a-7679-9351-df6a83687eed',

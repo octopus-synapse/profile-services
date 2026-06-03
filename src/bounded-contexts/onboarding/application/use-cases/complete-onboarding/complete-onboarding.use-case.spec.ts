@@ -59,7 +59,7 @@ describe('CompleteOnboardingUseCase', () => {
           location: 'New York, NY',
         },
         professionalProfile: {
-          jobTitle: 'Senior Developer',
+          headline: 'Senior Developer',
           summary: 'Experienced developer with 5+ years in full-stack development',
           linkedin: 'https://linkedin.com/in/johndoe',
           github: 'https://github.com/johndoe',
@@ -108,7 +108,7 @@ describe('CompleteOnboardingUseCase', () => {
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe' },
         professionalProfile: {
-          jobTitle: 'Developer',
+          headline: 'Developer',
           summary: 'A passionate developer looking to make a difference in tech',
         },
         resumeStyleId: null,
@@ -161,7 +161,7 @@ describe('CompleteOnboardingUseCase', () => {
     it('throws OnboardingInvalidProfessionalProfileException when only professionalProfile is bad', async () => {
       const userId = 'user-123';
       const data = createOnboardingData({
-        professionalProfile: { jobTitle: '', summary: 'short' },
+        professionalProfile: { summary: 'short' },
       });
       await expect(useCase.execute(userId, data)).rejects.toThrow(
         OnboardingInvalidProfessionalProfileException,

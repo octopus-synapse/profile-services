@@ -27,7 +27,7 @@ export type RestartQuery = z.infer<typeof RestartQuery>;
 export const StepKeyParam = z.object({ key: z.string() });
 export const StepDataBody = z
   .record(z.unknown())
-  .openapi({ example: { fullName: 'Fixture User', jobTitle: 'Senior Software Engineer' } });
+  .openapi({ example: { fullName: 'Fixture User', headline: 'Senior Software Engineer' } });
 
 export const AdminStepBody = z.record(z.unknown()).openapi({
   example: { key: 'profile', titleEn: 'Profile', titlePtBr: 'Perfil', order: 1 },

@@ -20,7 +20,7 @@ export interface ResumeStrength {
 interface StrengthInput {
   personalInfo?: { fullName?: string };
   username?: string;
-  professionalProfile?: { jobTitle?: string; summary?: string };
+  professionalProfile?: { headline?: string; summary?: string };
   sections?: Array<{ sectionTypeKey: string; items?: unknown[]; noData?: boolean }>;
   resumeStyleId?: string | null;
 }
@@ -39,7 +39,7 @@ function isStepFilled(step: OnboardingStepConfig, data: StrengthInput): boolean 
     case 'username':
       return Boolean(data.username);
     case 'professional-profile':
-      return Boolean(data.professionalProfile?.jobTitle);
+      return Boolean(data.professionalProfile?.headline || data.professionalProfile?.summary);
     case 'resume-style':
       return Boolean(data.resumeStyleId);
     case 'generic-section':

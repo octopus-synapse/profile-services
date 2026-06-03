@@ -15,12 +15,12 @@ import type {
 export class OnboardingStepDataMapper {
   private readonly personalInfoKeys = ['fullName', 'phone', 'location'] as const;
   private readonly professionalProfileKeys = [
-    'jobTitle',
     'headline',
     'summary',
     'linkedin',
     'github',
     'website',
+    'portfolio',
   ] as const;
 
   mergeStepData(

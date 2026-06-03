@@ -98,12 +98,24 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
         getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
+      // Pass sectionTypes so section steps keep their item-field definitions
+      // (parity with GET /session) — otherwise navigating via next/goto/save
+      // returns fieldless section steps and the editor renders blank.
+      return buildSession(
+        rawData,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {
@@ -123,12 +135,24 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
       const q = ctx.query as LocaleQuery;
       const locale = parseLocale(q.locale);
       const rawData = await bundle.useCases.goBackOnboardingStepUseCase.execute(user.userId);
-      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
         getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
+      // Pass sectionTypes so section steps keep their item-field definitions
+      // (parity with GET /session) — otherwise navigating via next/goto/save
+      // returns fieldless section steps and the editor renders blank.
+      return buildSession(
+        rawData,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {
@@ -153,12 +177,24 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         body.stepId,
       );
-      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
         getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
+      // Pass sectionTypes so section steps keep their item-field definitions
+      // (parity with GET /session) — otherwise navigating via next/goto/save
+      // returns fieldless section steps and the editor renders blank.
+      return buildSession(
+        rawData,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {
@@ -183,12 +219,24 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         user.userId,
         stepData,
       );
-      const [stepConfigs, strengthConfig, resumeStyles] = await Promise.all([
+      const [stepConfigs, strengthConfig, resumeStyles, sectionTypes] = await Promise.all([
         bundle.config.getActiveSteps(),
         bundle.config.getStrengthConfig(),
         getSystemResumeStyles(bundle),
+        bundle.sectionTypes.listAll(locale),
       ]);
-      return buildSession(rawData, stepConfigs, strengthConfig, locale, resumeStyles);
+      // Pass sectionTypes so section steps keep their item-field definitions
+      // (parity with GET /session) — otherwise navigating via next/goto/save
+      // returns fieldless section steps and the editor renders blank.
+      return buildSession(
+        rawData,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        resumeStyles,
+        { name: user.name },
+        sectionTypes,
+      );
     },
   },
   {

@@ -54,6 +54,7 @@ export class RestartOnboardingUseCase {
             phone: true,
             location: true,
             bio: true,
+            headline: true,
             linkedin: true,
             github: true,
             website: true,
@@ -99,7 +100,7 @@ export class RestartOnboardingUseCase {
             location: userData?.location ?? '',
           },
           professionalProfile: {
-            jobTitle: resume?.jobTitle ?? '',
+            headline: userData?.headline ?? resume?.jobTitle ?? '',
             summary: userData?.bio ?? '',
             linkedin: userData?.linkedin ?? '',
             github: userData?.github ?? '',

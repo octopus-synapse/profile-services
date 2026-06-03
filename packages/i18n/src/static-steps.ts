@@ -77,7 +77,6 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
       label: 'Profile',
       description: 'Professional Profile',
       fields: {
-        jobTitle: 'Job Title',
         headline: 'Headline (1 line)',
         summary: 'Summary',
         linkedin: 'LinkedIn',
@@ -90,7 +89,6 @@ export const STATIC_STEP_DICTIONARY: Readonly<Record<string, LocalizedRecord<Ste
       label: 'Perfil',
       description: 'Perfil Profissional',
       fields: {
-        jobTitle: 'Cargo',
         headline: 'Headline (1 linha)',
         summary: 'Resumo',
         linkedin: 'LinkedIn',

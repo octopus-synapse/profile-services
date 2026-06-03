@@ -318,7 +318,7 @@ export function createOnboardingData(overrides: Partial<OnboardingData> = {}): O
       location: 'New York, USA',
     },
     professionalProfile: {
-      jobTitle: 'Software Engineer',
+      headline: 'Software Engineer @ Acme',
       summary: 'Experienced developer',
       linkedin: 'https://linkedin.com/in/johndoe',
       github: 'https://github.com/johndoe',
