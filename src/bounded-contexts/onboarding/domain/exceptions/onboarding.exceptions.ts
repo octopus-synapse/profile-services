@@ -90,6 +90,19 @@ export class OnboardingInvalidUsernameException extends OnboardingValidationExce
   }
 }
 
+export class OnboardingInvalidLocationException extends OnboardingValidationException {
+  readonly code = 'INVALID_LOCATION';
+  constructor(value: string) {
+    super(`Location "${value}" is not a recognized place`, [
+      {
+        code: 'INVALID_LOCATION',
+        field: 'location',
+        message: 'Pick a location from the suggestions',
+      },
+    ]);
+  }
+}
+
 export class OnboardingStepNotCompletedException extends OnboardingValidationException {
   readonly code = 'STEP_NOT_COMPLETED';
   constructor(stepId: string) {

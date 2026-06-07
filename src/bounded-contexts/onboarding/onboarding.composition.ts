@@ -38,6 +38,12 @@ export interface OnboardingDeps {
   readonly auditLog: AuditLogService;
   readonly cacheLock: CacheLockService;
   readonly sseStream: SseStreamPort;
+  /**
+   * Validates a submitted `location` against the geo dataset (geo BC's
+   * `lookup.locationExists`). Optional — when absent, location isn't
+   * geo-validated (e.g. in tests).
+   */
+  readonly validateLocation?: (label: string) => Promise<boolean>;
 }
 
 export interface OnboardingBundle {
@@ -45,9 +51,9 @@ export interface OnboardingBundle {
 }
 
 export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
-  const { prisma, logger, auditLog, cacheLock, sseStream } = deps;
+  const { prisma, logger, auditLog, cacheLock, sseStream, validateLocation } = deps;
 
-  const useCases = buildOnboardingUseCases(prisma, logger, auditLog);
+  const useCases = buildOnboardingUseCases(prisma, logger, auditLog, validateLocation);
   const progress = buildOnboardingProgressUseCases(prisma, logger);
   const resumeStyles = new ResumeStylesQueryAdapter(prisma);
   const config = new OnboardingConfigAdapter(prisma);

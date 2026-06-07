@@ -158,6 +158,61 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
     });
   });
 
+  // ── Step 2.5: Preview a style (binary stream) ──────────────────────
+  //
+  // Regression guard: `GET /resume-styles/:id/preview.pdf` returned an
+  // unhandled 500 because the bootstrap passed the export *HTTP bundle*
+  // (`ExportHttpBundle`) where the export *use-case bag* (`ExportUseCases`,
+  // with `exportPdfUseCase`) was expected — so the preview adapter
+  // dereferenced `undefined.exportPdfUseCase`. The endpoint had no e2e
+  // coverage despite being documented at the top of this journey.
+
+  describe('Step 2.5: Preview a style', () => {
+    it.serial(
+      'should stream a preview PDF for a system style (never an unhandled 500)',
+      async () => {
+        // The preview renders the requesting user's primary resume with the
+        // candidate style applied as a draft theme. Onboarding sets
+        // `primaryResumeId`; plain `POST /v1/resumes` does not, so mirror
+        // that precondition here.
+        await prisma.user.update({
+          where: { id: testUser.userId },
+          data: { primaryResumeId: resumeId },
+        });
+
+        const res = await app.request
+          .get(`/api/v1/resume-styles/${firstSystemStyleId}/preview.pdf`)
+          .set('Authorization', `Bearer ${testUser.token}`);
+
+        // A correctly-wired pipeline streams the PDF (200). A genuinely
+        // unavailable Typst toolchain in CI surfaces as a *handled* 502/503.
+        // The wiring bug produced an *unhandled* 500, and a missing
+        // user/resume would 4xx — tolerate only the handled outcomes so the
+        // composition fix and the userId threading both stay covered.
+        expect([200, 502, 503]).toContain(res.status);
+
+        if (res.status === 200) {
+          // Assert it's a real PDF by magic bytes — the binary mounter emits
+          // application/octet-stream regardless of the declared media type, so
+          // a content-type check would be misleading here.
+          expect(Buffer.isBuffer(res.body)).toBe(true);
+          expect(res.body.length).toBeGreaterThan(1000);
+          expect(res.body.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+        } else {
+          console.warn(`⚠️  Style preview render unavailable (status ${res.status})`);
+        }
+      },
+      60000,
+    );
+
+    it.serial('should reject unauthenticated preview reads', async () => {
+      const res = await app.request.get(
+        `/api/v1/resume-styles/${firstSystemStyleId}/preview.pdf`,
+      );
+      expect(res.status).toBe(401);
+    });
+  });
+
   // ── Step 3: Apply a style to a resume ──────────────────────────────
 
   describe('Step 3: Apply a style to a resume', () => {

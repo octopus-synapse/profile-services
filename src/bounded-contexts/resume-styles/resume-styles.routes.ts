@@ -184,7 +184,7 @@ export const resumeStylesRoutes: ReadonlyArray<Route<ResumeStylesUseCases>> = [
     },
     handler: async (ctx, bc) => {
       const { id } = ctx.params as { id: string };
-      const buffer = await bc.previewStyle.execute(id);
+      const buffer = await bc.previewStyle.execute(id, ctx.user!.userId);
       return new StreamableFile(buffer, {
         type: 'application/pdf',
         disposition: `inline; filename="style-${id}-preview.pdf"`,

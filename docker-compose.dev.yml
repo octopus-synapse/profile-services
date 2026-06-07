@@ -141,6 +141,9 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3001}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
+      # Geo lookup source: `postgres` serves the GeoNames import (bun run geo:import);
+      # default `bundled` uses the in-memory country-state-city dataset.
+      GEO_SOURCE: ${GEO_SOURCE:-bundled}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}

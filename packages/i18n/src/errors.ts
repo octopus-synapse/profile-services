@@ -530,6 +530,10 @@ export const ERROR_DICTIONARY = {
     en: 'Invalid metrics API key',
     'pt-BR': 'Chave de API de métricas inválida',
   },
+  INVALID_LOCATION: {
+    en: 'Location is not a recognized place — pick one from the suggestions',
+    'pt-BR': 'Localização não reconhecida — escolha uma das sugestões',
+  },
   INVALID_PERSONAL_INFO: {
     en: 'Personal information is invalid',
     'pt-BR': 'Informações pessoais inválidas',

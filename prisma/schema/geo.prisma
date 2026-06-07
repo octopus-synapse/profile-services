@@ -1,0 +1,47 @@
+// GeoNames-derived gazetteer that powers the location picker (País / Estado /
+// Cidade). Populated from the public GeoNames dumps by `bun run geo:import`
+// (src/scripts/import-geonames.ts) and read by `PrismaGeoLookupAdapter` when
+// `GEO_SOURCE=postgres`.
+//
+// `searchName` holds the diacritic-stripped, lower-cased name so a prefix
+// query ("sao") matches "São Paulo". For large datasets, add a trigram /
+// text_pattern_ops index on `searchName` via raw SQL so `startsWith` uses an
+// index instead of a sequential scan (see the import script's header notes).
+
+model GeoCountry {
+  /// ISO 3166-1 alpha-2 (e.g. "BR").
+  code       String @id
+  name       String
+  searchName String
+
+  @@index([searchName])
+}
+
+model GeoAdmin1 {
+  /// GeoNames admin1 key "<countryCode>.<admin1Code>" (e.g. "BR.27").
+  id          String @id
+  countryCode String
+  admin1Code  String
+  name        String
+  searchName  String
+
+  @@index([countryCode])
+  @@index([searchName])
+}
+
+model GeoCity {
+  /// GeoNames geonameId.
+  id          Int     @id
+  name        String
+  searchName  String
+  countryCode String
+  admin1Code  String?
+  population  BigInt  @default(0)
+  latitude    Float?
+  longitude   Float?
+
+  @@index([countryCode])
+  @@index([countryCode, admin1Code])
+  @@index([searchName])
+  @@index([population])
+}

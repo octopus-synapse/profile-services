@@ -699,8 +699,9 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   ) as never;
   const shadowProfile = buildShadowProfileUseCases(prisma as never, logger) as never;
   const uiState = buildUiStateUseCases(prisma as never, logger) as never;
-  // Geo lookup BC — no infra deps; dataset is bundled in the adapter.
-  const geo = buildGeoComposition();
+  // Geo lookup BC — `GEO_SOURCE=postgres` uses the GeoNames import, else the
+  // bundled dataset baked into the adapter.
+  const geo = buildGeoComposition(prisma as never, config as never);
 
   // Analytics sub-BCs.
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
@@ -723,6 +724,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     auditLog,
     cacheLock: cacheLock as never,
     sseStream,
+    // Reject onboarding locations that aren't real geo entries.
+    validateLocation: (label: string) => geo.lookup.locationExists(label),
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;
@@ -769,7 +772,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   }
   const resumeStyles = buildResumeStylesComposition(
     prisma as never,
-    exportBc.useCases as never,
+    // `exportBc.useCases` is the export HTTP bundle (`ExportHttpBundle`); the
+    // actual `ExportUseCases` bag (with `exportPdfUseCase`) is nested one level
+    // deeper at `.useCases`. Passing the bundle made the style-preview adapter
+    // dereference `undefined.exportPdfUseCase` (500 on `…/preview.pdf`).
+    exportBc.useCases.useCases as never,
     eventBus,
     logger,
   ) as never;

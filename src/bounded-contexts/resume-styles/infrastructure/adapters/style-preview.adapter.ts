@@ -16,7 +16,11 @@ export class StylePreviewAdapter extends StylePreviewPort {
 
   async render(input: StylePreviewInput): Promise<Buffer> {
     return this.exports.exportPdfUseCase.execute({
+      userId: input.userId,
       template: input.typstTemplate === 'ats' ? 'ats' : 'default',
+      // Rendered as a draft theme over the user's primary resume — the DSL
+      // renderer merges this `themeStyleConfig` and so doesn't require the
+      // resume to already have an active style.
       themeStyleConfig: input.styleConfig as Record<string, unknown>,
     });
   }

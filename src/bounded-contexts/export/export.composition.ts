@@ -26,11 +26,13 @@ import { ExportUseCases } from './application/ports/export.port';
 import { ExportHttpBundle } from './application/ports/export-http.bundle';
 import { ExportPipelineService } from './application/services/export-pipeline.service';
 import { exportRoutes } from './export.routes';
+import { AstHtmlRendererService } from './infrastructure/adapters/external-services/ast-html-renderer.service';
 import { BannerCaptureService } from './infrastructure/adapters/external-services/banner-capture.service';
 import { BrowserManagerService } from './infrastructure/adapters/external-services/browser-manager.service';
 import { DocxBuilderService } from './infrastructure/adapters/external-services/docx-builder.service';
 import { DocxSectionsService } from './infrastructure/adapters/external-services/docx-sections.service';
 import { DocxStylesService } from './infrastructure/adapters/external-services/docx-styles.service';
+import { ResumeHtmlGeneratorService } from './infrastructure/adapters/external-services/resume-html-generator.service';
 import { TypstCompilerService } from './infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from './infrastructure/adapters/external-services/typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './infrastructure/adapters/external-services/typst-pdf-generator.service';
@@ -61,6 +63,7 @@ export interface ExportInternals {
   readonly typstPdfGenerator: TypstPdfGeneratorService;
   readonly typstCompiler: TypstCompilerService;
   readonly typstDataSerializer: TypstDataSerializerService;
+  readonly resumeHtmlGenerator: ResumeHtmlGeneratorService;
   readonly browserManager: BrowserManagerService;
   readonly bannerCapture: BannerCaptureService;
   readonly docxBuilder: DocxBuilderService;
@@ -89,6 +92,10 @@ export function buildExportInternals(deps: ExportCompositionDeps): ExportInterna
     typstCompiler,
     logger,
   );
+
+  // Realtime HTML preview (same AST, no Typst/MinIO).
+  const astHtmlRenderer = new AstHtmlRendererService();
+  const resumeHtmlGenerator = new ResumeHtmlGeneratorService(prisma, dsl, astHtmlRenderer, logger);
 
   // Banner (Puppeteer)
   const browserManager = new BrowserManagerService(logger);
@@ -125,6 +132,7 @@ export function buildExportInternals(deps: ExportCompositionDeps): ExportInterna
     typstPdfGenerator,
     typstCompiler,
     typstDataSerializer,
+    resumeHtmlGenerator,
     browserManager,
     bannerCapture,
     docxBuilder,
@@ -149,6 +157,7 @@ export function buildExportComposition(
     pipeline: internals.pipeline,
     bannerCapture: internals.bannerCapture,
     pdfCache: internals.pdfCache,
+    resumeHtmlGenerator: internals.resumeHtmlGenerator,
     s3: deps.s3,
   };
   return {

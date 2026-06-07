@@ -25,6 +25,7 @@ import {
   ResumeBundleRequestSchema,
   ResumeIdParams,
   ResumePdfQuery,
+  ResumePreviewResponseSchema,
   UserIdParams,
 } from './export.routes.schemas';
 import { sanitizeQueryParam } from './infrastructure/helpers';
@@ -113,6 +114,34 @@ export const exportRoutes: ReadonlyArray<Route<ExportHttpBundle>> = [
         ttlSeconds: DOWNLOAD_TTL_SECONDS,
       });
       return { ...signed, filename };
+    },
+  },
+  // ─── HTML preview (realtime, high-fidelity PDF mirror) ─────────────
+  // Renders the resume's AST to a self-contained HTML document inline —
+  // no Typst child process, no MinIO upload, no presigned URL. The app
+  // embeds the returned `html` in an iframe (web) / WebView (native).
+  {
+    method: 'GET',
+    path: '/v1/export/resume/preview',
+    auth: { kind: 'jwt' },
+    permission: Permission.RESUME_READ,
+    query: ResumePdfQuery,
+    response: ResumePreviewResponseSchema,
+    openapi: {
+      summary: 'Render the resume as an HTML preview (high-fidelity PDF mirror)',
+      tags: ['export'],
+      description: 'Export API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const q = ctx.query as z.infer<typeof ResumePdfQuery>;
+      const userId = ctx.user!.userId;
+      const html = await bundle.resumeHtmlGenerator.generate({
+        userId,
+        lang: sanitizeQueryParam(q.lang),
+        template: q.template === 'ats' ? 'ats' : 'default',
+      });
+      return { html };
     },
   },
   {

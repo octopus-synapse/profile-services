@@ -28,7 +28,7 @@ export const geoRoutes: ReadonlyArray<Route<GeoBundle>> = [
     sdk: { exported: true },
     handler: async (ctx, bundle) => {
       const query = ctx.query as GeoLocationsQuery;
-      const items = bundle.searchLocations.execute(query);
+      const items = await bundle.searchLocations.execute(query);
       return { items };
     },
   },

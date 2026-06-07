@@ -13,6 +13,7 @@
 
 import type { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import type { BannerCaptureService } from '../../infrastructure/adapters/external-services/banner-capture.service';
+import type { ResumeHtmlGeneratorService } from '../../infrastructure/adapters/external-services/resume-html-generator.service';
 import type { PdfCacheService } from '../../infrastructure/services/pdf-cache.service';
 import type { ExportPipelineService } from '../services/export-pipeline.service';
 import type { ExportUseCases } from './export.port';
@@ -22,5 +23,6 @@ export abstract class ExportHttpBundle {
   abstract readonly pipeline: ExportPipelineService;
   abstract readonly bannerCapture: BannerCaptureService;
   abstract readonly pdfCache: PdfCacheService;
+  abstract readonly resumeHtmlGenerator: ResumeHtmlGeneratorService;
   abstract readonly s3: S3UploadService;
 }

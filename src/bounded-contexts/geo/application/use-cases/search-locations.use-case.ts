@@ -1,5 +1,5 @@
-import type { GeoLocationItem, GeoLocationsQuery } from '../../geo.routes.schemas';
 import { GeoLookupPort } from '../../domain/ports/geo-lookup.port';
+import type { GeoLocationItem, GeoLocationsQuery } from '../../geo.routes.schemas';
 
 const DEFAULT_LIMIT = 10;
 
@@ -11,7 +11,7 @@ const DEFAULT_LIMIT = 10;
 export class SearchLocationsUseCase {
   constructor(private readonly lookup: GeoLookupPort) {}
 
-  execute(query: GeoLocationsQuery): GeoLocationItem[] {
+  execute(query: GeoLocationsQuery): Promise<GeoLocationItem[]> {
     return this.lookup.search({
       q: query.q,
       level: query.level ?? 'all',

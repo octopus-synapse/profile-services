@@ -12,17 +12,13 @@
  */
 
 import { City, Country, type ICity, type IState, State } from 'country-state-city';
-import type { GeoLocationItem } from '../../geo.routes.schemas';
 import { type GeoLookupParams, GeoLookupPort } from '../../domain/ports/geo-lookup.port';
+import type { GeoLocationItem } from '../../geo.routes.schemas';
 
 /** Accent- and case-insensitive normalisation so "sao paulo" matches
  *  "São Paulo". */
 function norm(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
 type Ranked = { item: GeoLocationItem; score: number; tier: number; len: number };
@@ -45,7 +41,9 @@ export class BundledGeoLookupAdapter extends GeoLookupPort {
     return this.countryNameByCode.get(code) ?? code;
   }
 
-  search(params: GeoLookupParams): GeoLocationItem[] {
+  // Async to satisfy the (now Promise-returning) port; the scan itself stays
+  // synchronous and in-memory.
+  async search(params: GeoLookupParams): Promise<GeoLocationItem[]> {
     const nq = norm(params.q);
     if (!nq) return [];
     const { level, country, state, limit } = params;

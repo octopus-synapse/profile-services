@@ -69,16 +69,18 @@ const sample: StyleDetail = {
 };
 
 describe('PreviewStyleUseCase', () => {
-  it('renders via the preview port with the style template + config', async () => {
+  it('renders via the preview port with the user, style template + config', async () => {
     const preview = new FakePreview();
     const useCase = new PreviewStyleUseCase(new FakeRepo(sample), preview, stubLogger);
-    const buf = await useCase.execute('s1');
+    const buf = await useCase.execute('s1', 'u1');
     expect(buf.toString()).toBe('PDF');
-    expect(preview.calls).toEqual([{ typstTemplate: 'default', styleConfig: { foo: 'bar' } }]);
+    expect(preview.calls).toEqual([
+      { userId: 'u1', typstTemplate: 'default', styleConfig: { foo: 'bar' } },
+    ]);
   });
 
   it('throws StyleNotFoundError when the style is missing', async () => {
     const useCase = new PreviewStyleUseCase(new FakeRepo(null), new FakePreview(), stubLogger);
-    await expect(useCase.execute('missing')).rejects.toBeInstanceOf(StyleNotFoundError);
+    await expect(useCase.execute('missing', 'u1')).rejects.toBeInstanceOf(StyleNotFoundError);
   });
 });

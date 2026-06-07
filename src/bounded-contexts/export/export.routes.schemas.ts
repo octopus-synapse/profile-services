@@ -59,6 +59,13 @@ export const PresignedDownloadResponseSchema = z.object({
   expiresAt: IsoDateTimeSchema,
 });
 
+// Realtime HTML preview envelope. The backend renders the resume's AST to a
+// self-contained HTML document (high-fidelity mirror of the Typst PDF) and
+// returns it inline — no MinIO upload, no presigned URL.
+export const ResumePreviewResponseSchema = z.object({
+  html: z.string(),
+});
+
 // F3-PD-009c — bundle (multi-format zip) request body.
 // `resumeId` moved to the path so the `ownership` guard can resolve it
 // (PD-018 fix — guard reads ctx.params only).
