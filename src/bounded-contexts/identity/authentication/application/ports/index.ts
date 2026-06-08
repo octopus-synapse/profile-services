@@ -20,6 +20,12 @@ export {
   type RefreshTokenResult,
 } from './refresh-token.port';
 
+export {
+  type RenewSessionCommand,
+  RenewSessionPort,
+  type RenewSessionResult,
+} from './renew-session.port';
+
 export { SessionDevicePort, type SessionDeviceView } from './session-device.port';
 
 export { type SessionExchangePayload, SessionExchangePort } from './session-exchange.port';

@@ -222,6 +222,27 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
 
   const base =
     validation.uri ?? `${bundle.config.get<string>('UI_BASE_URL') ?? ''}/auth/oauth-complete`;
+
+  // Phase 2: web redirects (http/https) get a persistent httpOnly session
+  // cookie so the browser is authenticated on landing — OAuth on web always
+  // persists (product decision). Native deep links (custom scheme, e.g.
+  // `patchcareers://`) can't carry a cookie; they keep the param-only flow
+  // and the mobile token-issuance below stays a TODO.
+  const isWebRedirect = /^https?:\/\//i.test(base);
+  if (isWebRedirect && bundle.createSession) {
+    await bundle.createSession.execute({
+      userId,
+      email: profile.email ?? '',
+      cookieWriter: {
+        setCookie: (name, value, options) => stageSetCookie(ctx, name, value, options),
+        clearCookie: (name, options) => stageClearCookie(ctx, name, options),
+      },
+      ipAddress: ctx.ip,
+      userAgent: ctx.userAgent,
+      keepSignedIn: true,
+    });
+  }
+
   const params = new URLSearchParams({
     provider,
     userId,
@@ -232,11 +253,9 @@ export async function handleCallback(ctx: HttpCtx, bundle: OAuthHttpBundle, prov
   if (provider === 'github' && typeof externalLogin === 'string') {
     params.set('githubLogin', externalLogin);
   }
-  // TODO(v2-mobile): once the Elysia OAuth strategy is fully wired,
-  // generate a token pair here (via a `TokenGeneratorPort` added to the
-  // bundle) and append `accessToken`/`refreshToken`/`expiresIn` to the
-  // deep-link query so the native client can hydrate session state
-  // without a follow-up POST.
+  // TODO(v2-mobile): for native deep-link redirects, generate a token pair
+  // here and append `accessToken`/`refreshToken`/`expiresIn` so the native
+  // client can hydrate without a follow-up POST. Web uses the cookie above.
   const separator = base.includes('?') ? '&' : '?';
   return withRedirect(`${base}${separator}${params.toString()}`);
 }

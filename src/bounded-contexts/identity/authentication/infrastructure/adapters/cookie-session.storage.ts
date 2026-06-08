@@ -40,11 +40,22 @@ export class CookieSessionStorage implements SessionStoragePort {
     };
   }
 
-  setSessionCookie(cookieWriter: CookieWriter, sessionToken: string, expiresAt: Date): void {
-    cookieWriter.setCookie(this.COOKIE_NAME, sessionToken, {
-      ...this.cookieOptions,
-      maxAge: expiresAt.getTime() - Date.now(),
-    });
+  setSessionCookie(
+    cookieWriter: CookieWriter,
+    sessionToken: string,
+    expiresAt: Date,
+    options?: { persistent?: boolean },
+  ): void {
+    // "Keep me signed in" off → session cookie: omit Max-Age so the browser
+    // drops it on close. On → persistent cookie sized to the session expiry.
+    const persistent = options?.persistent ?? true;
+    const cookieOptions: SessionCookieOptions = { ...this.cookieOptions };
+    if (persistent) {
+      cookieOptions.maxAge = expiresAt.getTime() - Date.now();
+    } else {
+      delete cookieOptions.maxAge;
+    }
+    cookieWriter.setCookie(this.COOKIE_NAME, sessionToken, cookieOptions);
   }
 
   getSessionCookie(cookieReader: CookieReader): string | null {

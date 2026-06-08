@@ -8,32 +8,12 @@
 import { type Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import { deriveJobTitle } from '../../../application/mappers/onboarding-resume.mapper';
 import { OnboardingResumeStyleNotFoundException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 
 const CTX = 'ResumeOnboardingAdapter';
 const DEFAULT_STYLE_NAME = 'default';
-
-const WORK_EXPERIENCE_SECTION = 'work_experience_v1';
-const ROLE_KEYS = ['role', 'jobTitle', 'title', 'position'] as const;
-
-/** Pick the resume job title from the current work experience: the entry with
- *  no end date (the `allowPresentFlag` convention), else the first one. */
-function deriveJobTitle(data: OnboardingData): string | undefined {
-  const section = data.sections?.find((s) => s.sectionTypeKey === WORK_EXPERIENCE_SECTION);
-  const items = section?.items ?? [];
-  const contents = items.map((item) => {
-    const obj = item as Record<string, unknown>;
-    return (obj.content as Record<string, unknown> | undefined) ?? obj;
-  });
-  const current = contents.find((c) => !c.endDate) ?? contents[0];
-  if (!current) return undefined;
-  for (const key of ROLE_KEYS) {
-    const value = current[key];
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim();
-  }
-  return undefined;
-}
 
 export class ResumeOnboardingAdapter {
   constructor(

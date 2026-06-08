@@ -18,6 +18,7 @@ import type { CreateSessionPort } from './create-session.port';
 import type { LoginPort } from './login.port';
 import type { LogoutPort } from './logout.port';
 import type { RefreshTokenPort } from './refresh-token.port';
+import type { RenewSessionPort } from './renew-session.port';
 import type { SessionDevicePort } from './session-device.port';
 import type { TerminateSessionPort } from './terminate-session.port';
 import type { ValidateSessionPort } from './validate-session.port';
@@ -29,6 +30,8 @@ export abstract class AuthenticationHttpBundle {
   abstract readonly validateSession: ValidateSessionPort;
   abstract readonly terminateSession: TerminateSessionPort;
   abstract readonly refreshToken: RefreshTokenPort;
+  /** Browser cookie sliding — re-issues the session cookie on `/refresh`. */
+  abstract readonly renewSession: RenewSessionPort;
   abstract readonly sessionDevices: SessionDevicePort;
   /** V2 D42 — native mobile clients use these to swap the cookie-free
    *  login response for a real access/refresh pair. */

@@ -117,6 +117,18 @@ export const CompleteOnboardingResponseSchema = z.object({ resumeId: z.string().
 
 export const EmptyResponseSchema = z.null();
 
+// Query for the live résumé preview — `styleId` is the candidate style the
+// user is previewing (from the tapped card), not the saved selection.
+export const ResumePreviewQuery = z.object({
+  styleId: z.string().uuid(),
+  locale: z.string().optional(),
+});
+export type ResumePreviewQuery = z.infer<typeof ResumePreviewQuery>;
+
+// Self-contained HTML mirroring the Typst PDF (mirror of the export BC's
+// `ResumePreviewResponseSchema`), ready for an iframe/WebView.
+export const OnboardingResumePreviewResponseSchema = z.object({ html: z.string() });
+
 // Helper to fetch the system resume styles shown on the picker step.
 export async function getSystemResumeStyles(bundle: OnboardingHttpBundle) {
   return bundle.resumeStyles.listSystemStyles();

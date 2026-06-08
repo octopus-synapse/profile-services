@@ -16,7 +16,10 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingResumeStyleOption } from '../../domain/config/onboarding-steps.config';
-import { ResumeStylesQueryPort } from '../../domain/ports/resume-styles-query.port';
+import {
+  type OnboardingPreviewStyle,
+  ResumeStylesQueryPort,
+} from '../../domain/ports/resume-styles-query.port';
 
 export class ResumeStylesQueryAdapter extends ResumeStylesQueryPort {
   constructor(private readonly prisma: PrismaService) {
@@ -29,5 +32,13 @@ export class ResumeStylesQueryAdapter extends ResumeStylesQueryPort {
       select: { id: true, name: true, description: true, styleScore: true, thumbnailUrl: true },
       orderBy: { name: 'asc' },
     });
+  }
+
+  async findStyleForPreview(id: string): Promise<OnboardingPreviewStyle | null> {
+    const row = await this.prisma.resumeStyle.findFirst({
+      where: { id, isSystem: true },
+      select: { styleConfig: true, typstTemplate: true },
+    });
+    return row ? { styleConfig: row.styleConfig, typstTemplate: row.typstTemplate } : null;
   }
 }

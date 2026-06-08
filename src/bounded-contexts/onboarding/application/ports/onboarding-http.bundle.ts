@@ -20,6 +20,7 @@ import type { ResumeStylesQueryPort } from '../../domain/ports/resume-styles-que
 import type { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
 import type { AdminOnboardingService } from '../../infrastructure/services/admin-onboarding.service';
 import type { ActivateOnboardingExtrasUseCase } from '../use-cases/activate-onboarding-extras/activate-onboarding-extras.use-case';
+import type { RenderOnboardingPreviewUseCase } from '../use-cases/render-onboarding-preview/render-onboarding-preview.use-case';
 
 export abstract class OnboardingHttpBundle {
   abstract readonly useCases: OnboardingUseCases;
@@ -31,4 +32,6 @@ export abstract class OnboardingHttpBundle {
   abstract readonly sseStream: SseStreamPort;
   abstract readonly admin: AdminOnboardingService;
   abstract readonly activateExtras: ActivateOnboardingExtrasUseCase;
+  /** Live résumé preview from saved progress (resume-style picker). */
+  abstract readonly renderOnboardingPreview: RenderOnboardingPreviewUseCase;
 }

@@ -50,6 +50,10 @@ describe('TypstPdfGeneratorService', () => {
     execute: mock().mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' }),
   };
 
+  const mockRenderSampleResumeDslUseCase = {
+    execute: mock().mockReturnValue({ ast: MOCK_AST }),
+  };
+
   const mockSerializer = {
     serialize: mock().mockReturnValue('{ "mock":"data" }'),
   };
@@ -63,15 +67,16 @@ describe('TypstPdfGeneratorService', () => {
     // Reset mocks
     mockPrisma.user.findUnique.mockResolvedValue({ primaryResumeId: 'resume-123' });
     mockRenderResumeDslUseCase.execute.mockResolvedValue({ ast: MOCK_AST, resumeId: 'resume-123' });
+    mockRenderSampleResumeDslUseCase.execute.mockReturnValue({ ast: MOCK_AST });
     mockSerializer.serialize.mockReturnValue('{ "mock":"data" }');
     mockCompiler.compile.mockResolvedValue(MOCK_PDF_BUFFER);
 
     service = new TypstPdfGeneratorService(
       mockPrisma as unknown as PrismaService,
-      { renderResumeDsl: mockRenderResumeDslUseCase } as unknown as Pick<
-        DslUseCases,
-        'renderResumeDsl'
-      >,
+      {
+        renderResumeDsl: mockRenderResumeDslUseCase,
+        renderSampleResumeDsl: mockRenderSampleResumeDslUseCase,
+      } as unknown as Pick<DslUseCases, 'renderResumeDsl' | 'renderSampleResumeDsl'>,
       mockSerializer as unknown as TypstDataSerializerService,
       mockCompiler as unknown as TypstCompilerService,
       stubLogger,
@@ -105,6 +110,30 @@ describe('TypstPdfGeneratorService', () => {
       await expect(service.generate({ userId: 'user-1' })).rejects.toBeInstanceOf(
         EntityNotFoundException,
       );
+    });
+
+    it('should render the sample résumé when no primary resume and sampleFallback is set', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce({ primaryResumeId: null });
+      // Mocks aren't call-cleared between tests, so compare against the
+      // call count captured before this invocation rather than asserting
+      // "never called".
+      const dbRendersBefore = mockRenderResumeDslUseCase.execute.mock.calls.length;
+
+      const result = await service.generate({
+        userId: 'user-1',
+        sampleFallback: true,
+        themeStyleConfig: { tokens: { foo: 'bar' } },
+      });
+
+      // Falls back to the sample renderer (never the DB-backed one) and
+      // still produces a PDF — no EntityNotFoundException.
+      expect(result).toBe(MOCK_PDF_BUFFER);
+      expect(mockRenderResumeDslUseCase.execute.mock.calls.length).toBe(dbRendersBefore);
+      expect(mockRenderSampleResumeDslUseCase.execute).toHaveBeenCalledWith({
+        styleConfig: { tokens: { foo: 'bar' } },
+        target: 'pdf',
+        locale: 'pt-BR',
+      });
     });
 
     it('should compile DSL with correct locale', async () => {

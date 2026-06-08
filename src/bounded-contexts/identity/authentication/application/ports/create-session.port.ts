@@ -32,6 +32,13 @@ export interface CreateSessionCommand {
   cookieWriter: CookieWriter;
   ipAddress?: string;
   userAgent?: string;
+  /**
+   * "Keep me signed in" (web). True → persistent cookie sized to
+   * `PERSISTENT_SESSION_EXPIRY_DAYS`; false/absent → session cookie sized to
+   * `SESSION_EXPIRY_DAYS` that dies on browser close. Mobile (Accept-Mode:
+   * tokens) suppresses the cookie entirely, so this is a no-op there.
+   */
+  keepSignedIn?: boolean;
 }
 
 export interface CreateSessionResult {

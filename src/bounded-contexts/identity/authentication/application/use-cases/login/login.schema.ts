@@ -6,7 +6,16 @@ extendZodWithOpenApi(z);
 
 // Request Schema
 export const LoginSchema = z
-  .object({ email: EmailSchema, password: PasswordInputSchema })
+  .object({
+    email: EmailSchema,
+    password: PasswordInputSchema,
+    /**
+     * "Keep me signed in" (web/cookie clients). True → persistent cookie that
+     * slides for ~30 days; false/absent → session cookie cleared on browser
+     * close. Ignored by mobile (Accept-Mode: tokens) since no cookie is set.
+     */
+    keepSignedIn: z.boolean().optional(),
+  })
   .openapi('LoginRequest', {
     description:
       'Login payload. Password validation is lenient here (legacy accounts) — the strict policy applies on registration / change.',
@@ -21,6 +30,8 @@ export const LoginVerify2faSchema = z
   .object({
     userId: z.string().min(1),
     code: z.string().min(6),
+    /** Same "keep me signed in" choice as login, carried through 2FA. */
+    keepSignedIn: z.boolean().optional(),
   })
   .openapi({
     example: {

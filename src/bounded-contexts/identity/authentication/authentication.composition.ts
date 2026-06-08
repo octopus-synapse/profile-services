@@ -31,6 +31,7 @@ import {
   LoginUseCase,
   LogoutUseCase,
   RefreshTokenUseCase,
+  RenewSessionUseCase,
   TerminateSessionUseCase,
   ValidateSessionUseCase,
 } from './application/use-cases';
@@ -55,6 +56,7 @@ export interface AuthenticationUseCases {
   readonly createSession: CreateSessionUseCase;
   readonly validateSession: ValidateSessionUseCase;
   readonly terminateSession: TerminateSessionUseCase;
+  readonly renewSession: RenewSessionUseCase;
   /** V2 D42 — mobile token-exchange flow. */
   readonly createSessionExchange: CreateSessionExchangeUseCase;
   readonly exchangeSessionForTokens: ExchangeSessionForTokensUseCase;
@@ -120,6 +122,12 @@ export function buildAuthenticationUseCases(
     eventBus,
     logger,
   );
+  const renewSession = new RenewSessionUseCase(
+    tokenGenerator,
+    sessionStorage,
+    { get: <T>(key: string, defaultValue: T) => config.getOrDefault<T>(key, defaultValue) },
+    logger,
+  );
   const createSessionExchange = new CreateSessionExchangeUseCase(sessionExchange, logger);
   const exchangeSessionForTokens = new ExchangeSessionForTokensUseCase(
     sessionExchange,
@@ -143,6 +151,7 @@ export function buildAuthenticationUseCases(
     validateSession,
     terminateSession,
     refreshToken,
+    renewSession,
     sessionDevices,
     createSessionExchange,
     exchangeSessionForTokens,
@@ -156,6 +165,7 @@ export function buildAuthenticationUseCases(
     createSession,
     validateSession,
     terminateSession,
+    renewSession,
     createSessionExchange,
     exchangeSessionForTokens,
     tokenGenerator,

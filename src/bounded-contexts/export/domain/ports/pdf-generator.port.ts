@@ -15,6 +15,11 @@ export interface PdfGeneratorOptions {
   template?: PdfTemplate;
   resumeId?: string;
   themeStyleConfig?: Record<string, unknown>;
+  /** When set and the user has no primary résumé, render a built-in
+   *  sample résumé styled with `themeStyleConfig` instead of throwing
+   *  `EntityNotFoundException('Resume')`. Used by the generic style
+   *  preview so onboarding (no résumé yet) still gets a real PDF. */
+  sampleFallback?: boolean;
 }
 
 export abstract class PdfGeneratorPort {

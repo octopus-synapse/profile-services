@@ -46,7 +46,10 @@ export { ExportHttpBundle, ExportUseCases };
  * the export BC doesn't have a build-time dependency on the dsl
  * module's full surface area (it's still a runtime cross-BC dep).
  */
-export type ExportDslDeps = Pick<DslUseCases, 'renderResumeDsl'>;
+export type ExportDslDeps = Pick<
+  DslUseCases,
+  'renderResumeDsl' | 'renderSampleResumeDsl' | 'renderInMemoryResumeDsl'
+>;
 
 export interface ExportCompositionDeps {
   readonly prisma: PrismaService;

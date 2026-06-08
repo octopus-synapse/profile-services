@@ -89,12 +89,18 @@ const SYSTEM_STYLES: readonly SystemStyleSeed[] = [
       layout: {
         type: 'single-column',
         paperSize: 'a4',
-        margins: 'narrow',
+        // `compact` is the valid DSL enum for narrow margins (`narrow` is
+        // not a MarginSize). The Typst `ats` template hardcodes its own
+        // 12mm margins, so this only affects schema validity.
+        margins: 'compact',
         pageBreakBehavior: 'auto',
       },
       tokens: {
         typography: {
-          fontFamily: { heading: 'helvetica', body: 'helvetica' },
+          // `arial` is the metric-compatible, schema-valid stand-in for
+          // Helvetica (not in FontFamily). The `ats` template hardcodes its
+          // serif face regardless, so this only affects schema validity.
+          fontFamily: { heading: 'arial', body: 'arial' },
           fontSize: 'sm',
           headingStyle: 'bold',
         },

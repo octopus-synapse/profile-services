@@ -17,8 +17,10 @@ import { DslCompilerService } from './application/services/dsl-compiler.service'
 import { DslValidatorService } from './application/services/dsl-validator.service';
 import { TokenResolverService } from './application/services/token-resolver.service';
 import { PreviewDslUseCase } from './application/use-cases/preview-dsl/preview-dsl.use-case';
+import { RenderInMemoryResumeDslUseCase } from './application/use-cases/render-in-memory-resume-dsl/render-in-memory-resume-dsl.use-case';
 import { RenderPublicResumeDslUseCase } from './application/use-cases/render-public-resume-dsl/render-public-resume-dsl.use-case';
 import { RenderResumeDslUseCase } from './application/use-cases/render-resume-dsl/render-resume-dsl.use-case';
+import { RenderSampleResumeDslUseCase } from './application/use-cases/render-sample-resume-dsl/render-sample-resume-dsl.use-case';
 import { ValidateDslUseCase } from './application/use-cases/validate-dsl/validate-dsl.use-case';
 import { dslRoutes } from './dsl.routes';
 import { PrismaResumeDslRepository } from './infrastructure/adapters/persistence/prisma-resume-dsl.repository';
@@ -40,6 +42,8 @@ export function buildDslUseCases(prisma: PrismaService, logger: LoggerPort): Dsl
     previewDsl: new PreviewDslUseCase(compiler),
     renderResumeDsl: new RenderResumeDslUseCase(repo, validator, compiler, logger),
     renderPublicResumeDsl: new RenderPublicResumeDslUseCase(repo, validator, compiler, logger),
+    renderSampleResumeDsl: new RenderSampleResumeDslUseCase(compiler, logger),
+    renderInMemoryResumeDsl: new RenderInMemoryResumeDslUseCase(compiler, logger),
   };
 }
 

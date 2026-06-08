@@ -18,6 +18,14 @@ export interface SessionPayload {
   sessionId: string;
   iat: number;
   exp: number;
+  /**
+   * "Keep me signed in" — when true the cookie is persistent (Max-Age set)
+   * and slides on refresh; when false/absent it's a session cookie (dies on
+   * browser close). Embedded in the JWT so `/refresh` can re-issue with the
+   * same lifetime without the client re-stating the choice. Optional for
+   * back-compat with tokens minted before this field existed.
+   */
+  persistent?: boolean;
 }
 
 export interface SessionProps {
@@ -28,6 +36,7 @@ export interface SessionProps {
   expiresAt: Date;
   ipAddress?: string;
   userAgent?: string;
+  persistent?: boolean;
 }
 
 export class Session {
@@ -38,6 +47,7 @@ export class Session {
   public readonly expiresAt: Date;
   public readonly ipAddress?: string;
   public readonly userAgent?: string;
+  public readonly persistent: boolean;
 
   private constructor(props: SessionProps) {
     this.id = props.id;
@@ -47,6 +57,7 @@ export class Session {
     this.expiresAt = props.expiresAt;
     this.ipAddress = props.ipAddress;
     this.userAgent = props.userAgent;
+    this.persistent = props.persistent ?? false;
 
     this.validate();
   }
@@ -67,6 +78,7 @@ export class Session {
     expiryDays: number,
     ipAddress?: string,
     userAgent?: string,
+    persistent = false,
   ): Session {
     const now = new Date();
     const expiresAt = new Date(now);
@@ -80,6 +92,7 @@ export class Session {
       expiresAt,
       ipAddress,
       userAgent,
+      persistent,
     });
   }
 
@@ -126,6 +139,7 @@ export class Session {
       sessionId: this.id,
       iat: Math.floor(this.createdAt.getTime() / 1000),
       exp: Math.floor(this.expiresAt.getTime() / 1000),
+      persistent: this.persistent,
     };
   }
 }

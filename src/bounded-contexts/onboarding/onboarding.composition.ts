@@ -23,6 +23,10 @@ import { buildOnboardingUseCases } from './application/compositions/onboarding.c
 import { buildOnboardingProgressUseCases } from './application/compositions/onboarding-progress.composition';
 import { OnboardingHttpBundle } from './application/ports/onboarding-http.bundle';
 import { ActivateOnboardingExtrasUseCase } from './application/use-cases/activate-onboarding-extras/activate-onboarding-extras.use-case';
+import {
+  RenderOnboardingPreviewUseCase,
+  type RenderOnboardingResumeHtmlFn,
+} from './application/use-cases/render-onboarding-preview/render-onboarding-preview.use-case';
 import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-config.adapter';
 import { OnboardingProgressRepository } from './infrastructure/adapters/persistence/onboarding-progress.repository';
 import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
@@ -44,6 +48,13 @@ export interface OnboardingDeps {
    * geo-validated (e.g. in tests).
    */
   readonly validateLocation?: (label: string) => Promise<boolean>;
+  /**
+   * Compiles + renders an in-memory résumé to HTML for the live
+   * resume-style preview. Supplied by the composition root (wraps the
+   * export BC's html generator). Optional — when absent (e.g. tests that
+   * don't wire export), the preview route throws on use.
+   */
+  readonly renderResumeHtml?: RenderOnboardingResumeHtmlFn;
 }
 
 export interface OnboardingBundle {
@@ -51,7 +62,8 @@ export interface OnboardingBundle {
 }
 
 export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
-  const { prisma, logger, auditLog, cacheLock, sseStream, validateLocation } = deps;
+  const { prisma, logger, auditLog, cacheLock, sseStream, validateLocation, renderResumeHtml } =
+    deps;
 
   const useCases = buildOnboardingUseCases(prisma, logger, auditLog, validateLocation);
   const progress = buildOnboardingProgressUseCases(prisma, logger);
@@ -65,6 +77,20 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
   const activateExtras = new ActivateOnboardingExtrasUseCase(
     new OnboardingProgressRepository(prisma, logger),
   );
+  // Live résumé preview. When the render fn isn't wired (tests without the
+  // export BC), fail loudly only if the route is actually exercised.
+  const renderHtml: RenderOnboardingResumeHtmlFn =
+    renderResumeHtml ??
+    (() => {
+      throw new Error('Onboarding résumé preview renderer is not configured');
+    });
+  const renderOnboardingPreview = new RenderOnboardingPreviewUseCase(
+    progress,
+    sectionTypes,
+    resumeStyles,
+    renderHtml,
+    logger,
+  );
 
   const httpBundle: OnboardingHttpBundle = {
     useCases,
@@ -76,6 +102,7 @@ export function buildOnboardingBundle(deps: OnboardingDeps): OnboardingBundle {
     sseStream,
     admin,
     activateExtras,
+    renderOnboardingPreview,
   };
 
   return { httpBundle };

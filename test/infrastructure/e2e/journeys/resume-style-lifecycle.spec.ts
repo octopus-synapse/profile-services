@@ -168,6 +168,45 @@ describe('E2E Journey: Resume Style Lifecycle', () => {
   // coverage despite being documented at the top of this journey.
 
   describe('Step 2.5: Preview a style', () => {
+    // Regression guard #2 (the user-reported bug): a user *mid-onboarding*
+    // has NO `primaryResumeId` yet — onboarding only sets it when it
+    // materializes the resume, which happens at/after the resume-style step.
+    // The preview is documented as a *generic* style preview, so it must
+    // still render (a built-in sample resume styled with the candidate
+    // style). Before the sample fallback, the Typst generator threw
+    // `EntityNotFoundException('Resume')` → 404 → the web modal showed
+    // "Pré-visualização indisponível." This test runs FIRST, while
+    // `primaryResumeId` is still null, and must never see a 404.
+    it.serial(
+      'should stream a generic sample preview when the user has no primary resume (onboarding)',
+      async () => {
+        // Mirror the onboarding precondition explicitly: no primary resume.
+        await prisma.user.update({
+          where: { id: testUser.userId },
+          data: { primaryResumeId: null },
+        });
+
+        const res = await app.request
+          .get(`/api/v1/resume-styles/${firstSystemStyleId}/preview.pdf`)
+          .set('Authorization', `Bearer ${testUser.token}`);
+
+        // The bug: a missing primary resume 404'd. The generic preview must
+        // render a sample (200) — or surface a *handled* Typst outage
+        // (502/503). A 404 here means the sample fallback is missing.
+        expect(res.status).not.toBe(404);
+        expect([200, 502, 503]).toContain(res.status);
+
+        if (res.status === 200) {
+          expect(Buffer.isBuffer(res.body)).toBe(true);
+          expect(res.body.length).toBeGreaterThan(1000);
+          expect(res.body.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+        } else {
+          console.warn(`⚠️  Sample-preview render unavailable (status ${res.status})`);
+        }
+      },
+      60000,
+    );
+
     it.serial(
       'should stream a preview PDF for a system style (never an unhandled 500)',
       async () => {

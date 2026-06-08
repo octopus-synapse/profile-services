@@ -103,6 +103,29 @@ describe('CreateSessionUseCase', () => {
     expect(events[0].userAgent).toBe('TestBrowser/1.0');
   });
 
+  it('writes a session cookie (non-persistent) when keepSignedIn is absent', async () => {
+    repository.seedSessionUser(createSessionAuthUser({ id: 'user-1', email: 'test@example.com' }));
+    const cookieWriter = createCookieWriter();
+
+    await useCase.execute({ userId: 'user-1', email: 'test@example.com', cookieWriter });
+
+    expect(sessionStorage.lastPersistent).toBe(false);
+  });
+
+  it('writes a persistent cookie when keepSignedIn is true', async () => {
+    repository.seedSessionUser(createSessionAuthUser({ id: 'user-1', email: 'test@example.com' }));
+    const cookieWriter = createCookieWriter();
+
+    await useCase.execute({
+      userId: 'user-1',
+      email: 'test@example.com',
+      cookieWriter,
+      keepSignedIn: true,
+    });
+
+    expect(sessionStorage.lastPersistent).toBe(true);
+  });
+
   it('throws when user is not found after session creation', async () => {
     // Arrange - no user seeded in repository
     const cookieWriter = createCookieWriter();

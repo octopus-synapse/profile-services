@@ -29,11 +29,13 @@ import {
   LocaleQuery,
   OnboardingConfigResponseSchema,
   OnboardingConfigUpdatedResponseSchema,
+  OnboardingResumePreviewResponseSchema,
   OnboardingStatsResponseSchema,
   OnboardingStatusResponseSchema,
   OnboardingStepCreatedResponseSchema,
   OnboardingStepResponseSchema,
   OnboardingStepsResponseSchema,
+  ResumePreviewQuery,
   RestartQuery,
   SaveProgressResponseSchema,
   StepDataBody,
@@ -355,6 +357,30 @@ export const onboardingRoutes: ReadonlyArray<Route<OnboardingHttpBundle>> = [
         { name: user.name },
         sectionTypes,
       );
+    },
+  },
+
+  {
+    method: 'GET',
+    path: '/v1/onboarding/session/resume-preview',
+    auth: { kind: 'jwt' },
+    query: ResumePreviewQuery,
+    response: OnboardingResumePreviewResponseSchema,
+    openapi: {
+      summary: 'Render a live résumé preview from saved progress in a candidate style',
+      tags: ['onboarding'],
+      description: 'Onboarding API',
+    },
+    sdk: { exported: true },
+    handler: async (ctx, bundle) => {
+      const user = ctx.user! as AuthUser;
+      const q = ctx.query as ResumePreviewQuery;
+      const locale = parseLocale(q.locale);
+      return bundle.renderOnboardingPreview.execute({
+        userId: user.userId,
+        styleId: q.styleId,
+        locale,
+      });
     },
   },
 

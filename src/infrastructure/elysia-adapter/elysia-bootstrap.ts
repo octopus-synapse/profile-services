@@ -90,7 +90,10 @@ import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
 import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
-import { buildOnboardingComposition } from '@/bounded-contexts/onboarding/onboarding.composition';
+import {
+  buildOnboardingComposition,
+  type OnboardingDeps,
+} from '@/bounded-contexts/onboarding/onboarding.composition';
 import { onboardingRoutes } from '@/bounded-contexts/onboarding/onboarding.routes';
 import { buildAuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.composition';
 import { AuditLogServiceAdapter } from '@/bounded-contexts/platform/common/audit/audit-log-port.adapter';
@@ -597,7 +600,11 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     config,
     eventPublisher: eventBus,
     logger,
-    dsl: { renderResumeDsl: dsl.useCases.renderResumeDsl },
+    dsl: {
+      renderResumeDsl: dsl.useCases.renderResumeDsl,
+      renderSampleResumeDsl: dsl.useCases.renderSampleResumeDsl,
+      renderInMemoryResumeDsl: dsl.useCases.renderInMemoryResumeDsl,
+    },
   });
 
   // --- Phase-1 final batch: all 33 newly-migrated BCs ---
@@ -662,6 +669,10 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     logger,
   );
   const authentication = authenticationUseCases as never;
+  // Phase 2: hand the OAuth bundle the session creator so its callback can
+  // issue a persistent cookie on web redirects (oauth is built before auth,
+  // hence the late bind). Native deep-link redirects ignore it.
+  oauth.useCases.createSession = authenticationUseCases.createSession;
   const accountLifecycle = buildAccountLifecycleUseCases(
     prisma as never,
     auditLog,
@@ -715,9 +726,16 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Integration.
   const upload = buildUploadComposition(s3, prisma as never, logger);
 
-  // Onboarding has no Typst/DSL dependency anymore — preview rendering
-  // moved out of the bounded context after the redesign.
+  // Onboarding renders a live résumé preview from saved progress (the
+  // resume-style picker). It builds the GenericResume itself and delegates
+  // the AST compile + HTML render to the export BC's html generator —
+  // reusing the exact pipeline the Resume tab preview uses.
   const cacheLock = new InMemoryCacheLockAdapter();
+  // Render the user's in-progress résumé as HTML in the chosen style by
+  // delegating to the export BC's html generator (same pipeline as the
+  // Resume tab preview). Typed via OnboardingDeps so `input` isn't `any`.
+  const renderOnboardingResumeHtml: NonNullable<OnboardingDeps['renderResumeHtml']> = (input) =>
+    exportBc.useCases.resumeHtmlGenerator.generateFromResume(input);
   const onboarding = buildOnboardingComposition({
     prisma: prisma as never,
     logger,
@@ -726,6 +744,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     sseStream,
     // Reject onboarding locations that aren't real geo entries.
     validateLocation: (label: string) => geo.lookup.locationExists(label),
+    renderResumeHtml: renderOnboardingResumeHtml,
   } as never) as never;
 
   // Resumes sub-BCs. `versionService` comes from resume-versions;

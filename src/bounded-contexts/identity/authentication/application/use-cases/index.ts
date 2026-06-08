@@ -20,6 +20,8 @@ export { LogoutUseCase } from './logout';
 export type { RefreshTokenDto, RefreshTokenResponseDto } from './refresh-token';
 // Refresh token use case
 export { RefreshTokenUseCase } from './refresh-token';
+// Renew session use case (browser cookie sliding)
+export { RenewSessionUseCase } from './renew-session/renew-session.use-case';
 export * from './session';
 export { TerminateSessionUseCase } from './terminate-session';
 export { ValidateSessionUseCase } from './validate-session';

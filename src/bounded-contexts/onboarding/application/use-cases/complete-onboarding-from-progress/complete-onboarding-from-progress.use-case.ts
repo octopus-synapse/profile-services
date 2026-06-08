@@ -7,6 +7,7 @@ import {
 } from '../../../domain/exceptions/onboarding.exceptions';
 import type { CompletionResult } from '../../../domain/ports/onboarding-completion.port';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
+import { extractOnboardingDataFromProgress } from '../../mappers/onboarding-resume.mapper';
 import type { GetProgressFn } from '../shared/navigation.types';
 
 export interface CompleteOnboardingExecutor {
@@ -50,18 +51,11 @@ export class CompleteOnboardingFromProgressUseCase {
   }
 
   private buildOnboardingDataFromProgress(progress: OnboardingProgressData) {
-    const personalInfo = progress.personalInfo as Record<string, unknown> | undefined;
-    const professionalProfile = progress.professionalProfile as Record<string, unknown> | undefined;
-
-    this.validateProgressCompleteness(progress.username ?? undefined, personalInfo);
-
-    return {
-      username: progress.username,
-      personalInfo,
-      professionalProfile,
-      resumeStyleId: progress.resumeStyleId ?? null,
-      sections: this.mapProgressSections(progress),
-    };
+    // Shared with the live preview path — same mapping, so the rendered
+    // preview and the persisted résumé never drift.
+    const data = extractOnboardingDataFromProgress(progress);
+    this.validateProgressCompleteness(data.username ?? undefined, data.personalInfo);
+    return data;
   }
 
   private validateProgressCompleteness(
@@ -108,19 +102,5 @@ export class CompleteOnboardingFromProgressUseCase {
         message: 'Full name is required',
       });
     }
-  }
-
-  private mapProgressSections(progress: OnboardingProgressData) {
-    return (progress.sections ?? []).map((s) => ({
-      sectionTypeKey: s.sectionTypeKey,
-      items: (s.items ?? []).map((item) => {
-        if (typeof item === 'object' && item !== null) {
-          const obj = item as Record<string, unknown>;
-          return { content: (obj.content as Record<string, unknown>) ?? obj };
-        }
-        return { content: {} };
-      }),
-      noData: s.noData ?? false,
-    }));
   }
 }

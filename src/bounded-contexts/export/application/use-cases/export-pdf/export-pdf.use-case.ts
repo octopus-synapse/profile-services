@@ -18,6 +18,9 @@ export interface ExportPdfDto {
   userId?: string;
   template?: 'default' | 'ats';
   themeStyleConfig?: Record<string, unknown>;
+  /** Render a built-in sample résumé when the user has no primary
+   *  résumé (generic style preview). */
+  sampleFallback?: boolean;
 }
 
 /** Themes/palettes are alphanumeric + dashes; reject obvious shell / path
@@ -40,6 +43,7 @@ export class ExportPdfUseCase {
       userId: dto.userId,
       template: dto.template,
       themeStyleConfig: dto.themeStyleConfig,
+      sampleFallback: dto.sampleFallback,
     };
 
     try {

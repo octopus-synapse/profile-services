@@ -8,6 +8,7 @@
  */
 
 import type { DslUseCases } from '@/bounded-contexts/dsl';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
@@ -28,7 +29,7 @@ function resolveLocale(lang?: string): Locale {
 export class TypstPdfGeneratorService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl'>,
+    private readonly dsl: Pick<DslUseCases, 'renderResumeDsl' | 'renderSampleResumeDsl'>,
     private readonly serializer: TypstDataSerializerService,
     private readonly compiler: TypstCompilerService,
     private readonly logger: LoggerPort,
@@ -51,18 +52,34 @@ export class TypstPdfGeneratorService {
       'TypstPdfGeneratorService',
     );
 
-    // 1. Find resume: use explicit resumeId or fall back to user's primary
-    const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
+    // 1. Find resume: explicit resumeId, else the user's primary.
+    const resumeId = options.resumeId ?? (await this.findPrimaryResumeIdOrNull(userId));
 
-    // 2. Render the resume DSL to AST via the use case (loads resume +
-    //    theme, validates, compiles)
-    const { ast } = await this.dsl.renderResumeDsl.execute({
-      resumeId,
-      userId,
-      target: 'pdf',
-      locale,
-      themeStyleConfig: options.themeStyleConfig,
-    });
+    // 2. Render to AST. With a résumé we render the user's real content;
+    //    without one we either render the built-in sample (generic style
+    //    preview — onboarding has no résumé yet) or 404 as before.
+    let ast: ResumeAst;
+    if (resumeId) {
+      ({ ast } = await this.dsl.renderResumeDsl.execute({
+        resumeId,
+        userId,
+        target: 'pdf',
+        locale,
+        themeStyleConfig: options.themeStyleConfig,
+      }));
+    } else if (options.sampleFallback) {
+      this.logger.log(
+        `No primary résumé for user ${userId}; rendering sample preview`,
+        'TypstPdfGeneratorService',
+      );
+      ({ ast } = this.dsl.renderSampleResumeDsl.execute({
+        styleConfig: options.themeStyleConfig ?? {},
+        target: 'pdf',
+        locale,
+      }));
+    } else {
+      throw new EntityNotFoundException('Resume');
+    }
 
     // 3. Serialize AST to JSON for Typst templates
     const jsonData = this.serializer.serialize(ast);
@@ -83,16 +100,12 @@ export class TypstPdfGeneratorService {
     return buffer;
   }
 
-  private async findPrimaryResumeId(userId: string): Promise<string> {
+  private async findPrimaryResumeIdOrNull(userId: string): Promise<string | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { primaryResumeId: true },
     });
 
-    if (!user?.primaryResumeId) {
-      throw new EntityNotFoundException('Resume');
-    }
-
-    return user.primaryResumeId;
+    return user?.primaryResumeId ?? null;
   }
 }

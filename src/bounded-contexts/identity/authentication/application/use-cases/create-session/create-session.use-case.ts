@@ -31,6 +31,7 @@ import type {
 
 export class CreateSessionUseCase implements CreateSessionPort {
   private readonly sessionExpiryDays: number;
+  private readonly persistentExpiryDays: number;
 
   constructor(
     private readonly repository: AuthenticationRepositoryPort,
@@ -40,20 +41,27 @@ export class CreateSessionUseCase implements CreateSessionPort {
     private readonly configService: SessionConfigPort,
     private readonly logger: LoggerPort,
   ) {
-    this.sessionExpiryDays = this.configService.get<number>('SESSION_EXPIRY_DAYS', 7);
+    this.sessionExpiryDays = Number(this.configService.get<number>('SESSION_EXPIRY_DAYS', 7)) || 7;
+    // "Keep me signed in" window — sliding, renewed on each /refresh.
+    this.persistentExpiryDays =
+      Number(this.configService.get<number>('PERSISTENT_SESSION_EXPIRY_DAYS', 30)) || 30;
   }
 
   async execute(command: CreateSessionCommand): Promise<CreateSessionResult> {
     const { userId, email, cookieWriter, ipAddress, userAgent } = command;
+    const persistent = command.keepSignedIn ?? false;
+    const expiryDays = persistent ? this.persistentExpiryDays : this.sessionExpiryDays;
 
     // 1. Create session domain entity
-    const session = Session.createNew(userId, email, this.sessionExpiryDays, ipAddress, userAgent);
+    const session = Session.createNew(userId, email, expiryDays, ipAddress, userAgent, persistent);
 
     // 2. Generate session JWT
     const sessionToken = await this.tokenGenerator.generateSessionToken(session.toPayload());
 
     // 3. Set cookie (side effect via cookie writer abstraction)
-    this.sessionStorage.setSessionCookie(cookieWriter, sessionToken, session.expiresAt);
+    this.sessionStorage.setSessionCookie(cookieWriter, sessionToken, session.expiresAt, {
+      persistent,
+    });
 
     // 4. Fetch user data for response. Invalidate the session cache
     // first so callers that just verified email / completed onboarding

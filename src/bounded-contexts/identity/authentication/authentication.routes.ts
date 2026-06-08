@@ -74,10 +74,8 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
     sdk: { exported: true, name: 'refresh' },
     handler: async (ctx, bc) => {
       const body = ctx.body as z.infer<typeof RefreshTokenSchema>;
-      // Browser flow: cookie carries the refresh token; backend rotates it
-      // silently. We return only `{ok: true}` so the frontend never sees
-      // the token. Non-browser clients with an explicit body receive the
-      // legacy token shape for compatibility.
+      // Non-browser clients pass an explicit refresh token in the body and
+      // receive the rotated token pair (mobile / server-to-server).
       if (body.refreshToken) {
         const result = await bc.refreshToken.execute({ refreshToken: body.refreshToken });
         return {
@@ -87,6 +85,14 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
           expiresIn: result.expiresIn,
         };
       }
+      // Browser flow: the session JWT rides in the `access_token` cookie.
+      // Re-issue it with a fresh window (sliding "keep me signed in"),
+      // preserving the persistent-vs-session choice baked into the token.
+      // Always `{ok: true}` so we never leak whether a session existed.
+      await bc.renewSession.execute({
+        cookieReader: ctxCookieReader(ctx),
+        cookieWriter: ctxCookieWriter(ctx),
+      });
       return { mode: 'cookie' as const, ok: true as const };
     },
   },
@@ -147,6 +153,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
+        keepSignedIn: dto.keepSignedIn,
       });
 
       // V2 D42: when the cookie was suppressed, the mobile client has
@@ -205,6 +212,7 @@ export const authenticationRoutes: ReadonlyArray<Route<AuthenticationHttpBundle>
         cookieWriter: acceptMode === 'tokens' ? noopCookieWriter() : ctxCookieWriter(ctx),
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
+        keepSignedIn: dto.keepSignedIn,
       });
 
       // V2 D42: emit the one-shot exchange id for native clients so

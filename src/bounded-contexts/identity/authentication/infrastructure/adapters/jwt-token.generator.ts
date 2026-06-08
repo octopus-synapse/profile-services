@@ -54,6 +54,7 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
         email: payload.email,
         sessionId: payload.sessionId,
         iat: payload.iat,
+        persistent: payload.persistent ?? false,
         // Don't include exp here - use expiresIn option instead
       },
       {
@@ -77,6 +78,7 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
       sessionId: string;
       iat: number;
       exp: number;
+      persistent?: boolean;
     }>(token);
     return {
       sub: decoded.sub,
@@ -84,6 +86,7 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
       sessionId: decoded.sessionId,
       iat: decoded.iat,
       exp: decoded.exp,
+      persistent: decoded.persistent ?? false,
     };
   }
 

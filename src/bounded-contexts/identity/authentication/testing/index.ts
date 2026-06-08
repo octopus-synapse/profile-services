@@ -236,6 +236,10 @@ export class InMemorySessionStorage implements SessionStoragePort {
   private cookieStore = new Map<string, string>();
   private readonly COOKIE_NAME = 'session';
 
+  /** Records the `persistent` flag from the last `setSessionCookie` call so
+   *  tests can assert session-cookie vs persistent-cookie behaviour. */
+  lastPersistent?: boolean;
+
   private readonly cookieOptions: SessionCookieOptions = {
     httpOnly: true,
     secure: false,
@@ -244,14 +248,25 @@ export class InMemorySessionStorage implements SessionStoragePort {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
 
-  setSessionCookie(cookieWriter: CookieWriter, sessionToken: string, expiresAt: Date): void {
+  setSessionCookie(
+    cookieWriter: CookieWriter,
+    sessionToken: string,
+    expiresAt: Date,
+    options?: { persistent?: boolean },
+  ): void {
+    const persistent = options?.persistent ?? true;
+    this.lastPersistent = persistent;
     // Store in memory
     this.cookieStore.set(this.COOKIE_NAME, sessionToken);
-    // Also call the writer (for testing controllers)
-    cookieWriter.setCookie(this.COOKIE_NAME, sessionToken, {
-      ...this.cookieOptions,
-      maxAge: expiresAt.getTime() - Date.now(),
-    });
+    // Also call the writer (for testing controllers). Persistent cookies get
+    // a Max-Age; session cookies omit it.
+    const writeOptions: SessionCookieOptions = { ...this.cookieOptions };
+    if (persistent) {
+      writeOptions.maxAge = expiresAt.getTime() - Date.now();
+    } else {
+      delete writeOptions.maxAge;
+    }
+    cookieWriter.setCookie(this.COOKIE_NAME, sessionToken, writeOptions);
   }
 
   getSessionCookie(cookieReader: CookieReader): string | null {

@@ -11,6 +11,7 @@
  * disabled, falls back to the legacy `UI_BASE_URL` redirect.
  */
 
+import type { CreateSessionPort } from '@/bounded-contexts/identity/authentication/application/ports/create-session.port';
 import type { OAuthPort } from '@/shared-kernel/auth/oauth.port';
 import type { ConfigPort } from '@/shared-kernel/config';
 import type { CheckOAuthProviderAvailabilityUseCase } from '../use-cases/check-oauth-provider-availability/check-oauth-provider-availability.use-case';
@@ -24,4 +25,11 @@ export abstract class OAuthHttpBundle {
   abstract readonly oauth: OAuthPort;
   /** V2 D41: Parsed `OAUTH_REDIRECT_URI_ALLOWLIST` env (CSV of wildcard patterns). */
   abstract readonly redirectUriAllowlist: readonly string[];
+  /**
+   * Phase 2: late-bound by the composition root (authentication is built
+   * after oauth). When present and the callback redirect is a web (http/s)
+   * URL, the handler issues a persistent session cookie so the browser is
+   * authenticated after OAuth. Absent for native deep-link redirects.
+   */
+  createSession?: CreateSessionPort;
 }

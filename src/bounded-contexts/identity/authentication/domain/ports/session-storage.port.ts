@@ -34,7 +34,12 @@ export interface SessionCookieOptions {
   secure: boolean;
   sameSite: 'lax' | 'strict' | 'none';
   path: string;
-  maxAge: number;
+  /**
+   * Cookie lifetime in ms. Omitted for a *session cookie* (dies on browser
+   * close) — used when "keep me signed in" is off. Present (persistent
+   * cookie) when on.
+   */
+  maxAge?: number;
   domain?: string;
 }
 
@@ -44,11 +49,14 @@ export abstract class SessionStoragePort {
    * @param cookieWriter - Abstraction for writing cookies
    * @param sessionToken - JWT session token to store
    * @param expiresAt - Cookie expiration date
+   * @param options - `persistent: false` writes a session cookie (no Max-Age,
+   *   cleared on browser close). Defaults to persistent for back-compat.
    */
   abstract setSessionCookie(
     cookieWriter: CookieWriter,
     sessionToken: string,
     expiresAt: Date,
+    options?: { persistent?: boolean },
   ): void;
 
   /**

@@ -22,6 +22,10 @@ export class StylePreviewAdapter extends StylePreviewPort {
       // renderer merges this `themeStyleConfig` and so doesn't require the
       // resume to already have an active style.
       themeStyleConfig: input.styleConfig as Record<string, unknown>,
+      // Generic style preview: when the user has no primary résumé yet
+      // (e.g. mid-onboarding at the résumé-style step), render a built-in
+      // sample résumé in the chosen style instead of 404-ing.
+      sampleFallback: true,
     });
   }
 }
