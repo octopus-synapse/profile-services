@@ -49,13 +49,14 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
         grau: string | null;
         modalidade: string | null;
         areaConhecimento: string | null;
+        cargaHoraria: number | null;
         institution_nome: string;
         institution_sigla: string | null;
         institution_uf: string;
       }>
     >`
       SELECT
-        c.id, c."codigoCurso", c.nome, c.grau, c.modalidade, c."areaConhecimento",
+        c.id, c."codigoCurso", c.nome, c.grau, c.modalidade, c."areaConhecimento", c."cargaHoraria",
         i.nome as institution_nome, i.sigla as institution_sigla, i.uf as institution_uf
       FROM "MecCourse" c
       JOIN "MecInstitution" i ON c."codigoIes" = i."codigoIes"
@@ -72,6 +73,7 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
       grau: c.grau,
       modalidade: c.modalidade,
       areaConhecimento: c.areaConhecimento,
+      cargaHoraria: c.cargaHoraria,
       institution: { nome: c.institution_nome, sigla: c.institution_sigla, uf: c.institution_uf },
     }));
   }
@@ -141,6 +143,7 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
     grau: string | null;
     modalidade: string | null;
     areaConhecimento: string | null;
+    cargaHoraria: number | null;
     institution: { nome: string; sigla: string | null; uf: string };
   }): Course {
     return {
@@ -150,6 +153,7 @@ export class PrismaMecCourseRepository extends MecCourseRepositoryPort {
       grau: course.grau,
       modalidade: course.modalidade,
       areaConhecimento: course.areaConhecimento,
+      cargaHoraria: course.cargaHoraria,
       institution: course.institution,
     };
   }

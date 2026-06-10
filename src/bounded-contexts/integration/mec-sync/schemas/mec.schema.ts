@@ -52,6 +52,7 @@ export const CourseSchema = z.object({
   grau: z.string().nullable(),
   modalidade: z.string().nullable(),
   areaConhecimento: z.string().nullable(),
+  cargaHoraria: z.number().nullable(),
   institution: InstitutionBasicSchema,
 });
 

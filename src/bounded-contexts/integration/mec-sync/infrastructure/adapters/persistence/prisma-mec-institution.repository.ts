@@ -6,8 +6,10 @@
 
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { LoggerPort } from '@/shared-kernel';
+import { Prisma } from '@prisma/client';
 import { BATCH_SIZE } from '../../../constants';
 import type { NormalizedInstitution } from '../../../domain/entities/mec-row';
+import { INSTITUTION_SEARCH_TIERS } from '../../../domain/services/institution-search-ranking';
 import {
   type InstitutionWithCoursesRow,
   MecInstitutionRepositoryPort,
@@ -83,17 +85,41 @@ export class PrismaMecInstitutionRepository extends MecInstitutionRepositoryPort
     };
   }
 
-  async searchInstitutionsByName(query: string, limit: number): Promise<Institution[]> {
+  async searchInstitutions(tokens: string[], limit: number): Promise<Institution[]> {
+    if (tokens.length === 0) return [];
+
+    // One expression per token: the strongest tier it hits, as a GREATEST
+    // over per-field CASEs. SQL mirror of `scoreInstitution` in
+    // domain/services/institution-search-ranking.ts — keep in lockstep.
+    const tokenScores = tokens.map((token) => {
+      const exact = Prisma.sql`immutable_unaccent(lower(${token}))`;
+      // LIKE patterns get %/_/\ escaped so a literal "100%" can't wildcard.
+      const like = Prisma.sql`immutable_unaccent(lower(${token.replace(/[\\%_]/g, (c) => `\\${c}`)}))`;
+      const T = INSTITUTION_SEARCH_TIERS;
+      return Prisma.sql`GREATEST(
+        CASE WHEN sigla IS NOT NULL AND immutable_unaccent(lower(sigla)) = ${exact} THEN ${T.SIGLA_EXACT} ELSE 0 END,
+        CASE WHEN immutable_unaccent(lower(nome)) LIKE ${like} || '%' THEN ${T.NOME_PREFIX} ELSE 0 END,
+        CASE WHEN immutable_unaccent(lower(nome)) LIKE '%' || ${like} || '%' THEN ${T.NOME_CONTAINS} ELSE 0 END,
+        CASE WHEN sigla IS NOT NULL AND immutable_unaccent(lower(sigla)) LIKE '%' || ${like} || '%' THEN ${T.SIGLA_CONTAINS} ELSE 0 END,
+        CASE WHEN municipio IS NOT NULL AND immutable_unaccent(lower(municipio)) LIKE '%' || ${like} || '%' THEN ${T.MUNICIPIO_CONTAINS} ELSE 0 END,
+        CASE WHEN lower(uf) = ${exact} THEN ${T.UF_EXACT} ELSE 0 END,
+        CASE WHEN organizacao IS NOT NULL AND immutable_unaccent(lower(organizacao)) LIKE '%' || ${like} || '%' THEN ${T.ORGANIZACAO_CONTAINS} ELSE 0 END
+      )`;
+    });
+
+    // AND semantics: a row only qualifies when every token matched
+    // something — i.e. its weakest token score is > 0.
     return this.prisma.$queryRaw<Institution[]>`
-      SELECT
-        id, "codigoIes", nome, sigla, uf, municipio, categoria, organizacao
-      FROM "MecInstitution"
-      WHERE "isActive" = true
-        AND (
-          immutable_unaccent(lower(nome)) LIKE '%' || immutable_unaccent(lower(${query})) || '%'
-          OR (sigla IS NOT NULL AND immutable_unaccent(lower(sigla)) LIKE '%' || immutable_unaccent(lower(${query})) || '%')
-        )
-      ORDER BY uf ASC, nome ASC
+      SELECT id, "codigoIes", nome, sigla, uf, municipio, categoria, organizacao
+      FROM (
+        SELECT *,
+          ${Prisma.join(tokenScores, ' + ')} AS search_score,
+          LEAST(${Prisma.join(tokenScores, ', ')}) AS weakest_token_score
+        FROM "MecInstitution"
+        WHERE "isActive" = true
+      ) ranked
+      WHERE weakest_token_score > 0
+      ORDER BY search_score DESC, nome ASC
       LIMIT ${limit}
     `;
   }

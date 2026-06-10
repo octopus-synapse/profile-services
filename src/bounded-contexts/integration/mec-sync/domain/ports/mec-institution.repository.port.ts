@@ -24,7 +24,12 @@ export abstract class MecInstitutionRepositoryPort {
   abstract listActiveInstitutions(): Promise<Institution[]>;
   abstract findInstitutionsByUf(uf: string): Promise<Institution[]>;
   abstract findInstitutionByCode(codigoIes: number): Promise<InstitutionWithCoursesRow | null>;
-  abstract searchInstitutionsByName(query: string, limit: number): Promise<Institution[]>;
+  /**
+   * Ranked search over nome / sigla / municipio / uf / organizacao.
+   * Tokens follow `tokenizeInstitutionQuery`; ranking follows
+   * `scoreInstitution` (domain/services/institution-search-ranking.ts).
+   */
+  abstract searchInstitutions(tokens: string[], limit: number): Promise<Institution[]>;
   abstract listDistinctUfs(): Promise<string[]>;
   abstract countInstitutionsByUf(): Promise<Array<{ uf: string; _count: number }>>;
   abstract countActiveInstitutions(): Promise<number>;

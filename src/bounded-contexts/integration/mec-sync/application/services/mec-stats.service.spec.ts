@@ -17,7 +17,7 @@ const buildInstitutionRepo = (
     listActiveInstitutions: mock().mockResolvedValue([]),
     findInstitutionsByUf: mock().mockResolvedValue([]),
     findInstitutionByCode: mock().mockResolvedValue(null),
-    searchInstitutionsByName: mock().mockResolvedValue([]),
+    searchInstitutions: mock().mockResolvedValue([]),
     listDistinctUfs: mock().mockResolvedValue([]),
     listExistingInstitutionCodes: mock().mockResolvedValue(new Set()),
     bulkCreateInstitutions: mock().mockResolvedValue(0),

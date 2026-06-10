@@ -99,6 +99,8 @@ function buildFieldsFromSectionDefinition(def: SectionDefinition) {
     if (!f.key) continue;
     if (f.type === 'array' || f.type === 'object') continue;
     const meta = (f.meta ?? {}) as Record<string, unknown>;
+    // Derived-only fields (e.g. companyDomain) carry data but never render.
+    if (meta.hidden === true) continue;
     const uiType = inferUiType(f.type, meta.widget);
     out.push({
       key: f.key,

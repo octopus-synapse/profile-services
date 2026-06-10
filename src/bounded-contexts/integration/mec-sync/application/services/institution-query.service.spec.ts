@@ -23,6 +23,6 @@ describe('InstitutionQueryService', () => {
     const repo = new InMemoryMecInstitutionRepository();
     const service = new InstitutionQueryService(stubLogger, repo, new InMemoryMecCache());
 
-    expect(await service.searchInstitutionsByName('a')).toEqual([]);
+    expect(await service.searchInstitutions('a')).toEqual([]);
   });
 });

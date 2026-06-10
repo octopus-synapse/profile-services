@@ -6,9 +6,9 @@
  * as the original module but freed from Nest's DI container.
  */
 
-import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { LoggerPort } from '@/shared-kernel';
+import type { CachePort } from '@/shared-kernel/cache/cache.port';
 import { MecSyncUseCases } from './application/ports/mec-sync.port';
 import { CourseQueryService } from './application/services/course-query.service';
 import { CsvEncodingService } from './application/services/csv-encoding.service';
@@ -43,7 +43,7 @@ export { MecSyncUseCases };
 
 export function buildMecSyncUseCases(
   prisma: PrismaService,
-  cache: CacheService,
+  cache: CachePort,
   logger: LoggerPort,
 ): MecSyncUseCases {
   // Outbound adapters

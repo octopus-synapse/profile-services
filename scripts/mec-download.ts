@@ -36,6 +36,86 @@ function isCloudflareChallenge(content: string): boolean {
   );
 }
 
+/**
+ * The managed challenge auto-resolves a few seconds after load and the
+ * page then navigates to the real content. Checking `page.content()`
+ * once right after `goto` races that navigation (the original script
+ * saw the interstitial, found zero links and bailed). Poll the title
+ * until it stops looking like a challenge page.
+ */
+async function waitForCloudflareResolution(
+  page: import('puppeteer').Page,
+  timeoutMs = 90000,
+): Promise<void> {
+  const startTime = Date.now();
+  for (;;) {
+    const [title, content] = await Promise.all([page.title(), page.content()]);
+    const challenged = /just a moment|um momento/i.test(title) || isCloudflareChallenge(content);
+    if (!challenged) return;
+    if (Date.now() - startTime > timeoutMs) {
+      throw new Error('Cloudflare challenge did not resolve in time');
+    }
+    console.log('⏳ Cloudflare challenge detected, waiting...');
+    await delay(3000);
+  }
+}
+
+/**
+ * Waits for Chrome to finish writing the CSV into `dataDir`. Stall-based
+ * rather than a fixed deadline: the ~225MB file takes longer than any
+ * reasonable fixed timeout on a slow link, so we only give up when the
+ * partial file stops growing for `STALL_TIMEOUT` (or the hard cap hits).
+ */
+async function waitForDownload(dataDir: string): Promise<void> {
+  const STALL_TIMEOUT = 60000; // no byte progress for 1 min = dead
+  const HARD_CAP = 1800000; // 30 min absolute ceiling
+  const startTime = Date.now();
+  let lastSize = -1;
+  let lastProgressAt = Date.now();
+
+  while (Date.now() - startTime < HARD_CAP) {
+    await delay(2000);
+
+    const files = fs.readdirSync(dataDir);
+
+    // Finished file: any .csv that is not a Chrome partial.
+    const csvFile = files.find((f) => f.endsWith('.csv') && !f.endsWith('.crdownload'));
+    if (csvFile) {
+      const filePath = path.join(dataDir, csvFile);
+      const stats = fs.statSync(filePath);
+      if (stats.size > 1000000) {
+        await delay(2000);
+        if (fs.statSync(filePath).size === stats.size) {
+          if (filePath !== OUTPUT_PATH) {
+            fs.renameSync(filePath, OUTPUT_PATH);
+          }
+          console.log(`✅ Downloaded ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+          return;
+        }
+      }
+    }
+
+    // In-flight partial: track growth to detect stalls.
+    const partial = files.find((f) => f.endsWith('.crdownload'));
+    if (partial) {
+      const size = fs.statSync(path.join(dataDir, partial)).size;
+      if (size > lastSize) {
+        lastSize = size;
+        lastProgressAt = Date.now();
+        console.log(`⏳ Downloading... ${(size / 1024 / 1024).toFixed(1)} MB`);
+      }
+    }
+
+    if (Date.now() - lastProgressAt > STALL_TIMEOUT) {
+      throw new Error(
+        lastSize < 0 ? 'Download never started' : 'Download stalled (no progress for 60s)',
+      );
+    }
+  }
+
+  throw new Error('Download timed out (30 min hard cap)');
+}
+
 async function downloadMecCsv(): Promise<void> {
   console.log('🚀 Starting MEC CSV download...');
   console.log(`📄 Page: ${MEC_PAGE_URL}`);
@@ -91,20 +171,12 @@ async function downloadMecCsv(): Promise<void> {
       timeout: 60000,
     });
 
-    // Wait for potential Cloudflare challenge
-    const content = await page.content();
-    if (isCloudflareChallenge(content)) {
-      console.log('⏳ Cloudflare challenge detected, waiting...');
-      await page.waitForFunction(
-        () => {
-          const body = document.body?.innerHTML || '';
-          return !body.includes('Just a moment') && !body.includes('Checking your browser');
-        },
-        { timeout: 60000 },
-      );
-      console.log('✅ Cloudflare challenge passed!');
-      await delay(2000);
-    }
+    // Wait for potential Cloudflare challenge (polls title + content —
+    // the interstitial navigates away when it auto-resolves, so a
+    // single content check right after goto races the redirect).
+    await waitForCloudflareResolution(page);
+    console.log('✅ Page loaded (no active Cloudflare challenge)');
+    await delay(2000);
 
     // Find and click the CSV download link
     console.log('🔍 Looking for CSV download link...');
@@ -140,43 +212,8 @@ async function downloadMecCsv(): Promise<void> {
           console.log('🖱️ Clicking download link...');
           await link.click();
 
-          // Wait for download to complete (check file existence)
           console.log('⏳ Waiting for download to complete...');
-          const maxWait = 180000; // 3 minutes
-          const startTime = Date.now();
-          let downloadComplete = false;
-
-          while (!downloadComplete && Date.now() - startTime < maxWait) {
-            await delay(1000);
-
-            // Check for any .csv file in the directory
-            const files = fs.readdirSync(dataDir);
-            const csvFile = files.find((f) => f.endsWith('.csv') && !f.endsWith('.crdownload'));
-
-            if (csvFile) {
-              const filePath = path.join(dataDir, csvFile);
-              const stats = fs.statSync(filePath);
-
-              // Wait for file to be fully written (size > 1MB and stable)
-              if (stats.size > 1000000) {
-                await delay(2000); // Wait a bit more to ensure it's complete
-                const newStats = fs.statSync(filePath);
-
-                if (newStats.size === stats.size) {
-                  // Rename to expected name if different
-                  if (csvFile !== 'mec-courses.csv') {
-                    fs.renameSync(filePath, OUTPUT_PATH);
-                  }
-                  downloadComplete = true;
-                  console.log(`✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`);
-                }
-              }
-            }
-          }
-
-          if (!downloadComplete) {
-            throw new Error('Download timed out');
-          }
+          await waitForDownload(dataDir);
 
           found = true;
           break;
@@ -208,40 +245,8 @@ async function downloadMecCsv(): Promise<void> {
       // Use JavaScript click to avoid clickability issues
       await csvLink.evaluate((el: HTMLAnchorElement) => el.click());
 
-      // Wait for download
       console.log('⏳ Waiting for download to complete...');
-      let downloadComplete = false;
-      const maxWait = 180000;
-      const startTime = Date.now();
-
-      while (!downloadComplete && Date.now() - startTime < maxWait) {
-        await delay(1000);
-
-        const files = fs.readdirSync(dataDir);
-        const csvFile = files.find((f) => f.endsWith('.csv') && !f.endsWith('.crdownload'));
-
-        if (csvFile) {
-          const filePath = path.join(dataDir, csvFile);
-          const stats = fs.statSync(filePath);
-
-          if (stats.size > 1000000) {
-            await delay(2000);
-            const newStats = fs.statSync(filePath);
-
-            if (newStats.size === stats.size) {
-              if (csvFile !== 'mec-courses.csv') {
-                fs.renameSync(filePath, OUTPUT_PATH);
-              }
-              downloadComplete = true;
-              console.log(`✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`);
-            }
-          }
-        }
-      }
-
-      if (!downloadComplete) {
-        throw new Error('Download timed out');
-      }
+      await waitForDownload(dataDir);
     }
 
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);

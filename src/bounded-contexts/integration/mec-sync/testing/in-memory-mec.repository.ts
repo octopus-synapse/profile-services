@@ -2,11 +2,13 @@
  * In-memory adapters for the institution + course repository ports.
  * Faithful enough for the use case + service specs:
  *   - bulk inserts skip duplicates
- *   - search is a simple substring match (no Postgres unaccent magic)
+ *   - institution search runs the real ranking (`scoreInstitution`);
+ *     course search stays a simple substring match
  *   - tests can `seedInstitution` / `seedCourse` to set up state
  */
 
 import type { NormalizedCourse, NormalizedInstitution } from '../domain/entities/mec-row';
+import { scoreInstitution } from '../domain/services/institution-search-ranking';
 import { MecCourseRepositoryPort } from '../domain/ports/mec-course.repository.port';
 import {
   type InstitutionWithCoursesRow,
@@ -72,12 +74,17 @@ export class InMemoryMecInstitutionRepository extends MecInstitutionRepositoryPo
     };
   }
 
-  async searchInstitutionsByName(query: string, limit: number): Promise<Institution[]> {
-    const lower = query.toLowerCase();
-    return [...this.institutions.values()]
-      .filter((i) => i.isActive && i.nome.toLowerCase().includes(lower))
-      .slice(0, limit)
-      .map(this.toInstitution);
+  async searchInstitutions(tokens: string[], limit: number): Promise<Institution[]> {
+    if (tokens.length === 0) return [];
+    const scored: Array<{ row: InstitutionRow; score: number }> = [];
+    for (const row of this.institutions.values()) {
+      if (!row.isActive) continue;
+      const score = scoreInstitution(row, tokens);
+      if (score === null) continue;
+      scored.push({ row, score });
+    }
+    scored.sort((a, b) => b.score - a.score || a.row.nome.localeCompare(b.row.nome));
+    return scored.slice(0, limit).map((s) => this.toInstitution(s.row));
   }
 
   async listDistinctUfs(): Promise<string[]> {
@@ -231,6 +238,7 @@ export class InMemoryMecCourseRepository extends MecCourseRepositoryPort {
     grau: row.grau,
     modalidade: row.modalidade,
     areaConhecimento: row.areaConhecimento,
+    cargaHoraria: row.cargaHoraria,
     institution: row.institution,
   });
 }

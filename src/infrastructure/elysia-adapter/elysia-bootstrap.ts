@@ -87,6 +87,7 @@ import { buildUploadComposition } from '@/bounded-contexts/integration/upload/up
 import { InvalidateMatchCacheOnJobUpdatedHandler } from '@/bounded-contexts/job-match/infrastructure/handlers/invalidate-match-cache-on-job-updated.handler';
 import { buildJobMatchComposition } from '@/bounded-contexts/job-match/job-match.composition';
 import { JobUpdatedEvent } from '@/bounded-contexts/jobs/domain/events';
+import { buildCompaniesComposition } from '@/bounded-contexts/companies/companies.composition';
 import { buildGeoComposition } from '@/bounded-contexts/geo/geo.composition';
 import { buildJobsComposition } from '@/bounded-contexts/jobs/jobs.composition';
 import { buildNotificationsComposition } from '@/bounded-contexts/notifications/notifications.composition';
@@ -713,6 +714,8 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   // Geo lookup BC — `GEO_SOURCE=postgres` uses the GeoNames import, else the
   // bundled dataset baked into the adapter.
   const geo = buildGeoComposition(prisma as never, config as never);
+  // Companies BC — logo.dev brand search proxy for the company autocomplete.
+  const companies = buildCompaniesComposition(cache, config, logger);
 
   // Analytics sub-BCs.
   const adminAnalytics = buildAdminAnalyticsComposition(prisma as never, logger);
@@ -808,7 +811,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
   const translation = buildTranslationComposition(ai.bundle.translation, logger) as never;
 
   // MEC sync — public catalog routes (`/api/v1/mec/...`).
-  const mecSync = buildMecSyncUseCases(prisma as never, cache as never, logger);
+  const mecSync = buildMecSyncUseCases(prisma as never, cache, logger);
 
   // Platform common — public enums + admin dashboard/alerts/stats.
   const platformUseCases = buildPlatformUseCases(
@@ -1184,6 +1187,7 @@ export async function bootstrap(): Promise<BootstrapHandle> {
     },
     { bundle: uiState, routes: uiStateRoutes },
     { bundle: geo.useCases, routes: geo.routes },
+    { bundle: companies.useCases, routes: companies.routes },
     {
       bundle: (translation as { useCases: unknown }).useCases ?? translation,
       routes: translationRoutes,

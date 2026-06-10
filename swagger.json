@@ -26579,6 +26579,150 @@
         "x-permission": "chat:use"
       }
     },
+    "/api/v1/companies/search": {
+      "get": {
+        "summary": "Search company name/domain suggestions for the experience autocomplete",
+        "description": "Company brand search",
+        "tags": [
+          "companies"
+        ],
+        "operationId": "get_v1_companies_search",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80,
+              "example": "fixture"
+            },
+            "required": true,
+            "name": "q",
+            "in": "query",
+            "example": "fixture"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "companies": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "domain": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "domain"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "companies"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "severity"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "toast",
+                        "modal",
+                        "banner",
+                        "inline",
+                        "silent"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-auth": "jwt"
+      }
+    },
     "/api/v1/config/password-policy": {
       "get": {
         "summary": "Server-enforced password policy",
@@ -47892,6 +48036,10 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "cargaHoraria": {
+                            "type": "number",
+                            "nullable": true
+                          },
                           "institution": {
                             "type": "object",
                             "properties": {
@@ -47920,6 +48068,7 @@
                           "grau",
                           "modalidade",
                           "areaConhecimento",
+                          "cargaHoraria",
                           "institution"
                         ]
                       }
@@ -48026,6 +48175,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "cargaHoraria": {
+                          "type": "number",
+                          "nullable": true
+                        },
                         "institution": {
                           "type": "object",
                           "properties": {
@@ -48054,6 +48207,7 @@
                         "grau",
                         "modalidade",
                         "areaConhecimento",
+                        "cargaHoraria",
                         "institution"
                       ]
                     }
@@ -48646,6 +48800,10 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "cargaHoraria": {
+                            "type": "number",
+                            "nullable": true
+                          },
                           "institution": {
                             "type": "object",
                             "properties": {
@@ -48674,6 +48832,7 @@
                           "grau",
                           "modalidade",
                           "areaConhecimento",
+                          "cargaHoraria",
                           "institution"
                         ]
                       }
@@ -103400,6 +103559,9 @@
     },
     {
       "name": "comments"
+    },
+    {
+      "name": "companies"
     },
     {
       "name": "config"

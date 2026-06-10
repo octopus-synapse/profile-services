@@ -1,5 +1,6 @@
 /**
- * Search institutions by name (substring match).
+ * Search institutions — ranked across nome / sigla / municipio / uf /
+ * organizacao (see domain/services/institution-search-ranking.ts).
  */
 
 import type { Institution } from '../../../schemas/mec.schema';
@@ -9,6 +10,6 @@ export class SearchInstitutionsUseCase {
   constructor(private readonly institutionQuery: InstitutionQueryService) {}
 
   execute(query: string, limit: number): Promise<Institution[]> {
-    return this.institutionQuery.searchInstitutionsByName(query, limit);
+    return this.institutionQuery.searchInstitutions(query, limit);
   }
 }

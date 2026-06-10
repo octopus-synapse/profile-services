@@ -7,6 +7,7 @@
 
 import { APP_CONFIG, LoggerPort } from '@/shared-kernel';
 import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../../domain/entities/mec-row';
+import { tokenizeInstitutionQuery } from '../../domain/services/institution-search-ranking';
 import { MecCachePort } from '../../domain/ports/mec-cache.port';
 import {
   type InstitutionWithCoursesRow,
@@ -68,7 +69,7 @@ export class InstitutionQueryService {
     };
   }
 
-  async searchInstitutionsByName(
+  async searchInstitutions(
     searchQuery: string,
     limit: number = APP_CONFIG.DEFAULT_PAGE_SIZE,
   ): Promise<Institution[]> {
@@ -79,7 +80,7 @@ export class InstitutionQueryService {
       return [];
     }
 
-    return this.repository.searchInstitutionsByName(normalizedQuery, limit);
+    return this.repository.searchInstitutions(tokenizeInstitutionQuery(normalizedQuery), limit);
   }
 
   async listStateCodes(): Promise<string[]> {

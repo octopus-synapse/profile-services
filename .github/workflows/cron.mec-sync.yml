@@ -1,5 +1,19 @@
 name: MEC Data Sync
 
+# Twice a year: the MEC dataset (cursos de graduação) is refreshed on
+# a semester cadence. The CSV is ~225MB — far over GitHub's 100MB blob
+# limit — so it is NEVER committed to the repo (data/mec-courses.csv is
+# gitignored). The download step exists to (a) prove the dataset is
+# still reachable behind Cloudflare and (b) keep a copy as a workflow
+# artifact for debugging; the actual DB ingestion happens server-side
+# via the internal sync endpoint, which downloads the CSV itself
+# (the prod image ships chromium for exactly this).
+#
+# Required configuration:
+#   - repo variable MEC_SYNC_API_ENABLED = 'true'  (kill-switch)
+#   - secret BACKEND_URL        (e.g. https://api.example.com — no trailing slash)
+#   - secret INTERNAL_API_TOKEN (matches the backend's INTERNAL_API_TOKEN env)
+
 on:
   schedule:
     # Run on January 1st at 03:00 UTC
@@ -9,24 +23,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   packages: read
-  # Needed so `gh pr create` works from the workflow without a PAT.
-  pull-requests: write
 
 jobs:
   download-and-sync:
     name: Download MEC CSV & Sync
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Need full history because the commit step does `git pull --rebase`.
-          fetch-depth: 0
 
       # Reads version from .bun-version file
       - name: Setup Bun
@@ -67,7 +75,7 @@ jobs:
       - name: Download MEC CSV (with retry)
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
-          timeout_minutes: 15
+          timeout_minutes: 35
           max_attempts: 3
           retry_wait_seconds: 60
           command: |
@@ -94,57 +102,28 @@ jobs:
             exit 1
           fi
 
-      - name: Open PR with new CSV (with retry)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
+      # The CSV cannot live in git (gitignored + >100MB GitHub limit).
+      # Keep it as a short-lived artifact so a failed server-side sync
+      # can be debugged against the exact bytes this run fetched.
+      - name: Upload CSV artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: |
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-
-            git pull --rebase origin main || true
-
-            if git diff --quiet data/mec-courses.csv 2>/dev/null; then
-              echo "📌 No changes to commit"
-              exit 0
-            fi
-
-            BRANCH="chore/mec-sync-$(date +%Y%m%d)"
-            # If a previous attempt already opened a PR for today, reuse
-            # the branch (force-update with this run's CSV).
-            git checkout -B "$BRANCH"
-            git add data/mec-courses.csv
-            git commit -m "chore(mec): update courses data"
-            git push --force origin "$BRANCH"
-
-            # Idempotent PR: open if missing, otherwise leave the
-            # existing one untouched.
-            if ! gh pr view "$BRANCH" --json number >/dev/null 2>&1; then
-              PR_BODY="Automated MEC CSV refresh produced a diff. Auto-merged once CI passes via the auto-merge label. Requires branch-protection allowing the label + an auto-merge bot that merges the PR when checks go green."
-              gh pr create \
-                --base main \
-                --head "$BRANCH" \
-                --title "chore(mec): update courses data" \
-                --body "$PR_BODY" \
-                --label "auto-merge"
-              echo "Opened PR for new MEC data"
-            else
-              echo "PR for $BRANCH already exists - pushed latest CSV"
-            fi
+          name: mec-courses-csv
+          path: data/mec-courses.csv
+          compression-level: 6
+          retention-days: 30
 
       - name: Trigger database sync
         if: ${{ vars.MEC_SYNC_API_ENABLED == 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
-          timeout_minutes: 5
-          max_attempts: 3
-          retry_wait_seconds: 30
+          # Server-side sync downloads + parses + bulk-inserts ~400k rows.
+          timeout_minutes: 30
+          max_attempts: 2
+          retry_wait_seconds: 120
           command: |
             curl -sf -X POST \
               -H "Content-Type: application/json" \
               -H "X-Internal-Token: ${{ secrets.INTERNAL_API_TOKEN }}" \
-              "${{ secrets.BACKEND_URL }}/api/mec/internal/sync" | jq '.'
+              --max-time 1740 \
+              "${{ secrets.BACKEND_URL }}/api/v1/mec/internal/sync" | jq '.'

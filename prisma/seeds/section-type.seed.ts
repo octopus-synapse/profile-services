@@ -174,6 +174,16 @@ export const sectionTypes: SectionTypeSeedData[] = [
           semanticRole: 'ORGANIZATION',
           meta: { label: 'Company' },
         },
+        // Set by the company autocomplete (logo.dev pick); the client derives
+        // the logo URL from it at render time. Hidden: never an input field.
+        {
+          key: 'companyDomain',
+          type: 'string',
+          required: false,
+          nullable: true,
+          semanticRole: 'ORGANIZATION_DOMAIN',
+          meta: { label: 'Company Domain', hidden: true },
+        },
         {
           key: 'role',
           type: 'string',
@@ -374,12 +384,21 @@ export const sectionTypes: SectionTypeSeedData[] = [
       schemaVersion: 1,
       kind: 'EDUCATION',
       fields: [
+        // Order matters: the app renders the editor fields in array order and
+        // gates them sequentially (institution → field of study → degree …).
         {
           key: 'institution',
           type: 'string',
           required: true,
           semanticRole: 'ORGANIZATION',
           meta: { label: 'Institution' },
+        },
+        {
+          key: 'field',
+          type: 'string',
+          required: false,
+          semanticRole: 'FIELD_OF_STUDY',
+          meta: { label: 'Field of Study' },
         },
         {
           key: 'degree',
@@ -405,21 +424,6 @@ export const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Degree Type' },
         },
         {
-          key: 'field',
-          type: 'string',
-          required: false,
-          semanticRole: 'FIELD_OF_STUDY',
-          meta: { label: 'Field of Study' },
-        },
-        {
-          key: 'status',
-          type: 'enum',
-          required: false,
-          semanticRole: 'STATUS',
-          enum: ['In Progress', 'Completed', 'Paused', 'Dropped'],
-          meta: { label: 'Status' },
-        },
-        {
           key: 'startDate',
           type: 'date',
           required: false,
@@ -433,6 +437,14 @@ export const sectionTypes: SectionTypeSeedData[] = [
           nullable: true,
           semanticRole: 'END_DATE',
           meta: { label: 'End Date' },
+        },
+        {
+          key: 'status',
+          type: 'enum',
+          required: false,
+          semanticRole: 'STATUS',
+          enum: ['In Progress', 'Completed', 'Paused', 'Dropped'],
+          meta: { label: 'Status' },
         },
         {
           key: 'description',

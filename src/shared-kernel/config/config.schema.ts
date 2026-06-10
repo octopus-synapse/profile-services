@@ -220,6 +220,9 @@ export const EnvConfigSchema = z
     POSTHOG_HOST: OptionalUrl,
     POSTHOG_API_KEY: z.string().optional(),
 
+    // --- Company brand search (logo.dev) ---
+    LOGO_DEV_SECRET_KEY: z.string().optional(),
+
     // --- Typst PDF rendering ---
     TYPST_BINARY_PATH: z.string().optional(),
     TYPST_FONT_PATH: z.string().optional(),
